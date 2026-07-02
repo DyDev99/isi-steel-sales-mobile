@@ -31,9 +31,10 @@ class HiveSessionStore implements SessionStore {
         id: map['id'] as String? ?? '',
         email: map['email'] as String? ?? '',
         fullName: map['fullName'] as String? ?? '',
-        roles: ((map['roles'] as List?) ?? const [])
-            .map((e) => UserRole.fromApi(e as String?))
-            .toSet(),
+        roles: ((map['roles']) as List<dynamic>?)
+                ?.map((e) => UserRole.values.byName(e as String))
+                .toSet() ??
+            {},
         company: map['company'] as String?,
         avatarUrl: map['avatarUrl'] as String?,
       );
@@ -51,7 +52,7 @@ class HiveSessionStore implements SessionStore {
           'id': user.id,
           'email': user.email,
           'fullName': user.fullName,
-          'roles': user.roles.map((r) => r.apiValue).toList(),
+          'roles': user.roles.map((e) => e.name).toList(), // Fixed syntax error here
           'company': user.company,
           'avatarUrl': user.avatarUrl,
         }),

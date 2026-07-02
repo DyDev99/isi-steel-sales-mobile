@@ -24,7 +24,7 @@ class SessionManager {
   final _controller = StreamController<User?>.broadcast();
 
   /// Emits on every session change — feed this to a router's refresh
-  /// listenable (see README) so redirects re-run on login/logout.
+  /// listenable so redirects re-run on login/logout.
   Stream<User?> get changes => _controller.stream;
 
   void setUser(User user) {

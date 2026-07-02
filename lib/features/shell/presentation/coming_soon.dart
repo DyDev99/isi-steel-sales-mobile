@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/ui/app_vibe.dart';
-import 'package:isi_steel_sales_mobile/core/ui/aurora_background.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/utils/aurora_background.dart';
 
 class ComingSoon extends StatelessWidget {
   const ComingSoon({super.key, required this.title, required this.emoji});
@@ -19,16 +20,16 @@ class ComingSoon extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(emoji, style: const TextStyle(fontSize: 48)),
-                  const SizedBox(height: 12),
+                  Text(emoji, style: TextStyle(fontSize: 48.sp)),
+                  SizedBox(height: 12.h),
                   Text(title,
-                      style: const TextStyle(
+                      style: TextStyle(
                           color: Vibe.text,
-                          fontSize: 22,
+                          fontSize: 22.sp,
                           fontWeight: FontWeight.w900)),
-                  const SizedBox(height: 6),
-                  const Text('Coming soon',
-                      style: TextStyle(color: Vibe.muted)),
+                  SizedBox(height: 6.h),
+                  Text('Coming soon',
+                      style: TextStyle(color: Vibe.muted, fontSize: 14.sp)),
                 ],
               ),
             ),

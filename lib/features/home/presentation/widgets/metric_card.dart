@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/ui/app_vibe.dart';
-import 'package:isi_steel_sales_mobile/core/ui/glass_card.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/utils/glass_card.dart';
 
 class MetricCard extends StatelessWidget {
   const MetricCard({
@@ -18,31 +19,50 @@ class MetricCard extends StatelessWidget {
   final Color accent;
   final VoidCallback? onTap;
 
-  @override
-  Widget build(BuildContext context) {
-    return GlassCard(
-      onTap: onTap,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: accent.withValues(alpha: 0.18),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: accent, size: 20),
+// metric_card.dart
+@override
+Widget build(BuildContext context) {
+  return GlassCard(
+    onTap: onTap,
+    child: Column(
+      mainAxisSize: MainAxisSize.min, // Fix: Tell column to only use necessary space
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+              Container(
+          width: 36.w,
+          height: 36.h,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: accent.withValues(alpha: 0.18),
+            borderRadius: BorderRadius.circular(12.r),
           ),
-          const SizedBox(height: 14),
-          Text(value,
-              style: const TextStyle(
-                  color: Vibe.text, fontSize: 22, fontWeight: FontWeight.w900)),
-          const SizedBox(height: 2),
-          Text(label, style: const TextStyle(color: Vibe.muted, fontSize: 12.5)),
-        ],
-      ),
-    );
-  }
+          child: Icon(icon, color: accent, size: 20.sp),
+        ),
+        SizedBox(width: 20.w),
+        Flexible( // Fix: Prevents text from forcing an overflow
+          child: Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+                color: Vibe.text, fontSize: 22.sp, fontWeight: FontWeight.w900),
+          ),
+        ),
+          ],
+        ),
+        SizedBox(height: 20.h),
+        Flexible( // Fix: Prevents text from forcing an overflow
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(color: Vibe.muted, fontSize: 12.5.sp),
+          ),
+        ),
+      ],
+    ),
+  );
+}
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/ui/app_vibe.dart';
-import 'package:isi_steel_sales_mobile/core/ui/glass_card.dart';
+import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/utils/glass_card.dart';
 
 class TargetCard extends StatelessWidget {
   const TargetCard({super.key, required this.progress});

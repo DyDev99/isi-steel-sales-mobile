@@ -3,6 +3,7 @@ import 'package:isi_steel_sales_mobile/core/constants/app_constant.dart';
 import 'package:isi_steel_sales_mobile/core/error/exceptions.dart';
 import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/data/models/auth_response_model.dart';
+import 'package:isi_steel_sales_mobile/features/authentication/data/models/auth_token_model.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/data/models/user_model.dart';
 
 abstract interface class AuthRemoteDataSource {
@@ -19,20 +20,39 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   final Dio _client;
 
   @override
-  Future<AuthResponseModel> login({
-    required String email,
-    required String password,
-  }) async {
-    try {
-      final res = await _client.post<DataMap>(
-        AppConstants.loginEndpoint,
-        data: {'email': email, 'password': password},
-      );
-      return AuthResponseModel.fromMap(res.data ?? const {});
-    } on DioException catch (e) {
-      throw _map(e);
-    }
+  @override
+Future<AuthResponseModel> login({
+  required String email,
+  required String password,
+}) async {
+  
+  // --- MOCK LOGIN FOR TESTING ---
+  if (email == 'tester@gmail.com' && password == 'tester@12345') {
+    return AuthResponseModel(
+      user: const UserModel(
+        id: 'user_001',
+        email: 'tester@gmail.com',
+        fullName: 'Test Tester',
+        roles: {}, 
+      ),
+      token: const AuthTokenModel(
+        accessToken: 'mock_access_token_123',
+        refreshToken: 'mock_refresh_token_456',
+      ),
+    );
   }
+  // ------------------------------
+
+  try {
+    final res = await _client.post<DataMap>(
+      AppConstants.loginEndpoint,
+      data: {'email': email, 'password': password},
+    );
+    return AuthResponseModel.fromMap(res.data ?? const {});
+  } on DioException catch (e) {
+    throw _map(e);
+  }
+}
 
   @override
   Future<UserModel> getCurrentUser() async {

@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/ui/app_vibe.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
 
 class NavTab {
   const NavTab(this.icon, this.label);
@@ -8,7 +9,6 @@ class NavTab {
   final String label;
 }
 
-/// Frosted, floating bottom bar. Active item gets a gradient pill.
 class GlassNavBar extends StatelessWidget {
   const GlassNavBar({
     super.key,
@@ -26,17 +26,17 @@ class GlassNavBar extends StatelessWidget {
     return SafeArea(
       top: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+        padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 12.h),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(24.r),
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
             child: Container(
-              height: 66,
-              padding: const EdgeInsets.symmetric(horizontal: 8),
+              height: 66.h,
+              padding: EdgeInsets.symmetric(horizontal: 8.w),
               decoration: BoxDecoration(
                 color: Vibe.surface,
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(24.r),
                 border: Border.all(color: Vibe.stroke),
               ),
               child: Row(
@@ -74,23 +74,34 @@ class _NavItem extends StatelessWidget {
         duration: const Duration(milliseconds: 220),
         curve: Curves.easeOut,
         margin: const EdgeInsets.symmetric(vertical: 10),
-        padding: EdgeInsets.symmetric(horizontal: selected ? 14 : 0, vertical: 8),
         decoration: BoxDecoration(
           gradient: selected ? Vibe.cta : null,
           borderRadius: BorderRadius.circular(18),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+        // We remove the internal padding from the container and rely on the Row 
+        // to manage the layout and centering.
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center, // Forces center alignment
+          mainAxisSize: MainAxisSize.max, // Forces row to fill the pill width
           children: [
-            Icon(tab.icon,
-                size: 22, color: selected ? Colors.white : Vibe.muted),
+            Icon(
+              tab.icon,
+              size: 22,
+              color: selected ? Colors.white : Vibe.muted,
+            ),
             if (selected) ...[
               const SizedBox(width: 8),
-              Text(tab.label,
+              Flexible(
+                child: Text(
+                  tab.label,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700)),
+                    color: Colors.white,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
             ],
           ],
         ),

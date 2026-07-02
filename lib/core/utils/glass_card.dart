@@ -1,6 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/ui/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
 
 class GlassCard extends StatelessWidget {
   const GlassCard({

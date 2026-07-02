@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/ui/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
 
 /// Dark canvas + soft radial glow blobs. Cheap (no blur filter).
 class AuroraBackground extends StatelessWidget {
@@ -8,12 +8,12 @@ class AuroraBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const ColoredBox(
-      color: Vibe.bg,
+      color: Color.fromARGB(255, 3, 14, 97),
       child: Stack(
         children: [
-          _Glow(color: Vibe.violet, top: -90, left: -60, size: 300),
-          _Glow(color: Vibe.pink, top: 140, right: -100, size: 260),
-          _Glow(color: Vibe.mint, bottom: -110, left: -50, size: 320),
+          _Glow(color: Color.fromARGB(255, 255, 255, 255), top: -90, left: -60, size: 300),
+          _Glow(color: Color.fromARGB(255, 255, 255, 255), top: 140, right: -100, size: 260),
+          _Glow(color: Color.fromARGB(255, 255, 255, 255), bottom: -110, left: -50, size: 320),
         ],
       ),
     );

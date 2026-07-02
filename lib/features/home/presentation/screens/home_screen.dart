@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:isi_steel_sales_mobile/core/ui/app_vibe.dart';
-import 'package:isi_steel_sales_mobile/core/ui/aurora_background.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/utils/aurora_background.dart';
 import 'package:isi_steel_sales_mobile/features/home/domain/dashboard_summary.dart';
 import 'package:isi_steel_sales_mobile/features/home/presentation/bloc/home_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/home/presentation/bloc/home_state.dart';
@@ -56,23 +57,23 @@ class _Dashboard extends StatelessWidget {
       onRefresh: () => context.read<HomeCubit>().refresh(),
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+        padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 28.h),
         children: [
           HomeHeader(name: name),
-          const SizedBox(height: 22),
+          SizedBox(height: 22.h),
           QuickActions(actions: [
             QuickAction(Icons.person_add_alt_1_rounded, 'New lead', () {}),
             QuickAction(Icons.add_shopping_cart_rounded, 'New order', () {}),
             QuickAction(Icons.trending_up_rounded, 'Opportunity', () {}),
             QuickAction(Icons.qr_code_scanner_rounded, 'Scan', () {}),
           ]),
-          const SizedBox(height: 20),
+          SizedBox(height: 20.h),
           GridView.count(
             crossAxisCount: 2,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            crossAxisSpacing: 14,
-            mainAxisSpacing: 14,
+            crossAxisSpacing: 14.w,
+            mainAxisSpacing: 14.h,
             childAspectRatio: 1.35,
             children: [
               MetricCard(
@@ -97,11 +98,11 @@ class _Dashboard extends StatelessWidget {
                   accent: Vibe.amber),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
           TargetCard(progress: summary.targetProgress),
-          const SizedBox(height: 22),
+          SizedBox(height: 22.h),
           const SectionHeader(title: 'Recent activity'),
-          const SizedBox(height: 4),
+          SizedBox(height: 4.h),
           ...summary.recent.map((a) => ActivityTile(item: a)),
         ],
       ),

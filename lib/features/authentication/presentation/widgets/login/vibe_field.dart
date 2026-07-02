@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/features/authentication/presentation/theme/auth_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/auth_vibe.dart';
 
 class VibeField extends StatelessWidget {
   const VibeField({

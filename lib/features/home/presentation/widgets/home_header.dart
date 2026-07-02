@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/ui/app_vibe.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
 
 class HomeHeader extends StatelessWidget {
   const HomeHeader({super.key, required this.name, this.onProfileTap, this.onBellTap});
@@ -39,11 +40,23 @@ class HomeHeader extends StatelessWidget {
               gradient: Vibe.cta,
               borderRadius: BorderRadius.circular(14),
             ),
-            child: Text(
-              name.isNotEmpty ? name.characters.first.toUpperCase() : '?',
-              style: const TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18),
-            ),
+            child: GestureDetector(
+  onTap: onProfileTap,
+  child: Container(
+    width: 44.w, // Using screenutil
+    height: 44.h,
+    decoration: BoxDecoration(
+      gradient: Vibe.cta,
+      borderRadius: BorderRadius.circular(22.r), // Makes it a perfect circle
+      // Add the image here
+      image: const DecorationImage(
+        image: NetworkImage('https://png.pngtree.com/png-clipart/20240111/original/pngtree-cool-smile-profile-emoji-png-image_14087472.png'), 
+        fit: BoxFit.cover,
+      ),
+    ),
+    
+  ),
+),
           ),
         ),
       ],

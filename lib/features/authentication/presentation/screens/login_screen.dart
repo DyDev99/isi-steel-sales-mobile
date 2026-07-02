@@ -3,12 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_event.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_state.dart';
-import 'package:isi_steel_sales_mobile/features/authentication/presentation/theme/auth_vibe.dart';
-import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/aurora_background.dart';
-import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/glass_card.dart';
-import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/gradient_button.dart';
-import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/status_pill.dart';
-import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/vibe_field.dart';
+import 'package:isi_steel_sales_mobile/core/theme/auth_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/utils/aurora_background.dart';
+import 'package:isi_steel_sales_mobile/core/utils/glass_card.dart';
+import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/gradient_button.dart';
+import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/status_pill.dart';
+import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/vibe_field.dart';
 
 /// Gen-Z sign-in for KIC. Mobile-first single column: aurora canvas +
 /// frosted card. Business logic is unchanged — same AuthBloc contract.

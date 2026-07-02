@@ -1,57 +1,63 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get_it/get_it.dart';
+import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_bloc.dart';
+import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_event.dart';
+import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_state.dart';
+import 'package:isi_steel_sales_mobile/routes/app_page.dart';
+import 'package:isi_steel_sales_mobile/routes/app_routes.dart';
 
-/// Minimal, self-contained root. It imports NOTHING from your features, so
-/// it always compiles. Point [home] at a real screen only after you've
-/// confirmed that screen (and everything it imports) exists in the project.
+// app.dart
 class ISISteelSalesApp extends StatelessWidget {
   const ISISteelSalesApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'ISI Steel Sales',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF7C4DFF),
-          brightness: Brightness.dark,
+    return BlocProvider(
+      create: (_) => GetIt.instance<AuthBloc>()..add(const AuthCheckRequested()),
+      child: BlocListener<AuthBloc, AuthState>(
+        listener: (context, state) {
+          if (state is AuthenticatedState) {
+            navigatorKey.currentState?.pushNamedAndRemoveUntil(Static.main, (route) => false);
+          } else if (state is UnauthenticatedState) {
+            navigatorKey.currentState?.pushNamedAndRemoveUntil(Static.login, (route) => false);
+          }
+        },
+        child: ScreenUtilInit(
+          designSize: const Size(390, 844),
+          builder: (context, child) => MaterialApp(
+            navigatorKey: navigatorKey, // Assign the key here
+            title: 'ISI Steel Sales',
+            debugShowCheckedModeBanner: false,
+            theme: _buildTheme(),
+            initialRoute: Static.splash,
+            onGenerateRoute: AppPages.onGenerateRoute,
+          ),
         ),
-        scaffoldBackgroundColor: const Color(0xFF0D0B1F),
       ),
-
-      // ── Switch the home to your real entry, ONE at a time ────────────
-      // Uncomment the import at the top of this file first, then set home.
-      //
-      // import 'package:isi_steel_sales_mobile/features/shell/presentation/main_shell.dart';
-      //   home: const MainShell(),
-      //
-      // import 'package:isi_steel_sales_mobile/features/authentication/presentation/screens/login_screen.dart';
-      //   home: const LoginScreen(),
-      home: const _BootOk(),
     );
   }
-}
+  // ... _buildTheme remains the same
 
-/// Temporary landing so you can confirm the app builds and boots.
-class _BootOk extends StatelessWidget {
-  const _BootOk();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('✅', style: TextStyle(fontSize: 48)),
-            SizedBox(height: 12),
-            Text('It compiles & runs',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-            SizedBox(height: 6),
-            Text('Now wire home: to your real screen.',
-                style: TextStyle(color: Colors.white70)),
-          ],
+  ThemeData _buildTheme() {
+    return ThemeData(
+      useMaterial3: true,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: const Color(0xFF7C4DFF),
+        brightness: Brightness.dark,
+      ),
+      scaffoldBackgroundColor: const Color(0xFF0D0B1F),
+      // Make AppBar transparent so screens that use a Stack + background
+      // don't get a conflicting solid bar.
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: IconThemeData(color: Color(0xFFF6F4FF)),
+        titleTextStyle: TextStyle(
+          color: Color(0xFFF6F4FF),
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );
