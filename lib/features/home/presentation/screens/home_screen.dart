@@ -67,6 +67,9 @@ class _Dashboard extends StatelessWidget {
           LeadPipelineCard(
             title: 'home.quick_access.leads'.tr,
             leadCount: summary.newLeads,
+            leadLabel: 'home.quick_access.leads'.tr,
+            opportunityLabel: 'home.quick_access.opportunities'.tr,
+            wonLabel: 'home.quick_access.won_deals'.tr,
             opportunityCount: summary.openOpportunities,   
             wonCount: summary.wonDeals,                    
             onTap: () => _goToLeads(context),
