@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/home/data/home_repository.dart';
 import 'package:isi_steel_sales_mobile/features/home/presentation/bloc/home_state.dart';
@@ -18,4 +19,29 @@ class HomeCubit extends Cubit<HomeState> {
   }
 
   Future<void> refresh() => load();
+}
+
+/// Lets any widget request a `MainShell` tab switch without needing a
+/// `BuildContext` reference into `MainShell`'s private state (which is
+/// StatefulWidget-private and can't be `context.read<>()`'d like a Bloc).
+///
+/// Register as a singleton in your DI container:
+/// `sl.registerLazySingleton(() => ShellTabController());`
+///
+/// Usage from anywhere: `sl<ShellTabController>().goTo(ShellTab.orders)`.
+class ShellTabController extends ValueNotifier<int> {
+  ShellTabController() : super(0);
+
+  void goTo(int index) => value = index;
+}
+
+/// Single source of truth for tab index <-> feature, so call sites never
+/// hardcode magic numbers. Matches `MainShell`'s current tab order:
+/// Home, Routes, Leads, Orders, Customers.
+abstract class ShellTab {
+  static const home = 0;
+  static const routes = 1;
+  static const leads = 2;
+  static const orders = 3;
+  static const customers = 4;
 }

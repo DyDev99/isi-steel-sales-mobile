@@ -72,11 +72,21 @@ class ProfileCubit extends Cubit<ProfileState> {
     );
   }
 
-  Future<void> logout() async {
+  /// Returns true on success so the caller can proceed to clear the app's
+  /// auth session (see `ProfileScreen`, which follows this with an
+  /// `AuthBloc` `LogoutRequested` to clear the real token store and
+  /// trigger navigation to login).
+  Future<bool> logout() async {
     final result = await _logoutWorker(const NoParams());
-    result.when(
-      success: (_) => emit(const ProfileLoggedOut()),
-      failure: (f) => emit(ProfileError(f.message)),
+    return result.when(
+      success: (_) {
+        emit(const ProfileLoggedOut());
+        return true;
+      },
+      failure: (f) {
+        emit(ProfileError(f.message));
+        return false;
+      },
     );
   }
 }

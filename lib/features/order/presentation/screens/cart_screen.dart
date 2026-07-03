@@ -5,16 +5,36 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart_cub
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart_state.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/cart_item_tile.dart';
 
+/// Selectable fulfillment channels a cart can be routed to. The default,
+/// Mekong Hardware, produces an indicative quotation only — not a firm SAP
+/// order — so a rep can price against alternative storefronts before
+/// committing.
+enum _Shop {
+  mekongHardware('mekong_hardware', 'Shop Mekong Hardware (Quotation Only)'),
+  alternativeHub('alternative_hub', 'Alternative Fulfillment Hub');
+
+  const _Shop(this.id, this.label);
+  final String id;
+  final String label;
+}
+
 /// Cart + offline checkout. Shares the [CartCubit] pushed alongside
 /// [CatalogScreen] — checking out here writes a `pending_orders` row
 /// (works fully offline) and, if [leadId] is set, tags it to that
 /// opportunity.
-class CartScreen extends StatelessWidget {
+class CartScreen extends StatefulWidget {
   const CartScreen({super.key, this.leadId});
   final String? leadId;
 
+  @override
+  State<CartScreen> createState() => _CartScreenState();
+}
+
+class _CartScreenState extends State<CartScreen> {
+  _Shop _selectedShop = _Shop.mekongHardware;
+
   Future<void> _checkout(BuildContext context) async {
-    final order = await context.read<CartCubit>().checkout(leadId: leadId);
+    final order = await context.read<CartCubit>().checkout(leadId: widget.leadId);
     if (!context.mounted) return;
     if (order == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -26,10 +46,10 @@ class CartScreen extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Vibe.bgSoft,
-        title: const Text('Order placed', style: TextStyle(color: Vibe.text)),
+        title: const Text('Quotation saved', style: TextStyle(color: Vibe.text)),
         content: Text(
-          'Order ${order.id} for \$${order.total.toStringAsFixed(2)} has been saved and will sync '
-          'once you\'re back online.',
+          'Quotation ${order.id} for \$${order.total.toStringAsFixed(2)}, routed to '
+          '${_selectedShop.label}, has been saved and will sync once you\'re back online.',
           style: const TextStyle(color: Vibe.muted),
         ),
         actions: [
@@ -84,7 +104,16 @@ class CartScreen extends StatelessWidget {
                 child: SafeArea(
                   top: false,
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      const Text('Additional Shop Selection',
+                          style: TextStyle(color: Vibe.text, fontSize: 13, fontWeight: FontWeight.w800)),
+                      const SizedBox(height: 8),
+                      _ShopSelector(
+                        selected: _selectedShop,
+                        onChanged: (shop) => setState(() => _selectedShop = shop),
+                      ),
+                      const Divider(color: Vibe.divider, height: 24),
                       _SummaryRow('Subtotal', state.subtotal),
                       if (state.discount > 0) _SummaryRow('Discount', -state.discount),
                       _SummaryRow('Tax (${(cartTaxRate * 100).toStringAsFixed(0)}%)', state.tax),
@@ -110,6 +139,54 @@ class CartScreen extends StatelessWidget {
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+/// Routes the quotation to a storefront/fulfillment channel. Rendered as an
+/// explicit tile with a dropdown so the choice is obvious before checkout.
+class _ShopSelector extends StatelessWidget {
+  const _ShopSelector({required this.selected, required this.onChanged});
+  final _Shop selected;
+  final ValueChanged<_Shop> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: Vibe.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Vibe.stroke),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.storefront_rounded, color: Vibe.violet, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<_Shop>(
+                value: selected,
+                isExpanded: true,
+                dropdownColor: Vibe.bgSoft,
+                borderRadius: BorderRadius.circular(12),
+                icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Vibe.muted),
+                style: const TextStyle(color: Vibe.text, fontSize: 13, fontWeight: FontWeight.w600),
+                items: [
+                  for (final shop in _Shop.values)
+                    DropdownMenuItem(
+                      value: shop,
+                      child: Text(shop.label, overflow: TextOverflow.ellipsis),
+                    ),
+                ],
+                onChanged: (shop) {
+                  if (shop != null) onChanged(shop);
+                },
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

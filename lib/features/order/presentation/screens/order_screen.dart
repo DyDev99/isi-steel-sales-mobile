@@ -4,21 +4,19 @@ import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/usecase/usecase.dart';
 import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
 import 'package:isi_steel_sales_mobile/core/utils/glass_card.dart';
+import 'package:isi_steel_sales_mobile/features/home/presentation/bloc/home_cubit.dart'; // ShellTabController, ShellTab
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/pending_order.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/fetch_pending_orders.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog_bloc.dart';
-import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog_event.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/catalog_screen.dart';
 
 /// Entry point into the product catalog for a general (not-lead-scoped) order.
-/// 
-/// We wrap this entire tab in a local `Navigator`. This ensures that when we 
-/// push the CatalogScreen, ProductDetailScreen, or CartScreen, they stay 
+///
+/// We wrap this entire tab in a local `Navigator`. This ensures that when we
+/// push the CatalogScreen, ProductDetailScreen, or CartScreen, they stay
 /// strictly INSIDE this tab, keeping the MainShell's bottom nav and top bar visible!
-// Update your OrderScreen class in order_screen.dart
-
 class OrderScreen extends StatefulWidget {
   const OrderScreen({super.key});
 
@@ -36,16 +34,14 @@ class _OrderScreenState extends State<OrderScreen> {
       canPop: false, // Prevent the default app exit
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
-        
+
         final navigator = _navigatorKey.currentState;
         if (navigator != null && navigator.canPop()) {
           // 1. If Catalog, Detail, or Cart are open, pop them!
           navigator.pop();
         } else {
-          // 2. If we are back at the Order Dashboard root, let the main app handle the back press
-          if (context.mounted) {
-            Navigator.of(context, rootNavigator: true).pop();
-          }
+          // 2. If we are back at the Order Dashboard root, switch MainShell back to Home
+          sl<ShellTabController>().goTo(ShellTab.home);
         }
       },
       child: Navigator(
@@ -60,7 +56,7 @@ class _OrderScreenState extends State<OrderScreen> {
   }
 }
 
-/// This is your original OrderScreen, just renamed so it can live inside 
+/// This is your original OrderScreen, just renamed so it can live inside
 /// the Nested Navigator above.
 class _OrderDashboard extends StatefulWidget {
   const _OrderDashboard();
@@ -84,12 +80,15 @@ class _OrderDashboardState extends State<_OrderDashboard> {
   }
 
   void _openCatalog() {
-    // Because we are now inside the Nested Navigator, this push will NOT 
+    // Because we are now inside the Nested Navigator, this push will NOT
     // cover the MainShell!
     Navigator.of(context).push(MaterialPageRoute(
       builder: (_) => MultiBlocProvider(
         providers: [
-          BlocProvider(create: (_) => sl<CatalogBloc>()..add(const CatalogLoadRequested())),
+          // Deferred fetch: keep the CatalogBloc idle (no CatalogLoadRequested)
+          // so entering the catalog is instant — it only queries once the user
+          // searches by text/voice/scan/photo or picks a category.
+          BlocProvider(create: (_) => sl<CatalogBloc>()),
           BlocProvider(create: (_) => sl<CartCubit>()..load()),
           BlocProvider(create: (_) => sl<SyncCubit>()),
         ],
@@ -101,52 +100,59 @@ class _OrderDashboardState extends State<_OrderDashboard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Vibe.bg,
       body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+        child: Column(
           children: [
-            const Text('Orders', style: TextStyle(color: Vibe.text, fontSize: 22, fontWeight: FontWeight.w900)),
-            const SizedBox(height: 4),
-            const Text('Browse the product catalog and place offline orders.',
-                style: TextStyle(color: Vibe.muted, fontSize: 12.5)),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: _openCatalog,
-                icon: const Icon(Icons.storefront_rounded),
-                label: const Text('New Order'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Vibe.violet,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                ),
+            // Fixed header — outside the ListView below, so it stays
+            // pinned in place while Recent Orders scrolls underneath.
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              child: Row(
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: _openCatalog,
+                    icon: const Icon(Icons.storefront_rounded, color: Colors.white),
+                    label: const Text('New Order',
+                        style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Vibe.violet,
+                      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 24),
-            const Text('Recent Orders', style: TextStyle(color: Vibe.text, fontSize: 15, fontWeight: FontWeight.w800)),
-            const SizedBox(height: 10),
-            FutureBuilder<List<PendingOrder>>(
-              future: _ordersFuture,
-              builder: (context, snapshot) {
-                final orders = snapshot.data ?? const [];
-                if (snapshot.connectionState != ConnectionState.done) {
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 24),
-                    child: Center(child: CircularProgressIndicator(color: Vibe.violet)),
-                  );
-                }
-                if (orders.isEmpty) {
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 24),
-                    child: Center(child: Text('No orders yet', style: TextStyle(color: Vibe.muted))),
-                  );
-                }
-                return Column(
-                  children: [for (final order in orders) _OrderTile(order: order)],
-                );
-              },
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+                children: [
+                  const Text('Recent Orders',
+                      style: TextStyle(color: Vibe.text, fontSize: 15, fontWeight: FontWeight.w800)),
+                  const SizedBox(height: 10),
+                  FutureBuilder<List<PendingOrder>>(
+                    future: _ordersFuture,
+                    builder: (context, snapshot) {
+                      final orders = snapshot.data ?? const [];
+                      if (snapshot.connectionState != ConnectionState.done) {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 24),
+                          child: Center(child: CircularProgressIndicator(color: Vibe.violet)),
+                        );
+                      }
+                      if (orders.isEmpty) {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 24),
+                          child: Center(child: Text('No orders yet', style: TextStyle(color: Vibe.muted))),
+                        );
+                      }
+                      return Column(
+                        children: [for (final order in orders) _OrderTile(order: order)],
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -183,7 +189,8 @@ class _OrderTile extends StatelessWidget {
                 color: Vibe.amber.withValues(alpha: 0.16),
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: const Text('Pending Sync', style: TextStyle(color: Vibe.amber, fontSize: 10.5, fontWeight: FontWeight.w700)),
+              child: const Text('Pending Sync',
+                  style: TextStyle(color: Vibe.amber, fontSize: 10.5, fontWeight: FontWeight.w700)),
             ),
             const SizedBox(width: 10),
             Text('\$${order.total.toStringAsFixed(2)}',

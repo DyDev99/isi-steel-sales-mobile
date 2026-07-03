@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:isi_steel_sales_mobile/core/constants/app_constant.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_event.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_state.dart';
 import 'package:isi_steel_sales_mobile/core/theme/auth_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/utils/aurora_background.dart';
 import 'package:isi_steel_sales_mobile/core/utils/glass_card.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/gradient_button.dart';
@@ -72,8 +74,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: [
                       const _Brand(),
                       const SizedBox(height: 28),
-                      const Text(
-                        'Welcome back 👋',
+                       Text(
+                        'auth.welcome_back'.tr,
                         style: TextStyle(
                           color: Vibe.text,
                           fontSize: 30,
@@ -82,8 +84,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      const Text(
-                        'Sign in to your KIC workspace.',
+                      Text(
+                        'auth.sign_in_subtitle'.tr,
                         style: TextStyle(color: Vibe.muted, fontSize: 15),
                       ),
                       const SizedBox(height: 24),
@@ -109,21 +111,21 @@ class _LoginScreenState extends State<LoginScreen> {
         children: [
           VibeField(
             controller: _email,
-            label: 'Corporate email',
+            label: 'auth.email'.tr,
             icon: Icons.alternate_email,
             keyboardType: TextInputType.emailAddress,
             textInputAction: TextInputAction.next,
             autofillHints: const [AutofillHints.email],
             validator: (v) {
-              if (v == null || v.trim().isEmpty) return 'Enter your email';
+              if (v == null || v.trim().isEmpty) return 'auth.email_required'.tr;
               final ok = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(v.trim());
-              return ok ? null : 'That email looks off';
+              return ok ? null : 'auth.invalid_email'.tr;
             },
           ),
           const SizedBox(height: 14),
           VibeField(
             controller: _password,
-            label: 'Password',
+            label: 'auth.password'.tr,
             icon: Icons.lock_outline,
             obscure: _obscure,
             textInputAction: TextInputAction.done,
@@ -138,13 +140,13 @@ class _LoginScreenState extends State<LoginScreen> {
               onPressed: () => setState(() => _obscure = !_obscure),
             ),
             validator: (v) =>
-                (v == null || v.length < 6) ? 'At least 6 characters' : null,
+                (v == null || v.length < 6) ? 'auth.password_too_short'.tr : null,
           ),
           Align(
             alignment: Alignment.centerRight,
             child: TextButton(
               onPressed: widget.onForgotPassword,
-              child: const Text('Forgot password?',
+              child:  Text('auth.forgot_password'.tr,
                   style: TextStyle(color: Vibe.mint, fontWeight: FontWeight.w600)),
             ),
           ),
@@ -159,7 +161,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     message: state is AuthFailureState ? state.message : null,
                   ),
                   GradientButton(
-                    label: "Let's go  →",
+                    label: "auth.lets_go".tr,
                     loading: status == AuthVibeStatus.verifying,
                     onPressed: _submit,
                   ),
@@ -176,10 +178,10 @@ class _LoginScreenState extends State<LoginScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Text('New here?', style: TextStyle(color: Vibe.muted)),
+         Text('auth.new_here'.tr, style: TextStyle(color: Vibe.muted)),
         TextButton(
           onPressed: widget.onRequestAccess,
-          child: const Text('Request access',
+          child:  Text('auth.request_access'.tr,
               style: TextStyle(color: Vibe.pink, fontWeight: FontWeight.w700)),
         ),
       ],
@@ -188,33 +190,18 @@ class _LoginScreenState extends State<LoginScreen> {
 }
 
 /// Compact brand mark — replaces the old wide identity panel.
+/// Centered large image logo brand identity.
 class _Brand extends StatelessWidget {
   const _Brand();
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: 46,
-          height: 46,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            gradient: Vibe.cta,
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: const Text('K',
-              style: TextStyle(
-                  color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900)),
-        ),
-        const SizedBox(width: 12),
-        const Text('KIC GROUP',
-            style: TextStyle(
-                color: Vibe.muted,
-                fontSize: 13,
-                letterSpacing: 1.5,
-                fontWeight: FontWeight.w700)),
-      ],
+    return Center(
+      child: Image.asset(
+        "assets/logos/isi_app_logo.png", // Replace with your actual image path
+        width: 180,               // Adjust width size as needed (e.g., 150-240)
+        fit: BoxFit.contain,
+      ),
     );
   }
 }

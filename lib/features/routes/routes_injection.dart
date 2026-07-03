@@ -18,6 +18,8 @@ import 'package:isi_steel_sales_mobile/features/routes/domain/repositories/route
 import 'package:isi_steel_sales_mobile/features/routes/domain/repositories/visit_repository.dart';
 import 'package:isi_steel_sales_mobile/features/routes/domain/services/fraud_detection_service.dart';
 import 'package:isi_steel_sales_mobile/features/routes/domain/services/location_tracking_service.dart';
+import 'package:isi_steel_sales_mobile/features/routes/domain/services/proof_photo_service.dart';
+import 'package:isi_steel_sales_mobile/features/routes/presentation/services/camera_proof_photo_service.dart';
 import 'package:isi_steel_sales_mobile/features/routes/domain/usecases/add_collection.dart';
 import 'package:isi_steel_sales_mobile/features/routes/domain/usecases/add_order_line.dart';
 import 'package:isi_steel_sales_mobile/features/routes/domain/usecases/add_return.dart';
@@ -60,6 +62,7 @@ Future<void> registerRoutesFeature(GetIt sl) async {
   // ── Services ────────────────────────────────────────────────────────
   sl.registerLazySingleton<LocationTrackingService>(() => GeolocatorTrackingService());
   sl.registerLazySingleton<FraudDetectionService>(() => const FraudDetectionService());
+  sl.registerLazySingleton<ProofPhotoService>(() => const CameraProofPhotoService());
 
   // ── Repositories ────────────────────────────────────────────────────
   sl.registerLazySingleton<RouteRepository>(() => RouteRepositoryImpl(sl()));

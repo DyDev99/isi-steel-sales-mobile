@@ -8,6 +8,8 @@ import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/category.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product_filter.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/services/barcode_scanner_service.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/services/image_search_service.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/services/voice_search_service.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/catalog_params.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/fetch_categories.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_product_by_barcode.dart';
@@ -25,10 +27,15 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/categ
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/product_card.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/sync_status_banner.dart';
 
-/// The ERP-style product browser: search + category rail/drawer + filter/sort
-/// + paginated grid + barcode scan. [leadId], when set, scopes any add-to-cart
-/// action to that lead's opportunity (pushed from `LeadDetailScreen`'s
-/// "Add Products" CTA); left null when opened from the Orders tab.
+/// The ERP-style product browser: multi-modal search (text/voice/scan/photo) +
+/// category rail/drawer + filter/sort + paginated grid. [leadId], when set,
+/// scopes any add-to-cart action to that lead's opportunity (pushed from
+/// `LeadDetailScreen`'s "Add Products" CTA); left null when opened from the
+/// Orders tab.
+///
+/// Entry is **lazy**: the [CatalogBloc] starts idle and fetches nothing until
+/// the user runs an explicit query or picks a category — so opening this screen
+/// never blocks on a network round-trip.
 class CatalogScreen extends StatefulWidget {
   const CatalogScreen({super.key, this.leadId});
   final String? leadId;
@@ -39,6 +46,7 @@ class CatalogScreen extends StatefulWidget {
 
 class _CatalogScreenState extends State<CatalogScreen> {
   final _scrollController = ScrollController();
+  final _searchController = TextEditingController();
   late Future<List<Category>> _categoriesFuture;
 
   @override
@@ -57,6 +65,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
     }
   }
 
+  /// Barcode scan → look up the exact SKU and open it straight away.
   Future<void> _scan() async {
     final code = await sl<BarcodeScannerService>().scan();
     if (code == null || !mounted) return;
@@ -65,6 +74,66 @@ class _CatalogScreenState extends State<CatalogScreen> {
     result.when(
       success: (product) => _openDetail(context, product.id),
       failure: (f) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(f.message))),
+    );
+  }
+
+  /// Voice → on-device transcription → (vector) catalog search.
+  Future<void> _voiceSearch() async {
+    final query = await sl<VoiceSearchService>().listen();
+    if (query == null || query.trim().isEmpty || !mounted) return;
+    _searchController.text = query;
+    context.read<CatalogBloc>().add(CatalogVoiceSearchRequested(query));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Voice search: "$query"'), duration: const Duration(seconds: 1)),
+    );
+  }
+
+  /// Photo (camera or gallery) → visual match → catalog search.
+  Future<void> _imageSearch() async {
+    final source = await _pickImageSource();
+    if (source == null || !mounted) return;
+    final query = await sl<ImageSearchService>().matchQuery(source);
+    if (query == null || query.isEmpty || !mounted) return;
+    _searchController.text = query;
+    context.read<CatalogBloc>().add(CatalogImageSearchRequested(query));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Matched by photo: $query'), duration: const Duration(seconds: 1)),
+    );
+  }
+
+  Future<ImageSearchSource?> _pickImageSource() {
+    return showModalBottomSheet<ImageSearchSource>(
+      context: context,
+      backgroundColor: Vibe.bgSoft,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            Container(width: 40, height: 5, decoration: BoxDecoration(color: Vibe.stroke, borderRadius: BorderRadius.circular(10))),
+            const SizedBox(height: 8),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(20, 8, 20, 4),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text('Search by photo', style: TextStyle(color: Vibe.text, fontSize: 15, fontWeight: FontWeight.w800)),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_camera_rounded, color: Vibe.violet),
+              title: const Text('Take a photo', style: TextStyle(color: Vibe.text)),
+              onTap: () => Navigator.pop(ctx, ImageSearchSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_rounded, color: Vibe.violet),
+              title: const Text('Upload from gallery', style: TextStyle(color: Vibe.text)),
+              onTap: () => Navigator.pop(ctx, ImageSearchSource.gallery),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
     );
   }
 
@@ -92,6 +161,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -99,20 +169,17 @@ class _CatalogScreenState extends State<CatalogScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Vibe.bg,
-     appBar: AppBar(
+      appBar: AppBar(
         backgroundColor: Vibe.bg,
-        // 1. Increase width to fit two icons (default is 56)
-        leadingWidth: 96, 
-        // 2. Use a Row to place the Back Arrow to the left of the Menu Icon
+        // Widen the leading slot to fit both the back arrow and the menu icon.
+        leadingWidth: 96,
         leading: Row(
           children: [
-            // Back Arrow
             IconButton(
               icon: const Icon(Icons.arrow_back_rounded),
               onPressed: () => Navigator.of(context).pop(),
               tooltip: 'Back',
             ),
-            // Menu Icon (Wrapped in a Builder to get the correct Scaffold context)
             Builder(
               builder: (context) => IconButton(
                 icon: const Icon(Icons.inventory_2_rounded),
@@ -154,7 +221,10 @@ class _CatalogScreenState extends State<CatalogScreen> {
               final categories = snapshot.data ?? const [];
               final content = _CatalogBody(
                 scrollController: _scrollController,
+                searchController: _searchController,
                 onScan: _scan,
+                onVoice: _voiceSearch,
+                onImage: _imageSearch,
                 onOpenDetail: (id) => _openDetail(context, id),
               );
 
@@ -222,28 +292,94 @@ class _CatalogScreenState extends State<CatalogScreen> {
 }
 
 class _CatalogBody extends StatelessWidget {
-  const _CatalogBody({required this.scrollController, required this.onScan, required this.onOpenDetail});
+  const _CatalogBody({
+    required this.scrollController,
+    required this.searchController,
+    required this.onScan,
+    required this.onVoice,
+    required this.onImage,
+    required this.onOpenDetail,
+  });
   final ScrollController scrollController;
+  final TextEditingController searchController;
   final VoidCallback onScan;
+  final VoidCallback onVoice;
+  final VoidCallback onImage;
   final ValueChanged<String> onOpenDetail;
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<CatalogBloc, CatalogState>(
       builder: (context, state) {
-        return switch (state) {
-          CatalogLoaded() => _Loaded(
-              state: state,
-              scrollController: scrollController,
-              onScan: onScan,
-              onOpenDetail: onOpenDetail,
+        final loaded = state is CatalogLoaded ? state : null;
+        return Column(
+          children: [
+            // Persistent search header — visible in idle so the user can start
+            // a query, and stays fixed above the grid once results load.
+            Padding(
+              padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 8.h),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SyncStatusBanner(),
+                  CatalogSearchBar(
+                    controller: searchController,
+                    onSearchChanged: (q) => context.read<CatalogBloc>().add(CatalogSearchChanged(q)),
+                    onFilterTap: () => showCatalogFilterSheet(
+                      context: context,
+                      filter: loaded?.filter ?? const ProductFilter(),
+                      brands: loaded?.brands ?? const [],
+                      onApply: (f) => context.read<CatalogBloc>().add(CatalogFilterChanged(f)),
+                    ),
+                    hasActiveFilters: loaded != null && !loaded.filter.isEmpty,
+                    onScanTap: onScan,
+                    onVoiceTap: onVoice,
+                    onImageTap: onImage,
+                  ),
+                ],
+              ),
             ),
-          CatalogError(:final message) => Center(
-              child: Text(message, style: const TextStyle(color: Vibe.muted)),
+            Expanded(
+              child: switch (state) {
+                CatalogIdle() => const _IdleHint(),
+                CatalogLoading() => const Center(child: CircularProgressIndicator(color: Vibe.violet)),
+                CatalogError(:final message) => Center(child: Text(message, style: const TextStyle(color: Vibe.muted))),
+                CatalogLoaded() => _Loaded(
+                    state: state,
+                    scrollController: scrollController,
+                    onOpenDetail: onOpenDetail,
+                  ),
+              },
             ),
-          _ => const Center(child: CircularProgressIndicator(color: Vibe.violet)),
-        };
+          ],
+        );
       },
+    );
+  }
+}
+
+/// Deferred-fetch landing view: nothing has been requested yet.
+class _IdleHint extends StatelessWidget {
+  const _IdleHint();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 40),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.travel_explore_rounded, color: Vibe.muted, size: 44),
+            const SizedBox(height: 14),
+            Text(
+              'Search via text, speak 🎤, scan 📷 or upload a photo to find items.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Vibe.muted, fontSize: 13.5, height: 1.4),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -252,12 +388,10 @@ class _Loaded extends StatelessWidget {
   const _Loaded({
     required this.state,
     required this.scrollController,
-    required this.onScan,
     required this.onOpenDetail,
   });
   final CatalogLoaded state;
   final ScrollController scrollController;
-  final VoidCallback onScan;
   final ValueChanged<String> onOpenDetail;
 
   @override
@@ -272,35 +406,14 @@ class _Loaded extends StatelessWidget {
       child: CustomScrollView(
         controller: scrollController,
         slivers: [
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 8.h),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SyncStatusBanner(),
-                  CatalogSearchBar(
-                    onSearchChanged: (q) => context.read<CatalogBloc>().add(CatalogSearchChanged(q)),
-                    onFilterTap: () => showCatalogFilterSheet(
-                      context: context,
-                      filter: state.filter,
-                      brands: state.brands,
-                      onApply: (f) => context.read<CatalogBloc>().add(CatalogFilterChanged(f)),
-                    ),
-                    hasActiveFilters: !state.filter.isEmpty,
-                    onScanTap: onScan,
-                  ),
-                ],
-              ),
-            ),
-          ),
           if (state.items.isEmpty)
             const SliverFillRemaining(
+              hasScrollBody: false,
               child: Center(child: Text('No products found', style: TextStyle(color: Vibe.muted))),
             )
           else
             SliverPadding(
-              padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
+              padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 16.h),
               sliver: SliverGrid(
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,

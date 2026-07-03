@@ -16,7 +16,9 @@ import 'package:isi_steel_sales_mobile/features/order/domain/repositories/catego
 import 'package:isi_steel_sales_mobile/features/order/domain/repositories/product_repository.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/repositories/sync_repository.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/services/barcode_scanner_service.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/services/image_search_service.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/services/mto_pricing_service.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/services/voice_search_service.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/add_to_cart.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/browse_products.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/checkout_cart.dart';
@@ -45,7 +47,9 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart_cub
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/product_detail_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/sync_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/services/image_picker_search_service.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/services/mobile_barcode_scanner_service.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/services/speech_voice_search_service.dart';
 
 /// Registers the product catalog + cart + sync engine that live inside the
 /// Orders feature. Async because it opens the sqflite database once before
@@ -62,6 +66,8 @@ Future<void> registerOrderFeature(GetIt sl) async {
 
   // ── Services ────────────────────────────────────────────────────────
   sl.registerLazySingleton<BarcodeScannerService>(() => const MobileBarcodeScannerService());
+  sl.registerLazySingleton<VoiceSearchService>(() => const SpeechVoiceSearchService());
+  sl.registerLazySingleton<ImageSearchService>(() => const ImagePickerSearchService());
   sl.registerLazySingleton<MtoPricingService>(() => MockMtoPricingService(sl()));
 
   // ── Repositories ────────────────────────────────────────────────────

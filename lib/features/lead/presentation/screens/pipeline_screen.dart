@@ -212,7 +212,7 @@ class _Board extends StatelessWidget {
                         ))
                     .toList();
 
-                const boardHeight = 760.0;
+                const boardHeight = 720.0;
                 if (isWide) {
                   return SizedBox(
                     height: boardHeight,

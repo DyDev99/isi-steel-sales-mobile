@@ -14,7 +14,11 @@ class HomeRepositoryImpl implements HomeRepository {
     await Future<void>.delayed(const Duration(milliseconds: 500));
     return const DashboardSummary(
       newLeads: 12,
+      openOpportunities: 5,
+      wonDeals: 80,
       openOrders: 8,
+      totalCustomers: 120,
+      totalRoutes: 5,
       revenueMtd: '\$48.2k',
       winRate: 0.34,
       targetProgress: 0.62,
@@ -24,6 +28,7 @@ class HomeRepositoryImpl implements HomeRepository {
           title: 'PO #4821 confirmed',
           subtitle: 'Mekong Construction · 24t rebar',
           timeAgo: '12m',
+
         ),
         ActivityItem(
           kind: ActivityKind.lead,

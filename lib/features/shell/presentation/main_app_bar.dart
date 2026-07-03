@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
+import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/features/localization/presentation/bloc/language_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/notification/domain/usecases/fetch_notifications.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/usecases/lead_usecase.dart';
 import 'package:isi_steel_sales_mobile/features/notification/presentation/screen/notifications_sheet.dart';
@@ -10,22 +13,29 @@ import 'package:isi_steel_sales_mobile/features/notification/presentation/screen
 /// across every tab, unlike the old per-screen header/bell that disappeared
 /// whenever you left the Home tab.
 class MainAppBar extends StatelessWidget {
-  const MainAppBar({super.key, required this.title, required this.onAvatarTap});
+  const MainAppBar({
+    super.key,
+    required this.title,
+    required this.onAvatarTap,
+    required this.currentTabIndex,
+    this.onBackToHomeTap,
+  });
 
   final String title;
   final VoidCallback onAvatarTap;
+  final int currentTabIndex;
+  final VoidCallback? onBackToHomeTap;
 
   // Helper method to show the language change options
- void _showLanguageMenu(BuildContext context) {
-    // Track current selection locally for UI presentation 
-    // (Hook this up to your real state manager later like Bloc/Provider)
-    String currentLang = 'en'; 
+  void _showLanguageMenu(BuildContext context) {
+    final languageCubit = context.read<LanguageCubit>();
+    String currentLang = languageCubit.state.languageCode;
 
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent, // Allows custom shapes & backgrounds
       isScrollControlled: true,
-      builder: (context) {
+      builder: (sheetContext) {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setModalState) {
             Widget buildLangCard({
@@ -35,16 +45,18 @@ class MainAppBar extends StatelessWidget {
               required String flag,
             }) {
               final isSelected = currentLang == code;
-              
+
               return Padding(
                 padding: EdgeInsets.only(bottom: 12.h),
                 child: InkWell(
-                  onTap: () {
+                  onTap: () async {
+                    if (code == currentLang) {
+                      Navigator.pop(sheetContext);
+                      return;
+                    }
                     setModalState(() => currentLang = code);
-                    // TODO: Trigger your actual localization switch here
-                    Future.delayed(const Duration(milliseconds: 250), () {
-                      if (context.mounted) Navigator.pop(context);
-                    });
+                    await languageCubit.changeLanguage(code);
+                    if (sheetContext.mounted) Navigator.pop(sheetContext);
                   },
                   borderRadius: BorderRadius.circular(16.r),
                   child: AnimatedContainer(
@@ -134,7 +146,7 @@ class MainAppBar extends StatelessWidget {
                     ),
                     SizedBox(height: 24.h),
                     Text(
-                      'Choose Language',
+                      'language.choose_title'.tr,
                       style: TextStyle(
                         color: Vibe.text,
                         fontSize: 22.sp,
@@ -144,7 +156,7 @@ class MainAppBar extends StatelessWidget {
                     ),
                     SizedBox(height: 4.h),
                     Text(
-                      'Select your preferred language interface',
+                      'language.choose_subtitle'.tr,
                       style: TextStyle(
                         color: Vibe.text.withOpacity(0.5),
                         fontSize: 14.sp,
@@ -152,15 +164,15 @@ class MainAppBar extends StatelessWidget {
                     ),
                     SizedBox(height: 24.h),
                     buildLangCard(
-                      label: 'English',
-                      subLabel: 'United States',
+                      label: 'language.english'.tr,
+                      subLabel: 'language.english_region'.tr,
                       code: 'en',
                       flag: '🇺🇸',
                     ),
                     buildLangCard(
-                      label: 'ភាសាខ្មែរ',
-                      subLabel: 'Cambodia',
-                      code: 'km',
+                      label: 'language.khmer'.tr,
+                      subLabel: 'language.khmer_region'.tr,
+                      code: 'kh',
                       flag: '🇰🇭',
                     ),
                     SizedBox(height: 12.h),
@@ -187,6 +199,20 @@ class MainAppBar extends StatelessWidget {
         ),
         child: Row(
           children: [
+            // Condition: Show arrow back button if user is NOT on the Home Tab (0)
+            if (currentTabIndex != 0) ...[
+              IconButton(
+                icon: const Icon(
+                  Icons.arrow_back_ios_new_rounded,
+                  color: Vibe.text,
+                  size: 18,
+                ),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                onPressed: onBackToHomeTap,
+              ),
+              SizedBox(width: 12.w),
+            ],
             Expanded(
               child: Row(
                 children: [

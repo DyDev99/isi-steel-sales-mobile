@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
+import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
 import 'package:isi_steel_sales_mobile/features/home/data/home_repository.dart';
 import 'package:isi_steel_sales_mobile/features/home/presentation/bloc/add_customer_bloc.dart';
@@ -20,11 +21,6 @@ import 'package:isi_steel_sales_mobile/features/routes/presentation/screens/rout
 import 'package:isi_steel_sales_mobile/features/shell/presentation/glass_nav_bar.dart';
 import 'package:isi_steel_sales_mobile/features/shell/presentation/main_app_bar.dart';
 
-/// App shell: owns the bottom nav and hosts the five tabs.
-///
-/// Tabs live in a LAZY IndexedStack — each is built only when first visited,
-/// then kept alive so its scroll/filters survive tab switches. Each tab
-/// provides its own bloc, so state stays scoped to that feature.
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
 
@@ -33,15 +29,46 @@ class MainShell extends StatefulWidget {
 }
 
 class _MainShellState extends State<MainShell> {
+  final ShellTabController _tabController = sl<ShellTabController>();
   int _index = 0;
 
-  static const _tabs = <NavTab>[
-    NavTab(Icons.home_rounded, 'Home'),
-    NavTab(Icons.lightbulb_rounded, 'Leads'),
-    NavTab(Icons.receipt_long_rounded, 'Orders'),
-    NavTab(Icons.trending_up_rounded, 'Routes'),
-    NavTab(Icons.people_rounded, 'Customers'),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _index = _tabController.value;
+    _tabController.addListener(_onTabChanged);
+  }
+
+  @override
+  void dispose() {
+    _tabController.removeListener(_onTabChanged);
+    super.dispose();
+  }
+
+  void _onTabChanged() {
+    setState(() => _index = _tabController.value);
+  }
+
+  // FIXED: Changed to a dynamic getter so .tr updates automatically
+  List<NavTab> get _tabs => [
+        NavTab(Icons.home_rounded, 'home.title'.tr),
+        NavTab(Icons.trending_up_rounded, 'routes.title'.tr),
+        NavTab(Icons.lightbulb_rounded, 'leads.title'.tr),
+        NavTab(Icons.receipt_long_rounded, 'orders.title'.tr),
+        NavTab(Icons.people_rounded, 'customers.title'.tr),
+      ];
+
+  // FIXED: Changed to a dynamic getter so titles change languages cleanly
+  List<String> get _titles => [
+        'home.title'.tr,
+        'routes.title'.tr,
+        'leads.title'.tr,
+        'orders.title'.tr,
+        'customers.title'.tr,
+      ];
+
+  // Keep tracking lazy loading setup based on tab index size
+  late final List<Widget?> _built = List<Widget?>.filled(5, null);
 
   void _openProfile(BuildContext context) {
     Navigator.of(context).push(MaterialPageRoute(
@@ -52,40 +79,35 @@ class _MainShellState extends State<MainShell> {
     ));
   }
 
-  static const _titles = <String>['Home', 'Leads', 'Orders', 'Active Routes', 'Customers'];
-
-  late final List<Widget?> _built = List<Widget?>.filled(_tabs.length, null);
-
   Widget _buildTab(int i) {
     switch (i) {
       case 0:
-              return MultiBlocProvider(
-                providers: [
-                  BlocProvider(
-                    create: (_) => HomeCubit(const HomeRepositoryImpl())..load(),
-                  ),
-                  BlocProvider(
-                    create: (_) => sl<AddCustomerBloc>(),
-                  ),
-                ],
-                child: const HomeScreen(userName: 'there'),
-              );
-      case 1:
-        return BlocProvider(
-          create: (_) => sl<PipelineBloc>()..add(const PipelineLoadRequested()),
-          child: const PipelineScreen(initialStage: PipelineStage.leads),
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider(
+              create: (_) => HomeCubit(const HomeRepositoryImpl())..load(),
+            ),
+            BlocProvider(
+              create: (_) => sl<AddCustomerBloc>(),
+            ),
+          ],
+          child: const HomeScreen(userName: 'there'),
         );
-      case 2:
-        return const OrderScreen();
-      // In main_shell.dart (Case 3 in your switch statement)
-      case 3:
+      case 1:
         return MultiBlocProvider(
           providers: [
             BlocProvider(create: (_) => sl<RouteDashboardCubit>()..load()),
             BlocProvider(create: (_) => sl<RouteSyncCubit>()),
           ],
-          child: const RouteDashboardScreen(),   // was ActiveRouteScreen
+          child: const RouteDashboardScreen(),
         );
+      case 2:
+        return BlocProvider(
+          create: (_) => sl<PipelineBloc>()..add(const PipelineLoadRequested()),
+          child: const PipelineScreen(initialStage: PipelineStage.leads),
+        );
+      case 3:
+        return const OrderScreen();
       default:
         return const CustomersScreen();
     }
@@ -95,29 +117,40 @@ class _MainShellState extends State<MainShell> {
   Widget build(BuildContext context) {
     _built[_index] ??= _buildTab(_index); // lazily build the visited tab
 
-    return Scaffold(
-      backgroundColor: Vibe.bg,
-      body: Column(
-        children: [
-          MainAppBar(
-            title: _titles[_index],
-            onAvatarTap: () => _openProfile(context),
-          ),
-          Expanded(
-            child: IndexedStack(
-              index: _index,
-              children: List.generate(
-                _tabs.length,
-                (i) => _built[i] ?? const SizedBox.shrink(),
+    return PopScope(
+      // On the Home tab, let back behave normally (exit app). On any other
+      // tab, back should return to Home instead of exiting/popping past MainShell.
+      canPop: _index == ShellTab.home,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        _tabController.goTo(ShellTab.home);
+      },
+      child: Scaffold(
+        backgroundColor: Vibe.bg,
+        body: Column(
+          children: [
+            MainAppBar(
+              title: _titles[_index],
+              currentTabIndex: _index,
+              onBackToHomeTap: () => _tabController.goTo(ShellTab.home),
+              onAvatarTap: () => _openProfile(context),
+            ),
+            Expanded(
+              child: IndexedStack(
+                index: _index,
+                children: List.generate(
+                  _tabs.length,
+                  (i) => _built[i] ?? const SizedBox.shrink(),
+                ),
               ),
             ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: GlassNavBar(
-        tabs: _tabs,
-        currentIndex: _index,
-        onTap: (i) => setState(() => _index = i),
+          ],
+        ),
+      //  bottomNavigationBar: GlassNavBar(
+      //    tabs: _tabs,
+      //    currentIndex: _index,
+      //    onTap: (i) => setState(() => _index = i),
+      //  ),
       ),
     );
   }

@@ -35,6 +35,9 @@ dependencies:
   mobile_scanner: ^5.2.3
   json_annotation: ^4.9.0
   google_maps_flutter: ^2.9.0
+  image_picker: ^1.1.2
+  speech_to_text: ^7.0.0
+  image: ^4.5.0
 
 dev_dependencies:
   flutter_test:
@@ -52,6 +55,7 @@ flutter:
     # 2. Include your logos folder here
     - assets/logos/
     - assets/mock/
+    - assets/lang/
 
 # 3. Added configuration for Android and iOS asset generation
 flutter_launcher_icons:

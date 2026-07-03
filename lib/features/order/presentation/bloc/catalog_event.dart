@@ -32,3 +32,23 @@ final class CatalogFilterChanged extends CatalogEvent {
   @override
   List<Object?> get props => [filter];
 }
+
+/// Voice search: [query] is the on-device transcription of what the user said.
+/// In production this maps to a Voice→Text + vector lookup; here it drives the
+/// same local search so the flow is fully exercised offline.
+final class CatalogVoiceSearchRequested extends CatalogEvent {
+  const CatalogVoiceSearchRequested(this.query);
+  final String query;
+  @override
+  List<Object?> get props => [query];
+}
+
+/// Image search: [query] is the keyword the visual-match pipeline resolved the
+/// uploaded/captured product photo to (stand-in for a multi-modal embedding
+/// endpoint), used to fetch matching product cards.
+final class CatalogImageSearchRequested extends CatalogEvent {
+  const CatalogImageSearchRequested(this.query);
+  final String query;
+  @override
+  List<Object?> get props => [query];
+}

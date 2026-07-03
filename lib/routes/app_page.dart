@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
+import 'package:isi_steel_sales_mobile/core/local/localized_builder.dart';
 import 'package:isi_steel_sales_mobile/features/profile/presentation/bloc/profile_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/profile/presentation/screens/profile_screen.dart';
 import 'package:isi_steel_sales_mobile/features/routes/presentation/bloc/active_route_bloc.dart';
@@ -98,7 +99,13 @@ class AppPages {
   }
 
   static MaterialPageRoute<dynamic> _page(Widget child, RouteSettings settings) {
-    return MaterialPageRoute<dynamic>(builder: (_) => child, settings: settings);
+    // Wrap every named route so its whole subtree (including MainShell and its
+    // five tabs) rebuilds live when the language changes — the "hot reload"
+    // localization effect, applied app-wide from one place.
+    return MaterialPageRoute<dynamic>(
+      builder: (_) => LocalizedBuilder(builder: (_) => child),
+      settings: settings,
+    );
   }
 }
 

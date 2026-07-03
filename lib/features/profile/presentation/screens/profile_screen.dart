@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_bloc.dart';
+import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_event.dart';
 import 'package:isi_steel_sales_mobile/features/profile/presentation/bloc/profile_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/profile/presentation/bloc/profile_state.dart';
 import 'package:isi_steel_sales_mobile/features/profile/presentation/widgets/change_password_sheet.dart';
 import 'package:isi_steel_sales_mobile/features/profile/presentation/widgets/edit_profile_sheet.dart';
 import 'package:isi_steel_sales_mobile/features/profile/presentation/widgets/profile_header.dart';
 import 'package:isi_steel_sales_mobile/features/profile/presentation/widgets/profile_info_section.dart';
-// import 'package:isi_steel_sales_mobile/routes/app_routes.dart'; // for Static.login on logout nav
 
 /// Worker profile: identity/contact/work-context readout, edit, change
 /// password, and logout. Expects `ProfileCubit` provided above it and
@@ -63,11 +64,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
     if (confirmed != true || !context.mounted) return;
-    await context.read<ProfileCubit>().logout();
-    // On ProfileLoggedOut, navigate to Static.login and clear the stack, e.g.:
-    // if (context.mounted) {
-    //   Navigator.of(context).pushNamedAndRemoveUntil(Static.login, (route) => false);
-    // }
+    final ok = await context.read<ProfileCubit>().logout();
+    if (!ok || !context.mounted) return;
+    // Clears the real token store and flips AuthBloc to Unauthenticated;
+    // the root `BlocListener<AuthBloc, AuthState>` in app.dart handles
+    // navigating to Static.login and clearing the stack.
+    context.read<AuthBloc>().add(const LogoutRequested());
   }
 
   @override

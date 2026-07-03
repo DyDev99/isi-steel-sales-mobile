@@ -5,6 +5,7 @@ import 'package:get_it/get_it.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_event.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_state.dart';
+import 'package:isi_steel_sales_mobile/features/localization/presentation/bloc/language_cubit.dart';
 import 'package:isi_steel_sales_mobile/routes/app_page.dart';
 import 'package:isi_steel_sales_mobile/routes/app_routes.dart';
 
@@ -14,8 +15,13 @@ class ISISteelSalesApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => GetIt.instance<AuthBloc>()..add(const AuthCheckRequested()),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => GetIt.instance<AuthBloc>()..add(const AuthCheckRequested()),
+        ),
+        BlocProvider.value(value: GetIt.instance<LanguageCubit>()),
+      ],
       child: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthenticatedState) {
@@ -26,13 +32,18 @@ class ISISteelSalesApp extends StatelessWidget {
         },
         child: ScreenUtilInit(
           designSize: const Size(390, 844),
-          builder: (context, child) => MaterialApp(
-            navigatorKey: navigatorKey, // Assign the key here
-            title: 'ISI Steel Sales',
-            debugShowCheckedModeBanner: false,
-            theme: _buildTheme(),
-            initialRoute: Static.splash,
-            onGenerateRoute: AppPages.onGenerateRoute,
+          // Rebuilds the whole app tree whenever the language changes so
+          // every `.tr` lookup (evaluated at build time) picks up the
+          // freshly-loaded LocalizationService strings.
+          builder: (context, child) => BlocBuilder<LanguageCubit, Locale>(
+            builder: (context, locale) => MaterialApp(
+              navigatorKey: navigatorKey, // Assign the key here
+              title: 'ISI Steel Sales',
+              debugShowCheckedModeBanner: false,
+              theme: _buildTheme(),
+              initialRoute: Static.splash,
+              onGenerateRoute: AppPages.onGenerateRoute,
+            ),
           ),
         ),
       ),

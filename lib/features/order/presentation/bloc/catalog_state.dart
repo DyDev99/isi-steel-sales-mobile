@@ -8,8 +8,11 @@ sealed class CatalogState extends Equatable {
   List<Object?> get props => [];
 }
 
-final class CatalogInitial extends CatalogState {
-  const CatalogInitial();
+/// Deferred-fetch landing state: the catalog is open but has made no network
+/// round-trip yet. We sit here until the user runs an explicit query (text,
+/// voice, image, barcode) or picks a category — keeping catalog entry instant.
+final class CatalogIdle extends CatalogState {
+  const CatalogIdle();
 }
 
 final class CatalogLoading extends CatalogState {

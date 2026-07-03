@@ -1,0 +1,127 @@
+{
+  "auth": {
+    "welcome_back": "Welcome Back!",
+    "title": "Sign In",
+    "sign_in_subtitle": "Please sign in to access your sales dashboard.",
+    "username_or_phone": "Username or Phone Number",
+    "password": "Password",
+    "forgot_password": "Forgot Password?",
+    "email": "Email",
+    "lets_go": "Let's Go",
+    "new_here": "New here?",
+    "request_access": "Request Access",
+    "remember_me": "Remember Me",
+    "login_btn": "Sign In",
+    "logging_in": "Signing in...",
+    "validation": {
+      "required": "This field is required",
+      "invalid_cred": "Incorrect username or password. Please try again.",
+      "session_expired": "Session expired. Please log in again."
+    }
+  },
+  "home": {
+    "title": "Home Dashboard",
+    "welcome": "Welcome Back",
+    "quick_access":{
+        "leads": "Leads",
+        "opportunities": "Opportunities",
+        "won_deals": "Won Deals",
+        "orders": "Orders",
+        "customers": "Customers",
+        "routes": "Routes",
+        "revenue": "Revenue",
+        "add_customer": "Add Customer"
+    },
+    "recent_activity": "Recent Activity",
+    "total_customers": "Total Customers",
+    "new_customers": "New Customers"
+  },
+  "orders": {
+    "title": "Orders",
+    "new": "Create New Order",
+    "history": "Order History",
+    "pending_sync": "Pending Sync",
+    "items_count": "{count} items",
+    "status": {
+      "pending": "Pending",
+      "completed": "Completed",
+      "canceled": "Canceled"
+    }
+  },
+  "leads": {
+    "title": "Leads",
+    "new": "Add New Lead",
+    "hot_leads": "Hot Leads",
+    "follow_up": "Follow Up Required"
+  },
+  "customers": {
+    "title": "Customers",
+    "list": "Customer List",
+    "add": "Register Customer",
+    "credit_limit": "Credit Limit"
+  },
+  "profile": {
+    "title": "Profile",
+    "settings": "Account Settings",
+    "change_lang": "Change Language",
+    "logout": "Log Out"
+  },
+  "notification": {
+    "title": "Notifications",
+    "mark_all_read": "Mark all as read",
+    "empty": "No new notifications"
+  },
+  "routes": {
+    "title": "Routes",
+    "new": "Add New Route",
+    "list": "Route List",
+    "details": "Route Details",
+    "flow": {
+      "dispatch_title": "Route",
+      "dispatch_helper": "Visits are planned by the office. Tap the next shop to head there.",
+      "shops": "shops",
+      "pill_next": "Next",
+      "pill_pending": "Pending",
+      "pill_done": "Done",
+      "pill_missed": "Missed",
+      "pill_checked_in": "Checked In",
+      "start_with": "Start with {shop}",
+      "route_complete": "Route complete",
+      "deviation_warning": "Heading out of the planned order — that's OK.",
+      "minutes_short": "min",
+      "transit_banner_locked": "Check-in only opens once you're at the shop (GPS geofence).",
+      "transit_banner_ready": "You're inside the shop area — check-in is ready.",
+      "ive_arrived": "I've Arrived",
+      "transit_disclaimer": "Move within ~{radius} m of the shopfront to unlock check-in.",
+      "checkin_title": "Check-in",
+      "geo_matched": "Inside the shop area · GPS matched",
+      "geo_not_matched": "Not inside the shop area yet · {dist} m away",
+      "proof_photo": "Proof photo",
+      "take_photo": "Take a shopfront photo",
+      "fit_frame": "Fit the shopfront inside the frame",
+      "retake": "Retake",
+      "checkin_explainer": "Check-in time and place are stamped, so the office knows the visit really happened.",
+      "checkin_continue": "Check-in & Continue",
+      "hint_move_inside": "Move inside the shop area to check in.",
+      "hint_take_photo": "Take a shopfront photo to continue.",
+      "shelf_count_title": "Quick shelf count",
+      "shelf_count_subtitle": "Count what's on the shelf for each item.",
+      "market_intel": "Market Intelligence",
+      "on_shelf": "on-shelf",
+      "out_of_stock": "out of stock",
+      "stock_insight": "This tells the office what the shop is low on — {names} out of stock, worth quoting.",
+      "done_build_quote": "Done · Build Quotation",
+      "back": "Back",
+      "no_stop": "No stop selected",
+      "offline_saved": "Offline — changes are saved on your device"
+    }
+  },
+  "language": {
+    "choose_title": "Choose Language",
+    "choose_subtitle": "Select your preferred language interface",
+    "english": "English",
+    "english_region": "United States",
+    "khmer": "ភាសាខ្មែរ",
+    "khmer_region": "Cambodia"
+  }
+}

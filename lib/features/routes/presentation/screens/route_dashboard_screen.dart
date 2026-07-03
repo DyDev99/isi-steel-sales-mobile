@@ -12,7 +12,7 @@ import 'package:isi_steel_sales_mobile/features/routes/presentation/bloc/route_d
 import 'package:isi_steel_sales_mobile/features/routes/presentation/bloc/route_dashboard_state.dart';
 import 'package:isi_steel_sales_mobile/features/routes/presentation/bloc/route_sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/routes/presentation/bloc/visit_cubit.dart';
-import 'package:isi_steel_sales_mobile/features/routes/presentation/screens/active_route_screen.dart';
+import 'package:isi_steel_sales_mobile/features/routes/presentation/screens/route_dispatch_screen.dart';
 
 /// Entry screen for Route Management, pushed from `HomeScreen`'s "Start
 /// Route" CTA. Lists today's routes (already scoped to the rep's territory
@@ -35,6 +35,7 @@ class _RouteDashboardScreenState extends State<RouteDashboardScreen> {
     final syncCubit = context.read<RouteSyncCubit>();
     final dashboardCubit = context.read<RouteDashboardCubit>();
     await Navigator.of(context).push(MaterialPageRoute(
+      settings: const RouteSettings(name: RouteDispatchScreen.routeName),
       builder: (_) => MultiBlocProvider(
         providers: [
           BlocProvider.value(value: syncCubit),
@@ -42,7 +43,7 @@ class _RouteDashboardScreenState extends State<RouteDashboardScreen> {
           BlocProvider(create: (_) => sl<LocationTrackingCubit>()),
           BlocProvider(create: (_) => sl<VisitCubit>()),
         ],
-        child: const ActiveRouteScreen(),
+        child: const RouteDispatchScreen(),
       ),
     ));
     if (!mounted) return;
