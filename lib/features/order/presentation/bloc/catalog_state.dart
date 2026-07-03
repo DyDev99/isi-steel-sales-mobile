@@ -1,0 +1,67 @@
+import 'package:equatable/equatable.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/entities/product_filter.dart';
+
+sealed class CatalogState extends Equatable {
+  const CatalogState();
+  @override
+  List<Object?> get props => [];
+}
+
+final class CatalogInitial extends CatalogState {
+  const CatalogInitial();
+}
+
+final class CatalogLoading extends CatalogState {
+  const CatalogLoading();
+}
+
+final class CatalogLoaded extends CatalogState {
+  const CatalogLoaded({
+    required this.items,
+    required this.page,
+    required this.hasMore,
+    required this.isLoadingMore,
+    required this.query,
+    required this.filter,
+    required this.brands,
+  });
+
+  final List<Product> items;
+  final int page;
+  final bool hasMore;
+  final bool isLoadingMore;
+  final String query;
+  final ProductFilter filter;
+  final List<String> brands;
+
+  CatalogLoaded copyWith({
+    List<Product>? items,
+    int? page,
+    bool? hasMore,
+    bool? isLoadingMore,
+    String? query,
+    ProductFilter? filter,
+    List<String>? brands,
+  }) {
+    return CatalogLoaded(
+      items: items ?? this.items,
+      page: page ?? this.page,
+      hasMore: hasMore ?? this.hasMore,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      query: query ?? this.query,
+      filter: filter ?? this.filter,
+      brands: brands ?? this.brands,
+    );
+  }
+
+  @override
+  List<Object?> get props => [items, page, hasMore, isLoadingMore, query, filter, brands];
+}
+
+final class CatalogError extends CatalogState {
+  const CatalogError(this.message);
+  final String message;
+  @override
+  List<Object?> get props => [message];
+}

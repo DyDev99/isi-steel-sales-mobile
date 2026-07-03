@@ -1,27 +1,29 @@
 import 'package:flutter/material.dart';
 
-/// Gen-Z visual tokens for the auth screens: dark canvas, glassy surfaces,
-/// vivid gradient accents. Kept tiny and local so widgets stay decoupled.
+/// Auth-screen visual tokens — kept as a small local class so the login
+/// widgets stay decoupled, but synced to the same Blue & White palette as
+/// [Vibe] (lib/core/utils/app_vibe.dart) so the whole app reads as one
+/// consistent theme.
 class Vibe {
   Vibe._();
 
-  static const bg = Color(0xFF0D0B1F); // deep indigo canvas
-  static const surface = Color(0x14FFFFFF); // 8% white — glass fill
-  static const surfaceStrong = Color(0x1FFFFFFF);
-  static const stroke = Color(0x24FFFFFF); // hairline glass border
-  static const text = Color(0xFFF6F4FF);
-  static const muted = Color(0xFFAAA3CC);
+  static const bg = Color(0xFFFFFFFF);
+  static const surface = Color(0xFFFFFFFF);
+  static const surfaceStrong = Color(0xFFDBEAFE);
+  static const stroke = Color(0xFFE5E7EB);
+  static const text = Color(0xFF1F2937);
+  static const muted = Color(0xFF6B7280);
 
-  static const violet = Color(0xFF7C4DFF);
-  static const pink = Color(0xFFFF63C1);
-  static const mint = Color(0xFF3DE0C8);
-  static const danger = Color(0xFFFF5A72);
-  static const success = Color(0xFF3EE599);
+  static const violet = Color(0xFF2563EB);
+  static const pink = Color(0xFF3B82F6);
+  static const mint = Color(0xFF0EA5E9);
+  static const danger = Color(0xFFEF4444);
+  static const success = Color(0xFF22C55E);
 
-  static const radius = 22.0;
+  static const radius = 16.0;
 
   static const cta = LinearGradient(
-    colors: [violet, pink],
+    colors: [violet, Color(0xFF1D4ED8)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );

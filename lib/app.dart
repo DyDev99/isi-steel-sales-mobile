@@ -44,18 +44,18 @@ class ISISteelSalesApp extends StatelessWidget {
     return ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: const Color(0xFF7C4DFF),
-        brightness: Brightness.dark,
+        seedColor: const Color(0xFF2563EB),
+        brightness: Brightness.light,
       ),
-      scaffoldBackgroundColor: const Color(0xFF0D0B1F),
+      scaffoldBackgroundColor: const Color(0xFFFFFFFF),
       // Make AppBar transparent so screens that use a Stack + background
       // don't get a conflicting solid bar.
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: IconThemeData(color: Color(0xFFF6F4FF)),
+        iconTheme: IconThemeData(color: Color(0xFF1F2937)),
         titleTextStyle: TextStyle(
-          color: Color(0xFFF6F4FF),
+          color: Color(0xFF1F2937),
           fontSize: 18,
           fontWeight: FontWeight.w700,
         ),

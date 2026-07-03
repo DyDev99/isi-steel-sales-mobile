@@ -1,0 +1,56 @@
+import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
+import 'package:isi_steel_sales_mobile/features/routes/domain/entities/route_plan.dart';
+import 'package:isi_steel_sales_mobile/features/routes/domain/entities/route_stop.dart';
+
+class RoutePlanModel extends RoutePlan {
+  const RoutePlanModel({
+    required super.id,
+    required super.name,
+    required super.repId,
+    required super.repName,
+    required super.territory,
+    required super.visitDate,
+    required super.plannedStart,
+    required super.plannedEnd,
+    required super.status,
+    required super.stops,
+  });
+
+  factory RoutePlanModel.fromJson(DataMap json, {required List<RouteStop> stops}) => RoutePlanModel(
+        id: json['id'] as String,
+        name: json['name'] as String,
+        repId: json['repId'] as String,
+        repName: json['repName'] as String,
+        territory: json['territory'] as String,
+        visitDate: DateTime.parse(json['visitDate'] as String),
+        plannedStart: DateTime.parse(json['plannedStart'] as String),
+        plannedEnd: DateTime.parse(json['plannedEnd'] as String),
+        status: RouteStatus.published,
+        stops: stops,
+      );
+
+  factory RoutePlanModel.fromRow(DataMap row, {required List<RouteStop> stops}) => RoutePlanModel(
+        id: row['id'] as String,
+        name: row['name'] as String,
+        repId: row['rep_id'] as String,
+        repName: row['rep_name'] as String,
+        territory: row['territory'] as String,
+        visitDate: DateTime.parse(row['visit_date'] as String),
+        plannedStart: DateTime.parse(row['planned_start'] as String),
+        plannedEnd: DateTime.parse(row['planned_end'] as String),
+        status: RouteStatus.values.byName(row['status'] as String),
+        stops: stops,
+      );
+
+  DataMap toRow() => {
+        'id': id,
+        'name': name,
+        'rep_id': repId,
+        'rep_name': repName,
+        'territory': territory,
+        'visit_date': visitDate.toIso8601String(),
+        'planned_start': plannedStart.toIso8601String(),
+        'planned_end': plannedEnd.toIso8601String(),
+        'status': status.name,
+      };
+}

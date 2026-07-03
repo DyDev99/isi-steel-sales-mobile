@@ -10,8 +10,15 @@ class Static {
   static const String splash = '/';
   static const String login = '/login';
   static const String main = '/main'; // MainShell (bottom-nav container)
+
+  // Deep-link entry points into a single MainShell tab (e.g. from a push
+  // notification) — not used by in-app navigation today, which stays on
+  // MainShell's IndexedStack, but kept reachable via onGenerateRoute.
   static const String home = '/home';
   static const String lead = '/lead';
+  static const String customer = '/customer';
+  static const String profile = '/profile';
+  static const String routes = '/routes';
   static const String order = '/order';
   static const String opportunity = '/opportunity';
 }

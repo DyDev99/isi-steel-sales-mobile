@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/theme/auth_vibe.dart';
 
@@ -11,20 +10,22 @@ class GlassCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(Vibe.radius + 6),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
-        child: Container(
-          padding: padding,
-          decoration: BoxDecoration(
-            color: Vibe.surface,
-            borderRadius: BorderRadius.circular(Vibe.radius + 6),
-            border: Border.all(color: Vibe.stroke),
+    final radius = BorderRadius.circular(Vibe.radius + 6);
+    return Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        color: Vibe.surface,
+        borderRadius: radius,
+        border: Border.all(color: Vibe.stroke),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF1F2937).withValues(alpha: 0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 6),
           ),
-          child: child,
-        ),
+        ],
       ),
+      child: child,
     );
   }
 }

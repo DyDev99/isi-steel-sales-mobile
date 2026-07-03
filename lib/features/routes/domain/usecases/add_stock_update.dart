@@ -1,0 +1,11 @@
+import 'package:isi_steel_sales_mobile/core/usecase/usecase.dart';
+import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
+import 'package:isi_steel_sales_mobile/features/routes/domain/entities/visit_stock_update.dart';
+import 'package:isi_steel_sales_mobile/features/routes/domain/repositories/visit_repository.dart';
+
+class AddStockUpdate extends UseCase<void, VisitStockUpdate> {
+  const AddStockUpdate(this._repository);
+  final VisitRepository _repository;
+  @override
+  ResultFuture<void> call(VisitStockUpdate params) => _repository.addStockUpdate(params);
+}

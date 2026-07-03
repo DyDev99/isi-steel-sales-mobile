@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
@@ -27,31 +26,26 @@ class GlassNavBar extends StatelessWidget {
       top: false,
       child: Padding(
         padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 12.h),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(24.r),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-            child: Container(
-              height: 66.h,
-              padding: EdgeInsets.symmetric(horizontal: 8.w),
-              decoration: BoxDecoration(
-                color: Vibe.surface,
-                borderRadius: BorderRadius.circular(24.r),
-                border: Border.all(color: Vibe.stroke),
-              ),
-              child: Row(
-                children: [
-                  for (var i = 0; i < tabs.length; i++)
-                    Expanded(
-                      child: _NavItem(
-                        tab: tabs[i],
-                        selected: i == currentIndex,
-                        onTap: () => onTap(i),
-                      ),
-                    ),
-                ],
-              ),
-            ),
+        child: Container(
+          height: 66.h,
+          padding: EdgeInsets.symmetric(horizontal: 8.w),
+          decoration: BoxDecoration(
+            color: Vibe.surface,
+            borderRadius: BorderRadius.circular(24.r),
+            border: Border.all(color: Vibe.stroke),
+            boxShadow: Vibe.cardShadow,
+          ),
+          child: Row(
+            children: [
+              for (var i = 0; i < tabs.length; i++)
+                Expanded(
+                  child: _NavItem(
+                    tab: tabs[i],
+                    selected: i == currentIndex,
+                    onTap: () => onTap(i),
+                  ),
+                ),
+            ],
           ),
         ),
       ),
@@ -76,7 +70,7 @@ class _NavItem extends StatelessWidget {
         margin: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
           gradient: selected ? Vibe.cta : null,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(18.r),
         ),
         // We remove the internal padding from the container and rely on the Row 
         // to manage the layout and centering.

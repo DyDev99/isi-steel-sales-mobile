@@ -1,6 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
+import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
+import 'package:isi_steel_sales_mobile/features/profile/presentation/bloc/profile_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/profile/presentation/screens/profile_screen.dart';
+import 'package:isi_steel_sales_mobile/features/routes/presentation/bloc/active_route_bloc.dart';
+import 'package:isi_steel_sales_mobile/features/routes/presentation/bloc/active_route_event.dart';
+import 'package:isi_steel_sales_mobile/features/routes/presentation/bloc/location_tracking_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/routes/presentation/bloc/visit_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/routes/presentation/screens/active_route_screen.dart';
 import 'package:isi_steel_sales_mobile/routes/app_routes.dart';
 
 // Screens
@@ -9,13 +17,12 @@ import 'package:isi_steel_sales_mobile/features/shell/presentation/main_shell.da
 import 'package:isi_steel_sales_mobile/features/home/presentation/screens/home_screen.dart';
 import 'package:isi_steel_sales_mobile/features/home/presentation/bloc/home_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/home/data/home_repository.dart';
-import 'package:isi_steel_sales_mobile/features/lead/presentation/screens/lead_screen.dart';
+import 'package:isi_steel_sales_mobile/features/lead/domain/entities/pipeline_stage.dart';
+import 'package:isi_steel_sales_mobile/features/lead/presentation/bloc/pipeline_bloc.dart';
+import 'package:isi_steel_sales_mobile/features/lead/presentation/bloc/pipeline_event.dart';
+import 'package:isi_steel_sales_mobile/features/lead/presentation/screens/pipeline_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/order_screen.dart';
-import 'package:isi_steel_sales_mobile/features/opportunity/presentation/screens/opportunity_screen.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/screens/login_screen.dart';
-
-// Auth bloc + states (used to detect a successful login)
-import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_bloc.dart';
 
 /// Flow: splash (6s) -> login -> (on success) -> main shell.
 class AppPages {
@@ -34,6 +41,9 @@ class AppPages {
       case Static.main:
         return _page(const MainShell(), settings);
 
+      // Deep-link routes into a single MainShell tab (see Static's doc
+      // comment) — each provides its own bloc/cubit since these are reached
+      // directly, not via MainShell's IndexedStack.
       case Static.home:
         return _page(
           BlocProvider(
@@ -44,12 +54,44 @@ class AppPages {
         );
 
       case Static.lead:
-        return _page(const LeadScreen(), settings);
+        return _page(
+          BlocProvider(
+            create: (_) => GetIt.instance<PipelineBloc>()..add(const PipelineLoadRequested()),
+            child: const PipelineScreen(initialStage: PipelineStage.leads),
+          ),
+          settings,
+        );
+
       case Static.order:
         return _page(const OrderScreen(), settings);
-      case Static.opportunity:
-        return _page(const OpportunityScreen(), settings);
 
+      case Static.routes:
+        return _page(
+          MultiBlocProvider(
+            providers: [
+              BlocProvider(
+                create: (_) => GetIt.instance<ActiveRouteBloc>()..add(const ActiveRouteLoadRequested('routeId')),
+              ),
+              BlocProvider(
+                create: (_) => GetIt.instance<LocationTrackingCubit>(),
+              ),
+              BlocProvider(
+                create: (_) => GetIt.instance<VisitCubit>(),
+              ),
+            ],
+            child: const ActiveRouteScreen(),
+          ),
+          settings,
+        );
+
+        case Static.profile:
+          return _page(
+            BlocProvider(
+              create: (_) => sl<ProfileCubit>(),
+              child: const ProfileScreen(),
+            ),
+            settings,
+          );
       default:
         return _page(_NotFound(name: settings.name), settings);
     }
