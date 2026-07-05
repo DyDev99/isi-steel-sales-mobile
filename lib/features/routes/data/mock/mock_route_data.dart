@@ -144,7 +144,9 @@ class RouteGenerator {
     final territoryNames = byTerritory.keys.toList();
 
     for (var r = 0; r < routeCount; r++) {
-      final territoryName = territoryNames[rand.nextInt(territoryNames.length)];
+      // Guarantee the synced territory (Phnom Penh — see RouteSyncScope) has a
+      // full day of routes; the rest scatter randomly across provinces.
+      final territoryName = r < 6 ? 'Phnom Penh' : territoryNames[rand.nextInt(territoryNames.length)];
       final pool = List<Map<String, dynamic>>.from(byTerritory[territoryName]!)..shuffle(rand);
       final stopCount = min(pool.length, 8 + rand.nextInt(8)); // 8-15
       final routeId = 'ROUTE-${(1000 + r)}';

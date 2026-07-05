@@ -1,7 +1,5 @@
-import 'dart:convert';
 import 'dart:math';
 
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:isi_steel_sales_mobile/core/error/exceptions.dart';
 import 'package:isi_steel_sales_mobile/features/routes/data/mock/mock_route_data.dart';
 import 'package:isi_steel_sales_mobile/features/routes/data/models/customer_stop_info_model.dart';
@@ -22,20 +20,16 @@ class MockRouteRemoteDataSource implements RouteRemoteDataSource {
 
   Future<void> _ensureLoaded() async {
     if (_customers != null) return;
-    try {
-      final raw = await rootBundle.loadString('assets/mock/routes.json');
-      final decoded = jsonDecode(raw) as Map<String, dynamic>;
-      _customers = (decoded['customers'] as List)
-          .map((e) => CustomerStopInfoModel.fromJson(e as Map<String, dynamic>))
-          .toList();
-      _routeJson = (decoded['routes'] as List).cast<Map<String, dynamic>>();
-    } catch (_) {
-      final generated = MockRouteData.generate();
-      _customers = (generated['customers'] as List)
-          .map((e) => CustomerStopInfoModel.fromJson(e as Map<String, dynamic>))
-          .toList();
-      _routeJson = (generated['routes'] as List).cast<Map<String, dynamic>>();
-    }
+    // Generate the dataset in-memory each launch rather than reading the
+    // pre-baked `assets/mock/routes.json`: the asset's `visitDate` is frozen to
+    // its generation day, so the dashboard's strict "today" filter rejects all
+    // of it once the date rolls over. `MockRouteData.generate()` stamps
+    // `DateTime.now()`, so routes always land on the current day.
+    final generated = MockRouteData.generate();
+    _customers = (generated['customers'] as List)
+        .map((e) => CustomerStopInfoModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+    _routeJson = (generated['routes'] as List).cast<Map<String, dynamic>>();
   }
 
   List<RoutePlanModel> _routesForScope(RouteSyncScope scope) {

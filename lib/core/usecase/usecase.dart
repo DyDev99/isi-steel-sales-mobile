@@ -7,6 +7,14 @@ abstract class UseCase<Type, Params> {
   ResultFuture<Type> call(Params params);
 }
 
+/// A use case that exposes a continuous [Stream] rather than a one-shot
+/// Future — for screens that must react to live local-cache/sync updates
+/// (route monitoring, check-in tracking, inventory counts).
+abstract class StreamUseCase<Type, Params> {
+  const StreamUseCase();
+  Stream<Type> call(Params params);
+}
+
 /// For use cases that take no arguments.
 final class NoParams extends Equatable {
   const NoParams();

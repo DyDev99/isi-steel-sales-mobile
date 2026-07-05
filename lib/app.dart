@@ -32,18 +32,33 @@ class ISISteelSalesApp extends StatelessWidget {
         },
         child: ScreenUtilInit(
           designSize: const Size(390, 844),
-          // Rebuilds the whole app tree whenever the language changes so
-          // every `.tr` lookup (evaluated at build time) picks up the
-          // freshly-loaded LocalizationService strings.
+          // Full "restart" on language change: the ValueKey below is rebuilt
+          // with the new language code, which tears down and recreates the
+          // entire MaterialApp/Navigator so every screen — and all the data it
+          // loads — comes back up in the freshly selected language. Signed-in
+          // users land straight back on the shell (not the splash) via the
+          // auth-aware initial route.
           builder: (context, child) => BlocBuilder<LanguageCubit, Locale>(
-            builder: (context, locale) => MaterialApp(
-              navigatorKey: navigatorKey, // Assign the key here
-              title: 'ISI Steel Sales',
-              debugShowCheckedModeBanner: false,
-              theme: _buildTheme(),
-              initialRoute: Static.splash,
-              onGenerateRoute: AppPages.onGenerateRoute,
-            ),
+            builder: (context, locale) {
+              final authState = context.read<AuthBloc>().state;
+              final initialRoute = authState is AuthenticatedState
+                  ? Static.main
+                  : (authState is UnauthenticatedState ? Static.login : Static.splash);
+              return MaterialApp(
+                key: ValueKey('lang_${locale.languageCode}'),
+                navigatorKey: navigatorKey, // Assign the key here
+                title: 'ISI Steel Sales',
+                debugShowCheckedModeBanner: false,
+                theme: _buildTheme(),
+                locale: locale,
+                initialRoute: initialRoute,
+                // Build the initial route as a single page (avoids Flutter's
+                // default '/'-splitting pulling in a not-found parent route).
+                onGenerateInitialRoutes: (name) =>
+                    [AppPages.onGenerateRoute(RouteSettings(name: name))],
+                onGenerateRoute: AppPages.onGenerateRoute,
+              );
+            },
           ),
         ),
       ),

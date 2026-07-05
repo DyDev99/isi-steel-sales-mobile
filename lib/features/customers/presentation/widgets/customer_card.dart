@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
 import 'package:isi_steel_sales_mobile/core/utils/glass_card.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer.dart';
@@ -29,12 +30,13 @@ class CustomerCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Dismissible(
       key: ValueKey(customer.id),
-      background: _swipeBackground(alignment: Alignment.centerLeft, color: Vibe.success, icon: Icons.call_rounded, label: 'Call'),
+      background: _swipeBackground(
+          alignment: Alignment.centerLeft, color: Vibe.success, icon: Icons.call_rounded, label: 'customers.call'.tr),
       secondaryBackground: _swipeBackground(
         alignment: Alignment.centerRight,
         color: Vibe.violet,
         icon: Icons.trending_up_rounded,
-        label: 'New Opportunity',
+        label: 'customers.new_opportunity_label'.tr,
       ),
       confirmDismiss: (direction) async {
         if (direction == DismissDirection.startToEnd) {
@@ -84,7 +86,7 @@ class CustomerCard extends StatelessWidget {
                       const Icon(Icons.storefront_outlined, size: 12, color: Vibe.muted),
                       const SizedBox(width: 4),
                       Text(
-                        customer.lastOrderDate == null ? 'No orders yet' : _formatDate(customer.lastOrderDate!),
+                        customer.lastOrderDate == null ? 'customers.no_orders'.tr : _formatDate(customer.lastOrderDate!),
                         style: const TextStyle(color: Vibe.muted, fontSize: 11.5),
                       ),
                     ],

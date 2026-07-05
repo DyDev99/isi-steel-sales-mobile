@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
 
 class CustomerQuickActions extends StatelessWidget {
@@ -24,7 +25,8 @@ class CustomerQuickActions extends StatelessWidget {
           child: ElevatedButton.icon(
             onPressed: onCreateOpportunity,
             icon: const Icon(Icons.trending_up_rounded, size: 18, color: Colors.white),
-            label: const Text('Create Opportunity', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 12.5)),
+            label: Text('customers.create_opportunity'.tr,
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 12.5)),
             style: ElevatedButton.styleFrom(
               backgroundColor: Vibe.violet,
               padding: const EdgeInsets.symmetric(vertical: 13),
@@ -34,11 +36,11 @@ class CustomerQuickActions extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 8),
-        _IconAction(icon: Icons.call_rounded, label: 'Call', onTap: onCall),
+        _IconAction(icon: Icons.call_rounded, label: 'customers.call'.tr, onTap: onCall),
         const SizedBox(width: 8),
-        _IconAction(icon: Icons.pin_drop_rounded, label: 'Visit', onTap: onLogVisit),
+        _IconAction(icon: Icons.pin_drop_rounded, label: 'customers.visit'.tr, onTap: onLogVisit),
         const SizedBox(width: 8),
-        _IconAction(icon: Icons.note_add_rounded, label: 'Note', onTap: onAddNote),
+        _IconAction(icon: Icons.note_add_rounded, label: 'customers.note'.tr, onTap: onAddNote),
       ],
     );
   }

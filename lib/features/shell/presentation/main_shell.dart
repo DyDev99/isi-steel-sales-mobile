@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
+import 'package:isi_steel_sales_mobile/core/local/localized_builder.dart';
 import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
 import 'package:isi_steel_sales_mobile/features/home/data/home_repository.dart';
 import 'package:isi_steel_sales_mobile/features/home/presentation/bloc/add_customer_bloc.dart';
@@ -74,7 +75,7 @@ class _MainShellState extends State<MainShell> {
     Navigator.of(context).push(MaterialPageRoute(
       builder: (_) => BlocProvider(
         create: (_) => sl<ProfileCubit>(),
-        child: const ProfileScreen(),
+        child: LocalizedBuilder(builder: (_) => const ProfileScreen()),
       ),
     ));
   }

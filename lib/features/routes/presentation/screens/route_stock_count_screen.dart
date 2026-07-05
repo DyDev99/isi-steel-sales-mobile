@@ -92,7 +92,7 @@ class _RouteStockCountScreenState extends State<RouteStockCountScreen> {
           BlocProvider(create: (_) => sl<CartCubit>()..load()),
           BlocProvider(create: (_) => sl<SyncCubit>()),
         ],
-        child: const CatalogScreen(),
+        child: LocalizedBuilder(builder: (_) => const CatalogScreen()),
       ),
     ));
   }

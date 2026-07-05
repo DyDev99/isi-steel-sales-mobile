@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer_filter.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer_status.dart';
+import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_status_badge.dart';
 
 void showCustomerFilterSheet({
   required BuildContext context,
@@ -42,17 +44,17 @@ class _CustomerFilterSheetState extends State<_CustomerFilterSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Filter & Sort', style: TextStyle(color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
+          Text('customers.filter_sort'.tr, style: const TextStyle(color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
           const SizedBox(height: 16),
-          const Text('Status', style: TextStyle(color: Vibe.muted, fontSize: 12, fontWeight: FontWeight.w700)),
+          Text('customers.status_label'.tr, style: const TextStyle(color: Vibe.muted, fontSize: 12, fontWeight: FontWeight.w700)),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
             children: [
-              _chip('All', _draft.status == null, () => setState(() => _draft = _draft.copyWith(status: () => null))),
+              _chip('customers.all'.tr, _draft.status == null, () => setState(() => _draft = _draft.copyWith(status: () => null))),
               for (final status in CustomerStatus.values)
                 _chip(
-                  status.label,
+                  status.localizedLabel,
                   _draft.status == status,
                   () => setState(() => _draft = _draft.copyWith(status: () => status)),
                 ),
@@ -60,13 +62,13 @@ class _CustomerFilterSheetState extends State<_CustomerFilterSheet> {
           ),
           const SizedBox(height: 16),
           if (widget.territories.isNotEmpty) ...[
-            const Text('Territory', style: TextStyle(color: Vibe.muted, fontSize: 12, fontWeight: FontWeight.w700)),
+            Text('customers.territory'.tr, style: const TextStyle(color: Vibe.muted, fontSize: 12, fontWeight: FontWeight.w700)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
               runSpacing: 8,
               children: [
-                _chip('All', _draft.territory == null, () => setState(() => _draft = _draft.copyWith(territory: () => null))),
+                _chip('customers.all'.tr, _draft.territory == null, () => setState(() => _draft = _draft.copyWith(territory: () => null))),
                 for (final territory in widget.territories)
                   _chip(
                     territory,
@@ -77,7 +79,7 @@ class _CustomerFilterSheetState extends State<_CustomerFilterSheet> {
             ),
             const SizedBox(height: 16),
           ],
-          const Text('Sort by', style: TextStyle(color: Vibe.muted, fontSize: 12, fontWeight: FontWeight.w700)),
+          Text('customers.sort_by'.tr, style: const TextStyle(color: Vibe.muted, fontSize: 12, fontWeight: FontWeight.w700)),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -100,7 +102,7 @@ class _CustomerFilterSheetState extends State<_CustomerFilterSheet> {
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
-              child: const Text('Apply', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+              child: Text('customers.apply'.tr, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
             ),
           ),
         ],
@@ -128,9 +130,9 @@ class _CustomerFilterSheetState extends State<_CustomerFilterSheet> {
   }
 
   String _sortLabel(CustomerSortBy sort) => switch (sort) {
-        CustomerSortBy.recentOrder => 'Recently ordered',
-        CustomerSortBy.nameAsc => 'Alphabetical',
-        CustomerSortBy.nearest => 'Nearest to me',
-        CustomerSortBy.valueDesc => 'Highest value',
+        CustomerSortBy.recentOrder => 'customers.sort.recently_ordered'.tr,
+        CustomerSortBy.nameAsc => 'customers.sort.alphabetical'.tr,
+        CustomerSortBy.nearest => 'customers.sort.nearest'.tr,
+        CustomerSortBy.valueDesc => 'customers.sort.highest_value'.tr,
       };
 }

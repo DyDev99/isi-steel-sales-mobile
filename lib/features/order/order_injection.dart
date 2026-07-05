@@ -28,6 +28,7 @@ import 'package:isi_steel_sales_mobile/features/order/domain/usecases/fetch_cart
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/fetch_categories.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/fetch_favorites.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/fetch_pending_orders.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/usecases/watch_pending_orders.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/fetch_recent_products.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_last_synced_at.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_pricing.dart';
@@ -101,6 +102,7 @@ Future<void> registerOrderFeature(GetIt sl) async {
   sl.registerLazySingleton(() => ClearCart(sl()));
   sl.registerLazySingleton(() => CheckoutCart(sl()));
   sl.registerLazySingleton(() => FetchPendingOrders(sl()));
+  sl.registerLazySingleton(() => WatchPendingOrders(sl()));
 
   sl.registerLazySingleton(() => RunInitialSync(sl()));
   sl.registerLazySingleton(() => RunDeltaSync(sl()));

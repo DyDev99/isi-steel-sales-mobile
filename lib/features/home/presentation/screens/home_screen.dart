@@ -183,7 +183,7 @@ class _ErrorView extends StatelessWidget {
           const SizedBox(height: 12),
           TextButton(
             onPressed: onRetry,
-            child: const Text('Try again', style: TextStyle(color: Vibe.pink, fontWeight: FontWeight.w700)),
+            child: Text('common.try_again'.tr, style: const TextStyle(color: Vibe.pink, fontWeight: FontWeight.w700)),
           ),
         ],
       ),
