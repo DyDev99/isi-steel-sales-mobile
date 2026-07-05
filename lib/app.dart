@@ -24,12 +24,12 @@ class ISISteelSalesApp extends StatelessWidget {
       ],
       child: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
-          if (state is AuthenticatedState) {
-            navigatorKey.currentState?.pushNamedAndRemoveUntil(Static.main, (route) => false);
-          } else if (state is UnauthenticatedState) {
-            navigatorKey.currentState?.pushNamedAndRemoveUntil(Static.login, (route) => false);
-          }
-        },
+        if (state is AuthenticatedState) {
+          navigatorKey.currentState?.pushNamedAndRemoveUntil(Static.main, (route) => false);
+        } else if (state is UnauthenticatedState) {
+          navigatorKey.currentState?.pushNamedAndRemoveUntil(Static.splash, (route) => false);
+        }
+      },
         child: ScreenUtilInit(
           designSize: const Size(390, 844),
           // Full "restart" on language change: the ValueKey below is rebuilt

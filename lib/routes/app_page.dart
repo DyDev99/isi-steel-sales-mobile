@@ -10,6 +10,7 @@ import 'package:isi_steel_sales_mobile/features/routes/presentation/bloc/active_
 import 'package:isi_steel_sales_mobile/features/routes/presentation/bloc/location_tracking_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/routes/presentation/bloc/visit_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/routes/presentation/screens/active_route_screen.dart';
+import 'package:isi_steel_sales_mobile/features/splash/presentation/language_selection_screen.dart';
 import 'package:isi_steel_sales_mobile/routes/app_routes.dart';
 
 // Screens
@@ -84,6 +85,9 @@ class AppPages {
           ),
           settings,
         );
+
+        case Static.chooseLanguage:
+          return _page(const LanguageSelectionScreen(), settings);
 
         case Static.profile:
           return _page(

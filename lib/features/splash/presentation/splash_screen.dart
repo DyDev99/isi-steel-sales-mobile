@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/utils/verion.dart';
 import 'package:isi_steel_sales_mobile/routes/app_routes.dart';
 
 /// Splash: ISI Steel logo fades + scales in, holds for ~6s, then -> login.
@@ -34,10 +35,11 @@ class _SplashScreenState extends State<SplashScreen>
     // Start animation immediately on first frame.
     WidgetsBinding.instance.addPostFrameCallback((_) => _controller.forward());
 
-    // Navigate to login after 6 seconds.
-    _navTimer = Timer(const Duration(seconds: 6), () {
+    // Navigate to the language-choice screen after 6 seconds. That screen
+    // hands off to login once a language is picked.
+    _navTimer = Timer(const Duration(seconds: 3), () {
       if (!mounted) return;
-      Navigator.of(context).pushReplacementNamed(Static.login);
+      Navigator.of(context).pushReplacementNamed(Static.chooseLanguage);
     });
   }
 
@@ -106,7 +108,7 @@ class _SplashScreenState extends State<SplashScreen>
           ),
 
           const Positioned(
-            bottom: 48,
+            bottom: 100,
             left: 0,
             right: 0,
             child: Center(
@@ -121,8 +123,15 @@ class _SplashScreenState extends State<SplashScreen>
               ),
             ),
           ),
+
+          const Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(child: VersionFooter()),
+          ),
         ],
       ),
     );
   }
-    }
+}

@@ -13,32 +13,51 @@
     "remember_me": "Remember Me",
     "login_btn": "Sign In",
     "logging_in": "Signing in...",
+    "email_required": "Email is required",
+    "password_too_short": "Password must be at least 6 characters",
+    "password_required": "Password is required",
     "validation": {
       "required": "This field is required",
       "invalid_cred": "Incorrect username or password. Please try again.",
       "session_expired": "Session expired. Please log in again."
     }
   },
-  "common": {
+ "common": {
     "try_again": "Try again",
     "retry": "Retry",
     "loading": "Loading…",
     "offline": "You're offline — showing saved data",
     "generic_error": "Something went wrong. Please try again.",
-    "no_connection": "No internet connection. Changes are saved on your device."
+    "no_connection": "No internet connection. Changes are saved on your device.",
+    "view_details": "View Details"
   },
+  
   "home": {
     "title": "Home Dashboard",
     "welcome": "Welcome Back",
-    "quick_access":{
-        "leads": "Leads",
-        "opportunities": "Opportunities",
-        "won_deals": "Won Deals",
-        "orders": "Orders",
-        "customers": "Customers",
-        "routes": "Routes",
-        "revenue": "Revenue",
-        "add_customer": "Add Customer"
+    "quick_access": {
+      "leads": "Leads",
+      "opportunities": "Opportunities",
+      "won_deals": "Won Deals",
+      "orders": "Orders",
+      "customers": "Customers",
+      "active": "Active",
+      "prospect": "Prospect",
+      "total_customers": "Total Customers",
+      "suspended": "Suspended",
+      "routes": "Routes",
+      "revenue": "Revenue",
+      "add_customer": "Add Customer",
+      
+      "total_pipeline": "Total Pipeline",
+      "new": "New",
+      "total_orders": "Total Orders",
+      "pending": "Pending",
+      "success": "Success",
+      "total_routes": "Total Routes",
+      "today_active": "Today Active",
+      "missed": "Missed",
+      "remaining": "Remaining"
     },
     "recent_activity": "Recent Activity",
     "total_customers": "Total Customers",
@@ -210,6 +229,7 @@
     "choose_subtitle": "Select your preferred language interface",
     "english": "English",
     "english_region": "United States",
+    "language_change_anytime": "You can change the language anytime in your profile settings.",
     "khmer": "ភាសាខ្មែរ",
     "khmer_region": "Cambodia"
   }
