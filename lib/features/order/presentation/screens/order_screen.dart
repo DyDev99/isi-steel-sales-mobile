@@ -94,6 +94,7 @@ class _OrderDashboardState extends State<_OrderDashboard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Vibe.bg,
       body: SafeArea(
         child: Column(
           children: [

@@ -5,7 +5,8 @@ import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
 import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
 import 'package:isi_steel_sales_mobile/core/utils/aurora_background.dart';
-import 'package:isi_steel_sales_mobile/features/authentication/domain/entities/user_role.dart';
+// Add this line back right here:
+import 'package:isi_steel_sales_mobile/features/authentication/domain/entities/user_role.dart'; 
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/lead.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/pipeline_stage.dart';
 import 'package:isi_steel_sales_mobile/features/lead/presentation/bloc/lead_detail_cubit.dart';
@@ -18,14 +19,8 @@ import 'package:isi_steel_sales_mobile/features/lead/presentation/widgets/lead_f
 import 'package:isi_steel_sales_mobile/features/lead/presentation/widgets/move_stage_sheet.dart';
 import 'package:isi_steel_sales_mobile/features/lead/presentation/widgets/pipeline_column.dart';
 import 'package:isi_steel_sales_mobile/features/lead/presentation/widgets/pipeline_filter_sheet.dart';
-import 'package:isi_steel_sales_mobile/features/lead/presentation/widgets/pipeline_search_filter_bar.dart';
-import 'package:isi_steel_sales_mobile/features/lead/presentation/widgets/pipeline_summary_row.dart';
 import 'package:isi_steel_sales_mobile/features/lead/presentation/widgets/send_to_hq_sheet.dart';
 
-/// The Kanban sales-pipeline board: Leads -> Opportunities -> Won.
-/// [initialStage] just decides which column the mobile single-column view
-/// opens on (used so the "Leads" and "Opps" bottom-nav tabs both land on
-/// this same board, focused on their respective stage).
 class PipelineScreen extends StatelessWidget {
   const PipelineScreen({super.key, this.initialStage = PipelineStage.leads});
   final PipelineStage initialStage;
@@ -64,10 +59,23 @@ class PipelineScreen extends StatelessWidget {
   }
 }
 
-class _Board extends StatelessWidget {
+class _Board extends StatefulWidget {
   const _Board({required this.state, required this.initialStage});
   final PipelineLoaded state;
   final PipelineStage initialStage;
+
+  @override
+  State<_Board> createState() => _BoardState();
+}
+
+class _BoardState extends State<_Board> {
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   bool get _isAdmin => sl<SessionManager>().can(UserRole.admin);
 
@@ -142,8 +150,8 @@ class _Board extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final territories = state.allLeads.map((l) => l.territory).toSet().toList()..sort();
-    final reps = state.allLeads.map((l) => l.assignedRepName).toSet().toList()..sort();
+    final territories = widget.state.allLeads.map((l) => l.territory).toSet().toList()..sort();
+    final reps = widget.state.allLeads.map((l) => l.assignedRepName).toSet().toList()..sort();
 
     return RefreshIndicator(
       color: Vibe.pink,
@@ -151,55 +159,138 @@ class _Board extends StatelessWidget {
       onRefresh: () async => context.read<PipelineBloc>().add(const PipelineLoadRequested()),
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
-        // Decreased overall side spacing and kept top zeroed out
         padding: EdgeInsets.fromLTRB(16.w, 0.h, 16.w, 12.h),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Shift the top element upward slightly to cancel out default parent padding gaps
+            // --- EXACT REPLICA OF THE DESIGN IMAGE ROW LAYOUT ---
             Transform.translate(
-              offset: Offset(0, -8.h), 
-              child: PipelineSearchFilterBar(
-                onSearchChanged: (q) => context.read<PipelineBloc>().add(SearchChanged(q)),
-                onFilterTap: () => showPipelineFilterSheet(
-                  context: context,
-                  filter: state.filter,
-                  territories: territories,
-                  reps: reps,
-                  onApply: (f) {
-                    final bloc = context.read<PipelineBloc>();
-                    bloc.add(FilterChanged(
-                      territory: () => f.territory,
-                      assignedRepName: () => f.assignedRepName,
-                      priority: () => f.priority,
-                      visibleStages: f.visibleStages,
-                    ));
-                    bloc.add(SortChanged(f.sortBy));
-                  },
+              offset: Offset(0, -4.h),
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 8.h),
+                child: Row(
+                  children: [
+                    // 1. Search Bar Input Container
+                    Expanded(
+                      child: Container(
+                        height: 48.h,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16.r),
+                          border: Border.all(color: Colors.grey.shade200),
+                        ),
+                        padding: EdgeInsets.symmetric(horizontal: 14.w),
+                        child: Row(
+                          children: [
+                            Icon(Icons.search, color: Colors.grey.shade500, size: 22.w),
+                            SizedBox(width: 8.w),
+                            Expanded(
+                              child: TextField(
+                                controller: _searchController,
+                                onChanged: (q) => context.read<PipelineBloc>().add(SearchChanged(q)),
+                                decoration: InputDecoration(
+                                  hintText: "Search company or owner...",
+                                  hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14.sp),
+                                  border: InputBorder.none,
+                                  isDense: true,
+                                  contentPadding: EdgeInsets.zero,
+                                ),
+                                style: TextStyle(fontSize: 14.sp, color: Vibe.text),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 10.w),
+
+                    // 2. Action Filtering Button Container
+                    GestureDetector(
+                      onTap: () => showPipelineFilterSheet(
+                        context: context,
+                        filter: widget.state.filter,
+                        territories: territories,
+                        reps: reps,
+                        onApply: (f) {
+                          final bloc = context.read<PipelineBloc>();
+                          bloc.add(FilterChanged(
+                            territory: () => f.territory,
+                            assignedRepName: () => f.assignedRepName,
+                            priority: () => f.priority,
+                            visibleStages: f.visibleStages,
+                          ));
+                          bloc.add(SortChanged(f.sortBy));
+                        },
+                      ),
+                      child: Container(
+                        width: 48.h,
+                        height: 48.h,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14.r),
+                          border: Border.all(
+                            color: !widget.state.filter.isEmpty 
+                                ? const Color(0xFF2563EB) 
+                                : Colors.grey.shade200,
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.tune_rounded, 
+                          color: const Color(0xFF1E293B), 
+                          size: 20.w,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 10.w),
+
+                    // 3. Shaped Blue Add Action Button Container
+                    GestureDetector(
+                      onTap: () async {
+                        final created = await showLeadFormSheet(context: context);
+                        if (created != null && context.mounted) {
+                          context.read<PipelineBloc>().add(LeadCreated(created));
+                        }
+                      },
+                      child: Container(
+                        width: 48.h,
+                        height: 48.h,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF2563EB),
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(12.r),
+                            topRight: Radius.circular(16.r),
+                            bottomLeft: Radius.circular(20.r),
+                            bottomRight: Radius.circular(16.r),
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF2563EB).withValues(alpha: 0.25),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
+                            )
+                          ],
+                        ),
+                        child: Icon(Icons.add, color: Colors.white, size: 22.w),
+                      ),
+                    ),
+                  ],
                 ),
-                hasActiveFilters: !state.filter.isEmpty,
-                onAddLead: () async {
-                  final created = await showLeadFormSheet(context: context);
-                  if (created != null && context.mounted) {
-                    context.read<PipelineBloc>().add(LeadCreated(created));
-                  }
-                },
               ),
             ),
-            SizedBox(height: 8.h), // Decreased from 16.h to tighten everything closer
+            SizedBox(height: 8.h),
             LayoutBuilder(
               builder: (context, constraints) {
                 final isWide = constraints.maxWidth >= 760;
                 final columns = PipelineStage.values
                     .map((stage) => PipelineColumn(
                           stage: stage,
-                          leads: state.columns[stage] ?? const [],
+                          leads: widget.state.columns[stage] ?? const [],
                           onCardTap: (lead) => _openDetail(context, lead),
                           onCardAction: (lead, action) => _handleAction(context, lead, action),
                           onDroppedOnColumn: (dragged) => _handleDrop(context, dragged, stage),
                           onDroppedOnCard: (dragged, index) {
                             if (dragged.stage == stage) {
-                              final oldIndex = (state.columns[stage] ?? const [])
+                              final oldIndex = (widget.state.columns[stage] ?? const [])
                                   .indexWhere((l) => l.id == dragged.id);
                               if (oldIndex != -1) {
                                 context
@@ -234,7 +325,7 @@ class _Board extends StatelessWidget {
                     scrollDirection: Axis.horizontal,
                     itemCount: columns.length,
                     controller: ScrollController(
-                      initialScrollOffset: PipelineStage.values.indexOf(initialStage) * 300.0,
+                      initialScrollOffset: PipelineStage.values.indexOf(widget.initialStage) * 300.0,
                     ),
                     separatorBuilder: (_, __) => const SizedBox(width: 12),
                     itemBuilder: (context, i) => SizedBox(width: 300, child: columns[i]),
