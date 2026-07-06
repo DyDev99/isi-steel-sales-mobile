@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
 
 /// Multi-modal catalog search header: type, speak 🎤, scan 📷 or upload a photo.
@@ -48,11 +49,11 @@ class CatalogSearchBar extends StatelessWidget {
                     textInputAction: TextInputAction.search,
                     onSubmitted: onSearchChanged,
                     style: const TextStyle(color: Vibe.text, fontSize: 13.5),
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       isDense: true,
                       border: InputBorder.none,
-                      hintText: 'Search, speak, scan or photo…',
-                      hintStyle: TextStyle(color: Vibe.muted, fontSize: 13.5),
+                      hintText: 'orders.catalog.search_hint'.tr,
+                      hintStyle: const TextStyle(color: Vibe.muted, fontSize: 13.5),
                     ),
                   ),
                 ),

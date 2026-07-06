@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:isi_steel_sales_mobile/core/error/exceptions.dart';
 import 'package:isi_steel_sales_mobile/core/error/failures.dart';
 import 'package:isi_steel_sales_mobile/core/utils/result.dart';
@@ -8,8 +10,13 @@ import 'package:isi_steel_sales_mobile/features/routes/domain/entities/visit_sta
 import 'package:isi_steel_sales_mobile/features/routes/domain/repositories/route_repository.dart';
 
 class RouteRepositoryImpl implements RouteRepository {
-  const RouteRepositoryImpl(this._local);
+  RouteRepositoryImpl(this._local);
   final RouteLocalDataSource _local;
+
+  /// Broadcast hub for live route updates. Mutations push a fresh local
+  /// snapshot here so any active [watchTodayRoutes] listener updates instantly.
+  final StreamController<List<RoutePlan>> _routesController =
+      StreamController<List<RoutePlan>>.broadcast();
 
   @override
   ResultFuture<List<RoutePlan>> fetchTodayRoutes() async {
@@ -17,6 +24,25 @@ class RouteRepositoryImpl implements RouteRepository {
       return Success(await _local.fetchTodayRoutes());
     } on CacheException catch (e) {
       return Failed(CacheFailure(message: e.message));
+    }
+  }
+
+  @override
+  Stream<List<RoutePlan>> watchTodayRoutes() async* {
+    // Immediate local snapshot (may throw CacheException → surfaces as a stream
+    // error the cubit maps to RouteDashboardError), then live updates.
+    yield await _local.fetchTodayRoutes();
+    yield* _routesController.stream;
+  }
+
+  /// Re-read the local cache and broadcast it to listeners. Called after any
+  /// mutation so open screens (e.g. the dashboard) reflect the change live.
+  Future<void> _broadcastTodayRoutes() async {
+    if (!_routesController.hasListener) return;
+    try {
+      _routesController.add(await _local.fetchTodayRoutes());
+    } on CacheException {
+      // Keep the last good snapshot on a transient read error.
     }
   }
 
@@ -35,6 +61,7 @@ class RouteRepositoryImpl implements RouteRepository {
   ResultFuture<void> updateRouteStatus(String routeId, RouteStatus status) async {
     try {
       await _local.updateRouteStatus(routeId, status);
+      unawaited(_broadcastTodayRoutes());
       return const Success(null);
     } on CacheException catch (e) {
       return Failed(CacheFailure(message: e.message));
@@ -55,6 +82,7 @@ class RouteRepositoryImpl implements RouteRepository {
         actualArrival: actualArrival,
         actualDeparture: actualDeparture,
       );
+      unawaited(_broadcastTodayRoutes());
       return const Success(null);
     } on CacheException catch (e) {
       return Failed(CacheFailure(message: e.message));

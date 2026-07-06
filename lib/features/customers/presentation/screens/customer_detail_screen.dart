@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
+import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
+import 'package:isi_steel_sales_mobile/core/local/localized_builder.dart';
 import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
 import 'package:isi_steel_sales_mobile/core/utils/glass_card.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer.dart';
@@ -158,7 +160,8 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return LocalizedBuilder(
+      builder: (context) => Scaffold(
       backgroundColor: Vibe.bg,
       appBar: AppBar(
         backgroundColor: Vibe.bg,
@@ -166,7 +169,7 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
         iconTheme: const IconThemeData(color: Vibe.text),
         title: BlocBuilder<CustomerDetailCubit, CustomerDetailState>(
           builder: (context, state) => Text(
-            state is CustomerDetailLoaded ? state.customer.shopName : 'Customer',
+            state is CustomerDetailLoaded ? state.customer.shopName : 'customers.customer_fallback'.tr,
             style: const TextStyle(color: Vibe.text, fontSize: 16, fontWeight: FontWeight.w800),
           ),
         ),
@@ -177,12 +180,15 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
             CustomerDetailLoaded() => _Loaded(
                 state: state,
                 onCall: () => ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Calling ${state.customer.phone}…'), duration: const Duration(seconds: 1)),
+                  SnackBar(
+                      content: Text('customers.calling'.tr.replaceAll('{phone}', state.customer.phone)),
+                      duration: const Duration(seconds: 1)),
                 ),
                 onCreateOpportunity: () => _createOpportunity(context, state.customer),
                 onLogVisit: () {
-                  context.read<CustomerDetailCubit>().logActivity(CustomerActivityType.visit, 'Visit logged');
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Visit logged'), duration: Duration(seconds: 1)));
+                  context.read<CustomerDetailCubit>().logActivity(CustomerActivityType.visit, 'customers.visit_logged'.tr);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('customers.visit_logged'.tr), duration: const Duration(seconds: 1)));
                 },
                 onAddNote: () => _addNote(context),
               ),
@@ -191,6 +197,7 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
           };
         },
       ),
+    ),
     );
   }
 }

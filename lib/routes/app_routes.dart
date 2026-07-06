@@ -16,6 +16,7 @@ class Static {
   // MainShell's IndexedStack, but kept reachable via onGenerateRoute.
   static const String home = '/home';
   static const String lead = '/lead';
+  static const String chooseLanguage = '/choose-language';
   static const String customer = '/customer';
   static const String profile = '/profile';
   static const String routes = '/routes';

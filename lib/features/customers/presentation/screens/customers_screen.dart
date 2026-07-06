@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
+import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
+import 'package:isi_steel_sales_mobile/core/local/localized_builder.dart';
 import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customer_sync_cubit.dart';
@@ -70,22 +72,24 @@ class _CustomersViewState extends State<_CustomersView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Vibe.bg,
-      body: BlocBuilder<CustomersBloc, CustomersState>(
-        builder: (context, state) {
-          return switch (state) {
-            CustomersLoaded() => _Loaded(
-                state: state,
-                quickAccess: _quickAccess,
-                onQuickAccessChanged: (q) => setState(() => _quickAccess = q),
-                scrollController: _scrollController,
-                onOpenDetail: (id) => _openDetail(context, id),
-              ),
-            CustomersError(:final message) => Center(child: Text(message, style: const TextStyle(color: Vibe.muted))),
-            _ => const Center(child: CircularProgressIndicator(color: Vibe.violet)),
-          };
-        },
+    return LocalizedBuilder(
+      builder: (context) => Scaffold(
+        backgroundColor: Vibe.bg,
+        body: BlocBuilder<CustomersBloc, CustomersState>(
+          builder: (context, state) {
+            return switch (state) {
+              CustomersLoaded() => _Loaded(
+                  state: state,
+                  quickAccess: _quickAccess,
+                  onQuickAccessChanged: (q) => setState(() => _quickAccess = q),
+                  scrollController: _scrollController,
+                  onOpenDetail: (id) => _openDetail(context, id),
+                ),
+              CustomersError(:final message) => Center(child: Text(message, style: const TextStyle(color: Vibe.muted))),
+              _ => const Center(child: CircularProgressIndicator(color: Vibe.violet)),
+            };
+          },
+        ),
       ),
     );
   }
@@ -154,7 +158,7 @@ class _Loaded extends StatelessWidget {
             SliverFillRemaining(
               child: Center(
                 child: Text(
-                  quickAccess == _QuickAccess.all ? 'No customers found' : 'Nothing here yet',
+                  quickAccess == _QuickAccess.all ? 'customers.no_customers'.tr : 'customers.nothing_here'.tr,
                   style: const TextStyle(color: Vibe.muted),
                 ),
               ),
@@ -172,7 +176,9 @@ class _Loaded extends StatelessWidget {
                     isFavorite: state.favoriteIds.contains(customer.id),
                     onTap: () => onOpenDetail(customer.id),
                     onCall: () => ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Calling ${customer.phone}…'), duration: const Duration(seconds: 1)),
+                      SnackBar(
+                          content: Text('customers.calling'.tr.replaceAll('{phone}', customer.phone)),
+                          duration: const Duration(seconds: 1)),
                     ),
                     onCreateOpportunity: () => onOpenDetail(customer.id),
                     onFavoriteToggle: () => context.read<CustomersBloc>().add(CustomersFavoriteToggled(customer.id)),
@@ -202,12 +208,15 @@ class _QuickAccessRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        _Segment(label: 'All', selected: selected == _QuickAccess.all, onTap: () => onChanged(_QuickAccess.all)),
-        const SizedBox(width: 8),
-        _Segment(label: 'Recent', selected: selected == _QuickAccess.recent, onTap: () => onChanged(_QuickAccess.recent)),
+        _Segment(label: 'customers.all'.tr, selected: selected == _QuickAccess.all, onTap: () => onChanged(_QuickAccess.all)),
         const SizedBox(width: 8),
         _Segment(
-          label: 'Favorites',
+            label: 'customers.recent'.tr,
+            selected: selected == _QuickAccess.recent,
+            onTap: () => onChanged(_QuickAccess.recent)),
+        const SizedBox(width: 8),
+        _Segment(
+          label: 'customers.favorites'.tr,
           selected: selected == _QuickAccess.favorites,
           onTap: () => onChanged(_QuickAccess.favorites),
         ),

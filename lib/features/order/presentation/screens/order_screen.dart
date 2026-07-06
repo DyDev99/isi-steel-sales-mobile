@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
+import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
+import 'package:isi_steel_sales_mobile/core/local/localized_builder.dart';
 import 'package:isi_steel_sales_mobile/core/usecase/usecase.dart';
 import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
 import 'package:isi_steel_sales_mobile/core/utils/glass_card.dart';
 import 'package:isi_steel_sales_mobile/features/home/presentation/bloc/home_cubit.dart'; // ShellTabController, ShellTab
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/pending_order.dart';
-import 'package:isi_steel_sales_mobile/features/order/domain/usecases/fetch_pending_orders.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/usecases/watch_pending_orders.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/catalog_screen.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/order_skeletons.dart';
 
 /// Entry point into the product catalog for a general (not-lead-scoped) order.
 ///
@@ -66,18 +69,9 @@ class _OrderDashboard extends StatefulWidget {
 }
 
 class _OrderDashboardState extends State<_OrderDashboard> {
-  late Future<List<PendingOrder>> _ordersFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _ordersFuture = _loadOrders();
-  }
-
-  Future<List<PendingOrder>> _loadOrders() async {
-    final result = await sl<FetchPendingOrders>()(const NoParams());
-    return result.when(success: (o) => o, failure: (_) => const []);
-  }
+  // Live pending-orders stream — re-emits the moment a checkout writes a new
+  // order, so this list stays current without any manual reload.
+  late final Stream<List<PendingOrder>> _ordersStream = sl<WatchPendingOrders>()(const NoParams());
 
   void _openCatalog() {
     // Because we are now inside the Nested Navigator, this push will NOT
@@ -92,9 +86,9 @@ class _OrderDashboardState extends State<_OrderDashboard> {
           BlocProvider(create: (_) => sl<CartCubit>()..load()),
           BlocProvider(create: (_) => sl<SyncCubit>()),
         ],
-        child: const CatalogScreen(),
+        child: LocalizedBuilder(builder: (_) => const CatalogScreen()),
       ),
-    )).then((_) => setState(() => _ordersFuture = _loadOrders()));
+    ));
   }
 
   @override
@@ -112,8 +106,8 @@ class _OrderDashboardState extends State<_OrderDashboard> {
                   ElevatedButton.icon(
                     onPressed: _openCatalog,
                     icon: const Icon(Icons.storefront_rounded, color: Colors.white),
-                    label: const Text('New Order',
-                        style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white)),
+                    label: Text('orders.new_order'.tr,
+                        style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.white)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Vibe.violet,
                       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
@@ -127,28 +121,29 @@ class _OrderDashboardState extends State<_OrderDashboard> {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
                 children: [
-                  const Text('Recent Orders',
-                      style: TextStyle(color: Vibe.text, fontSize: 15, fontWeight: FontWeight.w800)),
+                  Text('orders.recent'.tr,
+                      style: const TextStyle(color: Vibe.text, fontSize: 15, fontWeight: FontWeight.w800)),
                   const SizedBox(height: 10),
-                  FutureBuilder<List<PendingOrder>>(
-                    future: _ordersFuture,
+                  StreamBuilder<List<PendingOrder>>(
+                    stream: _ordersStream,
                     builder: (context, snapshot) {
-                      final orders = snapshot.data ?? const [];
-                      if (snapshot.connectionState != ConnectionState.done) {
-                        return const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 24),
-                          child: Center(child: CircularProgressIndicator(color: Vibe.violet)),
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const PendingOrdersSkeleton();
+                      } else if (snapshot.hasError) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 24),
+                          child: Center(child: Text('common.generic_error'.tr, style: const TextStyle(color: Vibe.muted))),
                         );
+                      } else {
+                        final orders = snapshot.data ?? const <PendingOrder>[];
+                        if (orders.isEmpty) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 24),
+                            child: Center(child: Text('orders.no_orders'.tr, style: const TextStyle(color: Vibe.muted))),
+                          );
+                        }
+                        return Column(children: [for (final order in orders) _OrderTile(order: order)]);
                       }
-                      if (orders.isEmpty) {
-                        return const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 24),
-                          child: Center(child: Text('No orders yet', style: TextStyle(color: Vibe.muted))),
-                        );
-                      }
-                      return Column(
-                        children: [for (final order in orders) _OrderTile(order: order)],
-                      );
                     },
                   ),
                 ],
@@ -176,7 +171,7 @@ class _OrderTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('${order.items.length} item${order.items.length == 1 ? '' : 's'}',
+                  Text('orders.items_count'.tr.replaceAll('{count}', '${order.items.length}'),
                       style: const TextStyle(color: Vibe.text, fontSize: 13.5, fontWeight: FontWeight.w800)),
                   const SizedBox(height: 2),
                   Text(_formatDate(order.createdAt), style: const TextStyle(color: Vibe.muted, fontSize: 11.5)),
@@ -189,8 +184,8 @@ class _OrderTile extends StatelessWidget {
                 color: Vibe.amber.withValues(alpha: 0.16),
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: const Text('Pending Sync',
-                  style: TextStyle(color: Vibe.amber, fontSize: 10.5, fontWeight: FontWeight.w700)),
+              child: Text('orders.pending_sync'.tr,
+                  style: const TextStyle(color: Vibe.amber, fontSize: 10.5, fontWeight: FontWeight.w700)),
             ),
             const SizedBox(width: 10),
             Text('\$${order.total.toStringAsFixed(2)}',

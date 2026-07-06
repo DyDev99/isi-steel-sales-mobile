@@ -130,10 +130,6 @@ class _Board extends StatelessWidget {
 
   Future<void> _handleDrop(BuildContext context, Lead dragged, PipelineStage toStage) async {
     if (dragged.stage == toStage) return;
-    // The bloc re-validates via canMoveStage and surfaces a snackbar itself
-    // if the transition isn't allowed. Dropping straight onto a target
-    // stage already tells us the target, so this skips the picker list and
-    // goes straight to whichever conversion sheet (if any) that stage needs.
     final result = await resolveStageMove(context: context, lead: dragged, toStage: toStage);
     if (result == null || !context.mounted) return;
     context.read<PipelineBloc>().add(LeadMoved(
@@ -155,37 +151,42 @@ class _Board extends StatelessWidget {
       onRefresh: () async => context.read<PipelineBloc>().add(const PipelineLoadRequested()),
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: EdgeInsets.fromLTRB(20.w, 0.h, 20.w, 12.h),
+        // Decreased overall side spacing and kept top zeroed out
+        padding: EdgeInsets.fromLTRB(16.w, 0.h, 16.w, 12.h),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            PipelineSearchFilterBar(
-              onSearchChanged: (q) => context.read<PipelineBloc>().add(SearchChanged(q)),
-              onFilterTap: () => showPipelineFilterSheet(
-                context: context,
-                filter: state.filter,
-                territories: territories,
-                reps: reps,
-                onApply: (f) {
-                  final bloc = context.read<PipelineBloc>();
-                  bloc.add(FilterChanged(
-                    territory: () => f.territory,
-                    assignedRepName: () => f.assignedRepName,
-                    priority: () => f.priority,
-                    visibleStages: f.visibleStages,
-                  ));
-                  bloc.add(SortChanged(f.sortBy));
+            // Shift the top element upward slightly to cancel out default parent padding gaps
+            Transform.translate(
+              offset: Offset(0, -8.h), 
+              child: PipelineSearchFilterBar(
+                onSearchChanged: (q) => context.read<PipelineBloc>().add(SearchChanged(q)),
+                onFilterTap: () => showPipelineFilterSheet(
+                  context: context,
+                  filter: state.filter,
+                  territories: territories,
+                  reps: reps,
+                  onApply: (f) {
+                    final bloc = context.read<PipelineBloc>();
+                    bloc.add(FilterChanged(
+                      territory: () => f.territory,
+                      assignedRepName: () => f.assignedRepName,
+                      priority: () => f.priority,
+                      visibleStages: f.visibleStages,
+                    ));
+                    bloc.add(SortChanged(f.sortBy));
+                  },
+                ),
+                hasActiveFilters: !state.filter.isEmpty,
+                onAddLead: () async {
+                  final created = await showLeadFormSheet(context: context);
+                  if (created != null && context.mounted) {
+                    context.read<PipelineBloc>().add(LeadCreated(created));
+                  }
                 },
               ),
-              hasActiveFilters: !state.filter.isEmpty,
-              onAddLead: () async {
-                final created = await showLeadFormSheet(context: context);
-                if (created != null && context.mounted) {
-                  context.read<PipelineBloc>().add(LeadCreated(created));
-                }
-              },
             ),
-            SizedBox(height: 16.h),
+            SizedBox(height: 8.h), // Decreased from 16.h to tighten everything closer
             LayoutBuilder(
               builder: (context, constraints) {
                 final isWide = constraints.maxWidth >= 760;

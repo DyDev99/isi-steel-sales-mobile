@@ -13,24 +13,51 @@
     "remember_me": "Remember Me",
     "login_btn": "Sign In",
     "logging_in": "Signing in...",
+    "email_required": "Email is required",
+    "password_too_short": "Password must be at least 6 characters",
+    "password_required": "Password is required",
     "validation": {
       "required": "This field is required",
       "invalid_cred": "Incorrect username or password. Please try again.",
       "session_expired": "Session expired. Please log in again."
     }
   },
+ "common": {
+    "try_again": "Try again",
+    "retry": "Retry",
+    "loading": "Loading…",
+    "offline": "You're offline — showing saved data",
+    "generic_error": "Something went wrong. Please try again.",
+    "no_connection": "No internet connection. Changes are saved on your device.",
+    "view_details": "View Details"
+  },
+  
   "home": {
     "title": "Home Dashboard",
     "welcome": "Welcome Back",
-    "quick_access":{
-        "leads": "Leads",
-        "opportunities": "Opportunities",
-        "won_deals": "Won Deals",
-        "orders": "Orders",
-        "customers": "Customers",
-        "routes": "Routes",
-        "revenue": "Revenue",
-        "add_customer": "Add Customer"
+    "quick_access": {
+      "leads": "Leads",
+      "opportunities": "Opportunities",
+      "won_deals": "Won Deals",
+      "orders": "Orders",
+      "customers": "Customers",
+      "active": "Active",
+      "prospect": "Prospect",
+      "total_customers": "Total Customers",
+      "suspended": "Suspended",
+      "routes": "Routes",
+      "revenue": "Revenue",
+      "add_customer": "Add Customer",
+      
+      "total_pipeline": "Total Pipeline",
+      "new": "New",
+      "total_orders": "Total Orders",
+      "pending": "Pending",
+      "success": "Success",
+      "total_routes": "Total Routes",
+      "today_active": "Today Active",
+      "missed": "Missed",
+      "remaining": "Remaining"
     },
     "recent_activity": "Recent Activity",
     "total_customers": "Total Customers",
@@ -39,6 +66,9 @@
   "orders": {
     "title": "Orders",
     "new": "Create New Order",
+    "new_order": "New Order",
+    "recent": "Recent Orders",
+    "no_orders": "No orders yet",
     "history": "Order History",
     "pending_sync": "Pending Sync",
     "items_count": "{count} items",
@@ -46,6 +76,21 @@
       "pending": "Pending",
       "completed": "Completed",
       "canceled": "Canceled"
+    },
+    "catalog": {
+      "title": "Product Catalog",
+      "back": "Back",
+      "menu": "Menu",
+      "search_hint": "Search, speak, scan or photo…",
+      "idle_hint": "Search via text, speak 🎤, scan 📷 or upload a photo to find items.",
+      "no_products": "No products found",
+      "added_to_cart": "{name} added to cart",
+      "search_by_photo": "Search by photo",
+      "take_photo": "Take a photo",
+      "upload_gallery": "Upload from gallery",
+      "voice_search": "Voice search: \"{query}\"",
+      "matched_photo": "Matched by photo: {query}",
+      "out_of_stock": "Out of stock"
     }
   },
   "leads": {
@@ -58,7 +103,64 @@
     "title": "Customers",
     "list": "Customer List",
     "add": "Register Customer",
-    "credit_limit": "Credit Limit"
+    "credit_limit": "Credit Limit",
+    "no_customers": "No customers found",
+    "nothing_here": "Nothing here yet",
+    "all": "All",
+    "recent": "Recent",
+    "favorites": "Favorites",
+    "search_hint": "Search shop, code, owner, phone…",
+    "calling": "Calling {phone}…",
+    "visit_logged": "Visit logged",
+    "customer_fallback": "Customer",
+    "overview": "Overview",
+    "contacts": "Contacts",
+    "sales_history": "Sales History",
+    "sap_info": "SAP Information",
+    "timeline": "Timeline",
+    "no_activity": "No activity yet",
+    "customer_code": "Customer Code",
+    "phone": "Phone",
+    "email": "Email",
+    "address": "Address",
+    "assigned_rep": "Assigned Rep",
+    "open_opportunities": "Open Opportunities",
+    "lifetime_value": "Lifetime Value",
+    "last_order": "Last Order",
+    "no_orders": "No orders yet",
+    "sap_customer_id": "SAP Customer ID",
+    "last_synced": "Last Synced",
+    "add_note": "Add Note",
+    "note_hint": "Write a note about this customer…",
+    "save_note": "Save Note",
+    "new_opportunity": "New Opportunity for {shop}",
+    "new_opportunity_label": "New Opportunity",
+    "estimated_value": "Estimated Value ($)",
+    "create_opportunity": "Create Opportunity",
+    "opportunity_opened": "New opportunity opened (${value})",
+    "call": "Call",
+    "visit": "Visit",
+    "note": "Note",
+    "filter_sort": "Filter & Sort",
+    "status_label": "Status",
+    "territory": "Territory",
+    "sort_by": "Sort by",
+    "apply": "Apply",
+    "downloading": "Downloading customer directory…",
+    "syncing": "Syncing latest changes…",
+    "sync_updated": "{count} updated",
+    "sync_removed": ", {count} removed",
+    "status": {
+      "active": "Active",
+      "dormant": "Dormant",
+      "credit_hold": "Credit Hold"
+    },
+    "sort": {
+      "recently_ordered": "Recently ordered",
+      "alphabetical": "Alphabetical",
+      "nearest": "Nearest to me",
+      "highest_value": "Highest value"
+    }
   },
   "profile": {
     "title": "Profile",
@@ -113,7 +215,13 @@
       "done_build_quote": "Done · Build Quotation",
       "back": "Back",
       "no_stop": "No stop selected",
-      "offline_saved": "Offline — changes are saved on your device"
+      "offline_saved": "Offline — changes are saved on your device",
+      "today": "Today",
+      "no_routes_today": "No routes assigned for today",
+      "stops_today": "Stops today",
+      "missed": "Missed",
+      "collections": "Collections",
+      "orders_value": "Orders value"
     }
   },
   "language": {
@@ -121,6 +229,7 @@
     "choose_subtitle": "Select your preferred language interface",
     "english": "English",
     "english_region": "United States",
+    "language_change_anytime": "You can change the language anytime in your profile settings.",
     "khmer": "ភាសាខ្មែរ",
     "khmer_region": "Cambodia"
   }

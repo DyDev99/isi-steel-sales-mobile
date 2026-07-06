@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
 import 'package:isi_steel_sales_mobile/core/utils/glass_card.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.dart';
@@ -94,7 +95,7 @@ class ProductCard extends StatelessWidget {
                 child: Text(
                   product.isAvailable
                       ? '${product.availableQuantity.toStringAsFixed(0)} ${product.unit} · ${product.warehouseCode}'
-                      : 'Out of stock',
+                      : 'orders.catalog.out_of_stock'.tr,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(color: Vibe.muted, fontSize: 10.5),

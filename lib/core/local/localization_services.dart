@@ -22,12 +22,18 @@ class LocalizationService extends ChangeNotifier {
   Future<void> load(String languageCode) async {
     _currentLanguageCode = languageCode;
     try {
-      String jsonString = await rootBundle.loadString('assets/lang/$languageCode.json');
-      Map<String, dynamic> jsonMap = json.decode(jsonString);
+      final String jsonString =
+          await rootBundle.loadString('assets/lang/$languageCode.json');
+      final Map<String, dynamic> jsonMap = json.decode(jsonString);
 
       _localizedStrings = {};
       _flatten(jsonMap, ''); // Recursively flattens maps
     } catch (e) {
+      // Previously swallowed silently, which made a missing/renamed asset or
+      // malformed JSON indistinguishable from "everything just falls back to
+      // raw keys" with no way to tell why. Log it so a bad load is visible
+      // during development instead of a mystery.
+      debugPrint('LocalizationService: failed to load "$languageCode.json" — $e');
       _localizedStrings = {};
     }
     notifyListeners();

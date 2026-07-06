@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customer_sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customer_sync_state.dart';
@@ -19,7 +20,7 @@ class CustomerSyncStatusBanner extends StatelessWidget {
                 height: 14,
                 child: CircularProgressIndicator(strokeWidth: 2, color: Vibe.violet),
               ),
-              text: isInitial ? 'Downloading customer directory…' : 'Syncing latest changes…',
+              text: isInitial ? 'customers.downloading'.tr : 'customers.syncing'.tr,
             ),
           CustomerSyncFailed(:final message) => _Banner(
               color: Vibe.danger,
@@ -29,7 +30,8 @@ class CustomerSyncStatusBanner extends StatelessWidget {
           CustomerSyncSucceeded(:final upserted, :final deleted) when upserted > 0 || deleted > 0 => _Banner(
               color: Vibe.success,
               icon: const Icon(Icons.check_circle_rounded, size: 16, color: Vibe.success),
-              text: '$upserted updated${deleted > 0 ? ', $deleted removed' : ''}',
+              text: 'customers.sync_updated'.tr.replaceAll('{count}', '$upserted') +
+                  (deleted > 0 ? 'customers.sync_removed'.tr.replaceAll('{count}', '$deleted') : ''),
             ),
           _ => const SizedBox.shrink(),
         };

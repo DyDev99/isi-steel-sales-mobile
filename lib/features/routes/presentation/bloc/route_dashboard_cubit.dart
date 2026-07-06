@@ -1,26 +1,46 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/usecase/usecase.dart';
 import 'package:isi_steel_sales_mobile/features/routes/domain/entities/route_dashboard_summary.dart';
 import 'package:isi_steel_sales_mobile/features/routes/domain/entities/route_plan.dart';
 import 'package:isi_steel_sales_mobile/features/routes/domain/entities/visit_status.dart';
 import 'package:isi_steel_sales_mobile/features/routes/domain/services/geofence_service.dart';
-import 'package:isi_steel_sales_mobile/features/routes/domain/usecases/fetch_today_routes.dart';
+import 'package:isi_steel_sales_mobile/features/routes/domain/usecases/watch_today_routes.dart';
 import 'package:isi_steel_sales_mobile/features/routes/presentation/bloc/route_dashboard_state.dart';
 
+/// Drives the dashboard off a live [WatchTodayRoutes] stream: emits
+/// [RouteDashboardLoading] (→ skeletons) until the first snapshot arrives, then
+/// [RouteDashboardLoaded] on every update, and [RouteDashboardError] on a
+/// stream error. Check-in/out anywhere in the app pushes through here live.
 class RouteDashboardCubit extends Cubit<RouteDashboardState> {
-  RouteDashboardCubit({required FetchTodayRoutes fetchTodayRoutes})
-      : _fetchTodayRoutes = fetchTodayRoutes,
-        super(const RouteDashboardLoading());
+  RouteDashboardCubit({required WatchTodayRoutes watchTodayRoutes})
+      : _watchTodayRoutes = watchTodayRoutes,
+        super(const RouteDashboardLoading()) {
+    _subscribe();
+  }
 
-  final FetchTodayRoutes _fetchTodayRoutes;
+  final WatchTodayRoutes _watchTodayRoutes;
+  StreamSubscription<List<RoutePlan>>? _subscription;
 
-  Future<void> load() async {
-    emit(const RouteDashboardLoading());
-    final result = await _fetchTodayRoutes(const NoParams());
-    result.when(
-      success: (routes) => emit(RouteDashboardLoaded(routes: routes, summary: _summarize(routes))),
-      failure: (f) => emit(RouteDashboardError(f.message)),
+  void _subscribe() {
+    // Only flash skeletons when we don't already have data on screen.
+    if (state is! RouteDashboardLoaded) emit(const RouteDashboardLoading());
+    _subscription?.cancel();
+    _subscription = _watchTodayRoutes(const NoParams()).listen(
+      (routes) => emit(RouteDashboardLoaded(routes: routes, summary: _summarize(routes))),
+      onError: (Object e) => emit(RouteDashboardError(e.toString())),
     );
+  }
+
+  /// Re-attach the stream (re-reads the local cache) — used by pull-to-refresh
+  /// after a sync. Keeps the current list visible instead of flashing skeletons.
+  Future<void> load() async => _subscribe();
+
+  @override
+  Future<void> close() {
+    _subscription?.cancel();
+    return super.close();
   }
 
   RouteDashboardSummary _summarize(List<RoutePlan> routes) {

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
+import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/usecase/usecase.dart';
 import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/category.dart';
@@ -24,6 +25,7 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/screens/produ
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/catalog_filter_sheet.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/catalog_search_bar.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/category_sidebar.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/order_skeletons.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/product_card.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/sync_status_banner.dart';
 
@@ -84,7 +86,9 @@ class _CatalogScreenState extends State<CatalogScreen> {
     _searchController.text = query;
     context.read<CatalogBloc>().add(CatalogVoiceSearchRequested(query));
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Voice search: "$query"'), duration: const Duration(seconds: 1)),
+      SnackBar(
+          content: Text('orders.catalog.voice_search'.tr.replaceAll('{query}', query)),
+          duration: const Duration(seconds: 1)),
     );
   }
 
@@ -97,7 +101,9 @@ class _CatalogScreenState extends State<CatalogScreen> {
     _searchController.text = query;
     context.read<CatalogBloc>().add(CatalogImageSearchRequested(query));
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Matched by photo: $query'), duration: const Duration(seconds: 1)),
+      SnackBar(
+          content: Text('orders.catalog.matched_photo'.tr.replaceAll('{query}', query)),
+          duration: const Duration(seconds: 1)),
     );
   }
 
@@ -113,21 +119,22 @@ class _CatalogScreenState extends State<CatalogScreen> {
             const SizedBox(height: 8),
             Container(width: 40, height: 5, decoration: BoxDecoration(color: Vibe.stroke, borderRadius: BorderRadius.circular(10))),
             const SizedBox(height: 8),
-            const Padding(
-              padding: EdgeInsets.fromLTRB(20, 8, 20, 4),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
               child: Align(
                 alignment: Alignment.centerLeft,
-                child: Text('Search by photo', style: TextStyle(color: Vibe.text, fontSize: 15, fontWeight: FontWeight.w800)),
+                child: Text('orders.catalog.search_by_photo'.tr,
+                    style: const TextStyle(color: Vibe.text, fontSize: 15, fontWeight: FontWeight.w800)),
               ),
             ),
             ListTile(
               leading: const Icon(Icons.photo_camera_rounded, color: Vibe.violet),
-              title: const Text('Take a photo', style: TextStyle(color: Vibe.text)),
+              title: Text('orders.catalog.take_photo'.tr, style: const TextStyle(color: Vibe.text)),
               onTap: () => Navigator.pop(ctx, ImageSearchSource.camera),
             ),
             ListTile(
               leading: const Icon(Icons.photo_library_rounded, color: Vibe.violet),
-              title: const Text('Upload from gallery', style: TextStyle(color: Vibe.text)),
+              title: Text('orders.catalog.upload_gallery'.tr, style: const TextStyle(color: Vibe.text)),
               onTap: () => Navigator.pop(ctx, ImageSearchSource.gallery),
             ),
             const SizedBox(height: 8),
@@ -178,18 +185,19 @@ class _CatalogScreenState extends State<CatalogScreen> {
             IconButton(
               icon: const Icon(Icons.arrow_back_rounded),
               onPressed: () => Navigator.of(context).pop(),
-              tooltip: 'Back',
+              tooltip: 'orders.catalog.back'.tr,
             ),
             Builder(
               builder: (context) => IconButton(
                 icon: const Icon(Icons.inventory_2_rounded),
                 onPressed: () => Scaffold.of(context).openDrawer(),
-                tooltip: 'Menu',
+                tooltip: 'orders.catalog.menu'.tr,
               ),
             ),
           ],
         ),
-        title: const Text('Product Catalog', style: TextStyle(color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
+        title: Text('orders.catalog.title'.tr,
+            style: const TextStyle(color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
         iconTheme: const IconThemeData(color: Vibe.text),
         actions: [
           BlocBuilder<CartCubit, CartState>(
@@ -342,7 +350,8 @@ class _CatalogBody extends StatelessWidget {
             Expanded(
               child: switch (state) {
                 CatalogIdle() => const _IdleHint(),
-                CatalogLoading() => const Center(child: CircularProgressIndicator(color: Vibe.violet)),
+                // ConnectionState.waiting equivalent → product grid skeleton.
+                CatalogLoading() => const CatalogGridSkeleton(),
                 CatalogError(:final message) => Center(child: Text(message, style: const TextStyle(color: Vibe.muted))),
                 CatalogLoaded() => _Loaded(
                     state: state,
@@ -373,7 +382,7 @@ class _IdleHint extends StatelessWidget {
             const Icon(Icons.travel_explore_rounded, color: Vibe.muted, size: 44),
             const SizedBox(height: 14),
             Text(
-              'Search via text, speak 🎤, scan 📷 or upload a photo to find items.',
+              'orders.catalog.idle_hint'.tr,
               textAlign: TextAlign.center,
               style: TextStyle(color: Vibe.muted, fontSize: 13.5, height: 1.4),
             ),
@@ -407,9 +416,9 @@ class _Loaded extends StatelessWidget {
         controller: scrollController,
         slivers: [
           if (state.items.isEmpty)
-            const SliverFillRemaining(
+            SliverFillRemaining(
               hasScrollBody: false,
-              child: Center(child: Text('No products found', style: TextStyle(color: Vibe.muted))),
+              child: Center(child: Text('orders.catalog.no_products'.tr, style: const TextStyle(color: Vibe.muted))),
             )
           else
             SliverPadding(
@@ -432,7 +441,9 @@ class _Loaded extends StatelessWidget {
                       onAddToCart: () {
                         context.read<CartCubit>().addProduct(product);
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('${product.name} added to cart'), duration: const Duration(seconds: 1)),
+                          SnackBar(
+                              content: Text('orders.catalog.added_to_cart'.tr.replaceAll('{name}', product.name)),
+                              duration: const Duration(seconds: 1)),
                         );
                       },
                     );

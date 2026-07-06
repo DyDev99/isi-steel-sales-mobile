@@ -39,6 +39,7 @@ import 'package:isi_steel_sales_mobile/features/routes/domain/usecases/run_route
 import 'package:isi_steel_sales_mobile/features/routes/domain/usecases/run_route_initial_sync.dart';
 import 'package:isi_steel_sales_mobile/features/routes/domain/usecases/update_route_status.dart';
 import 'package:isi_steel_sales_mobile/features/routes/domain/usecases/update_stop_status.dart';
+import 'package:isi_steel_sales_mobile/features/routes/domain/usecases/watch_today_routes.dart';
 import 'package:isi_steel_sales_mobile/features/routes/presentation/bloc/active_route_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/routes/presentation/bloc/location_tracking_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/routes/presentation/bloc/route_dashboard_cubit.dart';
@@ -74,6 +75,7 @@ Future<void> registerRoutesFeature(GetIt sl) async {
 
   // ── Use cases ───────────────────────────────────────────────────────
   sl.registerLazySingleton(() => FetchTodayRoutes(sl()));
+  sl.registerLazySingleton(() => WatchTodayRoutes(sl()));
   sl.registerLazySingleton(() => GetRoute(sl()));
   sl.registerLazySingleton(() => UpdateRouteStatus(sl()));
   sl.registerLazySingleton(() => UpdateStopStatus(sl()));
@@ -97,7 +99,7 @@ Future<void> registerRoutesFeature(GetIt sl) async {
   sl.registerLazySingleton(() => GetRouteLastSyncedAt(sl()));
 
   // ── Presentation ────────────────────────────────────────────────────
-  sl.registerFactory(() => RouteDashboardCubit(fetchTodayRoutes: sl()));
+  sl.registerFactory(() => RouteDashboardCubit(watchTodayRoutes: sl()));
   sl.registerFactory(() => ActiveRouteBloc(
         getRoute: sl(),
         updateRouteStatus: sl(),

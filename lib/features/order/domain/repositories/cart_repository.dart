@@ -14,4 +14,9 @@ abstract interface class CartRepository {
   /// pipeline (out of scope here beyond the stub entry point).
   ResultFuture<PendingOrder> checkout({String? leadId});
   ResultFuture<List<PendingOrder>> fetchPendingOrders();
+
+  /// Live stream of pending (offline) orders: emits the current list on listen,
+  /// then re-emits whenever an order is checked out — so the Orders dashboard
+  /// updates the moment a quote/order is placed, no manual reload.
+  Stream<List<PendingOrder>> watchPendingOrders();
 }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
@@ -17,12 +18,16 @@ const _taxRate = 0.10;
 /// [ProductLocalDataSource] to rehydrate full [CartItem]s — product-joining
 /// logic isn't duplicated here.
 class CartRepositoryImpl implements CartRepository {
-  const CartRepositoryImpl({required CartLocalDataSource cartLocal, required ProductLocalDataSource productLocal})
+  CartRepositoryImpl({required CartLocalDataSource cartLocal, required ProductLocalDataSource productLocal})
       : _cartLocal = cartLocal,
         _productLocal = productLocal;
 
   final CartLocalDataSource _cartLocal;
   final ProductLocalDataSource _productLocal;
+
+  /// Broadcast hub for live pending-order updates (pushed after checkout).
+  final StreamController<List<PendingOrder>> _pendingController =
+      StreamController<List<PendingOrder>>.broadcast();
 
   @override
   ResultFuture<List<CartItem>> fetchCart() async {
@@ -121,6 +126,7 @@ class CartRepositoryImpl implements CartRepository {
         'created_at': order.createdAt.toIso8601String(),
       });
       await _cartLocal.clearCart();
+      unawaited(_broadcastPending());
       return Success(order);
     } on CacheException catch (e) {
       return Failed(CacheFailure(message: e.message));
@@ -130,9 +136,32 @@ class CartRepositoryImpl implements CartRepository {
   @override
   ResultFuture<List<PendingOrder>> fetchPendingOrders() async {
     try {
-      final rows = await _cartLocal.fetchPendingOrders();
-      final orders = <PendingOrder>[];
-      for (final row in rows) {
+      return Success(await _loadPendingOrders());
+    } on CacheException catch (e) {
+      return Failed(CacheFailure(message: e.message));
+    }
+  }
+
+  @override
+  Stream<List<PendingOrder>> watchPendingOrders() async* {
+    // Immediate local snapshot, then live pushes after each checkout.
+    yield await _loadPendingOrders();
+    yield* _pendingController.stream;
+  }
+
+  Future<void> _broadcastPending() async {
+    if (!_pendingController.hasListener) return;
+    try {
+      _pendingController.add(await _loadPendingOrders());
+    } on CacheException {
+      // Keep the last good list on a transient read error.
+    }
+  }
+
+  Future<List<PendingOrder>> _loadPendingOrders() async {
+    final rows = await _cartLocal.fetchPendingOrders();
+    final orders = <PendingOrder>[];
+    for (final row in rows) {
         final rawItems = (jsonDecode(row['items_json'] as String) as List).cast<DataMap>();
         final items = <CartItem>[];
         for (final raw in rawItems) {
@@ -158,11 +187,8 @@ class CartRepositoryImpl implements CartRepository {
           createdAt: DateTime.parse(row['created_at'] as String),
           leadId: row['lead_id'] as String?,
         ));
-      }
-      return Success(orders);
-    } on CacheException catch (e) {
-      return Failed(CacheFailure(message: e.message));
     }
+    return orders;
   }
 
   Future<List<CartItem>> _hydrateCartRows(List<DataMap> rows) async {

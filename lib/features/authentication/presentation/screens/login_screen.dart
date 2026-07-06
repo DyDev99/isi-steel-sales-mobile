@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/constants/app_constant.dart';
+import 'package:isi_steel_sales_mobile/core/utils/verion.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_event.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_state.dart';
@@ -64,38 +65,53 @@ class _LoginScreenState extends State<LoginScreen> {
         children: [
           const Positioned.fill(child: AuroraBackground()),
           SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 420),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const _Brand(),
-                      const SizedBox(height: 28),
-                       Text(
-                        'auth.welcome_back'.tr,
-                        style: TextStyle(
-                          color: Vibe.text,
-                          fontSize: 30,
-                          fontWeight: FontWeight.w900,
-                          height: 1.1,
+            child: Column(
+              children: [
+                Expanded(
+                  child: Center(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 420),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            // Centered Header Section (Logo, Title, Subtitle)
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                const _Brand(),
+                                const SizedBox(height: 28),
+                                Text(
+                                  'auth.welcome_back'.tr,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: Vibe.text,
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.w900,
+                                    height: 1.1,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'auth.sign_in_subtitle'.tr,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color: Vibe.muted, fontSize: 15),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 24),
+                            GlassCard(child: _form()),
+                 
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'auth.sign_in_subtitle'.tr,
-                        style: TextStyle(color: Vibe.muted, fontSize: 15),
-                      ),
-                      const SizedBox(height: 24),
-                      GlassCard(child: _form()),
-                      const SizedBox(height: 20),
-                      _footer(),
-                    ],
+                    ),
                   ),
                 ),
-              ),
+                // Versioning signature aligned perfectly at the bottom edge
+                const VersionFooter(),
+              ],
             ),
           ),
         ],
@@ -174,19 +190,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _footer() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-         Text('auth.new_here'.tr, style: TextStyle(color: Vibe.muted)),
-        TextButton(
-          onPressed: widget.onRequestAccess,
-          child:  Text('auth.request_access'.tr,
-              style: TextStyle(color: Vibe.pink, fontWeight: FontWeight.w700)),
-        ),
-      ],
-    );
-  }
+
 }
 
 /// Compact brand mark — replaces the old wide identity panel.
@@ -205,3 +209,4 @@ class _Brand extends StatelessWidget {
     );
   }
 }
+

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
+import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
+import 'package:isi_steel_sales_mobile/core/local/localized_builder.dart';
 import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
 import 'package:isi_steel_sales_mobile/core/utils/aurora_background.dart';
 import 'package:isi_steel_sales_mobile/features/routes/domain/entities/route_plan.dart';
@@ -11,8 +13,11 @@ import 'package:isi_steel_sales_mobile/features/routes/presentation/bloc/locatio
 import 'package:isi_steel_sales_mobile/features/routes/presentation/bloc/route_dashboard_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/routes/presentation/bloc/route_dashboard_state.dart';
 import 'package:isi_steel_sales_mobile/features/routes/presentation/bloc/route_sync_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/routes/presentation/bloc/route_sync_state.dart';
 import 'package:isi_steel_sales_mobile/features/routes/presentation/bloc/visit_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/routes/presentation/screens/route_dispatch_screen.dart';
+import 'package:isi_steel_sales_mobile/features/routes/presentation/widgets/dashboard_summary_cards.dart';
+import 'package:isi_steel_sales_mobile/features/routes/presentation/widgets/route_skeletons.dart';
 
 /// Entry screen for Route Management, pushed from `HomeScreen`'s "Start
 /// Route" CTA. Lists today's routes (already scoped to the rep's territory
@@ -43,7 +48,7 @@ class _RouteDashboardScreenState extends State<RouteDashboardScreen> {
           BlocProvider(create: (_) => sl<LocationTrackingCubit>()),
           BlocProvider(create: (_) => sl<VisitCubit>()),
         ],
-        child: const RouteDispatchScreen(),
+        child: LocalizedBuilder(builder: (_) => const RouteDispatchScreen()),
       ),
     ));
     if (!mounted) return;
@@ -57,33 +62,48 @@ class _RouteDashboardScreenState extends State<RouteDashboardScreen> {
         children: [
           const Positioned.fill(child: AuroraBackground()),
           SafeArea(
-            child: BlocBuilder<RouteDashboardCubit, RouteDashboardState>(
-              builder: (context, state) => switch (state) {
-                RouteDashboardLoaded() => RefreshIndicator(
-                    color: Vibe.violet,
-                    backgroundColor: Vibe.bgSoft,
-                    onRefresh: () async {
-                      await context.read<RouteSyncCubit>().refresh();
-                      if (context.mounted) await context.read<RouteDashboardCubit>().load();
-                    },
-                    child: ListView(
-                      padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 20.h),
-                      children: [
-                        const Text('Today', style: TextStyle(color: Vibe.text, fontSize: 15, fontWeight: FontWeight.w800)),
-                        SizedBox(height: 10.h),
+            // When the background sync finishes writing routes, re-attach the
+            // dashboard stream so the new data appears immediately (the sync
+            // writes to the DB directly, bypassing the repo's live broadcast).
+            child: BlocListener<RouteSyncCubit, RouteSyncState>(
+              listenWhen: (prev, curr) => curr is RouteSyncSucceeded,
+              listener: (context, _) => context.read<RouteDashboardCubit>().load(),
+              child: BlocBuilder<RouteDashboardCubit, RouteDashboardState>(
+                builder: (context, state) => switch (state) {
+                  RouteDashboardLoaded() => RefreshIndicator(
+                      color: Vibe.violet,
+                      backgroundColor: Vibe.bgSoft,
+                      onRefresh: () async {
+                        await context.read<RouteSyncCubit>().refresh();
+                        if (context.mounted) await context.read<RouteDashboardCubit>().load();
+                      },
+                      child: ListView(
+                        padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 20.h),
+                        children: [
+                          DashboardSummaryCards(summary: state.summary),
+                          SizedBox(height: 16.h),
+                          Text('routes.flow.today'.tr,
+                              style: const TextStyle(color: Vibe.text, fontSize: 15, fontWeight: FontWeight.w800)),
+                          SizedBox(height: 10.h),
                         if (state.routes.isEmpty)
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 24),
-                            child: Center(child: Text('No routes assigned for today', style: TextStyle(color: Vibe.muted))),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 24),
+                            child: Center(
+                                child: Text('routes.flow.no_routes_today'.tr,
+                                    style: const TextStyle(color: Vibe.muted))),
                           )
                         else
                           for (final route in state.routes) _RouteTile(route: route, onTap: () => _openRoute(context, route)),
                       ],
                     ),
                   ),
-                RouteDashboardError(:final message) => Center(child: Text(message, style: const TextStyle(color: Vibe.muted))),
-                _ => const Center(child: CircularProgressIndicator(color: Vibe.violet)),
-              },
+                  RouteDashboardError(:final message) =>
+                    Center(child: Text(message, style: const TextStyle(color: Vibe.muted))),
+                  // ConnectionState.waiting equivalent → dimensionally-accurate
+                  // skeletons instead of a blank spinner.
+                  _ => const RouteDashboardSkeleton(),
+                },
+              ),
             ),
           ),
         ],
