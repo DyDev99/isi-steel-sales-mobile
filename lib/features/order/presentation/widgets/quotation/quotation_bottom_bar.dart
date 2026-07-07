@@ -5,14 +5,15 @@ import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_state.dart';
 
-/// Fixed footer for the Quotation Builder screen — totals + "Save
-/// Quotation to SAP" — pinned to the bottom of the screen (as
-/// `Scaffold.bottomNavigationBar`) rather than living inside a scrollable
-/// cart sheet, so it's always reachable regardless of scroll position.
 class QuotationBottomBar extends StatelessWidget {
-  const QuotationBottomBar({super.key, required this.onSave});
+  const QuotationBottomBar({
+    super.key,
+    required this.onSave,
+    required this.discount,
+  });
 
   final VoidCallback onSave;
+  final int discount;
 
   @override
   Widget build(BuildContext context) {
@@ -20,9 +21,14 @@ class QuotationBottomBar extends StatelessWidget {
       builder: (context, state) {
         final items = state is CartLoaded ? state.items : const [];
         final subtotal = state is CartLoaded ? state.subtotal : 0.0;
-        final discount = state is CartLoaded ? state.discount : 0.0;
+        final discountAmount = state is CartLoaded ? state.discount : 0.0;
         final tax = state is CartLoaded ? state.tax : 0.0;
         final total = state is CartLoaded ? state.total : 0.0;
+
+        // Safe discount percentage calculation
+        final discountPercent = subtotal > 0 
+            ? (discountAmount / subtotal * 100).round() 
+            : 0;
 
         return DecoratedBox(
           decoration: const BoxDecoration(
@@ -37,12 +43,22 @@ class QuotationBottomBar extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _SummaryRow('orders.catalog.title'.tr, subtotal),
-                  if (discount > 0) _SummaryRow('routes.flow.collections'.tr, -discount),
+                  _SummaryRow('Subtotal', subtotal),
+
+                  // Discount Row
+                  if (discountAmount > 0)
+                    _SummaryRow(
+                      'Discount ($discountPercent%)',
+                      -discountAmount,
+                      isDiscount: true,
+                    ),
+
                   _SummaryRow('Tax', tax),
                   const Divider(color: Vibe.divider, height: 16),
-                  _SummaryRow('orders.quotation.quotation_number'.tr, total, emphasize: true),
-                  const SizedBox(height: 10),
+                  _SummaryRow('Total', total, emphasize: true),
+
+                  const SizedBox(height: 12),
+
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -53,7 +69,10 @@ class QuotationBottomBar extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       ),
-                      child: Text('orders.quotation.save_to_sap'.tr, style: const TextStyle(fontWeight: FontWeight.w800)),
+                      child: Text(
+                        'orders.quotation.save_to_sap'.tr,
+                        style: const TextStyle(fontWeight: FontWeight.w800),
+                      ),
                     ),
                   ),
                 ],
@@ -67,10 +86,17 @@ class QuotationBottomBar extends StatelessWidget {
 }
 
 class _SummaryRow extends StatelessWidget {
-  const _SummaryRow(this.label, this.value, {this.emphasize = false});
+  const _SummaryRow(
+    this.label,
+    this.value, {
+    this.emphasize = false,
+    this.isDiscount = false,
+  });
+
   final String label;
   final double value;
   final bool emphasize;
+  final bool isDiscount;
 
   @override
   Widget build(BuildContext context) {
@@ -79,19 +105,25 @@ class _SummaryRow extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: Text(label,
-                style: TextStyle(
-                  color: emphasize ? Vibe.text : Vibe.muted,
-                  fontSize: emphasize ? 15 : 13,
-                  fontWeight: emphasize ? FontWeight.w800 : FontWeight.w500,
-                )),
-          ),
-          Text('\$${value.toStringAsFixed(2)}',
+            child: Text(
+              label,
               style: TextStyle(
-                color: emphasize ? Vibe.violet : Vibe.text,
-                fontSize: emphasize ? 16 : 13,
-                fontWeight: emphasize ? FontWeight.w900 : FontWeight.w600,
-              )),
+                color: emphasize ? Vibe.text : (isDiscount ? Vibe.danger : Vibe.muted),
+                fontSize: emphasize ? 15 : 13,
+                fontWeight: emphasize ? FontWeight.w800 : FontWeight.w500,
+              ),
+            ),
+          ),
+          Text(
+            value < 0 ? '-\$${(-value).toStringAsFixed(2)}' : '\$${value.toStringAsFixed(2)}',
+            style: TextStyle(
+              color: emphasize
+                  ? Vibe.violet
+                  : (isDiscount ? Vibe.danger : Vibe.text),
+              fontSize: emphasize ? 16 : 13,
+              fontWeight: emphasize ? FontWeight.w900 : FontWeight.w600,
+            ),
+          ),
         ],
       ),
     );

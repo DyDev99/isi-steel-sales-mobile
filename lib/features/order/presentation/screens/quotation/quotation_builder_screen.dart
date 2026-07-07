@@ -37,10 +37,6 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quota
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/credit_summary_card.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/quotation_bottom_bar.dart';
 
-/// Product search/browse + cart-building screen — the core of the order
-/// flow. Composes already-built, previously-orphaned pieces (product grid,
-/// category quick filter, inline product detail, cart preview, fixed
-/// totals/save footer) instead of duplicating their markup here.
 class QuotationBuilderScreen extends StatefulWidget {
   const QuotationBuilderScreen({
     super.key,
@@ -74,6 +70,7 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
 
   Set<String> _favoriteIds = {};
   String? _expandedProductId;
+  int _selectedDiscount = 10; // Default discount
 
   @override
   void initState() {
@@ -81,13 +78,15 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
     _categoriesFuture = sl<FetchCategories>()(const NoParams()).then(
       (result) => result.when(success: (c) => c, failure: (_) => const <Category>[]),
     );
+
     context.read<SyncCubit>().syncIfNeeded();
     context.read<CatalogBloc>().add(const CatalogLoadRequested());
     _loadFavorites();
 
-    final customer = widget.customer;
-    if (customer != null) {
-      _summaryFuture = sl<GetCreditSummary>()(GetCreditSummaryParams(customer.id)).then(
+    if (widget.customer != null) {
+      _summaryFuture = sl<GetCreditSummary>()(
+        GetCreditSummaryParams(widget.customer!.id),
+      ).then(
         (result) => result.when(success: (s) => s, failure: (_) => null),
       );
     }
@@ -104,7 +103,7 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
     if (!mounted) return;
     result.when(
       success: (products) => setState(() => _favoriteIds = products.map((p) => p.id).toSet()),
-      failure: (_) => null,
+      failure: (_) {},
     );
   }
 
@@ -119,14 +118,24 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
     setState(() => _expandedProductId = _expandedProductId == productId ? null : productId);
   }
 
-  // --- Search & Scan Integrations ---
+  void _selectDiscount(int percent) {
+    setState(() => _selectedDiscount = percent);
+    // TODO: Connect to CartCubit when method is available
+    // context.read<CartCubit>().applyDiscount(percent);
+  }
+
+  // Search & Scan
   Future<void> _scan() async {
     final code = await sl<BarcodeScannerService>().scan();
     if (code == null || !mounted) return;
     final result = await sl<GetProductByBarcode>()(BarcodeParams(code));
     if (!mounted) return;
     result.when(
-      success: (product) => context.read<CartCubit>().addProduct(product, leadId: widget.leadId, customerId: widget.customer?.id),
+      success: (product) => context.read<CartCubit>().addProduct(
+            product,
+            leadId: widget.leadId,
+            customerId: widget.customer?.id,
+          ),
       failure: (f) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(f.message))),
     );
   }
@@ -139,7 +148,6 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
   }
 
   Future<void> _imageSearch() async {
-    // Simplified for UI integration - assumes gallery source for brevity in layout focus
     final query = await sl<ImageSearchService>().matchQuery(ImageSearchSource.gallery);
     if (query == null || query.isEmpty || !mounted) return;
     _searchController.text = query;
@@ -147,24 +155,23 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
   }
 
   Future<void> _saveQuotation() async {
-    final cubit = context.read<CartCubit>();
-    final quotation = await cubit.saveQuotation(
-      customerId: widget.customer?.id,
-      shopName: widget.customer?.shopName,
-      leadId: widget.leadId,
-      leadDisplayName: widget.leadDisplayName,
-      offVisitReason: widget.offVisitReason,
-      gpsLat: widget.gpsLat,
-      gpsLng: widget.gpsLng,
-      editing: widget.editingQuotation,
-    );
+    final quotation = await context.read<CartCubit>().saveQuotation(
+          customerId: widget.customer?.id,
+          shopName: widget.customer?.shopName,
+          leadId: widget.leadId,
+          leadDisplayName: widget.leadDisplayName,
+          offVisitReason: widget.offVisitReason,
+          gpsLat: widget.gpsLat,
+          gpsLng: widget.gpsLng,
+          editing: widget.editingQuotation,
+        );
+
     if (!mounted) return;
     if (quotation == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('orders.quotation.builder_title'.tr)),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to save quotation')));
       return;
     }
+
     Navigator.of(context).pushReplacement(MaterialPageRoute(
       settings: const RouteSettings(name: QuotationDetailScreen.routeName),
       builder: (_) => QuotationDetailScreen(quotation: quotation),
@@ -173,8 +180,7 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
 
   void _selectCategory(String? categoryId) {
     final bloc = context.read<CatalogBloc>();
-    final current = bloc.state;
-    final filter = current is CatalogLoaded ? current.filter : const ProductFilter();
+    final filter = bloc.state is CatalogLoaded ? (bloc.state as CatalogLoaded).filter : const ProductFilter();
     bloc.add(CatalogFilterChanged(filter.copyWith(categoryId: () => categoryId)));
   }
 
@@ -196,8 +202,9 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
           Expanded(
             child: FutureBuilder<List<Category>>(
               future: _categoriesFuture,
-              builder: (context, categorySnapshot) {
+              builder: (_, categorySnapshot) {
                 final categories = categorySnapshot.data ?? const <Category>[];
+
                 return BlocBuilder<CatalogBloc, CatalogState>(
                   builder: (context, catalogState) {
                     final filter = catalogState is CatalogLoaded ? catalogState.filter : const ProductFilter();
@@ -212,9 +219,12 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                             padding: const EdgeInsets.only(bottom: 12),
                             child: FutureBuilder<CreditSummary?>(
                               future: _summaryFuture,
-                              builder: (context, snapshot) => snapshot.data == null
+                              builder: (_, snapshot) => snapshot.data == null
                                   ? const SizedBox.shrink()
-                                  : CreditSummaryCard(creditLimit: widget.customer!.creditLimit, summary: snapshot.data!),
+                                  : CreditSummaryCard(
+                                      creditLimit: widget.customer!.creditLimit,
+                                      summary: snapshot.data!,
+                                    ),
                             ),
                           ),
                         CatalogSearchBar(
@@ -238,6 +248,7 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                           onSelect: _selectCategory,
                         ),
                         const SizedBox(height: 16),
+
                         _ProductListSection(
                           state: catalogState,
                           favoriteIds: _favoriteIds,
@@ -246,8 +257,36 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                           customerId: widget.customer?.id,
                           onToggleFavorite: _toggleFavorite,
                           onToggleExpanded: _toggleExpanded,
+                          height: 100.h,
                         ),
-                        const SizedBox(height: 16),
+
+                        const SizedBox(height: 24),
+
+                        if (_expandedProductId != null)
+                          ProductDetailInlineSection(
+                            productId: _expandedProductId!,
+                            leadId: widget.leadId,
+                            onClose: () => _toggleExpanded(_expandedProductId!),
+                          ),
+
+                        const SizedBox(height: 24),
+
+                      // === Discount & Quotation Section ===
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: Column(
+                            children: [
+                              _DiscountSection(
+                                selectedDiscount: _selectedDiscount,
+                                onDiscountSelected: _selectDiscount,
+                              ),
+                              const SizedBox(height: 12),
+                              _QuotationSummarySection(),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 20),
                         const CartPreviewSection(),
                       ],
                     );
@@ -256,19 +295,114 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
               },
             ),
           ),
-          QuotationBottomBar(onSave: _saveQuotation),
+          QuotationBottomBar(onSave: _saveQuotation, discount: _selectedDiscount),
         ],
       ),
     );
   }
 }
 
-/// Renders the catalog grid for every [CatalogState] — loading skeleton,
-/// error, empty, or the loaded list with an inline detail section under
-/// whichever card is currently expanded, plus a "load more" tail for
-/// pagination.
+// Discount Section with selectable percentages
+// Discount Section with selectable percentages
+class _DiscountSection extends StatelessWidget {
+  const _DiscountSection({
+    super.key,
+    required this.selectedDiscount,
+    required this.onDiscountSelected,
+  });
+
+  final int selectedDiscount;
+  final ValueChanged<int> onDiscountSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Vibe.bgSoft,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Vibe.stroke),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.discount_outlined, color: Vibe.violet, size: 18),
+              const SizedBox(width: 6),
+              const Text('Discount', style: TextStyle(fontWeight: FontWeight.w600, color: Vibe.text)),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Fixed: Use Wrap instead of Row to prevent overflow
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            alignment: WrapAlignment.spaceEvenly,
+            children: [5, 10, 15].map((percent) {
+              final isSelected = selectedDiscount == percent;
+              return GestureDetector(
+                onTap: () => onDiscountSelected(percent),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: isSelected ? Vibe.violet : Vibe.surface,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: isSelected ? Vibe.violet : Vibe.stroke),
+                  ),
+                  child: Text(
+                    '$percent%',
+                    style: TextStyle(
+                      color: isSelected ? Colors.white : Vibe.text,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _QuotationSummarySection extends StatelessWidget {
+  const _QuotationSummarySection({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Vibe.bgSoft,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Vibe.stroke),
+      ),
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.receipt_long_outlined, color: Vibe.violet, size: 18),
+              SizedBox(width: 6),
+              Text('Quotation', style: TextStyle(fontWeight: FontWeight.w600, color: Vibe.text)),
+            ],
+          ),
+          SizedBox(height: 12),
+          Text('3 items', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+          Text('\$1,245.00', style: TextStyle(fontSize: 15, color: Vibe.violet, fontWeight: FontWeight.w600)),
+        ],
+      ),
+    );
+  }
+}
+
 class _ProductListSection extends StatelessWidget {
   const _ProductListSection({
+    super.key,
     required this.state,
     required this.favoriteIds,
     required this.expandedProductId,
@@ -276,6 +410,7 @@ class _ProductListSection extends StatelessWidget {
     required this.customerId,
     required this.onToggleFavorite,
     required this.onToggleExpanded,
+    this.height,
   });
 
   final CatalogState state;
@@ -285,6 +420,7 @@ class _ProductListSection extends StatelessWidget {
   final String? customerId;
   final ValueChanged<String> onToggleFavorite;
   final ValueChanged<String> onToggleExpanded;
+  final double? height;
 
   @override
   Widget build(BuildContext context) {
@@ -295,59 +431,54 @@ class _ProductListSection extends StatelessWidget {
           child: Center(child: Text(message, style: const TextStyle(color: Vibe.muted))),
         ),
       CatalogLoaded(:final items, :final hasMore, :final isLoadingMore) => SizedBox(
-          height: 180.h, // 40% of screen height (requires flutter_screenutil)
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(), // smooth iOS-style scrolling
-            child: Column(
-              children: [
-                if (items.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 24),
-                    child: Center(
-                        child: Text('orders.catalog.no_products'.tr,
-                            style: const TextStyle(color: Vibe.muted))),
-                  )
-                else
-                  for (final product in items) ...[
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: ProductCard(
-                        product: product,
-                        isFavorite: favoriteIds.contains(product.id),
-                        onFavoriteToggle: () => onToggleFavorite(product.id),
-                        onTap: () => onToggleExpanded(product.id),
-                        onAddToCart: () => context
-                            .read<CartCubit>()
-                            .addProduct(product, leadId: leadId, customerId: customerId),
-                      ),
-                    ),
-                    if (expandedProductId == product.id)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: ProductDetailInlineSection(
-                          productId: product.id,
-                          leadId: leadId,
-                          onClose: () => onToggleExpanded(product.id),
-                        ),
-                      ),
-                  ],
-                if (hasMore)
-                  Center(
-                    child: isLoadingMore
-                        ? const Padding(
-                            padding: EdgeInsets.all(12),
-                            child: CircularProgressIndicator(color: Vibe.violet))
-                        : TextButton(
-                            onPressed: () => context
-                                .read<CatalogBloc>()
-                                .add(const CatalogLoadMoreRequested()),
-                            child: Text('orders.catalog.load_more'.tr),
+          height: height ?? 100.h,
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Column(
+                    children: [
+                      if (items.isEmpty)
+                        Padding(
+                          padding: EdgeInsets.symmetric(vertical: 40),
+                          child: Center(
+                            child: Text('orders.catalog.no_products'.tr, style: TextStyle(color: Vibe.muted)),
                           ),
+                        )
+                      else
+                        ...items.map((product) => Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: ProductCard(
+                                product: product,
+                                isFavorite: favoriteIds.contains(product.id),
+                                onFavoriteToggle: () => onToggleFavorite(product.id),
+                                onTap: () => onToggleExpanded(product.id),
+                                onAddToCart: () => context.read<CartCubit>().addProduct(
+                                      product,
+                                      leadId: leadId,
+                                      customerId: customerId,
+                                    ),
+                              ),
+                            )),
+                      if (hasMore)
+                        Center(
+                          child: isLoadingMore
+                              ? const Padding(
+                                  padding: EdgeInsets.all(16),
+                                  child: CircularProgressIndicator(color: Vibe.violet),
+                                )
+                              : TextButton(
+                                  onPressed: () => context.read<CatalogBloc>().add(const CatalogLoadMoreRequested()),
+                                  child: Text('orders.catalog.load_more'.tr),
+                                ),
+                        ),
+                      const SizedBox(height: 20),
+                    ],
                   ),
-                // Extra padding at the bottom for comfortable scrolling
-                const SizedBox(height: 20),
-              ],
-            ),
+                ),
+              ),
+            ],
           ),
         ),
     };
