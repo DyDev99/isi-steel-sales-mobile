@@ -7,9 +7,9 @@
 /// usecases just return a plain `Future<Type>` and let the Bloc/Cubit keep
 /// their existing try/catch — same error-handling shape as before, just
 /// with each operation named and testable in isolation.
-abstract class LeadUseCase<Type, Params> {
+abstract class LeadUseCase<T, P> {
   const LeadUseCase();
-  Future<Type> call(Params params);
+  Future<T> call(P params);
 }
 
 /// For usecases that take no arguments.

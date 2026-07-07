@@ -111,10 +111,16 @@ class _ShopOrderEntryScreenState extends State<ShopOrderEntryScreen> {
           FutureBuilder<CreditSummary?>(
             future: _summaryFuture,
             builder: (context, snapshot) {
-              if (!snapshot.hasData) {
+              // Use connectionState, not hasData: the future resolves to a
+              // nullable CreditSummary, so on a null (lookup unavailable)
+              // result hasData stays false and a `!hasData` guard would spin
+              // forever under a slow/failed API.
+              if (snapshot.connectionState != ConnectionState.done) {
                 return const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator(color: Vibe.violet)));
               }
-              return CreditSummaryCard(creditLimit: customer.creditLimit, summary: snapshot.data!);
+              final summary = snapshot.data;
+              if (summary == null) return const SizedBox.shrink(); // credit unavailable — don't block ordering
+              return CreditSummaryCard(creditLimit: customer.creditLimit, summary: summary);
             },
           ),
           if (!widget.skipOffVisitCheck) ...[

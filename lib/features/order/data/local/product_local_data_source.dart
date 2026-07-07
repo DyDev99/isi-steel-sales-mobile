@@ -1,4 +1,5 @@
 import 'package:isi_steel_sales_mobile/core/error/exceptions.dart';
+import 'package:isi_steel_sales_mobile/core/utils/mock_latency.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/local/catalog_database.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/models/category_model.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/models/product_model.dart';
@@ -66,6 +67,7 @@ class ProductLocalDataSourceImpl implements ProductLocalDataSource {
     ProductFilter filter = const ProductFilter(),
   }) async {
     try {
+      await MockLatency.tick(); // simulate a slow catalog API
       final offset = page * pageSize;
       final limit = pageSize + 1;
       final where = <String>['p.deleted = 0'];
@@ -275,6 +277,7 @@ class ProductLocalDataSourceImpl implements ProductLocalDataSource {
   @override
   Future<List<CategoryModel>> fetchCategories() async {
     try {
+      await MockLatency.tick(); // simulate a slow categories API
       final rows = await _db.query('categories', orderBy: 'sort_order ASC');
       return rows.map(CategoryModel.fromRow).toList();
     } catch (e) {

@@ -5,9 +5,19 @@ import 'package:get_it/get_it.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_event.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_state.dart';
+import 'package:isi_steel_sales_mobile/core/utils/page_transitions.dart';
 import 'package:isi_steel_sales_mobile/features/localization/presentation/bloc/language_cubit.dart';
 import 'package:isi_steel_sales_mobile/routes/app_page.dart';
 import 'package:isi_steel_sales_mobile/routes/app_routes.dart';
+
+/// Replaces Material 3's default Android "stretch" overscroll (which visibly
+/// grows/stretches content when scrolling past its bounds, even on screens
+/// shorter than the viewport) with plain clamping — content stops at its
+/// edges instead of bouncing/stretching, app-wide.
+class _AppScrollBehavior extends MaterialScrollBehavior {
+  @override
+  ScrollPhysics getScrollPhysics(BuildContext context) => const ClampingScrollPhysics();
+}
 
 // app.dart
 class ISISteelSalesApp extends StatelessWidget {
@@ -49,6 +59,7 @@ class ISISteelSalesApp extends StatelessWidget {
                 navigatorKey: navigatorKey, // Assign the key here
                 title: 'ISI Steel Sales',
                 debugShowCheckedModeBanner: false,
+                scrollBehavior: _AppScrollBehavior(),
                 theme: _buildTheme(),
                 locale: locale,
                 initialRoute: initialRoute,
@@ -74,6 +85,13 @@ class ISISteelSalesApp extends StatelessWidget {
         brightness: Brightness.light,
       ),
       scaffoldBackgroundColor: const Color(0xFFFFFFFF),
+      // One smooth, modern transition for every MaterialPageRoute push,
+      // across every platform this runs on.
+      pageTransitionsTheme: PageTransitionsTheme(
+        builders: {
+          for (final platform in TargetPlatform.values) platform: const ModernPageTransitionsBuilder(),
+        },
+      ),
       // Make AppBar transparent so screens that use a Stack + background
       // don't get a conflicting solid bar.
       appBarTheme: const AppBarTheme(

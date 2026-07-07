@@ -32,6 +32,19 @@ class Vibe {
   static const warning = Color(0xFFFBBF24); // warning
   static const success = Color(0xFF22C55E); // success
 
+  // ── Legacy / secondary palette ─────────────────────────────────────
+  // Colours that predate the token system and are still used verbatim by
+  // the Home/Shell/Lead screens. Centralised here (identical pixels) so
+  // there is a single source of truth instead of raw hex scattered across
+  // widgets. NOTE: [brandNavy] is a *second* brand blue distinct from
+  // [violet] — these should be unified once design confirms which is
+  // canonical; kept separate here to preserve the current appearance.
+  static const brandNavy = Color(0xFF00569B); // ISI corporate blue (shell)
+  static const brandNavyDark = Color(0xFF0F2547); // dark gradient partner
+  static const accentPurple = Color(0xFF7C3AED); // "Add Visit" action accent
+  static const slate = Color(0xFF1E293B); // dark slate text (pipeline)
+  static const canvas = Color(0xFFF3F5F7); // home/shell scaffold background
+
   static const radius = 16.0;
 
   static const cta = LinearGradient(

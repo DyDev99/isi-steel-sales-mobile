@@ -14,6 +14,7 @@ import 'package:isi_steel_sales_mobile/features/lead/lead_injection.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/my_visits_injection.dart';
 import 'package:isi_steel_sales_mobile/features/order/order_injection.dart';
 import 'package:isi_steel_sales_mobile/features/profile/profile_injection.dart';
+import 'package:isi_steel_sales_mobile/features/revenue/revenue_injection.dart';
 
 /// Global service locator.
 final GetIt sl = GetIt.instance;
@@ -43,4 +44,5 @@ Future<void> initDependencies() async {
   await registerCustomerFeature(sl);
   await registerMyVisitsFeature(sl);
   registerProfileFeature(sl);
+  registerRevenueFeature(sl);
 }

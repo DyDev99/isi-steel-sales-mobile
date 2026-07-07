@@ -21,4 +21,5 @@ class Static {
   static const String profile = '/profile';
   static const String myVisits = '/my-visits';
   static const String order = '/order';
+  static const String revenue = '/revenue';
 }

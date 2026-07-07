@@ -25,6 +25,9 @@ import 'package:isi_steel_sales_mobile/features/lead/presentation/bloc/pipeline_
 import 'package:isi_steel_sales_mobile/features/lead/presentation/screens/pipeline_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/order_screen.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/screens/login_screen.dart';
+import 'package:isi_steel_sales_mobile/features/revenue/presentation/bloc/revenue_bloc.dart';
+import 'package:isi_steel_sales_mobile/features/revenue/presentation/bloc/revenue_event.dart';
+import 'package:isi_steel_sales_mobile/features/revenue/presentation/screens/revenue_screen.dart';
 
 /// Flow: splash (6s) -> login -> (on success) -> main shell.
 class AppPages {
@@ -94,6 +97,15 @@ class AppPages {
             BlocProvider(
               create: (_) => sl<ProfileCubit>(),
               child: const ProfileScreen(),
+            ),
+            settings,
+          );
+
+        case Static.revenue:
+          return _page(
+            BlocProvider(
+              create: (_) => sl<RevenueBloc>()..add(const RevenueStarted()),
+              child: const RevenueScreen(),
             ),
             settings,
           );

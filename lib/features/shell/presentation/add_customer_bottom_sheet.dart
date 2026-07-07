@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
+import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
 import 'package:isi_steel_sales_mobile/features/home/presentation/bloc/add_customer_bloc.dart';
 
@@ -11,7 +12,6 @@ void showAddCustomerSheet(BuildContext context) {
     backgroundColor: Colors.transparent,
     isScrollControlled: true,
     builder: (BuildContext modalContext) {
-      // The BLoC is injected at the very root of the modal sheet
       return BlocProvider<AddCustomerBloc>(
         create: (context) => sl<AddCustomerBloc>(),
         child: const AddCustomerBottomSheet(),
@@ -30,15 +30,15 @@ class AddCustomerBottomSheet extends StatefulWidget {
 class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
   final _formKey1 = GlobalKey<FormState>();
   final _formKey2 = GlobalKey<FormState>();
-  
+
   late TextEditingController _shopNameCtrl;
   late TextEditingController _ownerNameCtrl;
   late TextEditingController _contactNameCtrl;
   late TextEditingController _phoneCtrl;
-  
-  String? _selectedShopType;
-  String? _selectedRole;
-  
+
+  String? _selectedShopType; // key (e.g. 'hardware_shop')
+  String? _selectedRole;     // key (e.g. 'owner')
+
   String _gpsCoords = "";
   String _licenceFile = "";
   String _patentFile = "";
@@ -63,13 +63,11 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    // Because this widget is a child of BlocProvider inside the bottom sheet builder,
-    // this context has full access to AddCustomerBloc.
     return BlocConsumer<AddCustomerBloc, AddCustomerState>(
       listener: (context, state) {
         if (state.status == AddCustomerStatus.success) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Dispatched directly to HQ pipeline! Pending SAP review.')),
+            SnackBar(content: Text('add_customer.success'.tr)),
           );
           Navigator.pop(context);
         }
@@ -89,14 +87,22 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
                 child: Container(
                   width: 42.w,
                   height: 5.h,
-                  decoration: BoxDecoration(color: Vibe.stroke, borderRadius: BorderRadius.circular(10)),
+                  decoration: BoxDecoration(
+                    color: Vibe.stroke,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
               ),
               SizedBox(height: 20.h),
               _buildFormHeader(state),
               SizedBox(height: 20.h),
               if (state.status == AddCustomerStatus.submitting)
-                const Center(child: Padding(padding: EdgeInsets.all(40), child: CircularProgressIndicator(color: Vibe.pink)))
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(40),
+                    child: CircularProgressIndicator(color: Vibe.pink),
+                  ),
+                )
               else ...[
                 _buildActiveStepBody(state),
                 SizedBox(height: 24.h),
@@ -110,16 +116,20 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
   }
 
   Widget _buildFormHeader(AddCustomerState state) {
-    String title = "Depot Setup";
-    String stepText = "Step 1 of 3";
-    
+    String title = 'add_customer.steps.shop_details'.tr;
+    int stepNumber = 1;
+
     if (state.currentStep == CustomerFormStep.contactPerson) {
-      title = "Contact Representative";
-      stepText = "Step 2 of 3";
+      title = 'add_customer.steps.contact_person'.tr;
+      stepNumber = 2;
     } else if (state.currentStep == CustomerFormStep.locationAndPapers) {
-      title = "Verification & Papers";
-      stepText = "Step 3 of 3";
+      title = 'add_customer.steps.location_papers'.tr;
+      stepNumber = 3;
     }
+
+    final stepText = 'add_customer.step_indicator'.tr
+        .replaceAll('{current}', '$stepNumber')
+        .replaceAll('{total}', '3');
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -128,12 +138,16 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(title, style: TextStyle(color: Vibe.text, fontSize: 20.sp, fontWeight: FontWeight.w900)),
-            Text("Prospect Onboarding Pipeline", style: TextStyle(color: Vibe.text.withOpacity(0.5), fontSize: 12.sp)),
+            Text('add_customer.subtitle'.tr, style: TextStyle(color: Vibe.text.withValues(alpha: 0.5), fontSize: 12.sp)),
           ],
         ),
         Container(
           padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-          decoration: BoxDecoration(color: Vibe.bgSoft, borderRadius: BorderRadius.circular(20.r), border: Border.all(color: Vibe.stroke)),
+          decoration: BoxDecoration(
+            color: Vibe.bgSoft,
+            borderRadius: BorderRadius.circular(20.r),
+            border: Border.all(color: Vibe.stroke),
+          ),
           child: Text(stepText, style: TextStyle(color: Vibe.pink, fontSize: 11.sp, fontWeight: FontWeight.w800)),
         )
       ],
@@ -148,19 +162,24 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildInputLabel("Shop Name"),
-              _buildTextField(_shopNameCtrl, "Enter registered commercial brand name"),
+              _buildInputLabel('add_customer.shop_name'.tr, required: true),
+              _buildTextField(_shopNameCtrl, 'add_customer.shop_name_hint'.tr),
               SizedBox(height: 14.h),
-              _buildInputLabel("Type of Shop"),
+              _buildInputLabel('add_customer.shop_type'.tr, required: true),
               _buildDropdownField(
                 value: _selectedShopType,
-                hint: "Pick one...",
-                items: ['Hardware shop', 'Retailer', 'Wholesaler', 'Project / contractor'],
+                hint: 'add_customer.pick_one'.tr,
+                items: {
+                  'hardware_shop': 'add_customer.shop_types.hardware_shop'.tr,
+                  'retailer': 'add_customer.shop_types.retailer'.tr,
+                  'wholesaler': 'add_customer.shop_types.wholesaler'.tr,
+                  'project_contractor': 'add_customer.shop_types.project_contractor'.tr,
+                },
                 onChanged: (val) => setState(() => _selectedShopType = val),
               ),
               SizedBox(height: 14.h),
-              _buildInputLabel("Owner Name"),
-              _buildTextField(_ownerNameCtrl, "Full legal name of identity documentation holder"),
+              _buildInputLabel('add_customer.owner_name'.tr, required: true),
+              _buildTextField(_ownerNameCtrl, 'add_customer.owner_name_hint'.tr),
             ],
           ),
         );
@@ -171,19 +190,23 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildInputLabel("Contact Name"),
-              _buildTextField(_contactNameCtrl, "Primary operative agent name"),
+              _buildInputLabel('add_customer.contact_name'.tr, required: true),
+              _buildTextField(_contactNameCtrl, 'add_customer.contact_name_hint'.tr),
               SizedBox(height: 14.h),
-              _buildInputLabel("Role Designation"),
+              _buildInputLabel('add_customer.role'.tr, required: true),
               _buildDropdownField(
                 value: _selectedRole,
-                hint: "Pick one...",
-                items: ['Owner', 'Manager', 'Buyer'],
+                hint: 'add_customer.pick_one'.tr,
+                items: {
+                  'owner': 'add_customer.roles.owner'.tr,
+                  'manager': 'add_customer.roles.manager'.tr,
+                  'buyer': 'add_customer.roles.buyer'.tr,
+                },
                 onChanged: (val) => setState(() => _selectedRole = val),
               ),
               SizedBox(height: 14.h),
-              _buildInputLabel("Phone Number"),
-              _buildTextField(_phoneCtrl, "Active contact point identifier", keyboardType: TextInputType.phone),
+              _buildInputLabel('add_customer.phone'.tr, required: true),
+              _buildTextField(_phoneCtrl, 'add_customer.phone_hint'.tr, keyboardType: TextInputType.phone),
             ],
           ),
         );
@@ -192,27 +215,27 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildInputLabel("Physical Telemetry"),
+            _buildInputLabel('add_customer.telemetry'.tr),
             _buildActionTriggerTile(
-              label: _gpsCoords.isEmpty ? "Save shop location (GPS)" : "Coordinates Verified",
-              sub: _gpsCoords.isEmpty ? "Tap to record current hardware GPS entry" : _gpsCoords,
+              label: _gpsCoords.isEmpty ? 'add_customer.gps_save'.tr : 'add_customer.gps_verified'.tr,
+              sub: _gpsCoords.isEmpty ? 'add_customer.gps_hint'.tr : _gpsCoords,
               icon: Icons.location_on_rounded,
               completed: _gpsCoords.isNotEmpty,
               onTap: () => setState(() => _gpsCoords = "11.5564° N, 104.9282° E"),
             ),
             SizedBox(height: 14.h),
-            _buildInputLabel("Compliance Papers"),
+            _buildInputLabel('add_customer.compliance'.tr),
             _buildActionTriggerTile(
-              label: "Business Licence Document",
-              sub: _licenceFile.isEmpty ? "Upload clear scan or photograph" : "Attached: lic_reg_corp.jpg",
+              label: 'add_customer.licence'.tr,
+              sub: _licenceFile.isEmpty ? 'add_customer.licence_hint'.tr : 'add_customer.licence_attached'.tr,
               icon: Icons.assignment_rounded,
               completed: _licenceFile.isNotEmpty,
               onTap: () => setState(() => _licenceFile = "lic_reg_corp.jpg"),
             ),
             SizedBox(height: 10.h),
             _buildActionTriggerTile(
-              label: "Tax Paper (Patent)",
-              sub: _patentFile.isEmpty ? "Upload current ongoing validation patent details" : "Attached: national_patent.jpg",
+              label: 'add_customer.tax_paper'.tr,
+              sub: _patentFile.isEmpty ? 'add_customer.tax_paper_hint'.tr : 'add_customer.tax_paper_attached'.tr,
               icon: Icons.receipt_long_rounded,
               completed: _patentFile.isNotEmpty,
               onTap: () => setState(() => _patentFile = "national_patent.jpg"),
@@ -220,14 +243,18 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
             SizedBox(height: 16.h),
             Container(
               padding: EdgeInsets.all(12.w),
-              decoration: BoxDecoration(color: Vibe.warning.withOpacity(0.08), borderRadius: BorderRadius.circular(12.r), border: Border.all(color: Vibe.warning.withOpacity(0.3))),
+              decoration: BoxDecoration(
+                color: Vibe.warning.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(12.r),
+                border: Border.all(color: Vibe.warning.withValues(alpha: 0.3)),
+              ),
               child: Row(
                 children: [
                   const Icon(Icons.shield_outlined, color: Vibe.warning, size: 20),
                   SizedBox(width: 10.w),
                   Expanded(
                     child: Text(
-                      "HQ finance adds bank details, sets the credit limit and approves in SAP. You never set credit.",
+                      'add_customer.credit_notice'.tr,
                       style: TextStyle(color: Vibe.warning, fontSize: 11.sp, fontWeight: FontWeight.w600, height: 1.3),
                     ),
                   ),
@@ -273,22 +300,38 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
             onPressed: () {
               if (state.currentStep == CustomerFormStep.shopDetails) {
                 if (_formKey1.currentState!.validate() && _selectedShopType != null) {
-                  bloc.add(UpdateShopDetails(shopName: _shopNameCtrl.text, shopType: _selectedShopType!, ownerName: _ownerNameCtrl.text));
+                  bloc.add(UpdateShopDetails(
+                    shopName: _shopNameCtrl.text,
+                    shopType: _selectedShopType!,
+                    ownerName: _ownerNameCtrl.text,
+                  ));
                   bloc.add(NextStep());
                 }
               } else if (state.currentStep == CustomerFormStep.contactPerson) {
                 if (_formKey2.currentState!.validate() && _selectedRole != null) {
-                  bloc.add(UpdateContactDetails(name: _contactNameCtrl.text, role: _selectedRole!, phone: _phoneCtrl.text));
+                  bloc.add(UpdateContactDetails(
+                    name: _contactNameCtrl.text,
+                    role: _selectedRole!,
+                    phone: _phoneCtrl.text,
+                  ));
                   bloc.add(NextStep());
                 }
               } else if (isLastStep) {
-                bloc.add(UpdateLocationAndPapers(gpsLocation: _gpsCoords, businessLicencePath: _licenceFile, taxPaperPath: _patentFile));
+                bloc.add(UpdateLocationAndPapers(
+                  gpsLocation: _gpsCoords,
+                  businessLicencePath: _licenceFile,
+                  taxPaperPath: _patentFile,
+                ));
                 bloc.add(SubmitToHQ());
               }
             },
             child: Text(
-              isLastStep ? "Send to HQ" : "Next Step",
-              style: TextStyle(color: isLastStep ? Colors.white : Vibe.bg, fontSize: 15.sp, fontWeight: FontWeight.w900),
+              isLastStep ? 'add_customer.send_to_hq'.tr : 'add_customer.next_step'.tr,
+              style: TextStyle(
+                color: isLastStep ? Colors.white : Vibe.bg,
+                fontSize: 15.sp,
+                fontWeight: FontWeight.w900,
+              ),
             ),
           ),
         ),
@@ -296,72 +339,131 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
     );
   }
 
-  Widget _buildInputLabel(String label) => Padding(
+  // ==================== Reusable Widgets ====================
+
+  Widget _buildInputLabel(String label, {bool required = false}) => Padding(
     padding: EdgeInsets.only(bottom: 6.h, left: 2.w),
-    child: Text(label, style: TextStyle(color: Vibe.text, fontSize: 13.sp, fontWeight: FontWeight.w700)),
-  );
-
-  Widget _buildTextField(TextEditingController controller, String hint, {TextInputType keyboardType = TextInputType.text}) => TextFormField(
-    controller: controller,
-    keyboardType: keyboardType,
-    style: const TextStyle(color: Vibe.text),
-    validator: (v) => (v == null || v.trim().isEmpty) ? "Field required" : null,
-    decoration: InputDecoration(
-      hintText: hint,
-      hintStyle: TextStyle(color: Vibe.text.withOpacity(0.3), fontSize: 13.sp),
-      filled: true,
-      fillColor: Vibe.bgSoft,
-      contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
-      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r), borderSide: const BorderSide(color: Vibe.stroke)),
-      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r), borderSide: const BorderSide(color: Vibe.text)),
-      errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r), borderSide: const BorderSide(color: Vibe.danger)),
-      focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r), borderSide: const BorderSide(color: Vibe.danger)),
-    ),
-  );
-
-  Widget _buildDropdownField({required String? value, required String hint, required List<String> items, required ValueChanged<String?> onChanged}) => Container(
-    padding: EdgeInsets.symmetric(horizontal: 16.w),
-    decoration: BoxDecoration(color: Vibe.bgSoft, borderRadius: BorderRadius.circular(12.r), border: Border.all(color: Vibe.stroke)),
-    child: DropdownButtonHideUnderline(
-      child: DropdownButton<String>(
-        value: value,
-        hint: Text(hint, style: TextStyle(color: Vibe.text.withOpacity(0.3), fontSize: 13.sp)),
-        dropdownColor: Vibe.bgSoft,
-        icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Vibe.text),
-        isExpanded: true,
-        items: items.map((e) => DropdownMenuItem(value: e, child: Text(e, style: const TextStyle(color: Vibe.text)))).toList(),
-        onChanged: onChanged,
+    child: RichText(
+      text: TextSpan(
+        text: label,
+        style: TextStyle(color: Vibe.text, fontSize: 13.sp, fontWeight: FontWeight.w700),
+        children: required
+            ? [
+                TextSpan(
+                  text: ' *',
+                  style: TextStyle(color: Vibe.danger, fontSize: 13.sp, fontWeight: FontWeight.w900),
+                ),
+              ]
+            : null,
       ),
     ),
   );
 
-  Widget _buildActionTriggerTile({required String label, required String sub, required IconData icon, required bool completed, required VoidCallback onTap}) => InkWell(
-    onTap: onTap,
-    borderRadius: BorderRadius.circular(14.r),
-    child: AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      padding: EdgeInsets.all(14.w),
-      decoration: BoxDecoration(
-        color: completed ? Vibe.success.withOpacity(0.05) : Colors.transparent,
-        borderRadius: BorderRadius.circular(14.r),
-        border: Border.all(color: completed ? Vibe.success : Vibe.stroke, width: completed ? 1.5 : 1),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: completed ? Vibe.success : Vibe.text.withOpacity(0.6)),
-          SizedBox(width: 14.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label, style: TextStyle(color: Vibe.text, fontSize: 14.sp, fontWeight: FontWeight.w700)),
-                Text(sub, style: TextStyle(color: Vibe.text.withOpacity(0.4), fontSize: 11.sp)),
-              ],
-            ),
+  Widget _buildTextField(TextEditingController controller, String hint, {TextInputType keyboardType = TextInputType.text}) =>
+      TextFormField(
+        controller: controller,
+        keyboardType: keyboardType,
+        style: const TextStyle(color: Vibe.text),
+        validator: (v) => (v == null || v.trim().isEmpty) ? 'add_customer.error.required'.tr : null,
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: TextStyle(color: Vibe.text.withValues(alpha: 0.3), fontSize: 13.sp),
+          filled: true,
+          fillColor: Vibe.bgSoft,
+          contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12.r),
+            borderSide: const BorderSide(color: Vibe.stroke),
           ),
-          Icon(completed ? Icons.check_circle_rounded : Icons.add_a_photo_rounded, color: completed ? Vibe.success : Vibe.text, size: 20),
-        ],
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12.r),
+            borderSide: const BorderSide(color: Vibe.text),
+          ),
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12.r),
+            borderSide: const BorderSide(color: Vibe.danger),
+          ),
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12.r),
+            borderSide: const BorderSide(color: Vibe.danger),
+          ),
+        ),
+      );
+
+  Widget _buildDropdownField({
+    required String? value,
+    required String hint,
+    required Map<String, String> items,
+    required ValueChanged<String?> onChanged,
+  }) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16.w),
+      decoration: BoxDecoration(
+        color: Vibe.bgSoft,
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: Vibe.stroke),
       ),
-    ),
-  );
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: value,
+          hint: Text(hint, style: TextStyle(color: Vibe.text.withValues(alpha: 0.3), fontSize: 13.sp)),
+          dropdownColor: Vibe.bgSoft,
+          icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Vibe.text),
+          isExpanded: true,
+          items: items.entries.map((entry) {
+            return DropdownMenuItem<String>(
+              value: entry.key, // internal key
+              child: Text(entry.value, style: const TextStyle(color: Vibe.text)),
+            );
+          }).toList(),
+          onChanged: onChanged,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionTriggerTile({
+    required String label,
+    required String sub,
+    required IconData icon,
+    required bool completed,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14.r),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: EdgeInsets.all(14.w),
+        decoration: BoxDecoration(
+          color: completed ? Vibe.success.withValues(alpha: 0.05) : Colors.transparent,
+          borderRadius: BorderRadius.circular(14.r),
+          border: Border.all(
+            color: completed ? Vibe.success : Vibe.stroke,
+            width: completed ? 1.5 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: completed ? Vibe.success : Vibe.text.withValues(alpha: 0.6)),
+            SizedBox(width: 14.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label, style: TextStyle(color: Vibe.text, fontSize: 14.sp, fontWeight: FontWeight.w700)),
+                  Text(sub, style: TextStyle(color: Vibe.text.withValues(alpha: 0.4), fontSize: 11.sp)),
+                ],
+              ),
+            ),
+            Icon(
+              completed ? Icons.check_circle_rounded : Icons.add_a_photo_rounded,
+              color: completed ? Vibe.success : Vibe.text,
+              size: 20,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

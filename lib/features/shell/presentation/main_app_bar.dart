@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -292,10 +293,15 @@ class MainAppBar extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10.r),
                   ),
                   clipBehavior: Clip.antiAlias,
-                  child: Image.network(
-                    'https://png.pngtree.com/png-clipart/20240111/original/pngtree-cool-smile-profile-emoji-png-image_14087472.png',
+                  child: CachedNetworkImage(
+                    // TODO(stage-3): source from SessionManager.currentUser.avatarUrl
+                    // instead of this hardcoded placeholder.
+                    imageUrl:
+                        'https://png.pngtree.com/png-clipart/20240111/original/pngtree-cool-smile-profile-emoji-png-image_14087472.png',
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) =>
+                    placeholder: (context, url) =>
+                        const Icon(Icons.person, color: Colors.white, size: 18),
+                    errorWidget: (context, url, error) =>
                         const Icon(Icons.person, color: Colors.white, size: 18),
                   ),
                 ),

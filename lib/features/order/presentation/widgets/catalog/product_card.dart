@@ -1,6 +1,5 @@
 // product_card.dart
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
 import 'package:isi_steel_sales_mobile/core/utils/glass_card.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.dart';

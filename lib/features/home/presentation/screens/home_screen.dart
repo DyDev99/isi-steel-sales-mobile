@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key, this.userName = 'Demo'});
@@ -9,7 +10,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       // Using the light gray background from the image
-      backgroundColor: const Color(0xFFF3F5F7), 
+      backgroundColor: Vibe.canvas, 
       body: Stack(
         children: [
           // 1. The Blue Header Background
@@ -17,7 +18,7 @@ class HomeScreen extends StatelessWidget {
             height: 280.h,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
+                colors: [Vibe.violet, Vibe.primaryHover],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
@@ -82,7 +83,7 @@ class HomeScreen extends StatelessWidget {
             ),
             CircleAvatar(
               radius: 20.r,
-              backgroundColor: Colors.white.withOpacity(0.2),
+              backgroundColor: Colors.white.withValues(alpha: 0.2),
               child: Text(
                 'DA',
                 style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14.sp),
@@ -102,7 +103,7 @@ class HomeScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -115,7 +116,7 @@ class HomeScreen extends StatelessWidget {
               _buildSummaryItem(
                 icon: Icons.attach_money_rounded,
                 iconColor: Colors.green,
-                iconBg: Colors.green.withOpacity(0.1),
+                iconBg: Colors.green.withValues(alpha: 0.1),
                 value: 'R 0.00',
                 label: "Today's Sales",
               ),
@@ -123,7 +124,7 @@ class HomeScreen extends StatelessWidget {
               _buildSummaryItem(
                 icon: Icons.receipt_long_rounded,
                 iconColor: Colors.blue,
-                iconBg: Colors.blue.withOpacity(0.1),
+                iconBg: Colors.blue.withValues(alpha: 0.1),
                 value: '3',
                 label: "Orders Today",
               ),
@@ -131,7 +132,7 @@ class HomeScreen extends StatelessWidget {
               _buildSummaryItem(
                 icon: Icons.location_on_rounded,
                 iconColor: Colors.purple,
-                iconBg: Colors.purple.withOpacity(0.1),
+                iconBg: Colors.purple.withValues(alpha: 0.1),
                 value: '0',
                 label: "Check-ins",
               ),
@@ -204,28 +205,28 @@ class HomeScreen extends StatelessWidget {
         _buildGridCard(
           icon: Icons.people_alt_rounded,
           iconColor: Colors.blue,
-          iconBg: Colors.blue.withOpacity(0.1),
+          iconBg: Colors.blue.withValues(alpha: 0.1),
           value: '10',
           label: 'Customers',
         ),
         _buildGridCard(
           icon: Icons.inventory_2_rounded,
           iconColor: Colors.green,
-          iconBg: Colors.green.withOpacity(0.1),
+          iconBg: Colors.green.withValues(alpha: 0.1),
           value: '15',
           label: 'Products',
         ),
         _buildGridCard(
           icon: Icons.assignment_late_rounded,
           iconColor: Colors.orange,
-          iconBg: Colors.orange.withOpacity(0.1),
+          iconBg: Colors.orange.withValues(alpha: 0.1),
           value: '3',
           label: 'Pending',
         ),
         _buildGridCard(
           icon: Icons.warning_rounded,
           iconColor: Colors.red,
-          iconBg: Colors.red.withOpacity(0.1),
+          iconBg: Colors.red.withValues(alpha: 0.1),
           value: '4',
           label: 'Low Stock',
         ),

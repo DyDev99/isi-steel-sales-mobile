@@ -1,4 +1,5 @@
 import 'package:isi_steel_sales_mobile/core/error/exceptions.dart';
+import 'package:isi_steel_sales_mobile/core/utils/mock_latency.dart';
 import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/local/catalog_database.dart';
 import 'package:sqflite/sqflite.dart';
@@ -46,6 +47,7 @@ class QuotationLocalDataSourceImpl implements QuotationLocalDataSource {
   @override
   Future<List<DataMap>> fetchAll() async {
     try {
+      await MockLatency.tick(); // simulate a slow quotations API
       return _db.query('quotations', orderBy: 'created_at DESC');
     } catch (e) {
       throw CacheException(message: 'Failed to load quotations: $e');

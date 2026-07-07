@@ -1,29 +1,38 @@
-// This is a basic Flutter widget test.
+// Real widget smoke test (replaces the default counter boilerplate, which
+// referenced a counter UI this app never had and would always fail).
 //
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+// Exercises a self-contained presentational widget end-to-end: it renders the
+// category chips and reports the tapped category id back through its callback.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:isi_steel_sales_mobile/app.dart';
+import 'package:isi_steel_sales_mobile/features/revenue/presentation/mapper/revenue_view_model_mapper.dart';
+import 'package:isi_steel_sales_mobile/features/revenue/presentation/widgets/category_chip_list.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const ISISteelSalesApp());
+  testWidgets('CategoryChipList renders labels and reports the tapped id', (tester) async {
+    String? tapped = 'unset';
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: CategoryChipList(
+            categories: const [
+              CategoryChipViewModel(id: null, label: 'All', selected: true),
+              CategoryChipViewModel(id: 'cat-pipe', label: 'Pipe', selected: false),
+            ],
+            onSelect: (id) => tapped = id,
+          ),
+        ),
+      ),
+    );
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    expect(find.text('All'), findsOneWidget);
+    expect(find.text('Pipe'), findsOneWidget);
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    await tester.tap(find.text('Pipe'));
+    await tester.pumpAndSettle();
+
+    expect(tapped, 'cat-pipe');
   });
 }

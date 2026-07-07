@@ -22,6 +22,9 @@ import 'package:isi_steel_sales_mobile/features/profile/presentation/screens/pro
 import 'package:isi_steel_sales_mobile/features/shell/presentation/add_customer_bottom_sheet.dart';
 import 'package:isi_steel_sales_mobile/features/shell/presentation/add_visit_bottom_sheet.dart';
 import 'package:isi_steel_sales_mobile/features/shell/presentation/main_app_bar.dart';
+import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/home_action_grid.dart';
+import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/home_pipeline_card.dart';
+import 'package:isi_steel_sales_mobile/routes/app_routes.dart';
 
 class NavTab {
   final IconData icon;
@@ -95,7 +98,7 @@ class _MainShellState extends State<MainShell> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: Color(0xFF00569B), 
+              primary: Vibe.brandNavy, 
               onPrimary: Colors.white,
               onSurface: Vibe.text,
             ),
@@ -183,14 +186,14 @@ class _MainShellState extends State<MainShell> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.location_on_rounded, size: 15.w, color: const Color(0xFF7C3AED)),
+                    Icon(Icons.location_on_rounded, size: 15.w, color: Vibe.accentPurple),
                     SizedBox(width: 3.w),
                     Text(
                       'my_visits.add_my_visits'.tr,
                       style: TextStyle(
                         fontSize: 10.5.sp, 
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF7C3AED),
+                        color: Vibe.accentPurple,
                       ),
                     ),
                   ],
@@ -207,7 +210,7 @@ class _MainShellState extends State<MainShell> {
                 width: 34.w,
                 height: 34.w,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF00569B), 
+                  color: Vibe.brandNavy, 
                   borderRadius: BorderRadius.circular(10.r),
                   boxShadow: [
                     BoxShadow(
@@ -246,7 +249,7 @@ class _MainShellState extends State<MainShell> {
                   child: Text(
                     '$dayNumber',
                     style: TextStyle(
-                      color: const Color(0xFF00569B), 
+                      color: Vibe.brandNavy, 
                       fontSize: 14.sp,
                       fontWeight: FontWeight.bold,
                     ),
@@ -283,7 +286,7 @@ class _MainShellState extends State<MainShell> {
                   padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 0.h),    
                   child: GestureDetector(
                     onTap: () => _tabController.goTo(3),
-                    child: _buildPipelineSummaryCard(),
+                    child: const HomePipelineCard(),
                   ),
                 ),
                 
@@ -291,7 +294,12 @@ class _MainShellState extends State<MainShell> {
                   child: ListView(
                     padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 16.h),
                     children: [
-                      _buildActionGrid(),
+                      HomeActionGrid(
+                        onCustomersTap: () => _tabController.goTo(1),
+                        onVisitsTap: () => _tabController.goTo(2),
+                        onOrdersTap: () => _tabController.goTo(4),
+                        onRevenueTap: () => Navigator.of(context).pushNamed(Static.revenue),
+                      ),
                       SizedBox(height: 24.h),
                     ],
                   ),
@@ -306,260 +314,7 @@ class _MainShellState extends State<MainShell> {
     );
   }
 
-  Widget _buildPipelineSummaryCard() {
-    return Container(
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16.r),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: _buildPipelineItem(
-                  icon: Icons.lightbulb_outline_rounded,
-                  iconColor: Colors.orange,
-                  iconBg: Colors.orange.withValues(alpha: 0.1),
-                  value: '12',
-                  label: "leads.title".tr,
-                ),
-              ),
-              _buildVerticalDivider(),
-              Expanded(
-                child: _buildPipelineItem(
-                  icon: Icons.trending_up_rounded,
-                  iconColor: const Color(0xFF00569B), 
-                  iconBg: const Color(0xFF00569B).withValues(alpha: 0.1),
-                  value: '5',
-                  label: "leads.opportunities".tr,
-                ),
-              ),
-              _buildVerticalDivider(),
-              Expanded(
-                child: _buildPipelineItem(
-                  icon: Icons.emoji_events_rounded,
-                  iconColor: Colors.green,
-                  iconBg: Colors.green.withValues(alpha: 0.1),
-                  value: '2',
-                  label: "leads.won_deals".tr,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 16.h),
-          Center(
-            child: Text(
-              'leads.view_leads'.tr,
-              style: TextStyle(
-                color: Colors.grey.shade600,
-                fontSize: 11.sp,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          )
-        ],
-      ),
-    );
-  }
 
-  Widget _buildPipelineItem({
-    required IconData icon,
-    required Color iconColor,
-    required Color iconBg,
-    required String value,
-    required String label,
-  }) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          padding: EdgeInsets.all(6.w),
-          decoration: BoxDecoration(color: iconBg, shape: BoxShape.circle),
-          child: Icon(icon, color: iconColor, size: 16.w),
-        ),
-        SizedBox(height: 6.h),
-        Text(value, style: TextStyle(color: Vibe.text, fontWeight: FontWeight.bold, fontSize: 16.sp)),
-        Text(
-          label,
-          style: TextStyle(color: Colors.grey.shade500, fontSize: 11.sp),
-          textAlign: TextAlign.center,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildVerticalDivider() {
-    return Container(
-      height: 30.h,
-      width: 1,
-      color: Vibe.stroke,
-      margin: EdgeInsets.symmetric(horizontal: 4.w),
-    );
-  }
-
-  Widget _buildActionGrid() {
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 10.h, // Decreased from 12.h
-      crossAxisSpacing: 10.w, // Decreased from 12.w
-      childAspectRatio: 1.15, // Adjusted slightly to optimize vertical space on compact devices
-      children: [
-        _buildGridCard(
-          icon: Icons.people_alt_rounded, 
-          iconColor: const Color(0xFF00569B), 
-          iconBg: const Color(0xFF00569B).withValues(alpha: 0.1), 
-          value: '150', 
-          label: 'customers.title'.tr,
-          onTap: () => _tabController.goTo(1),
-        ),
-        _buildGridCard(
-          icon: Icons.location_on_rounded, 
-          iconColor: Colors.purple, 
-          iconBg: Colors.purple.withValues(alpha: 0.1), 
-          value: '12', 
-          label: 'my_visits.title'.tr,
-          onTap: () => _tabController.goTo(2),
-        ),
-        _buildGridCard(
-          icon: Icons.receipt_long_rounded, 
-          iconColor: Colors.orange, 
-          iconBg: Colors.orange.withValues(alpha: 0.1), 
-          value: '45', 
-          label: 'orders.sales_order.title'.tr,
-          onTap: () => _tabController.goTo(4),
-        ),
-        _buildRevenueCard(
-          achieved: '\$10k',
-          target: '\$12.5k',
-          onTap: () {},
-        ),
-      ],
-    );
-  }
-
-  Widget _buildRevenueCard({
-    required String achieved,
-    required String target,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.all(12.w), // Decreased ~20% from 16.w
-        decoration: BoxDecoration(
-          color: Colors.white, 
-          borderRadius: BorderRadius.circular(12.r), // Standardized corner radius
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: EdgeInsets.all(6.w), // Decreased from 8.w
-              decoration: BoxDecoration(
-                color: Colors.green.withValues(alpha: 0.1), 
-                borderRadius: BorderRadius.circular(6.r),
-              ),
-              child: Icon(Icons.attach_money_rounded, color: Colors.green, size: 16.w), // Decreased from 20.w
-            ),
-            SizedBox(height: 6.h), // Decreased from 8.h
-            Text.rich(
-              TextSpan(
-                children: [
-                  TextSpan(
-                    text: achieved, 
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp, color: Vibe.text), // Decreased from 18.sp
-                  ),
-                  TextSpan(
-                    text: ' ${'home.achieved'.tr}', 
-                    style: TextStyle(fontSize: 9.5.sp, color: Colors.grey.shade500), // Decreased from 11.sp
-                  ),
-                ],
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            SizedBox(height: 2.h),
-            Text.rich(
-              TextSpan(
-                children: [
-                  TextSpan(
-                    text: target, 
-                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 11.sp, color: Colors.grey.shade600), // Decreased from 13.sp
-                  ),
-                  TextSpan(
-                    text: ' ${'home.target'.tr}', 
-                    style: TextStyle(fontSize: 9.5.sp, color: Colors.grey.shade500), // Decreased from 11.sp
-                  ),
-                ],
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGridCard({
-    required IconData icon, 
-    required Color iconColor, 
-    required Color iconBg, 
-    required String value, 
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.all(0.w), // Decreased ~20% from 16.w
-        decoration: BoxDecoration(
-          color: Colors.white, 
-          borderRadius: BorderRadius.circular(12.r),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: EdgeInsets.all(6.w), // Decreased from 8.w
-              decoration: BoxDecoration(color: iconBg, borderRadius: BorderRadius.circular(6.r)),
-              child: Icon(icon, color: iconColor, size: 16.w), // Decreased from 20.w
-            ),
-            SizedBox(height: 6.h), // Decreased from 8.h
-            Text(
-              value, 
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp), // Decreased from 20.sp
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            SizedBox(height: 2.h), // Decreased from 4.h
-            Text(
-              label, 
-              style: TextStyle(color: Colors.grey.shade500, fontSize: 10.sp), // Decreased from 12.sp
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
   Widget _buildTab(int i) {
     Widget wrapWithTopSpacing(Widget screen) {
       return Padding(
@@ -604,7 +359,7 @@ class _MainShellState extends State<MainShell> {
         _tabController.goTo(0);
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFF3F5F7),
+        backgroundColor: Vibe.canvas,
         body: Stack(
           children: [
             if (_index == 0)
@@ -616,7 +371,7 @@ class _MainShellState extends State<MainShell> {
                 child: Container(
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [Color(0xFF0F2547), Color(0xFF00569B)], 
+                      colors: [Vibe.brandNavyDark, Vibe.brandNavy], 
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                     ),

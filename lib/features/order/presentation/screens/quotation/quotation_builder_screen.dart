@@ -306,7 +306,6 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
 // Discount Section with selectable percentages
 class _DiscountSection extends StatelessWidget {
   const _DiscountSection({
-    super.key,
     required this.selectedDiscount,
     required this.onDiscountSelected,
   });
@@ -370,7 +369,7 @@ class _DiscountSection extends StatelessWidget {
 }
 
 class _QuotationSummarySection extends StatelessWidget {
-  const _QuotationSummarySection({super.key});
+  const _QuotationSummarySection();
 
   @override
   Widget build(BuildContext context) {
@@ -402,7 +401,6 @@ class _QuotationSummarySection extends StatelessWidget {
 
 class _ProductListSection extends StatelessWidget {
   const _ProductListSection({
-    super.key,
     required this.state,
     required this.favoriteIds,
     required this.expandedProductId,

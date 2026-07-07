@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:isi_steel_sales_mobile/core/utils/mock_latency.dart';
 import 'package:isi_steel_sales_mobile/core/utils/result.dart';
 import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/credit_note_debit_note.dart';
@@ -17,7 +18,7 @@ class MockCreditService implements CreditService {
 
   @override
   ResultFuture<CreditSummary> getSummary(String customerId) async {
-    await Future.delayed(const Duration(milliseconds: 300));
+    await MockLatency.tick(); // simulate a slow SAP credit lookup
     final rand = Random(customerId.hashCode);
     final outstandingBalance = (rand.nextDouble() * 4000).roundToDouble();
     final noteCount = rand.nextInt(4); // 0-3

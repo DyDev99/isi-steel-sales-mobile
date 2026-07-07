@@ -6,8 +6,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 /// Hive box. Use it for non-sensitive data you want to avoid re-fetching —
 /// catalog pages, inventory snapshots, report results, etc.
 ///
-///   cache.set('catalog:page1', jsonList, ttl: const Duration(minutes: 10));
-///   final cached = cache.get<List<dynamic>>('catalog:page1'); // null if expired
+///   `cache.set('catalog:page1', jsonList, ttl: const Duration(minutes: 10));`
+///   `final cached = cache.get<List<dynamic>>('catalog:page1'); // null if expired`
 ///
 /// Values must be JSON-encodable (primitives, maps, lists).
 class LocalCache {

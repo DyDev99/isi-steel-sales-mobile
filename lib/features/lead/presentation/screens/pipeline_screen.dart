@@ -230,13 +230,13 @@ class _BoardState extends State<_Board> {
                           borderRadius: BorderRadius.circular(14.r),
                           border: Border.all(
                             color: !widget.state.filter.isEmpty 
-                                ? const Color(0xFF2563EB) 
+                                ? Vibe.violet 
                                 : Colors.grey.shade200,
                           ),
                         ),
                         child: Icon(
                           Icons.tune_rounded, 
-                          color: const Color(0xFF1E293B), 
+                          color: Vibe.slate, 
                           size: 20.w,
                         ),
                       ),
@@ -255,7 +255,7 @@ class _BoardState extends State<_Board> {
                         width: 48.h,
                         height: 48.h,
                         decoration: BoxDecoration(
-                          color: const Color(0xFF2563EB),
+                          color: Vibe.violet,
                           borderRadius: BorderRadius.only(
                             topLeft: Radius.circular(12.r),
                             topRight: Radius.circular(16.r),
@@ -264,7 +264,7 @@ class _BoardState extends State<_Board> {
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF2563EB).withValues(alpha: 0.25),
+                              color: Vibe.violet.withValues(alpha: 0.25),
                               blurRadius: 8,
                               offset: const Offset(0, 3),
                             )

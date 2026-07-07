@@ -327,6 +327,58 @@
       "followUpDue": "Follow-up Due Reminder"
     }
   },
+
+  
+  "add_customer": {
+    "steps": {
+      "shop_details": "Shop Details",
+      "contact_person": "Contact Person",
+      "location_papers": "Location & Documents"
+    },
+    "step_indicator": "Step {current}/{total}",
+    "subtitle": "Fill in the new customer information",
+    "shop_name": "Shop Name",
+    "shop_name_hint": "Enter shop name",
+    "shop_type": "Shop Type",
+    "owner_name": "Owner Name",
+    "owner_name_hint": "Enter owner name",
+    "contact_name": "Contact Name",
+    "contact_name_hint": "Enter contact person's name",
+    "role": "Role",
+    "phone": "Phone Number",
+    "phone_hint": "Enter phone number",
+    "pick_one": "Select one",
+    "telemetry": "GPS Location",
+    "gps_save": "Save GPS Location",
+    "gps_verified": "GPS Verified",
+    "gps_hint": "Tap to capture current location",
+    "compliance": "Compliance Documents",
+    "licence": "Business License",
+    "licence_hint": "Attach license document",
+    "licence_attached": "License attached",
+    "tax_paper": "Tax Patent / Certificate",
+    "tax_paper_hint": "Attach tax document",
+    "tax_paper_attached": "Tax document attached",
+    "credit_notice": "Customer will be eligible for credit once this information is approved by HQ.",
+    "next_step": "Next Step",
+    "send_to_hq": "Send to Headquarters",
+    "success": "Customer added successfully!",
+    "error": {
+      "required": "This field is required"
+    }
+  },
+  "add_customer.shop_types": {
+    "hardware_shop": "Hardware Shop",
+    "retailer": "Retailer",
+    "wholesaler": "Wholesaler",
+    "project_contractor": "Project Contractor"
+  },
+  "add_customer.roles": {
+    "owner": "Owner",
+    "manager": "Manager",
+    "buyer": "Buyer"
+  }
+,
   
   "profile": {
     "title": "Profile",
@@ -358,6 +410,36 @@
     "updated_failure": "Could not update profile",
     "password_success": "Password updated",
     "password_failure": "Could not update password"
+  },
+
+  "revenue": {
+    "title": "Revenue",
+    "search_hint": "Search products by name or SKU…",
+    "credit": {
+      "available": "Available Credit",
+      "limit": "Limit",
+      "used": "Used",
+      "outstanding": "Outstanding",
+      "over_limit": "Over Limit"
+    },
+    "discount": {
+      "title": "Discount"
+    },
+    "cart": {
+      "items_count": "{count} items in cart",
+      "subtotal": "Subtotal",
+      "discount": "Discount",
+      "total": "Total",
+      "create_order": "Create Order",
+      "order_created": "Order created (mock)"
+    },
+    "empty": {
+      "title": "No products found",
+      "subtitle": "Try a different search term or category."
+    },
+    "error": {
+      "title": "Couldn't load revenue data"
+    }
   }
 
 }
