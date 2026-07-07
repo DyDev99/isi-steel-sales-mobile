@@ -25,6 +25,9 @@
  "common": {
     "try_again": "Try again",
     "retry": "Retry",
+    "good_morning": "Good morning",
+    "good_afternoon": "Good afternoon",
+    "good_evening": "Good evening",
     "loading": "Loading…",
     "offline": "You're offline — showing saved data",
     "generic_error": "Something went wrong. Please try again.",
@@ -35,6 +38,8 @@
   "home": {
     "title": "Home Dashboard",
     "welcome": "Welcome Back",
+    "achieved": "Achieved",
+    "target": "Target",
     "quick_access": {
       "leads": "Leads",
       "opportunities": "Opportunities",
@@ -90,7 +95,9 @@
       "upload_gallery": "Upload from gallery",
       "voice_search": "Voice search: \"{query}\"",
       "matched_photo": "Matched by photo: {query}",
-      "out_of_stock": "Out of stock"
+      "out_of_stock": "Out of stock",
+      "all_categories": "All",
+      "load_more": "Load more"
     },
     "territory": {
       "title": "Select Territory",
@@ -139,6 +146,13 @@
   "leads": {
     "title": "Leads",
     "new": "Add New Lead",
+    "opportunities": "Opportunities",
+    "won_deals": "Won Deals",
+    "recent": "Recent Leads",
+    "no_leads": "No leads yet",
+    "view_details": "View Details",
+    "view_leads": "View Leads >",
+    "lead_details": "Lead Details",
     "hot_leads": "Hot Leads",
     "follow_up": "Follow Up Required"
   },
@@ -205,12 +219,6 @@
       "highest_value": "Highest value"
     }
   },
-  "profile": {
-    "title": "Profile",
-    "settings": "Account Settings",
-    "change_lang": "Change Language",
-    "logout": "Log Out"
-  },
   "notification": {
     "title": "Notifications",
     "mark_all_read": "Mark all as read",
@@ -218,11 +226,11 @@
   },
   "my_visits": {
     "title": "My Visits",
-    "new": "Add New Route",
-    "list": "Route List",
-    "details": "Route Details",
+    "list": "Visit List",
+    "add_my_visits": "Add My Visits",
+    "details": "Visit Details",
     "flow": {
-      "dispatch_title": "Route",
+      "dispatch_title": "Visit Route",
       "dispatch_helper": "Visits are planned by the office. Tap the next shop to head there.",
       "shops": "shops",
       "pill_next": "Next",
@@ -307,5 +315,49 @@
     "language_change_anytime": "You can change the language anytime in your profile settings.",
     "khmer": "ភាសាខ្មែរ",
     "khmer_region": "Cambodia"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "no_notifications": "No notifications",
+    "kinds": {
+      "creditApproved": "Credit Approved",
+      "leadAssigned": "New Lead Assigned",
+      "opportunityMoved": "Pipeline Deal Updated",
+      "creditPending": "Credit Status Pending",
+      "followUpDue": "Follow-up Due Reminder"
+    }
+  },
+  
+  "profile": {
+    "title": "Profile",
+    "details": "Details",
+    "email": "Email",
+    "phone": "Phone",
+    "territory": "Territory",
+    "region": "Region",
+    "joined": "Joined",
+    "status": "Status",
+    "active": "Active",
+    "inactive": "Inactive",
+    "edit_profile": "Edit Profile",
+    "change_password": "Change Password",
+    "logout": "Log Out",
+    "logout_confirm_title": "Log out?",
+    "logout_confirm_body": "You will need to sign in again to continue.",
+    "cancel": "Cancel",
+    "full_name": "Full name",
+    "current_password": "Current password",
+    "new_password": "New password",
+    "confirm_new_password": "Confirm new password",
+    "required": "Required",
+    "password_min_length": "At least 8 characters",
+    "passwords_dont_match": "Passwords do not match",
+    "save_changes": "Save Changes",
+    "update_password": "Update Password",
+    "updated_success": "Profile updated",
+    "updated_failure": "Could not update profile",
+    "password_success": "Password updated",
+    "password_failure": "Could not update password"
   }
+
 }

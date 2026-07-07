@@ -2,13 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
 import 'package:isi_steel_sales_mobile/core/utils/glass_card.dart';
+import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
 import 'package:isi_steel_sales_mobile/features/profile/domain/entities/worker_profile.dart';
 
-/// Read-only info rows, styled after `stop_detail_screen.dart`'s
-/// `_Section`/`GlassCard` pattern.
 class ProfileInfoSection extends StatelessWidget {
   const ProfileInfoSection({super.key, required this.profile});
   final WorkerProfile profile;
+
+  // Defensive date formatting method
+  String _formatDate(BuildContext context, DateTime date) {
+    final currentLocale = Localizations.localeOf(context).languageCode;
+    try {
+      return DateFormat.yMMMd(currentLocale).format(date);
+    } catch (_) {
+      // Fallback to default system formatting if the locale isn't initialized yet
+      return DateFormat.yMMMd().format(date); 
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,17 +26,18 @@ class ProfileInfoSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Details', style: TextStyle(color: Vibe.text, fontSize: 14.5, fontWeight: FontWeight.w800)),
+          Text('profile.details'.tr, style: const TextStyle(color: Vibe.text, fontSize: 14.5, fontWeight: FontWeight.w800)),
           const SizedBox(height: 12),
-          _InfoTile(icon: Icons.email_rounded, label: 'Email', value: profile.email),
-          _InfoTile(icon: Icons.phone_rounded, label: 'Phone', value: profile.phone),
-          _InfoTile(icon: Icons.map_rounded, label: 'Territory', value: profile.territory),
-          _InfoTile(icon: Icons.public_rounded, label: 'Region', value: profile.region),
-          _InfoTile(icon: Icons.event_rounded, label: 'Joined', value: DateFormat.yMMMd().format(profile.joinedAt)),
+          _InfoTile(icon: Icons.email_rounded, label: 'profile.email'.tr, value: profile.email),
+          _InfoTile(icon: Icons.phone_rounded, label: 'profile.phone'.tr, value: profile.phone),
+          _InfoTile(icon: Icons.map_rounded, label: 'profile.territory'.tr, value: profile.territory),
+          _InfoTile(icon: Icons.public_rounded, label: 'profile.region'.tr, value: profile.region),
+          // Use the safe format block here
+          _InfoTile(icon: Icons.event_rounded, label: 'profile.joined'.tr, value: _formatDate(context, profile.joinedAt)),
           _InfoTile(
             icon: profile.isActive ? Icons.check_circle_rounded : Icons.pause_circle_rounded,
-            label: 'Status',
-            value: profile.isActive ? 'Active' : 'Inactive',
+            label: 'profile.status'.tr,
+            value: profile.isActive ? 'profile.active'.tr : 'profile.inactive'.tr,
             valueColor: profile.isActive ? Vibe.success : Vibe.muted,
             showDivider: false,
           ),

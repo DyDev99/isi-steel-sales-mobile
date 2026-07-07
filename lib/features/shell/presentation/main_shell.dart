@@ -60,12 +60,6 @@ class _MainShellState extends State<MainShell> {
     });
   }
 
-  // --- ALIGNED INDEX MAP ---
-  // Index 0: Home
-  // Index 1: Customers
-  // Index 2: Routes
-  // Index 3: Leads/Pipeline
-  // Index 4: Orders
   List<NavTab> get _tabs => [
         NavTab(Icons.grid_view_rounded, 'home.title'.tr),
         NavTab(Icons.people_alt_rounded, 'customers.title'.tr),
@@ -82,8 +76,6 @@ class _MainShellState extends State<MainShell> {
         'orders.title'.tr,
       ];
 
-  late final List<Widget?> _built = List<Widget?>.filled(5, null);
-
   void _openProfile(BuildContext context) {
     Navigator.of(context).push(MaterialPageRoute(
       builder: (_) => BlocProvider(
@@ -92,6 +84,182 @@ class _MainShellState extends State<MainShell> {
       ),
     ));
   }
+
+  Future<void> _openCalendarPicker(BuildContext context) async {
+    await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFF00569B), 
+              onPrimary: Colors.white,
+              onSurface: Vibe.text,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+  }
+
+  Widget _buildWelcomeSection(BuildContext context) {
+  final int dayNumber = DateTime.now().day;
+  final int hour = DateTime.now().hour;
+
+  late final String greetingKey;
+  if (hour < 12) {
+    greetingKey = 'common.good_morning';
+  } else if (hour < 17) {
+    greetingKey = 'common.good_afternoon';
+  } else {
+    greetingKey = 'common.good_evening';
+  }
+
+  return Padding(
+    padding: EdgeInsets.fromLTRB(16.w, 4.h, 16.w, 0.h),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // Left Side: Greeting Column
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                greetingKey.tr, 
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.8),
+                  fontSize: 13.sp,
+                  fontWeight: FontWeight.w500,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              SizedBox(height: 1.h),
+              Text(
+                'Sokha Novel', 
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 19.sp,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.5,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+        
+        SizedBox(width: 8.w),
+
+        // Right Side: Action row grouping Visit, Customer, and Calendar with white shadows
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 1. Add Visit Action Button
+            GestureDetector(
+              onTap: () => showAddVisitSheet(context),
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 6.h),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10.r),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.white.withValues(alpha: 0.25), // White premium shadow glow
+                      blurRadius: 6,
+                      spreadRadius: 1,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.location_on_rounded, size: 15.w, color: const Color(0xFF7C3AED)),
+                    SizedBox(width: 3.w),
+                    Text(
+                      'my_visits.add_my_visits'.tr,
+                      style: TextStyle(
+                        fontSize: 10.5.sp, 
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF7C3AED),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            
+            SizedBox(width: 6.w),
+
+            // 2. Add Customer Action Button
+            GestureDetector(
+              onTap: () => showAddCustomerSheet(context),
+              child: Container(
+                width: 34.w,
+                height: 34.w,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF00569B), 
+                  borderRadius: BorderRadius.circular(10.r),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.white.withValues(alpha: 0.2), // White glow on dark background
+                      blurRadius: 6,
+                      spreadRadius: 1,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
+                ),
+                child: Icon(Icons.person_add_alt_1_rounded, color: Colors.white, size: 16.w),
+              ),
+            ),
+            
+            SizedBox(width: 6.w),
+
+            // 3. Calendar Day Action Picker
+            GestureDetector(
+              onTap: () => _openCalendarPicker(context),
+              child: Container(
+                width: 34.w,
+                height: 34.w,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10.r),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.white.withValues(alpha: 0.25), // Consistent white shadow
+                      blurRadius: 6,
+                      spreadRadius: 1,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Text(
+                    '$dayNumber',
+                    style: TextStyle(
+                      color: const Color(0xFF00569B), 
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
   
   Widget _buildHomeTab() {
     return MultiBlocProvider(
@@ -104,20 +272,24 @@ class _MainShellState extends State<MainShell> {
           Positioned.fill(
             child: Column(
               children: [
-                SizedBox(height: 84.h),
+                SafeArea(
+                  bottom: false,
+                  child: SizedBox(height: 80.h), 
+                ),
                 
-                // Pipeline summary card switches to Pipeline Tab (Index 3) on tap
+                _buildWelcomeSection(context),
+                
                 Padding(
-                  padding: EdgeInsets.fromLTRB(16.w, 40.h, 16.w, 0.h),    
+                  padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 0.h),    
                   child: GestureDetector(
-                    onTap: () => _tabController.goTo(3), // Navigate to Pipeline
+                    onTap: () => _tabController.goTo(3),
                     child: _buildPipelineSummaryCard(),
                   ),
                 ),
                 
                 Expanded(
                   child: ListView(
-                    padding: EdgeInsets.fromLTRB(16.w, 0.h, 16.w, 16.h),
+                    padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 16.h),
                     children: [
                       _buildActionGrid(),
                       SizedBox(height: 24.h),
@@ -128,57 +300,7 @@ class _MainShellState extends State<MainShell> {
             ),
           ),
 
-          Positioned(
-            bottom: 60.h,
-            right: 30.w,
-            child: FloatingActionButton(
-              heroTag: 'add_user_fab', 
-              backgroundColor: const Color(0xFF2563EB),
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16.r),
-              ),
-              onPressed: () {
-                showAddCustomerSheet(context);
-              },
-              child: const Icon(
-                Icons.person_add_alt_1_rounded, 
-                color: Colors.white,
-              ),
-            ),
-          ),
-
-          // "Add My Visit" floating popup button.
-          // Stacked above the existing "Add Customer" FAB (60.h + ~56.h
-          // button height + 16.h gap) so the two never overlap.
-          Positioned(
-            bottom: 132.h,
-            right: 30.w,
-            child: AnimatedScale(
-              // Subtle entrance/press-friendly scale animation, kept purely
-              // visual so it never affects layout or state.
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeOutBack,
-              scale: 1.0,
-              child: FloatingActionButton.extended(
-                heroTag: 'add_my_visit_fab',
-                backgroundColor: Colors.white,
-                foregroundColor: const Color(0xFF7C3AED),
-                elevation: 4,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16.r),
-                ),
-                onPressed: () {
-                  showAddVisitSheet(context);
-                },
-                icon: Icon(Icons.location_on_rounded, size: 20.w),
-                label: Text(
-                  'Add My Visit',
-                  style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w600),
-                ),
-              ),
-            ),
-          ),
+         
         ],
       ),
     );
@@ -192,7 +314,7 @@ class _MainShellState extends State<MainShell> {
         borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -208,17 +330,17 @@ class _MainShellState extends State<MainShell> {
                   iconColor: Colors.orange,
                   iconBg: Colors.orange.withValues(alpha: 0.1),
                   value: '12',
-                  label: "Leads",
+                  label: "leads.title".tr,
                 ),
               ),
               _buildVerticalDivider(),
               Expanded(
                 child: _buildPipelineItem(
                   icon: Icons.trending_up_rounded,
-                  iconColor: Colors.blue,
-                  iconBg: Colors.blue.withValues(alpha: 0.1),
+                  iconColor: const Color(0xFF00569B), 
+                  iconBg: const Color(0xFF00569B).withValues(alpha: 0.1),
                   value: '5',
-                  label: "Opportunities",
+                  label: "leads.opportunities".tr,
                 ),
               ),
               _buildVerticalDivider(),
@@ -228,7 +350,7 @@ class _MainShellState extends State<MainShell> {
                   iconColor: Colors.green,
                   iconBg: Colors.green.withValues(alpha: 0.1),
                   value: '2',
-                  label: "Won",
+                  label: "leads.won_deals".tr,
                 ),
               ),
             ],
@@ -236,7 +358,7 @@ class _MainShellState extends State<MainShell> {
           SizedBox(height: 16.h),
           Center(
             child: Text(
-              'View pipeline >',
+              'leads.view_leads'.tr,
               style: TextStyle(
                 color: Colors.grey.shade600,
                 fontSize: 11.sp,
@@ -291,38 +413,38 @@ class _MainShellState extends State<MainShell> {
       crossAxisCount: 2,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 12.h,
-      crossAxisSpacing: 12.w,
-      childAspectRatio: 1.1,
+      mainAxisSpacing: 10.h, // Decreased from 12.h
+      crossAxisSpacing: 10.w, // Decreased from 12.w
+      childAspectRatio: 1.15, // Adjusted slightly to optimize vertical space on compact devices
       children: [
         _buildGridCard(
           icon: Icons.people_alt_rounded, 
-          iconColor: Colors.blue, 
-          iconBg: Colors.blue.withValues(alpha: 0.1), 
+          iconColor: const Color(0xFF00569B), 
+          iconBg: const Color(0xFF00569B).withValues(alpha: 0.1), 
           value: '150', 
-          label: 'Customers',
-          onTap: () => _tabController.goTo(1), // Index 1: Customers
+          label: 'customers.title'.tr,
+          onTap: () => _tabController.goTo(1),
         ),
         _buildGridCard(
           icon: Icons.location_on_rounded, 
           iconColor: Colors.purple, 
           iconBg: Colors.purple.withValues(alpha: 0.1), 
           value: '12', 
-          label: 'Routes',
-          onTap: () => _tabController.goTo(2), // Index 2: Routes
+          label: 'my_visits.title'.tr,
+          onTap: () => _tabController.goTo(2),
         ),
         _buildGridCard(
           icon: Icons.receipt_long_rounded, 
           iconColor: Colors.orange, 
           iconBg: Colors.orange.withValues(alpha: 0.1), 
           value: '45', 
-          label: 'Orders',
-          onTap: () => _tabController.goTo(4), // Index 4: Orders
+          label: 'orders.sales_order.title'.tr,
+          onTap: () => _tabController.goTo(4),
         ),
         _buildRevenueCard(
           achieved: '\$10k',
           target: '\$12.5k',
-          onTap: () {}, // Leaves revenue static/non-clickable as requested
+          onTap: () {},
         ),
       ],
     );
@@ -336,23 +458,35 @@ class _MainShellState extends State<MainShell> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.all(16.w),
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16.r)),
+        padding: EdgeInsets.all(12.w), // Decreased ~20% from 16.w
+        decoration: BoxDecoration(
+          color: Colors.white, 
+          borderRadius: BorderRadius.circular(12.r), // Standardized corner radius
+        ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: EdgeInsets.all(8.w),
-              decoration: BoxDecoration(color: Colors.green.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8.r)),
-              child: Icon(Icons.attach_money_rounded, color: Colors.green, size: 20.w),
+              padding: EdgeInsets.all(6.w), // Decreased from 8.w
+              decoration: BoxDecoration(
+                color: Colors.green.withValues(alpha: 0.1), 
+                borderRadius: BorderRadius.circular(6.r),
+              ),
+              child: Icon(Icons.attach_money_rounded, color: Colors.green, size: 16.w), // Decreased from 20.w
             ),
-            const Spacer(),
+            SizedBox(height: 6.h), // Decreased from 8.h
             Text.rich(
               TextSpan(
                 children: [
-                  TextSpan(text: achieved, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.sp, color: Vibe.text)),
-                  TextSpan(text: ' achieved', style: TextStyle(fontSize: 11.sp, color: Colors.grey.shade500)),
+                  TextSpan(
+                    text: achieved, 
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp, color: Vibe.text), // Decreased from 18.sp
+                  ),
+                  TextSpan(
+                    text: ' ${'home.achieved'.tr}', 
+                    style: TextStyle(fontSize: 9.5.sp, color: Colors.grey.shade500), // Decreased from 11.sp
+                  ),
                 ],
               ),
               maxLines: 1,
@@ -362,8 +496,14 @@ class _MainShellState extends State<MainShell> {
             Text.rich(
               TextSpan(
                 children: [
-                  TextSpan(text: target, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.sp, color: Colors.grey.shade600)),
-                  TextSpan(text: ' target', style: TextStyle(fontSize: 11.sp, color: Colors.grey.shade500)),
+                  TextSpan(
+                    text: target, 
+                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 11.sp, color: Colors.grey.shade600), // Decreased from 13.sp
+                  ),
+                  TextSpan(
+                    text: ' ${'home.target'.tr}', 
+                    style: TextStyle(fontSize: 9.5.sp, color: Colors.grey.shade500), // Decreased from 11.sp
+                  ),
                 ],
               ),
               maxLines: 1,
@@ -386,31 +526,44 @@ class _MainShellState extends State<MainShell> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.all(16.w),
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16.r)),
+        padding: EdgeInsets.all(0.w), // Decreased ~20% from 16.w
+        decoration: BoxDecoration(
+          color: Colors.white, 
+          borderRadius: BorderRadius.circular(12.r),
+        ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: EdgeInsets.all(8.w),
-              decoration: BoxDecoration(color: iconBg, borderRadius: BorderRadius.circular(8.r)),
-              child: Icon(icon, color: iconColor, size: 20.w),
+              padding: EdgeInsets.all(6.w), // Decreased from 8.w
+              decoration: BoxDecoration(color: iconBg, borderRadius: BorderRadius.circular(6.r)),
+              child: Icon(icon, color: iconColor, size: 16.w), // Decreased from 20.w
             ),
-            const Spacer(),
-            Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20.sp)),
-            SizedBox(height: 4.h),
-            Text(label, style: TextStyle(color: Colors.grey.shade500, fontSize: 12.sp)),
+            SizedBox(height: 6.h), // Decreased from 8.h
+            Text(
+              value, 
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp), // Decreased from 20.sp
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            SizedBox(height: 2.h), // Decreased from 4.h
+            Text(
+              label, 
+              style: TextStyle(color: Colors.grey.shade500, fontSize: 10.sp), // Decreased from 12.sp
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+            ),
           ],
         ),
       ),
     );
   }
-
   Widget _buildTab(int i) {
     Widget wrapWithTopSpacing(Widget screen) {
       return Padding(
-        padding: EdgeInsets.only(top: 94.h),
+        padding: EdgeInsets.only(top: 80.h), 
         child: screen,
       );
     }
@@ -442,12 +595,10 @@ class _MainShellState extends State<MainShell> {
 
   @override
   Widget build(BuildContext context) {
-    // Evict cached layout structure if index shifts out of bounds safely
-    if (_index >= _built.length) _index = 0;
-    _built[_index] ??= _buildTab(_index); 
+    if (_index >= _tabs.length) _index = 0;
 
     return PopScope(
-      canPop: _index == 0, // Using explicit index integer directly matching home setup
+      canPop: _index == 0,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
         _tabController.goTo(0);
@@ -456,25 +607,26 @@ class _MainShellState extends State<MainShell> {
         backgroundColor: const Color(0xFFF3F5F7),
         body: Stack(
           children: [
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              height: MediaQuery.of(context).size.height * 0.24,
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                  ),
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(32.r),
-                    bottomRight: Radius.circular(32.r),
+            if (_index == 0)
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                height: MediaQuery.of(context).size.height * 0.28,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF0F2547), Color(0xFF00569B)], 
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(32.r),
+                      bottomRight: Radius.circular(32.r),
+                    ),
                   ),
                 ),
               ),
-            ),
             Theme(
               data: Theme.of(context).copyWith(
                 scaffoldBackgroundColor: Colors.transparent,
@@ -482,9 +634,10 @@ class _MainShellState extends State<MainShell> {
               child: Positioned.fill(
                 child: IndexedStack(
                   index: _index,
+                  // FIX: Removed the manual array allocation cache to let layout dynamically re-translate on change
                   children: List.generate(
                     _tabs.length,
-                    (i) => _built[i] ?? const SizedBox.shrink(),
+                    (i) => _buildTab(i),
                   ),
                 ),
               ),

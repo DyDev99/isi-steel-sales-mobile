@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
 import 'package:isi_steel_sales_mobile/features/profile/domain/entities/worker_profile.dart';
 
-/// Bottom sheet for editing the mutable subset of a worker's profile.
-/// `employeeCode`/`role`/`joinedAt` are treated as read-only (admin-set),
-/// so they're not exposed here.
 Future<WorkerProfile?> showEditProfileSheet({
   required BuildContext context,
   required WorkerProfile profile,
@@ -64,28 +62,28 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Edit Profile', style: TextStyle(color: Vibe.text, fontSize: 16, fontWeight: FontWeight.w800)),
+              Text('profile.edit_profile'.tr, style: const TextStyle(color: Vibe.text, fontSize: 16, fontWeight: FontWeight.w800)),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _nameController,
                 style: const TextStyle(color: Vibe.text),
-                decoration: const InputDecoration(labelText: 'Full name'),
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+                decoration: InputDecoration(labelText: 'profile.full_name'.tr),
+                validator: (v) => (v == null || v.trim().isEmpty) ? 'profile.required'.tr : null,
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _phoneController,
                 style: const TextStyle(color: Vibe.text),
                 keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(labelText: 'Phone'),
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+                decoration: InputDecoration(labelText: 'profile.phone'.tr),
+                validator: (v) => (v == null || v.trim().isEmpty) ? 'profile.required'.tr : null,
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _territoryController,
                 style: const TextStyle(color: Vibe.text),
-                decoration: const InputDecoration(labelText: 'Territory'),
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+                decoration: InputDecoration(labelText: 'profile.territory'.tr),
+                validator: (v) => (v == null || v.trim().isEmpty) ? 'profile.required'.tr : null,
               ),
               const SizedBox(height: 20),
               SizedBox(
@@ -97,7 +95,7 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
-                  child: const Text('Save Changes'),
+                  child: Text('profile.save_changes'.tr),
                 ),
               ),
             ],

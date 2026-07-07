@@ -137,6 +137,7 @@ class _Loaded extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const SizedBox(height: 20),
                   const CustomerSyncStatusBanner(),
                   CustomerSearchBar(
                     onSearchChanged: (q) => context.read<CustomersBloc>().add(CustomersSearchChanged(q)),

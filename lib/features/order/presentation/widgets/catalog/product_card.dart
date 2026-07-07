@@ -1,3 +1,4 @@
+// product_card.dart
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
@@ -5,8 +6,6 @@ import 'package:isi_steel_sales_mobile/core/utils/glass_card.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/catalog/promotion_badge.dart';
 
-/// Horizontal product tile: image fixed on the left, all product details
-/// (SKU, name, unit, stock, price, Add to Cart) stacked on the right.
 class ProductCard extends StatelessWidget {
   const ProductCard({
     super.key,
@@ -23,7 +22,7 @@ class ProductCard extends StatelessWidget {
   final VoidCallback onFavoriteToggle;
   final VoidCallback onAddToCart;
 
-  static const _imageSize = 84.0;
+  static const _imageSize = 58.0;
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +32,7 @@ class ProductCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Image + Badges
           Stack(
             clipBehavior: Clip.none,
             children: [
@@ -44,127 +44,105 @@ class ProductCard extends StatelessWidget {
                   child: Image.network(
                     product.imageUrl,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
+                    errorBuilder: (_, __, ___) => Container(
                       color: Vibe.bgSoft,
-                      alignment: Alignment.center,
-                      child: const Icon(Icons.inventory_2_outlined, color: Vibe.muted, size: 26),
+                      child: const Icon(Icons.inventory_2_outlined, color: Vibe.muted, size: 24),
                     ),
                   ),
                 ),
               ),
+              // Favorite
               Positioned(
                 top: 2,
                 right: 2,
                 child: InkWell(
                   onTap: onFavoriteToggle,
-                  borderRadius: BorderRadius.circular(20),
                   child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(color: Colors.white70, shape: BoxShape.circle),
+                    padding: const EdgeInsets.all(3),
+                    decoration: const BoxDecoration(
+                      color: Colors.white70,
+                      shape: BoxShape.circle,
+                    ),
                     child: Icon(
                       isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                      size: 13,
+                      size: 14,
                       color: isFavorite ? Vibe.danger : Vibe.muted,
                     ),
                   ),
                 ),
               ),
               if (product.hasPromotion)
-                Positioned(top: 2, left: 2, child: PromotionBadge(label: product.pricing.promotionLabel ?? 'Sale')),
+                Positioned(top: 2, left: 2, child: PromotionBadge(label: 'Sale')),
             ],
           ),
+
           const SizedBox(width: 10),
+
+          // Info
           Expanded(
-            child: SizedBox(
-              height: _imageSize,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (product.code.isNotEmpty)
-                        Text(product.code, style: const TextStyle(color: Vibe.muted, fontSize: 10.5, fontWeight: FontWeight.w600)),
-                      Text(
-                        product.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: Vibe.text, fontSize: 13, fontWeight: FontWeight.w800),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '${product.subCategory} · ${product.unit}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: Vibe.muted, fontSize: 11),
-                      ),
-                      const SizedBox(height: 3),
-                      Row(
-                        children: [
-                          Icon(
-                            product.isAvailable ? Icons.check_circle_rounded : Icons.remove_circle_outline_rounded,
-                            size: 12,
-                            color: product.isAvailable ? Vibe.success : Vibe.danger,
-                          ),
-                          const SizedBox(width: 3),
-                          Expanded(
-                            child: Text(
-                              product.isAvailable
-                                  ? '${product.availableQuantity.toStringAsFixed(0)} ${product.unit} · ${product.warehouseCode}'
-                                  : 'orders.catalog.out_of_stock'.tr,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(color: Vibe.muted, fontSize: 10.5),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center, // Changed from spaceBetween
+              children: [
+                // SKU + Name
+                if (product.code.isNotEmpty)
+                  Text(
+                    product.code,
+                    style: const TextStyle(color: Vibe.muted, fontSize: 10, fontWeight: FontWeight.w600),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: product.hasPromotion
-                            ? Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    '\$${product.effectivePrice.toStringAsFixed(2)}',
-                                    style: const TextStyle(color: Vibe.violet, fontSize: 14, fontWeight: FontWeight.w800),
-                                  ),
-                                  const SizedBox(width: 5),
-                                  Flexible(
-                                    child: Text(
-                                      '\$${product.pricing.standardPrice.toStringAsFixed(2)}',
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        color: Vibe.disabledText,
-                                        fontSize: 11,
-                                        decoration: TextDecoration.lineThrough,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              )
-                            : Text(
-                                '\$${product.effectivePrice.toStringAsFixed(2)}',
-                                style: const TextStyle(color: Vibe.violet, fontSize: 14, fontWeight: FontWeight.w800),
-                              ),
-                      ),
-                      InkWell(
-                        onTap: onAddToCart,
-                        borderRadius: BorderRadius.circular(8),
-                        child: Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(gradient: Vibe.cta, borderRadius: BorderRadius.circular(8)),
-                          child: const Icon(Icons.add_shopping_cart_rounded, size: 15, color: Colors.white),
+                Text(
+                  product.name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Vibe.text,
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                    height: 1.1,
+                  ),
+                ),
+                const SizedBox(height: 4),
+
+                // Unit + Stock
+                Text(
+                  '${product.subCategory} · ${product.unit}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: Vibe.muted, fontSize: 10.5),
+                ),
+
+                const SizedBox(height: 6),
+
+                // Price + Add Button
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '\$${product.effectivePrice.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          color: Vibe.violet,
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
-                    ],
-                  ),
-                ],
-              ),
+                    ),
+                    InkWell(
+                      onTap: onAddToCart,
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          gradient: Vibe.cta,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(Icons.add_shopping_cart_rounded, size: 16, color: Colors.white),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ],

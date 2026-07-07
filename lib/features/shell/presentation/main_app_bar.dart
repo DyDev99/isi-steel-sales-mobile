@@ -43,7 +43,7 @@ class MainAppBar extends StatelessWidget {
               final isSelected = currentLang == code;
 
               return Padding(
-                padding: EdgeInsets.only(bottom: 4.2.h), // Reduced by 10% from 6.h
+                padding: EdgeInsets.only(bottom: 4.2.h),
                 child: InkWell(
                   onTap: () async {
                     if (code == currentLang) {
@@ -124,7 +124,6 @@ class MainAppBar extends StatelessWidget {
                 color: Vibe.bg,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
               ),
-              // Reduced vertical padding by 10% (from 20.h to 18.h)
               padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 18.h),
               child: SafeArea(
                 child: Column(
@@ -141,7 +140,7 @@ class MainAppBar extends StatelessWidget {
                         ),
                       ),
                     ),
-                    SizedBox(height: 21.6.h), // Reduced by 10% from 24.h
+                    SizedBox(height: 21.6.h),
                     Text(
                       'language.choose_title'.tr,
                       style: TextStyle(
@@ -151,7 +150,7 @@ class MainAppBar extends StatelessWidget {
                         letterSpacing: -0.5,
                       ),
                     ),
-                    SizedBox(height: 3.6.h), // Reduced by 10% from 4.h
+                    SizedBox(height: 3.6.h),
                     Text(
                       'language.choose_subtitle'.tr,
                       style: TextStyle(
@@ -159,7 +158,7 @@ class MainAppBar extends StatelessWidget {
                         fontSize: 14.sp,
                       ),
                     ),
-                    SizedBox(height: 21.6.h), // Reduced by 10% from 24.h
+                    SizedBox(height: 21.6.h),
                     buildLangCard(
                       label: 'language.english'.tr,
                       subLabel: 'language.english_region'.tr,
@@ -172,7 +171,7 @@ class MainAppBar extends StatelessWidget {
                       code: 'kh',
                       flag: '🇰🇭',
                     ),
-                    SizedBox(height: 10.8.h), // Reduced by 10% from 12.h
+                    SizedBox(height: 10.8.h),
                   ],
                 ),
               ),
@@ -220,26 +219,37 @@ class MainAppBar extends StatelessWidget {
                   children: [
                     Expanded(
                       child: isHome
-                          ? Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  'Good afternoon,',
-                                  style: TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 12.sp,
-                                  ),
-                                ),
-                                Text(
-                                  'Demo',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 22.sp,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
+                          ? Align(
+                              alignment: Alignment.centerLeft,
+                              child: Row(
+                                  mainAxisSize: MainAxisSize.min, // Shrinks row to fit its content tightly
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                                                        // 2. Circular Logo on the Right
+                                    ClipOval(
+                                      child: Image.asset(
+                                        'assets/logos/isi_steel_splash.png',
+                                        height: 40.h,
+                                        width: 40.h,        // Added width matching height to guarantee a perfect circle
+                                        fit: BoxFit.cover,  // Changed to cover so the image fills the circular bounds nicely
+                                      ),
+                                    ),
+                                        // Gap between text and logo
+                                    SizedBox(width: 12.w),
+                                    // 1. App Name Text on the Left
+                                    Text(
+                                      'ISI STEEL SALES', // Replace with your actual app name
+                                      style: TextStyle(
+                                        fontSize: 16.sp,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white, // Adjust color based on your background
+                                      ),
+                                    ),
+                                    
+                                    
+
+                                  ],
+                                )
                             )
                           : Text(
                               title,
@@ -268,9 +278,9 @@ class MainAppBar extends StatelessWidget {
                   ],
                 ),
               ),
-              SizedBox(width: 12.w),
+              SizedBox(width: 16.w),
               _NotificationBell(isInverseColor: isHome),
-              SizedBox(width: 12.w),
+              SizedBox(width: 16.w),
               GestureDetector(
                 onTap: onAvatarTap,
                 child: Container(
@@ -297,7 +307,6 @@ class MainAppBar extends StatelessWidget {
     );
   }
 }
-
 class _NotificationBell extends StatelessWidget {
   const _NotificationBell({this.isInverseColor = false});
   final bool isInverseColor;

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
+import 'package:isi_steel_sales_mobile/core/local/localized_builder.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_event.dart';
 import 'package:isi_steel_sales_mobile/features/profile/presentation/bloc/profile_cubit.dart';
@@ -10,9 +12,6 @@ import 'package:isi_steel_sales_mobile/features/profile/presentation/widgets/edi
 import 'package:isi_steel_sales_mobile/features/profile/presentation/widgets/profile_header.dart';
 import 'package:isi_steel_sales_mobile/features/profile/presentation/widgets/profile_info_section.dart';
 
-/// Worker profile: identity/contact/work-context readout, edit, change
-/// password, and logout. Expects `ProfileCubit` provided above it and
-/// calls `load()` once on first build.
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -33,7 +32,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final ok = await context.read<ProfileCubit>().updateProfile(updated);
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(ok ? 'Profile updated' : 'Could not update profile')),
+      SnackBar(content: Text(ok ? 'profile.updated_success'.tr : 'profile.updated_failure'.tr)),
     );
   }
 
@@ -46,7 +45,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         );
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(ok ? 'Password updated' : 'Could not update password')),
+      SnackBar(content: Text(ok ? 'profile.password_success'.tr : 'profile.password_failure'.tr)),
     );
   }
 
@@ -55,81 +54,79 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Vibe.bgSoft,
-        title: const Text('Log out?', style: TextStyle(color: Vibe.text)),
-        content: const Text('You will need to sign in again to continue.', style: TextStyle(color: Vibe.muted)),
+        title: Text('profile.logout_confirm_title'.tr, style: const TextStyle(color: Vibe.text)),
+        content: Text('profile.logout_confirm_body'.tr, style: const TextStyle(color: Vibe.muted)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Log out')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('profile.cancel'.tr)),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text('profile.logout'.tr)),
         ],
       ),
     );
     if (confirmed != true || !context.mounted) return;
     final ok = await context.read<ProfileCubit>().logout();
     if (!ok || !context.mounted) return;
-    // Clears the real token store and flips AuthBloc to Unauthenticated;
-    // the root `BlocListener<AuthBloc, AuthState>` in app.dart handles
-    // navigating to Static.login and clearing the stack.
     context.read<AuthBloc>().add(const LogoutRequested());
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Vibe.bg,
-      appBar: AppBar(
-        backgroundColor: Vibe.bg,
-        iconTheme: const IconThemeData(color: Vibe.text),
-        title: const Text('Profile', style: TextStyle(color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
-      ),
-      body: BlocConsumer<ProfileCubit, ProfileState>(
-        listener: (context, state) {
-          if (state is ProfileLoaded && state.actionError != null) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.actionError!)));
-          }
-        },
-        builder: (context, state) => switch (state) {
-          ProfileLoaded() => ListView(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
-              children: [
-                ProfileHeader(profile: state.profile),
-                const SizedBox(height: 24),
-                ProfileInfoSection(profile: state.profile),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: state.isSaving ? null : () => _edit(context, state),
-                    icon: const Icon(Icons.edit_rounded, size: 18),
-                    label: const Text('Edit Profile'),
-                  ),
+    return LocalizedBuilder(
+      builder: (context) {
+        return Scaffold(
+          backgroundColor: Vibe.bg,
+          appBar: AppBar(
+            backgroundColor: Vibe.bg,
+            iconTheme: const IconThemeData(color: Vibe.text),
+            title: Text('profile.title'.tr, style: const TextStyle(color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
+          ),
+          body: BlocConsumer<ProfileCubit, ProfileState>(
+            listener: (context, state) {
+              if (state is ProfileLoaded && state.actionError != null) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.actionError!)));
+              }
+            },
+            builder: (context, state) => switch (state) {
+              ProfileLoaded() => ListView(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+                  children: [
+                    ProfileHeader(profile: state.profile),
+                    const SizedBox(height: 24),
+                    ProfileInfoSection(profile: state.profile),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: state.isSaving ? null : () => _edit(context, state),
+                        icon: const Icon(Icons.edit_rounded, size: 18),
+                        label: Text('profile.edit_profile'.tr),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: state.isSaving ? null : () => _changePassword(context),
+                        icon: const Icon(Icons.lock_reset_rounded, size: 18),
+                        label: Text('profile.change_password'.tr),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      child: TextButton.icon(
+                        onPressed: () => _confirmLogout(context),
+                        icon: const Icon(Icons.logout_rounded, size: 18, color: Colors.redAccent),
+                        label: Text('profile.logout'.tr, style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w700)),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 10),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: state.isSaving ? null : () => _changePassword(context),
-                    icon: const Icon(Icons.lock_reset_rounded, size: 18),
-                    label: const Text('Change Password'),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: TextButton.icon(
-                    onPressed: () => _confirmLogout(context),
-                    // NOTE: swap this for your app's error/danger token if
-                    // `Vibe` defines one (not confirmed in the files I've
-                    // seen) — using a plain red as a safe default.
-                    icon: const Icon(Icons.logout_rounded, size: 18, color: Colors.redAccent),
-                    label: const Text('Log Out', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w700)),
-                  ),
-                ),
-              ],
-            ),
-          ProfileError(:final message) => Center(child: Text(message, style: const TextStyle(color: Vibe.muted))),
-          _ => const Center(child: CircularProgressIndicator(color: Vibe.violet)),
-        },
-      ),
+              ProfileError(:final message) => Center(child: Text(message, style: const TextStyle(color: Vibe.muted))),
+              _ => const Center(child: CircularProgressIndicator(color: Vibe.violet)),
+            },
+          ),
+        );
+      },
     );
   }
 }

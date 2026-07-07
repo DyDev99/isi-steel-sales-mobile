@@ -40,7 +40,7 @@ class ProductCardSkeleton extends StatelessWidget {
                         SkeletonBox(width: double.infinity, height: 13, radius: 4),
                         SizedBox(height: 4),
                         SkeletonBox(width: 90, height: 11, radius: 4),
-                        SizedBox(height: 5),
+                        SizedBox(height: 3),
                         SkeletonBox(width: 70, height: 11, radius: 4),
                       ],
                     ),
@@ -72,6 +72,7 @@ class CatalogGridSkeleton extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView.separated(
       padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 16.h),
+      shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: itemCount,
       separatorBuilder: (_, __) => const SizedBox(height: 10),

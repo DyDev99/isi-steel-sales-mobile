@@ -37,11 +37,11 @@ class ShellTabController extends ValueNotifier<int> {
 
 /// Single source of truth for tab index <-> feature, so call sites never
 /// hardcode magic numbers. Matches `MainShell`'s current tab order:
-/// Home, Routes, Leads, Orders, Customers.
+/// Home, Customers, My Visits, Leads, Orders.
 abstract class ShellTab {
   static const home = 0;
-  static const routes = 1;
-  static const leads = 2;
-  static const orders = 3;
-  static const customers = 4;
+  static const customers = 1;
+  static const myVisits = 2;
+  static const leads = 3;
+  static const orders = 4;
 }

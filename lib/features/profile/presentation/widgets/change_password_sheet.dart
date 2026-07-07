@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
 
 class ChangePasswordResult {
   const ChangePasswordResult({required this.currentPassword, required this.newPassword});
@@ -58,30 +59,30 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Change Password', style: TextStyle(color: Vibe.text, fontSize: 16, fontWeight: FontWeight.w800)),
+              Text('profile.change_password'.tr, style: const TextStyle(color: Vibe.text, fontSize: 16, fontWeight: FontWeight.w800)),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _currentController,
                 obscureText: true,
                 style: const TextStyle(color: Vibe.text),
-                decoration: const InputDecoration(labelText: 'Current password'),
-                validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
+                decoration: InputDecoration(labelText: 'profile.current_password'.tr),
+                validator: (v) => (v == null || v.isEmpty) ? 'profile.required'.tr : null,
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _newController,
                 obscureText: true,
                 style: const TextStyle(color: Vibe.text),
-                decoration: const InputDecoration(labelText: 'New password'),
-                validator: (v) => (v == null || v.length < 8) ? 'At least 8 characters' : null,
+                decoration: InputDecoration(labelText: 'profile.new_password'.tr),
+                validator: (v) => (v == null || v.length < 8) ? 'profile.password_min_length'.tr : null,
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _confirmController,
                 obscureText: true,
                 style: const TextStyle(color: Vibe.text),
-                decoration: const InputDecoration(labelText: 'Confirm new password'),
-                validator: (v) => v != _newController.text ? 'Passwords do not match' : null,
+                decoration: InputDecoration(labelText: 'profile.confirm_new_password'.tr),
+                validator: (v) => v != _newController.text ? 'profile.passwords_dont_match'.tr : null,
               ),
               const SizedBox(height: 20),
               SizedBox(
@@ -93,7 +94,7 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
-                  child: const Text('Update Password'),
+                  child: Text('profile.update_password'.tr),
                 ),
               ),
             ],
