@@ -1,7 +1,3 @@
-import 'dart:async';
-import 'dart:convert';
-import 'dart:math';
-
 import 'package:isi_steel_sales_mobile/core/error/exceptions.dart';
 import 'package:isi_steel_sales_mobile/core/error/failures.dart';
 import 'package:isi_steel_sales_mobile/core/utils/result.dart';
@@ -9,12 +5,9 @@ import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/local/cart_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/local/product_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
-import 'package:isi_steel_sales_mobile/features/order/domain/entities/pending_order.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/repositories/cart_repository.dart';
 
-const _taxRate = 0.10;
-
-/// Composes [CartLocalDataSource] (cart_items/pending_orders tables) with
+/// Composes [CartLocalDataSource] (`cart_items` table) with
 /// [ProductLocalDataSource] to rehydrate full [CartItem]s — product-joining
 /// logic isn't duplicated here.
 class CartRepositoryImpl implements CartRepository {
@@ -24,10 +17,6 @@ class CartRepositoryImpl implements CartRepository {
 
   final CartLocalDataSource _cartLocal;
   final ProductLocalDataSource _productLocal;
-
-  /// Broadcast hub for live pending-order updates (pushed after checkout).
-  final StreamController<List<PendingOrder>> _pendingController =
-      StreamController<List<PendingOrder>>.broadcast();
 
   @override
   ResultFuture<List<CartItem>> fetchCart() async {
@@ -46,15 +35,7 @@ class CartRepositoryImpl implements CartRepository {
 
   ResultFuture<void> _saveItem(CartItem item) async {
     try {
-      await _cartLocal.upsertItem({
-        'id': item.id,
-        'product_id': item.product.id,
-        'quantity': item.quantity,
-        'unit': item.unit,
-        'discount_percent': item.discountPercent,
-        'lead_id': item.leadId,
-        'created_at': DateTime.now().toIso8601String(),
-      });
+      await _cartLocal.upsertItem(_toRow(item));
       return const Success(null);
     } on CacheException catch (e) {
       return Failed(CacheFailure(message: e.message));
@@ -82,114 +63,26 @@ class CartRepositoryImpl implements CartRepository {
   }
 
   @override
-  ResultFuture<PendingOrder> checkout({String? leadId}) async {
+  ResultFuture<void> replaceCartWith(List<CartItem> items, {String? editingQuotationId}) async {
     try {
-      final items = await _hydrateCartRows(await _cartLocal.fetchCartRows());
-      if (items.isEmpty) {
-        return const Failed(CacheFailure(message: 'Cart is empty.'));
-      }
-
-      final subtotal = items.fold<double>(0, (sum, i) => sum + i.lineSubtotal);
-      final discount = items.fold<double>(0, (sum, i) => sum + i.lineDiscount);
-      final taxable = subtotal - discount;
-      final tax = taxable * _taxRate;
-      final total = taxable + tax;
-
-      final order = PendingOrder(
-        id: _newId(),
-        items: items,
-        subtotal: subtotal,
-        tax: tax,
-        discount: discount,
-        total: total,
-        status: PendingOrderStatus.pendingSync,
-        createdAt: DateTime.now(),
-        leadId: leadId,
-      );
-
-      await _cartLocal.insertPendingOrder({
-        'id': order.id,
-        'lead_id': order.leadId,
-        'items_json': jsonEncode(items
-            .map((i) => {
-                  'productId': i.product.id,
-                  'quantity': i.quantity,
-                  'unit': i.unit,
-                  'discountPercent': i.discountPercent,
-                })
-            .toList()),
-        'subtotal': order.subtotal,
-        'tax': order.tax,
-        'discount': order.discount,
-        'total': order.total,
-        'status': order.status.name,
-        'created_at': order.createdAt.toIso8601String(),
-      });
-      await _cartLocal.clearCart();
-      unawaited(_broadcastPending());
-      return Success(order);
+      await _cartLocal.replaceCart([for (final item in items) _toRow(item, editingQuotationId: editingQuotationId)]);
+      return const Success(null);
     } on CacheException catch (e) {
       return Failed(CacheFailure(message: e.message));
     }
   }
 
-  @override
-  ResultFuture<List<PendingOrder>> fetchPendingOrders() async {
-    try {
-      return Success(await _loadPendingOrders());
-    } on CacheException catch (e) {
-      return Failed(CacheFailure(message: e.message));
-    }
-  }
-
-  @override
-  Stream<List<PendingOrder>> watchPendingOrders() async* {
-    // Immediate local snapshot, then live pushes after each checkout.
-    yield await _loadPendingOrders();
-    yield* _pendingController.stream;
-  }
-
-  Future<void> _broadcastPending() async {
-    if (!_pendingController.hasListener) return;
-    try {
-      _pendingController.add(await _loadPendingOrders());
-    } on CacheException {
-      // Keep the last good list on a transient read error.
-    }
-  }
-
-  Future<List<PendingOrder>> _loadPendingOrders() async {
-    final rows = await _cartLocal.fetchPendingOrders();
-    final orders = <PendingOrder>[];
-    for (final row in rows) {
-        final rawItems = (jsonDecode(row['items_json'] as String) as List).cast<DataMap>();
-        final items = <CartItem>[];
-        for (final raw in rawItems) {
-          final product = await _productLocal.getById(raw['productId'] as String);
-          if (product == null) continue;
-          items.add(CartItem(
-            id: '${row['id']}_${raw['productId']}',
-            product: product,
-            quantity: (raw['quantity'] as num).toDouble(),
-            unit: raw['unit'] as String,
-            discountPercent: (raw['discountPercent'] as num).toDouble(),
-            leadId: row['lead_id'] as String?,
-          ));
-        }
-        orders.add(PendingOrder(
-          id: row['id'] as String,
-          items: items,
-          subtotal: (row['subtotal'] as num).toDouble(),
-          tax: (row['tax'] as num).toDouble(),
-          discount: (row['discount'] as num).toDouble(),
-          total: (row['total'] as num).toDouble(),
-          status: PendingOrderStatus.values.firstWhere((s) => s.name == row['status']),
-          createdAt: DateTime.parse(row['created_at'] as String),
-          leadId: row['lead_id'] as String?,
-        ));
-    }
-    return orders;
-  }
+  DataMap _toRow(CartItem item, {String? editingQuotationId}) => {
+        'id': item.id,
+        'product_id': item.product.id,
+        'quantity': item.quantity,
+        'unit': item.unit,
+        'discount_percent': item.discountPercent,
+        'lead_id': item.leadId,
+        'customer_id': item.customerId,
+        'editing_quotation_id': editingQuotationId,
+        'created_at': DateTime.now().toIso8601String(),
+      };
 
   Future<List<CartItem>> _hydrateCartRows(List<DataMap> rows) async {
     final items = <CartItem>[];
@@ -203,10 +96,9 @@ class CartRepositoryImpl implements CartRepository {
         unit: row['unit'] as String,
         discountPercent: (row['discount_percent'] as num).toDouble(),
         leadId: row['lead_id'] as String?,
+        customerId: row['customer_id'] as String?,
       ));
     }
     return items;
   }
-
-  static String _newId() => '${DateTime.now().microsecondsSinceEpoch}-${Random().nextInt(99999)}';
 }

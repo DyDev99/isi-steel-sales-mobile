@@ -12,14 +12,15 @@ import 'package:isi_steel_sales_mobile/features/lead/domain/entities/pipeline_st
 import 'package:isi_steel_sales_mobile/features/lead/presentation/bloc/pipeline_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/lead/presentation/bloc/pipeline_event.dart';
 import 'package:isi_steel_sales_mobile/features/lead/presentation/screens/pipeline_screen.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/route_dashboard_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/route_sync_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/route_dashboard_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/order_screen.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/screens/customers_screen.dart';
 import 'package:isi_steel_sales_mobile/features/profile/presentation/bloc/profile_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/profile/presentation/screens/profile_screen.dart';
-import 'package:isi_steel_sales_mobile/features/routes/presentation/bloc/route_dashboard_cubit.dart';
-import 'package:isi_steel_sales_mobile/features/routes/presentation/bloc/route_sync_cubit.dart';
-import 'package:isi_steel_sales_mobile/features/routes/presentation/screens/route_dashboard_screen.dart';
 import 'package:isi_steel_sales_mobile/features/shell/presentation/add_customer_bottom_sheet.dart';
+import 'package:isi_steel_sales_mobile/features/shell/presentation/add_visit_bottom_sheet.dart';
 import 'package:isi_steel_sales_mobile/features/shell/presentation/main_app_bar.dart';
 
 class NavTab {
@@ -68,7 +69,7 @@ class _MainShellState extends State<MainShell> {
   List<NavTab> get _tabs => [
         NavTab(Icons.grid_view_rounded, 'home.title'.tr),
         NavTab(Icons.people_alt_rounded, 'customers.title'.tr),
-        NavTab(Icons.location_on_rounded, 'routes.title'.tr),
+        NavTab(Icons.location_on_rounded, 'my_visits.title'.tr),
         NavTab(Icons.trending_up_rounded, 'leads.title'.tr), 
         NavTab(Icons.receipt_long_rounded, 'orders.title'.tr),
       ];
@@ -76,7 +77,7 @@ class _MainShellState extends State<MainShell> {
   List<String> get _titles => [
         'home.title'.tr,
         'customers.title'.tr,
-        'routes.title'.tr,
+        'my_visits.title'.tr,
         'leads.title'.tr,
         'orders.title'.tr,
       ];
@@ -143,6 +144,38 @@ class _MainShellState extends State<MainShell> {
               child: const Icon(
                 Icons.person_add_alt_1_rounded, 
                 color: Colors.white,
+              ),
+            ),
+          ),
+
+          // "Add My Visit" floating popup button.
+          // Stacked above the existing "Add Customer" FAB (60.h + ~56.h
+          // button height + 16.h gap) so the two never overlap.
+          Positioned(
+            bottom: 132.h,
+            right: 30.w,
+            child: AnimatedScale(
+              // Subtle entrance/press-friendly scale animation, kept purely
+              // visual so it never affects layout or state.
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOutBack,
+              scale: 1.0,
+              child: FloatingActionButton.extended(
+                heroTag: 'add_my_visit_fab',
+                backgroundColor: Colors.white,
+                foregroundColor: const Color(0xFF7C3AED),
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16.r),
+                ),
+                onPressed: () {
+                  showAddVisitSheet(context);
+                },
+                icon: Icon(Icons.location_on_rounded, size: 20.w),
+                label: Text(
+                  'Add My Visit',
+                  style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w600),
+                ),
               ),
             ),
           ),
@@ -286,15 +319,59 @@ class _MainShellState extends State<MainShell> {
           label: 'Orders',
           onTap: () => _tabController.goTo(4), // Index 4: Orders
         ),
-        _buildGridCard(
-          icon: Icons.attach_money_rounded, 
-          iconColor: Colors.green, 
-          iconBg: Colors.green.withValues(alpha: 0.1), 
-          value: '\$12.5k', 
-          label: 'Revenue',
+        _buildRevenueCard(
+          achieved: '\$10k',
+          target: '\$12.5k',
           onTap: () {}, // Leaves revenue static/non-clickable as requested
         ),
       ],
+    );
+  }
+
+  Widget _buildRevenueCard({
+    required String achieved,
+    required String target,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.all(16.w),
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16.r)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: EdgeInsets.all(8.w),
+              decoration: BoxDecoration(color: Colors.green.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8.r)),
+              child: Icon(Icons.attach_money_rounded, color: Colors.green, size: 20.w),
+            ),
+            const Spacer(),
+            Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(text: achieved, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.sp, color: Vibe.text)),
+                  TextSpan(text: ' achieved', style: TextStyle(fontSize: 11.sp, color: Colors.grey.shade500)),
+                ],
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            SizedBox(height: 2.h),
+            Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(text: target, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.sp, color: Colors.grey.shade600)),
+                  TextSpan(text: ' target', style: TextStyle(fontSize: 11.sp, color: Colors.grey.shade500)),
+                ],
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -349,7 +426,7 @@ class _MainShellState extends State<MainShell> {
             BlocProvider(create: (_) => sl<RouteDashboardCubit>()..load()),
             BlocProvider(create: (_) => sl<RouteSyncCubit>()),
           ],
-          child: wrapWithTopSpacing(const RouteDashboardScreen()),
+          child: wrapWithTopSpacing(const MyVisitsDashboardScreen()),
         );
       case 3:
         return BlocProvider(

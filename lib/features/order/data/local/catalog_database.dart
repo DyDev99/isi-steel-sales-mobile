@@ -13,7 +13,7 @@ class CatalogDatabase {
   static Future<CatalogDatabase> open({String fileName = 'catalog.db'}) async {
     final dbDir = await getDatabasesPath();
     final path = p.join(dbDir, fileName);
-    final db = await openDatabase(path, version: 1, onCreate: _onCreate);
+    final db = await openDatabase(path, version: 2, onCreate: _onCreate, onUpgrade: _onUpgrade);
     return CatalogDatabase._(db);
   }
 
@@ -138,22 +138,69 @@ class CatalogDatabase {
         unit TEXT NOT NULL,
         discount_percent REAL NOT NULL DEFAULT 0,
         lead_id TEXT,
+        customer_id TEXT,
+        editing_quotation_id TEXT,
         created_at TEXT NOT NULL
       )
     ''');
 
+    await _createQuotationTables(db);
+  }
+
+  static Future<void> _createQuotationTables(Database db) async {
     await db.execute('''
-      CREATE TABLE pending_orders (
+      CREATE TABLE quotations (
         id TEXT PRIMARY KEY,
+        customer_id TEXT,
+        shop_name TEXT,
         lead_id TEXT,
-        items_json TEXT NOT NULL,
+        lead_display_name TEXT,
+        lines_json TEXT NOT NULL,
         subtotal REAL NOT NULL,
-        tax REAL NOT NULL,
         discount REAL NOT NULL,
+        tax REAL NOT NULL,
         total REAL NOT NULL,
         status TEXT NOT NULL,
+        off_visit_reason TEXT,
+        gps_lat REAL,
+        gps_lng REAL,
+        sap_draft_status TEXT NOT NULL,
+        valid_until TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE sales_orders (
+        id TEXT PRIMARY KEY,
+        quotation_id TEXT NOT NULL,
+        customer_id TEXT,
+        shop_name TEXT,
+        lead_id TEXT,
+        lead_display_name TEXT,
+        lines_json TEXT NOT NULL,
+        subtotal REAL NOT NULL,
+        discount REAL NOT NULL,
+        tax REAL NOT NULL,
+        total REAL NOT NULL,
+        status TEXT NOT NULL,
+        off_visit_reason TEXT,
+        sap_status TEXT NOT NULL,
         created_at TEXT NOT NULL
       )
     ''');
+  }
+
+  /// v1 -> v2: replaces `pending_orders` with `quotations`/`sales_orders`, and
+  /// extends `cart_items` with shop/quotation-editing columns. No production
+  /// backend to reconcile against, so dropping `pending_orders` is safe.
+  static Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('DROP TABLE IF EXISTS pending_orders');
+      await db.execute('ALTER TABLE cart_items ADD COLUMN customer_id TEXT');
+      await db.execute('ALTER TABLE cart_items ADD COLUMN editing_quotation_id TEXT');
+      await _createQuotationTables(db);
+    }
   }
 }

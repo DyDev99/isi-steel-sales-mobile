@@ -90,6 +90,49 @@
       "voice_search": "ស្វែងរកតាមសំឡេង៖ \"{query}\"",
       "matched_photo": "ផ្គូផ្គងតាមរូបថត៖ {query}",
       "out_of_stock": "អស់ស្តុក"
+    },
+    "territory": {
+      "title": "ជ្រើសរើសតំបន់",
+      "pick_territory": "រកមិនឃើញតំបន់ទេ",
+      "shop_count": "ហាងចំនួន {count}"
+    },
+    "shop": {
+      "credit_remaining": "ឥណទាននៅសល់",
+      "outstanding": "CN/DN ដែលនៅសល់",
+      "off_visit_warning": "អ្នកមិនទាន់ចុះវត្តមាននៅហាងនេះទេ — ការបញ្ជាទិញនេះគឺក្រៅពេលទស្សនកិច្ច។",
+      "reason_phone_order": "កម្មង់តាមទូរស័ព្ទ",
+      "reason_urgent_restock": "បន្ថែមស្តុកបន្ទាន់",
+      "reason_passing_by": "កំពុងឆ្លងកាត់",
+      "start_quotation": "ចាប់ផ្តើមសម្រង់តម្លៃ",
+      "pick_another_shop": "ជ្រើសរើសហាងផ្សេង",
+      "capture_gps": "កំពុងចាប់យកទីតាំង…"
+    },
+    "quotation": {
+      "builder_title": "សម្រង់តម្លៃ",
+      "save_to_sap": "រក្សាទុកសម្រង់តម្លៃទៅ SAP",
+      "quotation_number": "សរុបសម្រង់តម្លៃ",
+      "details_title": "ព័ត៌មានលម្អិតសម្រង់តម្លៃ",
+      "valid_until": "មានសុពលភាពដល់",
+      "sap_draft_status": "ស្ថានភាពសេចក្តីព្រាង SAP",
+      "convert_to_sales_order": "បំលែងទៅជាការបញ្ជាទិញលក់",
+      "edit_quotation": "កែសម្រួលសម្រង់តម្លៃ",
+      "convert_disabled_lead": "អាចបំលែងបានលុះត្រាតែឱកាសនេះក្លាយជាអតិថិជនដែលបានអនុម័តក្នុង SAP។",
+      "cart_preview_title": "មើលកន្ត្រកមុន",
+      "view_cart": "មើលកន្ត្រក"
+    },
+    "sales_order": {
+      "title": "ការបញ្ជាទិញលក់",
+      "stock_in": "មានស្តុក",
+      "stock_low": "ស្តុកទាប",
+      "stock_out": "អស់ស្តុក",
+      "create_in_sap": "បង្កើតការបញ្ជាទិញលក់ក្នុង SAP",
+      "sap_status": "ស្ថានភាព SAP"
+    },
+    "success": {
+      "title": "ការបញ្ជាទិញបានបញ្ចប់",
+      "done": "រួចរាល់",
+      "new_order": "ការបញ្ជាទិញថ្មី",
+      "sap_message": "ការដឹកជញ្ជូន និងវិក្កយបត្រនឹងបន្តតាមរយៈ SAP។"
     }
   },
   "leads": {
@@ -161,8 +204,8 @@
       "highest_value": "តម្លៃខ្ពស់បំផុត"
     }
   },
-  "routes": {
-    "title": "ផ្លូវធ្វើដំណើរ",
+  "my_visits": {
+    "title": "ទស្សនកិច្ចរបស់ខ្ញុំ",
     "flow": {
       "dispatch_title": "ផ្លូវទស្សនកិច្ច",
       "dispatch_helper": "កាលវិភាគចុះទស្សនកិច្ចត្រូវបានរៀបចំដោយការិយាល័យកណ្តាល។ សូមជ្រើសរើសហាងបន្ទាប់ដើម្បីចាប់ផ្តើមធ្វើដំណើរ។",
@@ -207,6 +250,38 @@
       "missed": "ខកខាន",
       "collections": "ការទារប្រាក់",
       "orders_value": "តម្លៃការបញ្ជាទិញ"
+    },
+    "history": {
+      "view_history": "ប្រវត្តិទស្សនកិច្ច",
+      "view_history_subtitle": "មើលទស្សនកិច្ចដែលបានបញ្ចប់ និងខកខាន",
+      "title": "ទស្សនកិច្ចរបស់ខ្ញុំ",
+      "subtitle": "ទស្សនកិច្ចចំនួន {count}",
+      "empty_title": "មិនទាន់មានទស្សនកិច្ចទេ",
+      "empty_subtitle": "ទស្សនកិច្ចដែលអ្នកបានបញ្ចប់នឹងបង្ហាញនៅទីនេះ។",
+      "error_title": "មិនអាចផ្ទុកទស្សនកិច្ចរបស់អ្នកបានទេ",
+      "error_message": "មានបញ្ហាកើតឡើង។ សូមពិនិត្យការតភ្ជាប់អ៊ីនធឺណិត ហើយសាកល្បងម្តងទៀត។",
+      "retry": "សាកល្បងម្តងទៀត",
+      "status_completed": "បានបញ្ចប់",
+      "status_missed": "ខកខាន",
+      "status_pending": "កំពុងរង់ចាំពិនិត្យ",
+      "details_title": "ព័ត៌មានលម្អិតទស្សនកិច្ច",
+      "checked_in": "ចុះវត្តមាន",
+      "checked_out": "ចេញវត្តមាន",
+      "duration": "រយៈពេល",
+      "notes": "កំណត់ចំណាំទស្សនកិច្ច",
+      "no_notes": "មិនមានកំណត់ចំណាំសម្រាប់ទស្សនកិច្ចនេះទេ។",
+      "photos": "រូបថតភស្តុតាង",
+      "no_photos": "មិនមានរូបថតសម្រាប់ទស្សនកិច្ចនេះទេ។",
+      "order_placed": "បញ្ជាទិញបានធ្វើ",
+      "collected_amount": "ចំនួនទឹកប្រាក់បានទារ",
+      "customer": "អតិថិជន",
+      "call": "ទូរស័ព្ទ",
+      "directions": "ទិសដៅ",
+      "preview_state": "មើលមុនស្ថានភាព",
+      "state_loading": "កំពុងផ្ទុក",
+      "state_loaded": "ផ្ទុករួច",
+      "state_empty": "ទទេ",
+      "state_error": "កំហុស"
     }
   },
   "profile": {

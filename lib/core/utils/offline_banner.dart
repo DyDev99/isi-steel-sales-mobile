@@ -36,7 +36,7 @@ class OfflineBanner extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'routes.flow.offline_saved'.tr,
+                  'my_visits.flow.offline_saved'.tr,
                   style: const TextStyle(color: Vibe.amber, fontSize: 11.5, fontWeight: FontWeight.w600),
                 ),
               ),

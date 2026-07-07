@@ -27,11 +27,11 @@ import 'package:isi_steel_sales_mobile/features/lead/presentation/widgets/onboar
 import 'package:isi_steel_sales_mobile/features/lead/presentation/widgets/priority_badge.dart';
 import 'package:isi_steel_sales_mobile/features/lead/presentation/widgets/send_to_hq_sheet.dart';
 import 'package:isi_steel_sales_mobile/features/lead/presentation/widgets/stage_badge.dart';
-import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart_cubit.dart';
-import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog_bloc.dart';
-import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog_event.dart';
-import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/sync_cubit.dart';
-import 'package:isi_steel_sales_mobile/features/order/presentation/screens/catalog_screen.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/catalog_bloc.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/catalog_event.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/sync_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/quotation_builder_screen.dart';
 
 /// First "detail screen with an argument" in this app — pushed via
 /// Navigator.push from a [LeadCard] tap, wrapped by the caller in a
@@ -151,15 +151,20 @@ class _DetailBody extends StatelessWidget {
     context.read<LeadDetailCubit>().reload();
   }
 
-  void _openCatalog(BuildContext context, String leadId) {
+  /// Leads have no SAP `Customer` yet (that only exists after Won -> HQ
+  /// Approval), so a lead-scoped quotation skips Territory/Shop picking
+  /// entirely and opens the Quotation Builder directly in "lead mode"
+  /// (no credit/CN-DN/off-visit — there's no shop to source them from).
+  void _openCatalog(BuildContext context, String leadId, String leadDisplayName) {
     Navigator.of(context).push(MaterialPageRoute(
+      settings: const RouteSettings(name: QuotationBuilderScreen.routeName),
       builder: (_) => MultiBlocProvider(
         providers: [
           BlocProvider(create: (_) => sl<CatalogBloc>()..add(const CatalogLoadRequested())),
           BlocProvider(create: (_) => sl<CartCubit>()..load()),
           BlocProvider(create: (_) => sl<SyncCubit>()),
         ],
-        child: CatalogScreen(leadId: leadId),
+        child: QuotationBuilderScreen(leadId: leadId, leadDisplayName: leadDisplayName),
       ),
     ));
   }
@@ -423,7 +428,7 @@ class _DetailBody extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
-                    onPressed: () => _openCatalog(context, lead.id),
+                    onPressed: () => _openCatalog(context, lead.id, lead.companyName),
                     icon: const Icon(Icons.add_shopping_cart_rounded, size: 18),
                     label: const Text('Add Products'),
                   ),

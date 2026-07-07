@@ -9,7 +9,7 @@ import 'package:isi_steel_sales_mobile/features/profile/domain/usecases/update_w
 import 'package:isi_steel_sales_mobile/features/profile/presentation/bloc/profile_cubit.dart';
 
 /// Registers the profile feature: worker profile read/update, password
-/// change, and logout. Mirrors `registerRoutesFeature`.
+/// change, and logout. Mirrors `registerMyVisitsFeature`.
 void registerProfileFeature(GetIt sl) {
   // ── Data sources ────────────────────────────────────────────────────
   sl.registerLazySingleton<ProfileRemoteDataSource>(() => MockProfileRemoteDataSource());

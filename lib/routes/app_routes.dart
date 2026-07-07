@@ -19,6 +19,6 @@ class Static {
   static const String chooseLanguage = '/choose-language';
   static const String customer = '/customer';
   static const String profile = '/profile';
-  static const String routes = '/routes';
+  static const String myVisits = '/my-visits';
   static const String order = '/order';
 }

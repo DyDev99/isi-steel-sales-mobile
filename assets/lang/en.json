@@ -91,6 +91,49 @@
       "voice_search": "Voice search: \"{query}\"",
       "matched_photo": "Matched by photo: {query}",
       "out_of_stock": "Out of stock"
+    },
+    "territory": {
+      "title": "Select Territory",
+      "pick_territory": "No territories found",
+      "shop_count": "{count} shops"
+    },
+    "shop": {
+      "credit_remaining": "Credit Remaining",
+      "outstanding": "Outstanding CN/DN",
+      "off_visit_warning": "You're not checked in at this shop — this order is off-visit.",
+      "reason_phone_order": "Phone order",
+      "reason_urgent_restock": "Urgent restock",
+      "reason_passing_by": "Passing by",
+      "start_quotation": "Start Quotation",
+      "pick_another_shop": "Pick Another Shop",
+      "capture_gps": "Capturing location…"
+    },
+    "quotation": {
+      "builder_title": "Quotation",
+      "save_to_sap": "Save Quotation to SAP",
+      "quotation_number": "Quotation Total",
+      "details_title": "Quotation Details",
+      "valid_until": "Valid Until",
+      "sap_draft_status": "SAP Draft Status",
+      "convert_to_sales_order": "Convert to Sales Order",
+      "edit_quotation": "Edit Quotation",
+      "convert_disabled_lead": "Convert once this lead becomes an approved SAP customer.",
+      "cart_preview_title": "Cart Preview",
+      "view_cart": "View Cart"
+    },
+    "sales_order": {
+      "title": "Sales Order",
+      "stock_in": "In stock",
+      "stock_low": "Low stock",
+      "stock_out": "Out of stock",
+      "create_in_sap": "Create Sales Order in SAP",
+      "sap_status": "SAP Status"
+    },
+    "success": {
+      "title": "Order Complete",
+      "done": "Done",
+      "new_order": "New Order",
+      "sap_message": "Delivery and invoice continue through SAP."
     }
   },
   "leads": {
@@ -173,8 +216,8 @@
     "mark_all_read": "Mark all as read",
     "empty": "No new notifications"
   },
-  "routes": {
-    "title": "Routes",
+  "my_visits": {
+    "title": "My Visits",
     "new": "Add New Route",
     "list": "Route List",
     "details": "Route Details",
@@ -222,6 +265,38 @@
       "missed": "Missed",
       "collections": "Collections",
       "orders_value": "Orders value"
+    },
+    "history": {
+      "view_history": "Visit History",
+      "view_history_subtitle": "See your completed and missed visits",
+      "title": "My Visits",
+      "subtitle": "{count} visits",
+      "empty_title": "No visits yet",
+      "empty_subtitle": "Visits you complete will show up here.",
+      "error_title": "Couldn't load your visits",
+      "error_message": "Something went wrong. Check your connection and try again.",
+      "retry": "Try Again",
+      "status_completed": "Completed",
+      "status_missed": "Missed",
+      "status_pending": "Pending Review",
+      "details_title": "Visit Details",
+      "checked_in": "Checked in",
+      "checked_out": "Checked out",
+      "duration": "Duration",
+      "notes": "Visit Notes",
+      "no_notes": "No notes added for this visit.",
+      "photos": "Proof Photos",
+      "no_photos": "No photos captured for this visit.",
+      "order_placed": "Order Placed",
+      "collected_amount": "Amount Collected",
+      "customer": "Customer",
+      "call": "Call",
+      "directions": "Directions",
+      "preview_state": "Preview state",
+      "state_loading": "Loading",
+      "state_loaded": "Loaded",
+      "state_empty": "Empty",
+      "state_error": "Error"
     }
   },
   "language": {

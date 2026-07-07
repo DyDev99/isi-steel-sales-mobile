@@ -3,13 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/local/localized_builder.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/active_route_bloc.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/active_route_event.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/location_tracking_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/visit_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/active_route_screen.dart';
 import 'package:isi_steel_sales_mobile/features/profile/presentation/bloc/profile_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/profile/presentation/screens/profile_screen.dart';
-import 'package:isi_steel_sales_mobile/features/routes/presentation/bloc/active_route_bloc.dart';
-import 'package:isi_steel_sales_mobile/features/routes/presentation/bloc/active_route_event.dart';
-import 'package:isi_steel_sales_mobile/features/routes/presentation/bloc/location_tracking_cubit.dart';
-import 'package:isi_steel_sales_mobile/features/routes/presentation/bloc/visit_cubit.dart';
-import 'package:isi_steel_sales_mobile/features/routes/presentation/screens/active_route_screen.dart';
 import 'package:isi_steel_sales_mobile/features/splash/presentation/language_selection_screen.dart';
 import 'package:isi_steel_sales_mobile/routes/app_routes.dart';
 
@@ -67,7 +67,7 @@ class AppPages {
       case Static.order:
         return _page(const OrderScreen(), settings);
 
-      case Static.routes:
+      case Static.myVisits:
         return _page(
           MultiBlocProvider(
             providers: [

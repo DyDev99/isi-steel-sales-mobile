@@ -1,25 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/local/localized_builder.dart';
 import 'package:isi_steel_sales_mobile/core/usecase/usecase.dart';
 import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
 import 'package:isi_steel_sales_mobile/core/utils/glass_card.dart';
 import 'package:isi_steel_sales_mobile/features/home/presentation/bloc/home_cubit.dart'; // ShellTabController, ShellTab
-import 'package:isi_steel_sales_mobile/features/order/domain/entities/pending_order.dart';
-import 'package:isi_steel_sales_mobile/features/order/domain/usecases/watch_pending_orders.dart';
-import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart_cubit.dart';
-import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog_bloc.dart';
-import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/sync_cubit.dart';
-import 'package:isi_steel_sales_mobile/features/order/presentation/screens/catalog_screen.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/entities/quotation.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/entities/quotation_status.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/entities/sales_order.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/usecases/watch_quotations.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/usecases/watch_sales_orders.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/quotation_detail_screen.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/screens/territory/territory_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/order_skeletons.dart';
 
-/// Entry point into the product catalog for a general (not-lead-scoped) order.
+/// Entry point into the order flow for a general (not-lead-scoped) order.
 ///
 /// We wrap this entire tab in a local `Navigator`. This ensures that when we
-/// push the CatalogScreen, ProductDetailScreen, or CartScreen, they stay
-/// strictly INSIDE this tab, keeping the MainShell's bottom nav and top bar visible!
+/// push Territory/Shop/Quotation/SalesOrder screens, they stay strictly
+/// INSIDE this tab, keeping the MainShell's bottom nav and top bar visible!
 class OrderScreen extends StatefulWidget {
   const OrderScreen({super.key});
 
@@ -40,7 +39,7 @@ class _OrderScreenState extends State<OrderScreen> {
 
         final navigator = _navigatorKey.currentState;
         if (navigator != null && navigator.canPop()) {
-          // 1. If Catalog, Detail, or Cart are open, pop them!
+          // 1. If Territory, Shop, Quotation, or Sales Order are open, pop them!
           navigator.pop();
         } else {
           // 2. If we are back at the Order Dashboard root, switch MainShell back to Home
@@ -69,25 +68,17 @@ class _OrderDashboard extends StatefulWidget {
 }
 
 class _OrderDashboardState extends State<_OrderDashboard> {
-  // Live pending-orders stream — re-emits the moment a checkout writes a new
-  // order, so this list stays current without any manual reload.
-  late final Stream<List<PendingOrder>> _ordersStream = sl<WatchPendingOrders>()(const NoParams());
+  // Live streams — re-emit the moment a quotation is saved/converted or a
+  // sales order is created, so this list stays current without a reload.
+  late final Stream<List<Quotation>> _quotationsStream = sl<WatchQuotations>()(const NoParams());
+  late final Stream<List<SalesOrder>> _salesOrdersStream = sl<WatchSalesOrders>()(const NoParams());
 
-  void _openCatalog() {
+  void _startNewOrder() {
     // Because we are now inside the Nested Navigator, this push will NOT
     // cover the MainShell!
     Navigator.of(context).push(MaterialPageRoute(
-      builder: (_) => MultiBlocProvider(
-        providers: [
-          // Deferred fetch: keep the CatalogBloc idle (no CatalogLoadRequested)
-          // so entering the catalog is instant — it only queries once the user
-          // searches by text/voice/scan/photo or picks a category.
-          BlocProvider(create: (_) => sl<CatalogBloc>()),
-          BlocProvider(create: (_) => sl<CartCubit>()..load()),
-          BlocProvider(create: (_) => sl<SyncCubit>()),
-        ],
-        child: LocalizedBuilder(builder: (_) => const CatalogScreen()),
-      ),
+      settings: const RouteSettings(name: TerritoryScreen.routeName),
+      builder: (_) => const TerritoryScreen(),
     ));
   }
 
@@ -105,7 +96,7 @@ class _OrderDashboardState extends State<_OrderDashboard> {
               child: Row(
                 children: [
                   ElevatedButton.icon(
-                    onPressed: _openCatalog,
+                    onPressed: _startNewOrder,
                     icon: const Icon(Icons.storefront_rounded, color: Colors.white),
                     label: Text('orders.new_order'.tr,
                         style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.white)),
@@ -125,26 +116,38 @@ class _OrderDashboardState extends State<_OrderDashboard> {
                   Text('orders.recent'.tr,
                       style: const TextStyle(color: Vibe.text, fontSize: 15, fontWeight: FontWeight.w800)),
                   const SizedBox(height: 10),
-                  StreamBuilder<List<PendingOrder>>(
-                    stream: _ordersStream,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const PendingOrdersSkeleton();
-                      } else if (snapshot.hasError) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 24),
-                          child: Center(child: Text('common.generic_error'.tr, style: const TextStyle(color: Vibe.muted))),
-                        );
-                      } else {
-                        final orders = snapshot.data ?? const <PendingOrder>[];
-                        if (orders.isEmpty) {
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 24),
-                            child: Center(child: Text('orders.no_orders'.tr, style: const TextStyle(color: Vibe.muted))),
-                          );
-                        }
-                        return Column(children: [for (final order in orders) _OrderTile(order: order)]);
-                      }
+                  StreamBuilder<List<Quotation>>(
+                    stream: _quotationsStream,
+                    builder: (context, quotationSnapshot) {
+                      return StreamBuilder<List<SalesOrder>>(
+                        stream: _salesOrdersStream,
+                        builder: (context, salesOrderSnapshot) {
+                          if (quotationSnapshot.connectionState == ConnectionState.waiting &&
+                              salesOrderSnapshot.connectionState == ConnectionState.waiting) {
+                            return const PendingOrdersSkeleton();
+                          }
+                          if (quotationSnapshot.hasError || salesOrderSnapshot.hasError) {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 24),
+                              child: Center(child: Text('common.generic_error'.tr, style: const TextStyle(color: Vibe.muted))),
+                            );
+                          }
+                          final entries = <_OrderEntry>[
+                            for (final q in quotationSnapshot.data ?? const <Quotation>[])
+                              _OrderEntry.quotation(q),
+                            for (final o in salesOrderSnapshot.data ?? const <SalesOrder>[])
+                              _OrderEntry.salesOrder(o),
+                          ]..sort((a, b) => b.date.compareTo(a.date));
+
+                          if (entries.isEmpty) {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 24),
+                              child: Center(child: Text('orders.no_orders'.tr, style: const TextStyle(color: Vibe.muted))),
+                            );
+                          }
+                          return Column(children: [for (final entry in entries) _OrderTile(entry: entry)]);
+                        },
+                      );
                     },
                   ),
                 ],
@@ -157,41 +160,75 @@ class _OrderDashboardState extends State<_OrderDashboard> {
   }
 }
 
+/// Lightweight display union so the dashboard can render Quotations and
+/// Sales Orders in one merged, date-sorted list without a shared entity.
+class _OrderEntry {
+  _OrderEntry.quotation(Quotation q)
+      : id = q.id,
+        itemCount = q.lines.length,
+        total = q.total,
+        date = q.updatedAt,
+        statusLabel = q.status == QuotationStatus.converted ? 'orders.quotation.builder_title'.tr : 'orders.pending_sync'.tr,
+        onTap = ((context) => Navigator.of(context).push(MaterialPageRoute(
+              settings: const RouteSettings(name: QuotationDetailScreen.routeName),
+              builder: (_) => QuotationDetailScreen(quotation: q),
+            )));
+
+  _OrderEntry.salesOrder(SalesOrder o)
+      : id = o.id,
+        itemCount = o.lines.length,
+        total = o.total,
+        date = o.createdAt,
+        statusLabel = 'orders.sales_order.title'.tr,
+        onTap = null;
+
+  final String id;
+  final int itemCount;
+  final double total;
+  final DateTime date;
+  final String statusLabel;
+  final void Function(BuildContext context)? onTap;
+}
+
 class _OrderTile extends StatelessWidget {
-  const _OrderTile({required this.order});
-  final PendingOrder order;
+  const _OrderTile({required this.entry});
+  final _OrderEntry entry;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
-      child: GlassCard(
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('orders.items_count'.tr.replaceAll('{count}', '${order.items.length}'),
-                      style: const TextStyle(color: Vibe.text, fontSize: 13.5, fontWeight: FontWeight.w800)),
-                  const SizedBox(height: 2),
-                  Text(_formatDate(order.createdAt), style: const TextStyle(color: Vibe.muted, fontSize: 11.5)),
-                ],
+      child: InkWell(
+        onTap: entry.onTap == null ? null : () => entry.onTap!(context),
+        borderRadius: BorderRadius.circular(16),
+        child: GlassCard(
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('orders.items_count'.tr.replaceAll('{count}', '${entry.itemCount}'),
+                        style: const TextStyle(color: Vibe.text, fontSize: 13.5, fontWeight: FontWeight.w800)),
+                    const SizedBox(height: 2),
+                    Text(_formatDate(entry.date), style: const TextStyle(color: Vibe.muted, fontSize: 11.5)),
+                  ],
+                ),
               ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: Vibe.amber.withValues(alpha: 0.16),
-                borderRadius: BorderRadius.circular(20),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: Vibe.amber.withValues(alpha: 0.16),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(entry.statusLabel,
+                    style: const TextStyle(color: Vibe.amber, fontSize: 10.5, fontWeight: FontWeight.w700)),
               ),
-              child: Text('orders.pending_sync'.tr,
-                  style: const TextStyle(color: Vibe.amber, fontSize: 10.5, fontWeight: FontWeight.w700)),
-            ),
-            const SizedBox(width: 10),
-            Text('\$${order.total.toStringAsFixed(2)}',
-                style: const TextStyle(color: Vibe.violet, fontSize: 14, fontWeight: FontWeight.w800)),
-          ],
+              const SizedBox(width: 10),
+              Text('\$${entry.total.toStringAsFixed(2)}',
+                  style: const TextStyle(color: Vibe.violet, fontSize: 14, fontWeight: FontWeight.w800)),
+            ],
+          ),
         ),
       ),
     );
