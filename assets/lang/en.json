@@ -237,6 +237,8 @@
       "pill_pending": "Pending",
       "pill_done": "Done",
       "pill_missed": "Missed",
+      "minutes_shortTemplate": "{minutes} min",
+      "geo_matchedTemplate": "Inside shop area (GPS {dist} m away)",
       "pill_checked_in": "Checked In",
       "start_with": "Start with {shop}",
       "route_complete": "Route complete",

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
@@ -36,6 +37,8 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/categ
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/cart_preview_section.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/credit_summary_card.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/quotation_bottom_bar.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/size_and_quality_section.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/discount_section.dart';
 
 class QuotationBuilderScreen extends StatefulWidget {
   const QuotationBuilderScreen({
@@ -70,7 +73,13 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
 
   Set<String> _favoriteIds = {};
   String? _expandedProductId;
-  int _selectedDiscount = 10; // Default discount
+  int _selectedDiscount = 0;
+
+  // Selected State Configuration for product attributes
+  String _selectedSize = '0.40 mm';
+  String _selectedQuality = 'Premium Zacs';
+  String _selectedMeshSize = '100x100 mm';
+  String _selectedLength = '2.4 m';
 
   @override
   void initState() {
@@ -120,37 +129,24 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
 
   void _selectDiscount(int percent) {
     setState(() => _selectedDiscount = percent);
-    // TODO: Connect to CartCubit when method is available
-    // context.read<CartCubit>().applyDiscount(percent);
   }
 
-  // Search & Scan
-  Future<void> _scan() async {
-    final code = await sl<BarcodeScannerService>().scan();
-    if (code == null || !mounted) return;
-    final result = await sl<GetProductByBarcode>()(BarcodeParams(code));
-    if (!mounted) return;
-    result.when(
-      success: (product) => context.read<CartCubit>().addProduct(
-            product,
-            leadId: widget.leadId,
-            customerId: widget.customer?.id,
-          ),
-      failure: (f) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(f.message))),
-    );
-  }
 
   Future<void> _voiceSearch() async {
     final query = await sl<VoiceSearchService>().listen();
     if (query == null || query.trim().isEmpty || !mounted) return;
-    _searchController.text = query;
+    setState(() {
+      _searchController.text = query;
+    });
     context.read<CatalogBloc>().add(CatalogVoiceSearchRequested(query));
   }
 
   Future<void> _imageSearch() async {
     final query = await sl<ImageSearchService>().matchQuery(ImageSearchSource.gallery);
     if (query == null || query.isEmpty || !mounted) return;
-    _searchController.text = query;
+    setState(() {
+      _searchController.text = query;
+    });
     context.read<CatalogBloc>().add(CatalogImageSearchRequested(query));
   }
 
@@ -187,13 +183,20 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Vibe.bg,
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Vibe.bg,
-        iconTheme: const IconThemeData(color: Vibe.text),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: false,
+        leading: const BackButton(color: Color(0xFF0F2C7F)),
         title: Text(
           widget.customer?.shopName ?? widget.leadDisplayName ?? 'orders.quotation.builder_title'.tr,
-          style: const TextStyle(color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800),
+          style: const TextStyle(
+            color: Color(0xFF0F2C7F), 
+            fontSize: 17, 
+            fontWeight: FontWeight.bold,
+            fontFamily: 'Roboto',
+          ),
           overflow: TextOverflow.ellipsis,
         ),
       ),
@@ -209,14 +212,15 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                   builder: (context, catalogState) {
                     final filter = catalogState is CatalogLoaded ? catalogState.filter : const ProductFilter();
                     final brands = catalogState is CatalogLoaded ? catalogState.brands : const <String>[];
+                    final isSearchingOrFiltered = _searchController.text.isNotEmpty || filter.categoryId != null;
 
                     return ListView(
-                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       children: [
                         const SyncStatusBanner(),
                         if (widget.customer != null && _summaryFuture != null)
                           Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
+                            padding: const EdgeInsets.only(bottom: 16),
                             child: FutureBuilder<CreditSummary?>(
                               future: _summaryFuture,
                               builder: (_, snapshot) => snapshot.data == null
@@ -229,7 +233,10 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                           ),
                         CatalogSearchBar(
                           controller: _searchController,
-                          onSearchChanged: (q) => context.read<CatalogBloc>().add(CatalogSearchChanged(q)),
+                          onSearchChanged: (q) {
+                            setState(() {}); 
+                            context.read<CatalogBloc>().add(CatalogSearchChanged(q));
+                          },
                           onFilterTap: () => showCatalogFilterSheet(
                             context: context,
                             filter: filter,
@@ -237,56 +244,61 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                             onApply: (f) => context.read<CatalogBloc>().add(CatalogFilterChanged(f)),
                           ),
                           hasActiveFilters: !filter.isEmpty,
-                          onScanTap: _scan,
                           onVoiceTap: _voiceSearch,
                           onImageTap: _imageSearch,
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 16),
+                        
                         CategoryQuickFilterRow(
                           categories: categories,
                           selectedCategoryId: filter.categoryId,
-                          onSelect: _selectCategory,
+                          onSelect: (id) {
+                            _selectCategory(id);
+                            setState(() {});
+                          },
                         ),
                         const SizedBox(height: 16),
 
-                        _ProductListSection(
-                          state: catalogState,
-                          favoriteIds: _favoriteIds,
-                          expandedProductId: _expandedProductId,
-                          leadId: widget.leadId,
-                          customerId: widget.customer?.id,
-                          onToggleFavorite: _toggleFavorite,
-                          onToggleExpanded: _toggleExpanded,
-                          height: 100.h,
-                        ),
+                        if (isSearchingOrFiltered) ...[
+                          SizeAndQualityContainerRow(
+                            selectedSize: _selectedSize,
+                            selectedQuality: _selectedQuality,
+                            selectedMeshSize: _selectedMeshSize,
+                            selectedLength: _selectedLength,
+                            onSizeChanged: (val) => setState(() => _selectedSize = val),
+                            onQualityChanged: (val) => setState(() => _selectedQuality = val),
+                            onMeshSizeChanged: (val) => setState(() => _selectedMeshSize = val),
+                            onLengthChanged: (val) => setState(() => _selectedLength = val),
+                          ),
+                          const SizedBox(height: 16),
+                          _ProductListSection(
+                            state: catalogState,
+                            favoriteIds: _favoriteIds,
+                            expandedProductId: _expandedProductId,
+                            leadId: widget.leadId,
+                            customerId: widget.customer?.id,
+                            onToggleFavorite: _toggleFavorite,
+                            onToggleExpanded: _toggleExpanded,
+                            height: 220.h,
+                          ),
+                          const SizedBox(height: 16),
+                        ],
 
-                        const SizedBox(height: 24),
-
-                        if (_expandedProductId != null)
+                        if (_expandedProductId != null) ...[
                           ProductDetailInlineSection(
                             productId: _expandedProductId!,
                             leadId: widget.leadId,
                             onClose: () => _toggleExpanded(_expandedProductId!),
                           ),
+                          const SizedBox(height: 16),
+                        ],
 
-                        const SizedBox(height: 24),
-
-                      // === Discount & Quotation Section ===
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                          child: Column(
-                            children: [
-                              _DiscountSection(
-                                selectedDiscount: _selectedDiscount,
-                                onDiscountSelected: _selectDiscount,
-                              ),
-                              const SizedBox(height: 12),
-                              _QuotationSummarySection(),
-                            ],
-                          ),
+                        // Clean grid alignments (Removed the horizontal padding wrapper bug)
+                        DiscountSection(
+                          selectedDiscount: _selectedDiscount,
+                          onDiscountSelected: _selectDiscount,
                         ),
-
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 16),
                         const CartPreviewSection(),
                       ],
                     );
@@ -302,99 +314,32 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
   }
 }
 
-// Discount Section with selectable percentages
-// Discount Section with selectable percentages
-class _DiscountSection extends StatelessWidget {
-  const _DiscountSection({
-    required this.selectedDiscount,
-    required this.onDiscountSelected,
-  });
 
-  final int selectedDiscount;
-  final ValueChanged<int> onDiscountSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Vibe.bgSoft,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Vibe.stroke),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.discount_outlined, color: Vibe.violet, size: 18),
-              const SizedBox(width: 6),
-              const Text('Discount', style: TextStyle(fontWeight: FontWeight.w600, color: Vibe.text)),
-            ],
-          ),
-          const SizedBox(height: 12),
-
-          // Fixed: Use Wrap instead of Row to prevent overflow
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            alignment: WrapAlignment.spaceEvenly,
-            children: [5, 10, 15].map((percent) {
-              final isSelected = selectedDiscount == percent;
-              return GestureDetector(
-                onTap: () => onDiscountSelected(percent),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: isSelected ? Vibe.violet : Vibe.surface,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: isSelected ? Vibe.violet : Vibe.stroke),
-                  ),
-                  child: Text(
-                    '$percent%',
-                    style: TextStyle(
-                      color: isSelected ? Colors.white : Vibe.text,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _QuotationSummarySection extends StatelessWidget {
   const _QuotationSummarySection();
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Vibe.bgSoft,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Vibe.stroke),
-      ),
-      child: const Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.receipt_long_outlined, color: Vibe.violet, size: 18),
-              SizedBox(width: 6),
-              Text('Quotation', style: TextStyle(fontWeight: FontWeight.w600, color: Vibe.text)),
-            ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Quotation Notes', 
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF1E293B), fontFamily: 'Roboto'),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
           ),
-          SizedBox(height: 12),
-          Text('3 items', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-          Text('\$1,245.00', style: TextStyle(fontSize: 15, color: Vibe.violet, fontWeight: FontWeight.w600)),
-        ],
-      ),
+          child: const Text('Add quotation or notes...', style: TextStyle(color: Colors.black38, fontSize: 13)),
+        ),
+      ],
     );
   }
 }
@@ -428,56 +373,65 @@ class _ProductListSection extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 24),
           child: Center(child: Text(message, style: const TextStyle(color: Vibe.muted))),
         ),
-      CatalogLoaded(:final items, :final hasMore, :final isLoadingMore) => SizedBox(
-          height: height ?? 100.h,
-          child: Column(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  child: Column(
-                    children: [
-                      if (items.isEmpty)
-                        Padding(
-                          padding: EdgeInsets.symmetric(vertical: 40),
-                          child: Center(
-                            child: Text('orders.catalog.no_products'.tr, style: TextStyle(color: Vibe.muted)),
-                          ),
-                        )
-                      else
-                        ...items.map((product) => Padding(
-                              padding: const EdgeInsets.only(bottom: 10),
-                              child: ProductCard(
-                                product: product,
-                                isFavorite: favoriteIds.contains(product.id),
-                                onFavoriteToggle: () => onToggleFavorite(product.id),
-                                onTap: () => onToggleExpanded(product.id),
-                                onAddToCart: () => context.read<CartCubit>().addProduct(
-                                      product,
-                                      leadId: leadId,
-                                      customerId: customerId,
-                                    ),
+      CatalogLoaded(:final items, :final hasMore, :final isLoadingMore) => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Products', 
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF1E293B), fontFamily: 'Roboto'),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: height ?? 200.h,
+              child: Column(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: Column(
+                        children: [
+                          if (items.isEmpty)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 20),
+                              child: Center(
+                                child: Text('orders.catalog.no_products'.tr, style: const TextStyle(color: Vibe.muted)),
                               ),
-                            )),
-                      if (hasMore)
-                        Center(
-                          child: isLoadingMore
-                              ? const Padding(
-                                  padding: EdgeInsets.all(16),
-                                  child: CircularProgressIndicator(color: Vibe.violet),
-                                )
-                              : TextButton(
-                                  onPressed: () => context.read<CatalogBloc>().add(const CatalogLoadMoreRequested()),
-                                  child: Text('orders.catalog.load_more'.tr),
-                                ),
-                        ),
-                      const SizedBox(height: 20),
-                    ],
+                            )
+                          else
+                            ...items.map((product) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 10),
+                                  child: ProductCard(
+                                    product: product,
+                                    isFavorite: favoriteIds.contains(product.id),
+                                    onFavoriteToggle: () => onToggleFavorite(product.id),
+                                    onTap: () => onToggleExpanded(product.id),
+                                    onAddToCart: () => context.read<CartCubit>().addProduct(
+                                          product,
+                                          leadId: leadId,
+                                          customerId: customerId,
+                                        ),
+                                  ),
+                                )),
+                          if (hasMore)
+                            Center(
+                              child: isLoadingMore
+                                  ? const Padding(
+                                      padding: EdgeInsets.all(16),
+                                      child: CircularProgressIndicator(color: Color(0xFF0F2C7F)),
+                                    )
+                                  : TextButton(
+                                      onPressed: () => context.read<CatalogBloc>().add(const CatalogLoadMoreRequested()),
+                                      child: Text('orders.catalog.load_more'.tr),
+                                    ),
+                            ),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
     };
   }

@@ -5,8 +5,8 @@ import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_stop.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_status.dart';
 
-class StopCard extends StatelessWidget {
-  const StopCard({
+class RegionCard extends StatelessWidget {
+  const RegionCard({
     super.key, 
     required this.stop, 
     required this.selected, 
@@ -23,7 +23,7 @@ class StopCard extends StatelessWidget {
         VisitStatus.pending => Vibe.muted.withOpacity(0.1),
         VisitStatus.enRoute || VisitStatus.arrived => Vibe.violet.withOpacity(0.12),
         VisitStatus.checkedIn => Vibe.amber.withOpacity(0.12),
-        VisitStatus.checkedOut => const Color(0xFFE6F7ED), // Exact crisp green background from image_0fcd7c.png
+        VisitStatus.checkedOut => const Color(0xFFE6F7ED), // Match image_0fcd7c.png crisp green background
         VisitStatus.missed => Vibe.danger.withOpacity(0.1),
       };
 
@@ -31,11 +31,10 @@ class StopCard extends StatelessWidget {
         VisitStatus.pending => Vibe.muted,
         VisitStatus.enRoute || VisitStatus.arrived => Vibe.violet,
         VisitStatus.checkedIn => Vibe.amber,
-        VisitStatus.checkedOut => const Color(0xFF2EA893), // Done text tone matching image_0fcd7c.png
+        VisitStatus.checkedOut => const Color(0xFF2EA893), // Match image_0fcd7c.png Done text color
         VisitStatus.missed => Vibe.danger,
       };
 
-  /// Helper converts integer index into stylized string suffixes (e.g. 1st, 2nd, 3rd)
   String _getOrdinal(int number) {
     if (number % 100 >= 11 && number % 100 <= 13) {
       return '${number}th';
@@ -60,7 +59,7 @@ class StopCard extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(16.r), // Ultra smooth outer container corners
+            borderRadius: BorderRadius.circular(16.r), 
             border: Border.all(color: const Color(0xFFEAECEF), width: 1.w),
             boxShadow: [
               BoxShadow(
@@ -72,7 +71,7 @@ class StopCard extends StatelessWidget {
           ),
           child: Row(
             children: [
-              // 1. Light Blue Squircle Sequence Tag from image_0fcd7c.png
+              // Ordinal sequence container matching image_0fcd7c.png squircle shape
               Container(
                 width: 42.w,
                 height: 42.w,
@@ -93,7 +92,6 @@ class StopCard extends StatelessWidget {
               ),
               SizedBox(width: 14.w),
               
-              // 2. Structured Meta Labels Column
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -103,7 +101,7 @@ class StopCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: const Color(0xFF1E293B), // High-contrast sleek slate header
+                        color: const Color(0xFF1E293B), 
                         fontSize: 13.5.sp, 
                         fontWeight: FontWeight.w800,
                         fontFamily: 'Roboto',
@@ -111,7 +109,7 @@ class StopCard extends StatelessWidget {
                     ),
                     SizedBox(height: 3.h),
                     Text(
-                      '${stop.customer.address} · 16.0 km', // Pattern layout matching sample string exactly
+                      '${stop.customer.address} · 16.0 km',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -124,7 +122,7 @@ class StopCard extends StatelessWidget {
                 ),
               ),
 
-              // 3. High-Vibe GenZ Shopping Cart Shortcut Capsule
+              // Action shortcut capsule right before the status pill
               if (isDone && onCartTap != null) ...[
                 InkWell(
                   onTap: () {
@@ -159,7 +157,6 @@ class StopCard extends StatelessWidget {
                 SizedBox(width: 6.w),
               ],
               
-              // 4. Clean Pill Status Badge from image_0fcd7c.png
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 5.h),
                 decoration: BoxDecoration(
@@ -178,6 +175,75 @@ class StopCard extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Collapsible section header grouping stops by [regionName] (the
+/// customer's territory) so the dashboard reflects region-level structure
+/// instead of a flat list of individual stops.
+class RegionGroupHeader extends StatelessWidget {
+  const RegionGroupHeader({
+    super.key,
+    required this.regionName,
+    required this.totalStops,
+    required this.completedStops,
+    required this.expanded,
+    required this.onTap,
+  });
+
+  final String regionName;
+  final int totalStops;
+  final int completedStops;
+  final bool expanded;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: EdgeInsets.only(bottom: 10.h),
+        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+        decoration: BoxDecoration(
+          color: const Color(0xFFEDF2FF),
+          borderRadius: BorderRadius.circular(12.r),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.location_on_rounded, color: const Color(0xFF2F6FED), size: 18.w),
+            SizedBox(width: 8.w),
+            Expanded(
+              child: Text(
+                regionName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: const Color(0xFF1E293B),
+                  fontSize: 13.sp,
+                  fontWeight: FontWeight.w800,
+                  fontFamily: 'Roboto',
+                ),
+              ),
+            ),
+            Text(
+              '$completedStops/$totalStops',
+              style: TextStyle(
+                color: const Color(0xFF64748B),
+                fontSize: 11.5.sp,
+                fontWeight: FontWeight.w700,
+                fontFamily: 'Roboto',
+              ),
+            ),
+            SizedBox(width: 6.w),
+            Icon(
+              expanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+              color: const Color(0xFF2F6FED),
+              size: 20.w,
+            ),
+          ],
         ),
       ),
     );

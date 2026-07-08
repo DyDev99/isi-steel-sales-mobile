@@ -22,49 +22,93 @@ class CartPreviewSection extends StatelessWidget {
         final items = state is CartLoaded ? state.items : const [];
 
         return AnimatedSize(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOut,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeInOut,
           alignment: Alignment.topCenter,
           child: items.isEmpty
               ? const SizedBox(width: double.infinity)
-              : DecoratedBox(
-                  decoration: const BoxDecoration(
-                    color: Vibe.bgSoft,
-                    border: Border(top: BorderSide(color: Vibe.stroke)),
+              : Container(
+                  margin: const EdgeInsets.symmetric(vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Vibe.stroke.withOpacity(0.8)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.02),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Premium Section Header
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                        padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
                         child: Row(
                           children: [
-                            const Icon(Icons.shopping_cart_rounded, size: 16, color: Vibe.violet),
-                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: Vibe.violet.withOpacity(0.08),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.shopping_bag_outlined, size: 16, color: Vibe.violet),
+                            ),
+                            const SizedBox(width: 8),
                             Text(
                               'orders.quotation.cart_preview_title'.tr,
-                              style: const TextStyle(color: Vibe.text, fontSize: 13, fontWeight: FontWeight.w800),
+                              style: const TextStyle(
+                                color: Vibe.text, 
+                                fontSize: 14, 
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Roboto',
+                              ),
                             ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'orders.items_count'.tr.replaceAll('{count}', '${items.length}'),
-                              style: const TextStyle(color: Vibe.muted, fontSize: 11.5),
+                            const Spacer(),
+                            // Crisp Capsule Item Counter Badge
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Vibe.bgSoft,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: Vibe.stroke),
+                              ),
+                              child: Text(
+                                'orders.items_count'.tr.replaceAll('{count}', '${items.length}'),
+                                style: const TextStyle(
+                                  color: Vibe.violet, 
+                                  fontSize: 11, 
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'Roboto',
+                                ),
+                              ),
                             ),
                           ],
                         ),
                       ),
+                      const Divider(color: Vibe.stroke, height: 1, thickness: 1),
+                      // Scrollable Row Core Container
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+                        padding: const EdgeInsets.all(12),
                         child: Column(
                           children: [
-                            for (final item in items)
+                            for (int i = 0; i < items.length; i++) ...[
                               _CartRow(
-                                key: ValueKey(item.id),
-                                item: item,
-                                onQuantityChanged: (q) => context.read<CartCubit>().updateQuantity(item.id, q),
-                                onRemove: () => context.read<CartCubit>().removeItem(item.id),
+                                key: ValueKey(items[i].id),
+                                item: items[i],
+                                onQuantityChanged: (q) => context.read<CartCubit>().updateQuantity(items[i].id, q),
+                                onRemove: () => context.read<CartCubit>().removeItem(items[i].id),
                               ),
+                              if (i < items.length - 1)
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 8),
+                                  child: Divider(color: Vibe.bgSoft, height: 1, thickness: 1),
+                                ),
+                            ],
                           ],
                         ),
                       ),
@@ -77,10 +121,14 @@ class CartPreviewSection extends StatelessWidget {
   }
 }
 
-/// A single compact cart row: thumbnail, name, qty stepper, line price,
-/// remove — no SKU/unit line, no discount chips.
+/// A single compact cart row: thumbnail, name, qty stepper, line price, remove
 class _CartRow extends StatelessWidget {
-  const _CartRow({super.key, required this.item, required this.onQuantityChanged, required this.onRemove});
+  const _CartRow({
+    super.key, 
+    required this.item, 
+    required this.onQuantityChanged, 
+    required this.onRemove,
+  });
 
   final CartItem item;
   final ValueChanged<double> onQuantityChanged;
@@ -88,95 +136,157 @@ class _CartRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Vibe.surface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Vibe.stroke),
-        ),
-        child: Row(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                item.product.imageUrl,
-                width: 44,
-                height: 44,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
-                  width: 44,
-                  height: 44,
-                  color: Vibe.bgSoft,
-                  alignment: Alignment.center,
-                  child: const Icon(Icons.inventory_2_outlined, color: Vibe.muted, size: 18),
-                ),
+    final bool isLastItem = item.quantity <= 1;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // Product Thumbnail Frame with Micro-Border Bounds
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: Vibe.stroke.withOpacity(0.5)),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(9),
+            child: Image.network(
+              item.product.imageUrl,
+              width: 46,
+              height: 46,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Container(
+                width: 46,
+                height: 46,
+                color: Vibe.bgSoft,
+                alignment: Alignment.center,
+                child: const Icon(Icons.inventory_2_outlined, color: Vibe.muted, size: 18),
               ),
             ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
+          ),
+        ),
+        const SizedBox(width: 12),
+        // Structured Detail Metadata Column Block
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
                 item.product.name,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: Vibe.text, fontSize: 12.5, fontWeight: FontWeight.w700),
+                style: const TextStyle(
+                  color: Vibe.text, 
+                  fontSize: 13, 
+                  fontWeight: FontWeight.w700,
+                  fontFamily: 'Roboto',
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            _QtyButton(icon: Icons.remove_rounded, onTap: () => onQuantityChanged(item.quantity - 1)),
-            SizedBox(
-              width: 26,
-              child: Text(item.quantity.toStringAsFixed(0),
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Vibe.text, fontSize: 12.5, fontWeight: FontWeight.w700)),
-            ),
-            _QtyButton(icon: Icons.add_rounded, onTap: () => onQuantityChanged(item.quantity + 1)),
-            const SizedBox(width: 8),
-            SizedBox(
-              width: 52,
-              child: Text(
+              const SizedBox(height: 4),
+              Text(
                 '\$${item.lineTotal.toStringAsFixed(2)}',
-                textAlign: TextAlign.right,
-                style: const TextStyle(color: Vibe.violet, fontSize: 12.5, fontWeight: FontWeight.w800),
+                style: const TextStyle(
+                  color: Vibe.violet, 
+                  fontSize: 13, 
+                  fontWeight: FontWeight.w800,
+                  fontFamily: 'Roboto',
+                ),
               ),
-            ),
-            InkWell(
-              onTap: onRemove,
-              borderRadius: BorderRadius.circular(16),
-              child: const Padding(
-                padding: EdgeInsets.all(4),
-                child: Icon(Icons.close_rounded, size: 16, color: Vibe.danger),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
+        const SizedBox(width: 12),
+        // Integrated Quantity Selector Capsule Block
+        Container(
+          padding: const EdgeInsets.all(3),
+          decoration: BoxDecoration(
+            color: Vibe.bgSoft,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: Vibe.stroke),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _QtyButton(
+                icon: isLastItem ? Icons.delete_outline_rounded : Icons.remove_rounded,
+                iconColor: isLastItem ? Vibe.danger : Vibe.text,
+                onTap: () => onQuantityChanged(item.quantity - 1),
+              ),
+              Container(
+                constraints: const BoxConstraints(minWidth: 28),
+                alignment: Alignment.center,
+                child: Text(
+                  item.quantity.toStringAsFixed(0),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Vibe.text, 
+                    fontSize: 12.5, 
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Roboto',
+                  ),
+                ),
+              ),
+              _QtyButton(
+                icon: Icons.add_rounded,
+                iconColor: Vibe.text,
+                onTap: () => onQuantityChanged(item.quantity + 1),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 8),
+        // Instant Remove Component Hitbox Button
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onRemove,
+            borderRadius: BorderRadius.circular(20),
+            child: const Padding(
+              padding: EdgeInsets.all(6),
+              child: Icon(Icons.close_rounded, size: 16, color: Vibe.muted),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
 
 class _QtyButton extends StatelessWidget {
-  const _QtyButton({required this.icon, required this.onTap});
+  const _QtyButton({
+    required this.icon, 
+    required this.iconColor, 
+    required this.onTap,
+  });
+  
   final IconData icon;
+  final Color iconColor;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(6),
-      child: Container(
-        width: 22,
-        height: 22,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: Vibe.bgSoft,
-          border: Border.all(color: Vibe.stroke),
-          borderRadius: BorderRadius.circular(6),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(6),
+        child: Container(
+          width: 24,
+          height: 24,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(6),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.03),
+                blurRadius: 2,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+          child: Icon(icon, size: 14, color: iconColor),
         ),
-        child: Icon(icon, size: 12, color: Vibe.text),
       ),
     );
   }

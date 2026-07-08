@@ -11,7 +11,6 @@ class CatalogSearchBar extends StatelessWidget {
     required this.onSearchChanged,
     required this.onFilterTap,
     required this.hasActiveFilters,
-    required this.onScanTap,
     required this.onVoiceTap,
     required this.onImageTap,
     this.controller,
@@ -20,7 +19,6 @@ class CatalogSearchBar extends StatelessWidget {
   final ValueChanged<String> onSearchChanged;
   final VoidCallback onFilterTap;
   final bool hasActiveFilters;
-  final VoidCallback onScanTap;
   final VoidCallback onVoiceTap;
   final VoidCallback onImageTap;
   final TextEditingController? controller;
@@ -58,7 +56,6 @@ class CatalogSearchBar extends StatelessWidget {
                   ),
                 ),
                 _InlineIcon(icon: Icons.mic_none_rounded, tooltip: 'Voice search', onTap: onVoiceTap),
-                _InlineIcon(icon: Icons.qr_code_scanner_rounded, tooltip: 'Scan barcode', onTap: onScanTap),
                 _InlineIcon(icon: Icons.photo_camera_back_outlined, tooltip: 'Search by photo', onTap: onImageTap),
               ],
             ),

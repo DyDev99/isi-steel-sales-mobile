@@ -17,7 +17,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/acti
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/location_tracking_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/location_tracking_state.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/visit_cubit.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/route_transit_screen.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/route_check_in_screen.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/route_map.dart';
 
 /// Step 1 of the guided field flow — Route Overview & Dispatch.
@@ -88,7 +88,7 @@ class _RouteDispatchScreenState extends State<RouteDispatchScreen> {
           BlocProvider.value(value: visitCubit),
           BlocProvider.value(value: locationCubit),
         ],
-        child: const RouteTransitScreen(),
+        child: const RouteCheckInScreen(),
       ),
     ));
   }

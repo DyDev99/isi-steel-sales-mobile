@@ -7,7 +7,6 @@ import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/acti
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/active_route_event.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/location_tracking_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/visit_cubit.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/active_route_screen.dart';
 import 'package:isi_steel_sales_mobile/features/profile/presentation/bloc/profile_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/profile/presentation/screens/profile_screen.dart';
 import 'package:isi_steel_sales_mobile/features/splash/presentation/language_selection_screen.dart';
@@ -28,6 +27,7 @@ import 'package:isi_steel_sales_mobile/features/authentication/presentation/scre
 import 'package:isi_steel_sales_mobile/features/revenue/presentation/bloc/revenue_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/revenue/presentation/bloc/revenue_event.dart';
 import 'package:isi_steel_sales_mobile/features/revenue/presentation/screens/revenue_screen.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/route_dashboard_screen.dart';
 
 /// Flow: splash (6s) -> login -> (on success) -> main shell.
 class AppPages {
@@ -84,7 +84,7 @@ class AppPages {
                 create: (_) => GetIt.instance<VisitCubit>(),
               ),
             ],
-            child: const ActiveRouteScreen(),
+            child: const MyVisitsDashboardScreen(),
           ),
           settings,
         );
