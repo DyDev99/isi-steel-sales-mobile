@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:phone_form_field/phone_form_field.dart';
+
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
@@ -34,7 +36,7 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
   late TextEditingController _shopNameCtrl;
   late TextEditingController _ownerNameCtrl;
   late TextEditingController _contactNameCtrl;
-  late TextEditingController _phoneCtrl;
+  late PhoneController _phoneCtrl;
 
   String? _selectedShopType; // key (e.g. 'hardware_shop')
   String? _selectedRole;     // key (e.g. 'owner')
@@ -43,14 +45,18 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
   String _licenceFile = "";
   String _patentFile = "";
 
-  @override
-  void initState() {
-    super.initState();
-    _shopNameCtrl = TextEditingController();
-    _ownerNameCtrl = TextEditingController();
-    _contactNameCtrl = TextEditingController();
-    _phoneCtrl = TextEditingController();
-  }
+@override
+void initState() {
+  super.initState();
+  _shopNameCtrl = TextEditingController();
+  _ownerNameCtrl = TextEditingController();
+  _contactNameCtrl = TextEditingController();
+  
+  // Initialize the controller with Cambodia set as the default country flag
+  _phoneCtrl = PhoneController(
+    initialValue: const PhoneNumber(isoCode: IsoCode.KH, nsn: ''),
+  );
+}
 
   @override
   void dispose() {
@@ -206,7 +212,7 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
               ),
               SizedBox(height: 14.h),
               _buildInputLabel('add_customer.phone'.tr, required: true),
-              _buildTextField(_phoneCtrl, 'add_customer.phone_hint'.tr, keyboardType: TextInputType.phone),
+              _buildPhoneField(_phoneCtrl, 'add_customer.phone_hint'.tr),
             ],
           ),
         );
@@ -312,7 +318,7 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
                   bloc.add(UpdateContactDetails(
                     name: _contactNameCtrl.text,
                     role: _selectedRole!,
-                    phone: _phoneCtrl.text,
+                    phone: _phoneCtrl.value.international, // Transmits standard E.164 string format (e.g., +855...)
                   ));
                   bloc.add(NextStep());
                 }
@@ -389,6 +395,46 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
           ),
         ),
       );
+
+  Widget _buildPhoneField(PhoneController controller, String hint) => PhoneFormField(
+      controller: controller,
+      // Remove defaultCountry from here entirely
+      style: const TextStyle(color: Vibe.text),
+      countryButtonStyle: const CountryButtonStyle(
+        showFlag: true,
+        showIsoCode: false,
+        showDialCode: true,
+        showDropdownIcon: true,
+        textStyle: TextStyle(color: Vibe.text),
+      ),
+      validator: PhoneValidator.compose([
+        PhoneValidator.required(context, errorText: 'add_customer.error.required'.tr),
+        PhoneValidator.validMobile(context, errorText: 'add_customer.error.invalid_phone'.tr),
+      ]),
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: TextStyle(color: Vibe.text.withValues(alpha: 0.3), fontSize: 13.sp),
+        filled: true,
+        fillColor: Vibe.bgSoft,
+        contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.r),
+          borderSide: const BorderSide(color: Vibe.stroke),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.r),
+          borderSide: const BorderSide(color: Vibe.text),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.r),
+          borderSide: const BorderSide(color: Vibe.danger),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.r),
+          borderSide: const BorderSide(color: Vibe.danger),
+        ),
+      ),
+    );
 
   Widget _buildDropdownField({
     required String? value,

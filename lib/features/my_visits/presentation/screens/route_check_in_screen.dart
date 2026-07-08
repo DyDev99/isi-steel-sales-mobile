@@ -49,21 +49,26 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen> {
     }
   }
 
-  Future<void> _capture(RouteStop stop) async {
-    if (_capturing) return;
-    final pos = context.read<LocationTrackingCubit>().state.current;
-    setState(() => _capturing = true);
-    final result = await sl<ProofPhotoService>().captureStamped(
-      latitude: pos?.latitude ?? stop.customer.latitude,
-      longitude: pos?.longitude ?? stop.customer.longitude,
-    );
-    if (!mounted) return;
-    setState(() {
-      _capturing = true;
-      if (result != null) _proof = result;
-    });
-  }
-
+ Future<void> _capture(RouteStop stop) async {
+  if (_capturing) return; // Prevent double taps
+  final pos = context.read<LocationTrackingCubit>().state.current; //
+  
+  setState(() => _capturing = true); // Show the loading spinner
+  
+  final result = await sl<ProofPhotoService>().captureStamped(
+    latitude: pos?.latitude ?? stop.customer.latitude,
+    longitude: pos?.longitude ?? stop.customer.longitude,
+  ); //
+  
+  if (!mounted) return; //
+  
+  setState(() {
+    _capturing = false; //  Turn off the loading spinner!
+    if (result != null) {
+      _proof = result; // Save the result to trigger the preview
+    }
+  });
+}
   void _submit(RouteStop stop) {
     final proof = _proof;
     if (proof == null) return;
