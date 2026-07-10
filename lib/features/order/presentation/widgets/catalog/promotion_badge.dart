@@ -18,7 +18,11 @@ class PromotionBadge extends StatelessWidget {
         children: [
           const Icon(Icons.local_offer_rounded, size: 11, color: Vibe.danger),
           const SizedBox(width: 3),
-          Text(label, style: const TextStyle(color: Vibe.danger, fontSize: 10.5, fontWeight: FontWeight.w700)),
+          Text(label,
+              style: const TextStyle(
+                  color: Vibe.danger,
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w700)),
         ],
       ),
     );

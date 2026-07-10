@@ -7,13 +7,17 @@ class MockCustomerRemoteDataSource implements CustomerRemoteDataSource {
   MockCustomerRemoteDataSource() : _all = MockCustomerData.generate();
   final List<CustomerModel> _all;
 
-  Future<void> _latency() => Future<void>.delayed(const Duration(milliseconds: 300));
+  Future<void> _latency() =>
+      Future<void>.delayed(const Duration(milliseconds: 300));
 
   @override
-  Future<CustomerInitialPage> fetchInitial({required int page, required int pageSize}) async {
+  Future<CustomerInitialPage> fetchInitial(
+      {required int page, required int pageSize}) async {
     await _latency();
     final start = page * pageSize;
-    if (start >= _all.length) return const CustomerInitialPage(items: [], hasMore: false);
+    if (start >= _all.length) {
+      return const CustomerInitialPage(items: [], hasMore: false);
+    }
     final end = (start + pageSize).clamp(0, _all.length);
     return CustomerInitialPage(
       items: _all.sublist(start, end),

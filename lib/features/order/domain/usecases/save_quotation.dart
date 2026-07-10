@@ -9,7 +9,8 @@ class SaveQuotation extends UseCase<Quotation, SaveQuotationParams> {
   final QuotationRepository _repository;
 
   @override
-  ResultFuture<Quotation> call(SaveQuotationParams params) => _repository.saveQuotation(
+  ResultFuture<Quotation> call(SaveQuotationParams params) =>
+      _repository.saveQuotation(
         items: params.items,
         customerId: params.customerId,
         shopName: params.shopName,

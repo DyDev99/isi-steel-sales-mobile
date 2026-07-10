@@ -35,7 +35,8 @@ class CartLocalDataSourceImpl implements CartLocalDataSource {
   @override
   Future<void> upsertItem(DataMap row) async {
     try {
-      await _db.insert('cart_items', row, conflictAlgorithm: ConflictAlgorithm.replace);
+      await _db.insert('cart_items', row,
+          conflictAlgorithm: ConflictAlgorithm.replace);
     } catch (e) {
       throw CacheException(message: 'Failed to save cart item: $e');
     }
@@ -66,7 +67,8 @@ class CartLocalDataSourceImpl implements CartLocalDataSource {
         await txn.delete('cart_items');
         final batch = txn.batch();
         for (final row in rows) {
-          batch.insert('cart_items', row, conflictAlgorithm: ConflictAlgorithm.replace);
+          batch.insert('cart_items', row,
+              conflictAlgorithm: ConflictAlgorithm.replace);
         }
         await batch.commit(noResult: true);
       });

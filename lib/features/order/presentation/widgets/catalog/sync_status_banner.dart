@@ -17,16 +17,26 @@ class SyncStatusBanner extends StatelessWidget {
               icon: const SizedBox(
                 width: 14,
                 height: 14,
-                child: CircularProgressIndicator(strokeWidth: 2, color: Vibe.violet),
+                child: CircularProgressIndicator(
+                    strokeWidth: 2, color: Vibe.violet),
               ),
-              text: isInitial ? 'Downloading product catalog…' : 'Syncing latest changes…',
+              text: isInitial
+                  ? 'Downloading product catalog…'
+                  : 'Syncing latest changes…',
             ),
-          SyncFailed(:final message) =>
-            _Banner(color: Vibe.danger, icon: const Icon(Icons.cloud_off_rounded, size: 16, color: Vibe.danger), text: message),
-          SyncSucceeded(:final upserted, :final deleted) when upserted > 0 || deleted > 0 => _Banner(
+          SyncFailed(:final message) => _Banner(
+              color: Vibe.danger,
+              icon: const Icon(Icons.cloud_off_rounded,
+                  size: 16, color: Vibe.danger),
+              text: message),
+          SyncSucceeded(:final upserted, :final deleted)
+              when upserted > 0 || deleted > 0 =>
+            _Banner(
               color: Vibe.success,
-              icon: const Icon(Icons.check_circle_rounded, size: 16, color: Vibe.success),
-              text: '$upserted updated${deleted > 0 ? ', $deleted removed' : ''}',
+              icon: const Icon(Icons.check_circle_rounded,
+                  size: 16, color: Vibe.success),
+              text:
+                  '$upserted updated${deleted > 0 ? ', $deleted removed' : ''}',
             ),
           _ => const SizedBox.shrink(),
         };
@@ -56,7 +66,9 @@ class _Banner extends StatelessWidget {
           icon,
           const SizedBox(width: 8),
           Expanded(
-            child: Text(text, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w600)),
+            child: Text(text,
+                style: TextStyle(
+                    color: color, fontSize: 12, fontWeight: FontWeight.w600)),
           ),
         ],
       ),

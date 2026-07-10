@@ -11,7 +11,9 @@ import 'package:isi_steel_sales_mobile/features/order/domain/repositories/cart_r
 /// [ProductLocalDataSource] to rehydrate full [CartItem]s — product-joining
 /// logic isn't duplicated here.
 class CartRepositoryImpl implements CartRepository {
-  CartRepositoryImpl({required CartLocalDataSource cartLocal, required ProductLocalDataSource productLocal})
+  CartRepositoryImpl(
+      {required CartLocalDataSource cartLocal,
+      required ProductLocalDataSource productLocal})
       : _cartLocal = cartLocal,
         _productLocal = productLocal;
 
@@ -63,9 +65,13 @@ class CartRepositoryImpl implements CartRepository {
   }
 
   @override
-  ResultFuture<void> replaceCartWith(List<CartItem> items, {String? editingQuotationId}) async {
+  ResultFuture<void> replaceCartWith(List<CartItem> items,
+      {String? editingQuotationId}) async {
     try {
-      await _cartLocal.replaceCart([for (final item in items) _toRow(item, editingQuotationId: editingQuotationId)]);
+      await _cartLocal.replaceCart([
+        for (final item in items)
+          _toRow(item, editingQuotationId: editingQuotationId)
+      ]);
       return const Success(null);
     } on CacheException catch (e) {
       return Failed(CacheFailure(message: e.message));

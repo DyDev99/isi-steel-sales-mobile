@@ -2,6 +2,7 @@
 import 'package:flutter/widgets.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 /// Route name constants. Plain strings — no framework dependency, so this
 /// file is identical whether you use GetX or BLoC.
 class Static {

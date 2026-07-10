@@ -1,36 +1,45 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/utils/colors.dart';
 
 /// App-wide design tokens — Blue & White enterprise CRM theme.
-/// One source of truth for the whole UI (Salesforce/Dynamics/Fiori style:
-/// bright, minimal, blue primary actions on white).
+///
+/// This class is now a thin backward-compatible facade: every value here
+/// delegates to [AppColors] (lib/core/utils/colors.dart), the single
+/// source of truth for the app's color palette. Existing call sites
+/// (`Vibe.text`, `Vibe.violet`, ...) keep working unchanged; new code
+/// should prefer [AppColors] directly.
 class Vibe {
   Vibe._();
 
   // ── Backgrounds ────────────────────────────────────────────────────
-  static const bg = Color(0xFFFFFFFF); // main background
-  static const bgSoft = Color(0xFFF8FAFC); // secondary background / sheets
-  static const surface = Color(0xFFFFFFFF); // card background
-  static const surfaceStrong = Color(0xFFDBEAFE); // primary-light tint (selected/active bg)
+  static const bg = AppColors.background; // main background
+  static const bgSoft =
+      AppColors.backgroundSoft; // secondary background / sheets
+  static const surface = AppColors.surface; // card background
+  static const surfaceStrong =
+      AppColors.surfaceStrong; // primary-light tint (selected/active bg)
 
   // ── Borders ────────────────────────────────────────────────────────
-  static const stroke = Color(0xFFE5E7EB); // border
-  static const divider = Color(0xFFEDF2F7);
+  static const stroke = AppColors.border; // border
+  static const divider = AppColors.divider;
 
   // ── Text ───────────────────────────────────────────────────────────
-  static const text = Color(0xFF1F2937); // primary text
-  static const muted = Color(0xFF6B7280); // secondary text
-  static const disabledText = Color(0xFF9CA3AF);
+  static const text = AppColors.textPrimary; // primary text
+  static const muted = AppColors.textSecondary; // secondary text
+  static const disabledText = AppColors.textDisabled;
 
   // ── Brand / accents ────────────────────────────────────────────────
-  static const violet = Color(0xFF2563EB); // primary blue (brand/primary accent)
-  static const primaryHover = Color(0xFF1D4ED8);
-  static const primaryLight = Color(0xFFDBEAFE);
-  static const pink = Color(0xFF3B82F6); // secondary blue accent
-  static const mint = Color(0xFF0EA5E9); // info / teal-blue accent
-  static const amber = Color(0xFFF59E0B); // warning
-  static const danger = Color(0xFFEF4444); // error
-  static const warning = Color(0xFFFBBF24); // warning
-  static const success = Color(0xFF22C55E); // success
+  static const violet =
+      AppColors.primary; // primary blue (brand/primary accent)
+  static const primaryHover = AppColors.primaryHover;
+  static const primaryLight = AppColors.primaryLight;
+  static const pink = AppColors.secondary; // secondary blue accent
+  static const mint = AppColors.info; // info / teal-blue accent
+  static const amber = AppColors.warning; // warning
+  static const danger = AppColors.error; // error
+  static const warning = AppColors
+      .warningAlt; // warning (legacy near-duplicate shade — see AppColors note)
+  static const success = AppColors.success; // success
 
   // ── Legacy / secondary palette ─────────────────────────────────────
   // Colours that predate the token system and are still used verbatim by
@@ -39,31 +48,18 @@ class Vibe {
   // widgets. NOTE: [brandNavy] is a *second* brand blue distinct from
   // [violet] — these should be unified once design confirms which is
   // canonical; kept separate here to preserve the current appearance.
-  static const brandNavy = Color(0xFF00569B); // ISI corporate blue (shell)
-  static const brandNavyDark = Color(0xFF0F2547); // dark gradient partner
-  static const accentPurple = Color(0xFF7C3AED); // "Add Visit" action accent
-  static const slate = Color(0xFF1E293B); // dark slate text (pipeline)
-  static const canvas = Color(0xFFF3F5F7); // home/shell scaffold background
+  static const brandNavy = AppColors.brandNavy; // ISI corporate blue (shell)
+  static const brandNavyDark = AppColors.brandNavyDark; // dark gradient partner
+  static const accentPurple =
+      AppColors.accentPurple; // "Add Visit" action accent
+  static const slate = AppColors.slate; // dark slate text (pipeline)
+  static const canvas = AppColors.canvas; // home/shell scaffold background
 
-  static const radius = 16.0;
+  static const radius = AppColors.radius;
 
-  static const cta = LinearGradient(
-    colors: [violet, primaryHover],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
-  static const coolGradient = LinearGradient(
-    colors: [pink, Color(0xFF60A5FA)], // secondary blue -> accent blue
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
+  static const cta = AppColors.ctaGradient;
+  static const coolGradient = AppColors.coolGradient;
 
   /// Soft elevation used by flat enterprise cards (white bg + thin border).
-  static List<BoxShadow> get cardShadow => [
-        BoxShadow(
-          color: const Color(0xFF1F2937).withValues(alpha: 0.06),
-          blurRadius: 16,
-          offset: const Offset(0, 4),
-        ),
-      ];
+  static List<BoxShadow> get cardShadow => AppColors.cardShadow;
 }

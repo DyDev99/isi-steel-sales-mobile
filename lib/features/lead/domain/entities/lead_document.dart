@@ -1,6 +1,13 @@
 import 'package:equatable/equatable.dart';
 
-enum DocumentType { businessLicense, taxRegistration, ownerId, storefrontPhoto, warehousePhoto, other }
+enum DocumentType {
+  businessLicense,
+  taxRegistration,
+  ownerId,
+  storefrontPhoto,
+  warehousePhoto,
+  other
+}
 
 class LeadDocument extends Equatable {
   const LeadDocument({

@@ -8,5 +8,6 @@ class GetProducts extends UseCase<List<Product>, NoParams> {
   final RevenueRepository _repository;
 
   @override
-  ResultFuture<List<Product>> call(NoParams params) => _repository.getProducts();
+  ResultFuture<List<Product>> call(NoParams params) =>
+      _repository.getProducts();
 }

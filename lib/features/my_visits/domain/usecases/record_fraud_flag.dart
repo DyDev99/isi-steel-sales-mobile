@@ -7,5 +7,6 @@ class RecordFraudFlag extends UseCase<void, FraudFlag> {
   const RecordFraudFlag(this._repository);
   final LocationSampleRepository _repository;
   @override
-  ResultFuture<void> call(FraudFlag params) => _repository.recordFraudFlag(params);
+  ResultFuture<void> call(FraudFlag params) =>
+      _repository.recordFraudFlag(params);
 }

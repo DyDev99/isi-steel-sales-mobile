@@ -28,6 +28,13 @@ abstract interface class ProductLocalDataSource {
     ProductFilter filter = const ProductFilter(),
   });
 
+  /// Exact number of products matching [query] + [filter] — powers the live
+  /// "Showing N products" counter without paging through the whole result set.
+  Future<int> count({
+    String query,
+    ProductFilter filter,
+  });
+
   Future<ProductModel?> getById(String id);
   Future<ProductModel?> getByBarcode(String barcode);
   Future<List<String>> fetchBrands();
@@ -70,30 +77,16 @@ class ProductLocalDataSourceImpl implements ProductLocalDataSource {
       await MockLatency.tick(); // simulate a slow catalog API
       final offset = page * pageSize;
       final limit = pageSize + 1;
-      final where = <String>['p.deleted = 0'];
-      final args = <Object?>[];
-
-      if (filter.categoryId != null) {
-        where.add('p.category_id = ?');
-        args.add(filter.categoryId);
-      }
-      if (filter.brand != null) {
-        where.add('p.brand = ?');
-        args.add(filter.brand);
-      }
-      if (filter.warehouseCode != null) {
-        where.add('p.warehouse_code = ?');
-        args.add(filter.warehouseCode);
-      }
-      if (filter.availableOnly) {
-        where.add('(COALESCE(s.quantity, 0) - COALESCE(s.reserved, 0)) > 0');
-      }
+      final (where, args) = _buildFilterWhere(filter);
 
       final orderBy = switch (filter.sortBy) {
         ProductSortBy.nameAsc => 'p.name ASC',
-        ProductSortBy.priceAsc => 'COALESCE(pr.promotion_price, pr.standard_price, 0) ASC',
-        ProductSortBy.priceDesc => 'COALESCE(pr.promotion_price, pr.standard_price, 0) DESC',
-        ProductSortBy.stockDesc => '(COALESCE(s.quantity, 0) - COALESCE(s.reserved, 0)) DESC',
+        ProductSortBy.priceAsc =>
+          'COALESCE(pr.promotion_price, pr.standard_price, 0) ASC',
+        ProductSortBy.priceDesc =>
+          'COALESCE(pr.promotion_price, pr.standard_price, 0) DESC',
+        ProductSortBy.stockDesc =>
+          '(COALESCE(s.quantity, 0) - COALESCE(s.reserved, 0)) DESC',
         ProductSortBy.relevance => 'p.updated_at DESC',
       };
 
@@ -130,6 +123,79 @@ class ProductLocalDataSourceImpl implements ProductLocalDataSource {
     } catch (e) {
       throw CacheException(message: 'Failed to browse products: $e');
     }
+  }
+
+  @override
+  Future<int> count({
+    String query = '',
+    ProductFilter filter = const ProductFilter(),
+  }) async {
+    try {
+      final (where, args) = _buildFilterWhere(filter);
+      final sanitized = _sanitizeQuery(query);
+      late final String sql;
+      late final List<Object?> allArgs;
+
+      if (sanitized.isEmpty) {
+        sql = '''
+          SELECT COUNT(*) AS c
+          $_productJoins
+          WHERE ${where.join(' AND ')}
+        ''';
+        allArgs = args;
+      } else {
+        final match = _buildMatchExpression(sanitized);
+        sql = '''
+          SELECT COUNT(*) AS c
+          FROM products_fts f
+          JOIN products p ON p.id = f.product_id
+          LEFT JOIN prices pr ON pr.product_id = p.id
+          LEFT JOIN stock s ON s.product_id = p.id AND s.warehouse_code = p.warehouse_code
+          WHERE products_fts MATCH ? AND ${where.join(' AND ')}
+        ''';
+        allArgs = [match, ...args];
+      }
+
+      final rows = await _db.rawQuery(sql, allArgs);
+      return Sqflite.firstIntValue(rows) ?? 0;
+    } catch (e) {
+      throw CacheException(message: 'Failed to count products: $e');
+    }
+  }
+
+  /// Shared WHERE builder for [browse] and [count] so the two never drift.
+  /// Returns the accumulated predicates (always including the soft-delete
+  /// guard) and their positional args. FTS `MATCH` is handled separately by
+  /// each caller since it changes the FROM clause, not the WHERE facets.
+  (List<String>, List<Object?>) _buildFilterWhere(ProductFilter filter) {
+    final where = <String>['p.deleted = 0'];
+    final args = <Object?>[];
+
+    void addEq(String column, Object? value) {
+      if (value == null) return;
+      where.add('p.$column = ?');
+      args.add(value);
+    }
+
+    addEq('category_id', filter.categoryId);
+    addEq('brand', filter.brand);
+    addEq('warehouse_code', filter.warehouseCode);
+    // Sequential attribute filters (size/length/mesh/quality + the
+    // category-dependent diameter/thickness/material). Columns are declared
+    // NOT NULL in the products table, so a plain `=` is safe and index-able.
+    addEq('size', filter.size);
+    addEq('length', filter.length);
+    addEq('width', filter.width);
+    addEq('height', filter.height);
+    addEq('grade', filter.grade);
+    addEq('diameter', filter.diameter);
+    addEq('thickness', filter.thickness);
+    addEq('material', filter.material);
+
+    if (filter.availableOnly) {
+      where.add('(COALESCE(s.quantity, 0) - COALESCE(s.reserved, 0)) > 0');
+    }
+    return (where, args);
   }
 
   @override
@@ -210,9 +276,11 @@ class ProductLocalDataSourceImpl implements ProductLocalDataSource {
   @override
   Future<void> toggleFavorite(String productId) async {
     try {
-      final existing = await _db.query('favorites', where: 'product_id = ?', whereArgs: [productId]);
+      final existing = await _db
+          .query('favorites', where: 'product_id = ?', whereArgs: [productId]);
       if (existing.isNotEmpty) {
-        await _db.delete('favorites', where: 'product_id = ?', whereArgs: [productId]);
+        await _db.delete('favorites',
+            where: 'product_id = ?', whereArgs: [productId]);
       } else {
         await _db.insert('favorites', {
           'product_id': productId,
@@ -266,7 +334,10 @@ class ProductLocalDataSourceImpl implements ProductLocalDataSource {
     try {
       await _db.insert(
         'recent_products',
-        {'product_id': productId, 'viewed_at': DateTime.now().toIso8601String()},
+        {
+          'product_id': productId,
+          'viewed_at': DateTime.now().toIso8601String()
+        },
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
     } catch (e) {
@@ -290,7 +361,8 @@ class ProductLocalDataSourceImpl implements ProductLocalDataSource {
     try {
       final batch = _db.batch();
       for (final c in categories) {
-        batch.insert('categories', c.toRow(), conflictAlgorithm: ConflictAlgorithm.replace);
+        batch.insert('categories', c.toRow(),
+            conflictAlgorithm: ConflictAlgorithm.replace);
       }
       await batch.commit(noResult: true);
     } catch (e) {
@@ -304,10 +376,14 @@ class ProductLocalDataSourceImpl implements ProductLocalDataSource {
       await _db.transaction((txn) async {
         final batch = txn.batch();
         for (final product in products) {
-          batch.insert('products', product.toProductRow(), conflictAlgorithm: ConflictAlgorithm.replace);
-          batch.insert('prices', product.toPriceRow(), conflictAlgorithm: ConflictAlgorithm.replace);
-          batch.insert('stock', product.toStockRow(), conflictAlgorithm: ConflictAlgorithm.replace);
-          batch.delete('products_fts', where: 'product_id = ?', whereArgs: [product.id]);
+          batch.insert('products', product.toProductRow(),
+              conflictAlgorithm: ConflictAlgorithm.replace);
+          batch.insert('prices', product.toPriceRow(),
+              conflictAlgorithm: ConflictAlgorithm.replace);
+          batch.insert('stock', product.toStockRow(),
+              conflictAlgorithm: ConflictAlgorithm.replace);
+          batch.delete('products_fts',
+              where: 'product_id = ?', whereArgs: [product.id]);
           batch.insert('products_fts', product.toFtsRow());
         }
         await batch.commit(noResult: true);
@@ -323,10 +399,12 @@ class ProductLocalDataSourceImpl implements ProductLocalDataSource {
     try {
       await _db.transaction((txn) async {
         final placeholders = List.filled(ids.length, '?').join(',');
-        await txn.rawUpdate('UPDATE products SET deleted = 1 WHERE id IN ($placeholders)', ids);
+        await txn.rawUpdate(
+            'UPDATE products SET deleted = 1 WHERE id IN ($placeholders)', ids);
         final batch = txn.batch();
         for (final id in ids) {
-          batch.delete('products_fts', where: 'product_id = ?', whereArgs: [id]);
+          batch
+              .delete('products_fts', where: 'product_id = ?', whereArgs: [id]);
         }
         await batch.commit(noResult: true);
       });
@@ -338,7 +416,8 @@ class ProductLocalDataSourceImpl implements ProductLocalDataSource {
   @override
   Future<DateTime?> getLastSyncedAt(String entity) async {
     try {
-      final rows = await _db.query('sync_meta', where: 'entity = ?', whereArgs: [entity]);
+      final rows = await _db
+          .query('sync_meta', where: 'entity = ?', whereArgs: [entity]);
       if (rows.isEmpty) return null;
       final raw = rows.first['last_synced_at'] as String?;
       return raw == null ? null : DateTime.parse(raw);
@@ -360,12 +439,14 @@ class ProductLocalDataSourceImpl implements ProductLocalDataSource {
     }
   }
 
-  static String _sanitizeQuery(String raw) => raw.replaceAll(RegExp(r'[^\w\s.]'), ' ').trim();
+  static String _sanitizeQuery(String raw) =>
+      raw.replaceAll(RegExp(r'[^\w\s.]'), ' ').trim();
 
   static String _buildMatchExpression(String sanitized) {
     final words = sanitized.split(RegExp(r'\s+')).where((w) => w.isNotEmpty);
     return words
-        .map((w) => '(code:$w* OR name:$w* OR barcode:$w* OR sku:$w* OR brand:$w*)')
+        .map((w) =>
+            '(code:$w* OR name:$w* OR barcode:$w* OR sku:$w* OR brand:$w*)')
         .join(' AND ');
   }
 }

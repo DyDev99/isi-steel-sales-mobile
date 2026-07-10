@@ -5,7 +5,11 @@ import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
 /// this demo), so this just renders the captured coordinates over a
 /// decorative grid with a pin, which is enough to show the GPS field exists.
 class GpsLocationCard extends StatelessWidget {
-  const GpsLocationCard({super.key, required this.latitude, required this.longitude, required this.address});
+  const GpsLocationCard(
+      {super.key,
+      required this.latitude,
+      required this.longitude,
+      required this.address});
   final double latitude;
   final double longitude;
   final String address;
@@ -18,7 +22,10 @@ class GpsLocationCard extends StatelessWidget {
         height: 140,
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Vibe.violet.withValues(alpha: 0.25), Vibe.mint.withValues(alpha: 0.18)],
+            colors: [
+              Vibe.violet.withValues(alpha: 0.25),
+              Vibe.mint.withValues(alpha: 0.18)
+            ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -33,7 +40,8 @@ class GpsLocationCard extends StatelessWidget {
               right: 10,
               bottom: 8,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: Vibe.bg.withValues(alpha: 0.55),
                   borderRadius: BorderRadius.circular(10),

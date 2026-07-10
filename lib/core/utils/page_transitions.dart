@@ -22,16 +22,23 @@ class ModernPageTransitionsBuilder extends PageTransitionsBuilder {
     Animation<double> secondaryAnimation,
     Widget child,
   ) {
-    final incoming = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic, reverseCurve: Curves.easeInCubic);
-    final outgoing =
-        CurvedAnimation(parent: secondaryAnimation, curve: Curves.easeOutCubic, reverseCurve: Curves.easeInCubic);
+    final incoming = CurvedAnimation(
+        parent: animation,
+        curve: Curves.easeOutCubic,
+        reverseCurve: Curves.easeInCubic);
+    final outgoing = CurvedAnimation(
+        parent: secondaryAnimation,
+        curve: Curves.easeOutCubic,
+        reverseCurve: Curves.easeInCubic);
 
     return FadeTransition(
       opacity: Tween<double>(begin: 1, end: 0.92).animate(outgoing),
       child: FadeTransition(
         opacity: incoming,
         child: SlideTransition(
-          position: Tween<Offset>(begin: const Offset(0, 0.035), end: Offset.zero).animate(incoming),
+          position:
+              Tween<Offset>(begin: const Offset(0, 0.035), end: Offset.zero)
+                  .animate(incoming),
           child: child,
         ),
       ),

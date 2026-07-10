@@ -60,7 +60,35 @@ flutter:
     # 2. Include your logos folder here
     - assets/logos/
     - assets/mock/
+    - assets/images/
     - assets/lang/
+
+  fonts:
+    - family: Kantumruy
+      fonts:
+        - asset: assets/fonts/kantumruy_5.2.5/ttf/kantumruy-khmer-300-normal.ttf
+          weight: 300
+        - asset: assets/fonts/kantumruy_5.2.5/ttf/kantumruy-khmer-400-normal.ttf
+          weight: 400
+        - asset: assets/fonts/kantumruy_5.2.5/ttf/kantumruy-khmer-700-normal.ttf
+          weight: 700
+    # Latin UI font used for the English locale (Khmer uses Kantumruy above).
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter/static/Inter_18pt-Light.ttf
+          weight: 300
+        - asset: assets/fonts/Inter/static/Inter_18pt-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Inter/static/Inter_18pt-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Inter/static/Inter_18pt-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Inter/static/Inter_18pt-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Inter/static/Inter_18pt-ExtraBold.ttf
+          weight: 800
+        - asset: assets/fonts/Inter/static/Inter_18pt-Black.ttf
+          weight: 900
 
 # 3. Added configuration for Android and iOS asset generation
 flutter_launcher_icons:

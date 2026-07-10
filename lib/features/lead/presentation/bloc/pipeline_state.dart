@@ -58,11 +58,13 @@ final class PipelineLoaded extends PipelineState {
       columns: columns ?? this.columns,
       filter: filter ?? this.filter,
       summary: summary ?? this.summary,
-      blockedMoveMessage:
-          blockedMoveMessage != null ? blockedMoveMessage() : this.blockedMoveMessage,
+      blockedMoveMessage: blockedMoveMessage != null
+          ? blockedMoveMessage()
+          : this.blockedMoveMessage,
     );
   }
 
   @override
-  List<Object?> get props => [allLeads, columns, filter, summary, blockedMoveMessage];
+  List<Object?> get props =>
+      [allLeads, columns, filter, summary, blockedMoveMessage];
 }

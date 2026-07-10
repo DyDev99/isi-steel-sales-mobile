@@ -24,7 +24,8 @@ class CustomerSyncCubit extends Cubit<CustomerSyncState> {
 
   Future<void> syncIfNeeded() async {
     final lastSynced = await _getLastSyncedAt(const NoParams());
-    final needsInitial = lastSynced.when(success: (at) => at == null, failure: (_) => true);
+    final needsInitial =
+        lastSynced.when(success: (at) => at == null, failure: (_) => true);
     if (needsInitial) await _run(isInitial: true);
   }
 
@@ -32,9 +33,12 @@ class CustomerSyncCubit extends Cubit<CustomerSyncState> {
 
   Future<void> _run({required bool isInitial}) async {
     emit(CustomerSyncInProgress(isInitial: isInitial));
-    final result = isInitial ? await _runInitialSync(const NoParams()) : await _runDeltaSync(const NoParams());
+    final result = isInitial
+        ? await _runInitialSync(const NoParams())
+        : await _runDeltaSync(const NoParams());
     result.when(
-      success: (r) => emit(CustomerSyncSucceeded(upserted: r.upserted, deleted: r.deleted, syncedAt: r.syncedAt)),
+      success: (r) => emit(CustomerSyncSucceeded(
+          upserted: r.upserted, deleted: r.deleted, syncedAt: r.syncedAt)),
       failure: (f) => emit(CustomerSyncFailed(f.message)),
     );
   }

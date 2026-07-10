@@ -34,13 +34,16 @@ class MockRouteRemoteDataSource implements RouteRemoteDataSource {
 
   List<RoutePlanModel> _routesForScope(RouteSyncScope scope) {
     final customersById = {for (final c in _customers!) c.id: c};
-    final scoped = _routeJson!.where((r) => r['territory'] == scope.territory).toList();
+    final scoped =
+        _routeJson!.where((r) => r['territory'] == scope.territory).toList();
 
     return scoped.map((routeJson) {
-      final stopsJson = (routeJson['stops'] as List).cast<Map<String, dynamic>>();
+      final stopsJson =
+          (routeJson['stops'] as List).cast<Map<String, dynamic>>();
       final stops = stopsJson
           .where((s) => customersById.containsKey(s['customerId']))
-          .map((s) => RouteStopModel.fromJson(s, customer: customersById[s['customerId']]!))
+          .map((s) => RouteStopModel.fromJson(s,
+              customer: customersById[s['customerId']]!))
           .toList();
       return RoutePlanModel.fromJson(routeJson, stops: stops);
     }).toList();
@@ -57,23 +60,29 @@ class MockRouteRemoteDataSource implements RouteRemoteDataSource {
       final routes = _routesForScope(scope);
       final start = page * pageSize;
       if (start >= routes.length) {
-        return RouteSyncPage(customers: _customers!, routes: const [], hasMore: false);
+        return RouteSyncPage(
+            customers: _customers!, routes: const [], hasMore: false);
       }
       final end = min(start + pageSize, routes.length);
       // Customers are sent alongside every page — the dataset is small
       // enough (300ish) that per-page filtering isn't worth the complexity.
-      return RouteSyncPage(customers: _customers!, routes: routes.sublist(start, end), hasMore: end < routes.length);
+      return RouteSyncPage(
+          customers: _customers!,
+          routes: routes.sublist(start, end),
+          hasMore: end < routes.length);
     } catch (e) {
       throw ServerException(message: 'Initial route sync failed: $e');
     }
   }
 
   @override
-  Future<RouteSyncPage> fetchDelta({required RouteSyncScope scope, required DateTime since}) async {
+  Future<RouteSyncPage> fetchDelta(
+      {required RouteSyncScope scope, required DateTime since}) async {
     try {
       await _ensureLoaded();
       final routes = _routesForScope(scope);
-      return RouteSyncPage(customers: _customers!, routes: routes, hasMore: false);
+      return RouteSyncPage(
+          customers: _customers!, routes: routes, hasMore: false);
     } catch (e) {
       throw ServerException(message: 'Delta route sync failed: $e');
     }

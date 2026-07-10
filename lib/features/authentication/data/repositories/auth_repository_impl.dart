@@ -36,11 +36,13 @@ class AuthRepositoryImpl implements AuthRepository {
       await _local.cacheSession(token: res.token, user: res.user);
       return Success(res.user);
     } on AuthenticationException catch (e) {
-      return Failed(AuthenticationFailure(message: e.message, statusCode: e.statusCode));
+      return Failed(
+          AuthenticationFailure(message: e.message, statusCode: e.statusCode));
     } on NetworkException catch (e) {
       return Failed(NetworkFailure(message: e.message));
     } on ServerException catch (e) {
-      return Failed(ServerFailure(message: e.message, statusCode: e.statusCode));
+      return Failed(
+          ServerFailure(message: e.message, statusCode: e.statusCode));
     } on CacheException catch (e) {
       return Failed(CacheFailure(message: e.message));
     }

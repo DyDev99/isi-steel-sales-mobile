@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
 
+/// Quick-action row on the customer detail screen. Purely presentational — the
+/// actual navigation/side-effects live in the parent callbacks; this widget
+/// adds the tactile layer (press-scale, colour/shadow transitions, haptics) so
+/// those transitions feel smooth and responsive.
 class CustomerQuickActions extends StatelessWidget {
   const CustomerQuickActions({
     super.key,
@@ -22,57 +27,199 @@ class CustomerQuickActions extends StatelessWidget {
       children: [
         Expanded(
           flex: 2,
-          child: ElevatedButton.icon(
-            onPressed: onCreateOpportunity,
-            icon: const Icon(Icons.trending_up_rounded, size: 18, color: Colors.white),
-            label: Text('customers.create_opportunity'.tr,
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 12.5)),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Vibe.violet,
-              padding: const EdgeInsets.symmetric(vertical: 13),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-              elevation: 0,
-            ),
+          child: _PrimaryAction(
+            icon: Icons.trending_up_rounded,
+            label: 'customers.create_opportunity'.tr,
+            onTap: onCreateOpportunity,
           ),
         ),
         const SizedBox(width: 8),
-        _IconAction(icon: Icons.call_rounded, label: 'customers.call'.tr, onTap: onCall),
+        _IconAction(
+          icon: Icons.call_rounded,
+          label: 'customers.call'.tr,
+          onTap: onCall,
+        ),
         const SizedBox(width: 8),
-        _IconAction(icon: Icons.pin_drop_rounded, label: 'customers.visit'.tr, onTap: onLogVisit),
+        _IconAction(
+          icon: Icons.pin_drop_rounded,
+          label: 'customers.visit'.tr,
+          onTap: onLogVisit,
+        ),
         const SizedBox(width: 8),
-        _IconAction(icon: Icons.note_add_rounded, label: 'customers.note'.tr, onTap: onAddNote),
+        _IconAction(
+          icon: Icons.note_add_rounded,
+          label: 'customers.note'.tr,
+          onTap: onAddNote,
+        ),
       ],
     );
   }
 }
 
-class _IconAction extends StatelessWidget {
-  const _IconAction({required this.icon, required this.label, required this.onTap});
+/// Gradient primary CTA with a lift shadow that presses in on tap.
+class _PrimaryAction extends StatelessWidget {
+  const _PrimaryAction({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
   final IconData icon;
   final String label;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    return _Pressable(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
-      child: Container(
-        width: 52,
-        padding: const EdgeInsets.symmetric(vertical: 10),
+      scale: 0.97,
+      builder: (context, pressed) => AnimatedContainer(
+        duration: const Duration(milliseconds: 160),
+        curve: Curves.easeOut,
+        padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 12),
         decoration: BoxDecoration(
-          color: Vibe.surface,
+          gradient: const LinearGradient(
+            colors: [Vibe.violet, Vibe.primaryHover],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Vibe.stroke),
+          boxShadow: pressed
+              ? const []
+              : [
+                  BoxShadow(
+                    color: Vibe.violet.withValues(alpha: 0.35),
+                    blurRadius: 14,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: Vibe.violet, size: 18),
-            const SizedBox(height: 2),
-            Text(label, style: const TextStyle(color: Vibe.muted, fontSize: 9.5, fontWeight: FontWeight.w700)),
+            Icon(icon, size: 18, color: Colors.white),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 12.5,
+                ),
+              ),
+            ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Compact icon tile whose border/fill/icon animate to the brand colour while
+/// pressed, giving clear tactile feedback before the action fires.
+class _IconAction extends StatelessWidget {
+  const _IconAction({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return _Pressable(
+      onTap: onTap,
+      builder: (context, pressed) {
+        final accent = pressed ? Vibe.violet : Vibe.muted;
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          curve: Curves.easeOut,
+          width: 54,
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: pressed ? Vibe.surfaceStrong : Vibe.surface,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: pressed ? Vibe.violet : Vibe.stroke,
+              width: pressed ? 1.4 : 1,
+            ),
+            boxShadow: pressed ? const [] : Vibe.cardShadow,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedScale(
+                scale: pressed ? 1.12 : 1.0,
+                duration: const Duration(milliseconds: 160),
+                curve: Curves.easeOut,
+                child: Icon(icon, color: Vibe.violet, size: 18),
+              ),
+              const SizedBox(height: 3),
+              AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 160),
+                style: TextStyle(
+                  color: accent,
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w700,
+                ),
+                child: Text(label),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Reusable press-to-scale wrapper: animates a subtle scale-down on tap-down,
+/// fires a selection haptic, and exposes the pressed state to its [builder] so
+/// children can animate colour/shadow in sync. Keeps every quick action's
+/// interaction identical without repeating gesture/animation plumbing.
+class _Pressable extends StatefulWidget {
+  const _Pressable({
+    required this.onTap,
+    required this.builder,
+    this.scale = 0.94,
+  });
+
+  final VoidCallback onTap;
+  final Widget Function(BuildContext context, bool pressed) builder;
+  final double scale;
+
+  @override
+  State<_Pressable> createState() => _PressableState();
+}
+
+class _PressableState extends State<_Pressable> {
+  bool _pressed = false;
+
+  void _setPressed(bool value) {
+    if (_pressed != value) setState(() => _pressed = value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: (_) => _setPressed(true),
+      onTapUp: (_) => _setPressed(false),
+      onTapCancel: () => _setPressed(false),
+      onTap: () {
+        HapticFeedback.selectionClick();
+        widget.onTap();
+      },
+      child: AnimatedScale(
+        scale: _pressed ? widget.scale : 1.0,
+        duration: const Duration(milliseconds: 120),
+        curve: Curves.easeOut,
+        child: widget.builder(context, _pressed),
       ),
     );
   }

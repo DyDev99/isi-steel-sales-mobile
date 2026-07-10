@@ -71,7 +71,8 @@ class _MyVisitsHistoryScreenState extends State<MyVisitsHistoryScreen> {
         backgroundColor: Vibe.bg,
         iconTheme: const IconThemeData(color: Vibe.text),
         title: Text('my_visits.history.title'.tr,
-            style: const TextStyle(color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
+            style: const TextStyle(
+                color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
         actions: kDebugMode
             ? [
                 PopupMenuButton<_ViewState>(
@@ -79,10 +80,18 @@ class _MyVisitsHistoryScreenState extends State<MyVisitsHistoryScreen> {
                   icon: const Icon(Icons.bug_report_rounded, color: Vibe.muted),
                   onSelected: _setDebugPreview,
                   itemBuilder: (_) => [
-                    PopupMenuItem(value: _ViewState.loading, child: Text('my_visits.history.state_loading'.tr)),
-                    PopupMenuItem(value: _ViewState.loaded, child: Text('my_visits.history.state_loaded'.tr)),
-                    PopupMenuItem(value: _ViewState.empty, child: Text('my_visits.history.state_empty'.tr)),
-                    PopupMenuItem(value: _ViewState.error, child: Text('my_visits.history.state_error'.tr)),
+                    PopupMenuItem(
+                        value: _ViewState.loading,
+                        child: Text('my_visits.history.state_loading'.tr)),
+                    PopupMenuItem(
+                        value: _ViewState.loaded,
+                        child: Text('my_visits.history.state_loaded'.tr)),
+                    PopupMenuItem(
+                        value: _ViewState.empty,
+                        child: Text('my_visits.history.state_empty'.tr)),
+                    PopupMenuItem(
+                        value: _ViewState.error,
+                        child: Text('my_visits.history.state_error'.tr)),
                   ],
                 ),
               ]
@@ -100,11 +109,15 @@ class _MyVisitsHistoryScreenState extends State<MyVisitsHistoryScreen> {
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
               children: [
                 Text(
-                  'my_visits.history.subtitle'.tr.replaceAll('{count}', '${_visits.length}'),
+                  'my_visits.history.subtitle'
+                      .tr
+                      .replaceAll('{count}', '${_visits.length}'),
                   style: const TextStyle(color: Vibe.muted, fontSize: 13),
                 ),
                 const SizedBox(height: 12),
-                for (final visit in _visits) VisitHistoryCard(visit: visit, onTap: () => _openDetail(visit)),
+                for (final visit in _visits)
+                  VisitHistoryCard(
+                      visit: visit, onTap: () => _openDetail(visit)),
               ],
             ),
           ),

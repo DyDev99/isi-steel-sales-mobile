@@ -12,7 +12,8 @@ class AuthMessageBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<AuthBloc, AuthState>(
-      buildWhen: (prev, curr) => curr is AuthFailureState || prev is AuthFailureState,
+      buildWhen: (prev, curr) =>
+          curr is AuthFailureState || prev is AuthFailureState,
       builder: (context, state) {
         if (state is! AuthFailureState) return const SizedBox.shrink();
         final scheme = Theme.of(context).colorScheme;
@@ -26,12 +27,14 @@ class AuthMessageBanner extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Icon(Icons.error_outline, size: 20, color: scheme.onErrorContainer),
+              Icon(Icons.error_outline,
+                  size: 20, color: scheme.onErrorContainer),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   state.message,
-                  style: TextStyle(color: scheme.onErrorContainer, fontSize: 13.5),
+                  style:
+                      TextStyle(color: scheme.onErrorContainer, fontSize: 13.5),
                 ),
               ),
             ],

@@ -131,7 +131,8 @@ class ProductModel extends Product {
         businessUnit: row['business_unit'] as String,
         imageUrl: row['image_url'] as String,
         isMto: (row['is_mto'] as int) == 1,
-        status: ProductStatus.values.byName(row['status'] as String? ?? 'active'),
+        status:
+            ProductStatus.values.byName(row['status'] as String? ?? 'active'),
         updatedAt: DateTime.parse(row['updated_at'] as String),
         deleted: (row['deleted'] as int? ?? 0) == 1,
         pricing: ProductPricing(

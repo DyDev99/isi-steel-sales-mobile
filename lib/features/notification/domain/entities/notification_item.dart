@@ -12,7 +12,7 @@ class NotificationItem {
   final String id;
   final NotificationKind kind;
   final String title; // Can be a localization key or raw text from server
-  final String body;  // Can be a localization key or raw text from server
+  final String body; // Can be a localization key or raw text from server
   final DateTime createdAt;
 
   const NotificationItem({

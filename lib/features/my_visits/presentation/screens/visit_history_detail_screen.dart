@@ -4,7 +4,8 @@ import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/local/localized_builder.dart';
 import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/models/visit_record.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/visit_history_card.dart' show statusStyle;
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/visit_history_card.dart'
+    show statusStyle;
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/visit_map_preview.dart';
 
 /// Read-only detail view for one visit history record. UI only — every value
@@ -32,24 +33,38 @@ class VisitHistoryDetailScreen extends StatelessWidget {
         backgroundColor: Vibe.bg,
         iconTheme: const IconThemeData(color: Vibe.text),
         title: Text('my_visits.history.details_title'.tr,
-            style: const TextStyle(color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
+            style: const TextStyle(
+                color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
         children: [
-          VisitMapPreview(latitude: visit.latitude, longitude: visit.longitude, height: 170, borderRadius: 16),
+          VisitMapPreview(
+              latitude: visit.latitude,
+              longitude: visit.longitude,
+              height: 170,
+              borderRadius: 16),
           const SizedBox(height: 16),
           Row(
             children: [
               Expanded(
                 child: Text(visit.customerName,
-                    style: const TextStyle(color: Vibe.text, fontSize: 18, fontWeight: FontWeight.w800)),
+                    style: const TextStyle(
+                        color: Vibe.text,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800)),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration:
-                    BoxDecoration(color: statusColor.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(10)),
-                child: Text(statusLabel, style: TextStyle(color: statusColor, fontSize: 12, fontWeight: FontWeight.w700)),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                    color: statusColor.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10)),
+                child: Text(statusLabel,
+                    style: TextStyle(
+                        color: statusColor,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700)),
               ),
             ],
           ),
@@ -58,27 +73,34 @@ class VisitHistoryDetailScreen extends StatelessWidget {
             children: [
               const Icon(Icons.place_rounded, size: 15, color: Vibe.muted),
               const SizedBox(width: 6),
-              Expanded(child: Text(visit.address, style: const TextStyle(color: Vibe.muted, fontSize: 13))),
+              Expanded(
+                  child: Text(visit.address,
+                      style: const TextStyle(color: Vibe.muted, fontSize: 13))),
             ],
           ),
           const SizedBox(height: 20),
           _InfoCard(
             children: [
-              _InfoRow(icon: Icons.calendar_today_rounded, label: dateFmt.format(visit.visitDate)),
+              _InfoRow(
+                  icon: Icons.calendar_today_rounded,
+                  label: dateFmt.format(visit.visitDate)),
               if (visit.checkInTime != null)
                 _InfoRow(
                   icon: Icons.login_rounded,
-                  label: '${'my_visits.history.checked_in'.tr}: ${timeFmt.format(visit.checkInTime!)}',
+                  label:
+                      '${'my_visits.history.checked_in'.tr}: ${timeFmt.format(visit.checkInTime!)}',
                 ),
               if (visit.checkOutTime != null)
                 _InfoRow(
                   icon: Icons.logout_rounded,
-                  label: '${'my_visits.history.checked_out'.tr}: ${timeFmt.format(visit.checkOutTime!)}',
+                  label:
+                      '${'my_visits.history.checked_out'.tr}: ${timeFmt.format(visit.checkOutTime!)}',
                 ),
               if (duration != null)
                 _InfoRow(
                   icon: Icons.timer_outlined,
-                  label: '${'my_visits.history.duration'.tr}: ${duration.inMinutes} min',
+                  label:
+                      '${'my_visits.history.duration'.tr}: ${duration.inMinutes} min',
                 ),
             ],
           ),
@@ -87,11 +109,15 @@ class VisitHistoryDetailScreen extends StatelessWidget {
             _InfoCard(
               children: [
                 if (visit.orderPlaced)
-                  _InfoRow(icon: Icons.receipt_long_rounded, label: 'my_visits.history.order_placed'.tr, valueColor: Vibe.violet),
+                  _InfoRow(
+                      icon: Icons.receipt_long_rounded,
+                      label: 'my_visits.history.order_placed'.tr,
+                      valueColor: Vibe.violet),
                 if (visit.collectedAmount != null)
                   _InfoRow(
                     icon: Icons.payments_rounded,
-                    label: '${'my_visits.history.collected_amount'.tr}: \$${visit.collectedAmount!.toStringAsFixed(2)}',
+                    label:
+                        '${'my_visits.history.collected_amount'.tr}: \$${visit.collectedAmount!.toStringAsFixed(2)}',
                     valueColor: Vibe.success,
                   ),
               ],
@@ -99,43 +125,58 @@ class VisitHistoryDetailScreen extends StatelessWidget {
           ],
           const SizedBox(height: 20),
           Text('my_visits.history.customer'.tr,
-              style: const TextStyle(color: Vibe.text, fontSize: 14, fontWeight: FontWeight.w800)),
+              style: const TextStyle(
+                  color: Vibe.text, fontSize: 14, fontWeight: FontWeight.w800)),
           const SizedBox(height: 10),
           _InfoCard(
             children: [
-              if (visit.phoneNumber != null) _InfoRow(icon: Icons.phone_rounded, label: visit.phoneNumber!),
+              if (visit.phoneNumber != null)
+                _InfoRow(icon: Icons.phone_rounded, label: visit.phoneNumber!),
             ],
           ),
           const SizedBox(height: 20),
           Text('my_visits.history.notes'.tr,
-              style: const TextStyle(color: Vibe.text, fontSize: 14, fontWeight: FontWeight.w800)),
+              style: const TextStyle(
+                  color: Vibe.text, fontSize: 14, fontWeight: FontWeight.w800)),
           const SizedBox(height: 10),
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), border: Border.all(color: Vibe.stroke)),
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: Vibe.stroke)),
             child: Text(
-              (visit.notes == null || visit.notes!.isEmpty) ? 'my_visits.history.no_notes'.tr : visit.notes!,
-              style: TextStyle(color: visit.notes == null ? Vibe.muted : Vibe.text, fontSize: 13),
+              (visit.notes == null || visit.notes!.isEmpty)
+                  ? 'my_visits.history.no_notes'.tr
+                  : visit.notes!,
+              style: TextStyle(
+                  color: visit.notes == null ? Vibe.muted : Vibe.text,
+                  fontSize: 13),
             ),
           ),
           const SizedBox(height: 20),
           Text('my_visits.history.photos'.tr,
-              style: const TextStyle(color: Vibe.text, fontSize: 14, fontWeight: FontWeight.w800)),
+              style: const TextStyle(
+                  color: Vibe.text, fontSize: 14, fontWeight: FontWeight.w800)),
           const SizedBox(height: 10),
           visit.photoCount == 0
               ? Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), border: Border.all(color: Vibe.stroke)),
-                  child: Text('my_visits.history.no_photos'.tr, style: const TextStyle(color: Vibe.muted, fontSize: 13)),
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: Vibe.stroke)),
+                  child: Text('my_visits.history.no_photos'.tr,
+                      style: const TextStyle(color: Vibe.muted, fontSize: 13)),
                 )
               : GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: visit.photoCount,
-                  gridDelegate:
-                      const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, crossAxisSpacing: 8, mainAxisSpacing: 8),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 8,
+                      mainAxisSpacing: 8),
                   itemBuilder: (_, __) => Container(
                     decoration: BoxDecoration(
                       color: Vibe.primaryLight,
@@ -158,7 +199,9 @@ class _InfoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), border: Border.all(color: Vibe.stroke)),
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Vibe.stroke)),
       child: Column(children: children),
     );
   }
@@ -180,7 +223,10 @@ class _InfoRow extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(label,
-                style: TextStyle(color: valueColor ?? Vibe.text, fontSize: 13, fontWeight: FontWeight.w600)),
+                style: TextStyle(
+                    color: valueColor ?? Vibe.text,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600)),
           ),
         ],
       ),

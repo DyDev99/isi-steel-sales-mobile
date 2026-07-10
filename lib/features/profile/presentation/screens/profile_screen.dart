@@ -27,12 +27,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _edit(BuildContext context, ProfileLoaded state) async {
-    final updated = await showEditProfileSheet(context: context, profile: state.profile);
+    final updated =
+        await showEditProfileSheet(context: context, profile: state.profile);
     if (updated == null || !context.mounted) return;
     final ok = await context.read<ProfileCubit>().updateProfile(updated);
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(ok ? 'profile.updated_success'.tr : 'profile.updated_failure'.tr)),
+      SnackBar(
+          content: Text(ok
+              ? 'profile.updated_success'.tr
+              : 'profile.updated_failure'.tr)),
     );
   }
 
@@ -45,7 +49,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         );
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(ok ? 'profile.password_success'.tr : 'profile.password_failure'.tr)),
+      SnackBar(
+          content: Text(ok
+              ? 'profile.password_success'.tr
+              : 'profile.password_failure'.tr)),
     );
   }
 
@@ -54,11 +61,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Vibe.bgSoft,
-        title: Text('profile.logout_confirm_title'.tr, style: const TextStyle(color: Vibe.text)),
-        content: Text('profile.logout_confirm_body'.tr, style: const TextStyle(color: Vibe.muted)),
+        title: Text('profile.logout_confirm_title'.tr,
+            style: const TextStyle(color: Vibe.text)),
+        content: Text('profile.logout_confirm_body'.tr,
+            style: const TextStyle(color: Vibe.muted)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('profile.cancel'.tr)),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: Text('profile.logout'.tr)),
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text('profile.cancel'.tr)),
+          TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text('profile.logout'.tr)),
         ],
       ),
     );
@@ -77,12 +90,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
           appBar: AppBar(
             backgroundColor: Vibe.bg,
             iconTheme: const IconThemeData(color: Vibe.text),
-            title: Text('profile.title'.tr, style: const TextStyle(color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
+            title: Text('profile.title'.tr,
+                style: const TextStyle(
+                    color: Vibe.text,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800)),
           ),
           body: BlocConsumer<ProfileCubit, ProfileState>(
             listener: (context, state) {
               if (state is ProfileLoaded && state.actionError != null) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.actionError!)));
+                ScaffoldMessenger.of(context)
+                    .showSnackBar(SnackBar(content: Text(state.actionError!)));
               }
             },
             builder: (context, state) => switch (state) {
@@ -96,7 +114,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton.icon(
-                        onPressed: state.isSaving ? null : () => _edit(context, state),
+                        onPressed:
+                            state.isSaving ? null : () => _edit(context, state),
                         icon: const Icon(Icons.edit_rounded, size: 18),
                         label: Text('profile.edit_profile'.tr),
                       ),
@@ -105,7 +124,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton.icon(
-                        onPressed: state.isSaving ? null : () => _changePassword(context),
+                        onPressed: state.isSaving
+                            ? null
+                            : () => _changePassword(context),
                         icon: const Icon(Icons.lock_reset_rounded, size: 18),
                         label: Text('profile.change_password'.tr),
                       ),
@@ -115,14 +136,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       width: double.infinity,
                       child: TextButton.icon(
                         onPressed: () => _confirmLogout(context),
-                        icon: const Icon(Icons.logout_rounded, size: 18, color: Colors.redAccent),
-                        label: Text('profile.logout'.tr, style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w700)),
+                        icon: const Icon(Icons.logout_rounded,
+                            size: 18, color: Colors.redAccent),
+                        label: Text('profile.logout'.tr,
+                            style: const TextStyle(
+                                color: Colors.redAccent,
+                                fontWeight: FontWeight.w700)),
                       ),
                     ),
                   ],
                 ),
-              ProfileError(:final message) => Center(child: Text(message, style: const TextStyle(color: Vibe.muted))),
-              _ => const Center(child: CircularProgressIndicator(color: Vibe.violet)),
+              ProfileError(:final message) => Center(
+                  child:
+                      Text(message, style: const TextStyle(color: Vibe.muted))),
+              _ => const Center(
+                  child: CircularProgressIndicator(color: Vibe.violet)),
             },
           ),
         );

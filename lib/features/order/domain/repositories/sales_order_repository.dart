@@ -4,7 +4,8 @@ import 'package:isi_steel_sales_mobile/features/order/domain/entities/quotation.
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/sales_order.dart';
 
 abstract interface class SalesOrderRepository {
-  ResultFuture<SalesOrder> createFromQuotation(Quotation quotation, {required List<CartItem> items});
+  ResultFuture<SalesOrder> createFromQuotation(Quotation quotation,
+      {required List<CartItem> items});
 
   ResultFuture<SalesOrder?> getSalesOrderById(String id);
 

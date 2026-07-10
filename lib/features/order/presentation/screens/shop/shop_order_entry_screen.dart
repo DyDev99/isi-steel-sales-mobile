@@ -22,7 +22,11 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quota
 /// [skipOffVisitCheck]) an off-visit reason gate before the rep can start a
 /// quotation.
 class ShopOrderEntryScreen extends StatefulWidget {
-  const ShopOrderEntryScreen({super.key, required this.customer, this.skipOffVisitCheck = false, this.seedSearchTerm});
+  const ShopOrderEntryScreen(
+      {super.key,
+      required this.customer,
+      this.skipOffVisitCheck = false,
+      this.seedSearchTerm});
 
   static const routeName = 'order-shop-entry';
 
@@ -43,7 +47,8 @@ class _ShopOrderEntryScreenState extends State<ShopOrderEntryScreen> {
   @override
   void initState() {
     super.initState();
-    _summaryFuture = sl<GetCreditSummary>()(GetCreditSummaryParams(widget.customer.id)).then(
+    _summaryFuture =
+        sl<GetCreditSummary>()(GetCreditSummaryParams(widget.customer.id)).then(
       (result) => result.when(success: (s) => s, failure: (_) => null),
     );
     _captureGps();
@@ -72,7 +77,9 @@ class _ShopOrderEntryScreenState extends State<ShopOrderEntryScreen> {
         providers: [
           BlocProvider(create: (_) {
             final bloc = sl<CatalogBloc>();
-            if (widget.seedSearchTerm != null) bloc.add(CatalogSearchChanged(widget.seedSearchTerm!));
+            if (widget.seedSearchTerm != null) {
+              bloc.add(CatalogSearchChanged(widget.seedSearchTerm!));
+            }
             return bloc;
           }),
           BlocProvider(create: (_) => sl<CartCubit>()..load()),
@@ -100,13 +107,17 @@ class _ShopOrderEntryScreenState extends State<ShopOrderEntryScreen> {
       appBar: AppBar(
         backgroundColor: Vibe.bg,
         iconTheme: const IconThemeData(color: Vibe.text),
-        title: Text(customer.shopName, style: const TextStyle(color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
+        title: Text(customer.shopName,
+            style: const TextStyle(
+                color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
         children: [
-          Text(customer.address, style: const TextStyle(color: Vibe.text, fontSize: 13)),
-          Text('${customer.district}, ${customer.province}', style: const TextStyle(color: Vibe.muted, fontSize: 12)),
+          Text(customer.address,
+              style: const TextStyle(color: Vibe.text, fontSize: 13)),
+          Text('${customer.district}, ${customer.province}',
+              style: const TextStyle(color: Vibe.muted, fontSize: 12)),
           const SizedBox(height: 14),
           FutureBuilder<CreditSummary?>(
             future: _summaryFuture,
@@ -116,19 +127,29 @@ class _ShopOrderEntryScreenState extends State<ShopOrderEntryScreen> {
               // result hasData stays false and a `!hasData` guard would spin
               // forever under a slow/failed API.
               if (snapshot.connectionState != ConnectionState.done) {
-                return const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator(color: Vibe.violet)));
+                return const Center(
+                    child: Padding(
+                        padding: EdgeInsets.all(20),
+                        child: CircularProgressIndicator(color: Vibe.violet)));
               }
               final summary = snapshot.data;
-              if (summary == null) return const SizedBox.shrink(); // credit unavailable — don't block ordering
-              return CreditSummaryCard(creditLimit: customer.creditLimit, summary: summary);
+              if (summary == null) {
+                return const SizedBox
+                    .shrink(); // credit unavailable — don't block ordering
+              }
+              return CreditSummaryCard(
+                  creditLimit: customer.creditLimit, summary: summary);
             },
           ),
           if (!widget.skipOffVisitCheck) ...[
             const SizedBox(height: 14),
-            _OffVisitBanner(reason: _reason, onPick: () async {
-              final picked = await showOffVisitReasonSheet(context: context, initial: _reason);
-              if (picked != null) setState(() => _reason = picked);
-            }),
+            _OffVisitBanner(
+                reason: _reason,
+                onPick: () async {
+                  final picked = await showOffVisitReasonSheet(
+                      context: context, initial: _reason);
+                  if (picked != null) setState(() => _reason = picked);
+                }),
           ],
           const SizedBox(height: 14),
           Row(
@@ -154,9 +175,11 @@ class _ShopOrderEntryScreenState extends State<ShopOrderEntryScreen> {
                 backgroundColor: Vibe.violet,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
               ),
-              child: Text('orders.shop.start_quotation'.tr, style: const TextStyle(fontWeight: FontWeight.w800)),
+              child: Text('orders.shop.start_quotation'.tr,
+                  style: const TextStyle(fontWeight: FontWeight.w800)),
             ),
           ),
           const SizedBox(height: 10),
@@ -197,15 +220,27 @@ class _OffVisitBanner extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('orders.shop.off_visit_warning'.tr,
-                    style: const TextStyle(color: Vibe.amber, fontSize: 12.5, fontWeight: FontWeight.w600, height: 1.35)),
+                    style: const TextStyle(
+                        color: Vibe.amber,
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        height: 1.35)),
                 if (reason != null) ...[
                   const SizedBox(height: 6),
-                  Text(reason!.localizedLabel, style: const TextStyle(color: Vibe.text, fontSize: 12, fontWeight: FontWeight.w700)),
+                  Text(reason!.localizedLabel,
+                      style: const TextStyle(
+                          color: Vibe.text,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700)),
                 ],
               ],
             ),
           ),
-          TextButton(onPressed: onPick, child: Text(reason == null ? 'orders.shop.start_quotation'.tr : 'orders.quotation.edit_quotation'.tr)),
+          TextButton(
+              onPressed: onPick,
+              child: Text(reason == null
+                  ? 'orders.shop.start_quotation'.tr
+                  : 'orders.quotation.edit_quotation'.tr)),
         ],
       ),
     );

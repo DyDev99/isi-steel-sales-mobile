@@ -51,25 +51,36 @@ class CatalogSearchBar extends StatelessWidget {
                       isDense: true,
                       border: InputBorder.none,
                       hintText: 'orders.catalog.search_hint'.tr,
-                      hintStyle: const TextStyle(color: Vibe.muted, fontSize: 13.5),
+                      hintStyle:
+                          const TextStyle(color: Vibe.muted, fontSize: 13.5),
                     ),
                   ),
                 ),
-                _InlineIcon(icon: Icons.mic_none_rounded, tooltip: 'Voice search', onTap: onVoiceTap),
-                _InlineIcon(icon: Icons.photo_camera_back_outlined, tooltip: 'Search by photo', onTap: onImageTap),
+                _InlineIcon(
+                    icon: Icons.mic_none_rounded,
+                    tooltip: 'Voice search',
+                    onTap: onVoiceTap),
+                _InlineIcon(
+                    icon: Icons.photo_camera_back_outlined,
+                    tooltip: 'Search by photo',
+                    onTap: onImageTap),
               ],
             ),
           ),
         ),
         const SizedBox(width: 10),
-        _SquareButton(icon: Icons.tune_rounded, highlighted: hasActiveFilters, onTap: onFilterTap),
+        _SquareButton(
+            icon: Icons.tune_rounded,
+            highlighted: hasActiveFilters,
+            onTap: onFilterTap),
       ],
     );
   }
 }
 
 class _InlineIcon extends StatelessWidget {
-  const _InlineIcon({required this.icon, required this.tooltip, required this.onTap});
+  const _InlineIcon(
+      {required this.icon, required this.tooltip, required this.onTap});
   final IconData icon;
   final String tooltip;
   final VoidCallback onTap;
@@ -91,7 +102,8 @@ class _InlineIcon extends StatelessWidget {
 }
 
 class _SquareButton extends StatelessWidget {
-  const _SquareButton({required this.icon, required this.onTap, this.highlighted = false});
+  const _SquareButton(
+      {required this.icon, required this.onTap, this.highlighted = false});
   final IconData icon;
   final VoidCallback onTap;
   final bool highlighted;
@@ -106,11 +118,13 @@ class _SquareButton extends StatelessWidget {
         height: 44,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: highlighted ? Vibe.violet.withValues(alpha: 0.18) : Vibe.surface,
+          color:
+              highlighted ? Vibe.violet.withValues(alpha: 0.18) : Vibe.surface,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: highlighted ? Vibe.violet : Vibe.stroke),
         ),
-        child: Icon(icon, color: highlighted ? Vibe.violet : Vibe.text, size: 20),
+        child:
+            Icon(icon, color: highlighted ? Vibe.violet : Vibe.text, size: 20),
       ),
     );
   }

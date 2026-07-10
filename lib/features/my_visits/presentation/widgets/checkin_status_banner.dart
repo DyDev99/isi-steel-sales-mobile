@@ -26,18 +26,26 @@ class CheckinStatusBanner extends StatelessWidget {
       children: [
         _Pill(
           color: insideGeofence ? Vibe.success : Vibe.amber,
-          icon: insideGeofence ? Icons.check_circle_rounded : Icons.location_searching_rounded,
+          icon: insideGeofence
+              ? Icons.check_circle_rounded
+              : Icons.location_searching_rounded,
           text: insideGeofence
               ? 'Inside geofence'
               : '${distanceMeters.toStringAsFixed(0)}m from customer — move closer',
         ),
         if (blockedReason != null) ...[
           const SizedBox(height: 8),
-          _Pill(color: Vibe.danger, icon: Icons.block_rounded, text: blockedReason!),
+          _Pill(
+              color: Vibe.danger,
+              icon: Icons.block_rounded,
+              text: blockedReason!),
         ],
         for (final warning in warnings) ...[
           const SizedBox(height: 8),
-          _Pill(color: Vibe.amber, icon: Icons.warning_amber_rounded, text: warning),
+          _Pill(
+              color: Vibe.amber,
+              icon: Icons.warning_amber_rounded,
+              text: warning),
         ],
       ],
     );
@@ -63,7 +71,12 @@ class _Pill extends StatelessWidget {
         children: [
           Icon(icon, size: 16, color: color),
           const SizedBox(width: 8),
-          Expanded(child: Text(text, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w600))),
+          Expanded(
+              child: Text(text,
+                  style: TextStyle(
+                      color: color,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600))),
         ],
       ),
     );

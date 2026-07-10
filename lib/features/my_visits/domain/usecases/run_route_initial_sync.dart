@@ -8,5 +8,6 @@ class RunRouteInitialSync extends UseCase<RouteSyncResult, RouteSyncScope> {
   const RunRouteInitialSync(this._repository);
   final RouteSyncRepository _repository;
   @override
-  ResultFuture<RouteSyncResult> call(RouteSyncScope params) => _repository.runInitialSync(params);
+  ResultFuture<RouteSyncResult> call(RouteSyncScope params) =>
+      _repository.runInitialSync(params);
 }

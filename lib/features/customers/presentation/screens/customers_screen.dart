@@ -27,7 +27,9 @@ class CustomersScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => sl<CustomersBloc>()..add(const CustomersLoadRequested())),
+        BlocProvider(
+            create: (_) =>
+                sl<CustomersBloc>()..add(const CustomersLoadRequested())),
         BlocProvider(create: (_) => sl<CustomerSyncCubit>()..syncIfNeeded()),
       ],
       child: const _CustomersView(),
@@ -53,7 +55,8 @@ class _CustomersViewState extends State<_CustomersView> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 300) {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 300) {
       context.read<CustomersBloc>().add(const CustomersLoadMoreRequested());
     }
   }
@@ -85,8 +88,11 @@ class _CustomersViewState extends State<_CustomersView> {
                   scrollController: _scrollController,
                   onOpenDetail: (id) => _openDetail(context, id),
                 ),
-              CustomersError(:final message) => Center(child: Text(message, style: const TextStyle(color: Vibe.muted))),
-              _ => const Center(child: CircularProgressIndicator(color: Vibe.violet)),
+              CustomersError(:final message) => Center(
+                  child:
+                      Text(message, style: const TextStyle(color: Vibe.muted))),
+              _ => const Center(
+                  child: CircularProgressIndicator(color: Vibe.violet)),
             };
           },
         ),
@@ -113,20 +119,24 @@ class _Loaded extends StatelessWidget {
   List<Customer> get _visibleItems => switch (quickAccess) {
         _QuickAccess.all => state.items,
         _QuickAccess.recent => state.recent,
-        _QuickAccess.favorites => state.items.where((c) => state.favoriteIds.contains(c.id)).toList(),
+        _QuickAccess.favorites =>
+          state.items.where((c) => state.favoriteIds.contains(c.id)).toList(),
       };
 
   @override
   Widget build(BuildContext context) {
     final items = _visibleItems;
-    final territories = state.items.map((c) => c.territory).toSet().toList()..sort();
+    final territories = state.items.map((c) => c.territory).toSet().toList()
+      ..sort();
 
     return RefreshIndicator(
       color: Vibe.violet,
       backgroundColor: Vibe.bgSoft,
       onRefresh: () async {
         await context.read<CustomerSyncCubit>().refresh();
-        if (context.mounted) context.read<CustomersBloc>().add(const CustomersRefreshRequested());
+        if (context.mounted) {
+          context.read<CustomersBloc>().add(const CustomersRefreshRequested());
+        }
       },
       child: CustomScrollView(
         controller: scrollController,
@@ -140,17 +150,22 @@ class _Loaded extends StatelessWidget {
                   const SizedBox(height: 20),
                   const CustomerSyncStatusBanner(),
                   CustomerSearchBar(
-                    onSearchChanged: (q) => context.read<CustomersBloc>().add(CustomersSearchChanged(q)),
+                    onSearchChanged: (q) => context
+                        .read<CustomersBloc>()
+                        .add(CustomersSearchChanged(q)),
                     hasActiveFilters: !state.filter.isEmpty,
                     onFilterTap: () => showCustomerFilterSheet(
                       context: context,
                       filter: state.filter,
                       territories: territories,
-                      onApply: (f) => context.read<CustomersBloc>().add(CustomersFilterChanged(f)),
+                      onApply: (f) => context
+                          .read<CustomersBloc>()
+                          .add(CustomersFilterChanged(f)),
                     ),
                   ),
                   const SizedBox(height: 12),
-                  _QuickAccessRow(selected: quickAccess, onChanged: onQuickAccessChanged),
+                  _QuickAccessRow(
+                      selected: quickAccess, onChanged: onQuickAccessChanged),
                 ],
               ),
             ),
@@ -159,7 +174,9 @@ class _Loaded extends StatelessWidget {
             SliverFillRemaining(
               child: Center(
                 child: Text(
-                  quickAccess == _QuickAccess.all ? 'customers.no_customers'.tr : 'customers.nothing_here'.tr,
+                  quickAccess == _QuickAccess.all
+                      ? 'customers.no_customers'.tr
+                      : 'customers.nothing_here'.tr,
                   style: const TextStyle(color: Vibe.muted),
                 ),
               ),
@@ -178,11 +195,15 @@ class _Loaded extends StatelessWidget {
                     onTap: () => onOpenDetail(customer.id),
                     onCall: () => ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                          content: Text('customers.calling'.tr.replaceAll('{phone}', customer.phone)),
+                          content: Text('customers.calling'
+                              .tr
+                              .replaceAll('{phone}', customer.phone)),
                           duration: const Duration(seconds: 1)),
                     ),
                     onCreateOpportunity: () => onOpenDetail(customer.id),
-                    onFavoriteToggle: () => context.read<CustomersBloc>().add(CustomersFavoriteToggled(customer.id)),
+                    onFavoriteToggle: () => context
+                        .read<CustomersBloc>()
+                        .add(CustomersFavoriteToggled(customer.id)),
                   );
                 },
               ),
@@ -191,7 +212,8 @@ class _Loaded extends StatelessWidget {
             const SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.all(16),
-                child: Center(child: CircularProgressIndicator(color: Vibe.violet)),
+                child: Center(
+                    child: CircularProgressIndicator(color: Vibe.violet)),
               ),
             ),
         ],
@@ -209,7 +231,10 @@ class _QuickAccessRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        _Segment(label: 'customers.all'.tr, selected: selected == _QuickAccess.all, onTap: () => onChanged(_QuickAccess.all)),
+        _Segment(
+            label: 'customers.all'.tr,
+            selected: selected == _QuickAccess.all,
+            onTap: () => onChanged(_QuickAccess.all)),
         const SizedBox(width: 8),
         _Segment(
             label: 'customers.recent'.tr,
@@ -227,7 +252,8 @@ class _QuickAccessRow extends StatelessWidget {
 }
 
 class _Segment extends StatelessWidget {
-  const _Segment({required this.label, required this.selected, required this.onTap});
+  const _Segment(
+      {required this.label, required this.selected, required this.onTap});
   final String label;
   final bool selected;
   final VoidCallback onTap;

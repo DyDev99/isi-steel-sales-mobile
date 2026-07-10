@@ -54,8 +54,10 @@ class _RouteMapState extends State<RouteMap> {
       for (var i = 0; i < widget.stops.length; i++)
         Marker(
           markerId: MarkerId(widget.stops[i].id),
-          position: LatLng(widget.stops[i].customer.latitude, widget.stops[i].customer.longitude),
-          icon: BitmapDescriptor.defaultMarkerWithHue(_hueFor(widget.stops[i].status)),
+          position: LatLng(widget.stops[i].customer.latitude,
+              widget.stops[i].customer.longitude),
+          icon: BitmapDescriptor.defaultMarkerWithHue(
+              _hueFor(widget.stops[i].status)),
           infoWindow: InfoWindow(
             title: '${i + 1}. ${widget.stops[i].customer.name}',
             snippet: widget.stops[i].status.label,
@@ -68,8 +70,10 @@ class _RouteMapState extends State<RouteMap> {
         : {
             Marker(
               markerId: const MarkerId('current_position'),
-              position: LatLng(widget.currentPosition!.latitude, widget.currentPosition!.longitude),
-              icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+              position: LatLng(widget.currentPosition!.latitude,
+                  widget.currentPosition!.longitude),
+              icon: BitmapDescriptor.defaultMarkerWithHue(
+                  BitmapDescriptor.hueBlue),
               zIndexInt: 10,
               anchor: const Offset(0.5, 0.5),
               flat: true,
@@ -83,11 +87,15 @@ class _RouteMapState extends State<RouteMap> {
               polylineId: const PolylineId('route'),
               color: Vibe.violet,
               width: 4,
-              points: [for (final s in widget.stops) LatLng(s.customer.latitude, s.customer.longitude)],
+              points: [
+                for (final s in widget.stops)
+                  LatLng(s.customer.latitude, s.customer.longitude)
+              ],
             ),
           };
 
-    final geofenceCircle = widget.currentStopIndex < 0 || widget.currentStopIndex >= widget.stops.length
+    final geofenceCircle = widget.currentStopIndex < 0 ||
+            widget.currentStopIndex >= widget.stops.length
         ? const <Circle>{}
         : {
             Circle(
@@ -96,7 +104,8 @@ class _RouteMapState extends State<RouteMap> {
                 widget.stops[widget.currentStopIndex].customer.latitude,
                 widget.stops[widget.currentStopIndex].customer.longitude,
               ),
-              radius: widget.stops[widget.currentStopIndex].customer.geofenceRadiusMeters,
+              radius: widget
+                  .stops[widget.currentStopIndex].customer.geofenceRadiusMeters,
               strokeColor: Vibe.violet,
               strokeWidth: 2,
               fillColor: Vibe.violet.withValues(alpha: 0.12),
@@ -105,12 +114,14 @@ class _RouteMapState extends State<RouteMap> {
 
     final initialTarget = widget.stops.isEmpty
         ? const LatLng(11.5564, 104.9282)
-        : LatLng(widget.stops.first.customer.latitude, widget.stops.first.customer.longitude);
+        : LatLng(widget.stops.first.customer.latitude,
+            widget.stops.first.customer.longitude);
 
     return Stack(
       children: [
         GoogleMap(
-          initialCameraPosition: CameraPosition(target: initialTarget, zoom: 13),
+          initialCameraPosition:
+              CameraPosition(target: initialTarget, zoom: 13),
           onMapCreated: (controller) => _controller = controller,
           markers: {...stopMarkers, ...positionMarker},
           polylines: polyline,
@@ -129,7 +140,8 @@ class _RouteMapState extends State<RouteMap> {
             heroTag: 'route_map_follow',
             backgroundColor: _autoFollow ? Vibe.violet : Vibe.surface,
             onPressed: () => setState(() => _autoFollow = !_autoFollow),
-            child: Icon(Icons.my_location_rounded, color: _autoFollow ? Colors.white : Vibe.text),
+            child: Icon(Icons.my_location_rounded,
+                color: _autoFollow ? Colors.white : Vibe.text),
           ),
         ),
       ],

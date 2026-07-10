@@ -7,5 +7,6 @@ class CheckIn extends UseCase<CheckInRecord, CheckInRecord> {
   const CheckIn(this._repository);
   final VisitRepository _repository;
   @override
-  ResultFuture<CheckInRecord> call(CheckInRecord params) => _repository.checkIn(params);
+  ResultFuture<CheckInRecord> call(CheckInRecord params) =>
+      _repository.checkIn(params);
 }

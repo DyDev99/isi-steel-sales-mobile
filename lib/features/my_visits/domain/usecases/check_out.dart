@@ -7,5 +7,6 @@ class CheckOut extends UseCase<CheckOutRecord, CheckOutRecord> {
   const CheckOut(this._repository);
   final VisitRepository _repository;
   @override
-  ResultFuture<CheckOutRecord> call(CheckOutRecord params) => _repository.checkOut(params);
+  ResultFuture<CheckOutRecord> call(CheckOutRecord params) =>
+      _repository.checkOut(params);
 }

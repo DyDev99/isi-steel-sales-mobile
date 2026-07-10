@@ -33,7 +33,8 @@ class LocalizationService extends ChangeNotifier {
       // malformed JSON indistinguishable from "everything just falls back to
       // raw keys" with no way to tell why. Log it so a bad load is visible
       // during development instead of a mystery.
-      debugPrint('LocalizationService: failed to load "$languageCode.json" — $e');
+      debugPrint(
+          'LocalizationService: failed to load "$languageCode.json" — $e');
       _localizedStrings = {};
     }
     notifyListeners();

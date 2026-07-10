@@ -11,7 +11,8 @@ Future<WorkerProfile?> showEditProfileSheet({
     context: context,
     backgroundColor: Vibe.bgSoft,
     isScrollControlled: true,
-    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+    shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
     builder: (_) => _EditProfileSheet(profile: profile),
   );
 }
@@ -26,9 +27,12 @@ class _EditProfileSheet extends StatefulWidget {
 
 class _EditProfileSheetState extends State<_EditProfileSheet> {
   final _formKey = GlobalKey<FormState>();
-  late final _nameController = TextEditingController(text: widget.profile.fullName);
-  late final _phoneController = TextEditingController(text: widget.profile.phone);
-  late final _territoryController = TextEditingController(text: widget.profile.territory);
+  late final _nameController =
+      TextEditingController(text: widget.profile.fullName);
+  late final _phoneController =
+      TextEditingController(text: widget.profile.phone);
+  late final _territoryController =
+      TextEditingController(text: widget.profile.territory);
 
   @override
   void dispose() {
@@ -53,7 +57,8 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding:
+          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
         child: Form(
@@ -62,13 +67,19 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('profile.edit_profile'.tr, style: const TextStyle(color: Vibe.text, fontSize: 16, fontWeight: FontWeight.w800)),
+              Text('profile.edit_profile'.tr,
+                  style: const TextStyle(
+                      color: Vibe.text,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800)),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _nameController,
                 style: const TextStyle(color: Vibe.text),
                 decoration: InputDecoration(labelText: 'profile.full_name'.tr),
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'profile.required'.tr : null,
+                validator: (v) => (v == null || v.trim().isEmpty)
+                    ? 'profile.required'.tr
+                    : null,
               ),
               const SizedBox(height: 12),
               TextFormField(
@@ -76,14 +87,18 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
                 style: const TextStyle(color: Vibe.text),
                 keyboardType: TextInputType.phone,
                 decoration: InputDecoration(labelText: 'profile.phone'.tr),
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'profile.required'.tr : null,
+                validator: (v) => (v == null || v.trim().isEmpty)
+                    ? 'profile.required'.tr
+                    : null,
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _territoryController,
                 style: const TextStyle(color: Vibe.text),
                 decoration: InputDecoration(labelText: 'profile.territory'.tr),
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'profile.required'.tr : null,
+                validator: (v) => (v == null || v.trim().isEmpty)
+                    ? 'profile.required'.tr
+                    : null,
               ),
               const SizedBox(height: 20),
               SizedBox(
@@ -93,7 +108,8 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Vibe.violet,
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
                   ),
                   child: Text('profile.save_changes'.tr),
                 ),

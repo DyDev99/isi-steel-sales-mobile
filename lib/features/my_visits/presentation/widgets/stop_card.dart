@@ -7,9 +7,9 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_
 
 class StopCard extends StatelessWidget {
   const StopCard({
-    super.key, 
-    required this.stop, 
-    required this.selected, 
+    super.key,
+    required this.stop,
+    required this.selected,
     required this.onTap,
     this.onCartTap,
   });
@@ -20,18 +20,22 @@ class StopCard extends StatelessWidget {
   final VoidCallback? onCartTap;
 
   Color get _statusBgColor => switch (stop.status) {
-        VisitStatus.pending => Vibe.muted.withOpacity(0.1),
-        VisitStatus.enRoute || VisitStatus.arrived => Vibe.violet.withOpacity(0.12),
-        VisitStatus.checkedIn => Vibe.amber.withOpacity(0.12),
-        VisitStatus.checkedOut => const Color(0xFFE6F7ED), // Exact crisp green background from image_0fcd7c.png
-        VisitStatus.missed => Vibe.danger.withOpacity(0.1),
+        VisitStatus.pending => Vibe.muted.withValues(alpha: 0.1),
+        VisitStatus.enRoute ||
+        VisitStatus.arrived =>
+          Vibe.violet.withValues(alpha: 0.12),
+        VisitStatus.checkedIn => Vibe.amber.withValues(alpha: 0.12),
+        VisitStatus.checkedOut => const Color(
+            0xFFE6F7ED), // Exact crisp green background from image_0fcd7c.png
+        VisitStatus.missed => Vibe.danger.withValues(alpha: 0.1),
       };
 
   Color get _statusTextColor => switch (stop.status) {
         VisitStatus.pending => Vibe.muted,
         VisitStatus.enRoute || VisitStatus.arrived => Vibe.violet,
         VisitStatus.checkedIn => Vibe.amber,
-        VisitStatus.checkedOut => const Color(0xFF2EA893), // Done text tone matching image_0fcd7c.png
+        VisitStatus.checkedOut =>
+          const Color(0xFF2EA893), // Done text tone matching image_0fcd7c.png
         VisitStatus.missed => Vibe.danger,
       };
 
@@ -60,11 +64,12 @@ class StopCard extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(16.r), // Ultra smooth outer container corners
+            borderRadius: BorderRadius.circular(
+                16.r), // Ultra smooth outer container corners
             border: Border.all(color: const Color(0xFFEAECEF), width: 1.w),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.015),
+                color: Colors.black.withValues(alpha: 0.015),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -87,12 +92,11 @@ class StopCard extends StatelessWidget {
                     color: selected ? Colors.white : const Color(0xFF2F6FED),
                     fontSize: 12.5.sp,
                     fontWeight: FontWeight.w800,
-                    fontFamily: 'Roboto',
                   ),
                 ),
               ),
               SizedBox(width: 14.w),
-              
+
               // 2. Structured Meta Labels Column
               Expanded(
                 child: Column(
@@ -103,10 +107,10 @@ class StopCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: const Color(0xFF1E293B), // High-contrast sleek slate header
-                        fontSize: 13.5.sp, 
+                        color: const Color(
+                            0xFF1E293B), // High-contrast sleek slate header
+                        fontSize: 13.5.sp,
                         fontWeight: FontWeight.w800,
-                        fontFamily: 'Roboto',
                       ),
                     ),
                     SizedBox(height: 3.h),
@@ -115,9 +119,8 @@ class StopCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: const Color(0xFF64748B), 
+                        color: const Color(0xFF64748B),
                         fontSize: 11.sp,
-                        fontFamily: 'Roboto',
                       ),
                     ),
                   ],
@@ -133,9 +136,10 @@ class StopCard extends StatelessWidget {
                   },
                   borderRadius: BorderRadius.circular(100),
                   child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF2EA893).withOpacity(0.12),
+                      color: const Color(0xFF2EA893).withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(20.r),
                     ),
                     child: Row(
@@ -158,21 +162,20 @@ class StopCard extends StatelessWidget {
                 ),
                 SizedBox(width: 6.w),
               ],
-              
+
               // 4. Clean Pill Status Badge from image_0fcd7c.png
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 5.h),
                 decoration: BoxDecoration(
-                  color: _statusBgColor, 
+                  color: _statusBgColor,
                   borderRadius: BorderRadius.circular(20.r),
                 ),
                 child: Text(
-                  stop.status.label, 
+                  stop.status.label,
                   style: TextStyle(
-                    color: _statusTextColor, 
-                    fontSize: 11.sp, 
+                    color: _statusTextColor,
+                    fontSize: 11.sp,
                     fontWeight: FontWeight.w700,
-                    fontFamily: 'Roboto',
                   ),
                 ),
               ),

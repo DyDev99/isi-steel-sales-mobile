@@ -13,5 +13,6 @@ class AddLeadDocument extends LeadUseCase<void, AddLeadDocumentParams> {
   final LeadRepository _repository;
 
   @override
-  Future<void> call(AddLeadDocumentParams params) => _repository.addDocument(params.leadId, params.document);
+  Future<void> call(AddLeadDocumentParams params) =>
+      _repository.addDocument(params.leadId, params.document);
 }

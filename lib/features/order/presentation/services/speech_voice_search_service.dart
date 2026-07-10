@@ -14,7 +14,8 @@ class SpeechVoiceSearchService implements VoiceSearchService {
     final navigator = navigatorKey.currentState;
     if (navigator == null) return null;
     return navigator.push<String>(
-      MaterialPageRoute(fullscreenDialog: true, builder: (_) => const VoiceSearchScreen()),
+      MaterialPageRoute(
+          fullscreenDialog: true, builder: (_) => const VoiceSearchScreen()),
     );
   }
 }

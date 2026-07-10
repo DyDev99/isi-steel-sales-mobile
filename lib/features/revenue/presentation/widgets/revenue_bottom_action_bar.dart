@@ -37,9 +37,15 @@ class RevenueBottomActionBar extends StatelessWidget {
             children: [
               _SummaryRow(label: 'revenue.cart.subtotal'.tr, value: subtotal),
               if (discountAmount > 0)
-                _SummaryRow(label: 'revenue.cart.discount'.tr, value: -discountAmount, isDiscount: true),
+                _SummaryRow(
+                    label: 'revenue.cart.discount'.tr,
+                    value: -discountAmount,
+                    isDiscount: true),
               const Divider(color: Vibe.divider, height: 16),
-              _SummaryRow(label: 'revenue.cart.total'.tr, value: total, emphasize: true),
+              _SummaryRow(
+                  label: 'revenue.cart.total'.tr,
+                  value: total,
+                  emphasize: true),
               const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,
@@ -49,9 +55,11 @@ class RevenueBottomActionBar extends StatelessWidget {
                     backgroundColor: Vibe.violet,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
                   ),
-                  child: Text('revenue.cart.create_order'.tr, style: const TextStyle(fontWeight: FontWeight.w800)),
+                  child: Text('revenue.cart.create_order'.tr,
+                      style: const TextStyle(fontWeight: FontWeight.w800)),
                 ),
               ),
             ],
@@ -63,7 +71,11 @@ class RevenueBottomActionBar extends StatelessWidget {
 }
 
 class _SummaryRow extends StatelessWidget {
-  const _SummaryRow({required this.label, required this.value, this.emphasize = false, this.isDiscount = false});
+  const _SummaryRow(
+      {required this.label,
+      required this.value,
+      this.emphasize = false,
+      this.isDiscount = false});
 
   final String label;
   final double value;
@@ -80,16 +92,22 @@ class _SummaryRow extends StatelessWidget {
             child: Text(
               label,
               style: TextStyle(
-                color: emphasize ? Vibe.text : (isDiscount ? Vibe.danger : Vibe.muted),
+                color: emphasize
+                    ? Vibe.text
+                    : (isDiscount ? Vibe.danger : Vibe.muted),
                 fontSize: emphasize ? 15 : 13,
                 fontWeight: emphasize ? FontWeight.w800 : FontWeight.w500,
               ),
             ),
           ),
           Text(
-            value < 0 ? '-\$${(-value).toStringAsFixed(2)}' : '\$${value.toStringAsFixed(2)}',
+            value < 0
+                ? '-\$${(-value).toStringAsFixed(2)}'
+                : '\$${value.toStringAsFixed(2)}',
             style: TextStyle(
-              color: emphasize ? Vibe.violet : (isDiscount ? Vibe.danger : Vibe.text),
+              color: emphasize
+                  ? Vibe.violet
+                  : (isDiscount ? Vibe.danger : Vibe.text),
               fontSize: emphasize ? 16 : 13,
               fontWeight: emphasize ? FontWeight.w900 : FontWeight.w600,
             ),

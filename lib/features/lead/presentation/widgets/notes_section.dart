@@ -34,7 +34,8 @@ class _NotesSectionState extends State<NotesSection> {
         if (widget.notes.isEmpty)
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 8),
-            child: Text('No notes yet', style: TextStyle(color: Vibe.muted, fontSize: 12.5)),
+            child: Text('No notes yet',
+                style: TextStyle(color: Vibe.muted, fontSize: 12.5)),
           )
         else
           ...widget.notes.map(
@@ -47,7 +48,8 @@ class _NotesSectionState extends State<NotesSection> {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: Vibe.stroke),
               ),
-              child: Text(n, style: const TextStyle(color: Vibe.text, fontSize: 13)),
+              child: Text(n,
+                  style: const TextStyle(color: Vibe.text, fontSize: 13)),
             ),
           ),
         const SizedBox(height: 8),
@@ -63,7 +65,8 @@ class _NotesSectionState extends State<NotesSection> {
                   hintStyle: const TextStyle(color: Vibe.muted, fontSize: 13),
                   filled: true,
                   fillColor: Vibe.surface,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(color: Vibe.stroke),

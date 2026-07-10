@@ -6,23 +6,19 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/local/localized_builder.dart';
 import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/route_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/seed_isi_tower_test_route.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/data/local/visit_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_plan.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_stop.dart'; 
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_stop.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_status.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/active_route_bloc.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/active_route_event.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/location_tracking_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/route_dashboard_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/route_dashboard_state.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/route_sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/route_sync_state.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/visit_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/navigation/open_route_dispatch.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/my_visits_history_screen.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/route_dispatch_screen.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/route_skeletons.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/region_card.dart';
 
@@ -30,14 +26,16 @@ class MyVisitsDashboardScreen extends StatefulWidget {
   const MyVisitsDashboardScreen({super.key});
 
   @override
-  State<MyVisitsDashboardScreen> createState() => _MyVisitsDashboardScreenState();
+  State<MyVisitsDashboardScreen> createState() =>
+      _MyVisitsDashboardScreenState();
 }
 
 class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
   DateTime _focusedMonth = DateTime.now();
   DateTime _selectedDate = DateTime.now();
-  String? _selectedStopId; 
-  final Set<String> _collapsedRegions = {}; 
+  String? _selectedStopId;
+  final Set<String> _collapsedRegions = {};
+  int _pendingSyncBump = 0;
 
   bool get _isToday {
     final now = DateTime.now();
@@ -49,65 +47,62 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<RouteSyncCubit>().syncIfNeeded(); 
+    context.read<RouteSyncCubit>().syncIfNeeded();
+    context.read<RouteSyncCubit>().pushPending();
   }
 
   Future<void> _openRoute(BuildContext context, String routeId) async {
-    final syncCubit = context.read<RouteSyncCubit>(); 
-    final dashboardCubit = context.read<RouteDashboardCubit>(); 
-    await Navigator.of(context).push(MaterialPageRoute(
-      settings: const RouteSettings(name: RouteDispatchScreen.routeName), 
-      builder: (_) => MultiBlocProvider(
-        providers: [
-          BlocProvider.value(value: syncCubit), 
-          BlocProvider(create: (_) => sl<ActiveRouteBloc>()..add(ActiveRouteLoadRequested(routeId))), 
-          BlocProvider(create: (_) => sl<LocationTrackingCubit>()), 
-          BlocProvider(create: (_) => sl<VisitCubit>()), 
-        ],
-        child: LocalizedBuilder(builder: (_) => const RouteDispatchScreen()), 
-      ),
-    ));
+    final syncCubit = context.read<RouteSyncCubit>();
+    final dashboardCubit = context.read<RouteDashboardCubit>();
+    await openRouteDispatch(context, routeId, syncCubit: syncCubit);
     if (!mounted) return;
-    dashboardCubit.load(); 
+    dashboardCubit.load();
   }
 
   Future<void> _seedTestRoute(BuildContext context) async {
-    await seedIsiTowerTestRoute(sl<RouteLocalDataSource>()); 
+    await seedIsiTowerTestRoute(sl<RouteLocalDataSource>());
     if (!context.mounted) return;
-    context.read<RouteDashboardCubit>().load(); 
+    context.read<RouteDashboardCubit>().load();
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Seeded test route: ISI Tower')), 
+      const SnackBar(content: Text('Seeded test route: ISI Tower')),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F6F9), 
-      floatingActionButton: kDebugMode 
+      backgroundColor: const Color(0xFFF3F6F9),
+      floatingActionButton: kDebugMode
           ? FloatingActionButton.small(
-              heroTag: 'seed-test-route', 
-              backgroundColor: Vibe.violet, 
-              tooltip: 'Seed ISI Tower test route', 
-              onPressed: () => _seedTestRoute(context), 
-              child: const Icon(Icons.bug_report_rounded, color: Colors.white), 
+              heroTag: 'seed-test-route',
+              backgroundColor: Vibe.violet,
+              tooltip: 'Seed ISI Tower test route',
+              onPressed: () => _seedTestRoute(context),
+              child: const Icon(Icons.bug_report_rounded, color: Colors.white),
             )
           : null,
       body: SafeArea(
-        child: BlocListener<RouteSyncCubit, RouteSyncState>( 
-          listenWhen: (prev, curr) => curr is RouteSyncSucceeded, 
-          listener: (context, _) => context.read<RouteDashboardCubit>().load(), 
-          child: BlocBuilder<RouteDashboardCubit, RouteDashboardState>( 
+        child: BlocListener<RouteSyncCubit, RouteSyncState>(
+          listenWhen: (prev, curr) => curr is RouteSyncSucceeded,
+          listener: (context, _) {
+            context.read<RouteDashboardCubit>().load();
+            if (kDebugMode) setState(() => _pendingSyncBump++);
+          },
+          child: BlocBuilder<RouteDashboardCubit, RouteDashboardState>(
             builder: (context, state) => switch (state) {
-              RouteDashboardLoaded() => RefreshIndicator( 
-                  color: Vibe.violet, 
-                  backgroundColor: Vibe.bgSoft, 
+              RouteDashboardLoaded() => RefreshIndicator(
+                  color: Vibe.violet,
+                  backgroundColor: Vibe.bgSoft,
                   onRefresh: () async {
-                    await context.read<RouteSyncCubit>().refresh(); 
-                    if (context.mounted) await context.read<RouteDashboardCubit>().load(); 
+                    final syncCubit = context.read<RouteSyncCubit>();
+                    await syncCubit.refresh();
+                    await syncCubit.pushPending();
+                    if (context.mounted) {
+                      await context.read<RouteDashboardCubit>().load();
+                    }
                   },
                   child: ListView(
-                    padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 20.h), 
+                    padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 20.h),
                     children: [
                       // 1. Grid Calendar Section
                       _GridCalendarCard(
@@ -120,7 +115,7 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
                           HapticFeedback.lightImpact();
                           setState(() {
                             _selectedDate = date;
-                            _selectedStopId = null; 
+                            _selectedStopId = null;
                           });
                         },
                       ),
@@ -128,22 +123,32 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
 
                       // 2. Activity History Section
                       _ActivityHistoryRibbon(
-                        onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                          settings: const RouteSettings(name: MyVisitsHistoryScreen.routeName), 
-                          builder: (_) => const MyVisitsHistoryScreen(), 
+                        onTap: () =>
+                            Navigator.of(context).push(MaterialPageRoute(
+                          settings: const RouteSettings(
+                              name: MyVisitsHistoryScreen.routeName),
+                          builder: (_) => const MyVisitsHistoryScreen(),
                         )),
                       ),
                       SizedBox(height: 20.h),
 
+                      if (kDebugMode) ...[
+                        _PendingSyncDebugBadge(key: ValueKey(_pendingSyncBump)),
+                        SizedBox(height: 12.h),
+                      ],
+
                       // 3. Conditional Day Header Label
                       Text(
-                        _isToday ? 'my_visits.flow.today'.tr.toUpperCase() : DateFormat('EEEE, MMMM d').format(_selectedDate).toUpperCase(), 
+                        _isToday
+                            ? 'my_visits.flow.today'.tr.toUpperCase()
+                            : DateFormat('EEEE, MMMM d')
+                                .format(_selectedDate)
+                                .toUpperCase(),
                         style: TextStyle(
-                          color: Vibe.text, 
-                          fontSize: 14.sp, 
-                          fontWeight: FontWeight.w900, 
+                          color: Vibe.text,
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w900,
                           letterSpacing: 0.5,
-                          fontFamily: 'Roboto',
                         ),
                       ),
                       SizedBox(height: 10.h),
@@ -153,9 +158,10 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
                     ],
                   ),
                 ),
-              RouteDashboardError(:final message) => 
-                Center(child: Text(message, style: const TextStyle(color: Vibe.muted))), 
-              _ => const RouteDashboardSkeleton(), 
+              RouteDashboardError(:final message) => Center(
+                  child:
+                      Text(message, style: const TextStyle(color: Vibe.muted))),
+              _ => const RouteDashboardSkeleton(),
             },
           ),
         ),
@@ -163,17 +169,16 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
     );
   }
 
-  Widget _buildFilteredRouteContent(BuildContext context, List<RoutePlan> routes) {
+  Widget _buildFilteredRouteContent(
+      BuildContext context, List<RoutePlan> routes) {
     final filteredRoutes = routes.where((route) {
       return (route.id.hashCode + _selectedDate.day) % 2 == 0;
     }).toList();
 
     final List<_RouteStopWithPlanId> stopsWithPlan = [];
     for (var route in filteredRoutes) {
-      if (route.stops != null) {
-        for (var stop in route.stops!) {
-          stopsWithPlan.add(_RouteStopWithPlanId(stop: stop, routeId: route.id));
-        }
+      for (var stop in route.stops) {
+        stopsWithPlan.add(_RouteStopWithPlanId(stop: stop, routeId: route.id));
       }
     }
 
@@ -184,11 +189,12 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.calendar_today_outlined, size: 28.w, color: Vibe.muted),
+              Icon(Icons.calendar_today_outlined,
+                  size: 28.w, color: Vibe.muted),
               SizedBox(height: 10.h),
               Text(
                 'No customer visits scheduled for this date',
-                style: TextStyle(color: Vibe.muted, fontSize: 12.sp, fontFamily: 'Roboto'),
+                style: TextStyle(color: Vibe.muted, fontSize: 12.sp),
               ),
             ],
           ),
@@ -211,7 +217,9 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
         for (final regionName in regionNames) ...[
           Builder(builder: (context) {
             final items = grouped[regionName]!;
-            final completed = items.where((i) => i.stop.status == VisitStatus.checkedOut).length;
+            final completed = items
+                .where((i) => i.stop.status == VisitStatus.checkedOut)
+                .length;
             final expanded = !_collapsedRegions.contains(regionName);
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -270,6 +278,38 @@ class _RouteStopWithPlanId {
   const _RouteStopWithPlanId({required this.stop, required this.routeId});
 }
 
+/// Debug-only visibility into the visit-capture push-sync queue — not
+/// production UX, just enough to demonstrate/verify the pending count
+/// draining after `RouteSyncCubit.pushPending()` runs. Rebuilt (via its
+/// `ValueKey`) whenever a sync completes.
+class _PendingSyncDebugBadge extends StatelessWidget {
+  const _PendingSyncDebugBadge({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<int>(
+      future: sl<VisitLocalDataSource>().countPendingVisitRecords(),
+      builder: (context, snapshot) {
+        final count = snapshot.data;
+        return Container(
+          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+          decoration: BoxDecoration(
+            color: Vibe.bgSoft,
+            borderRadius: BorderRadius.circular(8.r),
+            border: Border.all(color: Vibe.stroke),
+          ),
+          child: Text(
+            count == null
+                ? 'Pending sync: …'
+                : 'Pending sync: $count record(s)',
+            style: TextStyle(color: Vibe.muted, fontSize: 11.sp),
+          ),
+        );
+      },
+    );
+  }
+}
+
 /// Dynamic Region Collapsible Header Component
 class RegionGroupHeader extends StatelessWidget {
   const RegionGroupHeader({
@@ -299,11 +339,10 @@ class RegionGroupHeader extends StatelessWidget {
             Text(
               regionName.toUpperCase(),
               style: TextStyle(
-                color: Vibe.text.withOpacity(0.85),
+                color: Vibe.text.withValues(alpha: 0.85),
                 fontSize: 12.sp,
                 fontWeight: FontWeight.w900,
                 letterSpacing: 0.6,
-                fontFamily: 'Roboto',
               ),
             ),
             SizedBox(width: 8.w),
@@ -319,7 +358,6 @@ class RegionGroupHeader extends StatelessWidget {
                   color: const Color(0xFF5A6773),
                   fontSize: 10.sp,
                   fontWeight: FontWeight.bold,
-                  fontFamily: 'Roboto',
                 ),
               ),
             ),
@@ -329,7 +367,7 @@ class RegionGroupHeader extends StatelessWidget {
               duration: const Duration(milliseconds: 200),
               child: Icon(
                 Icons.keyboard_arrow_up_rounded,
-                color: Vibe.text.withOpacity(0.6),
+                color: Vibe.text.withValues(alpha: 0.6),
                 size: 20.w,
               ),
             ),
@@ -355,8 +393,10 @@ class _GridCalendarCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final daysInMonth = DateUtils.getDaysInMonth(focusedMonth.year, focusedMonth.month);
-    final firstDayOffset = DateTime(focusedMonth.year, focusedMonth.month, 1).weekday % 7;
+    final daysInMonth =
+        DateUtils.getDaysInMonth(focusedMonth.year, focusedMonth.month);
+    final firstDayOffset =
+        DateTime(focusedMonth.year, focusedMonth.month, 1).weekday % 7;
     final weekdayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
     return Container(
@@ -365,7 +405,10 @@ class _GridCalendarCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12.r),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8, offset: const Offset(0, 2)),
+          BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 8,
+              offset: const Offset(0, 2)),
         ],
       ),
       child: Column(
@@ -377,35 +420,41 @@ class _GridCalendarCard extends StatelessWidget {
               Text(
                 'CALENDAR',
                 style: TextStyle(
-                  color: Vibe.text.withOpacity(0.8),
+                  color: Vibe.text.withValues(alpha: 0.8),
                   fontSize: 13.sp,
                   fontWeight: FontWeight.w800,
                   letterSpacing: 0.5,
-                  fontFamily: 'Roboto',
                 ),
               ),
               Row(
                 children: [
                   IconButton(
-                    icon: Icon(Icons.chevron_left_rounded, color: Vibe.text, size: 20.w),
+                    icon: Icon(Icons.chevron_left_rounded,
+                        color: Vibe.text, size: 20.w),
                     constraints: const BoxConstraints(),
                     padding: EdgeInsets.zero,
                     onPressed: () {
-                      onMonthChanged(DateTime(focusedMonth.year, focusedMonth.month - 1, 1));
+                      onMonthChanged(DateTime(
+                          focusedMonth.year, focusedMonth.month - 1, 1));
                     },
                   ),
                   SizedBox(width: 8.w),
                   Text(
                     DateFormat('MMMM yyyy').format(focusedMonth),
-                    style: TextStyle(color: Vibe.text, fontSize: 12.sp, fontWeight: FontWeight.bold, fontFamily: 'Roboto'),
+                    style: TextStyle(
+                        color: Vibe.text,
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.bold),
                   ),
                   SizedBox(width: 8.w),
                   IconButton(
-                    icon: Icon(Icons.chevron_right_rounded, color: Vibe.text, size: 20.w),
+                    icon: Icon(Icons.chevron_right_rounded,
+                        color: Vibe.text, size: 20.w),
                     constraints: const BoxConstraints(),
                     padding: EdgeInsets.zero,
                     onPressed: () {
-                      onMonthChanged(DateTime(focusedMonth.year, focusedMonth.month + 1, 1));
+                      onMonthChanged(DateTime(
+                          focusedMonth.year, focusedMonth.month + 1, 1));
                     },
                   ),
                 ],
@@ -413,27 +462,30 @@ class _GridCalendarCard extends StatelessWidget {
             ],
           ),
           SizedBox(height: 12.h),
-          
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: weekdayLabels.map((label) => Expanded(
-              child: Container(
-                alignment: Alignment.center,
-                margin: EdgeInsets.symmetric(horizontal: 1.5.w),
-                padding: EdgeInsets.symmetric(vertical: 5.h),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE9EDF0),
-                  borderRadius: BorderRadius.circular(4.r),
-                ),
-                child: Text(
-                  label,
-                  style: TextStyle(color: const Color(0xFF5A6773), fontSize: 10.sp, fontWeight: FontWeight.bold, fontFamily: 'Roboto'),
-                ),
-              ),
-            )).toList(),
+            children: weekdayLabels
+                .map((label) => Expanded(
+                      child: Container(
+                        alignment: Alignment.center,
+                        margin: EdgeInsets.symmetric(horizontal: 1.5.w),
+                        padding: EdgeInsets.symmetric(vertical: 5.h),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE9EDF0),
+                          borderRadius: BorderRadius.circular(4.r),
+                        ),
+                        child: Text(
+                          label,
+                          style: TextStyle(
+                              color: const Color(0xFF5A6773),
+                              fontSize: 10.sp,
+                              fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ))
+                .toList(),
           ),
           SizedBox(height: 6.h),
-
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -446,10 +498,11 @@ class _GridCalendarCard extends StatelessWidget {
             ),
             itemBuilder: (context, index) {
               if (index < firstDayOffset) return const SizedBox.shrink();
-              
+
               final dayNumber = index - firstDayOffset + 1;
-              final dayDate = DateTime(focusedMonth.year, focusedMonth.month, dayNumber);
-              
+              final dayDate =
+                  DateTime(focusedMonth.year, focusedMonth.month, dayNumber);
+
               final bool isSelected = dayDate.year == selectedDate.year &&
                   dayDate.month == selectedDate.month &&
                   dayDate.day == selectedDate.day;
@@ -460,15 +513,15 @@ class _GridCalendarCard extends StatelessWidget {
               Color dotColor = Colors.transparent;
 
               if (isSelected) {
-                blockBg = const Color(0xFF7A8B99); 
+                blockBg = const Color(0xFF7A8B99);
                 textColor = Colors.white;
               } else {
                 if (dayNumber == 13 || dayNumber == 16) {
-                  blockBg = const Color(0xFFA1DBCB); 
+                  blockBg = const Color(0xFFA1DBCB);
                   hasDot = true;
                   dotColor = const Color(0xFF1B6B59);
                 } else if (dayNumber == 22) {
-                  blockBg = const Color(0xFFF9C38F); 
+                  blockBg = const Color(0xFFF9C38F);
                   hasDot = true;
                   dotColor = const Color(0xFF9E5610);
                 } else if ([4, 10, 23].contains(dayNumber)) {
@@ -494,8 +547,8 @@ class _GridCalendarCard extends StatelessWidget {
                           style: TextStyle(
                             color: textColor,
                             fontSize: 11.5.sp,
-                            fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
-                            fontFamily: 'Roboto',
+                            fontWeight:
+                                isSelected ? FontWeight.w900 : FontWeight.w600,
                           ),
                         ),
                       ),
@@ -505,7 +558,8 @@ class _GridCalendarCard extends StatelessWidget {
                           child: Container(
                             width: 3.5.w,
                             height: 3.5.w,
-                            decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle),
+                            decoration: BoxDecoration(
+                                color: dotColor, shape: BoxShape.circle),
                           ),
                         )
                     ],
@@ -534,17 +588,24 @@ class _ActivityHistoryRibbon extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(10.r),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 6, offset: const Offset(0, 2)),
+            BoxShadow(
+                color: Colors.black.withValues(alpha: 0.02),
+                blurRadius: 6,
+                offset: const Offset(0, 2)),
           ],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'my_visits.history.view_historyTemplate'.tr.toUpperCase() != 'MY_VISITS.HISTORY.VIEW_HISTORYTEMPLATE' 
-                  ? 'my_visits.history.view_historyTemplate'.tr.toUpperCase() 
+              'my_visits.history.view_historyTemplate'.tr.toUpperCase() !=
+                      'MY_VISITS.HISTORY.VIEW_HISTORYTEMPLATE'
+                  ? 'my_visits.history.view_historyTemplate'.tr.toUpperCase()
                   : 'ACTIVITY HISTORY',
-              style: TextStyle(color: Vibe.text, fontSize: 13.sp, fontWeight: FontWeight.w800, fontFamily: 'Roboto'),
+              style: TextStyle(
+                  color: Vibe.text,
+                  fontSize: 13.sp,
+                  fontWeight: FontWeight.w800),
             ),
             Icon(Icons.arrow_forward_ios_rounded, size: 13.w, color: Vibe.text),
           ],

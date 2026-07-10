@@ -29,5 +29,6 @@ class LocationSample extends Equatable {
   final bool isMocked;
 
   @override
-  List<Object?> get props => [id, routeId, latitude, longitude, timestamp, isMocked];
+  List<Object?> get props =>
+      [id, routeId, latitude, longitude, timestamp, isMocked];
 }

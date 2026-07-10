@@ -12,13 +12,16 @@ Future<void> showCatalogFilterSheet({
     context: context,
     backgroundColor: Vibe.bgSoft,
     isScrollControlled: true,
-    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
-    builder: (_) => _CatalogFilterSheet(filter: filter, brands: brands, onApply: onApply),
+    shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
+    builder: (_) =>
+        _CatalogFilterSheet(filter: filter, brands: brands, onApply: onApply),
   );
 }
 
 class _CatalogFilterSheet extends StatefulWidget {
-  const _CatalogFilterSheet({required this.filter, required this.brands, required this.onApply});
+  const _CatalogFilterSheet(
+      {required this.filter, required this.brands, required this.onApply});
   final ProductFilter filter;
   final List<String> brands;
   final void Function(ProductFilter filter) onApply;
@@ -35,7 +38,8 @@ class _CatalogFilterSheetState extends State<_CatalogFilterSheet> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding:
+          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
@@ -47,7 +51,10 @@ class _CatalogFilterSheetState extends State<_CatalogFilterSheet> {
                 children: [
                   const Expanded(
                     child: Text('Filter & sort',
-                        style: TextStyle(color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
+                        style: TextStyle(
+                            color: Vibe.text,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w800)),
                   ),
                   TextButton(
                     onPressed: () => setState(() {
@@ -55,7 +62,8 @@ class _CatalogFilterSheetState extends State<_CatalogFilterSheet> {
                       _availableOnly = false;
                       _sortBy = ProductSortBy.relevance;
                     }),
-                    child: const Text('Clear', style: TextStyle(color: Vibe.muted)),
+                    child: const Text('Clear',
+                        style: TextStyle(color: Vibe.muted)),
                   ),
                 ],
               ),
@@ -86,7 +94,10 @@ class _CatalogFilterSheetState extends State<_CatalogFilterSheet> {
                 onChanged: (v) => setState(() => _availableOnly = v),
                 activeThumbColor: Vibe.violet,
                 title: const Text('In stock only',
-                    style: TextStyle(color: Vibe.text, fontSize: 13, fontWeight: FontWeight.w600)),
+                    style: TextStyle(
+                        color: Vibe.text,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600)),
               ),
               const SizedBox(height: 8),
               SizedBox(
@@ -103,9 +114,11 @@ class _CatalogFilterSheetState extends State<_CatalogFilterSheet> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Vibe.violet,
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
                   ),
-                  child: const Text('Apply', style: TextStyle(fontWeight: FontWeight.w700)),
+                  child: const Text('Apply',
+                      style: TextStyle(fontWeight: FontWeight.w700)),
                 ),
               ),
             ],
@@ -122,12 +135,17 @@ class _Label extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.only(bottom: 8),
-        child: Text(text, style: const TextStyle(color: Vibe.muted, fontSize: 12, fontWeight: FontWeight.w700)),
+        child: Text(text,
+            style: const TextStyle(
+                color: Vibe.muted, fontSize: 12, fontWeight: FontWeight.w700)),
       );
 }
 
 class _ChipGroup<T> extends StatelessWidget {
-  const _ChipGroup({required this.options, required this.selected, required this.onSelected});
+  const _ChipGroup(
+      {required this.options,
+      required this.selected,
+      required this.onSelected});
   final Map<T, String> options;
   final T selected;
   final void Function(T value) onSelected;
@@ -145,7 +163,9 @@ class _ChipGroup<T> extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
-              color: isSelected ? Vibe.violet.withValues(alpha: 0.2) : Vibe.surface,
+              color: isSelected
+                  ? Vibe.violet.withValues(alpha: 0.2)
+                  : Vibe.surface,
               borderRadius: BorderRadius.circular(999),
               border: Border.all(color: isSelected ? Vibe.violet : Vibe.stroke),
             ),

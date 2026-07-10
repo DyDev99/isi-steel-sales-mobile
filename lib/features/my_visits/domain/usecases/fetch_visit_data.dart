@@ -30,7 +30,8 @@ class VisitData extends Equatable {
   final List<VisitPhoto> photos;
 
   @override
-  List<Object?> get props => [orderLines, stockUpdates, returns, collections, notes, photos];
+  List<Object?> get props =>
+      [orderLines, stockUpdates, returns, collections, notes, photos];
 }
 
 /// Aggregates every capture-list read for a stop into one call, so
@@ -50,7 +51,9 @@ class FetchVisitData extends UseCase<VisitData, StopIdParams> {
     final photos = await _repository.fetchPhotos(params.stopId);
 
     Failure? firstFailure;
-    T unwrap<T>(Result<T> r, T empty) => r.when(success: (v) => v, failure: (f) {
+    T unwrap<T>(Result<T> r, T empty) => r.when(
+        success: (v) => v,
+        failure: (f) {
           firstFailure ??= f;
           return empty;
         });

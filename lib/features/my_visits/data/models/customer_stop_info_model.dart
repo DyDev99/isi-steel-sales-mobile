@@ -25,10 +25,12 @@ class CustomerStopInfoModel extends CustomerStopInfo {
         phone: json['phone'] as String,
         address: json['address'] as String,
         territory: json['territory'] as String,
-        territoryType: TerritoryType.values.byName(json['territoryType'] as String),
+        territoryType:
+            TerritoryType.values.byName(json['territoryType'] as String),
         latitude: (json['latitude'] as num).toDouble(),
         longitude: (json['longitude'] as num).toDouble(),
-        geofenceRadiusOverride: (json['geofenceRadiusOverride'] as num?)?.toDouble(),
+        geofenceRadiusOverride:
+            (json['geofenceRadiusOverride'] as num?)?.toDouble(),
       );
 
   factory CustomerStopInfoModel.fromRow(DataMap row) => CustomerStopInfoModel(
@@ -39,10 +41,12 @@ class CustomerStopInfoModel extends CustomerStopInfo {
         phone: row['phone'] as String,
         address: row['address'] as String,
         territory: row['territory'] as String,
-        territoryType: TerritoryType.values.byName(row['territory_type'] as String),
+        territoryType:
+            TerritoryType.values.byName(row['territory_type'] as String),
         latitude: (row['latitude'] as num).toDouble(),
         longitude: (row['longitude'] as num).toDouble(),
-        geofenceRadiusOverride: (row['geofence_radius_override'] as num?)?.toDouble(),
+        geofenceRadiusOverride:
+            (row['geofence_radius_override'] as num?)?.toDouble(),
       );
 
   DataMap toRow() => {

@@ -18,7 +18,8 @@ final class CustomerSyncInProgress extends CustomerSyncState {
 }
 
 final class CustomerSyncSucceeded extends CustomerSyncState {
-  const CustomerSyncSucceeded({required this.upserted, required this.deleted, required this.syncedAt});
+  const CustomerSyncSucceeded(
+      {required this.upserted, required this.deleted, required this.syncedAt});
   final int upserted;
   final int deleted;
   final DateTime syncedAt;

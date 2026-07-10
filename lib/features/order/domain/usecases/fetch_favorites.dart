@@ -8,5 +8,6 @@ class FetchFavorites extends UseCase<List<Product>, NoParams> {
   final ProductRepository _repository;
 
   @override
-  ResultFuture<List<Product>> call(NoParams params) => _repository.fetchFavorites();
+  ResultFuture<List<Product>> call(NoParams params) =>
+      _repository.fetchFavorites();
 }

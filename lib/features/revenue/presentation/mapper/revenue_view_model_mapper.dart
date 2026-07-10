@@ -28,7 +28,8 @@ class ProductViewModel {
 }
 
 class CategoryChipViewModel {
-  const CategoryChipViewModel({required this.id, required this.label, required this.selected});
+  const CategoryChipViewModel(
+      {required this.id, required this.label, required this.selected});
 
   /// `null` id represents the "All" chip.
   final String? id;
@@ -37,7 +38,8 @@ class CategoryChipViewModel {
 }
 
 class DiscountChipViewModel {
-  const DiscountChipViewModel({required this.id, required this.label, required this.selected});
+  const DiscountChipViewModel(
+      {required this.id, required this.label, required this.selected});
 
   final String id;
   final String label;
@@ -70,13 +72,16 @@ class RevenueViewModelMapper {
 
   static String formatCurrency(double value) => '\$${value.toStringAsFixed(2)}';
 
-  static ProductViewModel toProductViewModel(Product product, {required int quantityInCart}) {
+  static ProductViewModel toProductViewModel(Product product,
+      {required int quantityInCart}) {
     return ProductViewModel(
       id: product.id,
       name: product.name,
       subtitle: '${product.sku} · ${product.unit}',
       formattedPrice: formatCurrency(product.unitPrice),
-      stockLabel: product.isInStock ? '${product.availableStock.toStringAsFixed(0)} in stock' : 'Out of stock',
+      stockLabel: product.isInStock
+          ? '${product.availableStock.toStringAsFixed(0)} in stock'
+          : 'Out of stock',
       inStock: product.isInStock,
       maxQuantity: product.availableStock.floor(),
       quantityInCart: quantityInCart,
@@ -88,9 +93,13 @@ class RevenueViewModelMapper {
     required String? selectedId,
   }) {
     return [
-      CategoryChipViewModel(id: null, label: 'All', selected: selectedId == null),
+      CategoryChipViewModel(
+          id: null, label: 'All', selected: selectedId == null),
       for (final category in categories)
-        CategoryChipViewModel(id: category.id, label: category.name, selected: category.id == selectedId),
+        CategoryChipViewModel(
+            id: category.id,
+            label: category.name,
+            selected: category.id == selectedId),
     ];
   }
 
@@ -100,11 +109,15 @@ class RevenueViewModelMapper {
   }) {
     return [
       for (final option in options)
-        DiscountChipViewModel(id: option.id, label: option.label, selected: option.id == selectedId),
+        DiscountChipViewModel(
+            id: option.id,
+            label: option.label,
+            selected: option.id == selectedId),
     ];
   }
 
-  static CreditSummaryViewModel toCreditSummaryViewModel(CustomerCredit credit) {
+  static CreditSummaryViewModel toCreditSummaryViewModel(
+      CustomerCredit credit) {
     return CreditSummaryViewModel(
       customerName: credit.customerName,
       formattedAvailableCredit: formatCurrency(credit.availableCredit),

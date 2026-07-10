@@ -12,7 +12,8 @@ class CameraProofPhotoService implements ProofPhotoService {
   const CameraProofPhotoService();
 
   @override
-  Future<ProofPhotoResult?> captureStamped({required double latitude, required double longitude}) async {
+  Future<ProofPhotoResult?> captureStamped(
+      {required double latitude, required double longitude}) async {
     final XFile? shot = await ImagePicker().pickImage(
       source: ImageSource.camera,
       imageQuality: 70, // in-picker compression
@@ -78,7 +79,8 @@ Uint8List _stampImage(_StampRequest req) {
 
   var y = top + 8;
   for (final line in req.lines) {
-    img.drawString(decoded, line, font: font, x: paddingX, y: y, color: img.ColorRgb8(255, 255, 255));
+    img.drawString(decoded, line,
+        font: font, x: paddingX, y: y, color: img.ColorRgb8(255, 255, 255));
     y += lineHeight;
   }
 

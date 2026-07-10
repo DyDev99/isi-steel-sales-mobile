@@ -20,5 +20,13 @@ class CheckOutRecord extends Equatable {
   final String visitSummary;
 
   @override
-  List<Object?> get props => [id, stopId, timestamp, latitude, longitude, durationMinutes, visitSummary];
+  List<Object?> get props => [
+        id,
+        stopId,
+        timestamp,
+        latitude,
+        longitude,
+        durationMinutes,
+        visitSummary
+      ];
 }

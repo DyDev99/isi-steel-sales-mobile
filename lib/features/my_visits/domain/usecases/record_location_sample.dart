@@ -7,5 +7,6 @@ class RecordLocationSample extends UseCase<void, LocationSample> {
   const RecordLocationSample(this._repository);
   final LocationSampleRepository _repository;
   @override
-  ResultFuture<void> call(LocationSample params) => _repository.recordSample(params);
+  ResultFuture<void> call(LocationSample params) =>
+      _repository.recordSample(params);
 }

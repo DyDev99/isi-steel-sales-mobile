@@ -22,5 +22,6 @@ class FraudPolicy extends Equatable {
   final double maxSpeedKmh;
 
   @override
-  List<Object?> get props => [blockOnMockLocation, blockOnVpn, maxAccuracyMeters, maxSpeedKmh];
+  List<Object?> get props =>
+      [blockOnMockLocation, blockOnVpn, maxAccuracyMeters, maxSpeedKmh];
 }

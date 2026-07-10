@@ -7,9 +7,9 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_
 
 class RegionCard extends StatelessWidget {
   const RegionCard({
-    super.key, 
-    required this.stop, 
-    required this.selected, 
+    super.key,
+    required this.stop,
+    required this.selected,
     required this.onTap,
     this.onCartTap,
   });
@@ -20,18 +20,22 @@ class RegionCard extends StatelessWidget {
   final VoidCallback? onCartTap;
 
   Color get _statusBgColor => switch (stop.status) {
-        VisitStatus.pending => Vibe.muted.withOpacity(0.1),
-        VisitStatus.enRoute || VisitStatus.arrived => Vibe.violet.withOpacity(0.12),
-        VisitStatus.checkedIn => Vibe.amber.withOpacity(0.12),
-        VisitStatus.checkedOut => const Color(0xFFE6F7ED), // Match image_0fcd7c.png crisp green background
-        VisitStatus.missed => Vibe.danger.withOpacity(0.1),
+        VisitStatus.pending => Vibe.muted.withValues(alpha: 0.1),
+        VisitStatus.enRoute ||
+        VisitStatus.arrived =>
+          Vibe.violet.withValues(alpha: 0.12),
+        VisitStatus.checkedIn => Vibe.amber.withValues(alpha: 0.12),
+        VisitStatus.checkedOut => const Color(
+            0xFFE6F7ED), // Match image_0fcd7c.png crisp green background
+        VisitStatus.missed => Vibe.danger.withValues(alpha: 0.1),
       };
 
   Color get _statusTextColor => switch (stop.status) {
         VisitStatus.pending => Vibe.muted,
         VisitStatus.enRoute || VisitStatus.arrived => Vibe.violet,
         VisitStatus.checkedIn => Vibe.amber,
-        VisitStatus.checkedOut => const Color(0xFF2EA893), // Match image_0fcd7c.png Done text color
+        VisitStatus.checkedOut =>
+          const Color(0xFF2EA893), // Match image_0fcd7c.png Done text color
         VisitStatus.missed => Vibe.danger,
       };
 
@@ -59,11 +63,11 @@ class RegionCard extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(16.r), 
+            borderRadius: BorderRadius.circular(16.r),
             border: Border.all(color: const Color(0xFFEAECEF), width: 1.w),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.015),
+                color: Colors.black.withValues(alpha: 0.015),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -86,12 +90,11 @@ class RegionCard extends StatelessWidget {
                     color: selected ? Colors.white : const Color(0xFF2F6FED),
                     fontSize: 12.5.sp,
                     fontWeight: FontWeight.w800,
-                    fontFamily: 'Roboto',
                   ),
                 ),
               ),
               SizedBox(width: 14.w),
-              
+
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -101,10 +104,9 @@ class RegionCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: const Color(0xFF1E293B), 
-                        fontSize: 13.5.sp, 
+                        color: const Color(0xFF1E293B),
+                        fontSize: 13.5.sp,
                         fontWeight: FontWeight.w800,
-                        fontFamily: 'Roboto',
                       ),
                     ),
                     SizedBox(height: 3.h),
@@ -113,9 +115,8 @@ class RegionCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: const Color(0xFF64748B), 
+                        color: const Color(0xFF64748B),
                         fontSize: 11.sp,
-                        fontFamily: 'Roboto',
                       ),
                     ),
                   ],
@@ -131,9 +132,10 @@ class RegionCard extends StatelessWidget {
                   },
                   borderRadius: BorderRadius.circular(100),
                   child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF2EA893).withOpacity(0.12),
+                      color: const Color(0xFF2EA893).withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(20.r),
                     ),
                     child: Row(
@@ -156,20 +158,19 @@ class RegionCard extends StatelessWidget {
                 ),
                 SizedBox(width: 6.w),
               ],
-              
+
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 5.h),
                 decoration: BoxDecoration(
-                  color: _statusBgColor, 
+                  color: _statusBgColor,
                   borderRadius: BorderRadius.circular(20.r),
                 ),
                 child: Text(
-                  stop.status.label, 
+                  stop.status.label,
                   style: TextStyle(
-                    color: _statusTextColor, 
-                    fontSize: 11.sp, 
+                    color: _statusTextColor,
+                    fontSize: 11.sp,
                     fontWeight: FontWeight.w700,
-                    fontFamily: 'Roboto',
                   ),
                 ),
               ),
@@ -213,7 +214,8 @@ class RegionGroupHeader extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(Icons.location_on_rounded, color: const Color(0xFF2F6FED), size: 18.w),
+            Icon(Icons.location_on_rounded,
+                color: const Color(0xFF2F6FED), size: 18.w),
             SizedBox(width: 8.w),
             Expanded(
               child: Text(
@@ -224,7 +226,6 @@ class RegionGroupHeader extends StatelessWidget {
                   color: const Color(0xFF1E293B),
                   fontSize: 13.sp,
                   fontWeight: FontWeight.w800,
-                  fontFamily: 'Roboto',
                 ),
               ),
             ),
@@ -234,12 +235,13 @@ class RegionGroupHeader extends StatelessWidget {
                 color: const Color(0xFF64748B),
                 fontSize: 11.5.sp,
                 fontWeight: FontWeight.w700,
-                fontFamily: 'Roboto',
               ),
             ),
             SizedBox(width: 6.w),
             Icon(
-              expanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+              expanded
+                  ? Icons.keyboard_arrow_up_rounded
+                  : Icons.keyboard_arrow_down_rounded,
               color: const Color(0xFF2F6FED),
               size: 20.w,
             ),

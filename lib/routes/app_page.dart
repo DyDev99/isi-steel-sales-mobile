@@ -33,7 +33,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/r
 class AppPages {
   AppPages._();
 
- // app_page.dart
+  // app_page.dart
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
       case Static.splash:
@@ -61,7 +61,8 @@ class AppPages {
       case Static.lead:
         return _page(
           BlocProvider(
-            create: (_) => GetIt.instance<PipelineBloc>()..add(const PipelineLoadRequested()),
+            create: (_) => GetIt.instance<PipelineBloc>()
+              ..add(const PipelineLoadRequested()),
             child: const PipelineScreen(initialStage: PipelineStage.leads),
           ),
           settings,
@@ -75,7 +76,8 @@ class AppPages {
           MultiBlocProvider(
             providers: [
               BlocProvider(
-                create: (_) => GetIt.instance<ActiveRouteBloc>()..add(const ActiveRouteLoadRequested('routeId')),
+                create: (_) => GetIt.instance<ActiveRouteBloc>()
+                  ..add(const ActiveRouteLoadRequested('routeId')),
               ),
               BlocProvider(
                 create: (_) => GetIt.instance<LocationTrackingCubit>(),
@@ -89,32 +91,33 @@ class AppPages {
           settings,
         );
 
-        case Static.chooseLanguage:
-          return _page(const LanguageSelectionScreen(), settings);
+      case Static.chooseLanguage:
+        return _page(const LanguageSelectionScreen(), settings);
 
-        case Static.profile:
-          return _page(
-            BlocProvider(
-              create: (_) => sl<ProfileCubit>(),
-              child: const ProfileScreen(),
-            ),
-            settings,
-          );
+      case Static.profile:
+        return _page(
+          BlocProvider(
+            create: (_) => sl<ProfileCubit>(),
+            child: const ProfileScreen(),
+          ),
+          settings,
+        );
 
-        case Static.revenue:
-          return _page(
-            BlocProvider(
-              create: (_) => sl<RevenueBloc>()..add(const RevenueStarted()),
-              child: const RevenueScreen(),
-            ),
-            settings,
-          );
+      case Static.revenue:
+        return _page(
+          BlocProvider(
+            create: (_) => sl<RevenueBloc>()..add(const RevenueStarted()),
+            child: const RevenueScreen(),
+          ),
+          settings,
+        );
       default:
         return _page(_NotFound(name: settings.name), settings);
     }
   }
 
-  static MaterialPageRoute<dynamic> _page(Widget child, RouteSettings settings) {
+  static MaterialPageRoute<dynamic> _page(
+      Widget child, RouteSettings settings) {
     // Wrap every named route so its whole subtree (including MainShell and its
     // five tabs) rebuilds live when the language changes — the "hot reload"
     // localization effect, applied app-wide from one place.

@@ -2,7 +2,7 @@ import 'package:isi_steel_sales_mobile/core/error/exceptions.dart';
 import 'package:isi_steel_sales_mobile/core/error/failures.dart';
 import 'package:isi_steel_sales_mobile/core/utils/result.dart';
 import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
-import 'package:isi_steel_sales_mobile/features/revenue/data/datasource/local/revenue_local_data_source.dart';
+import 'package:isi_steel_sales_mobile/features/revenue/data/datasources/local/revenue_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/revenue/domain/entities/customer_credit.dart';
 import 'package:isi_steel_sales_mobile/features/revenue/domain/entities/discount_option.dart';
 import 'package:isi_steel_sales_mobile/features/revenue/domain/entities/product.dart';

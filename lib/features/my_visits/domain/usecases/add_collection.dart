@@ -7,5 +7,6 @@ class AddCollection extends UseCase<void, VisitCollection> {
   const AddCollection(this._repository);
   final VisitRepository _repository;
   @override
-  ResultFuture<void> call(VisitCollection params) => _repository.addCollection(params);
+  ResultFuture<void> call(VisitCollection params) =>
+      _repository.addCollection(params);
 }

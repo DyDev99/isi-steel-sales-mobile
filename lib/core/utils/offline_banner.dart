@@ -19,7 +19,8 @@ class OfflineBanner extends StatelessWidget {
       builder: (context, snapshot) {
         final results = snapshot.data;
         // Before the first event we assume online (avoids a flash on launch).
-        final offline = results != null && results.every((r) => r == ConnectivityResult.none);
+        final offline = results != null &&
+            results.every((r) => r == ConnectivityResult.none);
         if (!offline) return const SizedBox.shrink();
 
         return Container(
@@ -37,7 +38,10 @@ class OfflineBanner extends StatelessWidget {
               Expanded(
                 child: Text(
                   'my_visits.flow.offline_saved'.tr,
-                  style: const TextStyle(color: Vibe.amber, fontSize: 11.5, fontWeight: FontWeight.w600),
+                  style: const TextStyle(
+                      color: Vibe.amber,
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600),
                 ),
               ),
             ],

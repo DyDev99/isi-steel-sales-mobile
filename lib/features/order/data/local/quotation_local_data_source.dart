@@ -7,6 +7,7 @@ import 'package:sqflite/sqflite.dart';
 abstract interface class QuotationLocalDataSource {
   Future<void> insertQuotation(DataMap row);
   Future<void> updateQuotation(DataMap row);
+  Future<void> deleteQuotation(String id);
   Future<DataMap?> getById(String id);
   Future<List<DataMap>> fetchAll();
 }
@@ -19,7 +20,8 @@ class QuotationLocalDataSourceImpl implements QuotationLocalDataSource {
   @override
   Future<void> insertQuotation(DataMap row) async {
     try {
-      await _db.insert('quotations', row, conflictAlgorithm: ConflictAlgorithm.replace);
+      await _db.insert('quotations', row,
+          conflictAlgorithm: ConflictAlgorithm.replace);
     } catch (e) {
       throw CacheException(message: 'Failed to save quotation: $e');
     }
@@ -28,16 +30,27 @@ class QuotationLocalDataSourceImpl implements QuotationLocalDataSource {
   @override
   Future<void> updateQuotation(DataMap row) async {
     try {
-      await _db.update('quotations', row, where: 'id = ?', whereArgs: [row['id']]);
+      await _db
+          .update('quotations', row, where: 'id = ?', whereArgs: [row['id']]);
     } catch (e) {
       throw CacheException(message: 'Failed to update quotation: $e');
     }
   }
 
   @override
+  Future<void> deleteQuotation(String id) async {
+    try {
+      await _db.delete('quotations', where: 'id = ?', whereArgs: [id]);
+    } catch (e) {
+      throw CacheException(message: 'Failed to delete quotation $id: $e');
+    }
+  }
+
+  @override
   Future<DataMap?> getById(String id) async {
     try {
-      final rows = await _db.query('quotations', where: 'id = ?', whereArgs: [id], limit: 1);
+      final rows = await _db.query('quotations',
+          where: 'id = ?', whereArgs: [id], limit: 1);
       return rows.isEmpty ? null : rows.first;
     } catch (e) {
       throw CacheException(message: 'Failed to load quotation $id: $e');

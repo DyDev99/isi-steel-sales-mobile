@@ -24,7 +24,8 @@ final class ProductDetailLoaded extends ProductDetailState {
   final List<Product> warehouseStock;
   final bool isFavorite;
 
-  ProductDetailLoaded copyWith({Product? product, bool? isFavorite}) => ProductDetailLoaded(
+  ProductDetailLoaded copyWith({Product? product, bool? isFavorite}) =>
+      ProductDetailLoaded(
         product: product ?? this.product,
         variants: variants,
         warehouseStock: warehouseStock,

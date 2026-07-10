@@ -21,7 +21,8 @@ List<VisitRecord> buildMockVisitHistory() {
       checkOutTime: daysAgo(0, 10, 15),
       orderPlaced: true,
       collectedAmount: 420.0,
-      notes: 'Restocked steel rods, owner asked for a quote on roofing sheets next visit.',
+      notes:
+          'Restocked steel rods, owner asked for a quote on roofing sheets next visit.',
       photoCount: 3,
       phoneNumber: '+855 12 345 678',
     ),

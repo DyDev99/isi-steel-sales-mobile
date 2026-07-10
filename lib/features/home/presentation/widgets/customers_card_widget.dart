@@ -32,12 +32,23 @@ class CustomerCardWidget extends StatelessWidget {
       headline: '$totalCustomers',
       headlineCaption: 'home.quick_access.total_customers'.tr,
       badge: suspendedCount > 0
-          ? KpiBadge(label: '$suspendedCount ${'home.quick_access.suspended'.tr}', color: Vibe.amber)
+          ? KpiBadge(
+              label: '$suspendedCount ${'home.quick_access.suspended'.tr}',
+              color: Vibe.amber)
           : null,
       segments: [
-        KpiSegment(label: 'home.quick_access.active'.tr, value: activeCount, color: Vibe.success),
-        KpiSegment(label: 'home.quick_access.prospect'.tr, value: prospectCount, color: Vibe.violet),
-        KpiSegment(label: 'home.quick_access.suspended'.tr, value: suspendedCount, color: Vibe.amber),
+        KpiSegment(
+            label: 'home.quick_access.active'.tr,
+            value: activeCount,
+            color: Vibe.success),
+        KpiSegment(
+            label: 'home.quick_access.prospect'.tr,
+            value: prospectCount,
+            color: Vibe.violet),
+        KpiSegment(
+            label: 'home.quick_access.suspended'.tr,
+            value: suspendedCount,
+            color: Vibe.amber),
       ],
       onTap: onTap,
     );

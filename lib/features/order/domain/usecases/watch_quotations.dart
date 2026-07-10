@@ -7,5 +7,6 @@ class WatchQuotations extends StreamUseCase<List<Quotation>, NoParams> {
   final QuotationRepository _repository;
 
   @override
-  Stream<List<Quotation>> call(NoParams params) => _repository.watchQuotations();
+  Stream<List<Quotation>> call(NoParams params) =>
+      _repository.watchQuotations();
 }

@@ -43,7 +43,8 @@ Future<void> seedIsiTowerTestRoute(RouteLocalDataSource localDataSource) async {
     code: 'TEST-002',
     contact: 'Test Contact',
     phone: '+855 12 345 678',
-    address: 'ISI Tower, Sangkat Chom Chao 1, KMH Blvd Corner Street Chom Chao, '
+    address:
+        'ISI Tower, Sangkat Chom Chao 1, KMH Blvd Corner Street Chom Chao, '
         'Phnom Penh 120909, Cambodia',
     territory: 'Phnom Penh',
     territoryType: TerritoryType.urban,

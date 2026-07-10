@@ -16,7 +16,9 @@ class RoutePlanModel extends RoutePlan {
     required super.stops,
   });
 
-  factory RoutePlanModel.fromJson(DataMap json, {required List<RouteStop> stops}) => RoutePlanModel(
+  factory RoutePlanModel.fromJson(DataMap json,
+          {required List<RouteStop> stops}) =>
+      RoutePlanModel(
         id: json['id'] as String,
         name: json['name'] as String,
         repId: json['repId'] as String,
@@ -29,7 +31,9 @@ class RoutePlanModel extends RoutePlan {
         stops: stops,
       );
 
-  factory RoutePlanModel.fromRow(DataMap row, {required List<RouteStop> stops}) => RoutePlanModel(
+  factory RoutePlanModel.fromRow(DataMap row,
+          {required List<RouteStop> stops}) =>
+      RoutePlanModel(
         id: row['id'] as String,
         name: row['name'] as String,
         repId: row['rep_id'] as String,

@@ -36,13 +36,16 @@ class CustomersBloc extends Bloc<CustomersEvent, CustomersState> {
   final FetchRecentCustomers _fetchRecentCustomers;
   final ToggleFavoriteCustomer _toggleFavoriteCustomer;
 
-  Future<void> _onLoad(CustomersLoadRequested event, Emitter<CustomersState> emit) async {
+  Future<void> _onLoad(
+      CustomersLoadRequested event, Emitter<CustomersState> emit) async {
     emit(const CustomersLoading());
 
     final recentResult = await _fetchRecentCustomers(const NoParams());
-    final recent = recentResult.when(success: (r) => r, failure: (_) => const <Customer>[]);
+    final recent = recentResult.when(
+        success: (r) => r, failure: (_) => const <Customer>[]);
 
-    final result = await _browseCustomers(const BrowseCustomersParams(page: 0, pageSize: _pageSize));
+    final result = await _browseCustomers(
+        const BrowseCustomersParams(page: 0, pageSize: _pageSize));
     result.when(
       success: (paged) => emit(CustomersLoaded(
         items: paged.items,
@@ -58,27 +61,44 @@ class CustomersBloc extends Bloc<CustomersEvent, CustomersState> {
     );
   }
 
-  Future<void> _onRefresh(CustomersRefreshRequested event, Emitter<CustomersState> emit) async {
+  Future<void> _onRefresh(
+      CustomersRefreshRequested event, Emitter<CustomersState> emit) async {
     final current = state;
-    if (current is! CustomersLoaded) return _onLoad(const CustomersLoadRequested(), emit);
+    if (current is! CustomersLoaded) {
+      return _onLoad(const CustomersLoadRequested(), emit);
+    }
 
     final result = await _browseCustomers(
-      BrowseCustomersParams(page: 0, pageSize: _pageSize, query: current.query, filter: current.filter),
+      BrowseCustomersParams(
+          page: 0,
+          pageSize: _pageSize,
+          query: current.query,
+          filter: current.filter),
     );
     result.when(
-      success: (paged) => emit(current.copyWith(items: paged.items, page: 0, hasMore: paged.hasMore)),
+      success: (paged) => emit(current.copyWith(
+          items: paged.items, page: 0, hasMore: paged.hasMore)),
       failure: (_) => null,
     );
   }
 
-  Future<void> _onLoadMore(CustomersLoadMoreRequested event, Emitter<CustomersState> emit) async {
+  Future<void> _onLoadMore(
+      CustomersLoadMoreRequested event, Emitter<CustomersState> emit) async {
     final current = state;
-    if (current is! CustomersLoaded || !current.hasMore || current.isLoadingMore) return;
+    if (current is! CustomersLoaded ||
+        !current.hasMore ||
+        current.isLoadingMore) {
+      return;
+    }
 
     emit(current.copyWith(isLoadingMore: true));
     final nextPage = current.page + 1;
     final result = await _browseCustomers(
-      BrowseCustomersParams(page: nextPage, pageSize: _pageSize, query: current.query, filter: current.filter),
+      BrowseCustomersParams(
+          page: nextPage,
+          pageSize: _pageSize,
+          query: current.query,
+          filter: current.filter),
     );
     result.when(
       success: (paged) => emit(current.copyWith(
@@ -91,13 +111,18 @@ class CustomersBloc extends Bloc<CustomersEvent, CustomersState> {
     );
   }
 
-  Future<void> _onSearchChanged(CustomersSearchChanged event, Emitter<CustomersState> emit) async {
+  Future<void> _onSearchChanged(
+      CustomersSearchChanged event, Emitter<CustomersState> emit) async {
     final current = state;
     if (current is! CustomersLoaded) return;
 
     await Future<void>.delayed(const Duration(milliseconds: 300));
     final result = await _browseCustomers(
-      BrowseCustomersParams(page: 0, pageSize: _pageSize, query: event.query, filter: current.filter),
+      BrowseCustomersParams(
+          page: 0,
+          pageSize: _pageSize,
+          query: event.query,
+          filter: current.filter),
     );
     result.when(
       success: (paged) => emit(current.copyWith(
@@ -110,12 +135,17 @@ class CustomersBloc extends Bloc<CustomersEvent, CustomersState> {
     );
   }
 
-  Future<void> _onFilterChanged(CustomersFilterChanged event, Emitter<CustomersState> emit) async {
+  Future<void> _onFilterChanged(
+      CustomersFilterChanged event, Emitter<CustomersState> emit) async {
     final current = state;
     if (current is! CustomersLoaded) return;
 
     final result = await _browseCustomers(
-      BrowseCustomersParams(page: 0, pageSize: _pageSize, query: current.query, filter: event.filter),
+      BrowseCustomersParams(
+          page: 0,
+          pageSize: _pageSize,
+          query: current.query,
+          filter: event.filter),
     );
     result.when(
       success: (paged) => emit(current.copyWith(
@@ -128,7 +158,8 @@ class CustomersBloc extends Bloc<CustomersEvent, CustomersState> {
     );
   }
 
-  Future<void> _onFavoriteToggled(CustomersFavoriteToggled event, Emitter<CustomersState> emit) async {
+  Future<void> _onFavoriteToggled(
+      CustomersFavoriteToggled event, Emitter<CustomersState> emit) async {
     final current = state;
     if (current is! CustomersLoaded) return;
 

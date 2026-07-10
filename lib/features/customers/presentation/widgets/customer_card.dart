@@ -31,7 +31,10 @@ class CustomerCard extends StatelessWidget {
     return Dismissible(
       key: ValueKey(customer.id),
       background: _swipeBackground(
-          alignment: Alignment.centerLeft, color: Vibe.success, icon: Icons.call_rounded, label: 'customers.call'.tr),
+          alignment: Alignment.centerLeft,
+          color: Vibe.success,
+          icon: Icons.call_rounded,
+          label: 'customers.call'.tr),
       secondaryBackground: _swipeBackground(
         alignment: Alignment.centerRight,
         color: Vibe.violet,
@@ -62,7 +65,10 @@ class CustomerCard extends StatelessWidget {
                           customer.shopName,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(color: Vibe.text, fontSize: 14.5, fontWeight: FontWeight.w800),
+                          style: const TextStyle(
+                              color: Vibe.text,
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.w800),
                         ),
                       ),
                       const SizedBox(width: 6),
@@ -79,15 +85,22 @@ class CustomerCard extends StatelessWidget {
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      const Icon(Icons.call_outlined, size: 12, color: Vibe.muted),
+                      const Icon(Icons.call_outlined,
+                          size: 12, color: Vibe.muted),
                       const SizedBox(width: 4),
-                      Text(customer.phone, style: const TextStyle(color: Vibe.muted, fontSize: 11.5)),
+                      Text(customer.phone,
+                          style: const TextStyle(
+                              color: Vibe.muted, fontSize: 11.5)),
                       const SizedBox(width: 10),
-                      const Icon(Icons.storefront_outlined, size: 12, color: Vibe.muted),
+                      const Icon(Icons.storefront_outlined,
+                          size: 12, color: Vibe.muted),
                       const SizedBox(width: 4),
                       Text(
-                        customer.lastOrderDate == null ? 'customers.no_orders'.tr : _formatDate(customer.lastOrderDate!),
-                        style: const TextStyle(color: Vibe.muted, fontSize: 11.5),
+                        customer.lastOrderDate == null
+                            ? 'customers.no_orders'.tr
+                            : _formatDate(customer.lastOrderDate!),
+                        style:
+                            const TextStyle(color: Vibe.muted, fontSize: 11.5),
                       ),
                     ],
                   ),
@@ -121,18 +134,24 @@ class CustomerCard extends StatelessWidget {
     return Container(
       alignment: alignment,
       padding: const EdgeInsets.symmetric(horizontal: 24),
-      decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(Vibe.radius)),
+      decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(Vibe.radius)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (alignment == Alignment.centerRight) ...[
-            Text(label, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w800)),
+            Text(label,
+                style: TextStyle(
+                    color: color, fontSize: 12, fontWeight: FontWeight.w800)),
             const SizedBox(width: 6),
           ],
           Icon(icon, color: color),
           if (alignment == Alignment.centerLeft) ...[
             const SizedBox(width: 6),
-            Text(label, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w800)),
+            Text(label,
+                style: TextStyle(
+                    color: color, fontSize: 12, fontWeight: FontWeight.w800)),
           ],
         ],
       ),

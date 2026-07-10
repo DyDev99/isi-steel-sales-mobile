@@ -31,13 +31,16 @@ Future<StageMoveResult?> showMoveStageSheet({
 
   if (targets.isEmpty) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(moveBlockedReason(lead.stage, lead.stage, isAdmin: isAdmin))),
+      SnackBar(
+          content: Text(
+              moveBlockedReason(lead.stage, lead.stage, isAdmin: isAdmin))),
     );
     return null;
   }
 
   if (targets.length == 1) {
-    return resolveStageMove(context: context, lead: lead, toStage: targets.first);
+    return resolveStageMove(
+        context: context, lead: lead, toStage: targets.first);
   }
 
   final chosen = await showModalBottomSheet<PipelineStage>(
@@ -54,7 +57,10 @@ Future<StageMoveResult?> showMoveStageSheet({
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Move ${lead.companyName}',
-                style: const TextStyle(color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
+                style: const TextStyle(
+                    color: Vibe.text,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800)),
             const SizedBox(height: 4),
             Text('Currently in ${lead.stage.label}',
                 style: const TextStyle(color: Vibe.muted, fontSize: 12.5)),
@@ -66,7 +72,8 @@ Future<StageMoveResult?> showMoveStageSheet({
                   onTap: () => Navigator.of(context).pop(stage),
                   borderRadius: BorderRadius.circular(14),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 14),
                     decoration: BoxDecoration(
                       color: Vibe.surface,
                       borderRadius: BorderRadius.circular(14),
@@ -74,11 +81,14 @@ Future<StageMoveResult?> showMoveStageSheet({
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.arrow_forward_rounded, color: Vibe.violet, size: 18),
+                        const Icon(Icons.arrow_forward_rounded,
+                            color: Vibe.violet, size: 18),
                         const SizedBox(width: 10),
                         Text(stage.label,
                             style: const TextStyle(
-                                color: Vibe.text, fontSize: 14, fontWeight: FontWeight.w700)),
+                                color: Vibe.text,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700)),
                       ],
                     ),
                   ),
@@ -102,12 +112,15 @@ Future<StageMoveResult?> resolveStageMove({
   required Lead lead,
   required PipelineStage toStage,
 }) async {
-  if (toStage == PipelineStage.opportunities && lead.stage == PipelineStage.leads) {
-    final info = await showConvertToOpportunitySheet(context: context, lead: lead);
+  if (toStage == PipelineStage.opportunities &&
+      lead.stage == PipelineStage.leads) {
+    final info =
+        await showConvertToOpportunitySheet(context: context, lead: lead);
     if (info == null) return null;
     return (toStage: toStage, opportunityInfo: info, wonInfo: null);
   }
-  if (toStage == PipelineStage.won && lead.stage == PipelineStage.opportunities) {
+  if (toStage == PipelineStage.won &&
+      lead.stage == PipelineStage.opportunities) {
     if (!context.mounted) return null;
     final info = await showWonSheet(context: context, lead: lead);
     if (info == null) return null;

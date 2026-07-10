@@ -41,11 +41,24 @@ class LeadPipelineCard extends StatelessWidget {
       iconColor: Vibe.violet,
       headline: '$totalPipeline',
       headlineCaption: 'home.quick_access.total_pipeline'.tr,
-      badge: leadCount > 0 ? KpiBadge(label: '$leadCount ${'home.quick_access.new'.tr}', color: Vibe.violet) : null,
+      badge: leadCount > 0
+          ? KpiBadge(
+              label: '$leadCount ${'home.quick_access.new'.tr}',
+              color: Vibe.violet)
+          : null,
       segments: [
-        KpiSegment(label: wonLabel ?? 'home.quick_access.won_deals'.tr, value: wonCount, color: Vibe.success),
-        KpiSegment(label: opportunityLabel ?? 'home.quick_access.opportunities'.tr, value: opportunityCount, color: Vibe.amber),
-        KpiSegment(label: leadLabel ?? 'home.quick_access.leads'.tr, value: leadCount, color: Vibe.violet),
+        KpiSegment(
+            label: wonLabel ?? 'home.quick_access.won_deals'.tr,
+            value: wonCount,
+            color: Vibe.success),
+        KpiSegment(
+            label: opportunityLabel ?? 'home.quick_access.opportunities'.tr,
+            value: opportunityCount,
+            color: Vibe.amber),
+        KpiSegment(
+            label: leadLabel ?? 'home.quick_access.leads'.tr,
+            value: leadCount,
+            color: Vibe.violet),
       ],
       onTap: onTap,
     );

@@ -1,4 +1,4 @@
-import 'package:isi_steel_sales_mobile/features/lead/data/data_sources/mock/mock_lead_data.dart';
+import 'package:isi_steel_sales_mobile/features/lead/data/datasources/mock/mock_lead_data.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/activity_log_item.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/lead.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/lead_document.dart';
@@ -26,7 +26,8 @@ class LeadRepositoryImpl implements LeadRepository {
   final Map<String, List<ActivityLogItem>> _activity = {};
   late List<NotificationItem> _notifications;
 
-  Future<void> _latency() => Future<void>.delayed(const Duration(milliseconds: 300));
+  Future<void> _latency() =>
+      Future<void>.delayed(const Duration(milliseconds: 300));
 
   @override
   Future<List<Lead>> fetchLeads() async {
@@ -84,7 +85,8 @@ class LeadRepositoryImpl implements LeadRepository {
         id: '$id-ACT-${DateTime.now().microsecondsSinceEpoch}',
         kind: ActivityLogKind.stageChanged,
         title: 'Stage changed',
-        description: '${lead.companyName} moved from ${lead.stage.label} to ${toStage.label}.',
+        description:
+            '${lead.companyName} moved from ${lead.stage.label} to ${toStage.label}.',
         timestamp: DateTime.now(),
         actor: 'You',
       ),
@@ -124,15 +126,18 @@ class LeadRepositoryImpl implements LeadRepository {
   @override
   Future<PipelineSummary> fetchSummary() async {
     await _latency();
-    final totalLeads = _leads.where((l) => l.stage == PipelineStage.leads).length;
+    final totalLeads =
+        _leads.where((l) => l.stage == PipelineStage.leads).length;
     final totalOpportunities =
         _leads.where((l) => l.stage == PipelineStage.opportunities).length;
-    final wonCustomers = _leads.where((l) => l.stage == PipelineStage.won).length;
+    final wonCustomers =
+        _leads.where((l) => l.stage == PipelineStage.won).length;
     final potentialRevenue = _leads
         .where((l) => l.stage != PipelineStage.won)
         .fold<double>(0, (sum, l) => sum + l.expectedRevenue);
-    final wonRevenue =
-        _leads.where((l) => l.stage == PipelineStage.won).fold<double>(0, (sum, l) => sum + l.currentRevenue);
+    final wonRevenue = _leads
+        .where((l) => l.stage == PipelineStage.won)
+        .fold<double>(0, (sum, l) => sum + l.currentRevenue);
     final conversionRate = _leads.isEmpty ? 0.0 : wonCustomers / _leads.length;
 
     return PipelineSummary(

@@ -8,5 +8,6 @@ class RunCustomerInitialSync extends UseCase<CustomerSyncResult, NoParams> {
   final CustomerSyncRepository _repository;
 
   @override
-  ResultFuture<CustomerSyncResult> call(NoParams params) => _repository.runInitialSync();
+  ResultFuture<CustomerSyncResult> call(NoParams params) =>
+      _repository.runInitialSync();
 }

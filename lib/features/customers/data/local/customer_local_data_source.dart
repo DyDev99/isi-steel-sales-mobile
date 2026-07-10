@@ -74,7 +74,8 @@ class CustomerLocalDataSourceImpl implements CustomerLocalDataSource {
       final orderBy = switch (filter.sortBy) {
         CustomerSortBy.recentOrder => 'c.last_order_date DESC',
         CustomerSortBy.nameAsc => 'c.shop_name ASC',
-        CustomerSortBy.nearest => 'c.updated_at DESC', // distance is computed client-side from GPS
+        CustomerSortBy.nearest =>
+          'c.updated_at DESC', // distance is computed client-side from GPS
         CustomerSortBy.valueDesc => 'c.lifetime_value DESC',
       };
 
@@ -91,9 +92,11 @@ class CustomerLocalDataSourceImpl implements CustomerLocalDataSource {
         ''';
         allArgs = [...args, limit, offset];
       } else {
-        final words = sanitized.split(RegExp(r'\s+')).where((w) => w.isNotEmpty);
+        final words =
+            sanitized.split(RegExp(r'\s+')).where((w) => w.isNotEmpty);
         final match = words
-            .map((w) => '(shop_name:$w* OR customer_code:$w* OR owner_name:$w* OR phone:$w*)')
+            .map((w) =>
+                '(shop_name:$w* OR customer_code:$w* OR owner_name:$w* OR phone:$w*)')
             .join(' AND ');
         sql = '''
           SELECT c.* FROM customers_fts f
@@ -115,9 +118,11 @@ class CustomerLocalDataSourceImpl implements CustomerLocalDataSource {
   @override
   Future<CustomerModel?> getById(String id) async {
     try {
-      final rows = await _db.query('customers', where: 'id = ? AND deleted = 0', whereArgs: [id]);
+      final rows = await _db
+          .query('customers', where: 'id = ? AND deleted = 0', whereArgs: [id]);
       if (rows.isEmpty) return null;
-      final contactRows = await _db.query('customer_contacts', where: 'customer_id = ?', whereArgs: [id]);
+      final contactRows = await _db.query('customer_contacts',
+          where: 'customer_id = ?', whereArgs: [id]);
       final contacts = contactRows.map(CustomerContactModel.fromRow).toList();
       return CustomerModel.fromRow(rows.first, contacts: contacts);
     } catch (e) {
@@ -128,9 +133,11 @@ class CustomerLocalDataSourceImpl implements CustomerLocalDataSource {
   @override
   Future<void> toggleFavorite(String customerId) async {
     try {
-      final existing = await _db.query('customer_favorites', where: 'customer_id = ?', whereArgs: [customerId]);
+      final existing = await _db.query('customer_favorites',
+          where: 'customer_id = ?', whereArgs: [customerId]);
       if (existing.isNotEmpty) {
-        await _db.delete('customer_favorites', where: 'customer_id = ?', whereArgs: [customerId]);
+        await _db.delete('customer_favorites',
+            where: 'customer_id = ?', whereArgs: [customerId]);
       } else {
         await _db.insert('customer_favorites', {
           'customer_id': customerId,
@@ -178,7 +185,10 @@ class CustomerLocalDataSourceImpl implements CustomerLocalDataSource {
     try {
       await _db.insert(
         'customer_recent',
-        {'customer_id': customerId, 'viewed_at': DateTime.now().toIso8601String()},
+        {
+          'customer_id': customerId,
+          'viewed_at': DateTime.now().toIso8601String()
+        },
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
     } catch (e) {
@@ -240,12 +250,16 @@ class CustomerLocalDataSourceImpl implements CustomerLocalDataSource {
       await _db.transaction((txn) async {
         final batch = txn.batch();
         for (final customer in customers) {
-          batch.insert('customers', customer.toRow(), conflictAlgorithm: ConflictAlgorithm.replace);
-          batch.delete('customers_fts', where: 'customer_id = ?', whereArgs: [customer.id]);
+          batch.insert('customers', customer.toRow(),
+              conflictAlgorithm: ConflictAlgorithm.replace);
+          batch.delete('customers_fts',
+              where: 'customer_id = ?', whereArgs: [customer.id]);
           batch.insert('customers_fts', customer.toFtsRow());
-          batch.delete('customer_contacts', where: 'customer_id = ?', whereArgs: [customer.id]);
+          batch.delete('customer_contacts',
+              where: 'customer_id = ?', whereArgs: [customer.id]);
           for (final contact in customer.contacts) {
-            batch.insert('customer_contacts', (contact as CustomerContactModel).toRow(customer.id));
+            batch.insert('customer_contacts',
+                (contact as CustomerContactModel).toRow(customer.id));
           }
         }
         await batch.commit(noResult: true);
@@ -261,10 +275,13 @@ class CustomerLocalDataSourceImpl implements CustomerLocalDataSource {
     try {
       await _db.transaction((txn) async {
         final placeholders = List.filled(ids.length, '?').join(',');
-        await txn.rawUpdate('UPDATE customers SET deleted = 1 WHERE id IN ($placeholders)', ids);
+        await txn.rawUpdate(
+            'UPDATE customers SET deleted = 1 WHERE id IN ($placeholders)',
+            ids);
         final batch = txn.batch();
         for (final id in ids) {
-          batch.delete('customers_fts', where: 'customer_id = ?', whereArgs: [id]);
+          batch.delete('customers_fts',
+              where: 'customer_id = ?', whereArgs: [id]);
         }
         await batch.commit(noResult: true);
       });
@@ -276,7 +293,8 @@ class CustomerLocalDataSourceImpl implements CustomerLocalDataSource {
   @override
   Future<DateTime?> getLastSyncedAt(String entity) async {
     try {
-      final rows = await _db.query('customer_sync_meta', where: 'entity = ?', whereArgs: [entity]);
+      final rows = await _db.query('customer_sync_meta',
+          where: 'entity = ?', whereArgs: [entity]);
       if (rows.isEmpty) return null;
       final raw = rows.first['last_synced_at'] as String?;
       return raw == null ? null : DateTime.parse(raw);

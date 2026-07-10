@@ -46,7 +46,8 @@ class PipelineFilter extends Equatable {
     return PipelineFilter(
       search: search ?? this.search,
       territory: territory != null ? territory() : this.territory,
-      assignedRepName: assignedRepName != null ? assignedRepName() : this.assignedRepName,
+      assignedRepName:
+          assignedRepName != null ? assignedRepName() : this.assignedRepName,
       priority: priority != null ? priority() : this.priority,
       visibleStages: visibleStages ?? this.visibleStages,
       sortBy: sortBy ?? this.sortBy,

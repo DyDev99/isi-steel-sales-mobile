@@ -32,10 +32,11 @@ class CartPreviewSection extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Vibe.stroke.withOpacity(0.8)),
+                    border:
+                        Border.all(color: Vibe.stroke.withValues(alpha: 0.8)),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.02),
+                        color: Colors.black.withValues(alpha: 0.02),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
                       ),
@@ -53,44 +54,47 @@ class CartPreviewSection extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.all(6),
                               decoration: BoxDecoration(
-                                color: Vibe.violet.withOpacity(0.08),
+                                color: Vibe.violet.withValues(alpha: 0.08),
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(Icons.shopping_bag_outlined, size: 16, color: Vibe.violet),
+                              child: const Icon(Icons.shopping_bag_outlined,
+                                  size: 16, color: Vibe.violet),
                             ),
                             const SizedBox(width: 8),
                             Text(
                               'orders.quotation.cart_preview_title'.tr,
                               style: const TextStyle(
-                                color: Vibe.text, 
-                                fontSize: 14, 
+                                color: Vibe.text,
+                                fontSize: 14,
                                 fontWeight: FontWeight.bold,
-                                fontFamily: 'Roboto',
                               ),
                             ),
                             const Spacer(),
                             // Crisp Capsule Item Counter Badge
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
                                 color: Vibe.bgSoft,
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(color: Vibe.stroke),
                               ),
                               child: Text(
-                                'orders.items_count'.tr.replaceAll('{count}', '${items.length}'),
+                                'orders.items_count'
+                                    .tr
+                                    .replaceAll('{count}', '${items.length}'),
                                 style: const TextStyle(
-                                  color: Vibe.violet, 
-                                  fontSize: 11, 
+                                  color: Vibe.violet,
+                                  fontSize: 11,
                                   fontWeight: FontWeight.bold,
-                                  fontFamily: 'Roboto',
                                 ),
                               ),
                             ),
                           ],
                         ),
                       ),
-                      const Divider(color: Vibe.stroke, height: 1, thickness: 1),
+                      const Divider(
+                          color: Vibe.stroke, height: 1, thickness: 1),
                       // Scrollable Row Core Container
                       Padding(
                         padding: const EdgeInsets.all(12),
@@ -100,13 +104,20 @@ class CartPreviewSection extends StatelessWidget {
                               _CartRow(
                                 key: ValueKey(items[i].id),
                                 item: items[i],
-                                onQuantityChanged: (q) => context.read<CartCubit>().updateQuantity(items[i].id, q),
-                                onRemove: () => context.read<CartCubit>().removeItem(items[i].id),
+                                onQuantityChanged: (q) => context
+                                    .read<CartCubit>()
+                                    .updateQuantity(items[i].id, q),
+                                onRemove: () => context
+                                    .read<CartCubit>()
+                                    .removeItem(items[i].id),
                               ),
                               if (i < items.length - 1)
                                 const Padding(
                                   padding: EdgeInsets.symmetric(vertical: 8),
-                                  child: Divider(color: Vibe.bgSoft, height: 1, thickness: 1),
+                                  child: Divider(
+                                      color: Vibe.bgSoft,
+                                      height: 1,
+                                      thickness: 1),
                                 ),
                             ],
                           ],
@@ -124,9 +135,9 @@ class CartPreviewSection extends StatelessWidget {
 /// A single compact cart row: thumbnail, name, qty stepper, line price, remove
 class _CartRow extends StatelessWidget {
   const _CartRow({
-    super.key, 
-    required this.item, 
-    required this.onQuantityChanged, 
+    super.key,
+    required this.item,
+    required this.onQuantityChanged,
     required this.onRemove,
   });
 
@@ -145,7 +156,7 @@ class _CartRow extends StatelessWidget {
         Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Vibe.stroke.withOpacity(0.5)),
+            border: Border.all(color: Vibe.stroke.withValues(alpha: 0.5)),
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(9),
@@ -159,7 +170,8 @@ class _CartRow extends StatelessWidget {
                 height: 46,
                 color: Vibe.bgSoft,
                 alignment: Alignment.center,
-                child: const Icon(Icons.inventory_2_outlined, color: Vibe.muted, size: 18),
+                child: const Icon(Icons.inventory_2_outlined,
+                    color: Vibe.muted, size: 18),
               ),
             ),
           ),
@@ -176,20 +188,18 @@ class _CartRow extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                  color: Vibe.text, 
-                  fontSize: 13, 
+                  color: Vibe.text,
+                  fontSize: 13,
                   fontWeight: FontWeight.w700,
-                  fontFamily: 'Roboto',
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 '\$${item.lineTotal.toStringAsFixed(2)}',
                 style: const TextStyle(
-                  color: Vibe.violet, 
-                  fontSize: 13, 
+                  color: Vibe.violet,
+                  fontSize: 13,
                   fontWeight: FontWeight.w800,
-                  fontFamily: 'Roboto',
                 ),
               ),
             ],
@@ -208,7 +218,9 @@ class _CartRow extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               _QtyButton(
-                icon: isLastItem ? Icons.delete_outline_rounded : Icons.remove_rounded,
+                icon: isLastItem
+                    ? Icons.delete_outline_rounded
+                    : Icons.remove_rounded,
                 iconColor: isLastItem ? Vibe.danger : Vibe.text,
                 onTap: () => onQuantityChanged(item.quantity - 1),
               ),
@@ -219,10 +231,9 @@ class _CartRow extends StatelessWidget {
                   item.quantity.toStringAsFixed(0),
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                    color: Vibe.text, 
-                    fontSize: 12.5, 
+                    color: Vibe.text,
+                    fontSize: 12.5,
                     fontWeight: FontWeight.bold,
-                    fontFamily: 'Roboto',
                   ),
                 ),
               ),
@@ -254,11 +265,11 @@ class _CartRow extends StatelessWidget {
 
 class _QtyButton extends StatelessWidget {
   const _QtyButton({
-    required this.icon, 
-    required this.iconColor, 
+    required this.icon,
+    required this.iconColor,
     required this.onTap,
   });
-  
+
   final IconData icon;
   final Color iconColor;
   final VoidCallback onTap;
@@ -279,7 +290,7 @@ class _QtyButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(6),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.03),
+                color: Colors.black.withValues(alpha: 0.03),
                 blurRadius: 2,
                 offset: const Offset(0, 1),
               ),

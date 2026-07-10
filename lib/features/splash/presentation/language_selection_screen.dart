@@ -39,7 +39,8 @@ class _LanguageOption {
 
 class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
   static const _options = [
-    _LanguageOption('en', 'language.english', 'language.english_region', '🇺🇸'),
+    _LanguageOption(
+        'en', 'language.english', 'language.english_region', '🇺🇸'),
     _LanguageOption('kh', 'language.khmer', 'language.khmer_region', '🇰🇭'),
   ];
 
@@ -61,7 +62,8 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
   }
 
   Future<void> _selectLanguage(String code) async {
-    if (code == _selected && LocalizationService.instance.currentLanguageCode == code) {
+    if (code == _selected &&
+        LocalizationService.instance.currentLanguageCode == code) {
       return;
     }
     setState(() {
@@ -88,8 +90,10 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
     // login — an already-signed-in user should land on the main shell, not
     // be sent back through login.
     final authState = context.read<AuthBloc>().state;
-    final destination = authState is AuthenticatedState ? Static.main : Static.login;
-    Navigator.of(context).pushNamedAndRemoveUntil(destination, (route) => false);
+    final destination =
+        authState is AuthenticatedState ? Static.main : Static.login;
+    Navigator.of(context)
+        .pushNamedAndRemoveUntil(destination, (route) => false);
   }
 
   @override
@@ -201,7 +205,8 @@ class _LanguageTile extends StatelessWidget {
       duration: const Duration(milliseconds: 180),
       curve: Curves.easeOut,
       decoration: BoxDecoration(
-        color: selected ? Vibe.pink.withValues(alpha: 0.10) : Vibe.surfaceStrong,
+        color:
+            selected ? Vibe.pink.withValues(alpha: 0.10) : Vibe.surfaceStrong,
         borderRadius: BorderRadius.circular(Vibe.radius),
         border: Border.all(
           color: selected ? Vibe.pink : Vibe.stroke,
@@ -226,7 +231,8 @@ class _LanguageTile extends StatelessWidget {
                     shape: BoxShape.circle,
                     border: Border.all(color: Vibe.stroke),
                   ),
-                  child: Text(option.flag, style: const TextStyle(fontSize: 20)),
+                  child:
+                      Text(option.flag, style: const TextStyle(fontSize: 20)),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
@@ -266,10 +272,12 @@ class _LanguageTile extends StatelessWidget {
                               padding: EdgeInsets.all(4),
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation(Colors.white),
+                                valueColor:
+                                    AlwaysStoppedAnimation(Colors.white),
                               ),
                             )
-                          : const Icon(Icons.check, size: 16, color: Colors.white))
+                          : const Icon(Icons.check,
+                              size: 16, color: Colors.white))
                       : null,
                 ),
               ],

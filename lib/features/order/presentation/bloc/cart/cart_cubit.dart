@@ -50,7 +50,8 @@ class CartCubit extends Cubit<CartState> {
   final SaveQuotation _saveQuotation;
   final UpdateQuotation _updateQuotation;
 
-  List<CartItem> get _items => state is CartLoaded ? (state as CartLoaded).items : const [];
+  List<CartItem> get _items =>
+      state is CartLoaded ? (state as CartLoaded).items : const [];
 
   Future<void> load() async {
     final result = await _fetchCart(const NoParams());
@@ -60,22 +61,37 @@ class CartCubit extends Cubit<CartState> {
     );
   }
 
-  Future<void> addProduct(Product product, {double quantity = 1, String? leadId, String? customerId}) async {
+  Future<void> addProduct(Product product,
+      {double quantity = 1,
+      String? unit,
+      String? leadId,
+      String? customerId}) async {
+    // Duplicate lines merge only when the same product is added in the same
+    // unit/context — a different sales unit (Pc vs Ton) is a distinct line.
+    final lineUnit = unit ?? product.unit;
     CartItem? existing;
     for (final item in _items) {
-      if (item.product.id == product.id && item.leadId == leadId && item.customerId == customerId) existing = item;
+      if (item.product.id == product.id &&
+          item.unit == lineUnit &&
+          item.leadId == leadId &&
+          item.customerId == customerId) {
+        existing = item;
+      }
     }
 
     if (existing != null) {
       final updated = existing.copyWith(quantity: existing.quantity + quantity);
-      emit(CartLoaded(items: [for (final i in _items) if (i.id == existing.id) updated else i]));
+      emit(CartLoaded(items: [
+        for (final i in _items)
+          if (i.id == existing.id) updated else i
+      ]));
       await _updateCartItem(updated);
     } else {
       final newItem = CartItem(
         id: _newId(),
         product: product,
         quantity: quantity,
-        unit: product.unit,
+        unit: lineUnit,
         discountPercent: 0,
         leadId: leadId,
         customerId: customerId,
@@ -87,7 +103,10 @@ class CartCubit extends Cubit<CartState> {
 
   Future<void> updateQuantity(String cartItemId, double quantity) async {
     if (quantity <= 0) return removeItem(cartItemId);
-    final updated = [for (final i in _items) if (i.id == cartItemId) i.copyWith(quantity: quantity) else i];
+    final updated = [
+      for (final i in _items)
+        if (i.id == cartItemId) i.copyWith(quantity: quantity) else i
+    ];
     emit(CartLoaded(items: updated));
     final item = updated.where((i) => i.id == cartItemId);
     if (item.isNotEmpty) await _updateCartItem(item.first);
@@ -95,7 +114,11 @@ class CartCubit extends Cubit<CartState> {
 
   Future<void> updateDiscount(String cartItemId, double discountPercent) async {
     final updated = [
-      for (final i in _items) if (i.id == cartItemId) i.copyWith(discountPercent: discountPercent) else i,
+      for (final i in _items)
+        if (i.id == cartItemId)
+          i.copyWith(discountPercent: discountPercent)
+        else
+          i,
     ];
     emit(CartLoaded(items: updated));
     final item = updated.where((i) => i.id == cartItemId);
@@ -111,7 +134,8 @@ class CartCubit extends Cubit<CartState> {
   /// "Edit Quotation" and the Sales Order screen's conversion step.
   Future<void> loadFromQuotation(Quotation quotation) async {
     emit(CartLoaded(items: quotation.lines));
-    await _replaceCart(ReplaceCartParams(items: quotation.lines, editingQuotationId: quotation.id));
+    await _replaceCart(ReplaceCartParams(
+        items: quotation.lines, editingQuotationId: quotation.id));
   }
 
   /// Saves the current cart as a new [Quotation], or updates [editing] in
@@ -139,7 +163,8 @@ class CartCubit extends Cubit<CartState> {
             gpsLat: gpsLat,
             gpsLng: gpsLng,
           ))
-        : await _updateQuotation(UpdateQuotationParams(existing: editing, items: items));
+        : await _updateQuotation(
+            UpdateQuotationParams(existing: editing, items: items));
 
     return result.when(
       success: (quotation) {
@@ -155,5 +180,6 @@ class CartCubit extends Cubit<CartState> {
     await _clearCart(const NoParams());
   }
 
-  static String _newId() => '${DateTime.now().microsecondsSinceEpoch}-${Random().nextInt(99999)}';
+  static String _newId() =>
+      '${DateTime.now().microsecondsSinceEpoch}-${Random().nextInt(99999)}';
 }

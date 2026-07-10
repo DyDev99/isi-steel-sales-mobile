@@ -37,7 +37,9 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
           decoration: const InputDecoration(hintText: 'Barcode number'),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
           TextButton(
             onPressed: () => Navigator.pop(context, controller.text.trim()),
             child: const Text('Look up'),
@@ -45,7 +47,9 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
         ],
       ),
     );
-    if (code != null && code.isNotEmpty && mounted) Navigator.of(context).pop(code);
+    if (code != null && code.isNotEmpty && mounted) {
+      Navigator.of(context).pop(code);
+    }
   }
 
   @override
@@ -61,7 +65,8 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
       appBar: AppBar(
         backgroundColor: Colors.black,
         iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text('Scan Barcode', style: TextStyle(color: Colors.white)),
+        title:
+            const Text('Scan Barcode', style: TextStyle(color: Colors.white)),
         actions: [
           IconButton(
             onPressed: () => _controller.toggleTorch(),
@@ -89,8 +94,10 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
             child: Center(
               child: TextButton.icon(
                 onPressed: _manualEntry,
-                icon: const Icon(Icons.keyboard_alt_outlined, color: Colors.white),
-                label: const Text('Enter manually', style: TextStyle(color: Colors.white)),
+                icon: const Icon(Icons.keyboard_alt_outlined,
+                    color: Colors.white),
+                label: const Text('Enter manually',
+                    style: TextStyle(color: Colors.white)),
               ),
             ),
           ),

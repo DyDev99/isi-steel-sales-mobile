@@ -11,7 +11,8 @@ abstract interface class LocationSampleLocalDataSource {
   Future<List<FraudFlagModel>> fetchFraudFlags(String routeId);
 }
 
-class LocationSampleLocalDataSourceImpl implements LocationSampleLocalDataSource {
+class LocationSampleLocalDataSourceImpl
+    implements LocationSampleLocalDataSource {
   const LocationSampleLocalDataSourceImpl(this._routesDb);
   final RoutesDatabase _routesDb;
   Database get _db => _routesDb.db;

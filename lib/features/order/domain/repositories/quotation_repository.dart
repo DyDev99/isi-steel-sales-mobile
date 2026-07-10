@@ -15,11 +15,15 @@ abstract interface class QuotationRepository {
     double? gpsLng,
   });
 
-  ResultFuture<Quotation> updateQuotation(Quotation existing, {required List<CartItem> items});
+  ResultFuture<Quotation> updateQuotation(Quotation existing,
+      {required List<CartItem> items});
 
   ResultFuture<Quotation> markConverted(String quotationId);
 
   ResultFuture<Quotation?> getQuotationById(String id);
+
+  /// Permanently removes a draft quotation (user discarded it).
+  ResultFuture<void> deleteQuotation(String id);
 
   /// Live stream of saved quotations — emits the current list on listen,
   /// then re-emits after every save/update/conversion.

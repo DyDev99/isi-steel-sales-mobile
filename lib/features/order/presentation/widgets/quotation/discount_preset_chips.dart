@@ -7,7 +7,8 @@ const discountPresets = [0.0, 5.0, 10.0, 15.0];
 /// `CartCubit.updateDiscount`, which already existed but was never wired to
 /// any widget.
 class DiscountPresetChips extends StatelessWidget {
-  const DiscountPresetChips({super.key, required this.selected, required this.onSelected});
+  const DiscountPresetChips(
+      {super.key, required this.selected, required this.onSelected});
 
   final double selected;
   final ValueChanged<double> onSelected;
@@ -19,11 +20,14 @@ class DiscountPresetChips extends StatelessWidget {
       children: [
         for (final preset in discountPresets)
           ChoiceChip(
-            label: Text('${preset.toStringAsFixed(0)}%', style: const TextStyle(fontSize: 11)),
+            label: Text('${preset.toStringAsFixed(0)}%',
+                style: const TextStyle(fontSize: 11)),
             selected: selected == preset,
             visualDensity: VisualDensity.compact,
             selectedColor: Vibe.primaryLight,
-            labelStyle: TextStyle(color: selected == preset ? Vibe.violet : Vibe.muted, fontWeight: FontWeight.w700),
+            labelStyle: TextStyle(
+                color: selected == preset ? Vibe.violet : Vibe.muted,
+                fontWeight: FontWeight.w700),
             onSelected: (_) => onSelected(preset),
           ),
       ],

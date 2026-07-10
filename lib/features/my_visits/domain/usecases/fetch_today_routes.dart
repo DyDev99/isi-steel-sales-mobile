@@ -7,5 +7,6 @@ class FetchTodayRoutes extends UseCase<List<RoutePlan>, NoParams> {
   const FetchTodayRoutes(this._repository);
   final RouteRepository _repository;
   @override
-  ResultFuture<List<RoutePlan>> call(NoParams params) => _repository.fetchTodayRoutes();
+  ResultFuture<List<RoutePlan>> call(NoParams params) =>
+      _repository.fetchTodayRoutes();
 }

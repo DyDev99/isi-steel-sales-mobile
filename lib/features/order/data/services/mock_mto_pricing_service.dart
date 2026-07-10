@@ -23,7 +23,8 @@ class MockMtoPricingService implements MtoPricingService {
     final estimate = product.pricing.standardPrice * 1.15;
     return Success(MtoQuote(
       available: true,
-      message: 'Estimated MTO price — confirm with SAP before quoting the customer.',
+      message:
+          'Estimated MTO price — confirm with SAP before quoting the customer.',
       price: double.parse(estimate.toStringAsFixed(2)),
     ));
   }

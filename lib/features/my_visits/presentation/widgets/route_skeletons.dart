@@ -15,7 +15,9 @@ class RouteCardSkeleton extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 10),
       child: Container(
         padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), border: Border.all(color: Vibe.stroke)),
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Vibe.stroke)),
         child: Shimmer(
           child: Row(
             children: [
@@ -72,7 +74,9 @@ class InventoryLineSkeleton extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), border: Border.all(color: Vibe.stroke)),
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Vibe.stroke)),
       child: Shimmer(
         child: Row(
           children: const [

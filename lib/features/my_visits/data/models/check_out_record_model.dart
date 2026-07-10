@@ -32,7 +32,8 @@ class CheckOutRecordModel extends CheckOutRecord {
         'visit_summary': visitSummary,
       };
 
-  factory CheckOutRecordModel.fromEntity(CheckOutRecord e) => CheckOutRecordModel(
+  factory CheckOutRecordModel.fromEntity(CheckOutRecord e) =>
+      CheckOutRecordModel(
         id: e.id,
         stopId: e.stopId,
         timestamp: e.timestamp,

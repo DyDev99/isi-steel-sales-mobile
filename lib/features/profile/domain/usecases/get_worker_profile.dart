@@ -8,5 +8,6 @@ class GetWorkerProfile implements UseCase<WorkerProfile, NoParams> {
   final ProfileRepository _repository;
 
   @override
-  Future<Result<WorkerProfile>> call(NoParams params) => _repository.getProfile();
+  Future<Result<WorkerProfile>> call(NoParams params) =>
+      _repository.getProfile();
 }

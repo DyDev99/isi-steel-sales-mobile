@@ -52,9 +52,13 @@ class _ShopListScreenState extends State<ShopListScreen> {
 
   Future<List<Customer>> _loadShops() async {
     final result = await sl<BrowseCustomers>()(
-      BrowseCustomersParams(page: 0, pageSize: 500, filter: CustomerFilter(territory: widget.territory)),
+      BrowseCustomersParams(
+          page: 0,
+          pageSize: 500,
+          filter: CustomerFilter(territory: widget.territory)),
     );
-    return result.when(success: (paged) => paged.items, failure: (_) => const []);
+    return result.when(
+        success: (paged) => paged.items, failure: (_) => const []);
   }
 
   void _openOrderEntry(Customer customer) {
@@ -75,7 +79,9 @@ class _ShopListScreenState extends State<ShopListScreen> {
       appBar: AppBar(
         backgroundColor: Vibe.bg,
         iconTheme: const IconThemeData(color: Vibe.text),
-        title: Text(widget.territory, style: const TextStyle(color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
+        title: Text(widget.territory,
+            style: const TextStyle(
+                color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
       ),
       body: FutureBuilder<List<Customer>>(
         future: _shopsFuture,
@@ -84,16 +90,26 @@ class _ShopListScreenState extends State<ShopListScreen> {
             return ListView(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
               physics: const NeverScrollableScrollPhysics(),
-              children: const [OrderTileSkeleton(), OrderTileSkeleton(), OrderTileSkeleton()],
+              children: const [
+                OrderTileSkeleton(),
+                OrderTileSkeleton(),
+                OrderTileSkeleton()
+              ],
             );
           }
           final shops = snapshot.data!;
           if (shops.isEmpty) {
-            return Center(child: Text('orders.catalog.no_products'.tr, style: const TextStyle(color: Vibe.muted)));
+            return Center(
+                child: Text('orders.catalog.no_products'.tr,
+                    style: const TextStyle(color: Vibe.muted)));
           }
           return ListView(
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-            children: [for (final shop in shops) _ShopTileWithCredit(customer: shop, onTap: () => _openOrderEntry(shop))],
+            children: [
+              for (final shop in shops)
+                _ShopTileWithCredit(
+                    customer: shop, onTap: () => _openOrderEntry(shop))
+            ],
           );
         },
       ),
@@ -116,7 +132,8 @@ class _ShopTileWithCreditState extends State<_ShopTileWithCredit> {
   @override
   void initState() {
     super.initState();
-    _summaryFuture = sl<GetCreditSummary>()(GetCreditSummaryParams(widget.customer.id)).then(
+    _summaryFuture =
+        sl<GetCreditSummary>()(GetCreditSummaryParams(widget.customer.id)).then(
       (result) => result.when(success: (s) => s, failure: (_) => null),
     );
   }
@@ -125,7 +142,10 @@ class _ShopTileWithCreditState extends State<_ShopTileWithCredit> {
   Widget build(BuildContext context) {
     return FutureBuilder<CreditSummary?>(
       future: _summaryFuture,
-      builder: (context, snapshot) => ShopTile(customer: widget.customer, onTap: widget.onTap, creditSummary: snapshot.data),
+      builder: (context, snapshot) => ShopTile(
+          customer: widget.customer,
+          onTap: widget.onTap,
+          creditSummary: snapshot.data),
     );
   }
 }

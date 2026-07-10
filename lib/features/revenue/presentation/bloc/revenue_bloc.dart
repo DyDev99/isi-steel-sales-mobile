@@ -35,7 +35,8 @@ class RevenueBloc extends Bloc<RevenueEvent, RevenueState> {
   final GetDiscountOptions _getDiscountOptions;
   final GetCustomerCredit _getCustomerCredit;
 
-  Future<void> _onStarted(RevenueEvent event, Emitter<RevenueState> emit) async {
+  Future<void> _onStarted(
+      RevenueEvent event, Emitter<RevenueState> emit) async {
     emit(state.copyWith(status: RevenueStatus.loading));
 
     final results = await (
@@ -56,18 +57,28 @@ class RevenueBloc extends Bloc<RevenueEvent, RevenueState> {
     List<DiscountOption> discountOptions = const [];
     CustomerCredit? customerCredit;
 
-    productsResult.when(success: (data) => products = data, failure: (f) => errorMessage = f.message);
-    categoriesResult.when(success: (data) => categories = data, failure: (f) => errorMessage ??= f.message);
-    discountsResult.when(success: (data) => discountOptions = data, failure: (f) => errorMessage ??= f.message);
-    creditResult.when(success: (data) => customerCredit = data, failure: (f) => errorMessage ??= f.message);
+    productsResult.when(
+        success: (data) => products = data,
+        failure: (f) => errorMessage = f.message);
+    categoriesResult.when(
+        success: (data) => categories = data,
+        failure: (f) => errorMessage ??= f.message);
+    discountsResult.when(
+        success: (data) => discountOptions = data,
+        failure: (f) => errorMessage ??= f.message);
+    creditResult.when(
+        success: (data) => customerCredit = data,
+        failure: (f) => errorMessage ??= f.message);
 
     if (errorMessage != null) {
-      emit(state.copyWith(status: RevenueStatus.error, errorMessage: errorMessage));
+      emit(state.copyWith(
+          status: RevenueStatus.error, errorMessage: errorMessage));
       return;
     }
 
-    final defaultDiscount = _firstWhereOrNull(discountOptions, (d) => d.isDefault) ??
-        (discountOptions.isEmpty ? null : discountOptions.first);
+    final defaultDiscount =
+        _firstWhereOrNull(discountOptions, (d) => d.isDefault) ??
+            (discountOptions.isEmpty ? null : discountOptions.first);
 
     emit(state.copyWith(
       status: RevenueStatus.loaded,
@@ -79,25 +90,31 @@ class RevenueBloc extends Bloc<RevenueEvent, RevenueState> {
     ));
   }
 
-  void _onSearchChanged(RevenueSearchChanged event, Emitter<RevenueState> emit) {
+  void _onSearchChanged(
+      RevenueSearchChanged event, Emitter<RevenueState> emit) {
     emit(state.copyWith(searchQuery: event.query));
   }
 
-  void _onCategorySelected(RevenueCategorySelected event, Emitter<RevenueState> emit) {
+  void _onCategorySelected(
+      RevenueCategorySelected event, Emitter<RevenueState> emit) {
     emit(state.copyWith(selectedCategoryId: () => event.categoryId));
   }
 
-  void _onDiscountSelected(RevenueDiscountSelected event, Emitter<RevenueState> emit) {
+  void _onDiscountSelected(
+      RevenueDiscountSelected event, Emitter<RevenueState> emit) {
     emit(state.copyWith(selectedDiscountId: event.discountId));
   }
 
-  void _onCartQuantityChanged(RevenueCartQuantityChanged event, Emitter<RevenueState> emit) {
-    final product = _firstWhereOrNull(state.products, (p) => p.id == event.productId);
+  void _onCartQuantityChanged(
+      RevenueCartQuantityChanged event, Emitter<RevenueState> emit) {
+    final product =
+        _firstWhereOrNull(state.products, (p) => p.id == event.productId);
     if (product == null) return;
 
     final currentQuantity = state.cartQuantities[event.productId] ?? 0;
     final maxQuantity = product.availableStock.floor();
-    final nextQuantity = (currentQuantity + event.delta).clamp(0, maxQuantity < 0 ? 0 : maxQuantity);
+    final nextQuantity = (currentQuantity + event.delta)
+        .clamp(0, maxQuantity < 0 ? 0 : maxQuantity);
 
     final nextCart = Map<String, int>.from(state.cartQuantities);
     if (nextQuantity == 0) {

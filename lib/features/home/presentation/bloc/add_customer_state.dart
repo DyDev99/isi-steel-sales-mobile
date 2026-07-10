@@ -1,6 +1,7 @@
 part of 'add_customer_bloc.dart';
 
 enum CustomerFormStep { shopDetails, contactPerson, locationAndPapers }
+
 enum AddCustomerStatus { initial, filling, submitting, success, failure }
 
 class AddCustomerState {

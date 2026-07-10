@@ -15,9 +15,16 @@ class StatusPill extends StatelessWidget {
 
     final (Color color, IconData? icon, String text) = switch (status) {
       AuthVibeStatus.verifying => (Vibe.violet, null, 'Verifying…'),
-      AuthVibeStatus.success => (Vibe.success, Icons.check_circle, "You're in ✨"),
-      AuthVibeStatus.error => (Vibe.danger, Icons.error_outline,
-          message ?? 'Something went wrong'),
+      AuthVibeStatus.success => (
+          Vibe.success,
+          Icons.check_circle,
+          "You're in ✨"
+        ),
+      AuthVibeStatus.error => (
+          Vibe.danger,
+          Icons.error_outline,
+          message ?? 'Something went wrong'
+        ),
       AuthVibeStatus.idle => (Vibe.muted, null, ''),
     };
 
@@ -47,7 +54,8 @@ class StatusPill extends StatelessWidget {
           Expanded(
             child: Text(
               text,
-              style: TextStyle(color: color, fontSize: 13, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                  color: color, fontSize: 13, fontWeight: FontWeight.w600),
             ),
           ),
         ],

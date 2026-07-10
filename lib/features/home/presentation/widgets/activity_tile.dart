@@ -7,10 +7,22 @@ class ActivityTile extends StatelessWidget {
   final ActivityItem item;
 
   ({IconData icon, Color color}) get _style => switch (item.kind) {
-        ActivityKind.lead => (icon: Icons.person_add_alt_1_rounded, color: Vibe.violet),
-        ActivityKind.order => (icon: Icons.receipt_long_rounded, color: Vibe.mint),
-        ActivityKind.opportunity => (icon: Icons.trending_up_rounded, color: Vibe.amber),
-        ActivityKind.payment => (icon: Icons.payments_rounded, color: Vibe.success),
+        ActivityKind.lead => (
+            icon: Icons.person_add_alt_1_rounded,
+            color: Vibe.violet
+          ),
+        ActivityKind.order => (
+            icon: Icons.receipt_long_rounded,
+            color: Vibe.mint
+          ),
+        ActivityKind.opportunity => (
+            icon: Icons.trending_up_rounded,
+            color: Vibe.amber
+          ),
+        ActivityKind.payment => (
+            icon: Icons.payments_rounded,
+            color: Vibe.success
+          ),
       };
 
   @override
@@ -39,7 +51,9 @@ class ActivityTile extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                        color: Vibe.text, fontSize: 14, fontWeight: FontWeight.w700)),
+                        color: Vibe.text,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700)),
                 const SizedBox(height: 2),
                 Text(item.subtitle,
                     maxLines: 1,
@@ -49,7 +63,8 @@ class ActivityTile extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          Text(item.timeAgo, style: const TextStyle(color: Vibe.muted, fontSize: 12)),
+          Text(item.timeAgo,
+              style: const TextStyle(color: Vibe.muted, fontSize: 12)),
         ],
       ),
     );

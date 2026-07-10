@@ -50,7 +50,9 @@ class RouteRepositoryImpl implements RouteRepository {
   ResultFuture<RoutePlan> getRoute(String routeId) async {
     try {
       final route = await _local.getRoute(routeId);
-      if (route == null) return const Failed(CacheFailure(message: 'Route not found.'));
+      if (route == null) {
+        return const Failed(CacheFailure(message: 'Route not found.'));
+      }
       return Success(route);
     } on CacheException catch (e) {
       return Failed(CacheFailure(message: e.message));
@@ -58,7 +60,8 @@ class RouteRepositoryImpl implements RouteRepository {
   }
 
   @override
-  ResultFuture<void> updateRouteStatus(String routeId, RouteStatus status) async {
+  ResultFuture<void> updateRouteStatus(
+      String routeId, RouteStatus status) async {
     try {
       await _local.updateRouteStatus(routeId, status);
       unawaited(_broadcastTodayRoutes());

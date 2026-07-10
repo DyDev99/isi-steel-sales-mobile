@@ -8,5 +8,6 @@ class RunRouteDeltaSync extends UseCase<RouteSyncResult, RouteSyncScope> {
   const RunRouteDeltaSync(this._repository);
   final RouteSyncRepository _repository;
   @override
-  ResultFuture<RouteSyncResult> call(RouteSyncScope params) => _repository.runDeltaSync(params);
+  ResultFuture<RouteSyncResult> call(RouteSyncScope params) =>
+      _repository.runDeltaSync(params);
 }

@@ -35,13 +35,17 @@ Future<void> registerCustomerFeature(GetIt sl) async {
   sl.registerLazySingleton<CustomersDatabase>(() => customersDb);
 
   // ── Data sources ────────────────────────────────────────────────────
-  sl.registerLazySingleton<CustomerLocalDataSource>(() => CustomerLocalDataSourceImpl(sl()));
-  sl.registerLazySingleton<CustomerRemoteDataSource>(() => MockCustomerRemoteDataSource());
+  sl.registerLazySingleton<CustomerLocalDataSource>(
+      () => CustomerLocalDataSourceImpl(sl()));
+  sl.registerLazySingleton<CustomerRemoteDataSource>(
+      () => MockCustomerRemoteDataSource());
 
   // ── Repositories ────────────────────────────────────────────────────
-  sl.registerLazySingleton<CustomerRepository>(() => CustomerRepositoryImpl(sl()));
+  sl.registerLazySingleton<CustomerRepository>(
+      () => CustomerRepositoryImpl(sl()));
   sl.registerLazySingleton<CustomerSyncRepository>(
-    () => CustomerSyncRepositoryImpl(remote: sl(), local: sl(), network: sl<NetworkInfo>()),
+    () => CustomerSyncRepositoryImpl(
+        remote: sl(), local: sl(), network: sl<NetworkInfo>()),
   );
 
   // ── Use cases ───────────────────────────────────────────────────────

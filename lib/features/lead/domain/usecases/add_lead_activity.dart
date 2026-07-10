@@ -13,5 +13,6 @@ class AddLeadActivity extends LeadUseCase<void, AddLeadActivityParams> {
   final LeadRepository _repository;
 
   @override
-  Future<void> call(AddLeadActivityParams params) => _repository.addActivity(params.leadId, params.item);
+  Future<void> call(AddLeadActivityParams params) =>
+      _repository.addActivity(params.leadId, params.item);
 }

@@ -54,10 +54,11 @@ class _RouteDispatchScreenState extends State<RouteDispatchScreen> {
   }
 
   /// First stop that still needs visiting — the planned "next" target.
-  int _nextIndex(RoutePlan route) =>
-      route.stops.indexWhere((s) => s.status != VisitStatus.checkedOut && s.status != VisitStatus.missed);
+  int _nextIndex(RoutePlan route) => route.stops.indexWhere((s) =>
+      s.status != VisitStatus.checkedOut && s.status != VisitStatus.missed);
 
-  Future<void> _startWithStop(BuildContext context, int index, {required int nextIndex}) async {
+  Future<void> _startWithStop(BuildContext context, int index,
+      {required int nextIndex}) async {
     HapticFeedback.mediumImpact();
 
     // Deviating from the office plan is allowed — just flag it gently.
@@ -103,7 +104,8 @@ class _RouteDispatchScreenState extends State<RouteDispatchScreen> {
         backgroundColor: Vibe.bg,
         iconTheme: const IconThemeData(color: Vibe.text),
         title: Text('my_visits.flow.dispatch_title'.tr,
-            style: const TextStyle(color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
+            style: const TextStyle(
+                color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
       ),
       // Keep the geofence status live for the selected stop even while the
       // pushed StopDetailScreen sits on top — this listener stays mounted.
@@ -132,18 +134,23 @@ class _RouteDispatchScreenState extends State<RouteDispatchScreen> {
           builder: (context, state) => switch (state) {
             ActiveRouteReady() => _DispatchBody(
                 route: state.route,
-                onStart: (i, nextIndex) => _startWithStop(context, i, nextIndex: nextIndex),
+                onStart: (i, nextIndex) =>
+                    _startWithStop(context, i, nextIndex: nextIndex),
                 onReady: _ensureTracking,
                 nextIndex: _nextIndex(state.route),
               ),
             ActiveRouteCompleted(:final route) => _DispatchBody(
                 route: route,
-                onStart: (i, nextIndex) => _startWithStop(context, i, nextIndex: nextIndex),
+                onStart: (i, nextIndex) =>
+                    _startWithStop(context, i, nextIndex: nextIndex),
                 onReady: _ensureTracking,
                 nextIndex: _nextIndex(route),
               ),
-            ActiveRouteError(:final message) => Center(child: Text(message, style: const TextStyle(color: Vibe.muted))),
-            _ => const Center(child: CircularProgressIndicator(color: Vibe.violet)),
+            ActiveRouteError(:final message) => Center(
+                child:
+                    Text(message, style: const TextStyle(color: Vibe.muted))),
+            _ => const Center(
+                child: CircularProgressIndicator(color: Vibe.violet)),
           },
         ),
       ),
@@ -184,7 +191,8 @@ class _DispatchBody extends StatelessWidget {
               const SizedBox(height: 6),
               Text(
                 'my_visits.flow.dispatch_helper'.tr,
-                style: const TextStyle(color: Vibe.muted, fontSize: 12.5, height: 1.4),
+                style: const TextStyle(
+                    color: Vibe.muted, fontSize: 12.5, height: 1.4),
               ),
               const SizedBox(height: 16),
               BlocBuilder<LocationTrackingCubit, LocationTrackingState>(
@@ -216,7 +224,9 @@ class _DispatchBody extends StatelessWidget {
         _DispatchCta(
           label: _allDone
               ? 'my_visits.flow.route_complete'.tr
-              : 'my_visits.flow.start_with'.tr.replaceAll('{shop}', stops[nextIndex].customer.name),
+              : 'my_visits.flow.start_with'
+                  .tr
+                  .replaceAll('{shop}', stops[nextIndex].customer.name),
           enabled: !_allDone,
           onTap: _allDone ? null : () => onStart(nextIndex, nextIndex),
         ),
@@ -236,7 +246,9 @@ class _Header extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
-          child: Text(name, style: const TextStyle(color: Vibe.text, fontSize: 22, fontWeight: FontWeight.w900)),
+          child: Text(name,
+              style: const TextStyle(
+                  color: Vibe.text, fontSize: 22, fontWeight: FontWeight.w900)),
         ),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -245,7 +257,10 @@ class _Header extends StatelessWidget {
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text('$stopCount ${'my_visits.flow.shops'.tr}',
-              style: const TextStyle(color: Vibe.violet, fontSize: 12, fontWeight: FontWeight.w800)),
+              style: const TextStyle(
+                  color: Vibe.violet,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800)),
         ),
       ],
     );
@@ -267,21 +282,39 @@ class _StopDispatchCard extends StatelessWidget {
 
   static String _ordinal(int n) {
     if (n >= 11 && n <= 13) return '${n}th';
-    return switch (n % 10) { 1 => '${n}st', 2 => '${n}nd', 3 => '${n}rd', _ => '${n}th' };
+    return switch (n % 10) {
+      1 => '${n}st',
+      2 => '${n}nd',
+      3 => '${n}rd',
+      _ => '${n}th'
+    };
   }
 
   String get _distanceLabel {
     if (distanceMeters == null) return '-- km';
     final km = distanceMeters! / 1000;
-    return km < 0.1 ? '${distanceMeters!.round()} m' : '${km.toStringAsFixed(1)} km';
+    return km < 0.1
+        ? '${distanceMeters!.round()} m'
+        : '${km.toStringAsFixed(1)} km';
   }
 
   ({String label, Color color}) get _pill {
-    if (isNext) return (label: 'my_visits.flow.pill_next'.tr, color: Vibe.violet);
+    if (isNext) {
+      return (label: 'my_visits.flow.pill_next'.tr, color: Vibe.violet);
+    }
     return switch (stop.status) {
-      VisitStatus.checkedOut => (label: 'my_visits.flow.pill_done'.tr, color: Vibe.success),
-      VisitStatus.missed => (label: 'my_visits.flow.pill_missed'.tr, color: Vibe.danger),
-      VisitStatus.checkedIn => (label: 'my_visits.flow.pill_checked_in'.tr, color: Vibe.amber),
+      VisitStatus.checkedOut => (
+          label: 'my_visits.flow.pill_done'.tr,
+          color: Vibe.success
+        ),
+      VisitStatus.missed => (
+          label: 'my_visits.flow.pill_missed'.tr,
+          color: Vibe.danger
+        ),
+      VisitStatus.checkedIn => (
+          label: 'my_visits.flow.pill_checked_in'.tr,
+          color: Vibe.amber
+        ),
       _ => (label: 'my_visits.flow.pill_pending'.tr, color: Vibe.muted),
     };
   }
@@ -301,7 +334,8 @@ class _StopDispatchCard extends StatelessWidget {
               height: 40,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: isNext ? Vibe.violet : Vibe.violet.withValues(alpha: 0.12),
+                color:
+                    isNext ? Vibe.violet : Vibe.violet.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
@@ -321,7 +355,10 @@ class _StopDispatchCard extends StatelessWidget {
                   Text(stop.customer.name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(color: Vibe.text, fontSize: 14, fontWeight: FontWeight.w800)),
+                      style: const TextStyle(
+                          color: Vibe.text,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800)),
                   const SizedBox(height: 3),
                   Text(
                     '${stop.customer.territory} · $_distanceLabel',
@@ -340,7 +377,10 @@ class _StopDispatchCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(pill.label,
-                  style: TextStyle(color: pill.color, fontSize: 10.5, fontWeight: FontWeight.w800)),
+                  style: TextStyle(
+                      color: pill.color,
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w800)),
             ),
           ],
         ),
@@ -350,7 +390,8 @@ class _StopDispatchCard extends StatelessWidget {
 }
 
 class _DispatchCta extends StatelessWidget {
-  const _DispatchCta({required this.label, required this.enabled, required this.onTap});
+  const _DispatchCta(
+      {required this.label, required this.enabled, required this.onTap});
   final String label;
   final bool enabled;
   final VoidCallback? onTap;
@@ -369,15 +410,20 @@ class _DispatchCta extends StatelessWidget {
           width: double.infinity,
           child: ElevatedButton.icon(
             onPressed: onTap,
-            icon: Icon(enabled ? Icons.navigation_rounded : Icons.check_circle_rounded, size: 20),
-            label: Text(label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+            icon: Icon(
+                enabled ? Icons.navigation_rounded : Icons.check_circle_rounded,
+                size: 20),
+            label: Text(label,
+                style:
+                    const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
             style: ElevatedButton.styleFrom(
               backgroundColor: enabled ? Vibe.violet : Vibe.stroke,
               foregroundColor: Colors.white,
               disabledBackgroundColor: Vibe.success.withValues(alpha: 0.6),
               disabledForegroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 15),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14)),
             ),
           ),
         ),

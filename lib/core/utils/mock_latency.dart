@@ -14,6 +14,7 @@ class MockLatency {
   static const Duration value = Duration(milliseconds: 900);
 
   /// Await this at the start of a mock read to simulate the round-trip.
-  static Future<void> tick() =>
-      value == Duration.zero ? Future<void>.value() : Future<void>.delayed(value);
+  static Future<void> tick() => value == Duration.zero
+      ? Future<void>.value()
+      : Future<void>.delayed(value);
 }

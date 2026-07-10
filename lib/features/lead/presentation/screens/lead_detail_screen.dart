@@ -52,7 +52,8 @@ class LeadDetailScreen extends StatelessWidget {
   }
 
   Future<void> _move(BuildContext context, Lead lead) async {
-    final result = await showMoveStageSheet(context: context, lead: lead, isAdmin: _isAdmin);
+    final result = await showMoveStageSheet(
+        context: context, lead: lead, isAdmin: _isAdmin);
     if (result != null && context.mounted) {
       context.read<PipelineBloc>().add(LeadMoved(
             leadId: lead.id,
@@ -81,7 +82,9 @@ class LeadDetailScreen extends StatelessWidget {
         content: Text('This removes ${lead.companyName} from the pipeline.',
             style: const TextStyle(color: Vibe.muted)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel')),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             child: const Text('Delete', style: TextStyle(color: Vibe.danger)),
@@ -114,9 +117,11 @@ class LeadDetailScreen extends StatelessWidget {
                     onSendToHq: () => _sendToHq(context, lead),
                   ),
                 LeadDetailError(:final message) => Center(
-                    child: Text(message, style: const TextStyle(color: Vibe.muted)),
+                    child: Text(message,
+                        style: const TextStyle(color: Vibe.muted)),
                   ),
-                _ => const Center(child: CircularProgressIndicator(color: Vibe.pink)),
+                _ => const Center(
+                    child: CircularProgressIndicator(color: Vibe.pink)),
               },
             ),
           ),
@@ -143,7 +148,8 @@ class _DetailBody extends StatelessWidget {
   final VoidCallback onDelete;
   final VoidCallback onSendToHq;
 
-  void _updateOpportunity(BuildContext context, OpportunityInfo Function(OpportunityInfo) update) {
+  void _updateOpportunity(
+      BuildContext context, OpportunityInfo Function(OpportunityInfo) update) {
     final info = lead.opportunityInfo;
     if (info == null) return;
     final updated = lead.copyWith(opportunityInfo: update(info));
@@ -155,16 +161,20 @@ class _DetailBody extends StatelessWidget {
   /// Approval), so a lead-scoped quotation skips Territory/Shop picking
   /// entirely and opens the Quotation Builder directly in "lead mode"
   /// (no credit/CN-DN/off-visit — there's no shop to source them from).
-  void _openCatalog(BuildContext context, String leadId, String leadDisplayName) {
+  void _openCatalog(
+      BuildContext context, String leadId, String leadDisplayName) {
     Navigator.of(context).push(MaterialPageRoute(
       settings: const RouteSettings(name: QuotationBuilderScreen.routeName),
       builder: (_) => MultiBlocProvider(
         providers: [
-          BlocProvider(create: (_) => sl<CatalogBloc>()..add(const CatalogLoadRequested())),
+          BlocProvider(
+              create: (_) =>
+                  sl<CatalogBloc>()..add(const CatalogLoadRequested())),
           BlocProvider(create: (_) => sl<CartCubit>()..load()),
           BlocProvider(create: (_) => sl<SyncCubit>()),
         ],
-        child: QuotationBuilderScreen(leadId: leadId, leadDisplayName: leadDisplayName),
+        child: QuotationBuilderScreen(
+            leadId: leadId, leadDisplayName: leadDisplayName),
       ),
     ));
   }
@@ -186,14 +196,26 @@ class _DetailBody extends StatelessWidget {
               child: Text(lead.companyName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Vibe.text, fontSize: 18, fontWeight: FontWeight.w800)),
+                  style: const TextStyle(
+                      color: Vibe.text,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800)),
             ),
             if (lead.stage == PipelineStage.won &&
                 lead.wonInfo?.onboardingStatus == OnboardingStatus.notSubmitted)
-              IconButton(onPressed: onSendToHq, icon: const Icon(Icons.send_rounded, color: Vibe.violet)),
-            IconButton(onPressed: onEdit, icon: const Icon(Icons.edit_outlined, color: Vibe.text)),
-            IconButton(onPressed: onMove, icon: const Icon(Icons.swap_horiz_rounded, color: Vibe.text)),
-            IconButton(onPressed: onDelete, icon: const Icon(Icons.delete_outline_rounded, color: Vibe.danger)),
+              IconButton(
+                  onPressed: onSendToHq,
+                  icon: const Icon(Icons.send_rounded, color: Vibe.violet)),
+            IconButton(
+                onPressed: onEdit,
+                icon: const Icon(Icons.edit_outlined, color: Vibe.text)),
+            IconButton(
+                onPressed: onMove,
+                icon: const Icon(Icons.swap_horiz_rounded, color: Vibe.text)),
+            IconButton(
+                onPressed: onDelete,
+                icon: const Icon(Icons.delete_outline_rounded,
+                    color: Vibe.danger)),
           ],
         ),
         const SizedBox(height: 8),
@@ -204,7 +226,6 @@ class _DetailBody extends StatelessWidget {
             OnboardingStatusBadge(status: lead.wonInfo!.onboardingStatus),
         ]),
         const SizedBox(height: 16),
-
         _Section(
           title: 'Storefront Photo',
           child: ClipRRect(
@@ -218,13 +239,13 @@ class _DetailBody extends StatelessWidget {
                 errorBuilder: (context, error, stackTrace) => Container(
                   color: Vibe.surface,
                   alignment: Alignment.center,
-                  child: const Icon(Icons.storefront_rounded, color: Vibe.muted, size: 36),
+                  child: const Icon(Icons.storefront_rounded,
+                      color: Vibe.muted, size: 36),
                 ),
               ),
             ),
           ),
         ),
-
         _Section(
           title: 'General Information',
           child: Column(
@@ -239,24 +260,26 @@ class _DetailBody extends StatelessWidget {
             ],
           ),
         ),
-
         _Section(
           title: 'Business Information',
           child: Column(
             children: [
-              _KeyValue('Business registration #', lead.businessRegistrationNumber),
+              _KeyValue(
+                  'Business registration #', lead.businessRegistrationNumber),
               _KeyValue('Tax ID', lead.taxId),
-              _KeyValue('Expected revenue', '\$${lead.expectedRevenue.toStringAsFixed(0)}'),
+              _KeyValue('Expected revenue',
+                  '\$${lead.expectedRevenue.toStringAsFixed(0)}'),
               if (lead.stage == PipelineStage.won)
-                _KeyValue('Current revenue', '\$${lead.currentRevenue.toStringAsFixed(0)}'),
+                _KeyValue('Current revenue',
+                    '\$${lead.currentRevenue.toStringAsFixed(0)}'),
             ],
           ),
         ),
-
         _Section(
           title: 'Contacts',
           child: lead.contacts.isEmpty
-              ? const Text('No contacts yet', style: TextStyle(color: Vibe.muted, fontSize: 12.5))
+              ? const Text('No contacts yet',
+                  style: TextStyle(color: Vibe.muted, fontSize: 12.5))
               : Column(
                   children: lead.contacts
                       .map((c) => Padding(
@@ -265,24 +288,34 @@ class _DetailBody extends StatelessWidget {
                               children: [
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text('${c.name} · ${c.role}',
                                           style: const TextStyle(
-                                              color: Vibe.text, fontSize: 13, fontWeight: FontWeight.w700)),
-                                      Text(c.phone, style: const TextStyle(color: Vibe.muted, fontSize: 12)),
+                                              color: Vibe.text,
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w700)),
+                                      Text(c.phone,
+                                          style: const TextStyle(
+                                              color: Vibe.muted, fontSize: 12)),
                                     ],
                                   ),
                                 ),
                                 if (c.isPrimary)
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 2),
                                     decoration: BoxDecoration(
-                                      color: Vibe.violet.withValues(alpha: 0.16),
+                                      color:
+                                          Vibe.violet.withValues(alpha: 0.16),
                                       borderRadius: BorderRadius.circular(20),
                                     ),
                                     child: const Text('Primary',
-                                        style: TextStyle(color: Vibe.violet, fontSize: 10.5, fontWeight: FontWeight.w700)),
+                                        style: TextStyle(
+                                            color: Vibe.violet,
+                                            fontSize: 10.5,
+                                            fontWeight: FontWeight.w700)),
                                   ),
                               ],
                             ),
@@ -290,19 +323,21 @@ class _DetailBody extends StatelessWidget {
                       .toList(),
                 ),
         ),
-
         _Section(
           title: 'Address & GPS Location',
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(lead.address, style: const TextStyle(color: Vibe.text, fontSize: 13)),
+              Text(lead.address,
+                  style: const TextStyle(color: Vibe.text, fontSize: 13)),
               const SizedBox(height: 10),
-              GpsLocationCard(latitude: lead.latitude, longitude: lead.longitude, address: lead.district),
+              GpsLocationCard(
+                  latitude: lead.latitude,
+                  longitude: lead.longitude,
+                  address: lead.district),
             ],
           ),
         ),
-
         _Section(
           title: 'KYC Documents',
           child: DocumentsSection(
@@ -310,29 +345,33 @@ class _DetailBody extends StatelessWidget {
             onAddDocument: (type, name) => cubit.addMockDocument(type, name),
           ),
         ),
-
         _Section(
           title: 'Credit Status',
           child: Column(
             children: [
               _KeyValue('Status', lead.creditStatus.label),
-              _KeyValue('Credit limit', '\$${lead.creditLimit.toStringAsFixed(0)}'),
+              _KeyValue(
+                  'Credit limit', '\$${lead.creditLimit.toStringAsFixed(0)}'),
             ],
           ),
         ),
-
         if (lead.opportunityInfo case final info?)
           _Section(
             title: 'Opportunity Information',
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _KeyValue('Estimated value', '\$${info.estimatedValue.toStringAsFixed(0)}'),
+                _KeyValue('Estimated value',
+                    '\$${info.estimatedValue.toStringAsFixed(0)}'),
                 const SizedBox(height: 4),
                 const Text('Tap what you know. Nothing here is required.',
                     style: TextStyle(color: Vibe.muted, fontSize: 11.5)),
                 const SizedBox(height: 10),
-                Text('Stage', style: const TextStyle(color: Vibe.muted, fontSize: 12, fontWeight: FontWeight.w700)),
+                Text('Stage',
+                    style: const TextStyle(
+                        color: Vibe.muted,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700)),
                 const SizedBox(height: 6),
                 Wrap(
                   spacing: 8,
@@ -341,38 +380,63 @@ class _DetailBody extends StatelessWidget {
                       .map((s) => ChoiceChip(
                             label: Text(s.label),
                             selected: info.subStage == s,
-                            onSelected: (_) =>
-                                _updateOpportunity(context, (i) => i.copyWith(subStage: s)),
+                            onSelected: (_) => _updateOpportunity(
+                                context, (i) => i.copyWith(subStage: s)),
                             labelStyle: TextStyle(
-                                color: info.subStage == s ? Vibe.violet : Vibe.text, fontSize: 12.5),
+                                color: info.subStage == s
+                                    ? Vibe.violet
+                                    : Vibe.text,
+                                fontSize: 12.5),
                             backgroundColor: Vibe.surface,
                             selectedColor: Vibe.violet.withValues(alpha: 0.2),
-                            side: BorderSide(color: info.subStage == s ? Vibe.violet : Vibe.stroke),
+                            side: BorderSide(
+                                color: info.subStage == s
+                                    ? Vibe.violet
+                                    : Vibe.stroke),
                           ))
                       .toList(),
                 ),
                 const SizedBox(height: 12),
-                Text('Tonnage', style: const TextStyle(color: Vibe.muted, fontSize: 12, fontWeight: FontWeight.w700)),
+                Text('Tonnage',
+                    style: const TextStyle(
+                        color: Vibe.muted,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700)),
                 const SizedBox(height: 6),
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: const [('<5t', 3.0), ('5-20t', 12.0), ('20-50t', 35.0), ('50t+', 60.0)]
+                  children: const [
+                    ('<5t', 3.0),
+                    ('5-20t', 12.0),
+                    ('20-50t', 35.0),
+                    ('50t+', 60.0)
+                  ]
                       .map((t) => ChoiceChip(
                             label: Text(t.$1),
                             selected: info.tonnage == t.$2,
-                            onSelected: (_) =>
-                                _updateOpportunity(context, (i) => i.copyWith(tonnage: t.$2)),
+                            onSelected: (_) => _updateOpportunity(
+                                context, (i) => i.copyWith(tonnage: t.$2)),
                             labelStyle: TextStyle(
-                                color: info.tonnage == t.$2 ? Vibe.violet : Vibe.text, fontSize: 12.5),
+                                color: info.tonnage == t.$2
+                                    ? Vibe.violet
+                                    : Vibe.text,
+                                fontSize: 12.5),
                             backgroundColor: Vibe.surface,
                             selectedColor: Vibe.violet.withValues(alpha: 0.2),
-                            side: BorderSide(color: info.tonnage == t.$2 ? Vibe.violet : Vibe.stroke),
+                            side: BorderSide(
+                                color: info.tonnage == t.$2
+                                    ? Vibe.violet
+                                    : Vibe.stroke),
                           ))
                       .toList(),
                 ),
                 const SizedBox(height: 12),
-                Text('Budget', style: const TextStyle(color: Vibe.muted, fontSize: 12, fontWeight: FontWeight.w700)),
+                Text('Budget',
+                    style: const TextStyle(
+                        color: Vibe.muted,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700)),
                 const SizedBox(height: 6),
                 Wrap(
                   spacing: 8,
@@ -381,18 +445,28 @@ class _DetailBody extends StatelessWidget {
                       .map((b) => ChoiceChip(
                             label: Text(b.label),
                             selected: info.budgetStatus == b,
-                            onSelected: (_) =>
-                                _updateOpportunity(context, (i) => i.copyWith(budgetStatus: b)),
+                            onSelected: (_) => _updateOpportunity(
+                                context, (i) => i.copyWith(budgetStatus: b)),
                             labelStyle: TextStyle(
-                                color: info.budgetStatus == b ? Vibe.violet : Vibe.text, fontSize: 12.5),
+                                color: info.budgetStatus == b
+                                    ? Vibe.violet
+                                    : Vibe.text,
+                                fontSize: 12.5),
                             backgroundColor: Vibe.surface,
                             selectedColor: Vibe.violet.withValues(alpha: 0.2),
-                            side: BorderSide(color: info.budgetStatus == b ? Vibe.violet : Vibe.stroke),
+                            side: BorderSide(
+                                color: info.budgetStatus == b
+                                    ? Vibe.violet
+                                    : Vibe.stroke),
                           ))
                       .toList(),
                 ),
                 const SizedBox(height: 12),
-                Text('Authority', style: const TextStyle(color: Vibe.muted, fontSize: 12, fontWeight: FontWeight.w700)),
+                Text('Authority',
+                    style: const TextStyle(
+                        color: Vibe.muted,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700)),
                 const SizedBox(height: 6),
                 Wrap(
                   spacing: 8,
@@ -401,26 +475,36 @@ class _DetailBody extends StatelessWidget {
                     ChoiceChip(
                       label: const Text('Talking to decision maker'),
                       selected: info.hasDecisionMakerAccess == true,
-                      onSelected: (_) =>
-                          _updateOpportunity(context, (i) => i.copyWith(hasDecisionMakerAccess: true)),
+                      onSelected: (_) => _updateOpportunity(context,
+                          (i) => i.copyWith(hasDecisionMakerAccess: true)),
                       labelStyle: TextStyle(
-                          color: info.hasDecisionMakerAccess == true ? Vibe.violet : Vibe.text, fontSize: 12.5),
+                          color: info.hasDecisionMakerAccess == true
+                              ? Vibe.violet
+                              : Vibe.text,
+                          fontSize: 12.5),
                       backgroundColor: Vibe.surface,
                       selectedColor: Vibe.violet.withValues(alpha: 0.2),
                       side: BorderSide(
-                          color: info.hasDecisionMakerAccess == true ? Vibe.violet : Vibe.stroke),
+                          color: info.hasDecisionMakerAccess == true
+                              ? Vibe.violet
+                              : Vibe.stroke),
                     ),
                     ChoiceChip(
                       label: const Text('Not yet'),
                       selected: info.hasDecisionMakerAccess == false,
-                      onSelected: (_) =>
-                          _updateOpportunity(context, (i) => i.copyWith(hasDecisionMakerAccess: false)),
+                      onSelected: (_) => _updateOpportunity(context,
+                          (i) => i.copyWith(hasDecisionMakerAccess: false)),
                       labelStyle: TextStyle(
-                          color: info.hasDecisionMakerAccess == false ? Vibe.violet : Vibe.text, fontSize: 12.5),
+                          color: info.hasDecisionMakerAccess == false
+                              ? Vibe.violet
+                              : Vibe.text,
+                          fontSize: 12.5),
                       backgroundColor: Vibe.surface,
                       selectedColor: Vibe.violet.withValues(alpha: 0.2),
                       side: BorderSide(
-                          color: info.hasDecisionMakerAccess == false ? Vibe.violet : Vibe.stroke),
+                          color: info.hasDecisionMakerAccess == false
+                              ? Vibe.violet
+                              : Vibe.stroke),
                     ),
                   ],
                 ),
@@ -428,7 +512,8 @@ class _DetailBody extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
-                    onPressed: () => _openCatalog(context, lead.id, lead.companyName),
+                    onPressed: () =>
+                        _openCatalog(context, lead.id, lead.companyName),
                     icon: const Icon(Icons.add_shopping_cart_rounded, size: 18),
                     label: const Text('Add Products'),
                   ),
@@ -436,29 +521,40 @@ class _DetailBody extends StatelessWidget {
               ],
             ),
           ),
-
         if (lead.wonInfo case final won?)
           _Section(
             title: 'Sales History',
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _KeyValue('Final value', '\$${won.finalValue.toStringAsFixed(0)}'),
+                _KeyValue(
+                    'Final value', '\$${won.finalValue.toStringAsFixed(0)}'),
                 _KeyValue('Delivery timeline', won.deliveryTimeline ?? '—'),
                 _KeyValue('Onboarding status', won.onboardingStatus.label),
-                if (won.shopType != null) _KeyValue('Shop type', won.shopType!.label),
-                if (won.customerCode != null) _KeyValue('Customer code', won.customerCode!),
-                if (won.sapCustomerId != null) _KeyValue('SAP customer ID', won.sapCustomerId!),
+                if (won.shopType != null)
+                  _KeyValue('Shop type', won.shopType!.label),
+                if (won.customerCode != null)
+                  _KeyValue('Customer code', won.customerCode!),
+                if (won.sapCustomerId != null)
+                  _KeyValue('SAP customer ID', won.sapCustomerId!),
                 if (won.approvedCreditLimit != null)
-                  _KeyValue('Approved credit limit', '\$${won.approvedCreditLimit!.toStringAsFixed(0)}'),
-                if (won.approvalDate != null) _KeyValue('Approval date', _formatDate(won.approvalDate!)),
-                if (won.contractDate != null) _KeyValue('Contract date', _formatDate(won.contractDate!)),
+                  _KeyValue('Approved credit limit',
+                      '\$${won.approvedCreditLimit!.toStringAsFixed(0)}'),
+                if (won.approvalDate != null)
+                  _KeyValue('Approval date', _formatDate(won.approvalDate!)),
+                if (won.contractDate != null)
+                  _KeyValue('Contract date', _formatDate(won.contractDate!)),
                 if (won.annualRevenue != null)
-                  _KeyValue('Annual revenue', '\$${won.annualRevenue!.toStringAsFixed(0)}'),
+                  _KeyValue('Annual revenue',
+                      '\$${won.annualRevenue!.toStringAsFixed(0)}'),
                 if (won.productsPurchased.isNotEmpty)
-                  _KeyValue('Products purchased', won.productsPurchased.join(', ')),
-                if (won.firstOrderDate != null) _KeyValue('First order date', _formatDate(won.firstOrderDate!)),
-                if (won.accountManager != null) _KeyValue('Account manager', won.accountManager!),
+                  _KeyValue(
+                      'Products purchased', won.productsPurchased.join(', ')),
+                if (won.firstOrderDate != null)
+                  _KeyValue(
+                      'First order date', _formatDate(won.firstOrderDate!)),
+                if (won.accountManager != null)
+                  _KeyValue('Account manager', won.accountManager!),
                 if (won.onboardingStatus == OnboardingStatus.notSubmitted) ...[
                   const SizedBox(height: 8),
                   SizedBox(
@@ -470,7 +566,8 @@ class _DetailBody extends StatelessWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Vibe.violet,
                         padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                       ),
                     ),
                   ),
@@ -478,12 +575,10 @@ class _DetailBody extends StatelessWidget {
               ],
             ),
           ),
-
         _Section(
           title: 'Activity Timeline',
           child: ActivityTimeline(items: activity),
         ),
-
         _Section(
           title: 'Notes',
           child: NotesSection(notes: lead.notes, onAddNote: cubit.addNote),
@@ -509,7 +604,11 @@ class _Section extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: const TextStyle(color: Vibe.text, fontSize: 14.5, fontWeight: FontWeight.w800)),
+            Text(title,
+                style: const TextStyle(
+                    color: Vibe.text,
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w800)),
             const SizedBox(height: 12),
             child,
           ],
@@ -533,11 +632,15 @@ class _KeyValue extends StatelessWidget {
         children: [
           SizedBox(
             width: 140,
-            child: Text(label, style: const TextStyle(color: Vibe.muted, fontSize: 12.5)),
+            child: Text(label,
+                style: const TextStyle(color: Vibe.muted, fontSize: 12.5)),
           ),
           Expanded(
             child: Text(value.isEmpty ? '—' : value,
-                style: const TextStyle(color: Vibe.text, fontSize: 12.5, fontWeight: FontWeight.w600)),
+                style: const TextStyle(
+                    color: Vibe.text,
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600)),
           ),
         ],
       ),

@@ -5,7 +5,10 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/locati
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/geofence_service.dart';
 
 class CheckInValidation {
-  const CheckInValidation({required this.allowed, required this.blockedReasons, required this.warnings});
+  const CheckInValidation(
+      {required this.allowed,
+      required this.blockedReasons,
+      required this.warnings});
   final bool allowed;
   final List<String> blockedReasons;
   final List<String> warnings;
@@ -32,7 +35,8 @@ class FraudDetectionService {
 
     if (!insideGeofence) blocked.add("You're outside the customer's geofence.");
     if (accuracyMeters > policy.maxAccuracyMeters) {
-      blocked.add('GPS accuracy too low (±${accuracyMeters.toStringAsFixed(0)}m) — move to open sky and retry.');
+      blocked.add(
+          'GPS accuracy too low (±${accuracyMeters.toStringAsFixed(0)}m) — move to open sky and retry.');
     }
     if (isMocked) {
       if (policy.blockOnMockLocation) {
@@ -45,16 +49,19 @@ class FraudDetectionService {
       if (policy.blockOnVpn) {
         blocked.add('Disable your VPN to check in.');
       } else {
-        warnings.add('VPN or proxy detected — location verification may be unreliable.');
+        warnings.add(
+            'VPN or proxy detected — location verification may be unreliable.');
       }
     }
 
-    return CheckInValidation(allowed: blocked.isEmpty, blockedReasons: blocked, warnings: warnings);
+    return CheckInValidation(
+        allowed: blocked.isEmpty, blockedReasons: blocked, warnings: warnings);
   }
 
   /// Flags a consecutive sample pair as an "impossible travel" / teleport
   /// event if the implied speed exceeds [FraudPolicy.maxSpeedKmh].
-  bool isImpossibleTravel(LocationSample previous, LocationSample current, FraudPolicy policy) {
+  bool isImpossibleTravel(
+      LocationSample previous, LocationSample current, FraudPolicy policy) {
     final seconds = current.timestamp.difference(previous.timestamp).inSeconds;
     if (seconds <= 0) return false;
     final meters = GeofenceService.distanceMeters(
@@ -76,7 +83,9 @@ class FraudDetectionService {
       final interfaces = await NetworkInterface.list();
       return interfaces.any((i) {
         final name = i.name.toLowerCase();
-        return name.startsWith('tun') || name.startsWith('ppp') || name.startsWith('utun');
+        return name.startsWith('tun') ||
+            name.startsWith('ppp') ||
+            name.startsWith('utun');
       });
     } catch (_) {
       return false;

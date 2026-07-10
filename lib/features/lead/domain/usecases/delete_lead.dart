@@ -7,5 +7,6 @@ class DeleteLead extends LeadUseCase<void, LeadIdParams> {
   final LeadRepository _repository;
 
   @override
-  Future<void> call(LeadIdParams params) => _repository.deleteLead(params.leadId);
+  Future<void> call(LeadIdParams params) =>
+      _repository.deleteLead(params.leadId);
 }

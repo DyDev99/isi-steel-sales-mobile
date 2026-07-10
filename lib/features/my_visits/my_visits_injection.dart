@@ -1,21 +1,30 @@
 import 'package:get_it/get_it.dart';
+import 'package:isi_steel_sales_mobile/core/local/hive_service.dart';
 import 'package:isi_steel_sales_mobile/core/network/network_info.dart';
 import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/data/local/depot_selection_store.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/location_sample_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/route_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/routes_database.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/visit_local_data_source.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/data/local/workflow_state_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/remote/mock_route_remote_data_source.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/data/remote/mock_visit_sync_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/remote/route_remote_data_source.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/data/remote/visit_sync_remote_data_source.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/data/repositories/active_workflow_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/repositories/location_sample_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/repositories/route_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/repositories/route_sync_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/repositories/visit_repository_impl.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/data/repositories/visit_sync_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/services/geolocator_tracking_service.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/repositories/active_workflow_repository.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/repositories/location_sample_repository.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/repositories/route_repository.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/repositories/route_sync_repository.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/repositories/visit_repository.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/repositories/visit_sync_repository.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/fraud_detection_service.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/location_tracking_service.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/proof_photo_service.dart';
@@ -28,6 +37,11 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/add_vi
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/add_visit_photo.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/check_in.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/check_out.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/clear_active_workflow.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/get_active_workflow.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/get_resumable_route.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/push_pending_visit_data.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/save_active_workflow.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/fetch_location_samples.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/fetch_today_routes.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/fetch_visit_data.dart';
@@ -44,6 +58,9 @@ import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/acti
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/location_tracking_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/route_dashboard_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/route_sync_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/resumable_visit_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/depot_selection_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/depot_stock_count_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/visit_cubit.dart';
 
 /// Registers the route-management feature: GPS tracking, geofence
@@ -55,23 +72,42 @@ Future<void> registerMyVisitsFeature(GetIt sl) async {
   sl.registerLazySingleton<RoutesDatabase>(() => routesDb);
 
   // ── Data sources ────────────────────────────────────────────────────
-  sl.registerLazySingleton<RouteRemoteDataSource>(() => MockRouteRemoteDataSource());
-  sl.registerLazySingleton<RouteLocalDataSource>(() => RouteLocalDataSourceImpl(sl()));
-  sl.registerLazySingleton<VisitLocalDataSource>(() => VisitLocalDataSourceImpl(sl()));
-  sl.registerLazySingleton<LocationSampleLocalDataSource>(() => LocationSampleLocalDataSourceImpl(sl()));
+  sl.registerLazySingleton<RouteRemoteDataSource>(
+      () => MockRouteRemoteDataSource());
+  sl.registerLazySingleton<RouteLocalDataSource>(
+      () => RouteLocalDataSourceImpl(sl()));
+  sl.registerLazySingleton<VisitLocalDataSource>(
+      () => VisitLocalDataSourceImpl(sl()));
+  sl.registerLazySingleton<LocationSampleLocalDataSource>(
+      () => LocationSampleLocalDataSourceImpl(sl()));
+  sl.registerLazySingleton<WorkflowStateLocalDataSource>(
+      () => WorkflowStateLocalDataSourceImpl(sl()));
+  sl.registerLazySingleton<VisitSyncRemoteDataSource>(
+      () => const MockVisitSyncRemoteDataSource());
 
   // ── Services ────────────────────────────────────────────────────────
-  sl.registerLazySingleton<LocationTrackingService>(() => GeolocatorTrackingService());
-  sl.registerLazySingleton<FraudDetectionService>(() => const FraudDetectionService());
-  sl.registerLazySingleton<ProofPhotoService>(() => const CameraProofPhotoService());
+  sl.registerLazySingleton<LocationTrackingService>(
+      () => GeolocatorTrackingService());
+  sl.registerLazySingleton<FraudDetectionService>(
+      () => const FraudDetectionService());
+  sl.registerLazySingleton<ProofPhotoService>(
+      () => const CameraProofPhotoService());
 
   // ── Repositories ────────────────────────────────────────────────────
   sl.registerLazySingleton<RouteRepository>(() => RouteRepositoryImpl(sl()));
   sl.registerLazySingleton<VisitRepository>(() => VisitRepositoryImpl(sl()));
-  sl.registerLazySingleton<LocationSampleRepository>(() => LocationSampleRepositoryImpl(sl()));
+  sl.registerLazySingleton<LocationSampleRepository>(
+      () => LocationSampleRepositoryImpl(sl()));
   sl.registerLazySingleton<RouteSyncRepository>(
-    () => RouteSyncRepositoryImpl(remote: sl(), local: sl(), network: sl<NetworkInfo>()),
+    () => RouteSyncRepositoryImpl(
+        remote: sl(), local: sl(), network: sl<NetworkInfo>()),
   );
+  sl.registerLazySingleton<VisitSyncRepository>(
+    () => VisitSyncRepositoryImpl(
+        remote: sl(), local: sl(), network: sl<NetworkInfo>()),
+  );
+  sl.registerLazySingleton<ActiveWorkflowRepository>(
+      () => ActiveWorkflowRepositoryImpl(sl()));
 
   // ── Use cases ───────────────────────────────────────────────────────
   sl.registerLazySingleton(() => FetchTodayRoutes(sl()));
@@ -97,10 +133,18 @@ Future<void> registerMyVisitsFeature(GetIt sl) async {
   sl.registerLazySingleton(() => RunRouteInitialSync(sl()));
   sl.registerLazySingleton(() => RunRouteDeltaSync(sl()));
   sl.registerLazySingleton(() => GetRouteLastSyncedAt(sl()));
+  sl.registerLazySingleton(() => PushPendingVisitData(sl()));
+
+  sl.registerLazySingleton(() => SaveActiveWorkflow(sl()));
+  sl.registerLazySingleton(() => ClearActiveWorkflow(sl()));
+  sl.registerLazySingleton(() => GetActiveWorkflow(sl()));
+  sl.registerLazySingleton(() => GetResumableRoute(sl(), sl()));
 
   // ── Presentation ────────────────────────────────────────────────────
   sl.registerFactory(() => RouteDashboardCubit(watchTodayRoutes: sl()));
   sl.registerFactory(() => ActiveRouteBloc(
+        saveActiveWorkflow: sl(),
+        clearActiveWorkflow: sl(),
         getRoute: sl(),
         updateRouteStatus: sl(),
         updateStopStatus: sl(),
@@ -125,9 +169,25 @@ Future<void> registerMyVisitsFeature(GetIt sl) async {
         addVisitPhoto: sl(),
       ));
   sl.registerFactory(() => RouteSyncCubit(
+        pushPendingVisitData: sl(),
         runInitialSync: sl(),
         runDeltaSync: sl(),
         getLastSyncedAt: sl(),
         sessionManager: sl<SessionManager>(),
       ));
+
+  // Lazy singleton (not a factory): its "resume this check-in" state must
+  // survive tab switches and be refreshable from the shell.
+  sl.registerLazySingleton(() => ResumableVisitCubit(
+        getResumableRoute: sl(),
+        getRoute: sl(),
+        clearActiveWorkflow: sl(),
+      ));
+
+  // ── Depot Stock flow ────────────────────────────────────────────────
+  sl.registerLazySingleton(() => DepotSelectionStore(HiveService.cacheBox));
+  sl.registerFactory(
+      () => DepotSelectionCubit(browseCustomers: sl(), store: sl()));
+  sl.registerFactory(
+      () => DepotStockCountCubit(getCustomerById: sl(), browseProducts: sl()));
 }

@@ -59,7 +59,8 @@ final class CatalogLoaded extends CatalogState {
   }
 
   @override
-  List<Object?> get props => [items, page, hasMore, isLoadingMore, query, filter, brands];
+  List<Object?> get props =>
+      [items, page, hasMore, isLoadingMore, query, filter, brands];
 }
 
 final class CatalogError extends CatalogState {

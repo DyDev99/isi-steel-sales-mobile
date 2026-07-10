@@ -9,5 +9,6 @@ class GetProductById extends UseCase<Product, ProductIdParams> {
   final ProductRepository _repository;
 
   @override
-  ResultFuture<Product> call(ProductIdParams params) => _repository.getProduct(params.productId);
+  ResultFuture<Product> call(ProductIdParams params) =>
+      _repository.getProduct(params.productId);
 }

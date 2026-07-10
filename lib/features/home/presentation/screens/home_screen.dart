@@ -10,7 +10,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       // Using the light gray background from the image
-      backgroundColor: Vibe.canvas, 
+      backgroundColor: Vibe.canvas,
       body: Stack(
         children: [
           // 1. The Blue Header Background
@@ -28,7 +28,7 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
           ),
-          
+
           SafeArea(
             bottom: false,
             child: ListView(
@@ -36,15 +36,15 @@ class HomeScreen extends StatelessWidget {
               children: [
                 _buildTopBar(),
                 SizedBox(height: 24.h),
-                
+
                 // 2. Overlapping Summary Card
                 _buildSummaryCard(),
                 SizedBox(height: 24.h),
-                
+
                 // 3. 2x2 Action Grid
                 _buildActionGrid(),
                 SizedBox(height: 24.h),
-                
+
                 // 4. Today's Visits Section
                 _buildVisitsSection(),
               ],
@@ -59,7 +59,6 @@ class HomeScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-       
         SizedBox(height: 16.h),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -86,7 +85,10 @@ class HomeScreen extends StatelessWidget {
               backgroundColor: Colors.white.withValues(alpha: 0.2),
               child: Text(
                 'DA',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14.sp),
+                style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14.sp),
               ),
             ),
           ],

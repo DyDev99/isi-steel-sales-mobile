@@ -20,7 +20,8 @@ class CheckInRecordModel extends CheckInRecord {
         latitude: (row['latitude'] as num).toDouble(),
         longitude: (row['longitude'] as num).toDouble(),
         accuracyMeters: (row['accuracy'] as num).toDouble(),
-        distanceFromCustomerMeters: (row['distance_from_customer'] as num).toDouble(),
+        distanceFromCustomerMeters:
+            (row['distance_from_customer'] as num).toDouble(),
         isMocked: (row['is_mocked'] as int) == 1,
       );
 

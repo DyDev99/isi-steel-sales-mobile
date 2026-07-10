@@ -19,7 +19,9 @@ class RouteStopModel extends RouteStop {
   /// The mock remote payload only carries `customerId` — the caller
   /// (`MockRouteRemoteDataSource`) resolves and passes the full customer
   /// record in, so this model never needs its own lookup path.
-  factory RouteStopModel.fromJson(DataMap json, {required CustomerStopInfo customer}) => RouteStopModel(
+  factory RouteStopModel.fromJson(DataMap json,
+          {required CustomerStopInfo customer}) =>
+      RouteStopModel(
         id: json['id'] as String,
         routeId: json['routeId'] as String,
         customer: customer,
@@ -29,7 +31,9 @@ class RouteStopModel extends RouteStop {
         status: VisitStatus.pending,
       );
 
-  factory RouteStopModel.fromRow(DataMap row, {required CustomerStopInfo customer}) => RouteStopModel(
+  factory RouteStopModel.fromRow(DataMap row,
+          {required CustomerStopInfo customer}) =>
+      RouteStopModel(
         id: row['id'] as String,
         routeId: row['route_id'] as String,
         customer: customer,
@@ -37,9 +41,12 @@ class RouteStopModel extends RouteStop {
         plannedArrival: DateTime.parse(row['planned_arrival'] as String),
         plannedDeparture: DateTime.parse(row['planned_departure'] as String),
         status: VisitStatus.values.byName(row['status'] as String),
-        actualArrival: row['actual_arrival'] == null ? null : DateTime.parse(row['actual_arrival'] as String),
-        actualDeparture:
-            row['actual_departure'] == null ? null : DateTime.parse(row['actual_departure'] as String),
+        actualArrival: row['actual_arrival'] == null
+            ? null
+            : DateTime.parse(row['actual_arrival'] as String),
+        actualDeparture: row['actual_departure'] == null
+            ? null
+            : DateTime.parse(row['actual_departure'] as String),
       );
 
   DataMap toRow() => {

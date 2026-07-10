@@ -33,7 +33,8 @@ class MockProductData {
         final code = '${family.codePrefix}-${variant.sizeLabel}';
         final materialCode = 'MAT-${materialSeq.toString().padLeft(6, '0')}';
         materialSeq++;
-        final assignedWarehouses = WarehouseGenerator.assignFor(warehouses, rand);
+        final assignedWarehouses =
+            WarehouseGenerator.assignFor(warehouses, rand);
 
         for (final wh in assignedWarehouses) {
           final id = '$code-${wh.code}';
@@ -52,8 +53,9 @@ class MockProductData {
             'materialCode': materialCode,
             'barcode': _barcodeFor(id),
             'name': '${family.namePrefix} ${variant.sizeLabel}',
-            'description': '${family.namePrefix} ${variant.sizeLabel}, ${family.grade} grade, '
-                '${family.brand}, ${family.material}.',
+            'description':
+                '${family.namePrefix} ${variant.sizeLabel}, ${family.grade} grade, '
+                    '${family.brand}, ${family.material}.',
             'categoryId': family.categoryId,
             'subCategory': family.grade,
             'brand': family.brand,
@@ -70,10 +72,13 @@ class MockProductData {
             'warehouseCode': wh.code,
             'territory': wh.province,
             'businessUnit': family.businessUnit,
-            'imageUrl': 'https://picsum.photos/seed/${Uri.encodeComponent(code)}/400/300',
+            'imageUrl':
+                'https://picsum.photos/seed/${Uri.encodeComponent(code)}/400/300',
             'isMto': family.isMtoEligible && variant.mtoHint,
             'status': _statusFor(rand),
-            'updatedAt': DateTime.now().subtract(Duration(days: daysAgo)).toIso8601String(),
+            'updatedAt': DateTime.now()
+                .subtract(Duration(days: daysAgo))
+                .toIso8601String(),
             'deleted': false,
             'minStock': 50.0,
             'maxStock': 3000.0,
@@ -105,7 +110,8 @@ class MockProductData {
   }
 
   static String _barcodeFor(String id) {
-    final hash = id.codeUnits.fold<int>(0, (acc, c) => (acc * 31 + c) & 0x7FFFFFFF);
+    final hash =
+        id.codeUnits.fold<int>(0, (acc, c) => (acc * 31 + c) & 0x7FFFFFFF);
     return (8800000000000 + (hash % 999999999)).toString().padLeft(13, '0');
   }
 
@@ -124,30 +130,140 @@ class CategoryGenerator {
 
   static final List<Map<String, dynamic>> categories = [
     {'id': 'cat_steel', 'parentId': null, 'name': 'Steel', 'sortOrder': 0},
-    {'id': 'cat_steel_rebar', 'parentId': 'cat_steel', 'name': 'Rebar', 'sortOrder': 0},
-    {'id': 'cat_steel_wire_rod', 'parentId': 'cat_steel', 'name': 'Wire Rod', 'sortOrder': 1},
-    {'id': 'cat_steel_billet', 'parentId': 'cat_steel', 'name': 'Billet', 'sortOrder': 2},
-    {'id': 'cat_structural', 'parentId': null, 'name': 'Structural Steel', 'sortOrder': 1},
-    {'id': 'cat_structural_hbeam', 'parentId': 'cat_structural', 'name': 'H Beam', 'sortOrder': 0},
-    {'id': 'cat_structural_ibeam', 'parentId': 'cat_structural', 'name': 'I Beam', 'sortOrder': 1},
-    {'id': 'cat_structural_cchannel', 'parentId': 'cat_structural', 'name': 'C Channel', 'sortOrder': 2},
-    {'id': 'cat_structural_anglebar', 'parentId': 'cat_structural', 'name': 'Angle Bar', 'sortOrder': 3},
+    {
+      'id': 'cat_steel_rebar',
+      'parentId': 'cat_steel',
+      'name': 'Rebar',
+      'sortOrder': 0
+    },
+    {
+      'id': 'cat_steel_wire_rod',
+      'parentId': 'cat_steel',
+      'name': 'Wire Rod',
+      'sortOrder': 1
+    },
+    {
+      'id': 'cat_steel_billet',
+      'parentId': 'cat_steel',
+      'name': 'Billet',
+      'sortOrder': 2
+    },
+    {
+      'id': 'cat_structural',
+      'parentId': null,
+      'name': 'Structural Steel',
+      'sortOrder': 1
+    },
+    {
+      'id': 'cat_structural_hbeam',
+      'parentId': 'cat_structural',
+      'name': 'H Beam',
+      'sortOrder': 0
+    },
+    {
+      'id': 'cat_structural_ibeam',
+      'parentId': 'cat_structural',
+      'name': 'I Beam',
+      'sortOrder': 1
+    },
+    {
+      'id': 'cat_structural_cchannel',
+      'parentId': 'cat_structural',
+      'name': 'C Channel',
+      'sortOrder': 2
+    },
+    {
+      'id': 'cat_structural_anglebar',
+      'parentId': 'cat_structural',
+      'name': 'Angle Bar',
+      'sortOrder': 3
+    },
     {'id': 'cat_flat', 'parentId': null, 'name': 'Flat Steel', 'sortOrder': 2},
-    {'id': 'cat_flat_plate', 'parentId': 'cat_flat', 'name': 'Plate', 'sortOrder': 0},
-    {'id': 'cat_flat_coil', 'parentId': 'cat_flat', 'name': 'Coil', 'sortOrder': 1},
-    {'id': 'cat_flat_sheet', 'parentId': 'cat_flat', 'name': 'Sheet', 'sortOrder': 2},
+    {
+      'id': 'cat_flat_plate',
+      'parentId': 'cat_flat',
+      'name': 'Plate',
+      'sortOrder': 0
+    },
+    {
+      'id': 'cat_flat_coil',
+      'parentId': 'cat_flat',
+      'name': 'Coil',
+      'sortOrder': 1
+    },
+    {
+      'id': 'cat_flat_sheet',
+      'parentId': 'cat_flat',
+      'name': 'Sheet',
+      'sortOrder': 2
+    },
     {'id': 'cat_pipe', 'parentId': null, 'name': 'Pipe', 'sortOrder': 3},
-    {'id': 'cat_pipe_gi', 'parentId': 'cat_pipe', 'name': 'GI Pipe', 'sortOrder': 0},
-    {'id': 'cat_pipe_black', 'parentId': 'cat_pipe', 'name': 'Black Pipe', 'sortOrder': 1},
-    {'id': 'cat_pipe_stainless', 'parentId': 'cat_pipe', 'name': 'Stainless Pipe', 'sortOrder': 2},
-    {'id': 'cat_hardware', 'parentId': null, 'name': 'Hardware', 'sortOrder': 4},
-    {'id': 'cat_hardware_nuts', 'parentId': 'cat_hardware', 'name': 'Nuts', 'sortOrder': 0},
-    {'id': 'cat_hardware_bolts', 'parentId': 'cat_hardware', 'name': 'Bolts', 'sortOrder': 1},
-    {'id': 'cat_hardware_washers', 'parentId': 'cat_hardware', 'name': 'Washers', 'sortOrder': 2},
-    {'id': 'cat_construction', 'parentId': null, 'name': 'Construction', 'sortOrder': 5},
-    {'id': 'cat_construction_cement', 'parentId': 'cat_construction', 'name': 'Cement', 'sortOrder': 0},
-    {'id': 'cat_construction_nails', 'parentId': 'cat_construction', 'name': 'Nails', 'sortOrder': 1},
-    {'id': 'cat_construction_wire_mesh', 'parentId': 'cat_construction', 'name': 'Wire Mesh', 'sortOrder': 2},
+    {
+      'id': 'cat_pipe_gi',
+      'parentId': 'cat_pipe',
+      'name': 'GI Pipe',
+      'sortOrder': 0
+    },
+    {
+      'id': 'cat_pipe_black',
+      'parentId': 'cat_pipe',
+      'name': 'Black Pipe',
+      'sortOrder': 1
+    },
+    {
+      'id': 'cat_pipe_stainless',
+      'parentId': 'cat_pipe',
+      'name': 'Stainless Pipe',
+      'sortOrder': 2
+    },
+    {
+      'id': 'cat_hardware',
+      'parentId': null,
+      'name': 'Hardware',
+      'sortOrder': 4
+    },
+    {
+      'id': 'cat_hardware_nuts',
+      'parentId': 'cat_hardware',
+      'name': 'Nuts',
+      'sortOrder': 0
+    },
+    {
+      'id': 'cat_hardware_bolts',
+      'parentId': 'cat_hardware',
+      'name': 'Bolts',
+      'sortOrder': 1
+    },
+    {
+      'id': 'cat_hardware_washers',
+      'parentId': 'cat_hardware',
+      'name': 'Washers',
+      'sortOrder': 2
+    },
+    {
+      'id': 'cat_construction',
+      'parentId': null,
+      'name': 'Construction',
+      'sortOrder': 5
+    },
+    {
+      'id': 'cat_construction_cement',
+      'parentId': 'cat_construction',
+      'name': 'Cement',
+      'sortOrder': 0
+    },
+    {
+      'id': 'cat_construction_nails',
+      'parentId': 'cat_construction',
+      'name': 'Nails',
+      'sortOrder': 1
+    },
+    {
+      'id': 'cat_construction_wire_mesh',
+      'parentId': 'cat_construction',
+      'name': 'Wire Mesh',
+      'sortOrder': 2
+    },
   ];
 }
 
@@ -214,66 +330,192 @@ class _LeafSpec {
 class ProductGenerator {
   ProductGenerator._();
 
-  static const brands = ['ISI Steel', 'KIC Group', 'Mesan Steel', 'Cambo Steel', 'Angkor Metal', 'Sena Metal'];
+  static const brands = [
+    'ISI Steel',
+    'KIC Group',
+    'Mesan Steel',
+    'Cambo Steel',
+    'Angkor Metal',
+    'Sena Metal'
+  ];
 
   static const _leaves = <_LeafSpec>[
-    _LeafSpec(key: 'rebar', categoryId: 'cat_steel_rebar', namePrefix: 'Rebar',
-        grades: ['SD295', 'SD390', 'SD490'], material: 'Carbon Steel', unit: 'PCS',
-        businessUnit: 'Construction Steel', basePrice: 6.5, isMtoEligible: true),
-    _LeafSpec(key: 'wireRod', categoryId: 'cat_steel_wire_rod', namePrefix: 'Wire Rod',
-        grades: ['SAE1006', 'SAE1008', 'SAE1010'], material: 'Low Carbon Steel', unit: 'COIL',
-        businessUnit: 'Construction Steel', basePrice: 5.5),
-    _LeafSpec(key: 'billet', categoryId: 'cat_steel_billet', namePrefix: 'Billet',
-        grades: ['Q235', 'Q275', '5SP'], material: 'Carbon Steel', unit: 'PCS',
-        businessUnit: 'Construction Steel', basePrice: 380, isMtoEligible: true),
-    _LeafSpec(key: 'hbeam', categoryId: 'cat_structural_hbeam', namePrefix: 'H Beam',
-        grades: ['SS400', 'Q235', 'A572'], material: 'Structural Steel', unit: 'PCS',
-        businessUnit: 'Structural Steel', basePrice: 320, isMtoEligible: true),
-    _LeafSpec(key: 'ibeam', categoryId: 'cat_structural_ibeam', namePrefix: 'I Beam',
-        grades: ['SS400', 'Q235', 'A572'], material: 'Structural Steel', unit: 'PCS',
-        businessUnit: 'Structural Steel', basePrice: 300),
-    _LeafSpec(key: 'cchannel', categoryId: 'cat_structural_cchannel', namePrefix: 'C Channel',
-        grades: ['SS400', 'Q235', 'A36'], material: 'Structural Steel', unit: 'PCS',
-        businessUnit: 'Structural Steel', basePrice: 70),
-    _LeafSpec(key: 'anglebar', categoryId: 'cat_structural_anglebar', namePrefix: 'Angle Bar',
-        grades: ['SS400', 'Q235', 'A36'], material: 'Structural Steel', unit: 'PCS',
-        businessUnit: 'Structural Steel', basePrice: 20),
-    _LeafSpec(key: 'plate', categoryId: 'cat_flat_plate', namePrefix: 'Steel Plate',
-        grades: ['MS', 'SS400', 'A36'], material: 'Carbon Steel', unit: 'SHEET',
-        businessUnit: 'Flat Products', basePrice: 45, isMtoEligible: true),
-    _LeafSpec(key: 'coil', categoryId: 'cat_flat_coil', namePrefix: 'Hot Rolled Coil',
-        grades: ['SPHC', 'SS400', 'DX51D'], material: 'Carbon Steel', unit: 'MT',
-        businessUnit: 'Flat Products', basePrice: 620),
-    _LeafSpec(key: 'sheet', categoryId: 'cat_flat_sheet', namePrefix: 'Steel Sheet',
-        grades: ['SPCC', 'SS400', 'Galvanized'], material: 'Carbon Steel', unit: 'SHEET',
-        businessUnit: 'Flat Products', basePrice: 14),
-    _LeafSpec(key: 'giPipe', categoryId: 'cat_pipe_gi', namePrefix: 'GI Pipe',
-        grades: ['SCH40', 'SCH80', 'Class B'], material: 'Galvanized Steel', unit: 'PCS',
-        businessUnit: 'Pipe & Tube', basePrice: 9),
-    _LeafSpec(key: 'blackPipe', categoryId: 'cat_pipe_black', namePrefix: 'Black Pipe',
-        grades: ['SCH40', 'SCH80', 'Class B'], material: 'Carbon Steel', unit: 'PCS',
-        businessUnit: 'Pipe & Tube', basePrice: 7),
-    _LeafSpec(key: 'stainlessPipe', categoryId: 'cat_pipe_stainless', namePrefix: 'Stainless Pipe',
-        grades: ['304', '316', '201'], material: 'Stainless Steel', unit: 'PCS',
-        businessUnit: 'Pipe & Tube', basePrice: 28, isMtoEligible: true),
-    _LeafSpec(key: 'bolts', categoryId: 'cat_hardware_bolts', namePrefix: 'Hex Bolt',
-        grades: ['Grade 8.8', 'Grade 10.9', 'Stainless A2'], material: 'Alloy Steel', unit: 'BOX',
-        businessUnit: 'Hardware', basePrice: 0.15),
-    _LeafSpec(key: 'nuts', categoryId: 'cat_hardware_nuts', namePrefix: 'Hex Nut',
-        grades: ['Grade 8.8', 'Grade 10.9', 'Stainless A2'], material: 'Alloy Steel', unit: 'BOX',
-        businessUnit: 'Hardware', basePrice: 0.08),
-    _LeafSpec(key: 'washers', categoryId: 'cat_hardware_washers', namePrefix: 'Washer',
-        grades: ['Flat', 'Spring', 'Stainless'], material: 'Steel', unit: 'BOX',
-        businessUnit: 'Hardware', basePrice: 0.03),
-    _LeafSpec(key: 'cement', categoryId: 'cat_construction_cement', namePrefix: 'Cement',
-        grades: ['OPC', 'PPC', 'Rapid Hardening'], material: 'Portland Cement', unit: 'BAG',
-        businessUnit: 'Construction Materials', basePrice: 5.2),
-    _LeafSpec(key: 'nails', categoryId: 'cat_construction_nails', namePrefix: 'Nail',
-        grades: ['Common', 'Concrete', 'Roofing'], material: 'Steel Wire', unit: 'BOX',
-        businessUnit: 'Construction Materials', basePrice: 1.1),
-    _LeafSpec(key: 'wireMesh', categoryId: 'cat_construction_wire_mesh', namePrefix: 'Wire Mesh',
-        grades: ['Welded', 'Chain Link', 'Hexagonal'], material: 'Galvanized Wire', unit: 'ROLL',
-        businessUnit: 'Construction Materials', basePrice: 32),
+    _LeafSpec(
+        key: 'rebar',
+        categoryId: 'cat_steel_rebar',
+        namePrefix: 'Rebar',
+        grades: ['SD295', 'SD390', 'SD490'],
+        material: 'Carbon Steel',
+        unit: 'PCS',
+        businessUnit: 'Construction Steel',
+        basePrice: 6.5,
+        isMtoEligible: true),
+    _LeafSpec(
+        key: 'wireRod',
+        categoryId: 'cat_steel_wire_rod',
+        namePrefix: 'Wire Rod',
+        grades: ['SAE1006', 'SAE1008', 'SAE1010'],
+        material: 'Low Carbon Steel',
+        unit: 'COIL',
+        businessUnit: 'Construction Steel',
+        basePrice: 5.5),
+    _LeafSpec(
+        key: 'billet',
+        categoryId: 'cat_steel_billet',
+        namePrefix: 'Billet',
+        grades: ['Q235', 'Q275', '5SP'],
+        material: 'Carbon Steel',
+        unit: 'PCS',
+        businessUnit: 'Construction Steel',
+        basePrice: 380,
+        isMtoEligible: true),
+    _LeafSpec(
+        key: 'hbeam',
+        categoryId: 'cat_structural_hbeam',
+        namePrefix: 'H Beam',
+        grades: ['SS400', 'Q235', 'A572'],
+        material: 'Structural Steel',
+        unit: 'PCS',
+        businessUnit: 'Structural Steel',
+        basePrice: 320,
+        isMtoEligible: true),
+    _LeafSpec(
+        key: 'ibeam',
+        categoryId: 'cat_structural_ibeam',
+        namePrefix: 'I Beam',
+        grades: ['SS400', 'Q235', 'A572'],
+        material: 'Structural Steel',
+        unit: 'PCS',
+        businessUnit: 'Structural Steel',
+        basePrice: 300),
+    _LeafSpec(
+        key: 'cchannel',
+        categoryId: 'cat_structural_cchannel',
+        namePrefix: 'C Channel',
+        grades: ['SS400', 'Q235', 'A36'],
+        material: 'Structural Steel',
+        unit: 'PCS',
+        businessUnit: 'Structural Steel',
+        basePrice: 70),
+    _LeafSpec(
+        key: 'anglebar',
+        categoryId: 'cat_structural_anglebar',
+        namePrefix: 'Angle Bar',
+        grades: ['SS400', 'Q235', 'A36'],
+        material: 'Structural Steel',
+        unit: 'PCS',
+        businessUnit: 'Structural Steel',
+        basePrice: 20),
+    _LeafSpec(
+        key: 'plate',
+        categoryId: 'cat_flat_plate',
+        namePrefix: 'Steel Plate',
+        grades: ['MS', 'SS400', 'A36'],
+        material: 'Carbon Steel',
+        unit: 'SHEET',
+        businessUnit: 'Flat Products',
+        basePrice: 45,
+        isMtoEligible: true),
+    _LeafSpec(
+        key: 'coil',
+        categoryId: 'cat_flat_coil',
+        namePrefix: 'Hot Rolled Coil',
+        grades: ['SPHC', 'SS400', 'DX51D'],
+        material: 'Carbon Steel',
+        unit: 'MT',
+        businessUnit: 'Flat Products',
+        basePrice: 620),
+    _LeafSpec(
+        key: 'sheet',
+        categoryId: 'cat_flat_sheet',
+        namePrefix: 'Steel Sheet',
+        grades: ['SPCC', 'SS400', 'Galvanized'],
+        material: 'Carbon Steel',
+        unit: 'SHEET',
+        businessUnit: 'Flat Products',
+        basePrice: 14),
+    _LeafSpec(
+        key: 'giPipe',
+        categoryId: 'cat_pipe_gi',
+        namePrefix: 'GI Pipe',
+        grades: ['SCH40', 'SCH80', 'Class B'],
+        material: 'Galvanized Steel',
+        unit: 'PCS',
+        businessUnit: 'Pipe & Tube',
+        basePrice: 9),
+    _LeafSpec(
+        key: 'blackPipe',
+        categoryId: 'cat_pipe_black',
+        namePrefix: 'Black Pipe',
+        grades: ['SCH40', 'SCH80', 'Class B'],
+        material: 'Carbon Steel',
+        unit: 'PCS',
+        businessUnit: 'Pipe & Tube',
+        basePrice: 7),
+    _LeafSpec(
+        key: 'stainlessPipe',
+        categoryId: 'cat_pipe_stainless',
+        namePrefix: 'Stainless Pipe',
+        grades: ['304', '316', '201'],
+        material: 'Stainless Steel',
+        unit: 'PCS',
+        businessUnit: 'Pipe & Tube',
+        basePrice: 28,
+        isMtoEligible: true),
+    _LeafSpec(
+        key: 'bolts',
+        categoryId: 'cat_hardware_bolts',
+        namePrefix: 'Hex Bolt',
+        grades: ['Grade 8.8', 'Grade 10.9', 'Stainless A2'],
+        material: 'Alloy Steel',
+        unit: 'BOX',
+        businessUnit: 'Hardware',
+        basePrice: 0.15),
+    _LeafSpec(
+        key: 'nuts',
+        categoryId: 'cat_hardware_nuts',
+        namePrefix: 'Hex Nut',
+        grades: ['Grade 8.8', 'Grade 10.9', 'Stainless A2'],
+        material: 'Alloy Steel',
+        unit: 'BOX',
+        businessUnit: 'Hardware',
+        basePrice: 0.08),
+    _LeafSpec(
+        key: 'washers',
+        categoryId: 'cat_hardware_washers',
+        namePrefix: 'Washer',
+        grades: ['Flat', 'Spring', 'Stainless'],
+        material: 'Steel',
+        unit: 'BOX',
+        businessUnit: 'Hardware',
+        basePrice: 0.03),
+    _LeafSpec(
+        key: 'cement',
+        categoryId: 'cat_construction_cement',
+        namePrefix: 'Cement',
+        grades: ['OPC', 'PPC', 'Rapid Hardening'],
+        material: 'Portland Cement',
+        unit: 'BAG',
+        businessUnit: 'Construction Materials',
+        basePrice: 5.2),
+    _LeafSpec(
+        key: 'nails',
+        categoryId: 'cat_construction_nails',
+        namePrefix: 'Nail',
+        grades: ['Common', 'Concrete', 'Roofing'],
+        material: 'Steel Wire',
+        unit: 'BOX',
+        businessUnit: 'Construction Materials',
+        basePrice: 1.1),
+    _LeafSpec(
+        key: 'wireMesh',
+        categoryId: 'cat_construction_wire_mesh',
+        namePrefix: 'Wire Mesh',
+        grades: ['Welded', 'Chain Link', 'Hexagonal'],
+        material: 'Galvanized Wire',
+        unit: 'ROLL',
+        businessUnit: 'Construction Materials',
+        basePrice: 32),
   ];
 
   static List<ProductFamily> buildFamilies() {
@@ -402,7 +644,15 @@ class VariantGenerator {
       ];
 
   static List<VariantSpec> _beam(String type) => [
-        for (final size in ['100x100', '150x150', '200x200', '250x250', '300x300', '350x350', '400x400'])
+        for (final size in [
+          '100x100',
+          '150x150',
+          '200x200',
+          '250x250',
+          '300x300',
+          '350x350',
+          '400x400'
+        ])
           for (final len in [6, 9, 12])
             VariantSpec(
               sizeLabel: '$size-${len}M',
@@ -411,7 +661,9 @@ class VariantGenerator {
               length: len.toDouble(),
               width: double.parse(size.split('x')[0]),
               height: double.parse(size.split('x')[1]),
-              weight: double.parse(size.split('x')[0]) * (type == 'H' ? 0.4 : 0.35) * len,
+              weight: double.parse(size.split('x')[0]) *
+                  (type == 'H' ? 0.4 : 0.35) *
+                  len,
               mtoHint: len == 12,
             ),
       ];
@@ -431,7 +683,16 @@ class VariantGenerator {
       ];
 
   static List<VariantSpec> _angleBar() => [
-        for (final size in ['25x25', '30x30', '40x40', '50x50', '63x63', '75x75', '90x90', '100x100'])
+        for (final size in [
+          '25x25',
+          '30x30',
+          '40x40',
+          '50x50',
+          '63x63',
+          '75x75',
+          '90x90',
+          '100x100'
+        ])
           for (final t in [3, 4, 5, 6])
             for (final len in [6, 9])
               VariantSpec(
@@ -447,7 +708,13 @@ class VariantGenerator {
 
   static List<VariantSpec> _plate() => [
         for (final t in [3, 4, 5, 6, 8, 10, 12, 16, 20, 25])
-          for (final size in ['4x8ft', '5x10ft', '6x12ft', '1500x6000mm', '2000x6000mm'])
+          for (final size in [
+            '4x8ft',
+            '5x10ft',
+            '6x12ft',
+            '1500x6000mm',
+            '2000x6000mm'
+          ])
             VariantSpec(
               sizeLabel: '${t}mm-$size',
               diameter: 0,
@@ -489,7 +756,17 @@ class VariantGenerator {
       ];
 
   static List<VariantSpec> _pipe({List<int> lengths = const [4, 6, 12]}) => [
-        for (final size in ['1/2"', '3/4"', '1"', '1.25"', '1.5"', '2"', '2.5"', '3"', '4"'])
+        for (final size in [
+          '1/2"',
+          '3/4"',
+          '1"',
+          '1.25"',
+          '1.5"',
+          '2"',
+          '2.5"',
+          '3"',
+          '4"'
+        ])
           for (final len in lengths)
             VariantSpec(
               sizeLabel: '${size.replaceAll('"', 'IN')}-${len}M',
@@ -640,10 +917,14 @@ class VariantPricing {
 class PricingGenerator {
   PricingGenerator._();
 
-  static VariantPricing forVariant(ProductFamily family, VariantSpec variant, Random rand) {
-    final sizeFactor = 1 + (variant.diameter + variant.thickness) * 0.02 + variant.length * 0.05;
+  static VariantPricing forVariant(
+      ProductFamily family, VariantSpec variant, Random rand) {
+    final sizeFactor = 1 +
+        (variant.diameter + variant.thickness) * 0.02 +
+        variant.length * 0.05;
     final jitter = 0.95 + rand.nextDouble() * 0.10;
-    final standard = double.parse((family.basePrice * sizeFactor * jitter).toStringAsFixed(2));
+    final standard = double.parse(
+        (family.basePrice * sizeFactor * jitter).toStringAsFixed(2));
     final cost = double.parse((standard * 0.72).toStringAsFixed(2));
 
     return VariantPricing(
@@ -659,7 +940,8 @@ class PricingGenerator {
 }
 
 class AppliedPromotion {
-  const AppliedPromotion({required this.type, required this.label, required this.promotionPrice});
+  const AppliedPromotion(
+      {required this.type, required this.label, required this.promotionPrice});
   final PromotionType type;
   final String label;
   final double promotionPrice;
@@ -674,27 +956,33 @@ class PromotionGenerator {
   static AppliedPromotion? maybeApply(VariantPricing pricing, Random rand) {
     if (rand.nextDouble() > 0.15) return null;
 
-    final type = PromotionType.values[rand.nextInt(PromotionType.values.length)];
+    final type =
+        PromotionType.values[rand.nextInt(PromotionType.values.length)];
     return switch (type) {
       PromotionType.percentDiscount => AppliedPromotion(
           type: type,
           label: '${(5 + rand.nextInt(16))}% Off',
-          promotionPrice: double.parse((pricing.standardPrice * (0.95 - rand.nextInt(16) / 100)).toStringAsFixed(2)),
+          promotionPrice: double.parse(
+              (pricing.standardPrice * (0.95 - rand.nextInt(16) / 100))
+                  .toStringAsFixed(2)),
         ),
       PromotionType.buyXGetY => AppliedPromotion(
           type: type,
           label: 'Buy 10 Get 1',
-          promotionPrice: double.parse((pricing.standardPrice * 0.91).toStringAsFixed(2)),
+          promotionPrice:
+              double.parse((pricing.standardPrice * 0.91).toStringAsFixed(2)),
         ),
       PromotionType.clearance => AppliedPromotion(
           type: type,
           label: 'Clearance Sale',
-          promotionPrice: double.parse((pricing.standardPrice * 0.75).toStringAsFixed(2)),
+          promotionPrice:
+              double.parse((pricing.standardPrice * 0.75).toStringAsFixed(2)),
         ),
       PromotionType.monthly => AppliedPromotion(
           type: type,
           label: 'Monthly Promotion',
-          promotionPrice: double.parse((pricing.standardPrice * 0.90).toStringAsFixed(2)),
+          promotionPrice:
+              double.parse((pricing.standardPrice * 0.90).toStringAsFixed(2)),
         ),
     };
   }

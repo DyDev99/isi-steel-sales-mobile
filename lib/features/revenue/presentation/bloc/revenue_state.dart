@@ -36,7 +36,8 @@ class RevenueState extends Equatable {
   List<Product> get filteredProducts {
     final query = searchQuery.trim().toLowerCase();
     return products.where((product) {
-      final matchesCategory = selectedCategoryId == null || product.categoryId == selectedCategoryId;
+      final matchesCategory = selectedCategoryId == null ||
+          product.categoryId == selectedCategoryId;
       final matchesQuery = query.isEmpty ||
           product.name.toLowerCase().contains(query) ||
           product.sku.toLowerCase().contains(query);
@@ -52,7 +53,8 @@ class RevenueState extends Equatable {
     return null;
   }
 
-  int get cartItemCount => cartQuantities.values.fold(0, (sum, qty) => sum + qty);
+  int get cartItemCount =>
+      cartQuantities.values.fold(0, (sum, qty) => sum + qty);
 
   double get cartSubtotal {
     var subtotal = 0.0;
@@ -63,11 +65,13 @@ class RevenueState extends Equatable {
     return subtotal;
   }
 
-  double get discountAmount => cartSubtotal * ((selectedDiscount?.percentage ?? 0) / 100);
+  double get discountAmount =>
+      cartSubtotal * ((selectedDiscount?.percentage ?? 0) / 100);
 
   double get cartTotal => cartSubtotal - discountAmount;
 
-  bool get isEmpty => status == RevenueStatus.loaded && filteredProducts.isEmpty;
+  bool get isEmpty =>
+      status == RevenueStatus.loaded && filteredProducts.isEmpty;
 
   RevenueState copyWith({
     RevenueStatus? status,
@@ -88,7 +92,9 @@ class RevenueState extends Equatable {
       discountOptions: discountOptions ?? this.discountOptions,
       customerCredit: customerCredit ?? this.customerCredit,
       searchQuery: searchQuery ?? this.searchQuery,
-      selectedCategoryId: selectedCategoryId != null ? selectedCategoryId() : this.selectedCategoryId,
+      selectedCategoryId: selectedCategoryId != null
+          ? selectedCategoryId()
+          : this.selectedCategoryId,
       selectedDiscountId: selectedDiscountId ?? this.selectedDiscountId,
       cartQuantities: cartQuantities ?? this.cartQuantities,
       errorMessage: errorMessage,

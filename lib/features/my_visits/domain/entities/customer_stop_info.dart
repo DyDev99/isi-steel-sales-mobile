@@ -29,8 +29,10 @@ class CustomerStopInfo extends Equatable {
   final double longitude;
   final double? geofenceRadiusOverride;
 
-  double get geofenceRadiusMeters => geofenceRadiusOverride ?? territoryType.defaultGeofenceRadiusMeters;
+  double get geofenceRadiusMeters =>
+      geofenceRadiusOverride ?? territoryType.defaultGeofenceRadiusMeters;
 
   @override
-  List<Object?> get props => [id, name, code, territory, latitude, longitude, geofenceRadiusOverride];
+  List<Object?> get props =>
+      [id, name, code, territory, latitude, longitude, geofenceRadiusOverride];
 }

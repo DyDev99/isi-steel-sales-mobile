@@ -7,8 +7,16 @@ import 'package:isi_steel_sales_mobile/features/order/domain/entities/credit_not
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/credit_summary.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/services/credit_service.dart';
 
-const _creditNoteReasons = ['Return — damaged goods', 'Price adjustment', 'Promotional credit'];
-const _debitNoteReasons = ['Freight surcharge', 'Late payment fee', 'Short shipment correction'];
+const _creditNoteReasons = [
+  'Return — damaged goods',
+  'Price adjustment',
+  'Promotional credit'
+];
+const _debitNoteReasons = [
+  'Freight surcharge',
+  'Late payment fee',
+  'Short shipment correction'
+];
 
 /// Stand-in for an online SAP credit-position lookup — deterministic per
 /// customer (seeded off `customerId.hashCode`) so the same shop shows the
@@ -26,12 +34,18 @@ class MockCreditService implements CreditService {
       for (var i = 0; i < noteCount; i++)
         _buildNote(rand, customerId: customerId, index: i),
     ];
-    return Success(CreditSummary(outstandingBalance: outstandingBalance, notes: notes));
+    return Success(
+        CreditSummary(outstandingBalance: outstandingBalance, notes: notes));
   }
 
-  CreditNoteDebitNote _buildNote(Random rand, {required String customerId, required int index}) {
-    final type = rand.nextBool() ? CreditDebitNoteType.creditNote : CreditDebitNoteType.debitNote;
-    final reasons = type == CreditDebitNoteType.creditNote ? _creditNoteReasons : _debitNoteReasons;
+  CreditNoteDebitNote _buildNote(Random rand,
+      {required String customerId, required int index}) {
+    final type = rand.nextBool()
+        ? CreditDebitNoteType.creditNote
+        : CreditDebitNoteType.debitNote;
+    final reasons = type == CreditDebitNoteType.creditNote
+        ? _creditNoteReasons
+        : _debitNoteReasons;
     final prefix = type == CreditDebitNoteType.creditNote ? 'CN' : 'DN';
     return CreditNoteDebitNote(
       id: '$customerId-note-$index',

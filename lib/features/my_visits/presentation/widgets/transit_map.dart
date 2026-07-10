@@ -23,15 +23,20 @@ class _TransitMapState extends State<TransitMap> {
   GoogleMapController? _controller;
   bool _didInitialFit = false;
 
-  LatLng get _targetLatLng => LatLng(widget.target.customer.latitude, widget.target.customer.longitude);
-  LatLng? get _currentLatLng =>
-      widget.currentPosition == null ? null : LatLng(widget.currentPosition!.latitude, widget.currentPosition!.longitude);
+  LatLng get _targetLatLng =>
+      LatLng(widget.target.customer.latitude, widget.target.customer.longitude);
+  LatLng? get _currentLatLng => widget.currentPosition == null
+      ? null
+      : LatLng(
+          widget.currentPosition!.latitude, widget.currentPosition!.longitude);
 
   @override
   void didUpdateWidget(covariant TransitMap oldWidget) {
     super.didUpdateWidget(oldWidget);
     // Fit both points the first time we get a GPS fix.
-    if (!_didInitialFit && widget.currentPosition != null && oldWidget.currentPosition == null) {
+    if (!_didInitialFit &&
+        widget.currentPosition != null &&
+        oldWidget.currentPosition == null) {
       _fitBounds();
     }
   }
@@ -46,8 +51,10 @@ class _TransitMapState extends State<TransitMap> {
       return;
     }
     final bounds = LatLngBounds(
-      southwest: LatLng(min(current.latitude, _targetLatLng.latitude), min(current.longitude, _targetLatLng.longitude)),
-      northeast: LatLng(max(current.latitude, _targetLatLng.latitude), max(current.longitude, _targetLatLng.longitude)),
+      southwest: LatLng(min(current.latitude, _targetLatLng.latitude),
+          min(current.longitude, _targetLatLng.longitude)),
+      northeast: LatLng(max(current.latitude, _targetLatLng.latitude),
+          max(current.longitude, _targetLatLng.longitude)),
     );
     controller.animateCamera(CameraUpdate.newLatLngBounds(bounds, 64));
   }
@@ -61,7 +68,9 @@ class _TransitMapState extends State<TransitMap> {
         markerId: MarkerId(widget.target.id),
         position: _targetLatLng,
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
-        infoWindow: InfoWindow(title: widget.target.customer.name, snippet: widget.target.customer.address),
+        infoWindow: InfoWindow(
+            title: widget.target.customer.name,
+            snippet: widget.target.customer.address),
       ),
       if (current != null)
         Marker(
@@ -100,7 +109,8 @@ class _TransitMapState extends State<TransitMap> {
     return Stack(
       children: [
         GoogleMap(
-          initialCameraPosition: CameraPosition(target: current ?? _targetLatLng, zoom: 14),
+          initialCameraPosition:
+              CameraPosition(target: current ?? _targetLatLng, zoom: 14),
           onMapCreated: (controller) {
             _controller = controller;
             WidgetsBinding.instance.addPostFrameCallback((_) => _fitBounds());
@@ -125,7 +135,8 @@ class _TransitMapState extends State<TransitMap> {
             heroTag: 'transit_map_recenter',
             backgroundColor: Vibe.violet,
             onPressed: _fitBounds,
-            child: const Icon(Icons.center_focus_strong_rounded, color: Colors.white),
+            child: const Icon(Icons.center_focus_strong_rounded,
+                color: Colors.white),
           ),
         ),
       ],

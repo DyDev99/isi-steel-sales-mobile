@@ -9,5 +9,6 @@ class ReplaceCart extends UseCase<void, ReplaceCartParams> {
 
   @override
   ResultFuture<void> call(ReplaceCartParams params) =>
-      _repository.replaceCartWith(params.items, editingQuotationId: params.editingQuotationId);
+      _repository.replaceCartWith(params.items,
+          editingQuotationId: params.editingQuotationId);
 }

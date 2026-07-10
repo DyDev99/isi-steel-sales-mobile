@@ -4,7 +4,8 @@ import 'package:isi_steel_sales_mobile/core/utils/result.dart';
 import 'package:isi_steel_sales_mobile/features/profile/domain/repositories/profile_repository.dart';
 
 class ChangePasswordParams extends Equatable {
-  const ChangePasswordParams({required this.currentPassword, required this.newPassword});
+  const ChangePasswordParams(
+      {required this.currentPassword, required this.newPassword});
   final String currentPassword;
   final String newPassword;
   @override
@@ -16,7 +17,8 @@ class ChangePassword implements UseCase<void, ChangePasswordParams> {
   final ProfileRepository _repository;
 
   @override
-  Future<Result<void>> call(ChangePasswordParams params) => _repository.changePassword(
+  Future<Result<void>> call(ChangePasswordParams params) =>
+      _repository.changePassword(
         currentPassword: params.currentPassword,
         newPassword: params.newPassword,
       );

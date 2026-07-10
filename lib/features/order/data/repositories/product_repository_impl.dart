@@ -38,7 +38,10 @@ class ProductRepositoryImpl implements ProductRepository {
     required int page,
     required int pageSize,
   }) =>
-      _browse(page: page, pageSize: pageSize, filter: ProductFilter(categoryId: categoryId));
+      _browse(
+          page: page,
+          pageSize: pageSize,
+          filter: ProductFilter(categoryId: categoryId));
 
   Future<Result<PagedResult<Product>>> _browse({
     required int page,
@@ -47,10 +50,24 @@ class ProductRepositoryImpl implements ProductRepository {
     ProductFilter filter = const ProductFilter(),
   }) async {
     try {
-      final rows = await _local.browse(page: page, pageSize: pageSize, query: query, filter: filter);
+      final rows = await _local.browse(
+          page: page, pageSize: pageSize, query: query, filter: filter);
       final hasMore = rows.length > pageSize;
       final items = hasMore ? rows.sublist(0, pageSize) : rows;
-      return Success(PagedResult<Product>(items: items, page: page, hasMore: hasMore));
+      return Success(
+          PagedResult<Product>(items: items, page: page, hasMore: hasMore));
+    } on CacheException catch (e) {
+      return Failed(CacheFailure(message: e.message));
+    }
+  }
+
+  @override
+  ResultFuture<int> countProducts({
+    String query = '',
+    ProductFilter filter = const ProductFilter(),
+  }) async {
+    try {
+      return Success(await _local.count(query: query, filter: filter));
     } on CacheException catch (e) {
       return Failed(CacheFailure(message: e.message));
     }
@@ -78,7 +95,9 @@ class ProductRepositoryImpl implements ProductRepository {
   ResultFuture<Product> getProduct(String id) async {
     try {
       final product = await _local.getById(id);
-      if (product == null) return const Failed(CacheFailure(message: 'Product not found.'));
+      if (product == null) {
+        return const Failed(CacheFailure(message: 'Product not found.'));
+      }
       return Success(product);
     } on CacheException catch (e) {
       return Failed(CacheFailure(message: e.message));
@@ -90,7 +109,8 @@ class ProductRepositoryImpl implements ProductRepository {
     try {
       final product = await _local.getByBarcode(barcode);
       if (product == null) {
-        return const Failed(CacheFailure(message: 'No product matches that barcode.'));
+        return const Failed(
+            CacheFailure(message: 'No product matches that barcode.'));
       }
       return Success(product);
     } on CacheException catch (e) {
@@ -102,7 +122,9 @@ class ProductRepositoryImpl implements ProductRepository {
   ResultFuture<double> getPricing(String id, PriceTier tier) async {
     try {
       final product = await _local.getById(id);
-      if (product == null) return const Failed(CacheFailure(message: 'Product not found.'));
+      if (product == null) {
+        return const Failed(CacheFailure(message: 'Product not found.'));
+      }
       return Success(product.pricing.priceFor(tier));
     } on CacheException catch (e) {
       return Failed(CacheFailure(message: e.message));

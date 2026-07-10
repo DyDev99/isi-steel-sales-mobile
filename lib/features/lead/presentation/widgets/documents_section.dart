@@ -3,17 +3,33 @@ import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/lead_document.dart';
 
 class DocumentsSection extends StatelessWidget {
-  const DocumentsSection({super.key, required this.documents, required this.onAddDocument});
+  const DocumentsSection(
+      {super.key, required this.documents, required this.onAddDocument});
   final List<LeadDocument> documents;
   final void Function(DocumentType type, String name) onAddDocument;
 
   ({IconData icon, Color color}) _style(DocumentType type) => switch (type) {
-        DocumentType.businessLicense => (icon: Icons.picture_as_pdf_rounded, color: Vibe.violet),
-        DocumentType.taxRegistration => (icon: Icons.picture_as_pdf_rounded, color: Vibe.amber),
+        DocumentType.businessLicense => (
+            icon: Icons.picture_as_pdf_rounded,
+            color: Vibe.violet
+          ),
+        DocumentType.taxRegistration => (
+            icon: Icons.picture_as_pdf_rounded,
+            color: Vibe.amber
+          ),
         DocumentType.ownerId => (icon: Icons.badge_rounded, color: Vibe.mint),
-        DocumentType.storefrontPhoto => (icon: Icons.storefront_rounded, color: Vibe.pink),
-        DocumentType.warehousePhoto => (icon: Icons.warehouse_rounded, color: Vibe.pink),
-        DocumentType.other => (icon: Icons.insert_drive_file_rounded, color: Vibe.muted),
+        DocumentType.storefrontPhoto => (
+            icon: Icons.storefront_rounded,
+            color: Vibe.pink
+          ),
+        DocumentType.warehousePhoto => (
+            icon: Icons.warehouse_rounded,
+            color: Vibe.pink
+          ),
+        DocumentType.other => (
+            icon: Icons.insert_drive_file_rounded,
+            color: Vibe.muted
+          ),
       };
 
   static const _mockOptions = <(DocumentType, String)>[
@@ -32,7 +48,8 @@ class DocumentsSection extends StatelessWidget {
         if (documents.isEmpty)
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 8),
-            child: Text('No documents yet', style: TextStyle(color: Vibe.muted, fontSize: 12.5)),
+            child: Text('No documents yet',
+                style: TextStyle(color: Vibe.muted, fontSize: 12.5)),
           )
         else
           ...documents.map((doc) {
@@ -51,8 +68,9 @@ class DocumentsSection extends StatelessWidget {
                     width: 34,
                     height: 34,
                     alignment: Alignment.center,
-                    decoration:
-                        BoxDecoration(color: s.color.withValues(alpha: 0.16), borderRadius: BorderRadius.circular(10)),
+                    decoration: BoxDecoration(
+                        color: s.color.withValues(alpha: 0.16),
+                        borderRadius: BorderRadius.circular(10)),
                     child: Icon(s.icon, size: 17, color: s.color),
                   ),
                   const SizedBox(width: 10),
@@ -63,9 +81,13 @@ class DocumentsSection extends StatelessWidget {
                         Text(doc.name,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(color: Vibe.text, fontSize: 13, fontWeight: FontWeight.w700)),
+                            style: const TextStyle(
+                                color: Vibe.text,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700)),
                         Text(_formatDate(doc.uploadedDate),
-                            style: const TextStyle(color: Vibe.muted, fontSize: 11)),
+                            style: const TextStyle(
+                                color: Vibe.muted, fontSize: 11)),
                       ],
                     ),
                   ),
@@ -78,12 +100,15 @@ class DocumentsSection extends StatelessWidget {
           width: double.infinity,
           child: OutlinedButton.icon(
             onPressed: () => _showAddSheet(context),
-            icon: const Icon(Icons.upload_file_rounded, size: 18, color: Vibe.violet),
-            label: const Text('Upload document', style: TextStyle(color: Vibe.violet)),
+            icon: const Icon(Icons.upload_file_rounded,
+                size: 18, color: Vibe.violet),
+            label: const Text('Upload document',
+                style: TextStyle(color: Vibe.violet)),
             style: OutlinedButton.styleFrom(
               side: const BorderSide(color: Vibe.violet),
               padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
             ),
           ),
         ),
@@ -95,7 +120,8 @@ class DocumentsSection extends StatelessWidget {
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: Vibe.bgSoft,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
       builder: (context) => SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
@@ -104,13 +130,18 @@ class DocumentsSection extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text('Add a document (demo)',
-                  style: TextStyle(color: Vibe.text, fontSize: 16, fontWeight: FontWeight.w800)),
+                  style: TextStyle(
+                      color: Vibe.text,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800)),
               const SizedBox(height: 12),
               for (final option in _mockOptions)
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  leading: Icon(_style(option.$1).icon, color: _style(option.$1).color),
-                  title: Text(option.$2, style: const TextStyle(color: Vibe.text, fontSize: 13.5)),
+                  leading: Icon(_style(option.$1).icon,
+                      color: _style(option.$1).color),
+                  title: Text(option.$2,
+                      style: const TextStyle(color: Vibe.text, fontSize: 13.5)),
                   onTap: () {
                     Navigator.of(context).pop();
                     onAddDocument(option.$1, option.$2);

@@ -8,5 +8,6 @@ class GetCustomerCredit extends UseCase<CustomerCredit, NoParams> {
   final RevenueRepository _repository;
 
   @override
-  ResultFuture<CustomerCredit> call(NoParams params) => _repository.getCustomerCredit();
+  ResultFuture<CustomerCredit> call(NoParams params) =>
+      _repository.getCustomerCredit();
 }

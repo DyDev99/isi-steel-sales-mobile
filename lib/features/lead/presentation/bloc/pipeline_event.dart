@@ -36,7 +36,8 @@ final class LeadMoved extends PipelineEvent {
 }
 
 final class LeadReordered extends PipelineEvent {
-  const LeadReordered({required this.stage, required this.oldIndex, required this.newIndex});
+  const LeadReordered(
+      {required this.stage, required this.oldIndex, required this.newIndex});
   final PipelineStage stage;
   final int oldIndex;
   final int newIndex;
@@ -73,13 +74,18 @@ final class SearchChanged extends PipelineEvent {
 }
 
 final class FilterChanged extends PipelineEvent {
-  const FilterChanged({this.territory, this.assignedRepName, this.priority, this.visibleStages});
+  const FilterChanged(
+      {this.territory,
+      this.assignedRepName,
+      this.priority,
+      this.visibleStages});
   final String? Function()? territory;
   final String? Function()? assignedRepName;
   final Priority? Function()? priority;
   final Set<PipelineStage>? visibleStages;
   @override
-  List<Object?> get props => [territory, assignedRepName, priority, visibleStages];
+  List<Object?> get props =>
+      [territory, assignedRepName, priority, visibleStages];
 }
 
 final class SortChanged extends PipelineEvent {

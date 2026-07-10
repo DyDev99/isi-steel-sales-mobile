@@ -7,5 +7,6 @@ class WatchSalesOrders extends StreamUseCase<List<SalesOrder>, NoParams> {
   final SalesOrderRepository _repository;
 
   @override
-  Stream<List<SalesOrder>> call(NoParams params) => _repository.watchSalesOrders();
+  Stream<List<SalesOrder>> call(NoParams params) =>
+      _repository.watchSalesOrders();
 }

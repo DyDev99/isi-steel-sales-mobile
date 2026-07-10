@@ -43,6 +43,8 @@ class PendingOrdersSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(children: [for (var i = 0; i < itemCount; i++) const OrderTileSkeleton()]);
+    return Column(children: [
+      for (var i = 0; i < itemCount; i++) const OrderTileSkeleton()
+    ]);
   }
 }

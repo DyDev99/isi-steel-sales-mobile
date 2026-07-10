@@ -13,5 +13,6 @@ abstract interface class CartRepository {
   /// Sales Order conversion) rather than one-by-one `addItem` calls.
   /// [editingQuotationId], when set, tags every row so the in-progress edit
   /// survives an app restart.
-  ResultFuture<void> replaceCartWith(List<CartItem> items, {String? editingQuotationId});
+  ResultFuture<void> replaceCartWith(List<CartItem> items,
+      {String? editingQuotationId});
 }

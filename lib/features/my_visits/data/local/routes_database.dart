@@ -11,9 +11,23 @@ class RoutesDatabase {
   static Future<RoutesDatabase> open({String fileName = 'routes.db'}) async {
     final dbDir = await getDatabasesPath();
     final path = p.join(dbDir, fileName);
-    final db = await openDatabase(path, version: 1, onCreate: _onCreate);
+    final db = await openDatabase(path,
+        version: 2, onCreate: _onCreate, onUpgrade: _onUpgrade);
     return RoutesDatabase._(db);
   }
+
+  static const _syncStatusColumn =
+      "sync_status TEXT NOT NULL DEFAULT 'pending'";
+  static const _visitCaptureTables = [
+    'checkins',
+    'checkouts',
+    'visit_orders',
+    'visit_stock_updates',
+    'visit_returns',
+    'visit_collections',
+    'visit_notes',
+    'visit_photos',
+  ];
 
   static Future<void> _onCreate(Database db, int version) async {
     await db.execute('''
@@ -77,7 +91,8 @@ class RoutesDatabase {
         is_mocked INTEGER NOT NULL
       )
     ''');
-    await db.execute('CREATE INDEX idx_samples_route ON location_samples(route_id)');
+    await db.execute(
+        'CREATE INDEX idx_samples_route ON location_samples(route_id)');
 
     await db.execute('''
       CREATE TABLE checkins (
@@ -88,10 +103,13 @@ class RoutesDatabase {
         longitude REAL NOT NULL,
         accuracy REAL NOT NULL,
         distance_from_customer REAL NOT NULL,
-        is_mocked INTEGER NOT NULL
+        is_mocked INTEGER NOT NULL,
+        $_syncStatusColumn
       )
     ''');
     await db.execute('CREATE INDEX idx_checkins_stop ON checkins(stop_id)');
+    await db.execute(
+        'CREATE UNIQUE INDEX idx_checkins_stop_unique ON checkins(stop_id)');
 
     await db.execute('''
       CREATE TABLE checkouts (
@@ -101,10 +119,13 @@ class RoutesDatabase {
         latitude REAL NOT NULL,
         longitude REAL NOT NULL,
         duration_minutes INTEGER NOT NULL,
-        visit_summary TEXT NOT NULL
+        visit_summary TEXT NOT NULL,
+        $_syncStatusColumn
       )
     ''');
     await db.execute('CREATE INDEX idx_checkouts_stop ON checkouts(stop_id)');
+    await db.execute(
+        'CREATE UNIQUE INDEX idx_checkouts_stop_unique ON checkouts(stop_id)');
 
     await db.execute('''
       CREATE TABLE visit_orders (
@@ -114,10 +135,12 @@ class RoutesDatabase {
         product_name TEXT NOT NULL,
         quantity REAL NOT NULL,
         unit TEXT NOT NULL,
-        unit_price REAL NOT NULL
+        unit_price REAL NOT NULL,
+        $_syncStatusColumn
       )
     ''');
-    await db.execute('CREATE INDEX idx_visit_orders_stop ON visit_orders(stop_id)');
+    await db
+        .execute('CREATE INDEX idx_visit_orders_stop ON visit_orders(stop_id)');
 
     await db.execute('''
       CREATE TABLE visit_stock_updates (
@@ -126,10 +149,12 @@ class RoutesDatabase {
         product_id TEXT NOT NULL,
         product_name TEXT NOT NULL,
         counted_quantity REAL NOT NULL,
-        notes TEXT NOT NULL
+        notes TEXT NOT NULL,
+        $_syncStatusColumn
       )
     ''');
-    await db.execute('CREATE INDEX idx_stock_updates_stop ON visit_stock_updates(stop_id)');
+    await db.execute(
+        'CREATE INDEX idx_stock_updates_stop ON visit_stock_updates(stop_id)');
 
     await db.execute('''
       CREATE TABLE visit_returns (
@@ -138,7 +163,8 @@ class RoutesDatabase {
         product_id TEXT NOT NULL,
         product_name TEXT NOT NULL,
         quantity REAL NOT NULL,
-        reason TEXT NOT NULL
+        reason TEXT NOT NULL,
+        $_syncStatusColumn
       )
     ''');
     await db.execute('CREATE INDEX idx_returns_stop ON visit_returns(stop_id)');
@@ -150,10 +176,12 @@ class RoutesDatabase {
         amount REAL NOT NULL,
         method TEXT NOT NULL,
         reference TEXT NOT NULL,
-        notes TEXT NOT NULL
+        notes TEXT NOT NULL,
+        $_syncStatusColumn
       )
     ''');
-    await db.execute('CREATE INDEX idx_collections_stop ON visit_collections(stop_id)');
+    await db.execute(
+        'CREATE INDEX idx_collections_stop ON visit_collections(stop_id)');
 
     await db.execute('''
       CREATE TABLE visit_notes (
@@ -161,7 +189,8 @@ class RoutesDatabase {
         stop_id TEXT NOT NULL,
         type TEXT NOT NULL,
         text TEXT NOT NULL,
-        created_at TEXT NOT NULL
+        created_at TEXT NOT NULL,
+        $_syncStatusColumn
       )
     ''');
     await db.execute('CREATE INDEX idx_notes_stop ON visit_notes(stop_id)');
@@ -173,7 +202,8 @@ class RoutesDatabase {
         url TEXT NOT NULL,
         caption TEXT NOT NULL,
         taken_at TEXT NOT NULL,
-        is_signature INTEGER NOT NULL DEFAULT 0
+        is_signature INTEGER NOT NULL DEFAULT 0,
+        $_syncStatusColumn
       )
     ''');
     await db.execute('CREATE INDEX idx_photos_stop ON visit_photos(stop_id)');
@@ -189,7 +219,8 @@ class RoutesDatabase {
         blocked INTEGER NOT NULL
       )
     ''');
-    await db.execute('CREATE INDEX idx_fraud_flags_route ON fraud_flags(route_id)');
+    await db
+        .execute('CREATE INDEX idx_fraud_flags_route ON fraud_flags(route_id)');
 
     await db.execute('''
       CREATE TABLE sync_meta (
@@ -197,5 +228,38 @@ class RoutesDatabase {
         last_synced_at TEXT
       )
     ''');
+
+    await _createWorkflowStateTable(db);
+  }
+
+  static Future<void> _createWorkflowStateTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE workflow_state (
+        id TEXT PRIMARY KEY,
+        route_id TEXT NOT NULL,
+        current_stop_id TEXT,
+        day_started INTEGER NOT NULL DEFAULT 0,
+        updated_at TEXT NOT NULL
+      )
+    ''');
+  }
+
+  /// v1 -> v2: adds the offline-resume pointer table ([workflow_state]) and
+  /// a `sync_status` column on every visit-capture table so a push-sync
+  /// queue can track what's still pending, plus unique indexes on
+  /// `checkins`/`checkouts` as a defense-in-depth duplicate-check-in guard
+  /// (paired with the app-level guard in `ActiveRouteBloc._onCheckIn`).
+  static Future<void> _onUpgrade(
+      Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await _createWorkflowStateTable(db);
+      for (final table in _visitCaptureTables) {
+        await db.execute('ALTER TABLE $table ADD COLUMN $_syncStatusColumn');
+      }
+      await db.execute(
+          'CREATE UNIQUE INDEX idx_checkins_stop_unique ON checkins(stop_id)');
+      await db.execute(
+          'CREATE UNIQUE INDEX idx_checkouts_stop_unique ON checkouts(stop_id)');
+    }
   }
 }

@@ -69,7 +69,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 Expanded(
                   child: Center(
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 16),
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 420),
                         child: Column(
@@ -95,13 +96,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                 Text(
                                   'auth.sign_in_subtitle'.tr,
                                   textAlign: TextAlign.center,
-                                  style: TextStyle(color: Vibe.muted, fontSize: 15),
+                                  style: TextStyle(
+                                      color: Vibe.muted, fontSize: 15),
                                 ),
                               ],
                             ),
                             const SizedBox(height: 24),
                             GlassCard(child: _form()),
-                 
                           ],
                         ),
                       ),
@@ -132,8 +133,11 @@ class _LoginScreenState extends State<LoginScreen> {
             textInputAction: TextInputAction.next,
             autofillHints: const [AutofillHints.email],
             validator: (v) {
-              if (v == null || v.trim().isEmpty) return 'auth.email_required'.tr;
-              final ok = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(v.trim());
+              if (v == null || v.trim().isEmpty) {
+                return 'auth.email_required'.tr;
+              }
+              final ok =
+                  RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(v.trim());
               return ok ? null : 'auth.invalid_email'.tr;
             },
           ),
@@ -148,21 +152,25 @@ class _LoginScreenState extends State<LoginScreen> {
             onSubmitted: (_) => _submit(),
             suffix: IconButton(
               icon: Icon(
-                _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                _obscure
+                    ? Icons.visibility_outlined
+                    : Icons.visibility_off_outlined,
                 color: Vibe.muted,
                 size: 20,
               ),
               onPressed: () => setState(() => _obscure = !_obscure),
             ),
-            validator: (v) =>
-                (v == null || v.length < 6) ? 'auth.password_too_short'.tr : null,
+            validator: (v) => (v == null || v.length < 6)
+                ? 'auth.password_too_short'.tr
+                : null,
           ),
           Align(
             alignment: Alignment.centerRight,
             child: TextButton(
               onPressed: widget.onForgotPassword,
-              child:  Text('auth.forgot_password'.tr,
-                  style: TextStyle(color: Vibe.mint, fontWeight: FontWeight.w600)),
+              child: Text('auth.forgot_password'.tr,
+                  style:
+                      TextStyle(color: Vibe.mint, fontWeight: FontWeight.w600)),
             ),
           ),
           const SizedBox(height: 6),
@@ -188,8 +196,6 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
-
-
 }
 
 /// Compact brand mark — replaces the old wide identity panel.
@@ -202,10 +208,9 @@ class _Brand extends StatelessWidget {
     return Center(
       child: Image.asset(
         "assets/logos/isi_app_logo.png", // Replace with your actual image path
-        width: 180,               // Adjust width size as needed (e.g., 150-240)
+        width: 180, // Adjust width size as needed (e.g., 150-240)
         fit: BoxFit.contain,
       ),
     );
   }
 }
-

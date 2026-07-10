@@ -44,7 +44,8 @@ class RouteSyncRepositoryImpl implements RouteSyncRepository {
       var page = 0;
       var total = 0;
       while (true) {
-        final result = await _remote.fetchInitial(scope: scope, page: page, pageSize: _pageSize);
+        final result = await _remote.fetchInitial(
+            scope: scope, page: page, pageSize: _pageSize);
         await _local.upsertCustomers(result.customers);
         if (result.routes.isNotEmpty) {
           await _local.upsertRoutes(result.routes);
@@ -56,9 +57,11 @@ class RouteSyncRepositoryImpl implements RouteSyncRepository {
 
       final now = DateTime.now();
       await _local.setLastSyncedAt(_routesEntity, now);
-      return Success(RouteSyncResult(upserted: total, deleted: 0, syncedAt: now));
+      return Success(
+          RouteSyncResult(upserted: total, deleted: 0, syncedAt: now));
     } on ServerException catch (e) {
-      return Failed(ServerFailure(message: e.message, statusCode: e.statusCode));
+      return Failed(
+          ServerFailure(message: e.message, statusCode: e.statusCode));
     } on CacheException catch (e) {
       return Failed(CacheFailure(message: e.message));
     }
@@ -77,9 +80,11 @@ class RouteSyncRepositoryImpl implements RouteSyncRepository {
 
       final now = DateTime.now();
       await _local.setLastSyncedAt(_routesEntity, now);
-      return Success(RouteSyncResult(upserted: delta.routes.length, deleted: 0, syncedAt: now));
+      return Success(RouteSyncResult(
+          upserted: delta.routes.length, deleted: 0, syncedAt: now));
     } on ServerException catch (e) {
-      return Failed(ServerFailure(message: e.message, statusCode: e.statusCode));
+      return Failed(
+          ServerFailure(message: e.message, statusCode: e.statusCode));
     } on CacheException catch (e) {
       return Failed(CacheFailure(message: e.message));
     }

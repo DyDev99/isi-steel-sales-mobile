@@ -16,7 +16,8 @@ class CustomerFilter extends Equatable {
   final String? productCategory;
   final CustomerSortBy sortBy;
 
-  bool get isEmpty => territory == null && status == null && productCategory == null;
+  bool get isEmpty =>
+      territory == null && status == null && productCategory == null;
 
   CustomerFilter copyWith({
     String? Function()? territory,
@@ -27,7 +28,8 @@ class CustomerFilter extends Equatable {
     return CustomerFilter(
       territory: territory != null ? territory() : this.territory,
       status: status != null ? status() : this.status,
-      productCategory: productCategory != null ? productCategory() : this.productCategory,
+      productCategory:
+          productCategory != null ? productCategory() : this.productCategory,
       sortBy: sortBy ?? this.sortBy,
     );
   }

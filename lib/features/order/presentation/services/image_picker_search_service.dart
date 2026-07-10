@@ -32,7 +32,9 @@ class ImagePickerSearchService implements ImageSearchService {
   @override
   Future<String?> matchQuery(ImageSearchSource source) async {
     final XFile? file = await ImagePicker().pickImage(
-      source: source == ImageSearchSource.camera ? ImageSource.camera : ImageSource.gallery,
+      source: source == ImageSearchSource.camera
+          ? ImageSource.camera
+          : ImageSource.gallery,
       imageQuality: 70,
       maxWidth: 1280,
     );

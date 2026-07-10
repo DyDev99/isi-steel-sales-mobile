@@ -17,8 +17,10 @@ final class CartLoaded extends CartState {
   const CartLoaded({required this.items});
   final List<CartItem> items;
 
-  double get subtotal => items.fold<double>(0, (sum, i) => sum + i.lineSubtotal);
-  double get discount => items.fold<double>(0, (sum, i) => sum + i.lineDiscount);
+  double get subtotal =>
+      items.fold<double>(0, (sum, i) => sum + i.lineSubtotal);
+  double get discount =>
+      items.fold<double>(0, (sum, i) => sum + i.lineDiscount);
   double get taxableAmount => subtotal - discount;
   double get tax => taxableAmount * cartTaxRate;
   double get total => taxableAmount + tax;

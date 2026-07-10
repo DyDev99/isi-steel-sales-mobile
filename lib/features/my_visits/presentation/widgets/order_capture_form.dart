@@ -1,20 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
-import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.dart' as catalog;
+import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.dart'
+    as catalog;
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/browse_products.dart';
-import 'package:isi_steel_sales_mobile/features/order/domain/usecases/catalog_params.dart' as catalog_params;
+import 'package:isi_steel_sales_mobile/features/order/domain/usecases/catalog_params.dart'
+    as catalog_params;
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_order_line.dart';
 
 /// Searches the real product catalog (`order` feature's `ProductRepository`,
 /// via `BrowseProducts`) rather than inventing a second product concept —
 /// one source of truth for products across the app.
-Future<VisitOrderLine?> showOrderCaptureSheet({required BuildContext context, required String stopId}) {
+Future<VisitOrderLine?> showOrderCaptureSheet(
+    {required BuildContext context, required String stopId}) {
   return showModalBottomSheet<VisitOrderLine>(
     context: context,
     backgroundColor: Vibe.bgSoft,
     isScrollControlled: true,
-    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
+    shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
     builder: (_) => _OrderCaptureSheet(stopId: stopId),
   );
 }
@@ -55,7 +59,8 @@ class _OrderCaptureSheetState extends State<_OrderCaptureSheet> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding:
+          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
@@ -63,7 +68,11 @@ class _OrderCaptureSheetState extends State<_OrderCaptureSheet> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Capture Order', style: TextStyle(color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
+              const Text('Capture Order',
+                  style: TextStyle(
+                      color: Vibe.text,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w800)),
               const SizedBox(height: 12),
               TextField(
                 controller: _searchController,
@@ -73,11 +82,16 @@ class _OrderCaptureSheetState extends State<_OrderCaptureSheet> {
                   prefixIcon: const Icon(Icons.search_rounded),
                   filled: true,
                   fillColor: Vibe.surface,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none),
                 ),
               ),
               const SizedBox(height: 10),
-              if (_searching) const Padding(padding: EdgeInsets.all(12), child: CircularProgressIndicator(color: Vibe.violet)),
+              if (_searching)
+                const Padding(
+                    padding: EdgeInsets.all(12),
+                    child: CircularProgressIndicator(color: Vibe.violet)),
               if (!_searching && _results.isNotEmpty)
                 ConstrainedBox(
                   constraints: const BoxConstraints(maxHeight: 220),
@@ -89,10 +103,17 @@ class _OrderCaptureSheetState extends State<_OrderCaptureSheet> {
                       final selected = _selected?.id == p.id;
                       return ListTile(
                         selected: selected,
-                        selectedTileColor: Vibe.primaryLight.withValues(alpha: 0.4),
-                        title: Text(p.name, style: const TextStyle(color: Vibe.text, fontSize: 13, fontWeight: FontWeight.w700)),
-                        subtitle: Text('${p.code} · \$${p.effectivePrice.toStringAsFixed(2)}',
-                            style: const TextStyle(color: Vibe.muted, fontSize: 11.5)),
+                        selectedTileColor:
+                            Vibe.primaryLight.withValues(alpha: 0.4),
+                        title: Text(p.name,
+                            style: const TextStyle(
+                                color: Vibe.text,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700)),
+                        subtitle: Text(
+                            '${p.code} · \$${p.effectivePrice.toStringAsFixed(2)}',
+                            style: const TextStyle(
+                                color: Vibe.muted, fontSize: 11.5)),
                         onTap: () => setState(() => _selected = p),
                       );
                     },
@@ -103,13 +124,18 @@ class _OrderCaptureSheetState extends State<_OrderCaptureSheet> {
                 Row(
                   children: [
                     Expanded(
-                      child: Text('Quantity', style: const TextStyle(color: Vibe.muted, fontSize: 12.5)),
+                      child: Text('Quantity',
+                          style: const TextStyle(
+                              color: Vibe.muted, fontSize: 12.5)),
                     ),
                     IconButton(
-                      onPressed: () => setState(() => _quantity = (_quantity - 1).clamp(1, 99999)),
+                      onPressed: () => setState(
+                          () => _quantity = (_quantity - 1).clamp(1, 99999)),
                       icon: const Icon(Icons.remove_circle_outline_rounded),
                     ),
-                    Text(_quantity.toStringAsFixed(0), style: const TextStyle(color: Vibe.text, fontWeight: FontWeight.w800)),
+                    Text(_quantity.toStringAsFixed(0),
+                        style: const TextStyle(
+                            color: Vibe.text, fontWeight: FontWeight.w800)),
                     IconButton(
                       onPressed: () => setState(() => _quantity++),
                       icon: const Icon(Icons.add_circle_outline_rounded),
@@ -138,7 +164,8 @@ class _OrderCaptureSheetState extends State<_OrderCaptureSheet> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Vibe.violet,
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
                   ),
                   child: const Text('Add to Order'),
                 ),

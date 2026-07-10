@@ -56,7 +56,8 @@ class VibeField extends StatelessWidget {
         errorBorder: border(Vibe.danger),
         focusedErrorBorder: border(Vibe.danger, 1.6),
         errorStyle: const TextStyle(color: Vibe.danger),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
       ),
     );
   }

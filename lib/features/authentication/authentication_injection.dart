@@ -38,7 +38,8 @@ void registerAuthFeature(GetIt sl) {
   // One concrete local source, exposed under two interfaces so the
   // interceptor and the repository share the exact same token storage.
   sl.registerLazySingleton(() => AuthLocalDataSourceImpl(sl()));
-  sl.registerLazySingleton<AuthLocalDataSource>(() => sl<AuthLocalDataSourceImpl>());
+  sl.registerLazySingleton<AuthLocalDataSource>(
+      () => sl<AuthLocalDataSourceImpl>());
   sl.registerLazySingleton<TokenStore>(() => sl<AuthLocalDataSourceImpl>());
 
   // Authenticated Dio client (auto token attach + refresh).

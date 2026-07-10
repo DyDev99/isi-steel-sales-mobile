@@ -58,7 +58,8 @@ class _CategoryGroup extends StatelessWidget {
   final ValueChanged<String?> onSelect;
 
   bool get _containsSelected =>
-      category.id == selectedCategoryId || children.any((c) => c.id == selectedCategoryId);
+      category.id == selectedCategoryId ||
+      children.any((c) => c.id == selectedCategoryId);
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +73,8 @@ class _CategoryGroup extends StatelessWidget {
         collapsedIconColor: Vibe.muted,
         title: Text(
           category.name,
-          style: const TextStyle(color: Vibe.text, fontSize: 13.5, fontWeight: FontWeight.w700),
+          style: const TextStyle(
+              color: Vibe.text, fontSize: 13.5, fontWeight: FontWeight.w700),
         ),
         children: [
           for (final child in children)
@@ -109,7 +111,9 @@ class _CategoryTile extends StatelessWidget {
       onTap: onTap,
       child: Container(
         padding: EdgeInsets.fromLTRB(indent ? 32 : 16, 10, 16, 10),
-        color: selected ? Vibe.primaryLight.withValues(alpha: 0.5) : Colors.transparent,
+        color: selected
+            ? Vibe.primaryLight.withValues(alpha: 0.5)
+            : Colors.transparent,
         child: Row(
           children: [
             if (icon != null) ...[

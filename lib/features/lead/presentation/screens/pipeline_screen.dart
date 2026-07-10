@@ -6,7 +6,7 @@ import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
 import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
 import 'package:isi_steel_sales_mobile/core/utils/aurora_background.dart';
 // Add this line back right here:
-import 'package:isi_steel_sales_mobile/features/authentication/domain/entities/user_role.dart'; 
+import 'package:isi_steel_sales_mobile/features/authentication/domain/entities/user_role.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/lead.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/pipeline_stage.dart';
 import 'package:isi_steel_sales_mobile/features/lead/presentation/bloc/lead_detail_cubit.dart';
@@ -37,19 +37,24 @@ class PipelineScreen extends StatelessWidget {
               listenWhen: (prev, curr) =>
                   curr is PipelineLoaded && curr.blockedMoveMessage != null,
               listener: (context, state) {
-                if (state is PipelineLoaded && state.blockedMoveMessage != null) {
+                if (state is PipelineLoaded &&
+                    state.blockedMoveMessage != null) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text(state.blockedMoveMessage!)),
                   );
                 }
               },
               builder: (context, state) => switch (state) {
-                PipelineLoaded() => _Board(state: state, initialStage: initialStage),
+                PipelineLoaded() =>
+                  _Board(state: state, initialStage: initialStage),
                 PipelineError(:final message) => _ErrorView(
                     message: message,
-                    onRetry: () => context.read<PipelineBloc>().add(const PipelineLoadRequested()),
+                    onRetry: () => context
+                        .read<PipelineBloc>()
+                        .add(const PipelineLoadRequested()),
                   ),
-                _ => const Center(child: CircularProgressIndicator(color: Vibe.pink)),
+                _ => const Center(
+                    child: CircularProgressIndicator(color: Vibe.pink)),
               },
             ),
           ),
@@ -70,10 +75,15 @@ class _Board extends StatefulWidget {
 
 class _BoardState extends State<_Board> {
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _boardController = ScrollController();
+
+  /// One-time auto-scroll to the [initialStage] column on first layout.
+  bool _initialScrollDone = false;
 
   @override
   void dispose() {
     _searchController.dispose();
+    _boardController.dispose();
     super.dispose();
   }
 
@@ -94,34 +104,41 @@ class _BoardState extends State<_Board> {
     );
   }
 
-  Future<void> _handleAction(BuildContext context, Lead lead, LeadCardAction action) async {
+  Future<void> _handleAction(
+      BuildContext context, Lead lead, LeadCardAction action) async {
     final bloc = context.read<PipelineBloc>();
     switch (action) {
       case LeadCardAction.view:
         _openDetail(context, lead);
       case LeadCardAction.edit:
-        final updated = await showLeadFormSheet(context: context, existing: lead);
+        final updated =
+            await showLeadFormSheet(context: context, existing: lead);
         if (updated != null) bloc.add(LeadUpdated(updated));
       case LeadCardAction.delete:
         final confirmed = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
             backgroundColor: Vibe.bgSoft,
-            title: const Text('Delete lead?', style: TextStyle(color: Vibe.text)),
+            title:
+                const Text('Delete lead?', style: TextStyle(color: Vibe.text)),
             content: Text('This removes ${lead.companyName} from the pipeline.',
                 style: const TextStyle(color: Vibe.muted)),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+              TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('Cancel')),
               TextButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text('Delete', style: TextStyle(color: Vibe.danger)),
+                child:
+                    const Text('Delete', style: TextStyle(color: Vibe.danger)),
               ),
             ],
           ),
         );
         if (confirmed == true) bloc.add(LeadDeleted(lead.id));
       case LeadCardAction.move:
-        final result = await showMoveStageSheet(context: context, lead: lead, isAdmin: _isAdmin);
+        final result = await showMoveStageSheet(
+            context: context, lead: lead, isAdmin: _isAdmin);
         if (result != null) {
           bloc.add(LeadMoved(
             leadId: lead.id,
@@ -136,9 +153,11 @@ class _BoardState extends State<_Board> {
     }
   }
 
-  Future<void> _handleDrop(BuildContext context, Lead dragged, PipelineStage toStage) async {
+  Future<void> _handleDrop(
+      BuildContext context, Lead dragged, PipelineStage toStage) async {
     if (dragged.stage == toStage) return;
-    final result = await resolveStageMove(context: context, lead: dragged, toStage: toStage);
+    final result = await resolveStageMove(
+        context: context, lead: dragged, toStage: toStage);
     if (result == null || !context.mounted) return;
     context.read<PipelineBloc>().add(LeadMoved(
           leadId: dragged.id,
@@ -150,13 +169,19 @@ class _BoardState extends State<_Board> {
 
   @override
   Widget build(BuildContext context) {
-    final territories = widget.state.allLeads.map((l) => l.territory).toSet().toList()..sort();
-    final reps = widget.state.allLeads.map((l) => l.assignedRepName).toSet().toList()..sort();
+    final territories =
+        widget.state.allLeads.map((l) => l.territory).toSet().toList()..sort();
+    final reps = widget.state.allLeads
+        .map((l) => l.assignedRepName)
+        .toSet()
+        .toList()
+      ..sort();
 
     return RefreshIndicator(
       color: Vibe.pink,
       backgroundColor: Vibe.bgSoft,
-      onRefresh: () async => context.read<PipelineBloc>().add(const PipelineLoadRequested()),
+      onRefresh: () async =>
+          context.read<PipelineBloc>().add(const PipelineLoadRequested()),
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: EdgeInsets.fromLTRB(16.w, 0.h, 16.w, 12.h),
@@ -182,20 +207,26 @@ class _BoardState extends State<_Board> {
                         padding: EdgeInsets.symmetric(horizontal: 14.w),
                         child: Row(
                           children: [
-                            Icon(Icons.search, color: Colors.grey.shade500, size: 22.w),
+                            Icon(Icons.search,
+                                color: Colors.grey.shade500, size: 22.w),
                             SizedBox(width: 8.w),
                             Expanded(
                               child: TextField(
                                 controller: _searchController,
-                                onChanged: (q) => context.read<PipelineBloc>().add(SearchChanged(q)),
+                                onChanged: (q) => context
+                                    .read<PipelineBloc>()
+                                    .add(SearchChanged(q)),
                                 decoration: InputDecoration(
                                   hintText: "Search company or owner...",
-                                  hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14.sp),
+                                  hintStyle: TextStyle(
+                                      color: Colors.grey.shade400,
+                                      fontSize: 14.sp),
                                   border: InputBorder.none,
                                   isDense: true,
                                   contentPadding: EdgeInsets.zero,
                                 ),
-                                style: TextStyle(fontSize: 14.sp, color: Vibe.text),
+                                style: TextStyle(
+                                    fontSize: 14.sp, color: Vibe.text),
                               ),
                             ),
                           ],
@@ -229,14 +260,14 @@ class _BoardState extends State<_Board> {
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(14.r),
                           border: Border.all(
-                            color: !widget.state.filter.isEmpty 
-                                ? Vibe.violet 
+                            color: !widget.state.filter.isEmpty
+                                ? Vibe.violet
                                 : Colors.grey.shade200,
                           ),
                         ),
                         child: Icon(
-                          Icons.tune_rounded, 
-                          color: Vibe.slate, 
+                          Icons.tune_rounded,
+                          color: Vibe.slate,
                           size: 20.w,
                         ),
                       ),
@@ -246,9 +277,12 @@ class _BoardState extends State<_Board> {
                     // 3. Shaped Blue Add Action Button Container
                     GestureDetector(
                       onTap: () async {
-                        final created = await showLeadFormSheet(context: context);
+                        final created =
+                            await showLeadFormSheet(context: context);
                         if (created != null && context.mounted) {
-                          context.read<PipelineBloc>().add(LeadCreated(created));
+                          context
+                              .read<PipelineBloc>()
+                              .add(LeadCreated(created));
                         }
                       },
                       child: Container(
@@ -278,64 +312,105 @@ class _BoardState extends State<_Board> {
               ),
             ),
             SizedBox(height: 8.h),
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final isWide = constraints.maxWidth >= 760;
-                final columns = PipelineStage.values
-                    .map((stage) => PipelineColumn(
-                          stage: stage,
-                          leads: widget.state.columns[stage] ?? const [],
-                          onCardTap: (lead) => _openDetail(context, lead),
-                          onCardAction: (lead, action) => _handleAction(context, lead, action),
-                          onDroppedOnColumn: (dragged) => _handleDrop(context, dragged, stage),
-                          onDroppedOnCard: (dragged, index) {
-                            if (dragged.stage == stage) {
-                              final oldIndex = (widget.state.columns[stage] ?? const [])
-                                  .indexWhere((l) => l.id == dragged.id);
-                              if (oldIndex != -1) {
-                                context
-                                    .read<PipelineBloc>()
-                                    .add(LeadReordered(stage: stage, oldIndex: oldIndex, newIndex: index));
-                              }
-                            } else {
-                              _handleDrop(context, dragged, stage);
-                            }
-                          },
-                        ))
-                    .toList();
-
-                const boardHeight = 720.0;
-                if (isWide) {
-                  return SizedBox(
-                    height: boardHeight,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        for (var i = 0; i < columns.length; i++) ...[
-                          if (i > 0) const SizedBox(width: 14),
-                          Expanded(child: columns[i]),
-                        ],
-                      ],
-                    ),
-                  );
-                }
-                return SizedBox(
-                  height: boardHeight,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: columns.length,
-                    controller: ScrollController(
-                      initialScrollOffset: PipelineStage.values.indexOf(widget.initialStage) * 300.0,
-                    ),
-                    separatorBuilder: (_, __) => const SizedBox(width: 12),
-                    itemBuilder: (context, i) => SizedBox(width: 300, child: columns[i]),
-                  ),
-                );
-              },
-            ),
+            // Three boards on one screen (Leads | Opportunities | Won) in a
+            // horizontally scrollable row; each column scrolls vertically on
+            // its own and is never mixed into a single list.
+            _scrollableBoard(context),
           ],
         ),
       ),
+    );
+  }
+
+  // One accent colour per board.
+  static const _accents = {
+    PipelineStage.leads: Vibe.violet,
+    PipelineStage.opportunities: Vibe.success,
+    PipelineStage.won: Vibe.mint,
+  };
+
+  /// The pipeline as a horizontally scrollable row of three boards
+  /// (Leads | Opportunities | Won). Each column is a fixed width so roughly
+  /// two fit on screen and the third scrolls into view; the row auto-scrolls
+  /// to the [initialStage] board on first layout.
+  Widget _scrollableBoard(BuildContext context) {
+    final columns = widget.state.columns;
+    const order = PipelineStage.values;
+
+    // Fill the viewport under the search bar; each column scrolls internally.
+    final available = MediaQuery.sizeOf(context).height - 260.h;
+    final boardHeight = available < 340.h ? 340.h : available;
+
+    // Sized so ~2 columns are visible at once, the rest reachable by scroll.
+    final gap = 12.w;
+    final colWidth = (MediaQuery.sizeOf(context).width - 32.w - gap) / 2;
+
+    if (!_initialScrollDone) {
+      final index = order.indexOf(widget.initialStage);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || _initialScrollDone) return;
+        _initialScrollDone = true;
+        if (index > 0 && _boardController.hasClients) {
+          final target = index * (colWidth + gap);
+          _boardController.jumpTo(
+              target.clamp(0.0, _boardController.position.maxScrollExtent));
+        }
+      });
+    }
+
+    return SizedBox(
+      height: boardHeight,
+      child: ListView.separated(
+        controller: _boardController,
+        scrollDirection: Axis.horizontal,
+        itemCount: order.length,
+        separatorBuilder: (_, __) => SizedBox(width: gap),
+        itemBuilder: (context, i) {
+          final stage = order[i];
+          return SizedBox(
+            width: colWidth,
+            child: _column(
+              context: context,
+              stage: stage,
+              title: stage.label,
+              accent: _accents[stage] ?? Vibe.violet,
+              leads: columns[stage] ?? const [],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  /// Builds one board column, wiring the same tap / action / drag-and-drop
+  /// handlers the board has always used.
+  PipelineColumn _column({
+    required BuildContext context,
+    required PipelineStage stage,
+    required String title,
+    required Color accent,
+    required List<Lead> leads,
+  }) {
+    return PipelineColumn(
+      stage: stage,
+      title: title,
+      accent: accent,
+      leads: leads,
+      onCardTap: (lead) => _openDetail(context, lead),
+      onCardAction: (lead, action) => _handleAction(context, lead, action),
+      onDroppedOnColumn: (dragged) => _handleDrop(context, dragged, stage),
+      onDroppedOnCard: (dragged, index) {
+        if (dragged.stage == stage) {
+          final oldIndex = (widget.state.columns[stage] ?? const [])
+              .indexWhere((l) => l.id == dragged.id);
+          if (oldIndex != -1) {
+            context.read<PipelineBloc>().add(LeadReordered(
+                stage: stage, oldIndex: oldIndex, newIndex: index));
+          }
+        } else {
+          _handleDrop(context, dragged, stage);
+        }
+      },
     );
   }
 }
@@ -357,7 +432,9 @@ class _ErrorView extends StatelessWidget {
           const SizedBox(height: 12),
           TextButton(
             onPressed: onRetry,
-            child: const Text('Try again', style: TextStyle(color: Vibe.pink, fontWeight: FontWeight.w700)),
+            child: const Text('Try again',
+                style:
+                    TextStyle(color: Vibe.pink, fontWeight: FontWeight.w700)),
           ),
         ],
       ),

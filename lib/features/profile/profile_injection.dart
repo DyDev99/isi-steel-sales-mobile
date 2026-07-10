@@ -12,10 +12,12 @@ import 'package:isi_steel_sales_mobile/features/profile/presentation/bloc/profil
 /// change, and logout. Mirrors `registerMyVisitsFeature`.
 void registerProfileFeature(GetIt sl) {
   // ── Data sources ────────────────────────────────────────────────────
-  sl.registerLazySingleton<ProfileRemoteDataSource>(() => MockProfileRemoteDataSource());
+  sl.registerLazySingleton<ProfileRemoteDataSource>(
+      () => MockProfileRemoteDataSource());
 
   // ── Repositories ────────────────────────────────────────────────────
-  sl.registerLazySingleton<ProfileRepository>(() => ProfileRepositoryImpl(remoteDataSource: sl()));
+  sl.registerLazySingleton<ProfileRepository>(
+      () => ProfileRepositoryImpl(remoteDataSource: sl()));
 
   // ── Use cases ───────────────────────────────────────────────────────
   sl.registerLazySingleton(() => GetWorkerProfile(sl()));

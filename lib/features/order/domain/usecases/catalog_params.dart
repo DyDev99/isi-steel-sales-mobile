@@ -37,7 +37,8 @@ class BrowseProductsParams extends Equatable {
 }
 
 class CategoryPageParams extends Equatable {
-  const CategoryPageParams({required this.categoryId, required this.page, required this.pageSize});
+  const CategoryPageParams(
+      {required this.categoryId, required this.page, required this.pageSize});
   final String categoryId;
   final int page;
   final int pageSize;
@@ -102,8 +103,16 @@ class SaveQuotationParams extends Equatable {
   final double? gpsLat;
   final double? gpsLng;
   @override
-  List<Object?> get props =>
-      [items, customerId, shopName, leadId, leadDisplayName, offVisitReason, gpsLat, gpsLng];
+  List<Object?> get props => [
+        items,
+        customerId,
+        shopName,
+        leadId,
+        leadDisplayName,
+        offVisitReason,
+        gpsLat,
+        gpsLng
+      ];
 }
 
 class UpdateQuotationParams extends Equatable {

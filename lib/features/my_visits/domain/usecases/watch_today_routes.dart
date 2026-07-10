@@ -9,5 +9,6 @@ class WatchTodayRoutes extends StreamUseCase<List<RoutePlan>, NoParams> {
   final RouteRepository _repository;
 
   @override
-  Stream<List<RoutePlan>> call(NoParams params) => _repository.watchTodayRoutes();
+  Stream<List<RoutePlan>> call(NoParams params) =>
+      _repository.watchTodayRoutes();
 }

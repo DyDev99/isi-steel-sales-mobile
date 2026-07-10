@@ -8,5 +8,6 @@ class GetDiscountOptions extends UseCase<List<DiscountOption>, NoParams> {
   final RevenueRepository _repository;
 
   @override
-  ResultFuture<List<DiscountOption>> call(NoParams params) => _repository.getDiscountOptions();
+  ResultFuture<List<DiscountOption>> call(NoParams params) =>
+      _repository.getDiscountOptions();
 }

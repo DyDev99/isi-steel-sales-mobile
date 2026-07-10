@@ -7,5 +7,6 @@ class AddOrderLine extends UseCase<void, VisitOrderLine> {
   const AddOrderLine(this._repository);
   final VisitRepository _repository;
   @override
-  ResultFuture<void> call(VisitOrderLine params) => _repository.addOrderLine(params);
+  ResultFuture<void> call(VisitOrderLine params) =>
+      _repository.addOrderLine(params);
 }

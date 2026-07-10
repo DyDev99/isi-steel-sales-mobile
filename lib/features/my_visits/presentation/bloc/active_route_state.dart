@@ -34,7 +34,8 @@ final class ActiveRouteReady extends ActiveRouteState {
   final String? blockedCheckInReason;
   final List<String> checkInWarnings;
 
-  bool get hasCurrentStop => currentStopIndex >= 0 && currentStopIndex < route.stops.length;
+  bool get hasCurrentStop =>
+      currentStopIndex >= 0 && currentStopIndex < route.stops.length;
 
   ActiveRouteReady copyWith({
     RoutePlan? route,
@@ -55,8 +56,9 @@ final class ActiveRouteReady extends ActiveRouteState {
       distanceMeters: distanceMeters ?? this.distanceMeters,
       accuracyMeters: accuracyMeters ?? this.accuracyMeters,
       isMocked: isMocked ?? this.isMocked,
-      blockedCheckInReason:
-          blockedCheckInReason != null ? blockedCheckInReason() : this.blockedCheckInReason,
+      blockedCheckInReason: blockedCheckInReason != null
+          ? blockedCheckInReason()
+          : this.blockedCheckInReason,
       checkInWarnings: checkInWarnings ?? this.checkInWarnings,
     );
   }

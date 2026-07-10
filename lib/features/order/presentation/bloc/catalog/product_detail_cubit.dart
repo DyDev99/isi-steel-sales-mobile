@@ -37,14 +37,18 @@ class ProductDetailCubit extends Cubit<ProductDetailState> {
     final result = await _getProductById(ProductIdParams(productId));
     await result.when(
       success: (product) async {
-        final variantsResult = await _getProductVariants(FamilyIdParams(product.familyId));
-        final warehouseResult = await _getWarehouseStock(ProductCodeParams(product.code));
+        final variantsResult =
+            await _getProductVariants(FamilyIdParams(product.familyId));
+        final warehouseResult =
+            await _getWarehouseStock(ProductCodeParams(product.code));
         final favoritesResult = await _fetchFavorites(const NoParams());
         await _recordViewed(ProductIdParams(product.id));
         emit(ProductDetailLoaded(
           product: product,
-          variants: variantsResult.when(success: (v) => v, failure: (_) => const []),
-          warehouseStock: warehouseResult.when(success: (v) => v, failure: (_) => const []),
+          variants:
+              variantsResult.when(success: (v) => v, failure: (_) => const []),
+          warehouseStock:
+              warehouseResult.when(success: (v) => v, failure: (_) => const []),
           isFavorite: favoritesResult.when(
             success: (favs) => favs.any((f) => f.id == product.id),
             failure: (_) => false,

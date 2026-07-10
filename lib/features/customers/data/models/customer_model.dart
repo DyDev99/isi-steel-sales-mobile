@@ -60,22 +60,26 @@ class CustomerModel extends Customer {
         assignedRepName: json['assignedRepName'] as String,
         updatedAt: DateTime.parse(json['updatedAt'] as String),
         originLeadId: json['originLeadId'] as String?,
-        productsPurchased: (json['productsPurchased'] as List<dynamic>? ?? const [])
-            .map((e) => e as String)
-            .toList(),
+        productsPurchased:
+            (json['productsPurchased'] as List<dynamic>? ?? const [])
+                .map((e) => e as String)
+                .toList(),
         contacts: (json['contacts'] as List<dynamic>? ?? const [])
             .map((e) => CustomerContactModel.fromRow(e as DataMap))
             .toList(),
-        lastOrderDate:
-            json['lastOrderDate'] == null ? null : DateTime.parse(json['lastOrderDate'] as String),
-        lastVisitDate:
-            json['lastVisitDate'] == null ? null : DateTime.parse(json['lastVisitDate'] as String),
+        lastOrderDate: json['lastOrderDate'] == null
+            ? null
+            : DateTime.parse(json['lastOrderDate'] as String),
+        lastVisitDate: json['lastVisitDate'] == null
+            ? null
+            : DateTime.parse(json['lastVisitDate'] as String),
         lifetimeValue: (json['lifetimeValue'] as num?)?.toDouble() ?? 0,
         openOpportunityCount: json['openOpportunityCount'] as int? ?? 0,
         deleted: json['deleted'] as bool? ?? false,
       );
 
-  factory CustomerModel.fromRow(DataMap row, {List<CustomerContactModel> contacts = const []}) =>
+  factory CustomerModel.fromRow(DataMap row,
+          {List<CustomerContactModel> contacts = const []}) =>
       CustomerModel(
         id: row['id'] as String,
         sapCustomerId: row['sap_customer_id'] as String,
@@ -102,10 +106,12 @@ class CustomerModel extends Customer {
             .where((e) => e.isNotEmpty)
             .toList(),
         contacts: contacts,
-        lastOrderDate:
-            row['last_order_date'] == null ? null : DateTime.parse(row['last_order_date'] as String),
-        lastVisitDate:
-            row['last_visit_date'] == null ? null : DateTime.parse(row['last_visit_date'] as String),
+        lastOrderDate: row['last_order_date'] == null
+            ? null
+            : DateTime.parse(row['last_order_date'] as String),
+        lastVisitDate: row['last_visit_date'] == null
+            ? null
+            : DateTime.parse(row['last_visit_date'] as String),
         lifetimeValue: (row['lifetime_value'] as num?)?.toDouble() ?? 0,
         openOpportunityCount: row['open_opportunity_count'] as int? ?? 0,
         deleted: (row['deleted'] as int? ?? 0) == 1,

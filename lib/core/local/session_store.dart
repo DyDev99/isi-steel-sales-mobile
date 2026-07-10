@@ -52,7 +52,8 @@ class HiveSessionStore implements SessionStore {
           'id': user.id,
           'email': user.email,
           'fullName': user.fullName,
-          'roles': user.roles.map((e) => e.name).toList(), // Fixed syntax error here
+          'roles':
+              user.roles.map((e) => e.name).toList(), // Fixed syntax error here
           'company': user.company,
           'avatarUrl': user.avatarUrl,
         }),

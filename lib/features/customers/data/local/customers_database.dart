@@ -10,7 +10,8 @@ class CustomersDatabase {
   CustomersDatabase._(this.db);
   final Database db;
 
-  static Future<CustomersDatabase> open({String fileName = 'customers.db'}) async {
+  static Future<CustomersDatabase> open(
+      {String fileName = 'customers.db'}) async {
     final dbDir = await getDatabasesPath();
     final path = p.join(dbDir, fileName);
     final db = await openDatabase(path, version: 1, onCreate: _onCreate);
@@ -50,9 +51,12 @@ class CustomersDatabase {
         deleted INTEGER NOT NULL DEFAULT 0
       )
     ''');
-    await db.execute('CREATE UNIQUE INDEX idx_customers_sap_id ON customers(sap_customer_id)');
-    await db.execute('CREATE INDEX idx_customers_territory ON customers(territory)');
-    await db.execute('CREATE INDEX idx_customers_rep ON customers(assigned_rep_id)');
+    await db.execute(
+        'CREATE UNIQUE INDEX idx_customers_sap_id ON customers(sap_customer_id)');
+    await db.execute(
+        'CREATE INDEX idx_customers_territory ON customers(territory)');
+    await db.execute(
+        'CREATE INDEX idx_customers_rep ON customers(assigned_rep_id)');
     await db.execute('CREATE INDEX idx_customers_status ON customers(status)');
 
     await db.execute('''
@@ -71,7 +75,8 @@ class CustomersDatabase {
         email TEXT
       )
     ''');
-    await db.execute('CREATE INDEX idx_customer_contacts_customer ON customer_contacts(customer_id)');
+    await db.execute(
+        'CREATE INDEX idx_customer_contacts_customer ON customer_contacts(customer_id)');
 
     // ── Rep-owned: written locally, queued for push independently of the
     // SAP sync above — see `CustomerLocalDataSource.fetchUnsyncedNotes`. ──
@@ -84,7 +89,8 @@ class CustomersDatabase {
         synced INTEGER NOT NULL DEFAULT 0
       )
     ''');
-    await db.execute('CREATE INDEX idx_customer_notes_customer ON customer_notes(customer_id)');
+    await db.execute(
+        'CREATE INDEX idx_customer_notes_customer ON customer_notes(customer_id)');
 
     await db.execute('''
       CREATE TABLE customer_activities (
@@ -96,7 +102,8 @@ class CustomersDatabase {
         synced INTEGER NOT NULL DEFAULT 0
       )
     ''');
-    await db.execute('CREATE INDEX idx_customer_activities_customer ON customer_activities(customer_id)');
+    await db.execute(
+        'CREATE INDEX idx_customer_activities_customer ON customer_activities(customer_id)');
 
     await db.execute('''
       CREATE TABLE customer_favorites (

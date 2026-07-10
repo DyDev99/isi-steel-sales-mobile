@@ -9,12 +9,14 @@ import 'package:isi_steel_sales_mobile/features/lead/domain/entities/priority.da
 /// Create/edit bottom sheet. When [existing] is null this creates a new
 /// lead in [PipelineStage.leads]; otherwise it returns an updated copy of
 /// [existing] with the editable fields applied.
-Future<Lead?> showLeadFormSheet({required BuildContext context, Lead? existing}) {
+Future<Lead?> showLeadFormSheet(
+    {required BuildContext context, Lead? existing}) {
   return showModalBottomSheet<Lead>(
     context: context,
     backgroundColor: Vibe.bgSoft,
     isScrollControlled: true,
-    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
+    shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
     builder: (_) => _LeadFormSheet(existing: existing),
   );
 }
@@ -31,24 +33,37 @@ const _productOptions = ['Rebar', 'Mesh', 'Sheet', 'Sections', 'Mixed'];
 
 class _LeadFormSheetState extends State<_LeadFormSheet> {
   final _formKey = GlobalKey<FormState>();
-  late final _company = TextEditingController(text: widget.existing?.companyName);
+  late final _company =
+      TextEditingController(text: widget.existing?.companyName);
   late final _owner = TextEditingController(text: widget.existing?.ownerName);
   late final _phone = TextEditingController(text: widget.existing?.phone);
   late final _address = TextEditingController(text: widget.existing?.address);
-  late final _territory = TextEditingController(text: widget.existing?.territory);
-  late final _rep = TextEditingController(text: widget.existing?.assignedRepName);
-  late final _revenue =
-      TextEditingController(text: widget.existing?.expectedRevenue.toStringAsFixed(0) ?? '');
-  late LeadSource _source = widget.existing?.leadSource ?? LeadSource.fieldVisit;
+  late final _territory =
+      TextEditingController(text: widget.existing?.territory);
+  late final _rep =
+      TextEditingController(text: widget.existing?.assignedRepName);
+  late final _revenue = TextEditingController(
+      text: widget.existing?.expectedRevenue.toStringAsFixed(0) ?? '');
+  late LeadSource _source =
+      widget.existing?.leadSource ?? LeadSource.fieldVisit;
   late Priority _priority = widget.existing?.priority ?? Priority.medium;
-  late final List<String> _products = List.of(widget.existing?.interestedProducts ?? const []);
+  late final List<String> _products =
+      List.of(widget.existing?.interestedProducts ?? const []);
 
   bool get _isEdit => widget.existing != null;
   bool _showMore = false;
 
   @override
   void dispose() {
-    for (final c in [_company, _owner, _phone, _address, _territory, _rep, _revenue]) {
+    for (final c in [
+      _company,
+      _owner,
+      _phone,
+      _address,
+      _territory,
+      _rep,
+      _revenue
+    ]) {
       c.dispose();
     }
     super.dispose();
@@ -57,7 +72,8 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding:
+          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
@@ -69,18 +85,26 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(_isEdit ? 'Edit lead' : 'New lead',
-                      style: const TextStyle(color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
+                      style: const TextStyle(
+                          color: Vibe.text,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w800)),
                   if (!_isEdit) ...[
                     const SizedBox(height: 4),
-                    const Text("That's enough to start — don't grill a cold lead.",
+                    const Text(
+                        "That's enough to start — don't grill a cold lead.",
                         style: TextStyle(color: Vibe.muted, fontSize: 12.5)),
                   ],
                   const SizedBox(height: 16),
                   _field('Company / Shop name', _company, required: true),
-                  _field('Phone', _phone, required: _isEdit, keyboardType: TextInputType.phone),
+                  _field('Phone', _phone,
+                      required: _isEdit, keyboardType: TextInputType.phone),
                   const SizedBox(height: 4),
                   const Text('Interested products (optional)',
-                      style: TextStyle(color: Vibe.muted, fontSize: 12, fontWeight: FontWeight.w700)),
+                      style: TextStyle(
+                          color: Vibe.muted,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700)),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,
@@ -89,13 +113,20 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
                         .map((p) => FilterChip(
                               label: Text(p),
                               selected: _products.contains(p),
-                              onSelected: (selected) => setState(
-                                  () => selected ? _products.add(p) : _products.remove(p)),
-                              labelStyle:
-                                  TextStyle(color: _products.contains(p) ? Vibe.violet : Vibe.text, fontSize: 12.5),
+                              onSelected: (selected) => setState(() => selected
+                                  ? _products.add(p)
+                                  : _products.remove(p)),
+                              labelStyle: TextStyle(
+                                  color: _products.contains(p)
+                                      ? Vibe.violet
+                                      : Vibe.text,
+                                  fontSize: 12.5),
                               backgroundColor: Vibe.surface,
                               selectedColor: Vibe.violet.withValues(alpha: 0.2),
-                              side: BorderSide(color: _products.contains(p) ? Vibe.violet : Vibe.stroke),
+                              side: BorderSide(
+                                  color: _products.contains(p)
+                                      ? Vibe.violet
+                                      : Vibe.stroke),
                             ))
                         .toList(),
                   ),
@@ -103,8 +134,10 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
                     const SizedBox(height: 14),
                     TextButton.icon(
                       onPressed: () => setState(() => _showMore = true),
-                      icon: const Icon(Icons.add_rounded, size: 16, color: Vibe.violet),
-                      label: const Text('Add more details', style: TextStyle(color: Vibe.violet, fontSize: 13)),
+                      icon: const Icon(Icons.add_rounded,
+                          size: 16, color: Vibe.violet),
+                      label: const Text('Add more details',
+                          style: TextStyle(color: Vibe.violet, fontSize: 13)),
                     ),
                   ],
                   if (_isEdit || _showMore) ...[
@@ -113,9 +146,14 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
                     _field('Address', _address),
                     _field('Territory / Province', _territory),
                     _field('Assigned sales rep', _rep),
-                    _field('Expected revenue (\$)', _revenue, keyboardType: TextInputType.number),
+                    _field('Expected revenue (\$)', _revenue,
+                        keyboardType: TextInputType.number),
                     const SizedBox(height: 8),
-                    const Text('Lead source', style: TextStyle(color: Vibe.muted, fontSize: 12, fontWeight: FontWeight.w700)),
+                    const Text('Lead source',
+                        style: TextStyle(
+                            color: Vibe.muted,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700)),
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 8,
@@ -124,15 +162,26 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
                                 label: Text(s.label),
                                 selected: _source == s,
                                 onSelected: (_) => setState(() => _source = s),
-                                labelStyle: TextStyle(color: _source == s ? Vibe.violet : Vibe.text, fontSize: 12),
+                                labelStyle: TextStyle(
+                                    color:
+                                        _source == s ? Vibe.violet : Vibe.text,
+                                    fontSize: 12),
                                 backgroundColor: Vibe.surface,
-                                selectedColor: Vibe.violet.withValues(alpha: 0.2),
-                                side: BorderSide(color: _source == s ? Vibe.violet : Vibe.stroke),
+                                selectedColor:
+                                    Vibe.violet.withValues(alpha: 0.2),
+                                side: BorderSide(
+                                    color: _source == s
+                                        ? Vibe.violet
+                                        : Vibe.stroke),
                               ))
                           .toList(),
                     ),
                     const SizedBox(height: 12),
-                    const Text('Priority', style: TextStyle(color: Vibe.muted, fontSize: 12, fontWeight: FontWeight.w700)),
+                    const Text('Priority',
+                        style: TextStyle(
+                            color: Vibe.muted,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700)),
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 8,
@@ -140,11 +189,20 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
                           .map((p) => ChoiceChip(
                                 label: Text(p.label),
                                 selected: _priority == p,
-                                onSelected: (_) => setState(() => _priority = p),
-                                labelStyle: TextStyle(color: _priority == p ? Vibe.violet : Vibe.text, fontSize: 12),
+                                onSelected: (_) =>
+                                    setState(() => _priority = p),
+                                labelStyle: TextStyle(
+                                    color: _priority == p
+                                        ? Vibe.violet
+                                        : Vibe.text,
+                                    fontSize: 12),
                                 backgroundColor: Vibe.surface,
-                                selectedColor: Vibe.violet.withValues(alpha: 0.2),
-                                side: BorderSide(color: _priority == p ? Vibe.violet : Vibe.stroke),
+                                selectedColor:
+                                    Vibe.violet.withValues(alpha: 0.2),
+                                side: BorderSide(
+                                    color: _priority == p
+                                        ? Vibe.violet
+                                        : Vibe.stroke),
                               ))
                           .toList(),
                     ),
@@ -157,7 +215,8 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Vibe.violet,
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14)),
                       ),
                       child: Text(_isEdit ? 'Save changes' : 'Create lead',
                           style: const TextStyle(fontWeight: FontWeight.w700)),
@@ -180,7 +239,9 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
         controller: controller,
         keyboardType: keyboardType,
         style: const TextStyle(color: Vibe.text, fontSize: 14),
-        validator: required ? (v) => (v == null || v.trim().isEmpty) ? 'Required' : null : null,
+        validator: required
+            ? (v) => (v == null || v.trim().isEmpty) ? 'Required' : null
+            : null,
         decoration: InputDecoration(
           labelText: label,
           labelStyle: const TextStyle(color: Vibe.muted, fontSize: 13),

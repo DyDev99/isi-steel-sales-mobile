@@ -8,5 +8,6 @@ class ToggleFavoriteCustomer extends UseCase<void, CustomerIdParams> {
   final CustomerRepository _repository;
 
   @override
-  ResultFuture<void> call(CustomerIdParams params) => _repository.toggleFavorite(params.customerId);
+  ResultFuture<void> call(CustomerIdParams params) =>
+      _repository.toggleFavorite(params.customerId);
 }

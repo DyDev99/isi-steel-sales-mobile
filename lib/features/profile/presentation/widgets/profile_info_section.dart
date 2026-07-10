@@ -16,7 +16,7 @@ class ProfileInfoSection extends StatelessWidget {
       return DateFormat.yMMMd(currentLocale).format(date);
     } catch (_) {
       // Fallback to default system formatting if the locale isn't initialized yet
-      return DateFormat.yMMMd().format(date); 
+      return DateFormat.yMMMd().format(date);
     }
   }
 
@@ -26,18 +26,40 @@ class ProfileInfoSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('profile.details'.tr, style: const TextStyle(color: Vibe.text, fontSize: 14.5, fontWeight: FontWeight.w800)),
+          Text('profile.details'.tr,
+              style: const TextStyle(
+                  color: Vibe.text,
+                  fontSize: 14.5,
+                  fontWeight: FontWeight.w800)),
           const SizedBox(height: 12),
-          _InfoTile(icon: Icons.email_rounded, label: 'profile.email'.tr, value: profile.email),
-          _InfoTile(icon: Icons.phone_rounded, label: 'profile.phone'.tr, value: profile.phone),
-          _InfoTile(icon: Icons.map_rounded, label: 'profile.territory'.tr, value: profile.territory),
-          _InfoTile(icon: Icons.public_rounded, label: 'profile.region'.tr, value: profile.region),
-          // Use the safe format block here
-          _InfoTile(icon: Icons.event_rounded, label: 'profile.joined'.tr, value: _formatDate(context, profile.joinedAt)),
           _InfoTile(
-            icon: profile.isActive ? Icons.check_circle_rounded : Icons.pause_circle_rounded,
+              icon: Icons.email_rounded,
+              label: 'profile.email'.tr,
+              value: profile.email),
+          _InfoTile(
+              icon: Icons.phone_rounded,
+              label: 'profile.phone'.tr,
+              value: profile.phone),
+          _InfoTile(
+              icon: Icons.map_rounded,
+              label: 'profile.territory'.tr,
+              value: profile.territory),
+          _InfoTile(
+              icon: Icons.public_rounded,
+              label: 'profile.region'.tr,
+              value: profile.region),
+          // Use the safe format block here
+          _InfoTile(
+              icon: Icons.event_rounded,
+              label: 'profile.joined'.tr,
+              value: _formatDate(context, profile.joinedAt)),
+          _InfoTile(
+            icon: profile.isActive
+                ? Icons.check_circle_rounded
+                : Icons.pause_circle_rounded,
             label: 'profile.status'.tr,
-            value: profile.isActive ? 'profile.active'.tr : 'profile.inactive'.tr,
+            value:
+                profile.isActive ? 'profile.active'.tr : 'profile.inactive'.tr,
             valueColor: profile.isActive ? Vibe.success : Vibe.muted,
             showDivider: false,
           ),
@@ -72,9 +94,14 @@ class _InfoTile extends StatelessWidget {
             children: [
               Icon(icon, size: 18, color: Vibe.violet),
               const SizedBox(width: 12),
-              Text(label, style: const TextStyle(color: Vibe.muted, fontSize: 13)),
+              Text(label,
+                  style: const TextStyle(color: Vibe.muted, fontSize: 13)),
               const Spacer(),
-              Text(value, style: TextStyle(color: valueColor ?? Vibe.text, fontSize: 13, fontWeight: FontWeight.w700)),
+              Text(value,
+                  style: TextStyle(
+                      color: valueColor ?? Vibe.text,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700)),
             ],
           ),
         ),

@@ -3,7 +3,8 @@ import 'package:isi_steel_sales_mobile/features/lead/domain/repositories/lead_re
 import 'package:isi_steel_sales_mobile/features/lead/domain/usecases/lead_usecase.dart';
 
 class ReorderLeadsParams {
-  const ReorderLeadsParams({required this.stage, required this.oldIndex, required this.newIndex});
+  const ReorderLeadsParams(
+      {required this.stage, required this.oldIndex, required this.newIndex});
   final PipelineStage stage;
   final int oldIndex;
   final int newIndex;
@@ -14,6 +15,8 @@ class ReorderLeads extends LeadUseCase<void, ReorderLeadsParams> {
   final LeadRepository _repository;
 
   @override
-  Future<void> call(ReorderLeadsParams params) =>
-      _repository.reorder(stage: params.stage, oldIndex: params.oldIndex, newIndex: params.newIndex);
+  Future<void> call(ReorderLeadsParams params) => _repository.reorder(
+      stage: params.stage,
+      oldIndex: params.oldIndex,
+      newIndex: params.newIndex);
 }

@@ -12,5 +12,6 @@ class AddLeadNote extends LeadUseCase<void, AddLeadNoteParams> {
   final LeadRepository _repository;
 
   @override
-  Future<void> call(AddLeadNoteParams params) => _repository.addNote(params.leadId, params.note);
+  Future<void> call(AddLeadNoteParams params) =>
+      _repository.addNote(params.leadId, params.note);
 }

@@ -34,7 +34,11 @@ class MockRouteData {
 }
 
 class _Territory {
-  const _Territory({required this.type, required this.lat, required this.lng, required this.districts});
+  const _Territory(
+      {required this.type,
+      required this.lat,
+      required this.lng,
+      required this.districts});
   final String type; // urban | suburban | industrial | rural
   final double lat;
   final double lng;
@@ -49,25 +53,61 @@ class TerritoryGenerator {
 
   static const territories = <String, _Territory>{
     'Phnom Penh': _Territory(
-        type: 'urban', lat: 11.5564, lng: 104.9282,
-        districts: ['Chamkarmon', 'Toul Kork', 'Meanchey', 'Sen Sok', 'Daun Penh']),
+        type: 'urban',
+        lat: 11.5564,
+        lng: 104.9282,
+        districts: [
+          'Chamkarmon',
+          'Toul Kork',
+          'Meanchey',
+          'Sen Sok',
+          'Daun Penh'
+        ]),
     'Kandal': _Territory(
-        type: 'suburban', lat: 11.4780, lng: 104.9450, districts: ['Ta Khmau', 'Kien Svay', "Sa'ang"]),
+        type: 'suburban',
+        lat: 11.4780,
+        lng: 104.9450,
+        districts: ['Ta Khmau', 'Kien Svay', "Sa'ang"]),
     'Kampot': _Territory(
-        type: 'rural', lat: 10.6104, lng: 104.1817, districts: ['Kampot Town', 'Chum Kiri', 'Angkor Chey']),
+        type: 'rural',
+        lat: 10.6104,
+        lng: 104.1817,
+        districts: ['Kampot Town', 'Chum Kiri', 'Angkor Chey']),
     'Battambang': _Territory(
-        type: 'suburban', lat: 13.0957, lng: 103.2022, districts: ['Battambang Town', 'Bavel', 'Sangkae']),
+        type: 'suburban',
+        lat: 13.0957,
+        lng: 103.2022,
+        districts: ['Battambang Town', 'Bavel', 'Sangkae']),
     'Siem Reap': _Territory(
-        type: 'suburban', lat: 13.3671, lng: 103.8448, districts: ['Siem Reap Town', 'Angkor Thom', 'Puok']),
+        type: 'suburban',
+        lat: 13.3671,
+        lng: 103.8448,
+        districts: ['Siem Reap Town', 'Angkor Thom', 'Puok']),
     'Preah Sihanouk': _Territory(
-        type: 'industrial', lat: 10.6104, lng: 103.5299, districts: ['Sihanoukville', 'Prey Nob']),
+        type: 'industrial',
+        lat: 10.6104,
+        lng: 103.5299,
+        districts: ['Sihanoukville', 'Prey Nob']),
     'Kampong Cham': _Territory(
-        type: 'suburban', lat: 12.0000, lng: 105.4630, districts: ['Kampong Cham Town', 'Cheung Prey']),
+        type: 'suburban',
+        lat: 12.0000,
+        lng: 105.4630,
+        districts: ['Kampong Cham Town', 'Cheung Prey']),
     'Kampong Speu': _Territory(
-        type: 'suburban', lat: 11.4585, lng: 104.5225, districts: ['Chbar Mon', 'Samraong Tong']),
-    'Takeo': _Territory(type: 'rural', lat: 10.9908, lng: 104.7852, districts: ['Doun Kaev', 'Bati']),
+        type: 'suburban',
+        lat: 11.4585,
+        lng: 104.5225,
+        districts: ['Chbar Mon', 'Samraong Tong']),
+    'Takeo': _Territory(
+        type: 'rural',
+        lat: 10.9908,
+        lng: 104.7852,
+        districts: ['Doun Kaev', 'Bati']),
     'Prey Veng': _Territory(
-        type: 'rural', lat: 11.4860, lng: 105.3251, districts: ['Prey Veng Town', 'Kamchay Mear']),
+        type: 'rural',
+        lat: 11.4860,
+        lng: 105.3251,
+        districts: ['Prey Veng Town', 'Kamchay Mear']),
   };
 }
 
@@ -75,31 +115,64 @@ class CustomerGenerator {
   CustomerGenerator._();
 
   static const _namePrefixes = [
-    'Angkor', 'Mekong', 'Golden', 'Royal', 'Prosperity', 'Union', 'Kingdom', 'Sunrise',
-    'Diamond', 'Phnom', 'Delta', 'Heritage', 'Central', 'National', 'Pacific',
+    'Angkor',
+    'Mekong',
+    'Golden',
+    'Royal',
+    'Prosperity',
+    'Union',
+    'Kingdom',
+    'Sunrise',
+    'Diamond',
+    'Phnom',
+    'Delta',
+    'Heritage',
+    'Central',
+    'National',
+    'Pacific',
   ];
   static const _nameSuffixes = [
-    'Hardware', 'Construction Supply', 'Steel Depot', 'Trading Co.', 'Building Materials',
-    'Iron Works', 'Metal Center', 'Engineering', 'Contractors', 'Warehouse',
+    'Hardware',
+    'Construction Supply',
+    'Steel Depot',
+    'Trading Co.',
+    'Building Materials',
+    'Iron Works',
+    'Metal Center',
+    'Engineering',
+    'Contractors',
+    'Warehouse',
   ];
   static const _contactFirstNames = [
-    'Sokha', 'Dara', 'Vichea', 'Sreymom', 'Bunthoeun', 'Chanthou', 'Rithy', 'Sopheak',
-    'Mealea', 'Pisach', 'Kunthea', 'Vibol',
+    'Sokha',
+    'Dara',
+    'Vichea',
+    'Sreymom',
+    'Bunthoeun',
+    'Chanthou',
+    'Rithy',
+    'Sopheak',
+    'Mealea',
+    'Pisach',
+    'Kunthea',
+    'Vibol',
   ];
 
   static List<Map<String, dynamic>> build(Random rand) {
     final customers = <Map<String, dynamic>>[];
     var seq = 1;
     for (var i = 0; i < 320; i++) {
-      final provinceEntry =
-          TerritoryGenerator.territories.entries.elementAt(rand.nextInt(TerritoryGenerator.territories.length));
+      final provinceEntry = TerritoryGenerator.territories.entries
+          .elementAt(rand.nextInt(TerritoryGenerator.territories.length));
       final province = provinceEntry.key;
       final territory = provinceEntry.value;
-      final district = territory.districts[rand.nextInt(territory.districts.length)];
+      final district =
+          territory.districts[rand.nextInt(territory.districts.length)];
 
       final name = '${_namePrefixes[rand.nextInt(_namePrefixes.length)]} '
           '${_nameSuffixes[rand.nextInt(_nameSuffixes.length)]}';
-      final contact = _contactFirstNames[rand.nextInt(_contactFirstNames.length)];
+      final contact =
+          _contactFirstNames[rand.nextInt(_contactFirstNames.length)];
 
       // ~0.01-0.09 degrees (~1-10km) jitter around the province center.
       final latJitter = (rand.nextDouble() - 0.5) * 0.18;
@@ -110,7 +183,8 @@ class CustomerGenerator {
         'name': name,
         'code': 'C${(10000 + seq)}',
         'contact': contact,
-        'phone': '0${6 + rand.nextInt(3)}${100 + rand.nextInt(900)}${1000 + rand.nextInt(9000)}',
+        'phone':
+            '0${6 + rand.nextInt(3)}${100 + rand.nextInt(900)}${1000 + rand.nextInt(9000)}',
         'address': '#${1 + rand.nextInt(300)}, $district, $province',
         'territory': province,
         'territoryType': territory.type,
@@ -128,10 +202,16 @@ class RouteGenerator {
   RouteGenerator._();
 
   static const _repNames = [
-    'Sokha Meas', 'Dara Chan', 'Vichea Long', 'Sreymom Kim', 'Bunthoeun Ny', 'Rithy Pech',
+    'Sokha Meas',
+    'Dara Chan',
+    'Vichea Long',
+    'Sreymom Kim',
+    'Bunthoeun Ny',
+    'Rithy Pech',
   ];
 
-  static List<Map<String, dynamic>> build(Random rand, List<Map<String, dynamic>> customers) {
+  static List<Map<String, dynamic>> build(
+      Random rand, List<Map<String, dynamic>> customers) {
     final routeCount = 18 + rand.nextInt(13); // 18-30
     final routes = <Map<String, dynamic>>[];
     final today = DateTime.now();
@@ -146,8 +226,11 @@ class RouteGenerator {
     for (var r = 0; r < routeCount; r++) {
       // Guarantee the synced territory (Phnom Penh — see RouteSyncScope) has a
       // full day of routes; the rest scatter randomly across provinces.
-      final territoryName = r < 6 ? 'Phnom Penh' : territoryNames[rand.nextInt(territoryNames.length)];
-      final pool = List<Map<String, dynamic>>.from(byTerritory[territoryName]!)..shuffle(rand);
+      final territoryName = r < 6
+          ? 'Phnom Penh'
+          : territoryNames[rand.nextInt(territoryNames.length)];
+      final pool = List<Map<String, dynamic>>.from(byTerritory[territoryName]!)
+        ..shuffle(rand);
       final stopCount = min(pool.length, 8 + rand.nextInt(8)); // 8-15
       final routeId = 'ROUTE-${(1000 + r)}';
       final rep = _repNames[rand.nextInt(_repNames.length)];
@@ -159,7 +242,8 @@ class RouteGenerator {
         final travelMinutes = 15 + rand.nextInt(25);
         final visitMinutes = 15 + rand.nextInt(20);
         final plannedArrival = cursor.add(Duration(minutes: travelMinutes));
-        final plannedDeparture = plannedArrival.add(Duration(minutes: visitMinutes));
+        final plannedDeparture =
+            plannedArrival.add(Duration(minutes: visitMinutes));
         stops.add({
           'id': '$routeId-STOP-${s + 1}',
           'routeId': routeId,
@@ -178,7 +262,8 @@ class RouteGenerator {
         'repName': rep,
         'territory': territoryName,
         'visitDate': visitDate.toIso8601String(),
-        'plannedStart': visitDate.add(const Duration(hours: 8)).toIso8601String(),
+        'plannedStart':
+            visitDate.add(const Duration(hours: 8)).toIso8601String(),
         'plannedEnd': cursor.toIso8601String(),
         'status': 'published',
         'stops': stops,

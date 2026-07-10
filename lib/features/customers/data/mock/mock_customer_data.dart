@@ -35,8 +35,16 @@ class MockCustomerData {
         originLeadId: 'lead-014',
         productsPurchased: const ['Rebar', 'Wire Mesh'],
         contacts: const [
-          CustomerContactModel(id: 'c-001a', name: 'Sok Vithou', role: 'Owner', phone: '012 555 231'),
-          CustomerContactModel(id: 'c-001b', name: 'Ly Dara', role: 'Buyer', phone: '098 442 110'),
+          CustomerContactModel(
+              id: 'c-001a',
+              name: 'Sok Vithou',
+              role: 'Owner',
+              phone: '012 555 231'),
+          CustomerContactModel(
+              id: 'c-001b',
+              name: 'Ly Dara',
+              role: 'Buyer',
+              phone: '098 442 110'),
         ],
         lastOrderDate: now.subtract(const Duration(days: 6)),
         lastVisitDate: now.subtract(const Duration(days: 13)),
@@ -64,7 +72,11 @@ class MockCustomerData {
         updatedAt: now.subtract(const Duration(days: 1)),
         productsPurchased: const ['Steel Sections', 'Sheet Metal'],
         contacts: const [
-          CustomerContactModel(id: 'c-002a', name: 'Chea Sopheak', role: 'Owner', phone: '017 320 998'),
+          CustomerContactModel(
+              id: 'c-002a',
+              name: 'Chea Sopheak',
+              role: 'Owner',
+              phone: '017 320 998'),
         ],
         lastOrderDate: now.subtract(const Duration(days: 1)),
         lastVisitDate: now.subtract(const Duration(days: 20)),
@@ -91,8 +103,16 @@ class MockCustomerData {
         updatedAt: now.subtract(const Duration(days: 4)),
         productsPurchased: const ['Rebar', 'Steel Sections', 'Wire Mesh'],
         contacts: const [
-          CustomerContactModel(id: 'c-003a', name: 'Heng Bunthorn', role: 'Owner', phone: '011 774 220'),
-          CustomerContactModel(id: 'c-003b', name: 'Chan Sreyneath', role: 'Accountant', phone: '070 118 552'),
+          CustomerContactModel(
+              id: 'c-003a',
+              name: 'Heng Bunthorn',
+              role: 'Owner',
+              phone: '011 774 220'),
+          CustomerContactModel(
+              id: 'c-003b',
+              name: 'Chan Sreyneath',
+              role: 'Accountant',
+              phone: '070 118 552'),
         ],
         lastOrderDate: now.subtract(const Duration(days: 45)),
         lastVisitDate: now.subtract(const Duration(days: 30)),
@@ -120,7 +140,11 @@ class MockCustomerData {
         updatedAt: now.subtract(const Duration(days: 10)),
         productsPurchased: const ['Sheet Metal'],
         contacts: const [
-          CustomerContactModel(id: 'c-004a', name: 'Prak Sovann', role: 'Owner', phone: '015 660 043'),
+          CustomerContactModel(
+              id: 'c-004a',
+              name: 'Prak Sovann',
+              role: 'Owner',
+              phone: '015 660 043'),
         ],
         lastOrderDate: now.subtract(const Duration(days: 96)),
         lastVisitDate: now.subtract(const Duration(days: 60)),
@@ -148,8 +172,16 @@ class MockCustomerData {
         updatedAt: now.subtract(const Duration(hours: 6)),
         productsPurchased: const ['Rebar', 'Steel Sections'],
         contacts: const [
-          CustomerContactModel(id: 'c-005a', name: 'Ros Chanthy', role: 'Owner', phone: '096 210 774'),
-          CustomerContactModel(id: 'c-005b', name: 'Kim Sotheara', role: 'Storekeeper', phone: '087 663 210'),
+          CustomerContactModel(
+              id: 'c-005a',
+              name: 'Ros Chanthy',
+              role: 'Owner',
+              phone: '096 210 774'),
+          CustomerContactModel(
+              id: 'c-005b',
+              name: 'Kim Sotheara',
+              role: 'Storekeeper',
+              phone: '087 663 210'),
         ],
         lastOrderDate: now.subtract(const Duration(hours: 20)),
         lastVisitDate: now.subtract(const Duration(days: 5)),
@@ -176,7 +208,11 @@ class MockCustomerData {
         updatedAt: now.subtract(const Duration(days: 3)),
         productsPurchased: const ['Wire Mesh'],
         contacts: const [
-          CustomerContactModel(id: 'c-006a', name: 'Sok Malis', role: 'Owner', phone: '077 445 219'),
+          CustomerContactModel(
+              id: 'c-006a',
+              name: 'Sok Malis',
+              role: 'Owner',
+              phone: '077 445 219'),
         ],
         lastOrderDate: now.subtract(const Duration(days: 9)),
         lastVisitDate: now.subtract(const Duration(days: 9)),

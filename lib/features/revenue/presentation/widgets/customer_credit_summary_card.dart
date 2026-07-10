@@ -29,25 +29,34 @@ class CustomerCreditSummaryCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   viewModel.customerName,
-                  style: const TextStyle(color: Vibe.text, fontSize: 13, fontWeight: FontWeight.w700),
+                  style: const TextStyle(
+                      color: Vibe.text,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
               if (viewModel.isOverLimit)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration:
-                      BoxDecoration(color: Vibe.danger.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(8)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                      color: Vibe.danger.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(8)),
                   child: Text(
                     'revenue.credit.over_limit'.tr,
-                    style: const TextStyle(color: Vibe.danger, fontSize: 10.5, fontWeight: FontWeight.w800),
+                    style: const TextStyle(
+                        color: Vibe.danger,
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w800),
                   ),
                 ),
             ],
           ),
           const SizedBox(height: 10),
-          Text('revenue.credit.available'.tr, style: const TextStyle(color: Vibe.muted, fontSize: 11.5)),
+          Text('revenue.credit.available'.tr,
+              style: const TextStyle(color: Vibe.muted, fontSize: 11.5)),
           const SizedBox(height: 2),
           Text(
             viewModel.formattedAvailableCredit,
@@ -71,9 +80,15 @@ class CustomerCreditSummaryCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _MetricLabel(label: 'revenue.credit.limit'.tr, value: viewModel.formattedCreditLimit),
-              _MetricLabel(label: 'revenue.credit.used'.tr, value: viewModel.formattedUsedCredit),
-              _MetricLabel(label: 'revenue.credit.outstanding'.tr, value: viewModel.formattedOutstandingBalance),
+              _MetricLabel(
+                  label: 'revenue.credit.limit'.tr,
+                  value: viewModel.formattedCreditLimit),
+              _MetricLabel(
+                  label: 'revenue.credit.used'.tr,
+                  value: viewModel.formattedUsedCredit),
+              _MetricLabel(
+                  label: 'revenue.credit.outstanding'.tr,
+                  value: viewModel.formattedOutstandingBalance),
             ],
           ),
         ],
@@ -94,7 +109,9 @@ class _MetricLabel extends StatelessWidget {
       children: [
         Text(label, style: const TextStyle(color: Vibe.muted, fontSize: 10.5)),
         const SizedBox(height: 2),
-        Text(value, style: const TextStyle(color: Vibe.text, fontSize: 12, fontWeight: FontWeight.w700)),
+        Text(value,
+            style: const TextStyle(
+                color: Vibe.text, fontSize: 12, fontWeight: FontWeight.w700)),
       ],
     );
   }

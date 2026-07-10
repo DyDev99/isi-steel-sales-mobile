@@ -30,5 +30,6 @@ class RouteDashboardSummary extends Equatable {
   final double successRate;
 
   @override
-  List<Object?> get props => [stopsToday, completed, remaining, missed, totalSalesValue];
+  List<Object?> get props =>
+      [stopsToday, completed, remaining, missed, totalSalesValue];
 }

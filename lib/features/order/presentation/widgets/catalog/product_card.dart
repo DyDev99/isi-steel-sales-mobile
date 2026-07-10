@@ -45,7 +45,8 @@ class ProductCard extends StatelessWidget {
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => Container(
                       color: Vibe.bgSoft,
-                      child: const Icon(Icons.inventory_2_outlined, color: Vibe.muted, size: 24),
+                      child: const Icon(Icons.inventory_2_outlined,
+                          color: Vibe.muted, size: 24),
                     ),
                   ),
                 ),
@@ -63,7 +64,9 @@ class ProductCard extends StatelessWidget {
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                      isFavorite
+                          ? Icons.favorite_rounded
+                          : Icons.favorite_border_rounded,
                       size: 14,
                       color: isFavorite ? Vibe.danger : Vibe.muted,
                     ),
@@ -71,7 +74,8 @@ class ProductCard extends StatelessWidget {
                 ),
               ),
               if (product.hasPromotion)
-                Positioned(top: 2, left: 2, child: PromotionBadge(label: 'Sale')),
+                Positioned(
+                    top: 2, left: 2, child: PromotionBadge(label: 'Sale')),
             ],
           ),
 
@@ -81,13 +85,17 @@ class ProductCard extends StatelessWidget {
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center, // Changed from spaceBetween
+              mainAxisAlignment:
+                  MainAxisAlignment.center, // Changed from spaceBetween
               children: [
                 // SKU + Name
                 if (product.code.isNotEmpty)
                   Text(
                     product.code,
-                    style: const TextStyle(color: Vibe.muted, fontSize: 10, fontWeight: FontWeight.w600),
+                    style: const TextStyle(
+                        color: Vibe.muted,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -131,12 +139,14 @@ class ProductCard extends StatelessWidget {
                       onTap: onAddToCart,
                       borderRadius: BorderRadius.circular(8),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
                           gradient: Vibe.cta,
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Icon(Icons.add_shopping_cart_rounded, size: 16, color: Colors.white),
+                        child: const Icon(Icons.add_shopping_cart_rounded,
+                            size: 16, color: Colors.white),
                       ),
                     ),
                   ],

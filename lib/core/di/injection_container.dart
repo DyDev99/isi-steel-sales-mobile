@@ -3,6 +3,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:isi_steel_sales_mobile/core/local/app_preferences.dart';
 import 'package:isi_steel_sales_mobile/core/local/hive_service.dart';
+import 'package:isi_steel_sales_mobile/core/network/connectivity_cubit.dart';
 import 'package:isi_steel_sales_mobile/core/network/network_info.dart';
 import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/authentication_injection.dart';
@@ -28,6 +29,7 @@ Future<void> initDependencies() async {
     ),
   );
   sl.registerLazySingleton<Connectivity>(() => Connectivity());
+  sl.registerFactory<ConnectivityCubit>(() => ConnectivityCubit(sl()));
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
   sl.registerLazySingleton<SessionManager>(() => SessionManager());
   sl.registerLazySingleton<AppPreferences>(

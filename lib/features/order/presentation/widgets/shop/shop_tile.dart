@@ -11,7 +11,11 @@ import 'package:isi_steel_sales_mobile/features/order/domain/entities/credit_sum
 /// `CustomerCard` doesn't show, and needs a disabled visual state for
 /// non-active shops.
 class ShopTile extends StatelessWidget {
-  const ShopTile({super.key, required this.customer, required this.onTap, this.creditSummary});
+  const ShopTile(
+      {super.key,
+      required this.customer,
+      required this.onTap,
+      this.creditSummary});
 
   final Customer customer;
   final VoidCallback? onTap;
@@ -34,7 +38,9 @@ class ShopTile extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             child: Container(
               padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), border: Border.all(color: Vibe.stroke)),
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Vibe.stroke)),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -42,8 +48,11 @@ class ShopTile extends StatelessWidget {
                     width: 40,
                     height: 40,
                     alignment: Alignment.center,
-                    decoration: BoxDecoration(color: Vibe.primaryLight, borderRadius: BorderRadius.circular(12)),
-                    child: const Icon(Icons.storefront_rounded, color: Vibe.violet),
+                    decoration: BoxDecoration(
+                        color: Vibe.primaryLight,
+                        borderRadius: BorderRadius.circular(12)),
+                    child: const Icon(Icons.storefront_rounded,
+                        color: Vibe.violet),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -56,7 +65,10 @@ class ShopTile extends StatelessWidget {
                               child: Text(customer.shopName,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(color: Vibe.text, fontSize: 14, fontWeight: FontWeight.w800)),
+                                  style: const TextStyle(
+                                      color: Vibe.text,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w800)),
                             ),
                             const SizedBox(width: 6),
                             CustomerStatusBadge(status: customer.status),
@@ -64,20 +76,33 @@ class ShopTile extends StatelessWidget {
                         ),
                         const SizedBox(height: 2),
                         Text('${customer.address}, ${customer.district}',
-                            maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Vibe.muted, fontSize: 12)),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                                color: Vibe.muted, fontSize: 12)),
                         const SizedBox(height: 6),
                         Row(
                           children: [
-                            Text('\$${customer.creditLimit.toStringAsFixed(0)} limit',
-                                style: const TextStyle(color: Vibe.text, fontSize: 12, fontWeight: FontWeight.w700)),
+                            Text(
+                                '\$${customer.creditLimit.toStringAsFixed(0)} limit',
+                                style: const TextStyle(
+                                    color: Vibe.text,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700)),
                             if (hasNotes) ...[
                               const SizedBox(width: 8),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
-                                    color: Vibe.amber.withValues(alpha: 0.14), borderRadius: BorderRadius.circular(6)),
-                                child: Text('${creditSummary!.notes.length} CN/DN',
-                                    style: const TextStyle(color: Vibe.amber, fontSize: 10, fontWeight: FontWeight.w700)),
+                                    color: Vibe.amber.withValues(alpha: 0.14),
+                                    borderRadius: BorderRadius.circular(6)),
+                                child: Text(
+                                    '${creditSummary!.notes.length} CN/DN',
+                                    style: const TextStyle(
+                                        color: Vibe.amber,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w700)),
                               ),
                             ],
                           ],
@@ -85,7 +110,8 @@ class ShopTile extends StatelessWidget {
                       ],
                     ),
                   ),
-                  if (_isActive) const Icon(Icons.chevron_right_rounded, color: Vibe.muted),
+                  if (_isActive)
+                    const Icon(Icons.chevron_right_rounded, color: Vibe.muted),
                 ],
               ),
             ),

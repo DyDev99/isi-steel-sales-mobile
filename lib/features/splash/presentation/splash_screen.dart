@@ -50,11 +50,11 @@ class _SplashScreenState extends State<SplashScreen>
     super.dispose();
   }
 
- @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       // 1. Changed background to white
-      backgroundColor: Colors.white, 
+      backgroundColor: Colors.white,
       body: Stack(
         children: [
           // 2. Remove or hide this, as it is likely a dark-mode glow background
@@ -74,11 +74,11 @@ class _SplashScreenState extends State<SplashScreen>
                       height: 360,
                       fit: BoxFit.contain,
                       errorBuilder: (_, __, ___) => Container(
-                        // ... your existing code
-                      ),
+                          // ... your existing code
+                          ),
                     ),
                     const SizedBox(height: 20),
-                    
+
                     // 3. IMPORTANT: Update the text color here
                     // If Vibe.cta is a light-colored gradient, it won't show on white.
                     // Change the color/gradient to something dark (e.g., Colors.black)
@@ -118,7 +118,7 @@ class _SplashScreenState extends State<SplashScreen>
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
                   // Change this to a dark color if necessary
-                  color: Colors.blueAccent, 
+                  color: Colors.blueAccent,
                 ),
               ),
             ),

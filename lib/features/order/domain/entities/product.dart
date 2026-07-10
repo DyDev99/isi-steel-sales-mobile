@@ -86,8 +86,10 @@ class Product extends Equatable {
   final double minStock;
   final double maxStock;
 
-  double get availableQuantity => (stockQuantity - reservedQuantity).clamp(0, double.infinity);
-  bool get isAvailable => availableQuantity > 0 && status == ProductStatus.active;
+  double get availableQuantity =>
+      (stockQuantity - reservedQuantity).clamp(0, double.infinity);
+  bool get isAvailable =>
+      availableQuantity > 0 && status == ProductStatus.active;
   bool get isBelowMinStock => availableQuantity < minStock;
   bool get hasPromotion => pricing.hasPromotion;
   double get effectivePrice => pricing.effectivePrice();

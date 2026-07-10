@@ -18,7 +18,7 @@ import 'package:isi_steel_sales_mobile/features/revenue/presentation/widgets/pro
 import 'package:isi_steel_sales_mobile/features/revenue/presentation/widgets/revenue_bottom_action_bar.dart';
 import 'package:isi_steel_sales_mobile/features/revenue/presentation/widgets/revenue_search_bar.dart';
 import 'package:isi_steel_sales_mobile/features/revenue/presentation/widgets/revenue_status_views.dart';
-import 'package:isi_steel_sales_mobile/features/shell/presentation/main_app_bar.dart';
+import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/main_app_bar.dart';
 
 class RevenueScreen extends StatefulWidget {
   const RevenueScreen({super.key});
@@ -55,7 +55,8 @@ class _RevenueScreenState extends State<RevenueScreen> {
         children: [
           MainAppBar(
             title: 'revenue.title'.tr,
-            currentTabIndex: 1, // any non-zero index renders the standard (non-home) bar style
+            currentTabIndex:
+                1, // any non-zero index renders the standard (non-home) bar style
             onBackToHomeTap: () => Navigator.of(context).maybePop(),
             onAvatarTap: () => _openProfile(context),
           ),
@@ -64,7 +65,9 @@ class _RevenueScreenState extends State<RevenueScreen> {
               builder: (context, state) {
                 return Column(
                   children: [
-                    Expanded(child: _RevenueBody(state: state, searchController: _searchController)),
+                    Expanded(
+                        child: _RevenueBody(
+                            state: state, searchController: _searchController)),
                     if (state.status == RevenueStatus.loaded)
                       RevenueBottomActionBar(
                         subtotal: state.cartSubtotal,
@@ -101,30 +104,37 @@ class _RevenueBody extends StatelessWidget {
     if (state.status == RevenueStatus.error) {
       return RevenueErrorView(
         message: state.errorMessage,
-        onRetry: () => context.read<RevenueBloc>().add(const RevenueRetryRequested()),
+        onRetry: () =>
+            context.read<RevenueBloc>().add(const RevenueRetryRequested()),
       );
     }
 
-    final isLoading = state.status == RevenueStatus.initial || state.status == RevenueStatus.loading;
+    final isLoading = state.status == RevenueStatus.initial ||
+        state.status == RevenueStatus.loading;
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
       children: [
         RevenueSearchBar(
           controller: searchController,
-          onChanged: (query) => context.read<RevenueBloc>().add(RevenueSearchChanged(query)),
+          onChanged: (query) =>
+              context.read<RevenueBloc>().add(RevenueSearchChanged(query)),
         ),
         const SizedBox(height: 14),
         if (state.customerCredit != null)
           Padding(
             padding: const EdgeInsets.only(bottom: 14),
             child: CustomerCreditSummaryCard(
-              viewModel: RevenueViewModelMapper.toCreditSummaryViewModel(state.customerCredit!),
+              viewModel: RevenueViewModelMapper.toCreditSummaryViewModel(
+                  state.customerCredit!),
             ),
           ),
         CategoryChipList(
-          categories: RevenueViewModelMapper.toCategoryChips(state.categories, selectedId: state.selectedCategoryId),
-          onSelect: (categoryId) => context.read<RevenueBloc>().add(RevenueCategorySelected(categoryId)),
+          categories: RevenueViewModelMapper.toCategoryChips(state.categories,
+              selectedId: state.selectedCategoryId),
+          onSelect: (categoryId) => context
+              .read<RevenueBloc>()
+              .add(RevenueCategorySelected(categoryId)),
         ),
         const SizedBox(height: 16),
         if (isLoading)
@@ -140,20 +150,24 @@ class _RevenueBody extends StatelessWidget {
                   quantityInCart: state.cartQuantities[product.id] ?? 0,
                 ),
             ],
-            onIncrement: (productId) =>
-                context.read<RevenueBloc>().add(RevenueCartQuantityChanged(productId: productId, delta: 1)),
-            onDecrement: (productId) =>
-                context.read<RevenueBloc>().add(RevenueCartQuantityChanged(productId: productId, delta: -1)),
+            onIncrement: (productId) => context.read<RevenueBloc>().add(
+                RevenueCartQuantityChanged(productId: productId, delta: 1)),
+            onDecrement: (productId) => context.read<RevenueBloc>().add(
+                RevenueCartQuantityChanged(productId: productId, delta: -1)),
           ),
         if (!isLoading) ...[
           const SizedBox(height: 20),
           DiscountCard(
-            options:
-                RevenueViewModelMapper.toDiscountChips(state.discountOptions, selectedId: state.selectedDiscountId),
-            onSelected: (discountId) => context.read<RevenueBloc>().add(RevenueDiscountSelected(discountId)),
+            options: RevenueViewModelMapper.toDiscountChips(
+                state.discountOptions,
+                selectedId: state.selectedDiscountId),
+            onSelected: (discountId) => context
+                .read<RevenueBloc>()
+                .add(RevenueDiscountSelected(discountId)),
           ),
           const SizedBox(height: 14),
-          CartSummaryCard(itemCount: state.cartItemCount, subtotal: state.cartSubtotal),
+          CartSummaryCard(
+              itemCount: state.cartItemCount, subtotal: state.cartSubtotal),
         ],
       ],
     );

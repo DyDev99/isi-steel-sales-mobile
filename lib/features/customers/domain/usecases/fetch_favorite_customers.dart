@@ -8,5 +8,6 @@ class FetchFavoriteCustomers extends UseCase<List<Customer>, NoParams> {
   final CustomerRepository _repository;
 
   @override
-  ResultFuture<List<Customer>> call(NoParams params) => _repository.fetchFavorites();
+  ResultFuture<List<Customer>> call(NoParams params) =>
+      _repository.fetchFavorites();
 }

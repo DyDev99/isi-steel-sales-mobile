@@ -18,20 +18,33 @@ class CustomerSyncStatusBanner extends StatelessWidget {
               icon: const SizedBox(
                 width: 14,
                 height: 14,
-                child: CircularProgressIndicator(strokeWidth: 2, color: Vibe.violet),
+                child: CircularProgressIndicator(
+                    strokeWidth: 2, color: Vibe.violet),
               ),
-              text: isInitial ? 'customers.downloading'.tr : 'customers.syncing'.tr,
+              text: isInitial
+                  ? 'customers.downloading'.tr
+                  : 'customers.syncing'.tr,
             ),
           CustomerSyncFailed(:final message) => _Banner(
               color: Vibe.danger,
-              icon: const Icon(Icons.cloud_off_rounded, size: 16, color: Vibe.danger),
+              icon: const Icon(Icons.cloud_off_rounded,
+                  size: 16, color: Vibe.danger),
               text: message,
             ),
-          CustomerSyncSucceeded(:final upserted, :final deleted) when upserted > 0 || deleted > 0 => _Banner(
+          CustomerSyncSucceeded(:final upserted, :final deleted)
+              when upserted > 0 || deleted > 0 =>
+            _Banner(
               color: Vibe.success,
-              icon: const Icon(Icons.check_circle_rounded, size: 16, color: Vibe.success),
-              text: 'customers.sync_updated'.tr.replaceAll('{count}', '$upserted') +
-                  (deleted > 0 ? 'customers.sync_removed'.tr.replaceAll('{count}', '$deleted') : ''),
+              icon: const Icon(Icons.check_circle_rounded,
+                  size: 16, color: Vibe.success),
+              text: 'customers.sync_updated'
+                      .tr
+                      .replaceAll('{count}', '$upserted') +
+                  (deleted > 0
+                      ? 'customers.sync_removed'
+                          .tr
+                          .replaceAll('{count}', '$deleted')
+                      : ''),
             ),
           _ => const SizedBox.shrink(),
         };
@@ -60,7 +73,12 @@ class _Banner extends StatelessWidget {
         children: [
           icon,
           const SizedBox(width: 8),
-          Expanded(child: Text(text, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w600))),
+          Expanded(
+              child: Text(text,
+                  style: TextStyle(
+                      color: color,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600))),
         ],
       ),
     );

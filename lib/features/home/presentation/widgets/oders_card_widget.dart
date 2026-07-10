@@ -26,11 +26,19 @@ class OrderPieCard extends StatelessWidget {
       headline: '$totalOrders',
       headlineCaption: 'home.quick_access.total_orders'.tr,
       badge: pendingOrders > 0
-          ? KpiBadge(label: '$pendingOrders ${'home.quick_access.pending'.tr}', color: Vibe.amber)
+          ? KpiBadge(
+              label: '$pendingOrders ${'home.quick_access.pending'.tr}',
+              color: Vibe.amber)
           : null,
       segments: [
-        KpiSegment(label: 'home.quick_access.success'.tr, value: successOrders, color: Vibe.mint),
-        KpiSegment(label: 'home.quick_access.pending'.tr, value: pendingOrders, color: Vibe.amber),
+        KpiSegment(
+            label: 'home.quick_access.success'.tr,
+            value: successOrders,
+            color: Vibe.mint),
+        KpiSegment(
+            label: 'home.quick_access.pending'.tr,
+            value: pendingOrders,
+            color: Vibe.amber),
       ],
       onTap: onTap,
     );

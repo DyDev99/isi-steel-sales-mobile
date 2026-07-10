@@ -8,5 +8,6 @@ class RunCustomerDeltaSync extends UseCase<CustomerSyncResult, NoParams> {
   final CustomerSyncRepository _repository;
 
   @override
-  ResultFuture<CustomerSyncResult> call(NoParams params) => _repository.runDeltaSync();
+  ResultFuture<CustomerSyncResult> call(NoParams params) =>
+      _repository.runDeltaSync();
 }

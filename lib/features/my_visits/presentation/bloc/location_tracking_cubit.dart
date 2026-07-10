@@ -38,7 +38,8 @@ class LocationTrackingCubit extends Cubit<LocationTrackingState> {
   static const _policy = FraudPolicy();
 
   Future<bool> start(String routeId, {bool background = false}) async {
-    final granted = await _trackingService.ensurePermission(background: background);
+    final granted =
+        await _trackingService.ensurePermission(background: background);
     if (!granted) {
       emit(state.copyWith(permissionDenied: true));
       return false;
@@ -46,23 +47,32 @@ class LocationTrackingCubit extends Cubit<LocationTrackingState> {
 
     emit(state.copyWith(isTracking: true, permissionDenied: false));
     _subscription?.cancel();
-    _subscription = _trackingService.track(routeId).listen((sample) => _onSample(routeId, sample));
+    _subscription = _trackingService
+        .track(routeId)
+        .listen((sample) => _onSample(routeId, sample));
     return true;
   }
 
   Future<void> _onSample(String routeId, LocationSample sample) async {
     final trail = [...state.trail, sample];
-    emit(state.copyWith(current: sample, trail: trail.length > _trailCap ? trail.sublist(trail.length - _trailCap) : trail));
+    emit(state.copyWith(
+        current: sample,
+        trail: trail.length > _trailCap
+            ? trail.sublist(trail.length - _trailCap)
+            : trail));
 
     unawaited(_recordLocationSample(sample));
 
-    final previous = state.trail.length >= 2 ? state.trail[state.trail.length - 2] : null;
-    if (previous != null && _fraudDetectionService.isImpossibleTravel(previous, sample, _policy)) {
+    final previous =
+        state.trail.length >= 2 ? state.trail[state.trail.length - 2] : null;
+    if (previous != null &&
+        _fraudDetectionService.isImpossibleTravel(previous, sample, _policy)) {
       unawaited(_recordFraudFlag(FraudFlag(
         id: '${DateTime.now().microsecondsSinceEpoch}-${Random().nextInt(99999)}',
         routeId: routeId,
         type: FraudFlagType.impossibleSpeed,
-        detail: 'Implausible travel speed detected between consecutive GPS samples.',
+        detail:
+            'Implausible travel speed detected between consecutive GPS samples.',
         timestamp: sample.timestamp,
         blocked: false,
       )));

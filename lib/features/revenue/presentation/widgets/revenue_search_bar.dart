@@ -3,7 +3,8 @@ import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
 
 class RevenueSearchBar extends StatelessWidget {
-  const RevenueSearchBar({super.key, required this.controller, required this.onChanged});
+  const RevenueSearchBar(
+      {super.key, required this.controller, required this.onChanged});
 
   final TextEditingController controller;
   final ValueChanged<String> onChanged;
@@ -17,11 +18,13 @@ class RevenueSearchBar extends StatelessWidget {
       decoration: InputDecoration(
         hintText: 'revenue.search_hint'.tr,
         hintStyle: const TextStyle(color: Vibe.muted, fontSize: 14),
-        prefixIcon: const Icon(Icons.search_rounded, color: Vibe.muted, size: 20),
+        prefixIcon:
+            const Icon(Icons.search_rounded, color: Vibe.muted, size: 20),
         suffixIcon: controller.text.isEmpty
             ? null
             : IconButton(
-                icon: const Icon(Icons.close_rounded, color: Vibe.muted, size: 18),
+                icon: const Icon(Icons.close_rounded,
+                    color: Vibe.muted, size: 18),
                 onPressed: () {
                   controller.clear();
                   onChanged('');

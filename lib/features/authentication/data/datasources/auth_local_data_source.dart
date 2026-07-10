@@ -32,9 +32,12 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource, TokenStore {
   }) async {
     try {
       await Future.wait([
-        _storage.write(key: AppConstants.kAccessToken, value: token.accessToken),
-        _storage.write(key: AppConstants.kRefreshToken, value: token.refreshToken),
-        _storage.write(key: AppConstants.kCachedUser, value: jsonEncode(user.toMap())),
+        _storage.write(
+            key: AppConstants.kAccessToken, value: token.accessToken),
+        _storage.write(
+            key: AppConstants.kRefreshToken, value: token.refreshToken),
+        _storage.write(
+            key: AppConstants.kCachedUser, value: jsonEncode(user.toMap())),
       ]);
     } catch (_) {
       throw const CacheException(message: 'Failed to persist session.');

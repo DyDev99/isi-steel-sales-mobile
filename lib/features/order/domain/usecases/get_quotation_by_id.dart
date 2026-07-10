@@ -9,5 +9,6 @@ class GetQuotationById extends UseCase<Quotation?, QuotationIdParams> {
   final QuotationRepository _repository;
 
   @override
-  ResultFuture<Quotation?> call(QuotationIdParams params) => _repository.getQuotationById(params.quotationId);
+  ResultFuture<Quotation?> call(QuotationIdParams params) =>
+      _repository.getQuotationById(params.quotationId);
 }

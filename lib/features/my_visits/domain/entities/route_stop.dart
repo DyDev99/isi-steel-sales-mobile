@@ -28,7 +28,11 @@ class RouteStop extends Equatable {
   final DateTime? actualArrival;
   final DateTime? actualDeparture;
 
-  RouteStop copyWith({VisitStatus? status, DateTime? actualArrival, DateTime? actualDeparture}) => RouteStop(
+  RouteStop copyWith(
+          {VisitStatus? status,
+          DateTime? actualArrival,
+          DateTime? actualDeparture}) =>
+      RouteStop(
         id: id,
         routeId: routeId,
         customer: customer,
@@ -41,6 +45,14 @@ class RouteStop extends Equatable {
       );
 
   @override
-  List<Object?> get props =>
-      [id, routeId, customer, sequence, plannedArrival, status, actualArrival, actualDeparture];
+  List<Object?> get props => [
+        id,
+        routeId,
+        customer,
+        sequence,
+        plannedArrival,
+        status,
+        actualArrival,
+        actualDeparture
+      ];
 }

@@ -7,17 +7,50 @@ class ActivityTimeline extends StatelessWidget {
   final List<ActivityLogItem> items;
 
   ({IconData icon, Color color}) _style(ActivityLogKind kind) => switch (kind) {
-        ActivityLogKind.leadCreated => (icon: Icons.person_add_alt_1_rounded, color: Vibe.violet),
-        ActivityLogKind.siteVisit => (icon: Icons.storefront_rounded, color: Vibe.mint),
-        ActivityLogKind.gpsCaptured => (icon: Icons.place_rounded, color: Vibe.amber),
-        ActivityLogKind.photoUploaded => (icon: Icons.photo_camera_rounded, color: Vibe.pink),
-        ActivityLogKind.documentCollected => (icon: Icons.description_rounded, color: Vibe.violet),
-        ActivityLogKind.creditSubmitted => (icon: Icons.send_rounded, color: Vibe.amber),
-        ActivityLogKind.creditApproved => (icon: Icons.verified_rounded, color: Vibe.success),
-        ActivityLogKind.customerCreated => (icon: Icons.storage_rounded, color: Vibe.success),
-        ActivityLogKind.stageChanged => (icon: Icons.trending_up_rounded, color: Vibe.violet),
-        ActivityLogKind.orderReceived => (icon: Icons.receipt_long_rounded, color: Vibe.success),
-        ActivityLogKind.note => (icon: Icons.sticky_note_2_rounded, color: Vibe.muted),
+        ActivityLogKind.leadCreated => (
+            icon: Icons.person_add_alt_1_rounded,
+            color: Vibe.violet
+          ),
+        ActivityLogKind.siteVisit => (
+            icon: Icons.storefront_rounded,
+            color: Vibe.mint
+          ),
+        ActivityLogKind.gpsCaptured => (
+            icon: Icons.place_rounded,
+            color: Vibe.amber
+          ),
+        ActivityLogKind.photoUploaded => (
+            icon: Icons.photo_camera_rounded,
+            color: Vibe.pink
+          ),
+        ActivityLogKind.documentCollected => (
+            icon: Icons.description_rounded,
+            color: Vibe.violet
+          ),
+        ActivityLogKind.creditSubmitted => (
+            icon: Icons.send_rounded,
+            color: Vibe.amber
+          ),
+        ActivityLogKind.creditApproved => (
+            icon: Icons.verified_rounded,
+            color: Vibe.success
+          ),
+        ActivityLogKind.customerCreated => (
+            icon: Icons.storage_rounded,
+            color: Vibe.success
+          ),
+        ActivityLogKind.stageChanged => (
+            icon: Icons.trending_up_rounded,
+            color: Vibe.violet
+          ),
+        ActivityLogKind.orderReceived => (
+            icon: Icons.receipt_long_rounded,
+            color: Vibe.success
+          ),
+        ActivityLogKind.note => (
+            icon: Icons.sticky_note_2_rounded,
+            color: Vibe.muted
+          ),
       };
 
   @override
@@ -25,20 +58,25 @@ class ActivityTimeline extends StatelessWidget {
     if (items.isEmpty) {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 12),
-        child: Text('No activity yet', style: TextStyle(color: Vibe.muted, fontSize: 12.5)),
+        child: Text('No activity yet',
+            style: TextStyle(color: Vibe.muted, fontSize: 12.5)),
       );
     }
     return Column(
       children: [
         for (var i = 0; i < items.length; i++)
-          _TimelineRow(item: items[i], style: _style(items[i].kind), isLast: i == items.length - 1),
+          _TimelineRow(
+              item: items[i],
+              style: _style(items[i].kind),
+              isLast: i == items.length - 1),
       ],
     );
   }
 }
 
 class _TimelineRow extends StatelessWidget {
-  const _TimelineRow({required this.item, required this.style, required this.isLast});
+  const _TimelineRow(
+      {required this.item, required this.style, required this.isLast});
   final ActivityLogItem item;
   final ({IconData icon, Color color}) style;
   final bool isLast;
@@ -61,7 +99,8 @@ class _TimelineRow extends StatelessWidget {
                 ),
                 child: Icon(style.icon, size: 15, color: style.color),
               ),
-              if (!isLast) Expanded(child: Container(width: 2, color: Vibe.stroke)),
+              if (!isLast)
+                Expanded(child: Container(width: 2, color: Vibe.stroke)),
             ],
           ),
           const SizedBox(width: 12),
@@ -72,9 +111,14 @@ class _TimelineRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(item.title,
-                      style: const TextStyle(color: Vibe.text, fontSize: 13.5, fontWeight: FontWeight.w700)),
+                      style: const TextStyle(
+                          color: Vibe.text,
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w700)),
                   const SizedBox(height: 2),
-                  Text(item.description, style: const TextStyle(color: Vibe.muted, fontSize: 12.5)),
+                  Text(item.description,
+                      style:
+                          const TextStyle(color: Vibe.muted, fontSize: 12.5)),
                   const SizedBox(height: 4),
                   Text('${item.actor} · ${_formatDateTime(item.timestamp)}',
                       style: const TextStyle(color: Vibe.muted, fontSize: 11)),

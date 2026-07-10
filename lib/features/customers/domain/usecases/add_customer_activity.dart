@@ -8,5 +8,6 @@ class AddCustomerActivity extends UseCase<void, AddCustomerActivityParams> {
   final CustomerRepository _repository;
 
   @override
-  ResultFuture<void> call(AddCustomerActivityParams params) => _repository.addActivity(params.activity);
+  ResultFuture<void> call(AddCustomerActivityParams params) =>
+      _repository.addActivity(params.activity);
 }

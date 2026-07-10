@@ -17,8 +17,9 @@ class Shimmer extends StatefulWidget {
 }
 
 class _ShimmerState extends State<Shimmer> with SingleTickerProviderStateMixin {
-  late final AnimationController _controller =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 1200))..repeat();
+  late final AnimationController _controller = AnimationController(
+      vsync: this, duration: const Duration(milliseconds: 1200))
+    ..repeat();
 
   @override
   void dispose() {
@@ -58,7 +59,8 @@ class _ShimmerState extends State<Shimmer> with SingleTickerProviderStateMixin {
 /// real content line it stands in for, so switching from skeleton → data causes
 /// no layout jump.
 class SkeletonBox extends StatelessWidget {
-  const SkeletonBox({super.key, this.width, required this.height, this.radius = 8});
+  const SkeletonBox(
+      {super.key, this.width, required this.height, this.radius = 8});
 
   final double? width;
   final double height;

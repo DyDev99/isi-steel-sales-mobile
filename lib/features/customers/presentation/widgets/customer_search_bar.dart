@@ -39,7 +39,8 @@ class CustomerSearchBar extends StatelessWidget {
                       isDense: true,
                       border: InputBorder.none,
                       hintText: 'customers.search_hint'.tr,
-                      hintStyle: const TextStyle(color: Vibe.muted, fontSize: 13.5),
+                      hintStyle:
+                          const TextStyle(color: Vibe.muted, fontSize: 13.5),
                     ),
                   ),
                 ),
@@ -56,11 +57,15 @@ class CustomerSearchBar extends StatelessWidget {
             height: 44,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: hasActiveFilters ? Vibe.violet.withValues(alpha: 0.18) : Vibe.surface,
+              color: hasActiveFilters
+                  ? Vibe.violet.withValues(alpha: 0.18)
+                  : Vibe.surface,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: hasActiveFilters ? Vibe.violet : Vibe.stroke),
+              border: Border.all(
+                  color: hasActiveFilters ? Vibe.violet : Vibe.stroke),
             ),
-            child: Icon(Icons.tune_rounded, color: hasActiveFilters ? Vibe.violet : Vibe.text, size: 20),
+            child: Icon(Icons.tune_rounded,
+                color: hasActiveFilters ? Vibe.violet : Vibe.text, size: 20),
           ),
         ),
       ],

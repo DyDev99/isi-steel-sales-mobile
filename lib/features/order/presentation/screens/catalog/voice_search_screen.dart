@@ -34,7 +34,8 @@ class _VoiceSearchScreenState extends State<VoiceSearchScreen> {
       );
       if (!mounted) return;
       if (!available) {
-        setState(() => _error = 'Voice search isn\'t available on this device.');
+        setState(
+            () => _error = 'Voice search isn\'t available on this device.');
         return;
       }
       await _startListening();
@@ -108,7 +109,9 @@ class _VoiceSearchScreenState extends State<VoiceSearchScreen> {
       appBar: AppBar(
         backgroundColor: Vibe.bg,
         iconTheme: const IconThemeData(color: Vibe.text),
-        title: const Text('Voice Search', style: TextStyle(color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
+        title: const Text('Voice Search',
+            style: TextStyle(
+                color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
       ),
       body: SafeArea(
         child: Padding(
@@ -134,7 +137,12 @@ class _VoiceSearchScreenState extends State<VoiceSearchScreen> {
                     color: _listening ? Vibe.violet : Vibe.surface,
                     border: Border.all(color: Vibe.violet, width: 3),
                     boxShadow: _listening
-                        ? [BoxShadow(color: Vibe.violet.withValues(alpha: 0.4), blurRadius: 28, spreadRadius: 6)]
+                        ? [
+                            BoxShadow(
+                                color: Vibe.violet.withValues(alpha: 0.4),
+                                blurRadius: 28,
+                                spreadRadius: 6)
+                          ]
                         : null,
                   ),
                   child: Icon(
@@ -146,12 +154,15 @@ class _VoiceSearchScreenState extends State<VoiceSearchScreen> {
               ),
               const SizedBox(height: 28),
               Text(
-                _words.isEmpty ? 'Say a product name, e.g. "12mm rebar"' : _words,
+                _words.isEmpty
+                    ? 'Say a product name, e.g. "12mm rebar"'
+                    : _words,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: _words.isEmpty ? Vibe.muted : Vibe.text,
                   fontSize: _words.isEmpty ? 13 : 18,
-                  fontWeight: _words.isEmpty ? FontWeight.w400 : FontWeight.w700,
+                  fontWeight:
+                      _words.isEmpty ? FontWeight.w400 : FontWeight.w700,
                 ),
               ),
               const Spacer(),
@@ -165,7 +176,8 @@ class _VoiceSearchScreenState extends State<VoiceSearchScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Vibe.violet,
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
                     ),
                   ),
                 ),

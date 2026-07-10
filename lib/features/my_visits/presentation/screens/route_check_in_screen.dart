@@ -43,11 +43,14 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen> {
     super.initState();
     final state = context.read<ActiveRouteBloc>().state;
     if (state is ActiveRouteReady && state.hasCurrentStop) {
-      context.read<VisitCubit>().load(state.route.stops[state.currentStopIndex].id);
+      context
+          .read<VisitCubit>()
+          .load(state.route.stops[state.currentStopIndex].id);
     }
   }
 
-  static int _etaMinutes(double meters) => max(1, ((meters / 1000) / 25 * 60).round());
+  static int _etaMinutes(double meters) =>
+      max(1, ((meters / 1000) / 25 * 60).round());
 
   static String _distanceLabel(double meters) {
     final km = meters / 1000;
@@ -80,7 +83,7 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen> {
     final proof = _proof;
     if (proof == null) return;
     HapticFeedback.mediumImpact();
-    
+
     context.read<VisitCubit>().addPhoto(VisitPhoto(
           id: '${DateTime.now().microsecondsSinceEpoch}',
           stopId: stop.id,
@@ -118,12 +121,17 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen> {
         iconTheme: const IconThemeData(color: Vibe.text),
         title: Text(
           'my_visits.flow.checkin_title'.tr,
-          style: const TextStyle(color: Vibe.text, fontSize: 16, fontWeight: FontWeight.bold, fontFamily: 'Roboto'),
+          style: const TextStyle(
+              color: Vibe.text, fontSize: 16, fontWeight: FontWeight.bold),
         ),
       ),
       body: BlocListener<ActiveRouteBloc, ActiveRouteState>(
         listener: (context, state) {
-          if (!_submitting || state is! ActiveRouteReady || !state.hasCurrentStop) return;
+          if (!_submitting ||
+              state is! ActiveRouteReady ||
+              !state.hasCurrentStop) {
+            return;
+          }
           final stop = state.route.stops[state.currentStopIndex];
           if (stop.status == VisitStatus.checkedIn) {
             _submitting = false;
@@ -132,23 +140,28 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen> {
             setState(() => _submitting = false);
             ScaffoldMessenger.of(context)
               ..hideCurrentSnackBar()
-              ..showSnackBar(SnackBar(content: Text(state.blockedCheckInReason!)));
+              ..showSnackBar(
+                  SnackBar(content: Text(state.blockedCheckInReason!)));
           }
         },
         child: BlocBuilder<ActiveRouteBloc, ActiveRouteState>(
           builder: (context, state) {
             if (state is! ActiveRouteReady || !state.hasCurrentStop) {
-              return Center(child: Text('my_visits.flow.no_stop'.tr, style: const TextStyle(color: Vibe.muted)));
+              return Center(
+                  child: Text('my_visits.flow.no_stop'.tr,
+                      style: const TextStyle(color: Vibe.muted)));
             }
 
             final stop = state.route.stops[state.currentStopIndex];
-            final bool dynamicInsideGeofence = state.insideGeofence || kDebugForceInsideGeofence;
-            final bool canSubmit = dynamicInsideGeofence && _proof != null && !_submitting;
+            final bool dynamicInsideGeofence =
+                state.insideGeofence || kDebugForceInsideGeofence;
+            final bool canSubmit =
+                dynamicInsideGeofence && _proof != null && !_submitting;
 
             return Column(
               children: [
                 const OfflineBanner(margin: EdgeInsets.zero),
-                
+
                 // Segment 1: Header Customer Profile Info Card
                 _UnifiedCustomerHeader(
                   stop: stop,
@@ -159,7 +172,8 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen> {
                 // Segment 2: Interactive Real-time Embedded Map Viewport
                 Expanded(
                   flex: 4,
-                  child: BlocBuilder<LocationTrackingCubit, LocationTrackingState>(
+                  child:
+                      BlocBuilder<LocationTrackingCubit, LocationTrackingState>(
                     builder: (context, locationState) => TransitMap(
                       target: stop,
                       currentPosition: locationState.current,
@@ -175,7 +189,7 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen> {
                       color: Colors.white,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.04),
+                          color: Colors.black.withValues(alpha: 0.04),
                           blurRadius: 10,
                           offset: const Offset(0, -4),
                         )
@@ -190,14 +204,18 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen> {
                           distanceMeters: state.distanceMeters,
                           blockedReason: state.blockedCheckInReason,
                           warnings: state.checkInWarnings,
-                          radiusMeters: stop.customer.geofenceRadiusMeters.round(),
+                          radiusMeters:
+                              stop.customer.geofenceRadiusMeters.round(),
                         ),
                         const SizedBox(height: 14),
                         Row(
                           children: [
                             Text(
                               'my_visits.flow.proof_photo'.tr,
-                              style: const TextStyle(color: Vibe.text, fontSize: 13.5, fontWeight: FontWeight.bold, fontFamily: 'Roboto'),
+                              style: const TextStyle(
+                                  color: Vibe.text,
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.bold),
                             ),
                             const Spacer(),
                             if (dynamicInsideGeofence && _proof == null)
@@ -215,7 +233,8 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen> {
                         Text(
                           'my_visits.flow.checkin_explainer'.tr,
                           textAlign: TextAlign.center,
-                          style: const TextStyle(color: Vibe.muted, fontSize: 11, height: 1.3, fontFamily: 'Roboto'),
+                          style: const TextStyle(
+                              color: Vibe.muted, fontSize: 11, height: 1.3),
                         ),
                       ],
                     ),
@@ -228,7 +247,9 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen> {
                   submitting: _submitting,
                   hint: !dynamicInsideGeofence
                       ? 'my_visits.flow.hint_move_inside'.tr
-                      : (_proof == null ? 'my_visits.flow.hint_take_photo'.tr : null),
+                      : (_proof == null
+                          ? 'my_visits.flow.hint_take_photo'.tr
+                          : null),
                   onTap: () => _submit(stop),
                 ),
               ],
@@ -267,14 +288,17 @@ class _UnifiedCustomerHeader extends StatelessWidget {
                   stop.customer.name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Vibe.text, fontSize: 16, fontWeight: FontWeight.w900, fontFamily: 'Roboto'),
+                  style: const TextStyle(
+                      color: Vibe.text,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   stop.customer.address,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Vibe.muted, fontSize: 12, fontFamily: 'Roboto'),
+                  style: const TextStyle(color: Vibe.muted, fontSize: 12),
                 ),
               ],
             ),
@@ -290,11 +314,15 @@ class _UnifiedCustomerHeader extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.navigation_rounded, color: Vibe.violet, size: 13),
+                const Icon(Icons.navigation_rounded,
+                    color: Vibe.violet, size: 13),
                 const SizedBox(width: 4),
                 Text(
                   '$distanceLabel • ~$etaMinutes ${'my_visits.flow.minutes_shortTemplate'.tr}',
-                  style: const TextStyle(color: Vibe.text, fontSize: 11, fontWeight: FontWeight.bold, fontFamily: 'Roboto'),
+                  style: const TextStyle(
+                      color: Vibe.text,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -327,21 +355,33 @@ class _GeoStatusBanner extends StatelessWidget {
       children: [
         _StatusPill(
           color: insideGeofence ? Vibe.success : Vibe.amber,
-          icon: insideGeofence ? Icons.check_circle_rounded : Icons.location_searching_rounded,
+          icon: insideGeofence
+              ? Icons.check_circle_rounded
+              : Icons.location_searching_rounded,
           text: insideGeofence
               ? 'my_visits.flow.geo_matchedTemplate'.tr
-              : 'my_visits.flow.geo_not_matched'.tr.replaceAll('{dist}', distanceMeters.toStringAsFixed(0)),
-          subtitle: insideGeofence 
-              ? 'my_visits.flow.transit_banner_ready'.tr 
-              : 'my_visits.flow.transit_disclaimer'.tr.replaceAll('{radius}', '$radiusMeters'),
+              : 'my_visits.flow.geo_not_matched'
+                  .tr
+                  .replaceAll('{dist}', distanceMeters.toStringAsFixed(0)),
+          subtitle: insideGeofence
+              ? 'my_visits.flow.transit_banner_ready'.tr
+              : 'my_visits.flow.transit_disclaimer'
+                  .tr
+                  .replaceAll('{radius}', '$radiusMeters'),
         ),
         if (blockedReason != null) ...[
           const SizedBox(height: 6),
-          _StatusPill(color: Vibe.danger, icon: Icons.block_rounded, text: blockedReason!),
+          _StatusPill(
+              color: Vibe.danger,
+              icon: Icons.block_rounded,
+              text: blockedReason!),
         ],
         for (final warning in warnings) ...[
           const SizedBox(height: 6),
-          _StatusPill(color: Vibe.amber, icon: Icons.warning_amber_rounded, text: warning),
+          _StatusPill(
+              color: Vibe.amber,
+              icon: Icons.warning_amber_rounded,
+              text: warning),
         ],
       ],
     );
@@ -349,7 +389,11 @@ class _GeoStatusBanner extends StatelessWidget {
 }
 
 class _StatusPill extends StatelessWidget {
-  const _StatusPill({required this.color, required this.icon, required this.text, this.subtitle});
+  const _StatusPill(
+      {required this.color,
+      required this.icon,
+      required this.text,
+      this.subtitle});
   final Color color;
   final IconData icon;
   final String text;
@@ -360,9 +404,9 @@ class _StatusPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
+        color: color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withOpacity(0.25)),
+        border: Border.all(color: color.withValues(alpha: 0.25)),
       ),
       child: Row(
         children: [
@@ -372,10 +416,17 @@ class _StatusPill extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(text, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold, fontFamily: 'Roboto')),
+                Text(text,
+                    style: TextStyle(
+                        color: color,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold)),
                 if (subtitle != null) ...[
                   const SizedBox(height: 1),
-                  Text(subtitle!, style: TextStyle(color: color.withOpacity(0.85), fontSize: 10.5, fontFamily: 'Roboto')),
+                  Text(subtitle!,
+                      style: TextStyle(
+                          color: color.withValues(alpha: 0.85),
+                          fontSize: 10.5)),
                 ]
               ],
             ),
@@ -388,9 +439,9 @@ class _StatusPill extends StatelessWidget {
 
 class _CameraDropzone extends StatelessWidget {
   const _CameraDropzone({
-    required this.proof, 
-    required this.capturing, 
-    required this.isLocked, 
+    required this.proof,
+    required this.capturing,
+    required this.isLocked,
     required this.onTap,
   });
 
@@ -401,9 +452,9 @@ class _CameraDropzone extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final borderColor = isLocked 
-        ? Vibe.stroke 
-        : (proof != null ? Vibe.success : Vibe.violet.withOpacity(0.5));
+    final borderColor = isLocked
+        ? Vibe.stroke
+        : (proof != null ? Vibe.success : Vibe.violet.withValues(alpha: 0.5));
 
     return GestureDetector(
       onTap: (capturing || isLocked) ? null : onTap,
@@ -419,7 +470,8 @@ class _CameraDropzone extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: capturing
-                ? const Center(child: CircularProgressIndicator(color: Vibe.violet))
+                ? const Center(
+                    child: CircularProgressIndicator(color: Vibe.violet))
                 : proof == null
                     ? _DropzonePlaceholder(isLocked: isLocked)
                     : _ProofPreview(path: proof!.filePath),
@@ -444,24 +496,29 @@ class _DropzonePlaceholder extends StatelessWidget {
           height: 44,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: (isLocked ? Vibe.muted : Vibe.violet).withOpacity(0.1), 
+            color: (isLocked ? Vibe.muted : Vibe.violet).withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
           child: Icon(
-            isLocked ? Icons.lock_outline_rounded : Icons.photo_camera_rounded, 
-            color: isLocked ? Vibe.muted : Vibe.violet, 
+            isLocked ? Icons.lock_outline_rounded : Icons.photo_camera_rounded,
+            color: isLocked ? Vibe.muted : Vibe.violet,
             size: 20,
           ),
         ),
         const SizedBox(height: 8),
         Text(
-          isLocked ? 'my_visits.flow.transit_banner_lockedTemplate'.tr : 'my_visits.flow.take_photo'.tr,
-          style: TextStyle(color: isLocked ? Vibe.muted : Vibe.text, fontSize: 13, fontWeight: FontWeight.bold, fontFamily: 'Roboto'),
+          isLocked
+              ? 'my_visits.flow.transit_banner_lockedTemplate'.tr
+              : 'my_visits.flow.take_photo'.tr,
+          style: TextStyle(
+              color: isLocked ? Vibe.muted : Vibe.text,
+              fontSize: 13,
+              fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 2),
         Text(
           'my_visits.flow.fit_frame'.tr,
-          style: const TextStyle(color: Vibe.muted, fontSize: 11, fontFamily: 'Roboto'),
+          style: const TextStyle(color: Vibe.muted, fontSize: 11),
         ),
       ],
     );
@@ -486,15 +543,21 @@ class _ProofPreview extends StatelessWidget {
           top: 10,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            decoration: BoxDecoration(color: Colors.black.withOpacity(0.6), borderRadius: BorderRadius.circular(20)),
+            decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(20)),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.refresh_rounded, color: Colors.white, size: 13),
+                const Icon(Icons.refresh_rounded,
+                    color: Colors.white, size: 13),
                 const SizedBox(width: 4),
                 Text(
                   'my_visits.flow.retake'.tr,
-                  style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold, fontFamily: 'Roboto'),
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -506,7 +569,11 @@ class _ProofPreview extends StatelessWidget {
 }
 
 class _CheckInBottomBar extends StatelessWidget {
-  const _CheckInBottomBar({required this.enabled, required this.submitting, required this.hint, required this.onTap});
+  const _CheckInBottomBar(
+      {required this.enabled,
+      required this.submitting,
+      required this.hint,
+      required this.onTap});
   final bool enabled;
   final bool submitting;
   final String? hint;
@@ -526,7 +593,9 @@ class _CheckInBottomBar extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (hint != null) ...[
-              Text(hint!, textAlign: TextAlign.center, style: const TextStyle(color: Vibe.muted, fontSize: 11, fontFamily: 'Roboto')),
+              Text(hint!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Vibe.muted, fontSize: 11)),
               const SizedBox(height: 8),
             ],
             SizedBox(
@@ -535,11 +604,19 @@ class _CheckInBottomBar extends StatelessWidget {
                 onPressed: enabled ? onTap : null,
                 icon: submitting
                     ? const SizedBox(
-                        width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : Icon(enabled ? Icons.check_circle_rounded : Icons.lock_rounded, size: 18),
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white))
+                    : Icon(
+                        enabled
+                            ? Icons.check_circle_rounded
+                            : Icons.lock_rounded,
+                        size: 18),
                 label: Text(
                   'my_visits.flow.checkin_continue'.tr,
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, fontFamily: 'Roboto'),
+                  style: const TextStyle(
+                      fontSize: 14, fontWeight: FontWeight.bold),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: enabled ? Vibe.success : Vibe.violet,
@@ -548,7 +625,8 @@ class _CheckInBottomBar extends StatelessWidget {
                   disabledForegroundColor: Vibe.muted,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   elevation: enabled ? 2 : 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
               ),
             ),
@@ -564,9 +642,11 @@ class _PulseIndicator extends StatefulWidget {
   State<_PulseIndicator> createState() => _PulseIndicatorState();
 }
 
-class _PulseIndicatorState extends State<_PulseIndicator> with SingleTickerProviderStateMixin {
+class _PulseIndicatorState extends State<_PulseIndicator>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _controller = AnimationController(
-    vsync: this, duration: const Duration(milliseconds: 1000),
+    vsync: this,
+    duration: const Duration(milliseconds: 1000),
   )..repeat(reverse: true);
 
   @override
@@ -582,22 +662,24 @@ class _PulseIndicatorState extends State<_PulseIndicator> with SingleTickerProvi
       builder: (context, child) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
         decoration: BoxDecoration(
-          color: Vibe.violet.withValues(alpha: 0.1 + (_controller.value * 0.15)),
+          color:
+              Vibe.violet.withValues(alpha: 0.1 + (_controller.value * 0.15)),
           borderRadius: BorderRadius.circular(6),
         ),
         child: Text(
           'REQUIRED',
           style: TextStyle(
-            color: Vibe.violet.withValues(alpha: 0.7 + (_controller.value * 0.3)), 
-            fontSize: 9, 
+            color:
+                Vibe.violet.withValues(alpha: 0.7 + (_controller.value * 0.3)),
+            fontSize: 9,
             fontWeight: FontWeight.w900,
-            fontFamily: 'Roboto',
           ),
         ),
       ),
     );
   }
 }
+
 class _DashedBorderPainter extends CustomPainter {
   _DashedBorderPainter({required this.color, required this.radius});
   final Color color;
@@ -609,7 +691,8 @@ class _DashedBorderPainter extends CustomPainter {
       ..color = color
       ..strokeWidth = 1.5
       ..style = PaintingStyle.stroke;
-    final rrect = RRect.fromRectAndRadius(Offset.zero & size, Radius.circular(radius));
+    final rrect =
+        RRect.fromRectAndRadius(Offset.zero & size, Radius.circular(radius));
     final path = Path()..addRRect(rrect);
 
     const dash = 6.0;
@@ -624,5 +707,6 @@ class _DashedBorderPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_DashedBorderPainter old) => old.color != color || old.radius != radius;
+  bool shouldRepaint(_DashedBorderPainter old) =>
+      old.color != color || old.radius != radius;
 }

@@ -54,7 +54,8 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
     super.dispose();
   }
 
-  Future<void> _createOpportunity(BuildContext context, Customer customer) async {
+  Future<void> _createOpportunity(
+      BuildContext context, Customer customer) async {
     final estimatedValue = await showModalBottomSheet<double>(
       context: context,
       backgroundColor: Colors.transparent,
@@ -113,15 +114,22 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (sheetContext) => Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(sheetContext).viewInsets.bottom),
+        padding: EdgeInsets.only(
+            bottom: MediaQuery.of(sheetContext).viewInsets.bottom),
         child: Container(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-          decoration: const BoxDecoration(color: Vibe.bg, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+          decoration: const BoxDecoration(
+              color: Vibe.bg,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Add Note', style: TextStyle(color: Vibe.text, fontSize: 16, fontWeight: FontWeight.w800)),
+              const Text('Add Note',
+                  style: TextStyle(
+                      color: Vibe.text,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800)),
               const SizedBox(height: 12),
               TextField(
                 controller: _noteController,
@@ -131,7 +139,9 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
                   hintText: 'Write a note about this customer…',
                   filled: true,
                   fillColor: Vibe.bgSoft,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Vibe.stroke)),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Vibe.stroke)),
                 ),
               ),
               const SizedBox(height: 16),
@@ -139,16 +149,21 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    context.read<CustomerDetailCubit>().addNote(_noteController.text);
+                    context
+                        .read<CustomerDetailCubit>()
+                        .addNote(_noteController.text);
                     _noteController.clear();
                     Navigator.pop(sheetContext);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Vibe.violet,
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
                   ),
-                  child: const Text('Save Note', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+                  child: const Text('Save Note',
+                      style: TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.w800)),
                 ),
               ),
             ],
@@ -162,42 +177,54 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
   Widget build(BuildContext context) {
     return LocalizedBuilder(
       builder: (context) => Scaffold(
-      backgroundColor: Vibe.bg,
-      appBar: AppBar(
         backgroundColor: Vibe.bg,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Vibe.text),
-        title: BlocBuilder<CustomerDetailCubit, CustomerDetailState>(
-          builder: (context, state) => Text(
-            state is CustomerDetailLoaded ? state.customer.shopName : 'customers.customer_fallback'.tr,
-            style: const TextStyle(color: Vibe.text, fontSize: 16, fontWeight: FontWeight.w800),
+        appBar: AppBar(
+          backgroundColor: Vibe.bg,
+          elevation: 0,
+          iconTheme: const IconThemeData(color: Vibe.text),
+          title: BlocBuilder<CustomerDetailCubit, CustomerDetailState>(
+            builder: (context, state) => Text(
+              state is CustomerDetailLoaded
+                  ? state.customer.shopName
+                  : 'customers.customer_fallback'.tr,
+              style: const TextStyle(
+                  color: Vibe.text, fontSize: 16, fontWeight: FontWeight.w800),
+            ),
           ),
         ),
-      ),
-      body: BlocBuilder<CustomerDetailCubit, CustomerDetailState>(
-        builder: (context, state) {
-          return switch (state) {
-            CustomerDetailLoaded() => _Loaded(
-                state: state,
-                onCall: () => ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                      content: Text('customers.calling'.tr.replaceAll('{phone}', state.customer.phone)),
-                      duration: const Duration(seconds: 1)),
+        body: BlocBuilder<CustomerDetailCubit, CustomerDetailState>(
+          builder: (context, state) {
+            return switch (state) {
+              CustomerDetailLoaded() => _Loaded(
+                  state: state,
+                  onCall: () => ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content: Text('customers.calling'
+                            .tr
+                            .replaceAll('{phone}', state.customer.phone)),
+                        duration: const Duration(seconds: 1)),
+                  ),
+                  onCreateOpportunity: () =>
+                      _createOpportunity(context, state.customer),
+                  onLogVisit: () {
+                    context.read<CustomerDetailCubit>().logActivity(
+                        CustomerActivityType.visit,
+                        'customers.visit_logged'.tr);
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text('customers.visit_logged'.tr),
+                        duration: const Duration(seconds: 1)));
+                  },
+                  onAddNote: () => _addNote(context),
                 ),
-                onCreateOpportunity: () => _createOpportunity(context, state.customer),
-                onLogVisit: () {
-                  context.read<CustomerDetailCubit>().logActivity(CustomerActivityType.visit, 'customers.visit_logged'.tr);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('customers.visit_logged'.tr), duration: const Duration(seconds: 1)));
-                },
-                onAddNote: () => _addNote(context),
-              ),
-            CustomerDetailError(:final message) => Center(child: Text(message, style: const TextStyle(color: Vibe.muted))),
-            _ => const Center(child: CircularProgressIndicator(color: Vibe.violet)),
-          };
-        },
+              CustomerDetailError(:final message) => Center(
+                  child:
+                      Text(message, style: const TextStyle(color: Vibe.muted))),
+              _ => const Center(
+                  child: CircularProgressIndicator(color: Vibe.violet)),
+            };
+          },
+        ),
       ),
-    ),
     );
   }
 }
@@ -239,19 +266,43 @@ class _Loaded extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: Text(customer.ownerName, style: const TextStyle(color: Vibe.text, fontSize: 14, fontWeight: FontWeight.w700)),
+                    child: Text(customer.ownerName,
+                        style: const TextStyle(
+                            color: Vibe.text,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700)),
                   ),
                   CustomerStatusBadge(status: customer.status),
                 ],
               ),
               const SizedBox(height: 8),
-              _InfoRow(icon: Icons.badge_outlined, label: 'Customer Code', value: customer.customerCode),
-              _InfoRow(icon: Icons.call_outlined, label: 'Phone', value: customer.phone),
-              if (customer.email != null) _InfoRow(icon: Icons.email_outlined, label: 'Email', value: customer.email!),
-              _InfoRow(icon: Icons.place_outlined, label: 'Address', value: '${customer.address}, ${customer.district}, ${customer.province}'),
-              _InfoRow(icon: Icons.person_pin_circle_outlined, label: 'Assigned Rep', value: customer.assignedRepName),
+              _InfoRow(
+                  icon: Icons.badge_outlined,
+                  label: 'Customer Code',
+                  value: customer.customerCode),
+              _InfoRow(
+                  icon: Icons.call_outlined,
+                  label: 'Phone',
+                  value: customer.phone),
+              if (customer.email != null)
+                _InfoRow(
+                    icon: Icons.email_outlined,
+                    label: 'Email',
+                    value: customer.email!),
+              _InfoRow(
+                  icon: Icons.place_outlined,
+                  label: 'Address',
+                  value:
+                      '${customer.address}, ${customer.district}, ${customer.province}'),
+              _InfoRow(
+                  icon: Icons.person_pin_circle_outlined,
+                  label: 'Assigned Rep',
+                  value: customer.assignedRepName),
               if (customer.openOpportunityCount > 0)
-                _InfoRow(icon: Icons.trending_up_rounded, label: 'Open Opportunities', value: '${customer.openOpportunityCount}'),
+                _InfoRow(
+                    icon: Icons.trending_up_rounded,
+                    label: 'Open Opportunities',
+                    value: '${customer.openOpportunityCount}'),
             ],
           ),
         ),
@@ -266,14 +317,24 @@ class _Loaded extends StatelessWidget {
                     padding: const EdgeInsets.only(bottom: 8),
                     child: Row(
                       children: [
-                        const CircleAvatar(radius: 16, backgroundColor: Vibe.primaryLight, child: Icon(Icons.person, size: 16, color: Vibe.violet)),
+                        const CircleAvatar(
+                            radius: 16,
+                            backgroundColor: Vibe.primaryLight,
+                            child: Icon(Icons.person,
+                                size: 16, color: Vibe.violet)),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(contact.name, style: const TextStyle(color: Vibe.text, fontSize: 13, fontWeight: FontWeight.w700)),
-                              Text('${contact.role} · ${contact.phone}', style: const TextStyle(color: Vibe.muted, fontSize: 11.5)),
+                              Text(contact.name,
+                                  style: const TextStyle(
+                                      color: Vibe.text,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700)),
+                              Text('${contact.role} · ${contact.phone}',
+                                  style: const TextStyle(
+                                      color: Vibe.muted, fontSize: 11.5)),
                             ],
                           ),
                         ),
@@ -290,11 +351,16 @@ class _Loaded extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _InfoRow(icon: Icons.payments_outlined, label: 'Lifetime Value', value: '\$${customer.lifetimeValue.toStringAsFixed(0)}'),
+              _InfoRow(
+                  icon: Icons.payments_outlined,
+                  label: 'Lifetime Value',
+                  value: '\$${customer.lifetimeValue.toStringAsFixed(0)}'),
               _InfoRow(
                 icon: Icons.event_outlined,
                 label: 'Last Order',
-                value: customer.lastOrderDate == null ? 'No orders yet' : _formatDate(customer.lastOrderDate!),
+                value: customer.lastOrderDate == null
+                    ? 'No orders yet'
+                    : _formatDate(customer.lastOrderDate!),
               ),
               if (customer.productsPurchased.isNotEmpty)
                 Padding(
@@ -302,7 +368,10 @@ class _Loaded extends StatelessWidget {
                   child: Wrap(
                     spacing: 6,
                     runSpacing: 6,
-                    children: [for (final p in customer.productsPurchased) _ProductChip(label: p)],
+                    children: [
+                      for (final p in customer.productsPurchased)
+                        _ProductChip(label: p)
+                    ],
                   ),
                 ),
             ],
@@ -315,9 +384,18 @@ class _Loaded extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _InfoRow(icon: Icons.fingerprint_rounded, label: 'SAP Customer ID', value: customer.sapCustomerId),
-              _InfoRow(icon: Icons.account_balance_wallet_outlined, label: 'Credit Limit', value: '\$${customer.creditLimit.toStringAsFixed(0)}'),
-              _InfoRow(icon: Icons.update_rounded, label: 'Last Synced', value: _formatDate(customer.updatedAt)),
+              _InfoRow(
+                  icon: Icons.fingerprint_rounded,
+                  label: 'SAP Customer ID',
+                  value: customer.sapCustomerId),
+              _InfoRow(
+                  icon: Icons.account_balance_wallet_outlined,
+                  label: 'Credit Limit',
+                  value: '\$${customer.creditLimit.toStringAsFixed(0)}'),
+              _InfoRow(
+                  icon: Icons.update_rounded,
+                  label: 'Last Synced',
+                  value: _formatDate(customer.updatedAt)),
             ],
           ),
         ),
@@ -325,11 +403,15 @@ class _Loaded extends StatelessWidget {
         _SectionCard(
           title: 'Timeline',
           child: state.activities.isEmpty && state.notes.isEmpty
-              ? const Text('No activity yet', style: TextStyle(color: Vibe.muted, fontSize: 12.5))
+              ? const Text('No activity yet',
+                  style: TextStyle(color: Vibe.muted, fontSize: 12.5))
               : Column(
                   children: [
                     for (final activity in state.activities)
-                      _TimelineRow(icon: _iconFor(activity.type), text: activity.summary, at: activity.createdAt),
+                      _TimelineRow(
+                          icon: _iconFor(activity.type),
+                          text: activity.summary,
+                          at: activity.createdAt),
                   ],
                 ),
         ),
@@ -370,16 +452,22 @@ class _EstimatedValueSheetState extends State<_EstimatedValueSheet> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding:
+          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Container(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-        decoration: const BoxDecoration(color: Vibe.bg, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        decoration: const BoxDecoration(
+            color: Vibe.bg,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('New Opportunity for ${widget.customer.shopName}',
-                style: const TextStyle(color: Vibe.text, fontSize: 16, fontWeight: FontWeight.w800)),
+                style: const TextStyle(
+                    color: Vibe.text,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800)),
             const SizedBox(height: 12),
             TextField(
               controller: _controller,
@@ -389,7 +477,9 @@ class _EstimatedValueSheetState extends State<_EstimatedValueSheet> {
                 labelText: 'Estimated Value (\$)',
                 filled: true,
                 fillColor: Vibe.bgSoft,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Vibe.stroke)),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Vibe.stroke)),
               ),
             ),
             const SizedBox(height: 16),
@@ -403,9 +493,12 @@ class _EstimatedValueSheetState extends State<_EstimatedValueSheet> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Vibe.violet,
                   padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14)),
                 ),
-                child: const Text('Create Opportunity', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+                child: const Text('Create Opportunity',
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.w800)),
               ),
             ),
           ],
@@ -416,7 +509,8 @@ class _EstimatedValueSheetState extends State<_EstimatedValueSheet> {
 }
 
 class _SectionCard extends StatelessWidget {
-  const _SectionCard({required this.title, required this.child, this.locked = false});
+  const _SectionCard(
+      {required this.title, required this.child, this.locked = false});
   final String title;
   final Widget child;
   final bool locked;
@@ -430,10 +524,15 @@ class _SectionCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text(title, style: const TextStyle(color: Vibe.text, fontSize: 14, fontWeight: FontWeight.w800)),
+              Text(title,
+                  style: const TextStyle(
+                      color: Vibe.text,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800)),
               if (locked) ...[
                 const SizedBox(width: 6),
-                const Icon(Icons.lock_outline_rounded, size: 13, color: Vibe.muted),
+                const Icon(Icons.lock_outline_rounded,
+                    size: 13, color: Vibe.muted),
               ],
             ],
           ),
@@ -446,7 +545,8 @@ class _SectionCard extends StatelessWidget {
 }
 
 class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.icon, required this.label, required this.value});
+  const _InfoRow(
+      {required this.icon, required this.label, required this.value});
   final IconData icon;
   final String label;
   final String value;
@@ -460,8 +560,16 @@ class _InfoRow extends StatelessWidget {
         children: [
           Icon(icon, size: 14, color: Vibe.muted),
           const SizedBox(width: 8),
-          SizedBox(width: 110, child: Text(label, style: const TextStyle(color: Vibe.muted, fontSize: 12))),
-          Expanded(child: Text(value, style: const TextStyle(color: Vibe.text, fontSize: 12.5, fontWeight: FontWeight.w600))),
+          SizedBox(
+              width: 110,
+              child: Text(label,
+                  style: const TextStyle(color: Vibe.muted, fontSize: 12))),
+          Expanded(
+              child: Text(value,
+                  style: const TextStyle(
+                      color: Vibe.text,
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600))),
         ],
       ),
     );
@@ -476,14 +584,19 @@ class _ProductChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(color: Vibe.mint.withValues(alpha: 0.14), borderRadius: BorderRadius.circular(20)),
-      child: Text(label, style: const TextStyle(color: Vibe.mint, fontSize: 11, fontWeight: FontWeight.w700)),
+      decoration: BoxDecoration(
+          color: Vibe.mint.withValues(alpha: 0.14),
+          borderRadius: BorderRadius.circular(20)),
+      child: Text(label,
+          style: const TextStyle(
+              color: Vibe.mint, fontSize: 11, fontWeight: FontWeight.w700)),
     );
   }
 }
 
 class _TimelineRow extends StatelessWidget {
-  const _TimelineRow({required this.icon, required this.text, required this.at});
+  const _TimelineRow(
+      {required this.icon, required this.text, required this.at});
   final IconData icon;
   final String text;
   final DateTime at;
@@ -501,8 +614,13 @@ class _TimelineRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(text, style: const TextStyle(color: Vibe.text, fontSize: 12.5, fontWeight: FontWeight.w600)),
-                Text(_formatDateTime(at), style: const TextStyle(color: Vibe.muted, fontSize: 11)),
+                Text(text,
+                    style: const TextStyle(
+                        color: Vibe.text,
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600)),
+                Text(_formatDateTime(at),
+                    style: const TextStyle(color: Vibe.muted, fontSize: 11)),
               ],
             ),
           ),

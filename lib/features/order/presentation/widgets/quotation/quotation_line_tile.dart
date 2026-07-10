@@ -29,16 +29,24 @@ class QuotationLineTile extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CartItemTile(item: item, onQuantityChanged: onQuantityChanged, onRemove: onRemove),
+        CartItemTile(
+            item: item,
+            onQuantityChanged: onQuantityChanged,
+            onRemove: onRemove),
         Padding(
           padding: const EdgeInsets.only(top: 4, bottom: 10),
           child: Row(
             children: [
               if (onDiscountChanged != null)
                 Expanded(
-                  child: DiscountPresetChips(selected: item.discountPercent, onSelected: onDiscountChanged!),
+                  child: DiscountPresetChips(
+                      selected: item.discountPercent,
+                      onSelected: onDiscountChanged!),
                 ),
-              if (showStockStatus) _StockStatusChip(available: item.product.isAvailable, low: item.product.isBelowMinStock),
+              if (showStockStatus)
+                _StockStatusChip(
+                    available: item.product.isAvailable,
+                    low: item.product.isBelowMinStock),
             ],
           ),
         ),
@@ -61,8 +69,12 @@ class _StockStatusChip extends StatelessWidget {
             : ('orders.sales_order.stock_in'.tr, Vibe.success);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(8)),
-      child: Text(label, style: TextStyle(color: color, fontSize: 10.5, fontWeight: FontWeight.w700)),
+      decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(8)),
+      child: Text(label,
+          style: TextStyle(
+              color: color, fontSize: 10.5, fontWeight: FontWeight.w700)),
     );
   }
 }

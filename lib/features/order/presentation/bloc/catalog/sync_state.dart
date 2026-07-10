@@ -19,7 +19,8 @@ final class SyncInProgress extends SyncState {
 }
 
 final class SyncSucceeded extends SyncState {
-  const SyncSucceeded({required this.upserted, required this.deleted, required this.syncedAt});
+  const SyncSucceeded(
+      {required this.upserted, required this.deleted, required this.syncedAt});
   final int upserted;
   final int deleted;
   final DateTime syncedAt;

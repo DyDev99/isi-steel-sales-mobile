@@ -15,5 +15,6 @@ abstract interface class ProofPhotoService {
   /// Opens the camera, compresses the shot, and stamps [latitude]/[longitude]
   /// + the capture time onto it. Resolves with the saved file, or `null` if
   /// the user cancelled.
-  Future<ProofPhotoResult?> captureStamped({required double latitude, required double longitude});
+  Future<ProofPhotoResult?> captureStamped(
+      {required double latitude, required double longitude});
 }

@@ -33,7 +33,8 @@ class ProductPricing extends Equatable {
   final PromotionType? promotionType;
   final String? promotionLabel;
 
-  bool get hasPromotion => promotionPrice != null && promotionPrice! < standardPrice;
+  bool get hasPromotion =>
+      promotionPrice != null && promotionPrice! < standardPrice;
 
   double priceFor(PriceTier tier) => switch (tier) {
         PriceTier.standard => standardPrice,

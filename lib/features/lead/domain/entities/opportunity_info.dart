@@ -46,7 +46,8 @@ class OpportunityInfo extends Equatable {
       tonnage: tonnage ?? this.tonnage,
       productGrade: productGrade ?? this.productGrade,
       budgetStatus: budgetStatus ?? this.budgetStatus,
-      hasDecisionMakerAccess: hasDecisionMakerAccess ?? this.hasDecisionMakerAccess,
+      hasDecisionMakerAccess:
+          hasDecisionMakerAccess ?? this.hasDecisionMakerAccess,
       productsInterested: productsInterested ?? this.productsInterested,
       lastContact: lastContact ?? this.lastContact,
     );

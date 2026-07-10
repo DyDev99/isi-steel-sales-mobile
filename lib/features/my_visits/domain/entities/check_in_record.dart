@@ -22,6 +22,14 @@ class CheckInRecord extends Equatable {
   final bool isMocked;
 
   @override
-  List<Object?> get props =>
-      [id, stopId, timestamp, latitude, longitude, accuracyMeters, distanceFromCustomerMeters, isMocked];
+  List<Object?> get props => [
+        id,
+        stopId,
+        timestamp,
+        latitude,
+        longitude,
+        accuracyMeters,
+        distanceFromCustomerMeters,
+        isMocked
+      ];
 }

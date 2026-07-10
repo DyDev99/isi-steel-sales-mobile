@@ -19,13 +19,17 @@ class VisitHistoryEmptyState extends StatelessWidget {
               width: 72,
               height: 72,
               alignment: Alignment.center,
-              decoration: BoxDecoration(color: Vibe.primaryLight, borderRadius: BorderRadius.circular(20)),
-              child: const Icon(Icons.map_outlined, size: 34, color: Vibe.violet),
+              decoration: BoxDecoration(
+                  color: Vibe.primaryLight,
+                  borderRadius: BorderRadius.circular(20)),
+              child:
+                  const Icon(Icons.map_outlined, size: 34, color: Vibe.violet),
             ),
             const SizedBox(height: 16),
             Text(
               'my_visits.history.empty_title'.tr,
-              style: const TextStyle(color: Vibe.text, fontSize: 15, fontWeight: FontWeight.w800),
+              style: const TextStyle(
+                  color: Vibe.text, fontSize: 15, fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 6),
             Text(

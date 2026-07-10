@@ -8,5 +8,6 @@ class GetRoute extends UseCase<RoutePlan, RouteIdParams> {
   const GetRoute(this._repository);
   final RouteRepository _repository;
   @override
-  ResultFuture<RoutePlan> call(RouteIdParams params) => _repository.getRoute(params.routeId);
+  ResultFuture<RoutePlan> call(RouteIdParams params) =>
+      _repository.getRoute(params.routeId);
 }

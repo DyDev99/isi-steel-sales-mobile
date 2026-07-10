@@ -49,13 +49,20 @@ class _ConvertSheetState extends State<_ConvertSheet> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Qualify ${widget.lead.companyName}',
-                style: const TextStyle(color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
+                style: const TextStyle(
+                    color: Vibe.text,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800)),
             const SizedBox(height: 4),
-            const Text('Record what you now know about the deal — not questions for the customer.',
+            const Text(
+                'Record what you now know about the deal — not questions for the customer.',
                 style: TextStyle(color: Vibe.muted, fontSize: 12.5)),
             const SizedBox(height: 16),
             const Text('Roughly what is this deal worth?',
-                style: TextStyle(color: Vibe.muted, fontSize: 12, fontWeight: FontWeight.w700)),
+                style: TextStyle(
+                    color: Vibe.muted,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -65,10 +72,13 @@ class _ConvertSheetState extends State<_ConvertSheet> {
                         label: Text(c.$1),
                         selected: _value == c.$2,
                         onSelected: (_) => setState(() => _value = c.$2),
-                        labelStyle: TextStyle(color: _value == c.$2 ? Vibe.violet : Vibe.text, fontSize: 13),
+                        labelStyle: TextStyle(
+                            color: _value == c.$2 ? Vibe.violet : Vibe.text,
+                            fontSize: 13),
                         backgroundColor: Vibe.surface,
                         selectedColor: Vibe.violet.withValues(alpha: 0.2),
-                        side: BorderSide(color: _value == c.$2 ? Vibe.violet : Vibe.stroke),
+                        side: BorderSide(
+                            color: _value == c.$2 ? Vibe.violet : Vibe.stroke),
                       ))
                   .toList(),
             ),
@@ -78,13 +88,16 @@ class _ConvertSheetState extends State<_ConvertSheet> {
               child: ElevatedButton(
                 onPressed: _value == null
                     ? null
-                    : () => Navigator.of(context).pop(OpportunityInfo(estimatedValue: _value!)),
+                    : () => Navigator.of(context)
+                        .pop(OpportunityInfo(estimatedValue: _value!)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Vibe.violet,
                   padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14)),
                 ),
-                child: const Text('Move to Opportunities', style: TextStyle(fontWeight: FontWeight.w700)),
+                child: const Text('Move to Opportunities',
+                    style: TextStyle(fontWeight: FontWeight.w700)),
               ),
             ),
           ],

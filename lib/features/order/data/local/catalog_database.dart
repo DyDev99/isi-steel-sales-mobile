@@ -13,7 +13,8 @@ class CatalogDatabase {
   static Future<CatalogDatabase> open({String fileName = 'catalog.db'}) async {
     final dbDir = await getDatabasesPath();
     final path = p.join(dbDir, fileName);
-    final db = await openDatabase(path, version: 2, onCreate: _onCreate, onUpgrade: _onUpgrade);
+    final db = await openDatabase(path,
+        version: 3, onCreate: _onCreate, onUpgrade: _onUpgrade);
     return CatalogDatabase._(db);
   }
 
@@ -26,7 +27,8 @@ class CatalogDatabase {
         sort_order INTEGER NOT NULL DEFAULT 0
       )
     ''');
-    await db.execute('CREATE INDEX idx_categories_parent ON categories(parent_id)');
+    await db
+        .execute('CREATE INDEX idx_categories_parent ON categories(parent_id)');
 
     await db.execute('''
       CREATE TABLE products (
@@ -66,10 +68,12 @@ class CatalogDatabase {
     ''');
     await db.execute('CREATE INDEX idx_products_code ON products(code)');
     await db.execute('CREATE INDEX idx_products_barcode ON products(barcode)');
-    await db.execute('CREATE INDEX idx_products_category ON products(category_id)');
+    await db
+        .execute('CREATE INDEX idx_products_category ON products(category_id)');
     await db.execute('CREATE INDEX idx_products_brand ON products(brand)');
     await db.execute('CREATE INDEX idx_products_sku ON products(sku)');
-    await db.execute('CREATE INDEX idx_products_warehouse ON products(warehouse_code)');
+    await db.execute(
+        'CREATE INDEX idx_products_warehouse ON products(warehouse_code)');
     await db.execute('CREATE INDEX idx_products_family ON products(family_id)');
 
     // Standalone FTS4 table (not content-linked, since `products.id` is TEXT
@@ -107,7 +111,8 @@ class CatalogDatabase {
         PRIMARY KEY (product_id, warehouse_code)
       )
     ''');
-    await db.execute('CREATE INDEX idx_stock_warehouse ON stock(warehouse_code)');
+    await db
+        .execute('CREATE INDEX idx_stock_warehouse ON stock(warehouse_code)');
 
     await db.execute('''
       CREATE TABLE sync_meta (
@@ -145,6 +150,34 @@ class CatalogDatabase {
     ''');
 
     await _createQuotationTables(db);
+    await _createSyncQueueTable(db);
+  }
+
+  /// Outbound (local → SAP) sync queue. Decoupled from `quotations`: sync
+  /// state, retry bookkeeping and the persisted SAP response all live here,
+  /// joined back to `quotations` only for display.
+  static Future<void> _createSyncQueueTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE sync_queue (
+        id TEXT PRIMARY KEY,
+        quotation_id TEXT NOT NULL,
+        status TEXT NOT NULL,
+        attempt_count INTEGER NOT NULL DEFAULT 0,
+        next_retry_at TEXT,
+        last_error TEXT,
+        error_code TEXT,
+        sap_document_number TEXT,
+        sap_message TEXT,
+        sap_timestamp TEXT,
+        sync_duration_ms INTEGER,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      )
+    ''');
+    await db
+        .execute('CREATE INDEX idx_sync_queue_status ON sync_queue(status)');
+    await db.execute(
+        'CREATE INDEX idx_sync_queue_quotation ON sync_queue(quotation_id)');
   }
 
   static Future<void> _createQuotationTables(Database db) async {
@@ -195,12 +228,18 @@ class CatalogDatabase {
   /// v1 -> v2: replaces `pending_orders` with `quotations`/`sales_orders`, and
   /// extends `cart_items` with shop/quotation-editing columns. No production
   /// backend to reconcile against, so dropping `pending_orders` is safe.
-  static Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+  static Future<void> _onUpgrade(
+      Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
       await db.execute('DROP TABLE IF EXISTS pending_orders');
       await db.execute('ALTER TABLE cart_items ADD COLUMN customer_id TEXT');
-      await db.execute('ALTER TABLE cart_items ADD COLUMN editing_quotation_id TEXT');
+      await db.execute(
+          'ALTER TABLE cart_items ADD COLUMN editing_quotation_id TEXT');
       await _createQuotationTables(db);
+    }
+    // v2 -> v3: outbound SAP sync queue for offline-first quotation submission.
+    if (oldVersion < 3) {
+      await _createSyncQueueTable(db);
     }
   }
 }

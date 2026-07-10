@@ -46,7 +46,14 @@ final class GeofenceStatusChanged extends ActiveRouteEvent {
   final double longitude;
 
   @override
-  List<Object?> get props => [insideGeofence, distanceMeters, accuracyMeters, isMocked, latitude, longitude];
+  List<Object?> get props => [
+        insideGeofence,
+        distanceMeters,
+        accuracyMeters,
+        isMocked,
+        latitude,
+        longitude
+      ];
 }
 
 final class CheckInRequested extends ActiveRouteEvent {

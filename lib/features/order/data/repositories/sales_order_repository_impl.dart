@@ -16,17 +16,21 @@ import 'package:isi_steel_sales_mobile/features/order/domain/entities/sales_orde
 import 'package:isi_steel_sales_mobile/features/order/domain/repositories/sales_order_repository.dart';
 
 class SalesOrderRepositoryImpl implements SalesOrderRepository {
-  SalesOrderRepositoryImpl({required SalesOrderLocalDataSource local, required ProductLocalDataSource productLocal})
+  SalesOrderRepositoryImpl(
+      {required SalesOrderLocalDataSource local,
+      required ProductLocalDataSource productLocal})
       : _local = local,
         _productLocal = productLocal;
 
   final SalesOrderLocalDataSource _local;
   final ProductLocalDataSource _productLocal;
 
-  final StreamController<List<SalesOrder>> _controller = StreamController<List<SalesOrder>>.broadcast();
+  final StreamController<List<SalesOrder>> _controller =
+      StreamController<List<SalesOrder>>.broadcast();
 
   @override
-  ResultFuture<SalesOrder> createFromQuotation(Quotation quotation, {required List<CartItem> items}) async {
+  ResultFuture<SalesOrder> createFromQuotation(Quotation quotation,
+      {required List<CartItem> items}) async {
     try {
       if (items.isEmpty) {
         return const Failed(CacheFailure(message: 'Sales order has no items.'));
@@ -121,14 +125,19 @@ class SalesOrderRepositoryImpl implements SalesOrderRepository {
       shopName: row['shop_name'] as String?,
       leadId: row['lead_id'] as String?,
       leadDisplayName: row['lead_display_name'] as String?,
-      lines: await _decodeLines(row['lines_json'] as String, customerId: row['customer_id'] as String?, leadId: row['lead_id'] as String?),
+      lines: await _decodeLines(row['lines_json'] as String,
+          customerId: row['customer_id'] as String?,
+          leadId: row['lead_id'] as String?),
       subtotal: (row['subtotal'] as num).toDouble(),
       discount: (row['discount'] as num).toDouble(),
       tax: (row['tax'] as num).toDouble(),
       total: (row['total'] as num).toDouble(),
-      status: SalesOrderStatus.values.firstWhere((s) => s.name == row['status']),
-      offVisitReason:
-          row['off_visit_reason'] == null ? null : OffVisitReason.values.firstWhere((r) => r.name == row['off_visit_reason']),
+      status:
+          SalesOrderStatus.values.firstWhere((s) => s.name == row['status']),
+      offVisitReason: row['off_visit_reason'] == null
+          ? null
+          : OffVisitReason.values
+              .firstWhere((r) => r.name == row['off_visit_reason']),
       sapStatus: row['sap_status'] as String,
       createdAt: DateTime.parse(row['created_at'] as String),
     );
@@ -143,7 +152,8 @@ class SalesOrderRepositoryImpl implements SalesOrderRepository {
           })
       .toList());
 
-  Future<List<CartItem>> _decodeLines(String json, {String? customerId, String? leadId}) async {
+  Future<List<CartItem>> _decodeLines(String json,
+      {String? customerId, String? leadId}) async {
     final rawItems = (jsonDecode(json) as List).cast<DataMap>();
     final items = <CartItem>[];
     for (final raw in rawItems) {
@@ -162,5 +172,6 @@ class SalesOrderRepositoryImpl implements SalesOrderRepository {
     return items;
   }
 
-  static String _newId(String prefix) => '$prefix-${(DateTime.now().microsecondsSinceEpoch + Random().nextInt(99999)) % 1000000}';
+  static String _newId(String prefix) =>
+      '$prefix-${(DateTime.now().microsecondsSinceEpoch + Random().nextInt(99999)) % 1000000}';
 }

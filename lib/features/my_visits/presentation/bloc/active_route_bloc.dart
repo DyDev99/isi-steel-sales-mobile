@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/active_workflow.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/check_in_record.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/check_out_record.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/fraud_flag.dart';
@@ -13,11 +14,14 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/fraud_detection_service.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/check_in.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/check_out.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/clear_active_workflow.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/get_route.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/record_fraud_flag.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/routes_params.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/save_active_workflow.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/update_route_status.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/update_stop_status.dart';
+import 'package:isi_steel_sales_mobile/core/usecase/usecase.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/active_route_event.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/active_route_state.dart';
 
@@ -36,6 +40,8 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
     required CheckOut checkOut,
     required RecordFraudFlag recordFraudFlag,
     required FraudDetectionService fraudDetectionService,
+    required SaveActiveWorkflow saveActiveWorkflow,
+    required ClearActiveWorkflow clearActiveWorkflow,
   })  : _getRoute = getRoute,
         _updateRouteStatus = updateRouteStatus,
         _updateStopStatus = updateStopStatus,
@@ -43,6 +49,8 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
         _checkOut = checkOut,
         _recordFraudFlag = recordFraudFlag,
         _fraudDetectionService = fraudDetectionService,
+        _saveActiveWorkflow = saveActiveWorkflow,
+        _clearActiveWorkflow = clearActiveWorkflow,
         super(const ActiveRouteLoading()) {
     on<ActiveRouteLoadRequested>(_onLoad);
     on<StartDayRequested>(_onStartDay, transformer: droppable());
@@ -61,20 +69,41 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
   final CheckOut _checkOut;
   final RecordFraudFlag _recordFraudFlag;
   final FraudDetectionService _fraudDetectionService;
+  final SaveActiveWorkflow _saveActiveWorkflow;
+  final ClearActiveWorkflow _clearActiveWorkflow;
 
-  Future<void> _onLoad(ActiveRouteLoadRequested event, Emitter<ActiveRouteState> emit) async {
+  /// Fire-and-forget resume-pointer upsert — advisory (stop status in the
+  /// DB is the real source of truth on resume), so a slow/failed write here
+  /// never blocks the UI.
+  void _persistWorkflow(ActiveRouteReady state) {
+    if (!state.dayStarted) return;
+    unawaited(_saveActiveWorkflow(ActiveWorkflow(
+      routeId: state.route.id,
+      currentStopId: state.hasCurrentStop
+          ? state.route.stops[state.currentStopIndex].id
+          : null,
+      dayStarted: state.dayStarted,
+      updatedAt: DateTime.now(),
+    )));
+  }
+
+  Future<void> _onLoad(
+      ActiveRouteLoadRequested event, Emitter<ActiveRouteState> emit) async {
     emit(const ActiveRouteLoading());
     final result = await _getRoute(RouteIdParams(event.routeId));
     result.when(
-      success: (route) => emit(ActiveRouteReady(route: route, dayStarted: false, currentStopIndex: -1)),
+      success: (route) => emit(ActiveRouteReady(
+          route: route, dayStarted: false, currentStopIndex: -1)),
       failure: (f) => emit(ActiveRouteError(f.message)),
     );
   }
 
-  Future<void> _onStartDay(StartDayRequested event, Emitter<ActiveRouteState> emit) async {
+  Future<void> _onStartDay(
+      StartDayRequested event, Emitter<ActiveRouteState> emit) async {
     final current = state;
     if (current is! ActiveRouteReady) return;
-    await _updateRouteStatus(UpdateRouteStatusParams(current.route.id, RouteStatus.inProgress));
+    await _updateRouteStatus(
+        UpdateRouteStatusParams(current.route.id, RouteStatus.inProgress));
 
     // Re-read state instead of reusing the pre-await snapshot: StopSelected
     // and/or GeofenceStatusChanged (both processed concurrently, since
@@ -85,29 +114,39 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
     // geofence.
     final latest = state;
     if (latest is! ActiveRouteReady) return;
-    emit(latest.copyWith(
+    final next = latest.copyWith(
       route: latest.route.copyWith(status: RouteStatus.inProgress),
       dayStarted: true,
       // Only default to the first stop if nothing has already selected one.
-      currentStopIndex:
-          latest.currentStopIndex >= 0 ? latest.currentStopIndex : (latest.route.stops.isEmpty ? -1 : 0),
-    ));
+      currentStopIndex: latest.currentStopIndex >= 0
+          ? latest.currentStopIndex
+          : (latest.route.stops.isEmpty ? -1 : 0),
+    );
+    emit(next);
+    _persistWorkflow(next);
   }
 
   void _onStopSelected(StopSelected event, Emitter<ActiveRouteState> emit) {
     final current = state;
     if (current is! ActiveRouteReady) return;
-    emit(current.copyWith(
+    final next = current.copyWith(
       currentStopIndex: event.index,
       insideGeofence: true,
       blockedCheckInReason: () => null,
       checkInWarnings: const [],
-    ));
+    );
+    emit(next);
+    _persistWorkflow(next);
   }
 
-  void _onGeofenceChanged(GeofenceStatusChanged event, Emitter<ActiveRouteState> emit) {
+  void _onGeofenceChanged(
+      GeofenceStatusChanged event, Emitter<ActiveRouteState> emit) {
     final current = state;
-    if (current is! ActiveRouteReady || !current.dayStarted || !current.hasCurrentStop) return;
+    if (current is! ActiveRouteReady ||
+        !current.dayStarted ||
+        !current.hasCurrentStop) {
+      return;
+    }
     emit(current.copyWith(
       insideGeofence: true,
       distanceMeters: event.distanceMeters,
@@ -116,10 +155,18 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
     ));
   }
 
-  Future<void> _onCheckIn(CheckInRequested event, Emitter<ActiveRouteState> emit) async {
+  Future<void> _onCheckIn(
+      CheckInRequested event, Emitter<ActiveRouteState> emit) async {
     final current = state;
     if (current is! ActiveRouteReady || !current.hasCurrentStop) return;
     final stop = current.route.stops[current.currentStopIndex];
+    // Idempotency guard: a double-tap or a resume-triggered re-entry into
+    // RouteCheckInScreen must not create a second `checkins` row for the
+    // same stop (mirrors the existing guard in `_onCheckOut`).
+    if (stop.status == VisitStatus.checkedIn ||
+        stop.status == VisitStatus.checkedOut) {
+      return;
+    }
 
     final vpnDetected = await _fraudDetectionService.detectVpnHeuristic();
     final validation = _fraudDetectionService.validateCheckIn(
@@ -135,7 +182,9 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
         id: _newId(),
         routeId: current.route.id,
         stopId: stop.id,
-        type: current.isMocked ? FraudFlagType.mockLocation : FraudFlagType.vpnDetected,
+        type: current.isMocked
+            ? FraudFlagType.mockLocation
+            : FraudFlagType.vpnDetected,
         detail: warning,
         timestamp: DateTime.now(),
         blocked: false,
@@ -162,24 +211,34 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
       isMocked: current.isMocked,
     );
     await _checkIn(record);
-    await _updateStopStatus(UpdateStopStatusParams(stopId: stop.id, status: VisitStatus.checkedIn, actualArrival: now));
+    await _updateStopStatus(UpdateStopStatusParams(
+        stopId: stop.id, status: VisitStatus.checkedIn, actualArrival: now));
 
-    emit(current.copyWith(
-      route: current.route.copyWith(stops: _replaceStop(current.route.stops, stop.id,
-          (s) => s.copyWith(status: VisitStatus.checkedIn, actualArrival: now))),
+    final next = current.copyWith(
+      route: current.route.copyWith(
+          stops: _replaceStop(
+              current.route.stops,
+              stop.id,
+              (s) => s.copyWith(
+                  status: VisitStatus.checkedIn, actualArrival: now))),
       blockedCheckInReason: () => null,
       checkInWarnings: validation.warnings,
-    ));
+    );
+    emit(next);
+    _persistWorkflow(next);
   }
 
-  Future<void> _onCheckOut(CheckOutRequested event, Emitter<ActiveRouteState> emit) async {
+  Future<void> _onCheckOut(
+      CheckOutRequested event, Emitter<ActiveRouteState> emit) async {
     final current = state;
     if (current is! ActiveRouteReady || !current.hasCurrentStop) return;
     final stop = current.route.stops[current.currentStopIndex];
     if (stop.status != VisitStatus.checkedIn) return;
 
     final now = DateTime.now();
-    final duration = stop.actualArrival == null ? 0 : now.difference(stop.actualArrival!).inMinutes;
+    final duration = stop.actualArrival == null
+        ? 0
+        : now.difference(stop.actualArrival!).inMinutes;
     final record = CheckOutRecord(
       id: _newId(),
       stopId: stop.id,
@@ -191,45 +250,69 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
     );
     await _checkOut(record);
     await _updateStopStatus(
-      UpdateStopStatusParams(stopId: stop.id, status: VisitStatus.checkedOut, actualDeparture: now),
+      UpdateStopStatusParams(
+          stopId: stop.id,
+          status: VisitStatus.checkedOut,
+          actualDeparture: now),
     );
 
-    emit(current.copyWith(
-      route: current.route.copyWith(stops: _replaceStop(current.route.stops, stop.id,
-          (s) => s.copyWith(status: VisitStatus.checkedOut, actualDeparture: now))),
-    ));
+    final next = current.copyWith(
+      route: current.route.copyWith(
+          stops: _replaceStop(
+              current.route.stops,
+              stop.id,
+              (s) => s.copyWith(
+                  status: VisitStatus.checkedOut, actualDeparture: now))),
+    );
+    emit(next);
+    _persistWorkflow(next);
   }
 
-  Future<void> _onNextStop(NextStopRequested event, Emitter<ActiveRouteState> emit) async {
+  Future<void> _onNextStop(
+      NextStopRequested event, Emitter<ActiveRouteState> emit) async {
     final current = state;
     if (current is! ActiveRouteReady || !current.hasCurrentStop) return;
     final stop = current.route.stops[current.currentStopIndex];
 
     var stops = current.route.stops;
     if (stop.status != VisitStatus.checkedOut) {
-      await _updateStopStatus(UpdateStopStatusParams(stopId: stop.id, status: VisitStatus.missed));
-      stops = _replaceStop(stops, stop.id, (s) => s.copyWith(status: VisitStatus.missed));
+      await _updateStopStatus(
+          UpdateStopStatusParams(stopId: stop.id, status: VisitStatus.missed));
+      stops = _replaceStop(
+          stops, stop.id, (s) => s.copyWith(status: VisitStatus.missed));
     }
 
     final nextIndex = current.currentStopIndex + 1;
-    emit(current.copyWith(
+    final next = current.copyWith(
       route: current.route.copyWith(stops: stops),
-      currentStopIndex: nextIndex < stops.length ? nextIndex : current.currentStopIndex,
+      currentStopIndex:
+          nextIndex < stops.length ? nextIndex : current.currentStopIndex,
       insideGeofence: false,
       blockedCheckInReason: () => null,
       checkInWarnings: const [],
-    ));
+    );
+    emit(next);
+    _persistWorkflow(next);
   }
 
-  Future<void> _onEndDay(EndDayRequested event, Emitter<ActiveRouteState> emit) async {
+  Future<void> _onEndDay(
+      EndDayRequested event, Emitter<ActiveRouteState> emit) async {
     final current = state;
     if (current is! ActiveRouteReady) return;
-    await _updateRouteStatus(UpdateRouteStatusParams(current.route.id, RouteStatus.completed));
-    emit(ActiveRouteCompleted(current.route.copyWith(status: RouteStatus.completed)));
+    await _updateRouteStatus(
+        UpdateRouteStatusParams(current.route.id, RouteStatus.completed));
+    unawaited(_clearActiveWorkflow(const NoParams()));
+    emit(ActiveRouteCompleted(
+        current.route.copyWith(status: RouteStatus.completed)));
   }
 
-  List<RouteStop> _replaceStop(List<RouteStop> stops, String stopId, RouteStop Function(RouteStop) update) =>
-      [for (final s in stops) if (s.id == stopId) update(s) else s];
+  List<RouteStop> _replaceStop(List<RouteStop> stops, String stopId,
+          RouteStop Function(RouteStop) update) =>
+      [
+        for (final s in stops)
+          if (s.id == stopId) update(s) else s
+      ];
 
-  static String _newId() => '${DateTime.now().microsecondsSinceEpoch}-${Random().nextInt(99999)}';
+  static String _newId() =>
+      '${DateTime.now().microsecondsSinceEpoch}-${Random().nextInt(99999)}';
 }

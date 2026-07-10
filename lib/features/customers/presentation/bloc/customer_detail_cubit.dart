@@ -42,12 +42,15 @@ class CustomerDetailCubit extends Cubit<CustomerDetailState> {
     final customerResult = await _getCustomerById(CustomerIdParams(customerId));
     await customerResult.when(
       success: (customer) async {
-        final notesResult = await _fetchCustomerNotes(CustomerIdParams(customerId));
-        final activitiesResult = await _fetchCustomerActivities(CustomerIdParams(customerId));
+        final notesResult =
+            await _fetchCustomerNotes(CustomerIdParams(customerId));
+        final activitiesResult =
+            await _fetchCustomerActivities(CustomerIdParams(customerId));
         emit(CustomerDetailLoaded(
           customer: customer,
           notes: notesResult.when(success: (n) => n, failure: (_) => const []),
-          activities: activitiesResult.when(success: (a) => a, failure: (_) => const []),
+          activities: activitiesResult.when(
+              success: (a) => a, failure: (_) => const []),
         ));
       },
       failure: (f) async => emit(CustomerDetailError(f.message)),
@@ -71,11 +74,15 @@ class CustomerDetailCubit extends Cubit<CustomerDetailState> {
           summary: body.trim(),
           createdAt: DateTime.now(),
         )));
-        final notesResult = await _fetchCustomerNotes(CustomerIdParams(current.customer.id));
-        final activitiesResult = await _fetchCustomerActivities(CustomerIdParams(current.customer.id));
+        final notesResult =
+            await _fetchCustomerNotes(CustomerIdParams(current.customer.id));
+        final activitiesResult = await _fetchCustomerActivities(
+            CustomerIdParams(current.customer.id));
         emit(current.copyWith(
-          notes: notesResult.when(success: (n) => n, failure: (_) => current.notes),
-          activities: activitiesResult.when(success: (a) => a, failure: (_) => current.activities),
+          notes: notesResult.when(
+              success: (n) => n, failure: (_) => current.notes),
+          activities: activitiesResult.when(
+              success: (a) => a, failure: (_) => current.activities),
           isAddingNote: false,
         ));
       },
@@ -94,7 +101,10 @@ class CustomerDetailCubit extends Cubit<CustomerDetailState> {
       summary: summary,
       createdAt: DateTime.now(),
     )));
-    final activitiesResult = await _fetchCustomerActivities(CustomerIdParams(current.customer.id));
-    emit(current.copyWith(activities: activitiesResult.when(success: (a) => a, failure: (_) => current.activities)));
+    final activitiesResult =
+        await _fetchCustomerActivities(CustomerIdParams(current.customer.id));
+    emit(current.copyWith(
+        activities: activitiesResult.when(
+            success: (a) => a, failure: (_) => current.activities)));
   }
 }

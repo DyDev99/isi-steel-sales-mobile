@@ -41,7 +41,8 @@ class LocationSampleModel extends LocationSample {
         'is_mocked': isMocked ? 1 : 0,
       };
 
-  factory LocationSampleModel.fromEntity(LocationSample e) => LocationSampleModel(
+  factory LocationSampleModel.fromEntity(LocationSample e) =>
+      LocationSampleModel(
         id: e.id,
         routeId: e.routeId,
         latitude: e.latitude,

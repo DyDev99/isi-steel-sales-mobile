@@ -20,13 +20,17 @@ class VisitHistoryErrorState extends StatelessWidget {
               width: 72,
               height: 72,
               alignment: Alignment.center,
-              decoration: BoxDecoration(color: Vibe.danger.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(20)),
-              child: const Icon(Icons.cloud_off_rounded, size: 34, color: Vibe.danger),
+              decoration: BoxDecoration(
+                  color: Vibe.danger.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(20)),
+              child: const Icon(Icons.cloud_off_rounded,
+                  size: 34, color: Vibe.danger),
             ),
             const SizedBox(height: 16),
             Text(
               'my_visits.history.error_title'.tr,
-              style: const TextStyle(color: Vibe.text, fontSize: 15, fontWeight: FontWeight.w800),
+              style: const TextStyle(
+                  color: Vibe.text, fontSize: 15, fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 6),
             Text(
@@ -40,10 +44,13 @@ class VisitHistoryErrorState extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Vibe.violet,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
               ),
-              child: Text('my_visits.history.retry'.tr, style: const TextStyle(fontWeight: FontWeight.w700)),
+              child: Text('my_visits.history.retry'.tr,
+                  style: const TextStyle(fontWeight: FontWeight.w700)),
             ),
           ],
         ),

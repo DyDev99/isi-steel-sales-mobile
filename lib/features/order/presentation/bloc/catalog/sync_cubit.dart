@@ -29,7 +29,8 @@ class SyncCubit extends Cubit<SyncState> {
 
   Future<void> syncIfNeeded() async {
     final lastSynced = await _getLastSyncedAt(const NoParams());
-    final needsInitial = lastSynced.when(success: (at) => at == null, failure: (_) => true);
+    final needsInitial =
+        lastSynced.when(success: (at) => at == null, failure: (_) => true);
     if (needsInitial) {
       await _run(isInitial: true);
     }
@@ -40,9 +41,11 @@ class SyncCubit extends Cubit<SyncState> {
   Future<void> _run({required bool isInitial}) async {
     emit(SyncInProgress(isInitial: isInitial));
     final scope = SyncScope.forCurrentUser(_sessionManager);
-    final result = isInitial ? await _runInitialSync(scope) : await _runDeltaSync(scope);
+    final result =
+        isInitial ? await _runInitialSync(scope) : await _runDeltaSync(scope);
     result.when(
-      success: (r) => emit(SyncSucceeded(upserted: r.upserted, deleted: r.deleted, syncedAt: r.syncedAt)),
+      success: (r) => emit(SyncSucceeded(
+          upserted: r.upserted, deleted: r.deleted, syncedAt: r.syncedAt)),
       failure: (f) => emit(SyncFailed(f.message)),
     );
   }

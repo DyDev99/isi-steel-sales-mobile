@@ -57,13 +57,17 @@ class RevenueEmptyView extends StatelessWidget {
               width: 72,
               height: 72,
               alignment: Alignment.center,
-              decoration: BoxDecoration(color: Vibe.primaryLight, borderRadius: BorderRadius.circular(20)),
-              child: const Icon(Icons.inventory_2_outlined, size: 34, color: Vibe.violet),
+              decoration: BoxDecoration(
+                  color: Vibe.primaryLight,
+                  borderRadius: BorderRadius.circular(20)),
+              child: const Icon(Icons.inventory_2_outlined,
+                  size: 34, color: Vibe.violet),
             ),
             const SizedBox(height: 16),
             Text(
               'revenue.empty.title'.tr,
-              style: const TextStyle(color: Vibe.text, fontSize: 15, fontWeight: FontWeight.w800),
+              style: const TextStyle(
+                  color: Vibe.text, fontSize: 15, fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 6),
             Text(
@@ -80,7 +84,8 @@ class RevenueEmptyView extends StatelessWidget {
 
 /// Shown when loading products/categories/discounts/credit summary fails.
 class RevenueErrorView extends StatelessWidget {
-  const RevenueErrorView({super.key, required this.message, required this.onRetry});
+  const RevenueErrorView(
+      {super.key, required this.message, required this.onRetry});
 
   final String? message;
   final VoidCallback onRetry;
@@ -97,14 +102,17 @@ class RevenueErrorView extends StatelessWidget {
               width: 72,
               height: 72,
               alignment: Alignment.center,
-              decoration:
-                  BoxDecoration(color: Vibe.danger.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(20)),
-              child: const Icon(Icons.cloud_off_rounded, size: 34, color: Vibe.danger),
+              decoration: BoxDecoration(
+                  color: Vibe.danger.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(20)),
+              child: const Icon(Icons.cloud_off_rounded,
+                  size: 34, color: Vibe.danger),
             ),
             const SizedBox(height: 16),
             Text(
               'revenue.error.title'.tr,
-              style: const TextStyle(color: Vibe.text, fontSize: 15, fontWeight: FontWeight.w800),
+              style: const TextStyle(
+                  color: Vibe.text, fontSize: 15, fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 6),
             Text(
@@ -118,10 +126,13 @@ class RevenueErrorView extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Vibe.violet,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
               ),
-              child: Text('common.retry'.tr, style: const TextStyle(fontWeight: FontWeight.w700)),
+              child: Text('common.retry'.tr,
+                  style: const TextStyle(fontWeight: FontWeight.w700)),
             ),
           ],
         ),

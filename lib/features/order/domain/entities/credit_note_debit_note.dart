@@ -27,5 +27,6 @@ class CreditNoteDebitNote extends Equatable {
   final bool settled;
 
   @override
-  List<Object?> get props => [id, customerId, type, amount, reference, reason, issuedDate, settled];
+  List<Object?> get props =>
+      [id, customerId, type, amount, reference, reason, issuedDate, settled];
 }

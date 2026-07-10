@@ -18,7 +18,8 @@ class SalesOrderLocalDataSourceImpl implements SalesOrderLocalDataSource {
   @override
   Future<void> insertSalesOrder(DataMap row) async {
     try {
-      await _db.insert('sales_orders', row, conflictAlgorithm: ConflictAlgorithm.replace);
+      await _db.insert('sales_orders', row,
+          conflictAlgorithm: ConflictAlgorithm.replace);
     } catch (e) {
       throw CacheException(message: 'Failed to save sales order: $e');
     }
@@ -27,7 +28,8 @@ class SalesOrderLocalDataSourceImpl implements SalesOrderLocalDataSource {
   @override
   Future<DataMap?> getById(String id) async {
     try {
-      final rows = await _db.query('sales_orders', where: 'id = ?', whereArgs: [id], limit: 1);
+      final rows = await _db.query('sales_orders',
+          where: 'id = ?', whereArgs: [id], limit: 1);
       return rows.isEmpty ? null : rows.first;
     } catch (e) {
       throw CacheException(message: 'Failed to load sales order $id: $e');

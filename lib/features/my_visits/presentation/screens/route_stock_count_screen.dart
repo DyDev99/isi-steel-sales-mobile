@@ -41,7 +41,10 @@ class _RouteStockCountScreenState extends State<RouteStockCountScreen> {
 
   bool _submitting = false;
 
-  List<String> get _outOfStock => [for (final i in _items) if (i.count == 0) i.name];
+  List<String> get _outOfStock => [
+        for (final i in _items)
+          if (i.count == 0) i.name
+      ];
 
   void _step(_ShelfItem item, double delta) {
     setState(() => item.count = (item.count + delta).clamp(0, 99999));
@@ -97,12 +100,15 @@ class _RouteStockCountScreenState extends State<RouteStockCountScreen> {
         backgroundColor: Vibe.bg,
         iconTheme: const IconThemeData(color: Vibe.text),
         title: Text('my_visits.flow.shelf_count_title'.tr,
-            style: const TextStyle(color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
+            style: const TextStyle(
+                color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
       ),
       body: BlocBuilder<ActiveRouteBloc, ActiveRouteState>(
         builder: (context, state) {
           if (state is! ActiveRouteReady || !state.hasCurrentStop) {
-            return Center(child: Text('my_visits.flow.no_stop'.tr, style: const TextStyle(color: Vibe.muted)));
+            return Center(
+                child: Text('my_visits.flow.no_stop'.tr,
+                    style: const TextStyle(color: Vibe.muted)));
           }
           final stop = state.route.stops[state.currentStopIndex];
           final outOfStock = _outOfStock;
@@ -115,10 +121,14 @@ class _RouteStockCountScreenState extends State<RouteStockCountScreen> {
                   children: [
                     const OfflineBanner(margin: EdgeInsets.only(bottom: 12)),
                     Text(stop.customer.name,
-                        style: const TextStyle(color: Vibe.text, fontSize: 16, fontWeight: FontWeight.w900)),
+                        style: const TextStyle(
+                            color: Vibe.text,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w900)),
                     const SizedBox(height: 2),
                     Text('my_visits.flow.shelf_count_subtitle'.tr,
-                        style: const TextStyle(color: Vibe.muted, fontSize: 12.5)),
+                        style:
+                            const TextStyle(color: Vibe.muted, fontSize: 12.5)),
                     const SizedBox(height: 14),
                     if (outOfStock.isNotEmpty) ...[
                       _InsightBanner(outOfStock: outOfStock),
@@ -173,7 +183,11 @@ class _InsightBanner extends StatelessWidget {
           Expanded(
             child: Text(
               'my_visits.flow.stock_insight'.tr.replaceAll('{names}', names),
-              style: const TextStyle(color: Vibe.amber, fontSize: 12.5, fontWeight: FontWeight.w600, height: 1.35),
+              style: const TextStyle(
+                  color: Vibe.amber,
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  height: 1.35),
             ),
           ),
         ],
@@ -196,7 +210,8 @@ class _ShelfRow extends StatelessWidget {
       decoration: BoxDecoration(
         color: Vibe.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: isOut ? Vibe.amber.withValues(alpha: 0.5) : Vibe.stroke),
+        border: Border.all(
+            color: isOut ? Vibe.amber.withValues(alpha: 0.5) : Vibe.stroke),
       ),
       child: Row(
         children: [
@@ -207,13 +222,17 @@ class _ShelfRow extends StatelessWidget {
                 Text(item.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Vibe.text, fontSize: 14, fontWeight: FontWeight.w800)),
+                    style: const TextStyle(
+                        color: Vibe.text,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800)),
                 const SizedBox(height: 2),
                 Text(
                     isOut
                         ? '${'my_visits.flow.on_shelf'.tr} · ${'my_visits.flow.out_of_stock'.tr}'
                         : 'my_visits.flow.on_shelf'.tr,
-                    style: TextStyle(color: isOut ? Vibe.amber : Vibe.muted, fontSize: 11)),
+                    style: TextStyle(
+                        color: isOut ? Vibe.amber : Vibe.muted, fontSize: 11)),
               ],
             ),
           ),
@@ -222,7 +241,10 @@ class _ShelfRow extends StatelessWidget {
             width: 46,
             alignment: Alignment.center,
             child: Text(item.count.toStringAsFixed(0),
-                style: const TextStyle(color: Vibe.text, fontSize: 18, fontWeight: FontWeight.w900)),
+                style: const TextStyle(
+                    color: Vibe.text,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900)),
           ),
           _StepButton(icon: Icons.add_rounded, sign: 1, onDelta: onStep),
         ],
@@ -234,7 +256,8 @@ class _ShelfRow extends StatelessWidget {
 /// Large hit-target stepper button. Tap = ±1, long-press = repeat ±10 while held
 /// so a rep can rack up big counts without hundreds of taps.
 class _StepButton extends StatefulWidget {
-  const _StepButton({required this.icon, required this.sign, required this.onDelta});
+  const _StepButton(
+      {required this.icon, required this.sign, required this.onDelta});
   final IconData icon;
   final double sign;
   final void Function(double delta) onDelta;
@@ -288,7 +311,8 @@ class _StepButtonState extends State<_StepButton> {
 }
 
 class _StockCountBar extends StatelessWidget {
-  const _StockCountBar({required this.submitting, required this.onBack, required this.onDone});
+  const _StockCountBar(
+      {required this.submitting, required this.onBack, required this.onDone});
   final bool submitting;
   final VoidCallback onBack;
   final VoidCallback onDone;
@@ -308,7 +332,10 @@ class _StockCountBar extends StatelessWidget {
             TextButton(
               onPressed: submitting ? null : onBack,
               child: Text('my_visits.flow.back'.tr,
-                  style: const TextStyle(color: Vibe.muted, fontSize: 14, fontWeight: FontWeight.w700)),
+                  style: const TextStyle(
+                      color: Vibe.muted,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700)),
             ),
             const SizedBox(width: 8),
             Expanded(
@@ -316,15 +343,20 @@ class _StockCountBar extends StatelessWidget {
                 onPressed: submitting ? null : onDone,
                 icon: submitting
                     ? const SizedBox(
-                        width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white))
                     : const Icon(Icons.request_quote_rounded, size: 20),
                 label: Text('my_visits.flow.done_build_quote'.tr,
-                    style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w800)),
+                    style: const TextStyle(
+                        fontSize: 14.5, fontWeight: FontWeight.w800)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Vibe.violet,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 15),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14)),
                 ),
               ),
             ),

@@ -16,9 +16,12 @@ class CustomerCredit extends Equatable {
   final double usedCredit;
   final double outstandingBalance;
 
-  double get availableCredit => (creditLimit - usedCredit).clamp(0, creditLimit);
-  double get usageRatio => creditLimit <= 0 ? 0 : (usedCredit / creditLimit).clamp(0, 1);
+  double get availableCredit =>
+      (creditLimit - usedCredit).clamp(0, creditLimit);
+  double get usageRatio =>
+      creditLimit <= 0 ? 0 : (usedCredit / creditLimit).clamp(0, 1);
 
   @override
-  List<Object?> get props => [customerId, customerName, creditLimit, usedCredit, outstandingBalance];
+  List<Object?> get props =>
+      [customerId, customerName, creditLimit, usedCredit, outstandingBalance];
 }

@@ -26,10 +26,12 @@ class CustomerRepositoryImpl implements CustomerRepository {
     CustomerFilter filter = const CustomerFilter(),
   }) async {
     try {
-      final rows = await _local.browse(page: page, pageSize: pageSize, query: query, filter: filter);
+      final rows = await _local.browse(
+          page: page, pageSize: pageSize, query: query, filter: filter);
       final hasMore = rows.length > pageSize;
       final items = hasMore ? rows.sublist(0, pageSize) : rows;
-      return Success(CustomerPagedResult(items: items, page: page, hasMore: hasMore));
+      return Success(
+          CustomerPagedResult(items: items, page: page, hasMore: hasMore));
     } on CacheException catch (e) {
       return Failed(CacheFailure(message: e.message));
     }
@@ -39,7 +41,9 @@ class CustomerRepositoryImpl implements CustomerRepository {
   ResultFuture<Customer> getById(String id) async {
     try {
       final customer = await _local.getById(id);
-      if (customer == null) return const Failed(CacheFailure(message: 'Customer not found.'));
+      if (customer == null) {
+        return const Failed(CacheFailure(message: 'Customer not found.'));
+      }
       return Success(customer);
     } on CacheException catch (e) {
       return Failed(CacheFailure(message: e.message));
@@ -109,7 +113,8 @@ class CustomerRepositoryImpl implements CustomerRepository {
   }
 
   @override
-  ResultFuture<List<CustomerActivity>> fetchActivities(String customerId) async {
+  ResultFuture<List<CustomerActivity>> fetchActivities(
+      String customerId) async {
     try {
       return Success(await _local.fetchActivities(customerId));
     } on CacheException catch (e) {

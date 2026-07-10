@@ -23,7 +23,8 @@ class GeolocatorTrackingService implements LocationTrackingService {
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
     }
-    if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
       return false;
     }
 
@@ -38,7 +39,8 @@ class GeolocatorTrackingService implements LocationTrackingService {
   @override
   Stream<LocationSample> track(String routeId) {
     _controller ??= StreamController<LocationSample>.broadcast(onCancel: stop);
-    _subscription ??= Geolocator.getPositionStream(locationSettings: _settings()).listen(
+    _subscription ??=
+        Geolocator.getPositionStream(locationSettings: _settings()).listen(
       (position) => _controller?.add(_toSample(routeId, position)),
       onError: (Object _) {},
     );
@@ -67,7 +69,8 @@ class GeolocatorTrackingService implements LocationTrackingService {
         allowBackgroundLocationUpdates: true,
       );
     }
-    return const LocationSettings(accuracy: LocationAccuracy.high, distanceFilter: 10);
+    return const LocationSettings(
+        accuracy: LocationAccuracy.high, distanceFilter: 10);
   }
 
   LocationSample _toSample(String routeId, Position position) => LocationSample(

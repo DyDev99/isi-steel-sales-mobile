@@ -21,7 +21,9 @@ class ProductCardSkeleton extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             DecoratedBox(
-              decoration: BoxDecoration(color: kSkeletonBase, borderRadius: BorderRadius.circular(10)),
+              decoration: BoxDecoration(
+                  color: kSkeletonBase,
+                  borderRadius: BorderRadius.circular(10)),
               child: const SizedBox(width: _imageSize, height: _imageSize),
             ),
             const SizedBox(width: 10),
@@ -37,7 +39,8 @@ class ProductCardSkeleton extends StatelessWidget {
                       children: const [
                         SkeletonBox(width: 40, height: 10, radius: 4),
                         SizedBox(height: 4),
-                        SkeletonBox(width: double.infinity, height: 13, radius: 4),
+                        SkeletonBox(
+                            width: double.infinity, height: 13, radius: 4),
                         SizedBox(height: 4),
                         SkeletonBox(width: 90, height: 11, radius: 4),
                         SizedBox(height: 3),

@@ -55,14 +55,19 @@ class PipelineSearchFilterBar extends StatelessWidget {
           onTap: onFilterTap,
         ),
         const SizedBox(width: 10),
-        _SquareButton(icon: Icons.add_rounded, onTap: onAddLead, gradient: true),
+        _SquareButton(
+            icon: Icons.add_rounded, onTap: onAddLead, gradient: true),
       ],
     );
   }
 }
 
 class _SquareButton extends StatelessWidget {
-  const _SquareButton({required this.icon, required this.onTap, this.highlighted = false, this.gradient = false});
+  const _SquareButton(
+      {required this.icon,
+      required this.onTap,
+      this.highlighted = false,
+      this.gradient = false});
   final IconData icon;
   final VoidCallback onTap;
   final bool highlighted;
@@ -79,11 +84,19 @@ class _SquareButton extends StatelessWidget {
         alignment: Alignment.center,
         decoration: BoxDecoration(
           gradient: gradient ? Vibe.cta : null,
-          color: gradient ? null : (highlighted ? Vibe.violet.withValues(alpha: 0.18) : Vibe.surface),
+          color: gradient
+              ? null
+              : (highlighted
+                  ? Vibe.violet.withValues(alpha: 0.18)
+                  : Vibe.surface),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: highlighted ? Vibe.violet : Vibe.stroke),
         ),
-        child: Icon(icon, color: gradient ? Colors.white : (highlighted ? Vibe.violet : Vibe.text), size: 20),
+        child: Icon(icon,
+            color: gradient
+                ? Colors.white
+                : (highlighted ? Vibe.violet : Vibe.text),
+            size: 20),
       ),
     );
   }

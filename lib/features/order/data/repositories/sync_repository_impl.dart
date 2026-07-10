@@ -49,7 +49,8 @@ class SyncRepositoryImpl implements SyncRepository {
       var page = 0;
       var total = 0;
       while (true) {
-        final result = await _remote.fetchInitial(scope: scope, page: page, pageSize: _pageSize);
+        final result = await _remote.fetchInitial(
+            scope: scope, page: page, pageSize: _pageSize);
         if (result.items.isNotEmpty) {
           await _local.upsertProducts(result.items);
           total += result.items.length;
@@ -62,7 +63,8 @@ class SyncRepositoryImpl implements SyncRepository {
       await _local.setLastSyncedAt(_productsEntity, now);
       return Success(SyncResult(upserted: total, deleted: 0, syncedAt: now));
     } on ServerException catch (e) {
-      return Failed(ServerFailure(message: e.message, statusCode: e.statusCode));
+      return Failed(
+          ServerFailure(message: e.message, statusCode: e.statusCode));
     } on CacheException catch (e) {
       return Failed(CacheFailure(message: e.message));
     }
@@ -76,8 +78,12 @@ class SyncRepositoryImpl implements SyncRepository {
       if (since == null) return runInitialSync(scope);
 
       final delta = await _remote.fetchDelta(scope: scope, since: since);
-      if (delta.upserted.isNotEmpty) await _local.upsertProducts(delta.upserted);
-      if (delta.deletedIds.isNotEmpty) await _local.markDeleted(delta.deletedIds);
+      if (delta.upserted.isNotEmpty) {
+        await _local.upsertProducts(delta.upserted);
+      }
+      if (delta.deletedIds.isNotEmpty) {
+        await _local.markDeleted(delta.deletedIds);
+      }
 
       final now = DateTime.now();
       await _local.setLastSyncedAt(_productsEntity, now);
@@ -87,7 +93,8 @@ class SyncRepositoryImpl implements SyncRepository {
         syncedAt: now,
       ));
     } on ServerException catch (e) {
-      return Failed(ServerFailure(message: e.message, statusCode: e.statusCode));
+      return Failed(
+          ServerFailure(message: e.message, statusCode: e.statusCode));
     } on CacheException catch (e) {
       return Failed(CacheFailure(message: e.message));
     }

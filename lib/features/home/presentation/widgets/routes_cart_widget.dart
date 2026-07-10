@@ -23,7 +23,8 @@ class RoutesCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final int remaining = (totalRoutes - todayRoutesCount - missedRoutesCount).clamp(0, totalRoutes);
+    final int remaining = (totalRoutes - todayRoutesCount - missedRoutesCount)
+        .clamp(0, totalRoutes);
 
     return DashboardKpiCard(
       title: title ?? 'home.quick_access.routes'.tr,
@@ -32,12 +33,23 @@ class RoutesCardWidget extends StatelessWidget {
       headline: '$totalRoutes',
       headlineCaption: 'home.quick_access.total_routes'.tr,
       badge: missedRoutesCount > 0
-          ? KpiBadge(label: '$missedRoutesCount ${'home.quick_access.missed'.tr}', color: Vibe.danger)
+          ? KpiBadge(
+              label: '$missedRoutesCount ${'home.quick_access.missed'.tr}',
+              color: Vibe.danger)
           : null,
       segments: [
-        KpiSegment(label: 'home.quick_access.today_active'.tr, value: todayRoutesCount, color: Vibe.amber),
-        KpiSegment(label: 'home.quick_access.missed'.tr, value: missedRoutesCount, color: Vibe.danger),
-        KpiSegment(label: 'home.quick_access.remaining'.tr, value: remaining, color: Vibe.stroke),
+        KpiSegment(
+            label: 'home.quick_access.today_active'.tr,
+            value: todayRoutesCount,
+            color: Vibe.amber),
+        KpiSegment(
+            label: 'home.quick_access.missed'.tr,
+            value: missedRoutesCount,
+            color: Vibe.danger),
+        KpiSegment(
+            label: 'home.quick_access.remaining'.tr,
+            value: remaining,
+            color: Vibe.stroke),
       ],
       onTap: onTap,
     );

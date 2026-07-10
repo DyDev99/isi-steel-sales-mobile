@@ -1,7 +1,8 @@
 import 'package:equatable/equatable.dart';
 
 class RouteSyncResult extends Equatable {
-  const RouteSyncResult({required this.upserted, required this.deleted, required this.syncedAt});
+  const RouteSyncResult(
+      {required this.upserted, required this.deleted, required this.syncedAt});
 
   final int upserted;
   final int deleted;

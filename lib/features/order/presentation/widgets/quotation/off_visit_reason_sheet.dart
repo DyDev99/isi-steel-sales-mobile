@@ -13,17 +13,20 @@ extension OffVisitReasonL10n on OffVisitReason {
 
 /// Off-visit reason picker — same bottom-sheet shape as `collections_form.dart`
 /// in the `my_visits` feature (StatefulBuilder + ChoiceChip + pop-with-value).
-Future<OffVisitReason?> showOffVisitReasonSheet({required BuildContext context, OffVisitReason? initial}) {
+Future<OffVisitReason?> showOffVisitReasonSheet(
+    {required BuildContext context, OffVisitReason? initial}) {
   var reason = initial ?? OffVisitReason.phoneOrder;
 
   return showModalBottomSheet<OffVisitReason>(
     context: context,
     backgroundColor: Vibe.bgSoft,
     isScrollControlled: true,
-    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
+    shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
     builder: (context) => StatefulBuilder(
       builder: (context, setState) => Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        padding:
+            EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
@@ -32,7 +35,10 @@ Future<OffVisitReason?> showOffVisitReasonSheet({required BuildContext context, 
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('orders.shop.off_visit_warning'.tr,
-                    style: const TextStyle(color: Vibe.text, fontSize: 16, fontWeight: FontWeight.w800)),
+                    style: const TextStyle(
+                        color: Vibe.text,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800)),
                 const SizedBox(height: 14),
                 Wrap(
                   spacing: 8,
@@ -54,7 +60,8 @@ Future<OffVisitReason?> showOffVisitReasonSheet({required BuildContext context, 
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Vibe.violet,
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
                     ),
                     child: Text('orders.shop.start_quotation'.tr),
                   ),

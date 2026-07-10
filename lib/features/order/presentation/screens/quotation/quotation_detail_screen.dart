@@ -28,7 +28,8 @@ class QuotationDetailScreen extends StatelessWidget {
   Future<void> _editQuotation(BuildContext context) async {
     Customer? customer;
     if (quotation.customerId != null) {
-      final result = await sl<GetCustomerById>()(CustomerIdParams(quotation.customerId!));
+      final result =
+          await sl<GetCustomerById>()(CustomerIdParams(quotation.customerId!));
       customer = result.when(success: (c) => c, failure: (_) => null);
     }
     if (!context.mounted) return;
@@ -38,7 +39,8 @@ class QuotationDetailScreen extends StatelessWidget {
       builder: (_) => MultiBlocProvider(
         providers: [
           BlocProvider(create: (_) => sl<CatalogBloc>()),
-          BlocProvider(create: (_) => sl<CartCubit>()..loadFromQuotation(quotation)),
+          BlocProvider(
+              create: (_) => sl<CartCubit>()..loadFromQuotation(quotation)),
           BlocProvider(create: (_) => sl<SyncCubit>()),
         ],
         child: LocalizedBuilder(
@@ -78,7 +80,8 @@ class QuotationDetailScreen extends StatelessWidget {
         backgroundColor: Vibe.bg,
         iconTheme: const IconThemeData(color: Vibe.text),
         title: Text('orders.quotation.details_title'.tr,
-            style: const TextStyle(color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
+            style: const TextStyle(
+                color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
@@ -86,17 +89,29 @@ class QuotationDetailScreen extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: Text(quotation.id, style: const TextStyle(color: Vibe.text, fontSize: 20, fontWeight: FontWeight.w900)),
+                child: Text(quotation.id,
+                    style: const TextStyle(
+                        color: Vibe.text,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900)),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(color: Vibe.primaryLight, borderRadius: BorderRadius.circular(10)),
-                child: Text(quotation.sapDraftStatus, style: const TextStyle(color: Vibe.violet, fontSize: 11.5, fontWeight: FontWeight.w700)),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                    color: Vibe.primaryLight,
+                    borderRadius: BorderRadius.circular(10)),
+                child: Text(quotation.sapDraftStatus,
+                    style: const TextStyle(
+                        color: Vibe.violet,
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700)),
               ),
             ],
           ),
           const SizedBox(height: 4),
-          Text(quotation.shopName ?? quotation.leadDisplayName ?? '', style: const TextStyle(color: Vibe.muted, fontSize: 13)),
+          Text(quotation.shopName ?? quotation.leadDisplayName ?? '',
+              style: const TextStyle(color: Vibe.muted, fontSize: 13)),
           const SizedBox(height: 4),
           Text(
             '${'orders.quotation.valid_until'.tr}: ${_formatDate(quotation.validUntil)}',
@@ -105,10 +120,16 @@ class QuotationDetailScreen extends StatelessWidget {
           const SizedBox(height: 20),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14),
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), border: Border.all(color: Vibe.stroke)),
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: Vibe.stroke)),
             child: Column(
               children: [
-                for (final line in quotation.lines) _LineRow(name: line.product.name, qty: line.quantity, total: line.lineTotal),
+                for (final line in quotation.lines)
+                  _LineRow(
+                      name: line.product.name,
+                      qty: line.quantity,
+                      total: line.lineTotal),
               ],
             ),
           ),
@@ -119,20 +140,26 @@ class QuotationDetailScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: Text('orders.quotation.convert_disabled_lead'.tr,
-                  style: const TextStyle(color: Vibe.muted, fontSize: 12, fontStyle: FontStyle.italic)),
+                  style: const TextStyle(
+                      color: Vibe.muted,
+                      fontSize: 12,
+                      fontStyle: FontStyle.italic)),
             ),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: canConvert ? () => _convertToSalesOrder(context) : null,
+              onPressed:
+                  canConvert ? () => _convertToSalesOrder(context) : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Vibe.violet,
                 foregroundColor: Colors.white,
                 disabledBackgroundColor: Vibe.stroke,
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
               ),
-              child: Text('orders.quotation.convert_to_sales_order'.tr, style: const TextStyle(fontWeight: FontWeight.w800)),
+              child: Text('orders.quotation.convert_to_sales_order'.tr,
+                  style: const TextStyle(fontWeight: FontWeight.w800)),
             ),
           ),
           const SizedBox(height: 10),
@@ -148,7 +175,8 @@ class QuotationDetailScreen extends StatelessWidget {
     );
   }
 
-  static String _formatDate(DateTime d) => '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+  static String _formatDate(DateTime d) =>
+      '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
 }
 
 class _LineRow extends StatelessWidget {
@@ -164,11 +192,20 @@ class _LineRow extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Vibe.text, fontSize: 13, fontWeight: FontWeight.w700)),
+            child: Text(name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                    color: Vibe.text,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700)),
           ),
-          Text('x${qty.toStringAsFixed(0)}', style: const TextStyle(color: Vibe.muted, fontSize: 12)),
+          Text('x${qty.toStringAsFixed(0)}',
+              style: const TextStyle(color: Vibe.muted, fontSize: 12)),
           const SizedBox(width: 12),
-          Text('\$${total.toStringAsFixed(2)}', style: const TextStyle(color: Vibe.text, fontSize: 13, fontWeight: FontWeight.w700)),
+          Text('\$${total.toStringAsFixed(2)}',
+              style: const TextStyle(
+                  color: Vibe.text, fontSize: 13, fontWeight: FontWeight.w700)),
         ],
       ),
     );
@@ -183,7 +220,9 @@ class _TotalsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), border: Border.all(color: Vibe.stroke)),
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Vibe.stroke)),
       child: Column(
         children: [
           _Row('Subtotal', quotation.subtotal),
@@ -211,10 +250,16 @@ class _Row extends StatelessWidget {
         children: [
           Expanded(
             child: Text(label,
-                style: TextStyle(color: emphasize ? Vibe.text : Vibe.muted, fontSize: emphasize ? 15 : 13, fontWeight: emphasize ? FontWeight.w800 : FontWeight.w500)),
+                style: TextStyle(
+                    color: emphasize ? Vibe.text : Vibe.muted,
+                    fontSize: emphasize ? 15 : 13,
+                    fontWeight: emphasize ? FontWeight.w800 : FontWeight.w500)),
           ),
           Text('\$${value.toStringAsFixed(2)}',
-              style: TextStyle(color: emphasize ? Vibe.violet : Vibe.text, fontSize: emphasize ? 16 : 13, fontWeight: emphasize ? FontWeight.w900 : FontWeight.w600)),
+              style: TextStyle(
+                  color: emphasize ? Vibe.violet : Vibe.text,
+                  fontSize: emphasize ? 16 : 13,
+                  fontWeight: emphasize ? FontWeight.w900 : FontWeight.w600)),
         ],
       ),
     );

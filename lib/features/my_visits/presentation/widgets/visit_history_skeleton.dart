@@ -13,7 +13,9 @@ class VisitHistoryCardSkeleton extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Container(
-        decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), border: Border.all(color: Vibe.stroke)),
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Vibe.stroke)),
         child: Shimmer(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -50,7 +52,9 @@ class VisitHistoryListSkeleton extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
       physics: const NeverScrollableScrollPhysics(),
-      children: [for (var i = 0; i < itemCount; i++) const VisitHistoryCardSkeleton()],
+      children: [
+        for (var i = 0; i < itemCount; i++) const VisitHistoryCardSkeleton()
+      ],
     );
   }
 }

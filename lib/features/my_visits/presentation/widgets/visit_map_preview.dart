@@ -30,7 +30,10 @@ class VisitMapPreview extends StatelessWidget {
         width: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Vibe.violet.withValues(alpha: 0.22), Vibe.mint.withValues(alpha: 0.16)],
+            colors: [
+              Vibe.violet.withValues(alpha: 0.22),
+              Vibe.mint.withValues(alpha: 0.16)
+            ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -39,14 +42,16 @@ class VisitMapPreview extends StatelessWidget {
           alignment: Alignment.center,
           children: [
             CustomPaint(size: Size.infinite, painter: _GridPainter()),
-            Icon(Icons.location_on_rounded, color: Vibe.pink, size: height > 100 ? 34 : 26),
+            Icon(Icons.location_on_rounded,
+                color: Vibe.pink, size: height > 100 ? 34 : 26),
             if (showCoordinates)
               Positioned(
                 left: 10,
                 right: 10,
                 bottom: 8,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
                     color: Vibe.text.withValues(alpha: 0.55),
                     borderRadius: BorderRadius.circular(10),

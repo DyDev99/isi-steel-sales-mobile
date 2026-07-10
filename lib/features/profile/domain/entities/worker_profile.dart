@@ -55,6 +55,17 @@ class WorkerProfile extends Equatable {
   }
 
   @override
-  List<Object?> get props =>
-      [id, fullName, employeeCode, role, email, phone, territory, region, joinedAt, avatarUrl, isActive];
+  List<Object?> get props => [
+        id,
+        fullName,
+        employeeCode,
+        role,
+        email,
+        phone,
+        territory,
+        region,
+        joinedAt,
+        avatarUrl,
+        isActive
+      ];
 }

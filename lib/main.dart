@@ -24,6 +24,5 @@ Future<void> main() async {
     statusBarIconBrightness: Brightness.light,
   ));
 
-
   runApp(const ISISteelSalesApp());
 }

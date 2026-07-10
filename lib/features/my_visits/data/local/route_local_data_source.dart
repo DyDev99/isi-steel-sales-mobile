@@ -32,21 +32,28 @@ class RouteLocalDataSourceImpl implements RouteLocalDataSource {
   Database get _db => _routesDb.db;
 
   Future<RoutePlanModel> _composeRoute(DataMap routeRow) async {
-    final stopRows = await _db.query('stops', where: 'route_id = ?', whereArgs: [routeRow['id']], orderBy: 'sequence ASC');
+    final stopRows = await _db.query('stops',
+        where: 'route_id = ?',
+        whereArgs: [routeRow['id']],
+        orderBy: 'sequence ASC');
     if (stopRows.isEmpty) {
       return RoutePlanModel.fromRow(routeRow, stops: const []);
     }
 
-    final customerIds = stopRows.map((s) => s['customer_id'] as String).toSet().toList();
+    final customerIds =
+        stopRows.map((s) => s['customer_id'] as String).toSet().toList();
     final placeholders = List.filled(customerIds.length, '?').join(',');
-    final customerRows = await _db.query('customers', where: 'id IN ($placeholders)', whereArgs: customerIds);
+    final customerRows = await _db.query('customers',
+        where: 'id IN ($placeholders)', whereArgs: customerIds);
     final customersById = {
-      for (final row in customerRows) row['id'] as String: CustomerStopInfoModel.fromRow(row),
+      for (final row in customerRows)
+        row['id'] as String: CustomerStopInfoModel.fromRow(row),
     };
 
     final stops = stopRows
         .where((row) => customersById.containsKey(row['customer_id']))
-        .map((row) => RouteStopModel.fromRow(row, customer: customersById[row['customer_id']]!))
+        .map((row) => RouteStopModel.fromRow(row,
+            customer: customersById[row['customer_id']]!))
         .toList();
 
     return RoutePlanModel.fromRow(routeRow, stops: stops);
@@ -77,7 +84,8 @@ class RouteLocalDataSourceImpl implements RouteLocalDataSource {
   @override
   Future<RoutePlanModel?> getRoute(String routeId) async {
     try {
-      final rows = await _db.query('routes', where: 'id = ?', whereArgs: [routeId], limit: 1);
+      final rows = await _db.query('routes',
+          where: 'id = ?', whereArgs: [routeId], limit: 1);
       if (rows.isEmpty) return null;
       return _composeRoute(rows.first);
     } catch (e) {
@@ -88,7 +96,8 @@ class RouteLocalDataSourceImpl implements RouteLocalDataSource {
   @override
   Future<void> updateRouteStatus(String routeId, RouteStatus status) async {
     try {
-      await _db.update('routes', {'status': status.name}, where: 'id = ?', whereArgs: [routeId]);
+      await _db.update('routes', {'status': status.name},
+          where: 'id = ?', whereArgs: [routeId]);
     } catch (e) {
       throw CacheException(message: 'Failed to update route status: $e');
     }
@@ -103,8 +112,12 @@ class RouteLocalDataSourceImpl implements RouteLocalDataSource {
   }) async {
     try {
       final values = <String, Object?>{'status': status.name};
-      if (actualArrival != null) values['actual_arrival'] = actualArrival.toIso8601String();
-      if (actualDeparture != null) values['actual_departure'] = actualDeparture.toIso8601String();
+      if (actualArrival != null) {
+        values['actual_arrival'] = actualArrival.toIso8601String();
+      }
+      if (actualDeparture != null) {
+        values['actual_departure'] = actualDeparture.toIso8601String();
+      }
       await _db.update('stops', values, where: 'id = ?', whereArgs: [stopId]);
     } catch (e) {
       throw CacheException(message: 'Failed to update stop status: $e');
@@ -116,7 +129,8 @@ class RouteLocalDataSourceImpl implements RouteLocalDataSource {
     try {
       final batch = _db.batch();
       for (final c in customers) {
-        batch.insert('customers', c.toRow(), conflictAlgorithm: ConflictAlgorithm.replace);
+        batch.insert('customers', c.toRow(),
+            conflictAlgorithm: ConflictAlgorithm.replace);
       }
       await batch.commit(noResult: true);
     } catch (e) {
@@ -130,7 +144,8 @@ class RouteLocalDataSourceImpl implements RouteLocalDataSource {
       await _db.transaction((txn) async {
         final batch = txn.batch();
         for (final route in routes) {
-          batch.insert('routes', route.toRow(), conflictAlgorithm: ConflictAlgorithm.replace);
+          batch.insert('routes', route.toRow(),
+              conflictAlgorithm: ConflictAlgorithm.replace);
           for (final stop in route.stops) {
             batch.insert(
               'stops',
@@ -149,7 +164,8 @@ class RouteLocalDataSourceImpl implements RouteLocalDataSource {
   @override
   Future<DateTime?> getLastSyncedAt(String entity) async {
     try {
-      final rows = await _db.query('sync_meta', where: 'entity = ?', whereArgs: [entity]);
+      final rows = await _db
+          .query('sync_meta', where: 'entity = ?', whereArgs: [entity]);
       if (rows.isEmpty) return null;
       final raw = rows.first['last_synced_at'] as String?;
       return raw == null ? null : DateTime.parse(raw);

@@ -22,7 +22,8 @@ class PriorityBadge extends StatelessWidget {
       ),
       child: Text(
         priority.label,
-        style: TextStyle(color: _color, fontSize: 11, fontWeight: FontWeight.w700),
+        style:
+            TextStyle(color: _color, fontSize: 11, fontWeight: FontWeight.w700),
       ),
     );
   }

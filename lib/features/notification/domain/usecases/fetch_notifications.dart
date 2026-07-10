@@ -7,5 +7,6 @@ class FetchNotifications extends LeadUseCase<List<NotificationItem>, NoParams> {
   final LeadRepository _repository;
 
   @override
-  Future<List<NotificationItem>> call(NoParams params) => _repository.fetchNotifications();
+  Future<List<NotificationItem>> call(NoParams params) =>
+      _repository.fetchNotifications();
 }

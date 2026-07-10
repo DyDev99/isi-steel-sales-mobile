@@ -4,12 +4,13 @@ import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/usecase/usecase.dart';
 import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
 import 'package:isi_steel_sales_mobile/core/utils/glass_card.dart';
-import 'package:isi_steel_sales_mobile/features/home/presentation/bloc/home_cubit.dart'; 
+import 'package:isi_steel_sales_mobile/features/home/presentation/bloc/home_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/quotation.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/quotation_status.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/sales_order.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/watch_quotations.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/watch_sales_orders.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/screens/catalog/product_filter_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/quotation_detail_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/territory/territory_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/order_skeletons.dart';
@@ -24,8 +25,10 @@ class OrderScreen extends StatefulWidget {
 
 class _OrderScreenState extends State<OrderScreen> {
   // Live streams for quotations and sales orders
-  late final Stream<List<Quotation>> _quotationsStream = sl<WatchQuotations>()(const NoParams());
-  late final Stream<List<SalesOrder>> _salesOrdersStream = sl<WatchSalesOrders>()(const NoParams());
+  late final Stream<List<Quotation>> _quotationsStream =
+      sl<WatchQuotations>()(const NoParams());
+  late final Stream<List<SalesOrder>> _salesOrdersStream =
+      sl<WatchSalesOrders>()(const NoParams());
 
   void _startNewOrder() {
     // This will now push onto the application's root navigator (covering the shell/bottom nav)
@@ -35,14 +38,21 @@ class _OrderScreenState extends State<OrderScreen> {
     ));
   }
 
+  void _openProductFilter() {
+    Navigator.of(context).push(MaterialPageRoute(
+      settings: const RouteSettings(name: ProductFilterScreen.routeName),
+      builder: (_) => ProductFilterScreen.provider(),
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false, // Prevent default exit to handle custom tab switching
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
-        
-        // When the system back button is pressed on the root of this tab, 
+
+        // When the system back button is pressed on the root of this tab,
         // cleanly switch back to the Home tab.
         sl<ShellTabController>().goTo(ShellTab.home);
       },
@@ -51,20 +61,43 @@ class _OrderScreenState extends State<OrderScreen> {
         body: SafeArea(
           child: Column(
             children: [
-              // Fixed header 
+              // Fixed header
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 child: Row(
                   children: [
-                    ElevatedButton.icon(
-                      onPressed: _startNewOrder,
-                      icon: const Icon(Icons.storefront_rounded, color: Colors.white),
-                      label: Text('orders.new_order'.tr,
-                          style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.white)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Vibe.violet,
-                        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: _startNewOrder,
+                        icon: const Icon(Icons.storefront_rounded,
+                            color: Colors.white),
+                        label: Text('orders.new_order'.tr,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Vibe.violet,
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 14, horizontal: 20),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14)),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    OutlinedButton.icon(
+                      onPressed: _openProductFilter,
+                      icon: const Icon(Icons.tune_rounded, color: Vibe.violet),
+                      label: const Text('Filter',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w700, color: Vibe.violet)),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Vibe.violet),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 14, horizontal: 16),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14)),
                       ),
                     ),
                   ],
@@ -75,7 +108,10 @@ class _OrderScreenState extends State<OrderScreen> {
                   padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
                   children: [
                     Text('orders.recent'.tr,
-                        style: const TextStyle(color: Vibe.text, fontSize: 15, fontWeight: FontWeight.w800)),
+                        style: const TextStyle(
+                            color: Vibe.text,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800)),
                     const SizedBox(height: 10),
                     StreamBuilder<List<Quotation>>(
                       stream: _quotationsStream,
@@ -83,30 +119,46 @@ class _OrderScreenState extends State<OrderScreen> {
                         return StreamBuilder<List<SalesOrder>>(
                           stream: _salesOrdersStream,
                           builder: (context, salesOrderSnapshot) {
-                            if (quotationSnapshot.connectionState == ConnectionState.waiting &&
-                                salesOrderSnapshot.connectionState == ConnectionState.waiting) {
+                            if (quotationSnapshot.connectionState ==
+                                    ConnectionState.waiting &&
+                                salesOrderSnapshot.connectionState ==
+                                    ConnectionState.waiting) {
                               return const PendingOrdersSkeleton();
                             }
-                            if (quotationSnapshot.hasError || salesOrderSnapshot.hasError) {
+                            if (quotationSnapshot.hasError ||
+                                salesOrderSnapshot.hasError) {
                               return Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 24),
-                                child: Center(child: Text('common.generic_error'.tr, style: const TextStyle(color: Vibe.muted))),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 24),
+                                child: Center(
+                                    child: Text('common.generic_error'.tr,
+                                        style: const TextStyle(
+                                            color: Vibe.muted))),
                               );
                             }
                             final entries = <_OrderEntry>[
-                              for (final q in quotationSnapshot.data ?? const <Quotation>[])
+                              for (final q in quotationSnapshot.data ??
+                                  const <Quotation>[])
                                 _OrderEntry.quotation(q),
-                              for (final o in salesOrderSnapshot.data ?? const <SalesOrder>[])
+                              for (final o in salesOrderSnapshot.data ??
+                                  const <SalesOrder>[])
                                 _OrderEntry.salesOrder(o),
                             ]..sort((a, b) => b.date.compareTo(a.date));
 
                             if (entries.isEmpty) {
                               return Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 24),
-                                child: Center(child: Text('orders.no_orders'.tr, style: const TextStyle(color: Vibe.muted))),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 24),
+                                child: Center(
+                                    child: Text('orders.no_orders'.tr,
+                                        style: const TextStyle(
+                                            color: Vibe.muted))),
                               );
                             }
-                            return Column(children: [for (final entry in entries) _OrderTile(entry: entry)]);
+                            return Column(children: [
+                              for (final entry in entries)
+                                _OrderTile(entry: entry)
+                            ]);
                           },
                         );
                       },
@@ -130,9 +182,12 @@ class _OrderEntry {
         itemCount = q.lines.length,
         total = q.total,
         date = q.updatedAt,
-        statusLabel = q.status == QuotationStatus.converted ? 'orders.quotation.builder_title'.tr : 'orders.pending_sync'.tr,
+        statusLabel = q.status == QuotationStatus.converted
+            ? 'orders.quotation.builder_title'.tr
+            : 'orders.pending_sync'.tr,
         onTap = ((context) => Navigator.of(context).push(MaterialPageRoute(
-              settings: const RouteSettings(name: QuotationDetailScreen.routeName),
+              settings:
+                  const RouteSettings(name: QuotationDetailScreen.routeName),
               builder: (_) => QuotationDetailScreen(quotation: q),
             )));
 
@@ -170,10 +225,18 @@ class _OrderTile extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('orders.items_count'.tr.replaceAll('{count}', '${entry.itemCount}'),
-                        style: const TextStyle(color: Vibe.text, fontSize: 13.5, fontWeight: FontWeight.w800)),
+                    Text(
+                        'orders.items_count'
+                            .tr
+                            .replaceAll('{count}', '${entry.itemCount}'),
+                        style: const TextStyle(
+                            color: Vibe.text,
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w800)),
                     const SizedBox(height: 2),
-                    Text(_formatDate(entry.date), style: const TextStyle(color: Vibe.muted, fontSize: 11.5)),
+                    Text(_formatDate(entry.date),
+                        style:
+                            const TextStyle(color: Vibe.muted, fontSize: 11.5)),
                   ],
                 ),
               ),
@@ -184,11 +247,17 @@ class _OrderTile extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(entry.statusLabel,
-                    style: const TextStyle(color: Vibe.amber, fontSize: 10.5, fontWeight: FontWeight.w700)),
+                    style: const TextStyle(
+                        color: Vibe.amber,
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w700)),
               ),
               const SizedBox(width: 10),
               Text('\$${entry.total.toStringAsFixed(2)}',
-                  style: const TextStyle(color: Vibe.violet, fontSize: 14, fontWeight: FontWeight.w800)),
+                  style: const TextStyle(
+                      color: Vibe.violet,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800)),
             ],
           ),
         ),

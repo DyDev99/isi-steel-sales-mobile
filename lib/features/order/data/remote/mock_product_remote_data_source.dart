@@ -70,20 +70,26 @@ class MockProductRemoteDataSource implements ProductRemoteDataSource {
       await _ensureLoaded();
       final scoped = _products!.where((p) => _inScope(p, scope)).toList();
       final start = page * pageSize;
-      if (start >= scoped.length) return const RemoteSyncPage(items: [], hasMore: false);
+      if (start >= scoped.length) {
+        return const RemoteSyncPage(items: [], hasMore: false);
+      }
       final end = min(start + pageSize, scoped.length);
-      return RemoteSyncPage(items: scoped.sublist(start, end), hasMore: end < scoped.length);
+      return RemoteSyncPage(
+          items: scoped.sublist(start, end), hasMore: end < scoped.length);
     } catch (e) {
       throw ServerException(message: 'Initial sync failed: $e');
     }
   }
 
   @override
-  Future<RemoteDeltaPage> fetchDelta({required SyncScope scope, required DateTime since}) async {
+  Future<RemoteDeltaPage> fetchDelta(
+      {required SyncScope scope, required DateTime since}) async {
     try {
       await _ensureLoaded();
       final scoped = _products!.where((p) => _inScope(p, scope)).toList();
-      if (scoped.isEmpty) return const RemoteDeltaPage(upserted: [], deletedIds: []);
+      if (scoped.isEmpty) {
+        return const RemoteDeltaPage(upserted: [], deletedIds: []);
+      }
 
       // Deterministic per-call-time delta: reseeding on `since` means the
       // exact same call repeated for the same timestamp is reproducible,
@@ -99,7 +105,8 @@ class MockProductRemoteDataSource implements ProductRemoteDataSource {
       final changed = scoped.skip(deletedCount).take(changedCount).map((p) {
         final priceJitter = 0.9 + rand.nextDouble() * 0.2;
         final stockJitter = rand.nextInt(500);
-        final standard = double.parse((p.pricing.standardPrice * priceJitter).toStringAsFixed(2));
+        final standard = double.parse(
+            (p.pricing.standardPrice * priceJitter).toStringAsFixed(2));
         return ProductModel(
           id: p.id,
           familyId: p.familyId,

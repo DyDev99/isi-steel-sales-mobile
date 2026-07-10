@@ -15,12 +15,14 @@ void showCustomerFilterSheet({
     context: context,
     backgroundColor: Colors.transparent,
     isScrollControlled: true,
-    builder: (_) => _CustomerFilterSheet(filter: filter, territories: territories, onApply: onApply),
+    builder: (_) => _CustomerFilterSheet(
+        filter: filter, territories: territories, onApply: onApply),
   );
 }
 
 class _CustomerFilterSheet extends StatefulWidget {
-  const _CustomerFilterSheet({required this.filter, required this.territories, required this.onApply});
+  const _CustomerFilterSheet(
+      {required this.filter, required this.territories, required this.onApply});
   final CustomerFilter filter;
   final List<String> territories;
   final ValueChanged<CustomerFilter> onApply;
@@ -44,49 +46,77 @@ class _CustomerFilterSheetState extends State<_CustomerFilterSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('customers.filter_sort'.tr, style: const TextStyle(color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
+          Text('customers.filter_sort'.tr,
+              style: const TextStyle(
+                  color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
           const SizedBox(height: 16),
-          Text('customers.status_label'.tr, style: const TextStyle(color: Vibe.muted, fontSize: 12, fontWeight: FontWeight.w700)),
+          Text('customers.status_label'.tr,
+              style: const TextStyle(
+                  color: Vibe.muted,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700)),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
             children: [
-              _chip('customers.all'.tr, _draft.status == null, () => setState(() => _draft = _draft.copyWith(status: () => null))),
+              _chip(
+                  'customers.all'.tr,
+                  _draft.status == null,
+                  () => setState(
+                      () => _draft = _draft.copyWith(status: () => null))),
               for (final status in CustomerStatus.values)
                 _chip(
                   status.localizedLabel,
                   _draft.status == status,
-                  () => setState(() => _draft = _draft.copyWith(status: () => status)),
+                  () => setState(
+                      () => _draft = _draft.copyWith(status: () => status)),
                 ),
             ],
           ),
           const SizedBox(height: 16),
           if (widget.territories.isNotEmpty) ...[
-            Text('customers.territory'.tr, style: const TextStyle(color: Vibe.muted, fontSize: 12, fontWeight: FontWeight.w700)),
+            Text('customers.territory'.tr,
+                style: const TextStyle(
+                    color: Vibe.muted,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
               runSpacing: 8,
               children: [
-                _chip('customers.all'.tr, _draft.territory == null, () => setState(() => _draft = _draft.copyWith(territory: () => null))),
+                _chip(
+                    'customers.all'.tr,
+                    _draft.territory == null,
+                    () => setState(
+                        () => _draft = _draft.copyWith(territory: () => null))),
                 for (final territory in widget.territories)
                   _chip(
                     territory,
                     _draft.territory == territory,
-                    () => setState(() => _draft = _draft.copyWith(territory: () => territory)),
+                    () => setState(() =>
+                        _draft = _draft.copyWith(territory: () => territory)),
                   ),
               ],
             ),
             const SizedBox(height: 16),
           ],
-          Text('customers.sort_by'.tr, style: const TextStyle(color: Vibe.muted, fontSize: 12, fontWeight: FontWeight.w700)),
+          Text('customers.sort_by'.tr,
+              style: const TextStyle(
+                  color: Vibe.muted,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700)),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: [
               for (final sort in CustomerSortBy.values)
-                _chip(_sortLabel(sort), _draft.sortBy == sort, () => setState(() => _draft = _draft.copyWith(sortBy: sort))),
+                _chip(
+                    _sortLabel(sort),
+                    _draft.sortBy == sort,
+                    () =>
+                        setState(() => _draft = _draft.copyWith(sortBy: sort))),
             ],
           ),
           const SizedBox(height: 24),
@@ -100,9 +130,12 @@ class _CustomerFilterSheetState extends State<_CustomerFilterSheet> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Vibe.violet,
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
               ),
-              child: Text('customers.apply'.tr, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+              child: Text('customers.apply'.tr,
+                  style: const TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.w800)),
             ),
           ),
         ],
@@ -123,7 +156,10 @@ class _CustomerFilterSheetState extends State<_CustomerFilterSheet> {
         ),
         child: Text(
           label,
-          style: TextStyle(color: selected ? Vibe.violet : Vibe.text, fontSize: 12.5, fontWeight: FontWeight.w700),
+          style: TextStyle(
+              color: selected ? Vibe.violet : Vibe.text,
+              fontSize: 12.5,
+              fontWeight: FontWeight.w700),
         ),
       ),
     );

@@ -31,7 +31,12 @@ class ProductCard extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(Vibe.radius),
           boxShadow: isHovered
-              ? [BoxShadow(color: Vibe.violet.withValues(alpha: 0.16), blurRadius: 20, offset: const Offset(0, 8))]
+              ? [
+                  BoxShadow(
+                      color: Vibe.violet.withValues(alpha: 0.16),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8))
+                ]
               : const [],
         ),
         child: GlassCard(
@@ -42,16 +47,23 @@ class ProductCard extends StatelessWidget {
               Container(
                 height: 64,
                 width: double.infinity,
-                decoration: BoxDecoration(color: Vibe.bgSoft, borderRadius: BorderRadius.circular(10)),
+                decoration: BoxDecoration(
+                    color: Vibe.bgSoft,
+                    borderRadius: BorderRadius.circular(10)),
                 alignment: Alignment.center,
-                child: const Icon(Icons.inventory_2_outlined, color: Vibe.muted, size: 28),
+                child: const Icon(Icons.inventory_2_outlined,
+                    color: Vibe.muted, size: 28),
               ),
               const SizedBox(height: 8),
               Text(
                 viewModel.name,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: Vibe.text, fontSize: 12.5, fontWeight: FontWeight.w700, height: 1.15),
+                style: const TextStyle(
+                    color: Vibe.text,
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                    height: 1.15),
               ),
               const SizedBox(height: 2),
               Text(
@@ -72,7 +84,10 @@ class ProductCard extends StatelessWidget {
               const SizedBox(height: 6),
               Text(
                 viewModel.formattedPrice,
-                style: const TextStyle(color: Vibe.violet, fontSize: 14, fontWeight: FontWeight.w800),
+                style: const TextStyle(
+                    color: Vibe.violet,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800),
               ),
               const SizedBox(height: 8),
               _QuantityStepper(
@@ -106,15 +121,19 @@ class _QuantityStepper extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        _StepperButton(icon: Icons.remove_rounded, onTap: quantity > 0 ? onDecrement : null),
+        _StepperButton(
+            icon: Icons.remove_rounded,
+            onTap: quantity > 0 ? onDecrement : null),
         Expanded(
           child: Text(
             '$quantity',
             textAlign: TextAlign.center,
-            style: const TextStyle(color: Vibe.text, fontSize: 13, fontWeight: FontWeight.w800),
+            style: const TextStyle(
+                color: Vibe.text, fontSize: 13, fontWeight: FontWeight.w800),
           ),
         ),
-        _StepperButton(icon: Icons.add_rounded, onTap: enabled ? onIncrement : null),
+        _StepperButton(
+            icon: Icons.add_rounded, onTap: enabled ? onIncrement : null),
       ],
     );
   }
@@ -141,7 +160,8 @@ class _StepperButton extends StatelessWidget {
           color: active ? Vibe.primaryLight : Vibe.bgSoft,
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Icon(icon, size: 16, color: active ? Vibe.violet : Vibe.disabledText),
+        child: Icon(icon,
+            size: 16, color: active ? Vibe.violet : Vibe.disabledText),
       ),
     );
   }

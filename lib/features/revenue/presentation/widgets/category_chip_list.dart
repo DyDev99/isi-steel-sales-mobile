@@ -5,7 +5,8 @@ import 'package:isi_steel_sales_mobile/features/revenue/presentation/mapper/reve
 
 /// Category Card — horizontal scroll of category quick-filter chips.
 class CategoryChipList extends StatelessWidget {
-  const CategoryChipList({super.key, required this.categories, required this.onSelect});
+  const CategoryChipList(
+      {super.key, required this.categories, required this.onSelect});
 
   final List<CategoryChipViewModel> categories;
   final ValueChanged<String?> onSelect;
@@ -32,7 +33,8 @@ class CategoryChipList extends StatelessWidget {
 }
 
 class _CategoryChip extends StatelessWidget {
-  const _CategoryChip({required this.label, required this.selected, required this.onTap});
+  const _CategoryChip(
+      {required this.label, required this.selected, required this.onTap});
 
   final String label;
   final bool selected;
@@ -46,9 +48,14 @@ class _CategoryChip extends StatelessWidget {
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: selected ? Vibe.violet : (isHovered ? Vibe.primaryLight.withValues(alpha: 0.4) : Vibe.surface),
+          color: selected
+              ? Vibe.violet
+              : (isHovered
+                  ? Vibe.primaryLight.withValues(alpha: 0.4)
+                  : Vibe.surface),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: selected || isHovered ? Vibe.violet : Vibe.stroke),
+          border: Border.all(
+              color: selected || isHovered ? Vibe.violet : Vibe.stroke),
         ),
         alignment: Alignment.center,
         child: Text(

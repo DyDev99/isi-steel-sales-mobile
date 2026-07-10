@@ -1,6 +1,12 @@
 import 'package:equatable/equatable.dart';
 
-enum NotificationKind { creditApproved, leadAssigned, opportunityMoved, creditPending, followUpDue }
+enum NotificationKind {
+  creditApproved,
+  leadAssigned,
+  opportunityMoved,
+  creditPending,
+  followUpDue
+}
 
 class NotificationItem extends Equatable {
   const NotificationItem({

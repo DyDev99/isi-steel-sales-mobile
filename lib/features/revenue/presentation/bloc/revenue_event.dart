@@ -46,7 +46,8 @@ class RevenueDiscountSelected extends RevenueEvent {
 /// `delta` is `+1`/`-1` from the product card's quantity stepper. Quantity
 /// is clamped to `0` (removes the line) and to the product's stock.
 class RevenueCartQuantityChanged extends RevenueEvent {
-  const RevenueCartQuantityChanged({required this.productId, required this.delta});
+  const RevenueCartQuantityChanged(
+      {required this.productId, required this.delta});
   final String productId;
   final int delta;
 

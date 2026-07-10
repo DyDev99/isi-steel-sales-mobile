@@ -60,7 +60,8 @@ class PipelineBloc extends Bloc<PipelineEvent, PipelineState> {
 
   bool get _isAdmin => _sessionManager.can(UserRole.admin);
 
-  Future<void> _onLoad(PipelineLoadRequested event, Emitter<PipelineState> emit) async {
+  Future<void> _onLoad(
+      PipelineLoadRequested event, Emitter<PipelineState> emit) async {
     emit(const PipelineLoading());
     try {
       final leads = await _fetchLeads(const NoParams());
@@ -81,10 +82,12 @@ class PipelineBloc extends Bloc<PipelineEvent, PipelineState> {
     final current = state;
     if (current is! PipelineLoaded) return;
 
-    final lead = current.allLeads.firstWhere((l) => l.id == event.leadId, orElse: () => current.allLeads.first);
+    final lead = current.allLeads.firstWhere((l) => l.id == event.leadId,
+        orElse: () => current.allLeads.first);
     if (!canMoveStage(lead.stage, event.toStage, isAdmin: _isAdmin)) {
       emit(current.copyWith(
-        blockedMoveMessage: () => moveBlockedReason(lead.stage, event.toStage, isAdmin: _isAdmin),
+        blockedMoveMessage: () =>
+            moveBlockedReason(lead.stage, event.toStage, isAdmin: _isAdmin),
       ));
       return;
     }
@@ -122,11 +125,13 @@ class PipelineBloc extends Bloc<PipelineEvent, PipelineState> {
       ));
     } catch (_) {
       // Roll back on failure.
-      emit(current.copyWith(blockedMoveMessage: () => "Couldn't move ${lead.companyName}"));
+      emit(current.copyWith(
+          blockedMoveMessage: () => "Couldn't move ${lead.companyName}"));
     }
   }
 
-  Future<void> _onReordered(LeadReordered event, Emitter<PipelineState> emit) async {
+  Future<void> _onReordered(
+      LeadReordered event, Emitter<PipelineState> emit) async {
     final current = state;
     if (current is! PipelineLoaded) return;
 
@@ -139,18 +144,23 @@ class PipelineBloc extends Bloc<PipelineEvent, PipelineState> {
 
     try {
       await _reorderLeads(
-        ReorderLeadsParams(stage: event.stage, oldIndex: event.oldIndex, newIndex: event.newIndex),
+        ReorderLeadsParams(
+            stage: event.stage,
+            oldIndex: event.oldIndex,
+            newIndex: event.newIndex),
       );
     } catch (_) {
       // Best-effort; the in-memory mock backend doesn't fail in practice.
     }
   }
 
-  Future<void> _onDeleted(LeadDeleted event, Emitter<PipelineState> emit) async {
+  Future<void> _onDeleted(
+      LeadDeleted event, Emitter<PipelineState> emit) async {
     final current = state;
     if (current is! PipelineLoaded) return;
 
-    final updatedLeads = current.allLeads.where((l) => l.id != event.leadId).toList();
+    final updatedLeads =
+        current.allLeads.where((l) => l.id != event.leadId).toList();
     emit(current.copyWith(
       allLeads: updatedLeads,
       columns: _computeColumns(updatedLeads, current.filter),
@@ -164,7 +174,8 @@ class PipelineBloc extends Bloc<PipelineEvent, PipelineState> {
     }
   }
 
-  Future<void> _onCreated(LeadCreated event, Emitter<PipelineState> emit) async {
+  Future<void> _onCreated(
+      LeadCreated event, Emitter<PipelineState> emit) async {
     final current = state;
     if (current is! PipelineLoaded) return;
 
@@ -182,7 +193,8 @@ class PipelineBloc extends Bloc<PipelineEvent, PipelineState> {
     }
   }
 
-  Future<void> _onUpdated(LeadUpdated event, Emitter<PipelineState> emit) async {
+  Future<void> _onUpdated(
+      LeadUpdated event, Emitter<PipelineState> emit) async {
     final current = state;
     if (current is! PipelineLoaded) return;
 
@@ -207,7 +219,8 @@ class PipelineBloc extends Bloc<PipelineEvent, PipelineState> {
     final current = state;
     if (current is! PipelineLoaded) return;
     final filter = current.filter.copyWith(search: event.query);
-    emit(current.copyWith(filter: filter, columns: _computeColumns(current.allLeads, filter)));
+    emit(current.copyWith(
+        filter: filter, columns: _computeColumns(current.allLeads, filter)));
   }
 
   void _onFilterChanged(FilterChanged event, Emitter<PipelineState> emit) {
@@ -219,29 +232,34 @@ class PipelineBloc extends Bloc<PipelineEvent, PipelineState> {
       priority: event.priority,
       visibleStages: event.visibleStages,
     );
-    emit(current.copyWith(filter: filter, columns: _computeColumns(current.allLeads, filter)));
+    emit(current.copyWith(
+        filter: filter, columns: _computeColumns(current.allLeads, filter)));
   }
 
   void _onSortChanged(SortChanged event, Emitter<PipelineState> emit) {
     final current = state;
     if (current is! PipelineLoaded) return;
     final filter = current.filter.copyWith(sortBy: event.sortBy);
-    emit(current.copyWith(filter: filter, columns: _computeColumns(current.allLeads, filter)));
+    emit(current.copyWith(
+        filter: filter, columns: _computeColumns(current.allLeads, filter)));
   }
 
-  Map<PipelineStage, List<Lead>> _computeColumns(List<Lead> leads, PipelineFilter filter) {
+  Map<PipelineStage, List<Lead>> _computeColumns(
+      List<Lead> leads, PipelineFilter filter) {
     Iterable<Lead> filtered = leads;
 
     if (filter.search.trim().isNotEmpty) {
       final q = filter.search.trim().toLowerCase();
       filtered = filtered.where((l) =>
-          l.companyName.toLowerCase().contains(q) || l.ownerName.toLowerCase().contains(q));
+          l.companyName.toLowerCase().contains(q) ||
+          l.ownerName.toLowerCase().contains(q));
     }
     if (filter.territory != null) {
       filtered = filtered.where((l) => l.territory == filter.territory);
     }
     if (filter.assignedRepName != null) {
-      filtered = filtered.where((l) => l.assignedRepName == filter.assignedRepName);
+      filtered =
+          filtered.where((l) => l.assignedRepName == filter.assignedRepName);
     }
     if (filter.priority != null) {
       filtered = filtered.where((l) => l.priority == filter.priority);
@@ -261,20 +279,25 @@ class PipelineBloc extends Bloc<PipelineEvent, PipelineState> {
     return switch (sortBy) {
       SortBy.newest => (a, b) => b.createdDate.compareTo(a.createdDate),
       SortBy.oldest => (a, b) => a.createdDate.compareTo(b.createdDate),
-      SortBy.revenue => (a, b) => b.expectedRevenue.compareTo(a.expectedRevenue),
+      SortBy.revenue => (a, b) =>
+          b.expectedRevenue.compareTo(a.expectedRevenue),
       SortBy.priority => (a, b) => b.priority.index.compareTo(a.priority.index),
     };
   }
 
   PipelineSummary _computeSummary(List<Lead> leads) {
-    final totalLeads = leads.where((l) => l.stage == PipelineStage.leads).length;
-    final totalOpportunities = leads.where((l) => l.stage == PipelineStage.opportunities).length;
-    final wonCustomers = leads.where((l) => l.stage == PipelineStage.won).length;
+    final totalLeads =
+        leads.where((l) => l.stage == PipelineStage.leads).length;
+    final totalOpportunities =
+        leads.where((l) => l.stage == PipelineStage.opportunities).length;
+    final wonCustomers =
+        leads.where((l) => l.stage == PipelineStage.won).length;
     final potentialRevenue = leads
         .where((l) => l.stage != PipelineStage.won)
         .fold<double>(0, (sum, l) => sum + l.expectedRevenue);
-    final wonRevenue =
-        leads.where((l) => l.stage == PipelineStage.won).fold<double>(0, (sum, l) => sum + l.currentRevenue);
+    final wonRevenue = leads
+        .where((l) => l.stage == PipelineStage.won)
+        .fold<double>(0, (sum, l) => sum + l.currentRevenue);
     final conversionRate = leads.isEmpty ? 0.0 : wonCustomers / leads.length;
 
     return PipelineSummary(

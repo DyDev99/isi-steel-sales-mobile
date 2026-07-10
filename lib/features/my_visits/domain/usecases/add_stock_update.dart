@@ -7,5 +7,6 @@ class AddStockUpdate extends UseCase<void, VisitStockUpdate> {
   const AddStockUpdate(this._repository);
   final VisitRepository _repository;
   @override
-  ResultFuture<void> call(VisitStockUpdate params) => _repository.addStockUpdate(params);
+  ResultFuture<void> call(VisitStockUpdate params) =>
+      _repository.addStockUpdate(params);
 }

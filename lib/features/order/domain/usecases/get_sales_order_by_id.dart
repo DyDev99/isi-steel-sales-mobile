@@ -9,5 +9,6 @@ class GetSalesOrderById extends UseCase<SalesOrder?, SalesOrderIdParams> {
   final SalesOrderRepository _repository;
 
   @override
-  ResultFuture<SalesOrder?> call(SalesOrderIdParams params) => _repository.getSalesOrderById(params.salesOrderId);
+  ResultFuture<SalesOrder?> call(SalesOrderIdParams params) =>
+      _repository.getSalesOrderById(params.salesOrderId);
 }

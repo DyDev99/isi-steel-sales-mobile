@@ -7,7 +7,8 @@ import 'package:isi_steel_sales_mobile/features/revenue/presentation/mapper/reve
 
 /// Discount Card — selectable discount preset chips.
 class DiscountCard extends StatelessWidget {
-  const DiscountCard({super.key, required this.options, required this.onSelected});
+  const DiscountCard(
+      {super.key, required this.options, required this.onSelected});
 
   final List<DiscountChipViewModel> options;
   final ValueChanged<String> onSelected;
@@ -24,7 +25,10 @@ class DiscountCard extends StatelessWidget {
               const Icon(Icons.discount_outlined, color: Vibe.violet, size: 18),
               const SizedBox(width: 6),
               Text('revenue.discount.title'.tr,
-                  style: const TextStyle(fontWeight: FontWeight.w700, color: Vibe.text, fontSize: 13)),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: Vibe.text,
+                      fontSize: 13)),
             ],
           ),
           const SizedBox(height: 12),
@@ -47,7 +51,8 @@ class DiscountCard extends StatelessWidget {
 }
 
 class _DiscountChip extends StatelessWidget {
-  const _DiscountChip({required this.label, required this.selected, required this.onTap});
+  const _DiscountChip(
+      {required this.label, required this.selected, required this.onTap});
 
   final String label;
   final bool selected;
@@ -61,9 +66,14 @@ class _DiscountChip extends StatelessWidget {
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: selected ? Vibe.violet : (isHovered ? Vibe.primaryLight.withValues(alpha: 0.4) : Vibe.surface),
+          color: selected
+              ? Vibe.violet
+              : (isHovered
+                  ? Vibe.primaryLight.withValues(alpha: 0.4)
+                  : Vibe.surface),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: selected || isHovered ? Vibe.violet : Vibe.stroke),
+          border: Border.all(
+              color: selected || isHovered ? Vibe.violet : Vibe.stroke),
         ),
         child: Text(
           label,

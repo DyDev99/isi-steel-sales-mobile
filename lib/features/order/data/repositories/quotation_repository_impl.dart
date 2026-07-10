@@ -20,14 +20,17 @@ const _validityDays = 14;
 /// [ProductLocalDataSource] to rehydrate full [CartItem] lines — same shape
 /// `CartRepositoryImpl` uses for its own rows.
 class QuotationRepositoryImpl implements QuotationRepository {
-  QuotationRepositoryImpl({required QuotationLocalDataSource local, required ProductLocalDataSource productLocal})
+  QuotationRepositoryImpl(
+      {required QuotationLocalDataSource local,
+      required ProductLocalDataSource productLocal})
       : _local = local,
         _productLocal = productLocal;
 
   final QuotationLocalDataSource _local;
   final ProductLocalDataSource _productLocal;
 
-  final StreamController<List<Quotation>> _controller = StreamController<List<Quotation>>.broadcast();
+  final StreamController<List<Quotation>> _controller =
+      StreamController<List<Quotation>>.broadcast();
 
   @override
   ResultFuture<Quotation> saveQuotation({
@@ -80,7 +83,8 @@ class QuotationRepositoryImpl implements QuotationRepository {
   }
 
   @override
-  ResultFuture<Quotation> updateQuotation(Quotation existing, {required List<CartItem> items}) async {
+  ResultFuture<Quotation> updateQuotation(Quotation existing,
+      {required List<CartItem> items}) async {
     try {
       if (items.isEmpty) {
         return const Failed(CacheFailure(message: 'Quotation has no items.'));
@@ -166,6 +170,17 @@ class QuotationRepositoryImpl implements QuotationRepository {
   }
 
   @override
+  ResultFuture<void> deleteQuotation(String id) async {
+    try {
+      await _local.deleteQuotation(id);
+      await _broadcast();
+      return const Success(null);
+    } on CacheException catch (e) {
+      return Failed(CacheFailure(message: e.message));
+    }
+  }
+
+  @override
   Stream<List<Quotation>> watchQuotations() async* {
     yield await _loadAll();
     yield* _controller.stream;
@@ -213,14 +228,18 @@ class QuotationRepositoryImpl implements QuotationRepository {
       shopName: row['shop_name'] as String?,
       leadId: row['lead_id'] as String?,
       leadDisplayName: row['lead_display_name'] as String?,
-      lines: await _decodeLines(row['lines_json'] as String, customerId: row['customer_id'] as String?, leadId: row['lead_id'] as String?),
+      lines: await _decodeLines(row['lines_json'] as String,
+          customerId: row['customer_id'] as String?,
+          leadId: row['lead_id'] as String?),
       subtotal: (row['subtotal'] as num).toDouble(),
       discount: (row['discount'] as num).toDouble(),
       tax: (row['tax'] as num).toDouble(),
       total: (row['total'] as num).toDouble(),
       status: QuotationStatus.values.firstWhere((s) => s.name == row['status']),
-      offVisitReason:
-          row['off_visit_reason'] == null ? null : OffVisitReason.values.firstWhere((r) => r.name == row['off_visit_reason']),
+      offVisitReason: row['off_visit_reason'] == null
+          ? null
+          : OffVisitReason.values
+              .firstWhere((r) => r.name == row['off_visit_reason']),
       gpsLatitude: (row['gps_lat'] as num?)?.toDouble(),
       gpsLongitude: (row['gps_lng'] as num?)?.toDouble(),
       sapDraftStatus: row['sap_draft_status'] as String,
@@ -239,7 +258,8 @@ class QuotationRepositoryImpl implements QuotationRepository {
           })
       .toList());
 
-  Future<List<CartItem>> _decodeLines(String json, {String? customerId, String? leadId}) async {
+  Future<List<CartItem>> _decodeLines(String json,
+      {String? customerId, String? leadId}) async {
     final rawItems = (jsonDecode(json) as List).cast<DataMap>();
     final items = <CartItem>[];
     for (final raw in rawItems) {
@@ -258,5 +278,6 @@ class QuotationRepositoryImpl implements QuotationRepository {
     return items;
   }
 
-  static String _newId(String prefix) => '$prefix-${(DateTime.now().microsecondsSinceEpoch + Random().nextInt(99999)) % 1000000}';
+  static String _newId(String prefix) =>
+      '$prefix-${(DateTime.now().microsecondsSinceEpoch + Random().nextInt(99999)) % 1000000}';
 }

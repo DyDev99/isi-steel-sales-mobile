@@ -52,7 +52,8 @@ class _PipelineFilterSheetState extends State<_PipelineFilterSheet> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding:
+          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
@@ -64,7 +65,10 @@ class _PipelineFilterSheetState extends State<_PipelineFilterSheet> {
                 children: [
                   const Expanded(
                     child: Text('Filter & sort',
-                        style: TextStyle(color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
+                        style: TextStyle(
+                            color: Vibe.text,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w800)),
                   ),
                   TextButton(
                     onPressed: () => setState(() {
@@ -73,7 +77,8 @@ class _PipelineFilterSheetState extends State<_PipelineFilterSheet> {
                       _priority = null;
                       _sortBy = SortBy.newest;
                     }),
-                    child: const Text('Clear', style: TextStyle(color: Vibe.muted)),
+                    child: const Text('Clear',
+                        style: TextStyle(color: Vibe.muted)),
                   ),
                 ],
               ),
@@ -92,14 +97,22 @@ class _PipelineFilterSheetState extends State<_PipelineFilterSheet> {
               const SizedBox(height: 16),
               const _Label('Priority'),
               _ChipGroup<Priority?>(
-                options: const {null: 'Any', Priority.high: 'High', Priority.medium: 'Medium', Priority.low: 'Low'},
+                options: const {
+                  null: 'Any',
+                  Priority.high: 'High',
+                  Priority.medium: 'Medium',
+                  Priority.low: 'Low'
+                },
                 selected: _priority,
                 onSelected: (v) => setState(() => _priority = v),
               ),
               const SizedBox(height: 16),
               const _Label('Territory'),
               _ChipGroup<String?>(
-                options: {null: 'Any', for (final t in widget.territories) t: t},
+                options: {
+                  null: 'Any',
+                  for (final t in widget.territories) t: t
+                },
                 selected: _territory,
                 onSelected: (v) => setState(() => _territory = v),
               ),
@@ -126,9 +139,11 @@ class _PipelineFilterSheetState extends State<_PipelineFilterSheet> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Vibe.violet,
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
                   ),
-                  child: const Text('Apply', style: TextStyle(fontWeight: FontWeight.w700)),
+                  child: const Text('Apply',
+                      style: TextStyle(fontWeight: FontWeight.w700)),
                 ),
               ),
             ],
@@ -145,12 +160,17 @@ class _Label extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.only(bottom: 8),
-        child: Text(text, style: const TextStyle(color: Vibe.muted, fontSize: 12, fontWeight: FontWeight.w700)),
+        child: Text(text,
+            style: const TextStyle(
+                color: Vibe.muted, fontSize: 12, fontWeight: FontWeight.w700)),
       );
 }
 
 class _ChipGroup<T> extends StatelessWidget {
-  const _ChipGroup({required this.options, required this.selected, required this.onSelected});
+  const _ChipGroup(
+      {required this.options,
+      required this.selected,
+      required this.onSelected});
   final Map<T, String> options;
   final T selected;
   final void Function(T value) onSelected;
@@ -168,7 +188,9 @@ class _ChipGroup<T> extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
-              color: isSelected ? Vibe.violet.withValues(alpha: 0.2) : Vibe.surface,
+              color: isSelected
+                  ? Vibe.violet.withValues(alpha: 0.2)
+                  : Vibe.surface,
               borderRadius: BorderRadius.circular(999),
               border: Border.all(color: isSelected ? Vibe.violet : Vibe.stroke),
             ),

@@ -22,7 +22,8 @@ class InteractiveScale extends StatefulWidget {
   });
 
   final VoidCallback onTap;
-  final Widget Function(BuildContext context, bool isHovered, bool isPressed) builder;
+  final Widget Function(BuildContext context, bool isHovered, bool isPressed)
+      builder;
   final double pressScale;
   final double hoverScale;
 
@@ -44,7 +45,8 @@ class _InteractiveScaleState extends State<InteractiveScale> {
 
   @override
   Widget build(BuildContext context) {
-    final scale = _pressed ? widget.pressScale : (_hovered ? widget.hoverScale : 1.0);
+    final scale =
+        _pressed ? widget.pressScale : (_hovered ? widget.hoverScale : 1.0);
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => _setHovered(true),

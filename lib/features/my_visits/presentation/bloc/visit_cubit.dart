@@ -55,28 +55,32 @@ class VisitCubit extends Cubit<VisitState> {
   Future<void> addOrderLine(VisitOrderLine line) async {
     final current = state;
     if (current is! VisitLoaded) return;
-    emit(VisitLoaded(_withOrderLines(current.data, [...current.data.orderLines, line])));
+    emit(VisitLoaded(
+        _withOrderLines(current.data, [...current.data.orderLines, line])));
     await _addOrderLine(line);
   }
 
   Future<void> addStockUpdate(VisitStockUpdate update) async {
     final current = state;
     if (current is! VisitLoaded) return;
-    emit(VisitLoaded(_withStockUpdates(current.data, [...current.data.stockUpdates, update])));
+    emit(VisitLoaded(_withStockUpdates(
+        current.data, [...current.data.stockUpdates, update])));
     await _addStockUpdate(update);
   }
 
   Future<void> addReturn(VisitReturn returnItem) async {
     final current = state;
     if (current is! VisitLoaded) return;
-    emit(VisitLoaded(_withReturns(current.data, [...current.data.returns, returnItem])));
+    emit(VisitLoaded(
+        _withReturns(current.data, [...current.data.returns, returnItem])));
     await _addReturn(returnItem);
   }
 
   Future<void> addCollection(VisitCollection collection) async {
     final current = state;
     if (current is! VisitLoaded) return;
-    emit(VisitLoaded(_withCollections(current.data, [...current.data.collections, collection])));
+    emit(VisitLoaded(_withCollections(
+        current.data, [...current.data.collections, collection])));
     await _addCollection(collection);
   }
 
@@ -90,20 +94,52 @@ class VisitCubit extends Cubit<VisitState> {
   Future<void> addPhoto(VisitPhoto photo) async {
     final current = state;
     if (current is! VisitLoaded) return;
-    emit(VisitLoaded(_withPhotos(current.data, [photo, ...current.data.photos])));
+    emit(VisitLoaded(
+        _withPhotos(current.data, [photo, ...current.data.photos])));
     await _addVisitPhoto(photo);
   }
 
   VisitData _withOrderLines(VisitData d, List<VisitOrderLine> v) => VisitData(
-      orderLines: v, stockUpdates: d.stockUpdates, returns: d.returns, collections: d.collections, notes: d.notes, photos: d.photos);
-  VisitData _withStockUpdates(VisitData d, List<VisitStockUpdate> v) => VisitData(
-      orderLines: d.orderLines, stockUpdates: v, returns: d.returns, collections: d.collections, notes: d.notes, photos: d.photos);
+      orderLines: v,
+      stockUpdates: d.stockUpdates,
+      returns: d.returns,
+      collections: d.collections,
+      notes: d.notes,
+      photos: d.photos);
+  VisitData _withStockUpdates(VisitData d, List<VisitStockUpdate> v) =>
+      VisitData(
+          orderLines: d.orderLines,
+          stockUpdates: v,
+          returns: d.returns,
+          collections: d.collections,
+          notes: d.notes,
+          photos: d.photos);
   VisitData _withReturns(VisitData d, List<VisitReturn> v) => VisitData(
-      orderLines: d.orderLines, stockUpdates: d.stockUpdates, returns: v, collections: d.collections, notes: d.notes, photos: d.photos);
+      orderLines: d.orderLines,
+      stockUpdates: d.stockUpdates,
+      returns: v,
+      collections: d.collections,
+      notes: d.notes,
+      photos: d.photos);
   VisitData _withCollections(VisitData d, List<VisitCollection> v) => VisitData(
-      orderLines: d.orderLines, stockUpdates: d.stockUpdates, returns: d.returns, collections: v, notes: d.notes, photos: d.photos);
+      orderLines: d.orderLines,
+      stockUpdates: d.stockUpdates,
+      returns: d.returns,
+      collections: v,
+      notes: d.notes,
+      photos: d.photos);
   VisitData _withNotes(VisitData d, List<VisitNote> v) => VisitData(
-      orderLines: d.orderLines, stockUpdates: d.stockUpdates, returns: d.returns, collections: d.collections, notes: v, photos: d.photos);
+      orderLines: d.orderLines,
+      stockUpdates: d.stockUpdates,
+      returns: d.returns,
+      collections: d.collections,
+      notes: v,
+      photos: d.photos);
   VisitData _withPhotos(VisitData d, List<VisitPhoto> v) => VisitData(
-      orderLines: d.orderLines, stockUpdates: d.stockUpdates, returns: d.returns, collections: d.collections, notes: d.notes, photos: v);
+      orderLines: d.orderLines,
+      stockUpdates: d.stockUpdates,
+      returns: d.returns,
+      collections: d.collections,
+      notes: d.notes,
+      photos: v);
 }

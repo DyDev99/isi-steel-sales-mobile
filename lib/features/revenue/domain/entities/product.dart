@@ -25,5 +25,6 @@ class Product extends Equatable {
   bool get isInStock => availableStock > 0;
 
   @override
-  List<Object?> get props => [id, name, sku, categoryId, unit, unitPrice, availableStock];
+  List<Object?> get props =>
+      [id, name, sku, categoryId, unit, unitPrice, availableStock];
 }

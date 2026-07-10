@@ -33,7 +33,8 @@ class RoutePlan extends Equatable {
   int get missedStops => stops.where((s) => s.status.name == 'missed').length;
   double get progress => totalStops == 0 ? 0 : completedStops / totalStops;
 
-  RoutePlan copyWith({RouteStatus? status, List<RouteStop>? stops}) => RoutePlan(
+  RoutePlan copyWith({RouteStatus? status, List<RouteStop>? stops}) =>
+      RoutePlan(
         id: id,
         name: name,
         repId: repId,
@@ -47,5 +48,6 @@ class RoutePlan extends Equatable {
       );
 
   @override
-  List<Object?> get props => [id, name, repId, territory, visitDate, status, stops];
+  List<Object?> get props =>
+      [id, name, repId, territory, visitDate, status, stops];
 }

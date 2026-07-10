@@ -28,7 +28,8 @@ class RouteDashboardCubit extends Cubit<RouteDashboardState> {
     if (state is! RouteDashboardLoaded) emit(const RouteDashboardLoading());
     _subscription?.cancel();
     _subscription = _watchTodayRoutes(const NoParams()).listen(
-      (routes) => emit(RouteDashboardLoaded(routes: routes, summary: _summarize(routes))),
+      (routes) => emit(
+          RouteDashboardLoaded(routes: routes, summary: _summarize(routes))),
       onError: (Object e) => emit(RouteDashboardError(e.toString())),
     );
   }
@@ -45,7 +46,8 @@ class RouteDashboardCubit extends Cubit<RouteDashboardState> {
 
   RouteDashboardSummary _summarize(List<RoutePlan> routes) {
     final allStops = routes.expand((r) => r.stops).toList();
-    final completed = allStops.where((s) => s.status == VisitStatus.checkedOut).length;
+    final completed =
+        allStops.where((s) => s.status == VisitStatus.checkedOut).length;
     final missed = allStops.where((s) => s.status == VisitStatus.missed).length;
 
     var distanceKm = 0.0;
@@ -54,7 +56,8 @@ class RouteDashboardCubit extends Cubit<RouteDashboardState> {
       for (var i = 0; i < route.stops.length; i++) {
         final stop = route.stops[i];
         if (stop.actualArrival != null && stop.actualDeparture != null) {
-          visitMinutes += stop.actualDeparture!.difference(stop.actualArrival!).inMinutes;
+          visitMinutes +=
+              stop.actualDeparture!.difference(stop.actualArrival!).inMinutes;
         }
         if (i > 0) {
           final prev = route.stops[i - 1].customer;
