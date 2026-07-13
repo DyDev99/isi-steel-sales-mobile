@@ -7,11 +7,11 @@ import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_event.dart';
 import 'package:isi_steel_sales_mobile/features/profile/presentation/bloc/profile_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/profile/presentation/bloc/profile_state.dart';
-import 'package:isi_steel_sales_mobile/features/profile/presentation/widgets/change_password_sheet.dart';
 import 'package:isi_steel_sales_mobile/features/profile/presentation/widgets/edit_profile_sheet.dart';
 import 'package:isi_steel_sales_mobile/features/profile/presentation/widgets/profile_header.dart';
 import 'package:isi_steel_sales_mobile/features/profile/presentation/widgets/profile_info_section.dart';
 import 'package:isi_steel_sales_mobile/features/settings/theme/presentation/widgets/appearance_section.dart';
+import 'package:isi_steel_sales_mobile/routes/app_routes.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -41,21 +41,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Future<void> _changePassword(BuildContext context) async {
-    final result = await showChangePasswordSheet(context: context);
-    if (result == null || !context.mounted) return;
-    final ok = await context.read<ProfileCubit>().changePassword(
-          currentPassword: result.currentPassword,
-          newPassword: result.newPassword,
-        );
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-          content: Text(ok
-              ? 'profile.password_success'.tr
-              : 'profile.password_failure'.tr)),
-    );
-  }
+
 
   Future<void> _confirmLogout(BuildContext context) async {
     final confirmed = await showDialog<bool>(
@@ -131,9 +117,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton.icon(
-                        onPressed: state.isSaving
-                            ? null
-                            : () => _changePassword(context),
+                        onPressed: () => Navigator.of(context).pushNamed(Static.forgotPassword),
+
                         icon: const Icon(Icons.lock_reset_rounded, size: 18),
                         label: Text('profile.change_password'.tr),
                       ),

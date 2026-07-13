@@ -56,9 +56,26 @@ class LocalizationService extends ChangeNotifier {
   String translate(String key) {
     return _localizedStrings[key] ?? key;
   }
+
+  /// Like [translate], but replaces `{name}` placeholders in the resolved
+  /// string with the matching value from [params]. e.g. a value of
+  /// "sent to {target}" with `{'target': 'a@b.com'}` becomes
+  /// "sent to a@b.com".
+  String translateWithParams(String key, Map<String, dynamic> params) {
+    var result = translate(key);
+    params.forEach((name, value) {
+      result = result.replaceAll('{$name}', '$value');
+    });
+    return result;
+  }
 }
 
 /// THIS IS CRITICAL: This activates the 'key'.tr syntax anywhere in your project!
 extension LocalizationStringExtension on String {
   String get tr => LocalizationService.instance.translate(this);
+
+  /// Translates this key and fills in `{name}` placeholders from [params],
+  /// e.g. `'auth.verify_code_subtitle'.trParams({'target': email})`.
+  String trParams(Map<String, dynamic> params) =>
+      LocalizationService.instance.translateWithParams(this, params);
 }

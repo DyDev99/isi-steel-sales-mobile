@@ -22,5 +22,9 @@ class Static {
   static const String profile = '/profile';
   static const String myVisits = '/my-visits';
   static const String order = '/order';
+  static const String forgotPassword = '/forgot-password';
+  static const String verifyOtp = '/verify-otp';
+  static const String createNewPassword = '/create-new-password';
+  static const String resetPasswordSuccess = '/reset-password-success';
   static const String revenue = '/revenue';
 }

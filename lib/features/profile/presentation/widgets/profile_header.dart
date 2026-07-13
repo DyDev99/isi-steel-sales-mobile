@@ -18,36 +18,68 @@ class ProfileHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final colors = context.appColors;
+
+    // 1. FIXED URL (Stripped formatting breaks and spaces)
+    const defaultAvatarUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSNjUdsOFxJmaz8TZrILnv6OrfDw86WBWVQUkwMUKCakA&s=10';
+    final imageUrl = profile.avatarUrl ?? defaultAvatarUrl;
+
     return Column(
       children: [
         Container(
           width: 84,
           height: 84,
-          alignment: Alignment.center,
           decoration: BoxDecoration(
             color: colors.surfaceStrong,
             shape: BoxShape.circle,
             border: Border.all(
-                color: scheme.primary.withValues(alpha: 0.4), width: 2),
-            image: profile.avatarUrl != null
-                ? DecorationImage(
-                    image: NetworkImage(profile.avatarUrl!), fit: BoxFit.cover)
-                : null,
+              color: scheme.primary.withValues(alpha: 0.4), 
+              width: 2,
+            ),
           ),
-          child: profile.avatarUrl == null
-              ? Text(_initials,
-                  style: TextStyle(
+          // 2. Safe clipping with built-in runtime exception management
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(42),
+            child: Image.network(
+              imageUrl,
+              fit: BoxFit.cover,
+              // Catches Handshake/SSL exceptions seamlessly
+              errorBuilder: (context, error, stackTrace) {
+                return Center(
+                  child: Text(
+                    _initials,
+                    style: TextStyle(
                       color: scheme.primary,
                       fontSize: 26,
-                      fontWeight: FontWeight.w800))
-              : null,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                );
+              },
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return Center(
+                  child: Text(
+                    _initials,
+                    style: TextStyle(
+                      color: scheme.primary.withValues(alpha: 0.5),
+                      fontSize: 26,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
         ),
         const SizedBox(height: 12),
-        Text(profile.fullName,
-            style: TextStyle(
-                color: scheme.onSurface,
-                fontSize: 18,
-                fontWeight: FontWeight.w900)),
+        Text(
+          profile.fullName,
+          style: TextStyle(
+            color: scheme.onSurface,
+            fontSize: 18,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
         const SizedBox(height: 4),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -56,15 +88,20 @@ class ProfileHeader extends StatelessWidget {
             borderRadius: BorderRadius.circular(999),
             border: Border.all(color: scheme.primary.withValues(alpha: 0.3)),
           ),
-          child: Text(profile.role,
-              style: TextStyle(
-                  color: scheme.primary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700)),
+          child: Text(
+            profile.role,
+            style: TextStyle(
+              color: scheme.primary,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
         ),
         const SizedBox(height: 2),
-        Text('#${profile.employeeCode}',
-            style: TextStyle(color: colors.textSecondary, fontSize: 12)),
+        Text(
+          '#${profile.employeeCode}',
+          style: TextStyle(color: colors.textSecondary, fontSize: 12),
+        ),
       ],
     );
   }

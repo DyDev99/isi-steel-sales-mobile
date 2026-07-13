@@ -9,6 +9,7 @@ import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/utils/aurora_background.dart';
 import 'package:isi_steel_sales_mobile/core/utils/glass_card.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/gradient_button.dart';
+import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/forgot_password/identifier_field.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/status_pill.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/vibe_field.dart';
 import 'package:isi_steel_sales_mobile/routes/app_routes.dart';
@@ -29,22 +30,32 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _email = TextEditingController();
+  final _identifierKey = GlobalKey<IdentifierFieldState>();
   final _password = TextEditingController();
   bool _obscure = true;
 
   @override
   void dispose() {
-    _email.dispose();
     _password.dispose();
     super.dispose();
   }
 
   void _submit() {
-    if (!_formKey.currentState!.validate()) return;
+    // Both need to pass: the Form validates the password field, and the
+    // identifier field validates itself separately since it isn't a plain
+    // FormField (see identifier_field.dart for why).
+    final formOk = _formKey.currentState?.validate() ?? false;
+    final identifierOk = _identifierKey.currentState?.validate() ?? false;
+    if (!formOk || !identifierOk) return;
+
     context.read<AuthBloc>().add(
           LoginSubmittedEvent(
-            email: _email.text.trim(),
+            // NOTE: this still passes through the `email` param name on
+            // LoginSubmittedEvent — it may hold an email OR a phone number
+            // now. Rename this param to `identifier` in auth_event.dart if
+            // the backend distinguishes the two, or route on
+            // `_identifierKey.currentState!.mode` here if needed.
+            email: _identifierKey.currentState!.value,
             password: _password.text,
           ),
         );
@@ -137,21 +148,10 @@ class _LoginScreenState extends State<LoginScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          VibeField(
-            controller: _email,
-            label: 'auth.email'.tr,
-            icon: Icons.alternate_email,
-            keyboardType: TextInputType.emailAddress,
+          IdentifierField(
+            key: _identifierKey,
+            required: true,
             textInputAction: TextInputAction.next,
-            autofillHints: const [AutofillHints.email],
-            validator: (v) {
-              if (v == null || v.trim().isEmpty) {
-                return 'auth.email_required'.tr;
-              }
-              final ok =
-                  RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(v.trim());
-              return ok ? null : 'auth.invalid_email'.tr;
-            },
           ),
           const SizedBox(height: 14),
           VibeField(
@@ -161,6 +161,7 @@ class _LoginScreenState extends State<LoginScreen> {
             obscure: _obscure,
             textInputAction: TextInputAction.done,
             autofillHints: const [AutofillHints.password],
+            required: true,
             onSubmitted: (_) => _submit(),
             suffix: IconButton(
               icon: Icon(
@@ -179,7 +180,7 @@ class _LoginScreenState extends State<LoginScreen> {
           Align(
             alignment: Alignment.centerRight,
             child: TextButton(
-              onPressed: widget.onForgotPassword,
+              onPressed: () => Navigator.of(context).pushNamed(Static.forgotPassword),
               child: Text('auth.forgot_password'.tr,
                   style:
                       TextStyle(color: Vibe.mint, fontWeight: FontWeight.w600)),
