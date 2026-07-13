@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/quotation_sync_status.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/sync_queue_item.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/sync/pending_sync_cubit.dart';
@@ -14,7 +14,7 @@ Future<void> showPendingSyncSheet(BuildContext context) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
-    backgroundColor: Vibe.bgSoft,
+    backgroundColor: context.appColors.surfaceSoft,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
     ),
@@ -34,22 +34,24 @@ class _SyncSheet extends StatelessWidget {
         ),
         child: BlocBuilder<PendingSyncCubit, PendingSyncState>(
           builder: (context, state) {
+            final scheme = Theme.of(context).colorScheme;
+            final colors = context.appColors;
             return Padding(
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _grabber(),
+                  _grabber(colors.border),
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      const Expanded(
+                      Expanded(
                         child: Text('Sync Center',
                             style: TextStyle(
                                 fontSize: 17,
                                 fontWeight: FontWeight.w800,
-                                color: Vibe.text)),
+                                color: scheme.onSurface)),
                       ),
                       if (state.counts.pending > 0)
                         _SyncNowButton(isSyncing: state.isSyncing),
@@ -58,7 +60,7 @@ class _SyncSheet extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     '${state.counts.pending} pending · ${state.counts.failed} failed · ${state.counts.conflict} conflict',
-                    style: const TextStyle(color: Vibe.muted, fontSize: 12),
+                    style: TextStyle(color: colors.textSecondary, fontSize: 12),
                   ),
                   const SizedBox(height: 12),
                   if (state.items.isEmpty)
@@ -82,12 +84,12 @@ class _SyncSheet extends StatelessWidget {
     );
   }
 
-  Widget _grabber() => Center(
+  Widget _grabber(Color color) => Center(
         child: Container(
           width: 40,
           height: 4,
           decoration: BoxDecoration(
-            color: Vibe.stroke,
+            color: color,
             borderRadius: BorderRadius.circular(2),
           ),
         ),
@@ -104,7 +106,7 @@ class _SyncNowButton extends StatelessWidget {
       onPressed:
           isSyncing ? null : () => context.read<PendingSyncCubit>().syncNow(),
       style: FilledButton.styleFrom(
-        backgroundColor: Vibe.violet,
+        backgroundColor: Theme.of(context).colorScheme.primary,
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       ),
       icon: isSyncing
@@ -125,13 +127,15 @@ class _QueueTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = _statusColor(item.status);
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
+    final color = _statusColor(context, item.status);
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Vibe.surface,
+        color: scheme.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Vibe.stroke),
+        border: Border.all(color: colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -145,10 +149,10 @@ class _QueueTile extends StatelessWidget {
                       : 'Quotation ${item.quotationId}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontWeight: FontWeight.w800,
                       fontSize: 13.5,
-                      color: Vibe.text),
+                      color: scheme.onSurface),
                 ),
               ),
               _StatusChip(status: item.status, color: color),
@@ -161,13 +165,13 @@ class _QueueTile extends StatelessWidget {
               if (item.total != null) '\$${item.total!.toStringAsFixed(2)}',
               if (item.attemptCount > 0) 'attempt ${item.attemptCount}',
             ].join(' · '),
-            style: const TextStyle(color: Vibe.muted, fontSize: 11.5),
+            style: TextStyle(color: colors.textSecondary, fontSize: 11.5),
           ),
           if (item.sapDocumentNumber != null) ...[
             const SizedBox(height: 6),
             _InfoLine(
               icon: Icons.check_circle_rounded,
-              color: Vibe.success,
+              color: colors.success,
               text: 'SAP ${item.sapDocumentNumber}'
                   '${item.syncDurationMs != null ? ' · ${item.syncDurationMs}ms' : ''}',
             ),
@@ -176,7 +180,7 @@ class _QueueTile extends StatelessWidget {
             const SizedBox(height: 6),
             _InfoLine(
               icon: Icons.error_outline_rounded,
-              color: Vibe.danger,
+              color: scheme.error,
               text: item.lastError!,
             ),
           ],
@@ -189,8 +193,8 @@ class _QueueTile extends StatelessWidget {
                   onPressed: () => context
                       .read<PendingSyncCubit>()
                       .discard(item.quotationId),
-                  child: const Text('Discard',
-                      style: TextStyle(color: Vibe.muted)),
+                  child: Text('Discard',
+                      style: TextStyle(color: colors.textSecondary)),
                 ),
                 const SizedBox(width: 4),
                 FilledButton.tonalIcon(
@@ -207,17 +211,21 @@ class _QueueTile extends StatelessWidget {
     );
   }
 
-  static Color _statusColor(QuotationSyncStatus status) => switch (status) {
-        QuotationSyncStatus.accepted => Vibe.success,
-        QuotationSyncStatus.failed ||
-        QuotationSyncStatus.rejected =>
-          Vibe.danger,
-        QuotationSyncStatus.conflict => Vibe.amber,
-        QuotationSyncStatus.syncing ||
-        QuotationSyncStatus.submitted =>
-          Vibe.violet,
-        _ => Vibe.muted,
-      };
+  static Color _statusColor(BuildContext context, QuotationSyncStatus status) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
+    return switch (status) {
+      QuotationSyncStatus.accepted => colors.success,
+      QuotationSyncStatus.failed ||
+      QuotationSyncStatus.rejected =>
+        scheme.error,
+      QuotationSyncStatus.conflict => colors.warning,
+      QuotationSyncStatus.syncing ||
+      QuotationSyncStatus.submitted =>
+        scheme.primary,
+      _ => colors.textSecondary,
+    };
+  }
 }
 
 class _StatusChip extends StatelessWidget {
@@ -270,20 +278,22 @@ class _EmptyQueue extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.symmetric(vertical: 36),
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 36),
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.cloud_done_rounded, size: 40, color: Vibe.success),
-            SizedBox(height: 10),
+            Icon(Icons.cloud_done_rounded, size: 40, color: colors.success),
+            const SizedBox(height: 10),
             Text('Everything is synced',
-                style:
-                    TextStyle(color: Vibe.text, fontWeight: FontWeight.w700)),
-            SizedBox(height: 4),
+                style: TextStyle(
+                    color: scheme.onSurface, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 4),
             Text('No quotations waiting for SAP.',
-                style: TextStyle(color: Vibe.muted, fontSize: 12)),
+                style: TextStyle(color: colors.textSecondary, fontSize: 12)),
           ],
         ),
       ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
 /// Quick-action row on the customer detail screen. Purely presentational — the
 /// actual navigation/side-effects live in the parent callbacks; this widget
@@ -70,6 +70,8 @@ class _PrimaryAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     return _Pressable(
       onTap: onTap,
       scale: 0.97,
@@ -78,8 +80,8 @@ class _PrimaryAction extends StatelessWidget {
         curve: Curves.easeOut,
         padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 12),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Vibe.violet, Vibe.primaryHover],
+          gradient: LinearGradient(
+            colors: [scheme.primary, colors.primaryHover],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -88,7 +90,7 @@ class _PrimaryAction extends StatelessWidget {
               ? const []
               : [
                   BoxShadow(
-                    color: Vibe.violet.withValues(alpha: 0.35),
+                    color: scheme.primary.withValues(alpha: 0.35),
                     blurRadius: 14,
                     offset: const Offset(0, 6),
                   ),
@@ -97,15 +99,15 @@ class _PrimaryAction extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 18, color: Colors.white),
+            Icon(icon, size: 18, color: scheme.onPrimary),
             const SizedBox(width: 6),
             Flexible(
               child: Text(
                 label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: scheme.onPrimary,
                   fontWeight: FontWeight.w800,
                   fontSize: 12.5,
                 ),
@@ -133,23 +135,25 @@ class _IconAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     return _Pressable(
       onTap: onTap,
       builder: (context, pressed) {
-        final accent = pressed ? Vibe.violet : Vibe.muted;
+        final accent = pressed ? scheme.primary : colors.textSecondary;
         return AnimatedContainer(
           duration: const Duration(milliseconds: 160),
           curve: Curves.easeOut,
           width: 54,
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: pressed ? Vibe.surfaceStrong : Vibe.surface,
+            color: pressed ? colors.surfaceStrong : colors.card,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: pressed ? Vibe.violet : Vibe.stroke,
+              color: pressed ? scheme.primary : colors.border,
               width: pressed ? 1.4 : 1,
             ),
-            boxShadow: pressed ? const [] : Vibe.cardShadow,
+            boxShadow: pressed ? const [] : colors.cardShadow,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -158,7 +162,7 @@ class _IconAction extends StatelessWidget {
                 scale: pressed ? 1.12 : 1.0,
                 duration: const Duration(milliseconds: 160),
                 curve: Curves.easeOut,
-                child: Icon(icon, color: Vibe.violet, size: 18),
+                child: Icon(icon, color: scheme.primary, size: 18),
               ),
               const SizedBox(height: 3),
               AnimatedDefaultTextStyle(

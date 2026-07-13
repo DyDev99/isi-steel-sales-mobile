@@ -2,7 +2,6 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/location_sample.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_stop.dart';
 
@@ -61,6 +60,7 @@ class _TransitMapState extends State<TransitMap> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     final current = _currentLatLng;
 
     final markers = <Marker>{
@@ -88,9 +88,9 @@ class _TransitMapState extends State<TransitMap> {
         circleId: const CircleId('geofence'),
         center: _targetLatLng,
         radius: widget.target.customer.geofenceRadiusMeters,
-        strokeColor: Vibe.violet,
+        strokeColor: scheme.primary,
         strokeWidth: 2,
-        fillColor: Vibe.violet.withValues(alpha: 0.12),
+        fillColor: scheme.primary.withValues(alpha: 0.12),
       ),
     };
 
@@ -99,7 +99,7 @@ class _TransitMapState extends State<TransitMap> {
         : {
             Polyline(
               polylineId: const PolylineId('to_target'),
-              color: Vibe.violet,
+              color: scheme.primary,
               width: 4,
               patterns: [PatternItem.dash(24), PatternItem.gap(12)],
               points: [current, _targetLatLng],
@@ -133,10 +133,10 @@ class _TransitMapState extends State<TransitMap> {
           bottom: 12,
           child: FloatingActionButton.small(
             heroTag: 'transit_map_recenter',
-            backgroundColor: Vibe.violet,
+            backgroundColor: scheme.primary,
             onPressed: _fitBounds,
-            child: const Icon(Icons.center_focus_strong_rounded,
-                color: Colors.white),
+            child: Icon(Icons.center_focus_strong_rounded,
+                color: scheme.onPrimary),
           ),
         ),
       ],

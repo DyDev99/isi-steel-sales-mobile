@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/local/localized_builder.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/credit_summary.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/off_visit_reason.dart';
@@ -18,9 +18,6 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quota
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/credit_summary_card.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/off_visit_reason_sheet.dart';
 
-/// Third step of the order flow — shop info, credit position, and (unless
-/// [skipOffVisitCheck]) an off-visit reason gate before the rep can start a
-/// quotation.
 class ShopOrderEntryScreen extends StatefulWidget {
   const ShopOrderEntryScreen(
       {super.key,
@@ -102,40 +99,37 @@ class _ShopOrderEntryScreenState extends State<ShopOrderEntryScreen> {
 
   Widget _build(BuildContext context) {
     final customer = widget.customer;
+    final colors = context.appColors;
+
     return Scaffold(
-      backgroundColor: Vibe.bg,
+      backgroundColor: colors.canvas,
       appBar: AppBar(
-        backgroundColor: Vibe.bg,
-        iconTheme: const IconThemeData(color: Vibe.text),
+        backgroundColor: colors.canvas,
+        iconTheme: IconThemeData(color: colors.textPrimary),
         title: Text(customer.shopName,
-            style: const TextStyle(
-                color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
+            style: TextStyle(
+                color: colors.textPrimary, fontSize: 17, fontWeight: FontWeight.w800)),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
         children: [
           Text(customer.address,
-              style: const TextStyle(color: Vibe.text, fontSize: 13)),
+              style: TextStyle(color: colors.textPrimary, fontSize: 13)),
           Text('${customer.district}, ${customer.province}',
-              style: const TextStyle(color: Vibe.muted, fontSize: 12)),
+              style: TextStyle(color: colors.textSecondary, fontSize: 12)),
           const SizedBox(height: 14),
           FutureBuilder<CreditSummary?>(
             future: _summaryFuture,
             builder: (context, snapshot) {
-              // Use connectionState, not hasData: the future resolves to a
-              // nullable CreditSummary, so on a null (lookup unavailable)
-              // result hasData stays false and a `!hasData` guard would spin
-              // forever under a slow/failed API.
               if (snapshot.connectionState != ConnectionState.done) {
-                return const Center(
+                return Center(
                     child: Padding(
-                        padding: EdgeInsets.all(20),
-                        child: CircularProgressIndicator(color: Vibe.violet)));
+                        padding: const EdgeInsets.all(20),
+                        child: CircularProgressIndicator(color: colors.accentPurple)));
               }
               final summary = snapshot.data;
               if (summary == null) {
-                return const SizedBox
-                    .shrink(); // credit unavailable — don't block ordering
+                return const SizedBox.shrink();
               }
               return CreditSummaryCard(
                   creditLimit: customer.creditLimit, summary: summary);
@@ -154,7 +148,7 @@ class _ShopOrderEntryScreenState extends State<ShopOrderEntryScreen> {
           const SizedBox(height: 14),
           Row(
             children: [
-              const Icon(Icons.gps_fixed_rounded, size: 15, color: Vibe.muted),
+              Icon(Icons.gps_fixed_rounded, size: 15, color: colors.textSecondary),
               const SizedBox(width: 6),
               Text(
                 _capturingGps
@@ -162,7 +156,7 @@ class _ShopOrderEntryScreenState extends State<ShopOrderEntryScreen> {
                     : _gps == null
                         ? 'orders.shop.capture_gps'.tr
                         : '${_gps!.lat.toStringAsFixed(5)}, ${_gps!.lng.toStringAsFixed(5)}',
-                style: const TextStyle(color: Vibe.muted, fontSize: 12),
+                style: TextStyle(color: colors.textSecondary, fontSize: 12),
               ),
             ],
           ),
@@ -172,7 +166,7 @@ class _ShopOrderEntryScreenState extends State<ShopOrderEntryScreen> {
             child: ElevatedButton(
               onPressed: _startQuotation,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Vibe.violet,
+                backgroundColor: colors.accentPurple,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
@@ -203,33 +197,35 @@ class _OffVisitBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Vibe.amber.withValues(alpha: 0.12),
+        color: colors.warning.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Vibe.amber.withValues(alpha: 0.35)),
+        border: Border.all(color: colors.warning.withValues(alpha: 0.35)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.info_outline_rounded, color: Vibe.amber, size: 18),
+          Icon(Icons.info_outline_rounded, color: colors.warning, size: 18),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('orders.shop.off_visit_warning'.tr,
-                    style: const TextStyle(
-                        color: Vibe.amber,
+                    style: TextStyle(
+                        color: colors.warning,
                         fontSize: 12.5,
                         fontWeight: FontWeight.w600,
                         height: 1.35)),
                 if (reason != null) ...[
                   const SizedBox(height: 6),
                   Text(reason!.localizedLabel,
-                      style: const TextStyle(
-                          color: Vibe.text,
+                      style: TextStyle(
+                          color: colors.textPrimary,
                           fontSize: 12,
                           fontWeight: FontWeight.w700)),
                 ],

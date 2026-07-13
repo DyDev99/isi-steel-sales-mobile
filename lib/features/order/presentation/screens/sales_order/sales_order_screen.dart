@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/quotation.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/catalog_params.dart';
@@ -12,10 +12,6 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/car
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/success/order_success_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/quotation_line_tile.dart';
 
-/// Fourth step — load the quotation's lines (already seeded into a fresh
-/// `CartCubit` by the caller via `loadFromQuotation`), let the rep edit
-/// quantities/remove lines, then "Create Sales Order in SAP" (mocked — no
-/// numeric repricing, just freezes totals and marks confirmed).
 class SalesOrderScreen extends StatefulWidget {
   const SalesOrderScreen({super.key, required this.quotation});
 
@@ -56,14 +52,16 @@ class _SalesOrderScreenState extends State<SalesOrderScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Scaffold(
-      backgroundColor: Vibe.bg,
+      backgroundColor: colors.canvas,
       appBar: AppBar(
-        backgroundColor: Vibe.bg,
-        iconTheme: const IconThemeData(color: Vibe.text),
+        backgroundColor: colors.canvas,
+        iconTheme: IconThemeData(color: colors.textPrimary),
         title: Text('orders.sales_order.title'.tr,
-            style: const TextStyle(
-                color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
+            style: TextStyle(
+                color: colors.textPrimary, fontSize: 17, fontWeight: FontWeight.w800)),
       ),
       body: BlocBuilder<CartCubit, CartState>(
         builder: (context, state) {
@@ -94,8 +92,8 @@ class _SalesOrderScreenState extends State<SalesOrderScreen> {
               ),
               Container(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
-                decoration: const BoxDecoration(
-                    border: Border(top: BorderSide(color: Vibe.stroke))),
+                decoration: BoxDecoration(
+                    border: Border(top: BorderSide(color: colors.border))),
                 child: SafeArea(
                   top: false,
                   child: Column(
@@ -104,7 +102,7 @@ class _SalesOrderScreenState extends State<SalesOrderScreen> {
                       _Row('Subtotal', subtotal),
                       if (discount > 0) _Row('Discount', -discount),
                       _Row('Tax', tax),
-                      const Divider(color: Vibe.divider, height: 20),
+                      Divider(color: colors.divider, height: 20),
                       _Row('orders.sales_order.title'.tr, total,
                           emphasize: true),
                       const SizedBox(height: 12),
@@ -126,7 +124,7 @@ class _SalesOrderScreenState extends State<SalesOrderScreen> {
                               style:
                                   const TextStyle(fontWeight: FontWeight.w800)),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Vibe.violet,
+                            backgroundColor: colors.accentPurple,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(
@@ -154,6 +152,8 @@ class _Row extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
@@ -161,13 +161,13 @@ class _Row extends StatelessWidget {
           Expanded(
             child: Text(label,
                 style: TextStyle(
-                    color: emphasize ? Vibe.text : Vibe.muted,
+                    color: emphasize ? colors.textPrimary : colors.textSecondary,
                     fontSize: emphasize ? 15 : 13,
                     fontWeight: emphasize ? FontWeight.w800 : FontWeight.w500)),
           ),
           Text('\$${value.toStringAsFixed(2)}',
               style: TextStyle(
-                  color: emphasize ? Vibe.violet : Vibe.text,
+                  color: emphasize ? colors.accentPurple : colors.textPrimary,
                   fontSize: emphasize ? 16 : 13,
                   fontWeight: emphasize ? FontWeight.w900 : FontWeight.w600)),
         ],

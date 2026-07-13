@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
 /// Pushed by [SpeechVoiceSearchService]. Listens on-device via `speech_to_text`
@@ -81,7 +81,6 @@ class _VoiceSearchScreenState extends State<VoiceSearchScreen> {
     if (!mounted || _finished) return;
     setState(() {
       _listening = false;
-      // "no match"/"speech timeout" aren't real failures — just prompt a retry.
       _error = message.contains('no match') || message.contains('timeout')
           ? 'Didn\'t catch that. Tap the mic to try again.'
           : 'Voice search error. Tap the mic to try again.';
@@ -104,14 +103,17 @@ class _VoiceSearchScreenState extends State<VoiceSearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppThemeColors>()!;
+    final primaryColor = Theme.of(context).colorScheme.primary;
+
     return Scaffold(
-      backgroundColor: Vibe.bg,
+      backgroundColor: colors.canvas,
       appBar: AppBar(
-        backgroundColor: Vibe.bg,
-        iconTheme: const IconThemeData(color: Vibe.text),
-        title: const Text('Voice Search',
+        backgroundColor: colors.canvas,
+        iconTheme: IconThemeData(color: colors.textPrimary),
+        title: Text('Voice Search',
             style: TextStyle(
-                color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
+                color: colors.textPrimary, fontSize: 17, fontWeight: FontWeight.w800)),
       ),
       body: SafeArea(
         child: Padding(
@@ -123,7 +125,7 @@ class _VoiceSearchScreenState extends State<VoiceSearchScreen> {
               Text(
                 _listening ? 'Listening…' : (_error ?? 'Tap the mic to start'),
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Vibe.muted, fontSize: 14),
+                style: TextStyle(color: colors.textSecondary, fontSize: 14),
               ),
               const SizedBox(height: 28),
               GestureDetector(
@@ -134,12 +136,12 @@ class _VoiceSearchScreenState extends State<VoiceSearchScreen> {
                   height: 108,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: _listening ? Vibe.violet : Vibe.surface,
-                    border: Border.all(color: Vibe.violet, width: 3),
+                    color: _listening ? primaryColor : colors.surfaceSoft,
+                    border: Border.all(color: primaryColor, width: 3),
                     boxShadow: _listening
                         ? [
                             BoxShadow(
-                                color: Vibe.violet.withValues(alpha: 0.4),
+                                color: primaryColor.withValues(alpha: 0.4),
                                 blurRadius: 28,
                                 spreadRadius: 6)
                           ]
@@ -147,7 +149,7 @@ class _VoiceSearchScreenState extends State<VoiceSearchScreen> {
                   ),
                   child: Icon(
                     _listening ? Icons.mic_rounded : Icons.mic_none_rounded,
-                    color: _listening ? Colors.white : Vibe.violet,
+                    color: _listening ? Colors.white : primaryColor,
                     size: 46,
                   ),
                 ),
@@ -159,7 +161,7 @@ class _VoiceSearchScreenState extends State<VoiceSearchScreen> {
                     : _words,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: _words.isEmpty ? Vibe.muted : Vibe.text,
+                  color: _words.isEmpty ? colors.textSecondary : colors.textPrimary,
                   fontSize: _words.isEmpty ? 13 : 18,
                   fontWeight:
                       _words.isEmpty ? FontWeight.w400 : FontWeight.w700,
@@ -174,7 +176,8 @@ class _VoiceSearchScreenState extends State<VoiceSearchScreen> {
                     icon: const Icon(Icons.search_rounded),
                     label: const Text('Search'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Vibe.violet,
+                      backgroundColor: primaryColor,
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14)),

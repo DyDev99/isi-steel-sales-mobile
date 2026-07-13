@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/lead.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/pipeline_stage.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/pipeline_rules.dart';
@@ -27,7 +27,7 @@ class PipelineColumn extends StatelessWidget {
     required this.onDroppedOnColumn,
     required this.onDroppedOnCard,
     this.title,
-    this.accent = Vibe.violet,
+    this.accent,
   });
 
   final PipelineStage stage;
@@ -40,11 +40,14 @@ class PipelineColumn extends StatelessWidget {
   /// Header label; defaults to [stage]'s own label.
   final String? title;
 
-  /// Header/banner colour for this board.
-  final Color accent;
+  /// Header/banner colour for this board. Defaults to the theme primary.
+  final Color? accent;
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
+    final accentColor = accent ?? scheme.primary;
     // Revenue reads from each lead's own stage so a merged column (Opportunities
     // + Won) still totals correctly: Won uses realised revenue, the rest use
     // the expected figure.
@@ -58,9 +61,9 @@ class PipelineColumn extends StatelessWidget {
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: Vibe.surface,
+        color: colors.card,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Vibe.stroke),
+        border: Border.all(color: colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -68,14 +71,14 @@ class PipelineColumn extends StatelessWidget {
           // Colored banner header: dot · title · count.
           Container(
             padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-            color: accent,
+            color: accentColor,
             child: Row(
               children: [
                 Container(
                   width: 8,
                   height: 8,
-                  decoration: const BoxDecoration(
-                      color: Colors.white, shape: BoxShape.circle),
+                  decoration: BoxDecoration(
+                      color: scheme.onPrimary, shape: BoxShape.circle),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -83,16 +86,16 @@ class PipelineColumn extends StatelessWidget {
                     title ?? stage.label,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                        color: Colors.white,
+                    style: TextStyle(
+                        color: scheme.onPrimary,
                         fontSize: 14,
                         fontWeight: FontWeight.w800),
                   ),
                 ),
                 Text(
                   '${leads.length}',
-                  style: const TextStyle(
-                      color: Colors.white,
+                  style: TextStyle(
+                      color: scheme.onPrimary,
                       fontSize: 14,
                       fontWeight: FontWeight.w800),
                 ),
@@ -102,20 +105,21 @@ class PipelineColumn extends StatelessWidget {
           // Total sub-row on a faint tint of the accent.
           Container(
             width: double.infinity,
-            color: accent.withValues(alpha: 0.10),
+            color: accentColor.withValues(alpha: 0.10),
             padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
             child: Row(
               children: [
                 Text(
                   '\$${totalRevenue.toStringAsFixed(0)}',
-                  style: const TextStyle(
-                      color: Vibe.text,
+                  style: TextStyle(
+                      color: colors.textPrimary,
                       fontSize: 14,
                       fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(width: 6),
-                const Text('Total',
-                    style: TextStyle(color: Vibe.muted, fontSize: 11.5)),
+                Text('Total',
+                    style:
+                        TextStyle(color: colors.textSecondary, fontSize: 11.5)),
               ],
             ),
           ),
@@ -127,7 +131,7 @@ class PipelineColumn extends StatelessWidget {
                 final highlighted = candidateData.isNotEmpty;
                 return Container(
                   color: highlighted
-                      ? accent.withValues(alpha: 0.06)
+                      ? accentColor.withValues(alpha: 0.06)
                       : Colors.transparent,
                   child: leads.isEmpty
                       ? Center(
@@ -136,8 +140,8 @@ class PipelineColumn extends StatelessWidget {
                             child: Text(
                                 'No ${(title ?? stage.label).toLowerCase()} yet',
                                 textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                    color: Vibe.muted, fontSize: 12)),
+                                style: TextStyle(
+                                    color: colors.textSecondary, fontSize: 12)),
                           ),
                         )
                       : ListView.builder(

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/lead.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/opportunity_info.dart';
 
@@ -20,7 +20,7 @@ Future<OpportunityInfo?> showConvertToOpportunitySheet({
 }) {
   return showModalBottomSheet<OpportunityInfo>(
     context: context,
-    backgroundColor: Vibe.bgSoft,
+    backgroundColor: context.appColors.surfaceSoft,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
     ),
@@ -41,6 +41,8 @@ class _ConvertSheetState extends State<_ConvertSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
@@ -49,18 +51,18 @@ class _ConvertSheetState extends State<_ConvertSheet> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Qualify ${widget.lead.companyName}',
-                style: const TextStyle(
-                    color: Vibe.text,
+                style: TextStyle(
+                    color: colors.textPrimary,
                     fontSize: 17,
                     fontWeight: FontWeight.w800)),
             const SizedBox(height: 4),
-            const Text(
+            Text(
                 'Record what you now know about the deal — not questions for the customer.',
-                style: TextStyle(color: Vibe.muted, fontSize: 12.5)),
+                style: TextStyle(color: colors.textSecondary, fontSize: 12.5)),
             const SizedBox(height: 16),
-            const Text('Roughly what is this deal worth?',
+            Text('Roughly what is this deal worth?',
                 style: TextStyle(
-                    color: Vibe.muted,
+                    color: colors.textSecondary,
                     fontSize: 12,
                     fontWeight: FontWeight.w700)),
             const SizedBox(height: 8),
@@ -73,12 +75,16 @@ class _ConvertSheetState extends State<_ConvertSheet> {
                         selected: _value == c.$2,
                         onSelected: (_) => setState(() => _value = c.$2),
                         labelStyle: TextStyle(
-                            color: _value == c.$2 ? Vibe.violet : Vibe.text,
+                            color: _value == c.$2
+                                ? scheme.primary
+                                : colors.textPrimary,
                             fontSize: 13),
-                        backgroundColor: Vibe.surface,
-                        selectedColor: Vibe.violet.withValues(alpha: 0.2),
+                        backgroundColor: colors.card,
+                        selectedColor: scheme.primary.withValues(alpha: 0.2),
                         side: BorderSide(
-                            color: _value == c.$2 ? Vibe.violet : Vibe.stroke),
+                            color: _value == c.$2
+                                ? scheme.primary
+                                : colors.border),
                       ))
                   .toList(),
             ),
@@ -91,7 +97,7 @@ class _ConvertSheetState extends State<_ConvertSheet> {
                     : () => Navigator.of(context)
                         .pop(OpportunityInfo(estimatedValue: _value!)),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Vibe.violet,
+                  backgroundColor: scheme.primary,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14)),

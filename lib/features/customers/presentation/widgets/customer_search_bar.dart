@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
 class CustomerSearchBar extends StatelessWidget {
   const CustomerSearchBar({
@@ -16,6 +16,8 @@ class CustomerSearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     return Row(
       children: [
         Expanded(
@@ -23,24 +25,26 @@ class CustomerSearchBar extends StatelessWidget {
             height: 44,
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
-              color: Vibe.surface,
+              color: colors.card,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: Vibe.stroke),
+              border: Border.all(color: colors.border),
             ),
             child: Row(
               children: [
-                const Icon(Icons.search_rounded, color: Vibe.muted, size: 20),
+                Icon(Icons.search_rounded,
+                    color: colors.textSecondary, size: 20),
                 const SizedBox(width: 8),
                 Expanded(
                   child: TextField(
                     onChanged: onSearchChanged,
-                    style: const TextStyle(color: Vibe.text, fontSize: 13.5),
+                    style:
+                        TextStyle(color: colors.textPrimary, fontSize: 13.5),
                     decoration: InputDecoration(
                       isDense: true,
                       border: InputBorder.none,
                       hintText: 'customers.search_hint'.tr,
-                      hintStyle:
-                          const TextStyle(color: Vibe.muted, fontSize: 13.5),
+                      hintStyle: TextStyle(
+                          color: colors.textSecondary, fontSize: 13.5),
                     ),
                   ),
                 ),
@@ -58,14 +62,15 @@ class CustomerSearchBar extends StatelessWidget {
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: hasActiveFilters
-                  ? Vibe.violet.withValues(alpha: 0.18)
-                  : Vibe.surface,
+                  ? scheme.primary.withValues(alpha: 0.18)
+                  : colors.card,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                  color: hasActiveFilters ? Vibe.violet : Vibe.stroke),
+                  color: hasActiveFilters ? scheme.primary : colors.border),
             ),
             child: Icon(Icons.tune_rounded,
-                color: hasActiveFilters ? Vibe.violet : Vibe.text, size: 20),
+                color: hasActiveFilters ? scheme.primary : colors.textPrimary,
+                size: 20),
           ),
         ),
       ],

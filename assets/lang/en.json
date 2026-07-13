@@ -8,6 +8,10 @@
     "forgot_password": "Forgot Password?",
     "email": "Email",
     "lets_go": "Let's Go",
+    "login_required_title": "Login Required",
+    "login_required_desc": "Please sign in to continue using this feature. Your data will be synced securely across your devices.",
+    "login_now": "Login Now",
+    "later": "Later",
     "new_here": "New here?",
     "request_access": "Request Access",
     "remember_me": "Remember Me",
@@ -414,6 +418,18 @@
     "password_failure": "Could not update password"
   },
 
+  "appearance": {
+    "title": "Appearance",
+    "theme": "Theme",
+    "choose_theme": "Choose theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System default",
+    "light_hint": "Bright, high-contrast interface",
+    "dark_hint": "Easier on the eyes in low light",
+    "system_hint": "Match your device setting"
+  },
+
   "revenue": {
     "title": "Revenue",
     "search_hint": "Search products by name or SKU…",
@@ -442,6 +458,78 @@
     "error": {
       "title": "Couldn't load revenue data"
     }
+  },
+
+  "coach": {
+    "welcome": {
+      "title": "Welcome to ISI Steel 👋",
+      "message": "A quick tour to get you selling faster. Ready?"
+    },
+    "home": {
+      "title": "Your dashboard",
+      "message": "Everything you need for the day lives right here."
+    },
+    "target": {
+      "title": "Monthly target",
+      "message": "Track your sales progress against this month's goal."
+    },
+    "quick_actions": {
+      "title": "Quick actions",
+      "message": "Start a quote or lead in a single tap."
+    },
+    "new_lead": {
+      "title": "Create a lead",
+      "message": "Tap “New lead” to add your first customer."
+    },
+    "my_leads": {
+      "title": "My Leads",
+      "message": "Tap “My Leads” to manage your pipeline."
+    },
+    "my_visits": {
+      "title": "My Visits",
+      "message": "Tap “My Visits” to plan and track site visits."
+    },
+    "customers": {
+      "title": "My Customers",
+      "message": "Tap “My Customers” to view your accounts."
+    },
+    "orders": {
+      "title": "Quotes & Orders",
+      "message": "Tap “Quotes & Orders” to manage your deals."
+    },
+    "new_quote": {
+      "title": "New quote",
+      "message": "Build a price quote for a customer in seconds."
+    },
+    "depot_stock": {
+      "title": "Depot stock",
+      "message": "Check live stock at your depots before you quote."
+    },
+    "language": {
+      "title": "Switch language",
+      "message": "Tap here anytime to switch between English and Khmer."
+    },
+    "notification": {
+      "title": "Notifications",
+      "message": "New alerts and updates show up here."
+    },
+    "profile": {
+      "title": "Your profile",
+      "message": "Open your profile and settings from here."
+    },
+    "done": {
+      "title": "You're all set 🎉",
+      "message": "That's the tour. Time to close some deals!"
+    },
+    "cta": {
+      "start": "Start tour",
+      "next": "Next",
+      "skip_step": "Skip",
+      "skip_tour": "Skip tour",
+      "finish": "Done",
+      "dismiss": "Dismiss"
+    },
+    "resume_hint": "Resume tour"
   }
 
 }

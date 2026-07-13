@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.dart'
     as catalog;
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/browse_products.dart';
@@ -15,7 +15,7 @@ Future<VisitOrderLine?> showOrderCaptureSheet(
     {required BuildContext context, required String stopId}) {
   return showModalBottomSheet<VisitOrderLine>(
     context: context,
-    backgroundColor: Vibe.bgSoft,
+    backgroundColor: context.appColors.surfaceSoft,
     isScrollControlled: true,
     shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
@@ -58,6 +58,8 @@ class _OrderCaptureSheetState extends State<_OrderCaptureSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final primary = Theme.of(context).colorScheme.primary;
     return Padding(
       padding:
           EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
@@ -68,9 +70,9 @@ class _OrderCaptureSheetState extends State<_OrderCaptureSheet> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Capture Order',
+              Text('Capture Order',
                   style: TextStyle(
-                      color: Vibe.text,
+                      color: colors.textPrimary,
                       fontSize: 17,
                       fontWeight: FontWeight.w800)),
               const SizedBox(height: 12),
@@ -81,7 +83,7 @@ class _OrderCaptureSheetState extends State<_OrderCaptureSheet> {
                   hintText: 'Search products…',
                   prefixIcon: const Icon(Icons.search_rounded),
                   filled: true,
-                  fillColor: Vibe.surface,
+                  fillColor: colors.card,
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide.none),
@@ -89,9 +91,9 @@ class _OrderCaptureSheetState extends State<_OrderCaptureSheet> {
               ),
               const SizedBox(height: 10),
               if (_searching)
-                const Padding(
-                    padding: EdgeInsets.all(12),
-                    child: CircularProgressIndicator(color: Vibe.violet)),
+                Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: CircularProgressIndicator(color: primary)),
               if (!_searching && _results.isNotEmpty)
                 ConstrainedBox(
                   constraints: const BoxConstraints(maxHeight: 220),
@@ -104,16 +106,16 @@ class _OrderCaptureSheetState extends State<_OrderCaptureSheet> {
                       return ListTile(
                         selected: selected,
                         selectedTileColor:
-                            Vibe.primaryLight.withValues(alpha: 0.4),
+                            colors.surfaceStrong.withValues(alpha: 0.4),
                         title: Text(p.name,
-                            style: const TextStyle(
-                                color: Vibe.text,
+                            style: TextStyle(
+                                color: colors.textPrimary,
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700)),
                         subtitle: Text(
                             '${p.code} · \$${p.effectivePrice.toStringAsFixed(2)}',
-                            style: const TextStyle(
-                                color: Vibe.muted, fontSize: 11.5)),
+                            style: TextStyle(
+                                color: colors.textSecondary, fontSize: 11.5)),
                         onTap: () => setState(() => _selected = p),
                       );
                     },
@@ -125,8 +127,8 @@ class _OrderCaptureSheetState extends State<_OrderCaptureSheet> {
                   children: [
                     Expanded(
                       child: Text('Quantity',
-                          style: const TextStyle(
-                              color: Vibe.muted, fontSize: 12.5)),
+                          style: TextStyle(
+                              color: colors.textSecondary, fontSize: 12.5)),
                     ),
                     IconButton(
                       onPressed: () => setState(
@@ -134,8 +136,9 @@ class _OrderCaptureSheetState extends State<_OrderCaptureSheet> {
                       icon: const Icon(Icons.remove_circle_outline_rounded),
                     ),
                     Text(_quantity.toStringAsFixed(0),
-                        style: const TextStyle(
-                            color: Vibe.text, fontWeight: FontWeight.w800)),
+                        style: TextStyle(
+                            color: colors.textPrimary,
+                            fontWeight: FontWeight.w800)),
                     IconButton(
                       onPressed: () => setState(() => _quantity++),
                       icon: const Icon(Icons.add_circle_outline_rounded),
@@ -162,7 +165,7 @@ class _OrderCaptureSheetState extends State<_OrderCaptureSheet> {
                             ),
                           ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Vibe.violet,
+                    backgroundColor: primary,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14)),

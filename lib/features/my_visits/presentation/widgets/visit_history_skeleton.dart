@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/core/utils/shimmer.dart';
 
 /// Placeholder for one `VisitHistoryCard` — mirrors its exact box metrics
@@ -15,7 +15,7 @@ class VisitHistoryCardSkeleton extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Vibe.stroke)),
+            border: Border.all(color: context.appColors.border)),
         child: Shimmer(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

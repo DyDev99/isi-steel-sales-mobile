@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
 /// Floating bottom action bar for the filter experience: a secondary "Reset"
 /// action and a primary "Apply" button that doubles as a live result counter
@@ -25,11 +25,12 @@ class FilterActionBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       decoration: BoxDecoration(
-        color: Vibe.surface,
-        border: const Border(top: BorderSide(color: Vibe.divider)),
+        color: theme.colorScheme.surface,
+        border: Border(top: BorderSide(color: context.appColors.border)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -42,27 +43,25 @@ class FilterActionBar extends StatelessWidget {
         top: false,
         child: Row(
           children: [
-            OutlinedButton.icon(
+            OutlinedButton(
               onPressed: canReset ? onReset : null,
-              icon: const Icon(Icons.refresh_rounded, size: 18),
-              label: const Text('Reset'),
               style: OutlinedButton.styleFrom(
-                foregroundColor: Vibe.text,
-                side: const BorderSide(color: Vibe.stroke),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                foregroundColor: theme.colorScheme.error,
+                side: BorderSide(color: theme.colorScheme.error.withValues(alpha: 0.4)),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14)),
               ),
+              child: const Text('Reset', style: TextStyle(fontWeight: FontWeight.w700)),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: ElevatedButton(
                 onPressed: loading ? null : onApply,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Vibe.violet,
+                  backgroundColor: theme.colorScheme.primary,
                   foregroundColor: Colors.white,
-                  disabledBackgroundColor: Vibe.violet.withValues(alpha: 0.6),
+                  disabledBackgroundColor: theme.colorScheme.primary.withValues(alpha: 0.6),
                   disabledForegroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(

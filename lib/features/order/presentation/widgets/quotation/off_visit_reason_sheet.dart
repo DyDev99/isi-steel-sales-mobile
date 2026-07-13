@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/off_visit_reason.dart';
 
 extension OffVisitReasonL10n on OffVisitReason {
@@ -16,10 +16,11 @@ extension OffVisitReasonL10n on OffVisitReason {
 Future<OffVisitReason?> showOffVisitReasonSheet(
     {required BuildContext context, OffVisitReason? initial}) {
   var reason = initial ?? OffVisitReason.phoneOrder;
+  final colors = Theme.of(context).extension<AppThemeColors>()!;
 
   return showModalBottomSheet<OffVisitReason>(
     context: context,
-    backgroundColor: Vibe.bgSoft,
+    backgroundColor: colors.surfaceSoft,
     isScrollControlled: true,
     shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
@@ -35,8 +36,8 @@ Future<OffVisitReason?> showOffVisitReasonSheet(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('orders.shop.off_visit_warning'.tr,
-                    style: const TextStyle(
-                        color: Vibe.text,
+                    style: TextStyle(
+                        color: colors.textPrimary,
                         fontSize: 16,
                         fontWeight: FontWeight.w800)),
                 const SizedBox(height: 14),
@@ -58,7 +59,7 @@ Future<OffVisitReason?> showOffVisitReasonSheet(
                   child: ElevatedButton(
                     onPressed: () => Navigator.pop(context, reason),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Vibe.violet,
+                      backgroundColor: colors.accentPurple,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14)),

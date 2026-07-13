@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/profile/domain/entities/worker_profile.dart';
 
 class ProfileHeader extends StatelessWidget {
@@ -16,6 +16,8 @@ class ProfileHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     return Column(
       children: [
         Container(
@@ -23,10 +25,10 @@ class ProfileHeader extends StatelessWidget {
           height: 84,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: Vibe.primaryLight,
+            color: colors.surfaceStrong,
             shape: BoxShape.circle,
-            border:
-                Border.all(color: Vibe.violet.withValues(alpha: 0.4), width: 2),
+            border: Border.all(
+                color: scheme.primary.withValues(alpha: 0.4), width: 2),
             image: profile.avatarUrl != null
                 ? DecorationImage(
                     image: NetworkImage(profile.avatarUrl!), fit: BoxFit.cover)
@@ -34,33 +36,35 @@ class ProfileHeader extends StatelessWidget {
           ),
           child: profile.avatarUrl == null
               ? Text(_initials,
-                  style: const TextStyle(
-                      color: Vibe.violet,
+                  style: TextStyle(
+                      color: scheme.primary,
                       fontSize: 26,
                       fontWeight: FontWeight.w800))
               : null,
         ),
         const SizedBox(height: 12),
         Text(profile.fullName,
-            style: const TextStyle(
-                color: Vibe.text, fontSize: 18, fontWeight: FontWeight.w900)),
+            style: TextStyle(
+                color: scheme.onSurface,
+                fontSize: 18,
+                fontWeight: FontWeight.w900)),
         const SizedBox(height: 4),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
-            color: Vibe.primaryLight.withValues(alpha: 0.5),
+            color: colors.surfaceStrong.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: Vibe.violet.withValues(alpha: 0.3)),
+            border: Border.all(color: scheme.primary.withValues(alpha: 0.3)),
           ),
           child: Text(profile.role,
-              style: const TextStyle(
-                  color: Vibe.violet,
+              style: TextStyle(
+                  color: scheme.primary,
                   fontSize: 12,
                   fontWeight: FontWeight.w700)),
         ),
         const SizedBox(height: 2),
         Text('#${profile.employeeCode}',
-            style: const TextStyle(color: Vibe.muted, fontSize: 12)),
+            style: TextStyle(color: colors.textSecondary, fontSize: 12)),
       ],
     );
   }

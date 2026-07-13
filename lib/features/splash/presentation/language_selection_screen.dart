@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
+import 'package:isi_steel_sales_mobile/core/local/app_preferences.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/auth_vibe.dart';
 import 'package:isi_steel_sales_mobile/core/utils/verion.dart';
@@ -7,6 +9,7 @@ import 'package:isi_steel_sales_mobile/features/localization/presentation/bloc/l
 import 'package:isi_steel_sales_mobile/core/utils/aurora_background.dart';
 import 'package:isi_steel_sales_mobile/core/utils/glass_card.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_bloc.dart';
+import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_event.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_state.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/gradient_button.dart';
 import 'package:isi_steel_sales_mobile/routes/app_routes.dart';
@@ -81,19 +84,22 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
 
   Future<void> _continue() async {
     setState(() => _saving = true);
-    // Language was already applied the moment the tile was tapped, so this
-    // just decides where to land.
+
+    // This screen *is* the onboarding step — completing it flips the persisted
+    // flag so subsequent launches skip straight to the shell.
+    await sl<AppPreferences>().setOnboardingComplete(value: true);
     if (!mounted) return;
 
-    // AuthCheckRequested (fired on app boot) has almost certainly resolved
-    // by now, so read the latest state directly rather than hard-coding
-    // login — an already-signed-in user should land on the main shell, not
-    // be sent back through login.
-    final authState = context.read<AuthBloc>().state;
-    final destination =
-        authState is AuthenticatedState ? Static.main : Static.login;
+    // Guest-first: nobody is forced through login here. A user who already has
+    // a restored session lands authenticated; everyone else enters the shell as
+    // a guest and is only prompted to sign in when they reach a protected
+    // feature (see AuthGuard). Either way the destination is the main shell.
+    final authBloc = context.read<AuthBloc>();
+    if (authBloc.state is! AuthenticatedState) {
+      authBloc.add(const AuthGuestRequested());
+    }
     Navigator.of(context)
-        .pushNamedAndRemoveUntil(destination, (route) => false);
+        .pushNamedAndRemoveUntil(Static.main, (route) => false);
   }
 
   @override

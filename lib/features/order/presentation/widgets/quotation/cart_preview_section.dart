@@ -1,22 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_state.dart';
 
-/// Inline cart section shown directly below the product list — not a modal
-/// sheet. Appears automatically once the cart has items and scrolls as
-/// part of the page itself. Kept deliberately compact (name, qty, line
-/// price, remove only) — discounts/credit detail live on the Quotation
-/// Detail screen once saved; the Save action lives in the screen's fixed
-/// bottom bar instead of here.
 class CartPreviewSection extends StatelessWidget {
   const CartPreviewSection({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppThemeColors>()!;
+
     return BlocBuilder<CartCubit, CartState>(
       builder: (context, state) {
         final items = state is CartLoaded ? state.items : const [];
@@ -28,100 +24,45 @@ class CartPreviewSection extends StatelessWidget {
           child: items.isEmpty
               ? const SizedBox(width: double.infinity)
               : Container(
-                  margin: const EdgeInsets.symmetric(vertical: 6),
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border:
-                        Border.all(color: Vibe.stroke.withValues(alpha: 0.8)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.02),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
+                    color: colors.card,
+                    border: Border(
+                      top: BorderSide(color: colors.border),
+                    ),
                   ),
                   child: Column(
-                    mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Premium Section Header
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                color: Vibe.violet.withValues(alpha: 0.08),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(Icons.shopping_bag_outlined,
-                                  size: 16, color: Vibe.violet),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'orders.quotation.cart_preview_title'.tr,
-                              style: const TextStyle(
-                                color: Vibe.text,
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const Spacer(),
-                            // Crisp Capsule Item Counter Badge
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: Vibe.bgSoft,
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: Vibe.stroke),
-                              ),
-                              child: Text(
-                                'orders.items_count'
-                                    .tr
-                                    .replaceAll('{count}', '${items.length}'),
-                                style: const TextStyle(
-                                  color: Vibe.violet,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
+                      Text(
+                        'orders.shop.cart_preview'.tr,
+                        style: TextStyle(
+                          color: colors.textPrimary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const Divider(
-                          color: Vibe.stroke, height: 1, thickness: 1),
-                      // Scrollable Row Core Container
-                      Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
-                          children: [
-                            for (int i = 0; i < items.length; i++) ...[
-                              _CartRow(
-                                key: ValueKey(items[i].id),
-                                item: items[i],
-                                onQuantityChanged: (q) => context
-                                    .read<CartCubit>()
-                                    .updateQuantity(items[i].id, q),
-                                onRemove: () => context
-                                    .read<CartCubit>()
-                                    .removeItem(items[i].id),
-                              ),
-                              if (i < items.length - 1)
-                                const Padding(
-                                  padding: EdgeInsets.symmetric(vertical: 8),
-                                  child: Divider(
-                                      color: Vibe.bgSoft,
-                                      height: 1,
-                                      thickness: 1),
-                                ),
-                            ],
-                          ],
+                      const SizedBox(height: 12),
+                      ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: items.length,
+                        separatorBuilder: (_, __) => Divider(
+                          color: colors.divider,
+                          height: 16,
                         ),
+                        itemBuilder: (context, index) {
+                          final item = items[index];
+                          return _CartPreviewRow(
+                            item: item,
+                            onQuantityChanged: (qty) => context
+                                .read<CartCubit>()
+                                .updateQuantity(item.product.id, qty),
+                            onRemove: () => context
+                                .read<CartCubit>()
+                                .removeItem(item.product.id),
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -132,10 +73,8 @@ class CartPreviewSection extends StatelessWidget {
   }
 }
 
-/// A single compact cart row: thumbnail, name, qty stepper, line price, remove
-class _CartRow extends StatelessWidget {
-  const _CartRow({
-    super.key,
+class _CartPreviewRow extends StatelessWidget {
+  const _CartPreviewRow({
     required this.item,
     required this.onQuantityChanged,
     required this.onRemove,
@@ -147,114 +86,81 @@ class _CartRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isLastItem = item.quantity <= 1;
+    final colors = Theme.of(context).extension<AppThemeColors>()!;
 
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Product Thumbnail Frame with Micro-Border Bounds
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Vibe.stroke.withValues(alpha: 0.5)),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(9),
-            child: Image.network(
-              item.product.imageUrl,
-              width: 46,
-              height: 46,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => Container(
-                width: 46,
-                height: 46,
-                color: Vibe.bgSoft,
-                alignment: Alignment.center,
-                child: const Icon(Icons.inventory_2_outlined,
-                    color: Vibe.muted, size: 18),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        // Structured Detail Metadata Column Block
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 item.product.name,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: Vibe.text,
+                style: TextStyle(
+                  color: colors.textPrimary,
                   fontSize: 13,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 2),
               Text(
                 '\$${item.lineTotal.toStringAsFixed(2)}',
-                style: const TextStyle(
-                  color: Vibe.violet,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
+                style: TextStyle(
+                  color: colors.accentPurple,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ],
           ),
         ),
-        const SizedBox(width: 12),
-        // Integrated Quantity Selector Capsule Block
         Container(
-          padding: const EdgeInsets.all(3),
           decoration: BoxDecoration(
-            color: Vibe.bgSoft,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Vibe.stroke),
+            color: colors.surfaceSoft,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: colors.border),
           ),
           child: Row(
-            mainAxisSize: MainAxisSize.min,
             children: [
               _QtyButton(
-                icon: isLastItem
-                    ? Icons.delete_outline_rounded
-                    : Icons.remove_rounded,
-                iconColor: isLastItem ? Vibe.danger : Vibe.text,
+                icon: Icons.remove_rounded,
+                iconColor: colors.textPrimary,
                 onTap: () => onQuantityChanged(item.quantity - 1),
               ),
-              Container(
-                constraints: const BoxConstraints(minWidth: 28),
-                alignment: Alignment.center,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: Text(
                   item.quantity.toStringAsFixed(0),
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Vibe.text,
-                    fontSize: 12.5,
+                  style: TextStyle(
+                    color: colors.textPrimary,
+                    fontSize: 12,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
               _QtyButton(
                 icon: Icons.add_rounded,
-                iconColor: Vibe.text,
+                iconColor: colors.textPrimary,
                 onTap: () => onQuantityChanged(item.quantity + 1),
               ),
             ],
           ),
         ),
         const SizedBox(width: 8),
-        // Instant Remove Component Hitbox Button
         Material(
           color: Colors.transparent,
           child: InkWell(
             onTap: onRemove,
             borderRadius: BorderRadius.circular(20),
-            child: const Padding(
-              padding: EdgeInsets.all(6),
-              child: Icon(Icons.close_rounded, size: 16, color: Vibe.muted),
+            child: Padding(
+              padding: const EdgeInsets.all(6),
+              child: Icon(
+                Icons.close_rounded,
+                size: 16,
+                color: colors.textHint,
+              ),
             ),
           ),
         ),
@@ -276,6 +182,8 @@ class _QtyButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppThemeColors>()!;
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -286,15 +194,9 @@ class _QtyButton extends StatelessWidget {
           height: 24,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: colors.card,
             borderRadius: BorderRadius.circular(6),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
-                blurRadius: 2,
-                offset: const Offset(0, 1),
-              ),
-            ],
+            boxShadow: colors.cardShadow,
           ),
           child: Icon(icon, size: 14, color: iconColor),
         ),

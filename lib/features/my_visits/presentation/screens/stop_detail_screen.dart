@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/core/utils/glass_card.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_stop.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_note.dart';
@@ -42,8 +42,9 @@ class _StopDetailScreenState extends State<StopDetailScreen> {
     final text = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Vibe.bgSoft,
-        title: const Text('Add Note', style: TextStyle(color: Vibe.text)),
+        backgroundColor: context.appColors.surfaceSoft,
+        title: Text('Add Note',
+            style: TextStyle(color: context.appColors.textPrimary)),
         content:
             TextField(controller: controller, autofocus: true, maxLines: 3),
         actions: [
@@ -81,21 +82,25 @@ class _StopDetailScreenState extends State<StopDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: Vibe.bg,
+      backgroundColor: scheme.surface,
       appBar: AppBar(
-        backgroundColor: Vibe.bg,
-        iconTheme: const IconThemeData(color: Vibe.text),
-        title: const Text('Visit',
+        backgroundColor: scheme.surface,
+        iconTheme: IconThemeData(color: colors.textPrimary),
+        title: Text('Visit',
             style: TextStyle(
-                color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
+                color: colors.textPrimary,
+                fontSize: 17,
+                fontWeight: FontWeight.w800)),
       ),
       body: BlocBuilder<ActiveRouteBloc, ActiveRouteState>(
         builder: (context, state) {
           if (state is! ActiveRouteReady || !state.hasCurrentStop) {
-            return const Center(
+            return Center(
                 child: Text('No stop selected',
-                    style: TextStyle(color: Vibe.muted)));
+                    style: TextStyle(color: colors.textSecondary)));
           }
           final stop = state.route.stops[state.currentStopIndex];
           _ensureVisitLoaded(stop);
@@ -104,16 +109,16 @@ class _StopDetailScreenState extends State<StopDetailScreen> {
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
             children: [
               Text(stop.customer.name,
-                  style: const TextStyle(
-                      color: Vibe.text,
+                  style: TextStyle(
+                      color: colors.textPrimary,
                       fontSize: 18,
                       fontWeight: FontWeight.w900)),
               const SizedBox(height: 4),
               Text(stop.customer.address,
-                  style: const TextStyle(color: Vibe.muted, fontSize: 12.5)),
+                  style: TextStyle(color: colors.textSecondary, fontSize: 12.5)),
               const SizedBox(height: 4),
               Text('${stop.customer.contact} · ${stop.customer.phone}',
-                  style: const TextStyle(color: Vibe.muted, fontSize: 12.5)),
+                  style: TextStyle(color: colors.textSecondary, fontSize: 12.5)),
               const SizedBox(height: 16),
               CheckinStatusBanner(
                 insideGeofence: state.insideGeofence,
@@ -146,9 +151,9 @@ class _StopDetailScreenState extends State<StopDetailScreen> {
                           : 'Get closer to unlock (${state.distanceMeters.toStringAsFixed(0)}m away)',
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Vibe.violet,
-                      disabledBackgroundColor: Vibe.stroke,
-                      disabledForegroundColor: Vibe.muted,
+                      backgroundColor: scheme.primary,
+                      disabledBackgroundColor: colors.border,
+                      disabledForegroundColor: colors.textSecondary,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14)),
@@ -241,9 +246,9 @@ class _StopDetailScreenState extends State<StopDetailScreen> {
               ],
               if (stop.status == VisitStatus.checkedOut) ...[
                 const SizedBox(height: 8),
-                const Text('Visit completed',
+                Text('Visit completed',
                     style: TextStyle(
-                        color: Vibe.success,
+                        color: colors.success,
                         fontSize: 13,
                         fontWeight: FontWeight.w700)),
                 const SizedBox(height: 12),
@@ -257,7 +262,7 @@ class _StopDetailScreenState extends State<StopDetailScreen> {
                       Navigator.of(context).pop();
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Vibe.violet,
+                      backgroundColor: scheme.primary,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14)),
@@ -288,8 +293,8 @@ class _Section extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(title,
-                style: const TextStyle(
-                    color: Vibe.text,
+                style: TextStyle(
+                    color: context.appColors.textPrimary,
                     fontSize: 14.5,
                     fontWeight: FontWeight.w800)),
             const SizedBox(height: 12),
@@ -310,24 +315,26 @@ class _ActionChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(999),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: Vibe.primaryLight.withValues(alpha: 0.5),
+          color: colors.surfaceStrong.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: Vibe.violet.withValues(alpha: 0.3)),
+          border: Border.all(color: scheme.primary.withValues(alpha: 0.3)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 14, color: Vibe.violet),
+            Icon(icon, size: 14, color: scheme.primary),
             const SizedBox(width: 6),
             Text(label,
-                style: const TextStyle(
-                    color: Vibe.violet,
+                style: TextStyle(
+                    color: scheme.primary,
                     fontSize: 12,
                     fontWeight: FontWeight.w700)),
           ],

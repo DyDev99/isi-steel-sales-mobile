@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/home/presentation/widgets/dashboard_kpi_card.dart';
 
 /// Lead pipeline summary card. Headline = total pipeline (leads +
@@ -33,32 +33,34 @@ class LeadPipelineCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     final int totalPipeline = leadCount + opportunityCount + wonCount;
 
     return DashboardKpiCard(
       title: title ?? 'home.quick_access.leads'.tr,
       icon: icon,
-      iconColor: Vibe.violet,
+      iconColor: scheme.primary,
       headline: '$totalPipeline',
       headlineCaption: 'home.quick_access.total_pipeline'.tr,
       badge: leadCount > 0
           ? KpiBadge(
               label: '$leadCount ${'home.quick_access.new'.tr}',
-              color: Vibe.violet)
+              color: scheme.primary)
           : null,
       segments: [
         KpiSegment(
             label: wonLabel ?? 'home.quick_access.won_deals'.tr,
             value: wonCount,
-            color: Vibe.success),
+            color: colors.success),
         KpiSegment(
             label: opportunityLabel ?? 'home.quick_access.opportunities'.tr,
             value: opportunityCount,
-            color: Vibe.amber),
+            color: colors.warning),
         KpiSegment(
             label: leadLabel ?? 'home.quick_access.leads'.tr,
             value: leadCount,
-            color: Vibe.violet),
+            color: scheme.primary),
       ],
       onTap: onTap,
     );

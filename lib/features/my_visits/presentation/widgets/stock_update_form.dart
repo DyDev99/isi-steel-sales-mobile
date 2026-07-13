@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_stock_update.dart';
 
 Future<VisitStockUpdate?> showStockUpdateSheet(
@@ -10,7 +10,7 @@ Future<VisitStockUpdate?> showStockUpdateSheet(
 
   return showModalBottomSheet<VisitStockUpdate>(
     context: context,
-    backgroundColor: Vibe.bgSoft,
+    backgroundColor: context.appColors.surfaceSoft,
     isScrollControlled: true,
     shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
@@ -24,9 +24,9 @@ Future<VisitStockUpdate?> showStockUpdateSheet(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Update Stock Count',
+              Text('Update Stock Count',
                   style: TextStyle(
-                      color: Vibe.text,
+                      color: context.appColors.textPrimary,
                       fontSize: 17,
                       fontWeight: FontWeight.w800)),
               const SizedBox(height: 12),
@@ -66,7 +66,7 @@ Future<VisitStockUpdate?> showStockUpdateSheet(
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Vibe.violet,
+                    backgroundColor: Theme.of(context).colorScheme.primary,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14)),

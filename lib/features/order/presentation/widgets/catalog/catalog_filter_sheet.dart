@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product_filter.dart';
 
 Future<void> showCatalogFilterSheet({
@@ -8,9 +8,11 @@ Future<void> showCatalogFilterSheet({
   required List<String> brands,
   required void Function(ProductFilter filter) onApply,
 }) {
+  final appColors = context.appColors;
+
   return showModalBottomSheet<void>(
     context: context,
-    backgroundColor: Vibe.bgSoft,
+    backgroundColor: appColors.surfaceSoft,
     isScrollControlled: true,
     shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
@@ -37,6 +39,9 @@ class _CatalogFilterSheetState extends State<_CatalogFilterSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
     return Padding(
       padding:
           EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
@@ -49,10 +54,10 @@ class _CatalogFilterSheetState extends State<_CatalogFilterSheet> {
             children: [
               Row(
                 children: [
-                  const Expanded(
+                  Expanded(
                     child: Text('Filter & sort',
                         style: TextStyle(
-                            color: Vibe.text,
+                            color: scheme.onSurface,
                             fontSize: 17,
                             fontWeight: FontWeight.w800)),
                   ),
@@ -62,8 +67,8 @@ class _CatalogFilterSheetState extends State<_CatalogFilterSheet> {
                       _availableOnly = false;
                       _sortBy = ProductSortBy.relevance;
                     }),
-                    child: const Text('Clear',
-                        style: TextStyle(color: Vibe.muted)),
+                    child: Text('Clear',
+                        style: TextStyle(color: scheme.onSurface.withValues(alpha: 0.5))),
                   ),
                 ],
               ),
@@ -92,10 +97,10 @@ class _CatalogFilterSheetState extends State<_CatalogFilterSheet> {
                 contentPadding: EdgeInsets.zero,
                 value: _availableOnly,
                 onChanged: (v) => setState(() => _availableOnly = v),
-                activeThumbColor: Vibe.violet,
-                title: const Text('In stock only',
+                activeThumbColor: scheme.primary,
+                title: Text('In stock only',
                     style: TextStyle(
-                        color: Vibe.text,
+                        color: scheme.onSurface,
                         fontSize: 13,
                         fontWeight: FontWeight.w600)),
               ),
@@ -112,7 +117,8 @@ class _CatalogFilterSheetState extends State<_CatalogFilterSheet> {
                     Navigator.of(context).pop();
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Vibe.violet,
+                    backgroundColor: scheme.primary,
+                    foregroundColor: scheme.onPrimary,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14)),
@@ -136,8 +142,10 @@ class _Label extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.only(bottom: 8),
         child: Text(text,
-            style: const TextStyle(
-                color: Vibe.muted, fontSize: 12, fontWeight: FontWeight.w700)),
+            style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5), 
+                fontSize: 12, 
+                fontWeight: FontWeight.w700)),
       );
 }
 
@@ -152,6 +160,10 @@ class _ChipGroup<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final appColors = context.appColors;
+
     return Wrap(
       spacing: 8,
       runSpacing: 8,
@@ -164,15 +176,15 @@ class _ChipGroup<T> extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
               color: isSelected
-                  ? Vibe.violet.withValues(alpha: 0.2)
-                  : Vibe.surface,
+                  ? scheme.primary.withValues(alpha: 0.15)
+                  : scheme.surface,
               borderRadius: BorderRadius.circular(999),
-              border: Border.all(color: isSelected ? Vibe.violet : Vibe.stroke),
+              border: Border.all(color: isSelected ? scheme.primary : appColors.border),
             ),
             child: Text(
               e.value,
               style: TextStyle(
-                color: isSelected ? Vibe.violet : Vibe.text,
+                color: isSelected ? scheme.primary : scheme.onSurface,
                 fontSize: 12.5,
                 fontWeight: FontWeight.w600,
               ),

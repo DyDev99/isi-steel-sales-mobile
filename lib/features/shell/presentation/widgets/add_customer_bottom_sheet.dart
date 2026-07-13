@@ -5,7 +5,7 @@ import 'package:phone_form_field/phone_form_field.dart';
 
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/home/presentation/bloc/add_customer_bloc.dart';
 
 void showAddCustomerSheet(BuildContext context) {
@@ -80,9 +80,10 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
       },
       builder: (context, state) {
         return Container(
-          decoration: const BoxDecoration(
-            color: Vibe.bg,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius:
+                const BorderRadius.vertical(top: Radius.circular(28)),
           ),
           padding: EdgeInsets.fromLTRB(24.w, 16.h, 24.w,
               MediaQuery.of(context).viewInsets.bottom + 24.h),
@@ -95,7 +96,7 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
                   width: 42.w,
                   height: 5.h,
                   decoration: BoxDecoration(
-                    color: Vibe.stroke,
+                    color: context.appColors.border,
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
@@ -104,10 +105,11 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
               _buildFormHeader(state),
               SizedBox(height: 20.h),
               if (state.status == AddCustomerStatus.submitting)
-                const Center(
+                Center(
                   child: Padding(
-                    padding: EdgeInsets.all(40),
-                    child: CircularProgressIndicator(color: Vibe.pink),
+                    padding: const EdgeInsets.all(40),
+                    child: CircularProgressIndicator(
+                        color: Theme.of(context).colorScheme.secondary),
                   ),
                 )
               else ...[
@@ -147,24 +149,24 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
           children: [
             Text(title,
                 style: TextStyle(
-                    color: Vibe.text,
+                    color: Theme.of(context).colorScheme.onSurface,
                     fontSize: 20.sp,
                     fontWeight: FontWeight.w900)),
             Text('add_customer.subtitle'.tr,
                 style: TextStyle(
-                    color: Vibe.text.withValues(alpha: 0.5), fontSize: 12.sp)),
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 12.sp)),
           ],
         ),
         Container(
           padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
           decoration: BoxDecoration(
-            color: Vibe.bgSoft,
+            color: context.appColors.surfaceSoft,
             borderRadius: BorderRadius.circular(20.r),
-            border: Border.all(color: Vibe.stroke),
+            border: Border.all(color: context.appColors.border),
           ),
           child: Text(stepText,
               style: TextStyle(
-                  color: Vibe.pink,
+                  color: Theme.of(context).colorScheme.secondary,
                   fontSize: 11.sp,
                   fontWeight: FontWeight.w800)),
         )
@@ -272,20 +274,20 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
             Container(
               padding: EdgeInsets.all(12.w),
               decoration: BoxDecoration(
-                color: Vibe.warning.withValues(alpha: 0.08),
+                color: context.appColors.warningAlt.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(12.r),
-                border: Border.all(color: Vibe.warning.withValues(alpha: 0.3)),
+                border: Border.all(color: context.appColors.warningAlt.withValues(alpha: 0.3)),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.shield_outlined,
-                      color: Vibe.warning, size: 20),
+                  Icon(Icons.shield_outlined,
+                      color: context.appColors.warningAlt, size: 20),
                   SizedBox(width: 10.w),
                   Expanded(
                     child: Text(
                       'add_customer.credit_notice'.tr,
                       style: TextStyle(
-                          color: Vibe.warning,
+                          color: context.appColors.warningAlt,
                           fontSize: 11.sp,
                           fontWeight: FontWeight.w600,
                           height: 1.3),
@@ -313,12 +315,13 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
             child: OutlinedButton(
               style: OutlinedButton.styleFrom(
                 padding: EdgeInsets.symmetric(vertical: 16.h),
-                side: const BorderSide(color: Vibe.stroke),
+                side: BorderSide(color: context.appColors.border),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14.r)),
               ),
               onPressed: () => bloc.add(PreviousStep()),
-              child: const Icon(Icons.arrow_back, color: Vibe.text),
+              child: Icon(Icons.arrow_back,
+                  color: Theme.of(context).colorScheme.onSurface),
             ),
           ),
           SizedBox(width: 12.w),
@@ -328,7 +331,7 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
               padding: EdgeInsets.symmetric(vertical: 16.h),
-              backgroundColor: isLastStep ? Vibe.success : Vibe.violet,
+              backgroundColor: isLastStep ? context.appColors.success : Theme.of(context).colorScheme.primary,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14.r)),
               elevation: 0,
@@ -369,7 +372,7 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
                   ? 'add_customer.send_to_hq'.tr
                   : 'add_customer.next_step'.tr,
               style: TextStyle(
-                color: isLastStep ? Colors.white : Vibe.bg,
+                color: isLastStep ? Colors.white : Theme.of(context).colorScheme.surface,
                 fontSize: 15.sp,
                 fontWeight: FontWeight.w900,
               ),
@@ -388,13 +391,13 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
           text: TextSpan(
             text: label,
             style: TextStyle(
-                color: Vibe.text, fontSize: 13.sp, fontWeight: FontWeight.w700),
+                color: Theme.of(context).colorScheme.onSurface, fontSize: 13.sp, fontWeight: FontWeight.w700),
             children: required
                 ? [
                     TextSpan(
                       text: ' *',
                       style: TextStyle(
-                          color: Vibe.danger,
+                          color: Theme.of(context).colorScheme.error,
                           fontSize: 13.sp,
                           fontWeight: FontWeight.w900),
                     ),
@@ -409,33 +412,33 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
       TextFormField(
         controller: controller,
         keyboardType: keyboardType,
-        style: const TextStyle(color: Vibe.text),
+        style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
         validator: (v) => (v == null || v.trim().isEmpty)
             ? 'add_customer.error.required'.tr
             : null,
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: TextStyle(
-              color: Vibe.text.withValues(alpha: 0.3), fontSize: 13.sp),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3), fontSize: 13.sp),
           filled: true,
-          fillColor: Vibe.bgSoft,
+          fillColor: context.appColors.surfaceSoft,
           contentPadding:
               EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12.r),
-            borderSide: const BorderSide(color: Vibe.stroke),
+            borderSide: BorderSide(color: context.appColors.border),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12.r),
-            borderSide: const BorderSide(color: Vibe.text),
+            borderSide: BorderSide(color: Theme.of(context).colorScheme.onSurface),
           ),
           errorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12.r),
-            borderSide: const BorderSide(color: Vibe.danger),
+            borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
           ),
           focusedErrorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12.r),
-            borderSide: const BorderSide(color: Vibe.danger),
+            borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
           ),
         ),
       );
@@ -444,13 +447,13 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
       PhoneFormField(
         controller: controller,
         // Remove defaultCountry from here entirely
-        style: const TextStyle(color: Vibe.text),
-        countryButtonStyle: const CountryButtonStyle(
+        style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+        countryButtonStyle: CountryButtonStyle(
           showFlag: true,
           showIsoCode: false,
           showDialCode: true,
           showDropdownIcon: true,
-          textStyle: TextStyle(color: Vibe.text),
+          textStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface),
         ),
         validator: PhoneValidator.compose([
           PhoneValidator.required(context,
@@ -461,26 +464,26 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: TextStyle(
-              color: Vibe.text.withValues(alpha: 0.3), fontSize: 13.sp),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3), fontSize: 13.sp),
           filled: true,
-          fillColor: Vibe.bgSoft,
+          fillColor: context.appColors.surfaceSoft,
           contentPadding:
               EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12.r),
-            borderSide: const BorderSide(color: Vibe.stroke),
+            borderSide: BorderSide(color: context.appColors.border),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12.r),
-            borderSide: const BorderSide(color: Vibe.text),
+            borderSide: BorderSide(color: Theme.of(context).colorScheme.onSurface),
           ),
           errorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12.r),
-            borderSide: const BorderSide(color: Vibe.danger),
+            borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
           ),
           focusedErrorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12.r),
-            borderSide: const BorderSide(color: Vibe.danger),
+            borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
           ),
         ),
       );
@@ -494,24 +497,26 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.w),
       decoration: BoxDecoration(
-        color: Vibe.bgSoft,
+        color: context.appColors.surfaceSoft,
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: Vibe.stroke),
+        border: Border.all(color: context.appColors.border),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: value,
           hint: Text(hint,
               style: TextStyle(
-                  color: Vibe.text.withValues(alpha: 0.3), fontSize: 13.sp)),
-          dropdownColor: Vibe.bgSoft,
-          icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Vibe.text),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3), fontSize: 13.sp)),
+          dropdownColor: context.appColors.surfaceSoft,
+          icon: Icon(Icons.keyboard_arrow_down_rounded,
+              color: Theme.of(context).colorScheme.onSurface),
           isExpanded: true,
           items: items.entries.map((entry) {
             return DropdownMenuItem<String>(
               value: entry.key, // internal key
-              child:
-                  Text(entry.value, style: const TextStyle(color: Vibe.text)),
+              child: Text(entry.value,
+                  style:
+                      TextStyle(color: Theme.of(context).colorScheme.onSurface)),
             );
           }).toList(),
           onChanged: onChanged,
@@ -535,11 +540,11 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
         padding: EdgeInsets.all(14.w),
         decoration: BoxDecoration(
           color: completed
-              ? Vibe.success.withValues(alpha: 0.05)
+              ? context.appColors.success.withValues(alpha: 0.05)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(14.r),
           border: Border.all(
-            color: completed ? Vibe.success : Vibe.stroke,
+            color: completed ? context.appColors.success : context.appColors.border,
             width: completed ? 1.5 : 1,
           ),
         ),
@@ -547,8 +552,8 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
           children: [
             Icon(icon,
                 color: completed
-                    ? Vibe.success
-                    : Vibe.text.withValues(alpha: 0.6)),
+                    ? context.appColors.success
+                    : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6)),
             SizedBox(width: 14.w),
             Expanded(
               child: Column(
@@ -556,12 +561,12 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
                 children: [
                   Text(label,
                       style: TextStyle(
-                          color: Vibe.text,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 14.sp,
                           fontWeight: FontWeight.w700)),
                   Text(sub,
                       style: TextStyle(
-                          color: Vibe.text.withValues(alpha: 0.4),
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
                           fontSize: 11.sp)),
                 ],
               ),
@@ -570,7 +575,7 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
               completed
                   ? Icons.check_circle_rounded
                   : Icons.add_a_photo_rounded,
-              color: completed ? Vibe.success : Vibe.text,
+              color: completed ? context.appColors.success : Theme.of(context).colorScheme.onSurface,
               size: 20,
             ),
           ],

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
 /// One slice of a [DashboardKpiCard]'s distribution bar + legend.
 class KpiSegment {
@@ -104,6 +104,8 @@ class _DashboardKpiCardState extends State<DashboardKpiCard>
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     final visibleSegments = widget.segments.where((s) => s.value > 0).toList();
 
     return InkWell(
@@ -112,9 +114,9 @@ class _DashboardKpiCardState extends State<DashboardKpiCard>
       child: Container(
         padding: EdgeInsets.all(14.w),
         decoration: BoxDecoration(
-          color: Vibe.bgSoft,
+          color: colors.surfaceSoft,
           borderRadius: BorderRadius.circular(18.r),
-          border: Border.all(color: Vibe.stroke, width: 1),
+          border: Border.all(color: colors.border, width: 1),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -138,7 +140,7 @@ class _DashboardKpiCardState extends State<DashboardKpiCard>
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                        color: Vibe.muted,
+                        color: colors.textSecondary,
                         fontSize: 8.sp,
                         fontWeight: FontWeight.w600),
                   ),
@@ -164,7 +166,7 @@ class _DashboardKpiCardState extends State<DashboardKpiCard>
                   SizedBox(width: 6.w),
                 ],
                 Icon(Icons.arrow_forward_ios_rounded,
-                    size: 12.w, color: Vibe.muted.withValues(alpha: 0.5)),
+                    size: 12.w, color: colors.textSecondary.withValues(alpha: 0.5)),
               ],
             ),
             SizedBox(height: 10.h),
@@ -176,7 +178,7 @@ class _DashboardKpiCardState extends State<DashboardKpiCard>
               child: Text(
                 widget.headline,
                 style: TextStyle(
-                    color: Vibe.text,
+                    color: scheme.onSurface,
                     fontSize: 24.sp,
                     fontWeight: FontWeight.w800,
                     height: 1.0),
@@ -188,7 +190,7 @@ class _DashboardKpiCardState extends State<DashboardKpiCard>
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                  color: Vibe.muted,
+                  color: colors.textSecondary,
                   fontSize: 7.sp,
                   fontWeight: FontWeight.w500),
             ),
@@ -211,7 +213,7 @@ class _DashboardKpiCardState extends State<DashboardKpiCard>
                 height: 7.h,
                 width: double.infinity,
                 child: _total == 0
-                    ? Container(color: Vibe.stroke.withValues(alpha: 0.4))
+                    ? Container(color: colors.border.withValues(alpha: 0.4))
                     : Row(
                         children: visibleSegments
                             .map((s) => Expanded(
@@ -241,12 +243,12 @@ class _DashboardKpiCardState extends State<DashboardKpiCard>
                     SizedBox(width: 4.w),
                     Text('${s.label} ',
                         style: TextStyle(
-                            color: Vibe.muted,
+                            color: colors.textSecondary,
                             fontSize: 6.8.sp,
                             fontWeight: FontWeight.w500)),
                     Text('${s.value}',
                         style: TextStyle(
-                            color: Vibe.text,
+                            color: scheme.onSurface,
                             fontSize: 6.8.sp,
                             fontWeight: FontWeight.w700)),
                   ],

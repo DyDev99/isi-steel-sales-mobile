@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/quotation.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/sync/continue_work_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/sync/pending_sync_cubit.dart';
@@ -34,20 +34,22 @@ class _DraftCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     return _CardShell(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.history_rounded, size: 18, color: Vibe.violet),
+              Icon(Icons.history_rounded, size: 18, color: scheme.primary),
               const SizedBox(width: 8),
-              const Expanded(
+              Expanded(
                 child: Text('Continue Previous Work',
                     style: TextStyle(
                         fontSize: 13.5,
                         fontWeight: FontWeight.w800,
-                        color: Vibe.text)),
+                        color: scheme.onSurface)),
               ),
               _DiscardButton(draft: draft),
             ],
@@ -55,17 +57,17 @@ class _DraftCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             'Quotation #${draft.id}',
-            style: const TextStyle(
+            style: TextStyle(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w700,
-                color: Vibe.violet),
+                color: scheme.primary),
           ),
           const SizedBox(height: 2),
           Text(
             _subtitle(draft),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 12, color: Vibe.muted),
+            style: TextStyle(fontSize: 12, color: colors.textSecondary),
           ),
           const SizedBox(height: 12),
           Row(
@@ -74,8 +76,8 @@ class _DraftCard extends StatelessWidget {
                 child: OutlinedButton(
                   onPressed: () => _submit(context, draft),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: Vibe.violet,
-                    side: const BorderSide(color: Vibe.violet),
+                    foregroundColor: scheme.primary,
+                    side: BorderSide(color: scheme.primary),
                     padding: const EdgeInsets.symmetric(vertical: 10),
                   ),
                   child: const Text('Submit'),
@@ -86,7 +88,7 @@ class _DraftCard extends StatelessWidget {
                 child: FilledButton(
                   onPressed: () => _continue(context, draft),
                   style: FilledButton.styleFrom(
-                    backgroundColor: Vibe.violet,
+                    backgroundColor: scheme.primary,
                     padding: const EdgeInsets.symmetric(vertical: 10),
                   ),
                   child: const Text('Continue'),
@@ -106,30 +108,33 @@ class _MultiDraftCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     return _CardShell(
       child: InkWell(
         onTap: () => _openDraftsSheet(context),
         borderRadius: BorderRadius.circular(12),
         child: Row(
           children: [
-            const Icon(Icons.history_rounded, size: 20, color: Vibe.violet),
+            Icon(Icons.history_rounded, size: 20, color: scheme.primary),
             const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Continue Working ($count)',
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontSize: 13.5,
                           fontWeight: FontWeight.w800,
-                          color: Vibe.text)),
+                          color: scheme.onSurface)),
                   const SizedBox(height: 2),
-                  const Text('You have unfinished drafts',
-                      style: TextStyle(fontSize: 12, color: Vibe.muted)),
+                  Text('You have unfinished drafts',
+                      style:
+                          TextStyle(fontSize: 12, color: colors.textSecondary)),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right_rounded, color: Vibe.muted),
+            Icon(Icons.chevron_right_rounded, color: colors.textSecondary),
           ],
         ),
       ),
@@ -146,9 +151,10 @@ class _DiscardButton extends StatelessWidget {
     return InkWell(
       onTap: () => _confirmDiscard(context, draft),
       borderRadius: BorderRadius.circular(20),
-      child: const Padding(
-        padding: EdgeInsets.all(2),
-        child: Icon(Icons.close_rounded, size: 18, color: Vibe.muted),
+      child: Padding(
+        padding: const EdgeInsets.all(2),
+        child: Icon(Icons.close_rounded,
+            size: 18, color: context.appColors.textSecondary),
       ),
     );
   }
@@ -160,13 +166,15 @@ class _CardShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Vibe.surface,
+        color: scheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Vibe.violet.withValues(alpha: 0.25)),
-        boxShadow: Vibe.cardShadow,
+        border: Border.all(color: scheme.primary.withValues(alpha: 0.25)),
+        boxShadow: colors.cardShadow,
       ),
       child: child,
     );
@@ -219,7 +227,9 @@ Future<void> _confirmDiscard(BuildContext context, Quotation draft) async {
         ),
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(true),
-          child: const Text('Discard', style: TextStyle(color: Vibe.danger)),
+          child: Text('Discard',
+              style:
+                  TextStyle(color: Theme.of(dialogContext).colorScheme.error)),
         ),
       ],
     ),
@@ -233,7 +243,7 @@ void _openDraftsSheet(BuildContext context) {
   showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
-    backgroundColor: Vibe.bgSoft,
+    backgroundColor: context.appColors.surfaceSoft,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
     ),
@@ -259,6 +269,8 @@ class _DraftsSheet extends StatelessWidget {
         ),
         child: BlocBuilder<ContinueWorkCubit, ContinueWorkState>(
           builder: (context, state) {
+            final scheme = Theme.of(context).colorScheme;
+            final colors = context.appColors;
             return Padding(
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
               child: Column(
@@ -270,24 +282,24 @@ class _DraftsSheet extends StatelessWidget {
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: Vibe.stroke,
+                        color: colors.border,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
                   ),
                   const SizedBox(height: 12),
                   Text('Continue Working (${state.drafts.length})',
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w800,
-                          color: Vibe.text)),
+                          color: scheme.onSurface)),
                   const SizedBox(height: 12),
                   if (state.drafts.isEmpty)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 30),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 30),
                       child: Center(
                         child: Text('No drafts left',
-                            style: TextStyle(color: Vibe.muted)),
+                            style: TextStyle(color: colors.textSecondary)),
                       ),
                     )
                   else
@@ -316,39 +328,41 @@ class _DraftRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Vibe.surface,
+        color: scheme.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Vibe.stroke),
+        border: Border.all(color: colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Quotation #${draft.id}',
-              style: const TextStyle(
+              style: TextStyle(
                   fontWeight: FontWeight.w800,
                   fontSize: 13,
-                  color: Vibe.violet)),
+                  color: scheme.primary)),
           const SizedBox(height: 2),
           Text(_subtitle(draft),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 11.5, color: Vibe.muted)),
+              style: TextStyle(fontSize: 11.5, color: colors.textSecondary)),
           const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               TextButton(
                 onPressed: () => _confirmDiscard(context, draft),
-                child:
-                    const Text('Discard', style: TextStyle(color: Vibe.muted)),
+                child: Text('Discard',
+                    style: TextStyle(color: colors.textSecondary)),
               ),
               const SizedBox(width: 4),
               OutlinedButton(
                 onPressed: () => _submit(context, draft),
-                style: OutlinedButton.styleFrom(foregroundColor: Vibe.violet),
+                style: OutlinedButton.styleFrom(foregroundColor: scheme.primary),
                 child: const Text('Submit'),
               ),
               const SizedBox(width: 8),
@@ -357,7 +371,7 @@ class _DraftRow extends StatelessWidget {
                   Navigator.of(context).pop();
                   _continue(context, draft);
                 },
-                style: FilledButton.styleFrom(backgroundColor: Vibe.violet),
+                style: FilledButton.styleFrom(backgroundColor: scheme.primary),
                 child: const Text('Continue'),
               ),
             ],

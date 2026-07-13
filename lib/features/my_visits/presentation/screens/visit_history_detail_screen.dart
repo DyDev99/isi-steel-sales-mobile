@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/local/localized_builder.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/models/visit_record.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/visit_history_card.dart'
     show statusStyle;
@@ -22,19 +22,23 @@ class VisitHistoryDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) => LocalizedBuilder(builder: _build);
 
   Widget _build(BuildContext context) {
-    final (statusLabel, statusColor) = statusStyle(visit.status);
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
+    final (statusLabel, statusColor) = statusStyle(context, visit.status);
     final timeFmt = DateFormat('h:mm a');
     final dateFmt = DateFormat('MMM d, y');
     final duration = visit.duration;
 
     return Scaffold(
-      backgroundColor: Vibe.bg,
+      backgroundColor: scheme.surface,
       appBar: AppBar(
-        backgroundColor: Vibe.bg,
-        iconTheme: const IconThemeData(color: Vibe.text),
+        backgroundColor: scheme.surface,
+        iconTheme: IconThemeData(color: colors.textPrimary),
         title: Text('my_visits.history.details_title'.tr,
-            style: const TextStyle(
-                color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
+            style: TextStyle(
+                color: colors.textPrimary,
+                fontSize: 17,
+                fontWeight: FontWeight.w800)),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
@@ -49,8 +53,8 @@ class VisitHistoryDetailScreen extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(visit.customerName,
-                    style: const TextStyle(
-                        color: Vibe.text,
+                    style: TextStyle(
+                        color: colors.textPrimary,
                         fontSize: 18,
                         fontWeight: FontWeight.w800)),
               ),
@@ -71,11 +75,12 @@ class VisitHistoryDetailScreen extends StatelessWidget {
           const SizedBox(height: 4),
           Row(
             children: [
-              const Icon(Icons.place_rounded, size: 15, color: Vibe.muted),
+              Icon(Icons.place_rounded, size: 15, color: colors.textSecondary),
               const SizedBox(width: 6),
               Expanded(
                   child: Text(visit.address,
-                      style: const TextStyle(color: Vibe.muted, fontSize: 13))),
+                      style: TextStyle(
+                          color: colors.textSecondary, fontSize: 13))),
             ],
           ),
           const SizedBox(height: 20),
@@ -112,21 +117,23 @@ class VisitHistoryDetailScreen extends StatelessWidget {
                   _InfoRow(
                       icon: Icons.receipt_long_rounded,
                       label: 'my_visits.history.order_placed'.tr,
-                      valueColor: Vibe.violet),
+                      valueColor: scheme.primary),
                 if (visit.collectedAmount != null)
                   _InfoRow(
                     icon: Icons.payments_rounded,
                     label:
                         '${'my_visits.history.collected_amount'.tr}: \$${visit.collectedAmount!.toStringAsFixed(2)}',
-                    valueColor: Vibe.success,
+                    valueColor: colors.success,
                   ),
               ],
             ),
           ],
           const SizedBox(height: 20),
           Text('my_visits.history.customer'.tr,
-              style: const TextStyle(
-                  color: Vibe.text, fontSize: 14, fontWeight: FontWeight.w800)),
+              style: TextStyle(
+                  color: colors.textPrimary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800)),
           const SizedBox(height: 10),
           _InfoCard(
             children: [
@@ -136,28 +143,33 @@ class VisitHistoryDetailScreen extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           Text('my_visits.history.notes'.tr,
-              style: const TextStyle(
-                  color: Vibe.text, fontSize: 14, fontWeight: FontWeight.w800)),
+              style: TextStyle(
+                  color: colors.textPrimary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800)),
           const SizedBox(height: 10),
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: Vibe.stroke)),
+                border: Border.all(color: colors.border)),
             child: Text(
               (visit.notes == null || visit.notes!.isEmpty)
                   ? 'my_visits.history.no_notes'.tr
                   : visit.notes!,
               style: TextStyle(
-                  color: visit.notes == null ? Vibe.muted : Vibe.text,
+                  color:
+                      visit.notes == null ? colors.textSecondary : colors.textPrimary,
                   fontSize: 13),
             ),
           ),
           const SizedBox(height: 20),
           Text('my_visits.history.photos'.tr,
-              style: const TextStyle(
-                  color: Vibe.text, fontSize: 14, fontWeight: FontWeight.w800)),
+              style: TextStyle(
+                  color: colors.textPrimary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800)),
           const SizedBox(height: 10),
           visit.photoCount == 0
               ? Container(
@@ -165,9 +177,10 @@ class VisitHistoryDetailScreen extends StatelessWidget {
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: Vibe.stroke)),
+                      border: Border.all(color: colors.border)),
                   child: Text('my_visits.history.no_photos'.tr,
-                      style: const TextStyle(color: Vibe.muted, fontSize: 13)),
+                      style: TextStyle(
+                          color: colors.textSecondary, fontSize: 13)),
                 )
               : GridView.builder(
                   shrinkWrap: true,
@@ -179,10 +192,10 @@ class VisitHistoryDetailScreen extends StatelessWidget {
                       mainAxisSpacing: 8),
                   itemBuilder: (_, __) => Container(
                     decoration: BoxDecoration(
-                      color: Vibe.primaryLight,
+                      color: colors.surfaceStrong,
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(Icons.image_rounded, color: Vibe.violet),
+                    child: Icon(Icons.image_rounded, color: scheme.primary),
                   ),
                 ),
         ],
@@ -201,7 +214,7 @@ class _InfoCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Vibe.stroke)),
+          border: Border.all(color: context.appColors.border)),
       child: Column(children: children),
     );
   }
@@ -215,16 +228,17 @@ class _InfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
         children: [
-          Icon(icon, size: 17, color: valueColor ?? Vibe.muted),
+          Icon(icon, size: 17, color: valueColor ?? colors.textSecondary),
           const SizedBox(width: 10),
           Expanded(
             child: Text(label,
                 style: TextStyle(
-                    color: valueColor ?? Vibe.text,
+                    color: valueColor ?? colors.textPrimary,
                     fontSize: 13,
                     fontWeight: FontWeight.w600)),
           ),

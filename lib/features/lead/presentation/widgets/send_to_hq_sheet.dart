@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/lead.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/lead_document.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/onboarding_status.dart';
@@ -14,7 +14,7 @@ Future<Lead?> showSendToHqSheet(
     {required BuildContext context, required Lead lead}) {
   return showModalBottomSheet<Lead>(
     context: context,
-    backgroundColor: Vibe.bgSoft,
+    backgroundColor: context.appColors.surfaceSoft,
     isScrollControlled: true,
     shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
@@ -56,6 +56,8 @@ class _SendToHqSheetState extends State<_SendToHqSheet> {
   Widget build(BuildContext context) {
     final lead = widget.lead;
     final won = lead.wonInfo;
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
 
     return Padding(
       padding:
@@ -68,9 +70,9 @@ class _SendToHqSheetState extends State<_SendToHqSheet> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Finish onboarding',
+                Text('Finish onboarding',
                     style: TextStyle(
-                        color: Vibe.text,
+                        color: colors.textPrimary,
                         fontSize: 17,
                         fontWeight: FontWeight.w800)),
                 const SizedBox(height: 4),
@@ -78,12 +80,12 @@ class _SendToHqSheetState extends State<_SendToHqSheet> {
                   _canSubmit
                       ? "You already did the hard part. Just confirm and send."
                       : "You already did the hard part. $_missingCount item${_missingCount == 1 ? '' : 's'} left.",
-                  style: const TextStyle(color: Vibe.muted, fontSize: 12.5),
+                  style: TextStyle(color: colors.textSecondary, fontSize: 12.5),
                 ),
                 const SizedBox(height: 16),
-                const Text('Already confirmed',
+                Text('Already confirmed',
                     style: TextStyle(
-                        color: Vibe.muted,
+                        color: colors.textSecondary,
                         fontSize: 12,
                         fontWeight: FontWeight.w700)),
                 const SizedBox(height: 8),
@@ -102,9 +104,9 @@ class _SendToHqSheetState extends State<_SendToHqSheet> {
                       label: 'Products',
                       value: won.productsPurchased.join(', ')),
                 const SizedBox(height: 18),
-                const Text('Needed to send',
+                Text('Needed to send',
                     style: TextStyle(
-                        color: Vibe.muted,
+                        color: colors.textSecondary,
                         fontSize: 12,
                         fontWeight: FontWeight.w700)),
                 const SizedBox(height: 8),
@@ -114,29 +116,29 @@ class _SendToHqSheetState extends State<_SendToHqSheet> {
                     child: TextField(
                       controller: _ownerName,
                       onChanged: (_) => setState(() {}),
-                      style: const TextStyle(color: Vibe.text, fontSize: 14),
+                      style: TextStyle(color: colors.textPrimary, fontSize: 14),
                       decoration: InputDecoration(
                         labelText: 'Owner name',
-                        labelStyle:
-                            const TextStyle(color: Vibe.muted, fontSize: 13),
+                        labelStyle: TextStyle(
+                            color: colors.textSecondary, fontSize: 13),
                         filled: true,
-                        fillColor: Vibe.surface,
+                        fillColor: colors.card,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Vibe.stroke),
+                          borderSide: BorderSide(color: colors.border),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Vibe.stroke),
+                          borderSide: BorderSide(color: colors.border),
                         ),
                       ),
                     ),
                   )
                 else
                   _ConfirmedRow(label: 'Owner', value: lead.ownerName),
-                const Text('Shop type',
+                Text('Shop type',
                     style: TextStyle(
-                        color: Vibe.muted,
+                        color: colors.textSecondary,
                         fontSize: 12,
                         fontWeight: FontWeight.w700)),
                 const SizedBox(height: 8),
@@ -149,13 +151,17 @@ class _SendToHqSheetState extends State<_SendToHqSheet> {
                             selected: _shopType == t,
                             onSelected: (_) => setState(() => _shopType = t),
                             labelStyle: TextStyle(
-                                color: _shopType == t ? Vibe.violet : Vibe.text,
+                                color: _shopType == t
+                                    ? scheme.primary
+                                    : colors.textPrimary,
                                 fontSize: 12.5),
-                            backgroundColor: Vibe.surface,
-                            selectedColor: Vibe.violet.withValues(alpha: 0.2),
+                            backgroundColor: colors.card,
+                            selectedColor:
+                                scheme.primary.withValues(alpha: 0.2),
                             side: BorderSide(
-                                color:
-                                    _shopType == t ? Vibe.violet : Vibe.stroke),
+                                color: _shopType == t
+                                    ? scheme.primary
+                                    : colors.border),
                           ))
                       .toList(),
                 ),
@@ -211,7 +217,7 @@ class _SendToHqSheetState extends State<_SendToHqSheet> {
                             Navigator.of(context).pop(updated);
                           },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Vibe.violet,
+                      backgroundColor: scheme.primary,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14)),
@@ -236,20 +242,21 @@ class _ConfirmedRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
-          const Icon(Icons.check_circle_rounded, size: 16, color: Vibe.success),
+          Icon(Icons.check_circle_rounded, size: 16, color: colors.success),
           const SizedBox(width: 8),
           SizedBox(
               width: 100,
               child: Text(label,
-                  style: const TextStyle(color: Vibe.muted, fontSize: 12.5))),
+                  style: TextStyle(color: colors.textSecondary, fontSize: 12.5))),
           Expanded(
             child: Text(value.isEmpty ? '—' : value,
-                style: const TextStyle(
-                    color: Vibe.text,
+                style: TextStyle(
+                    color: colors.textPrimary,
                     fontSize: 12.5,
                     fontWeight: FontWeight.w600)),
           ),
@@ -268,13 +275,15 @@ class _DocRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: Vibe.surface,
+        color: colors.card,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Vibe.stroke),
+        border: Border.all(color: colors.border),
       ),
       child: Row(
         children: [
@@ -283,22 +292,22 @@ class _DocRow extends StatelessWidget {
                   ? Icons.check_circle_rounded
                   : Icons.radio_button_unchecked_rounded,
               size: 18,
-              color: attached ? Vibe.success : Vibe.muted),
+              color: attached ? colors.success : colors.textSecondary),
           const SizedBox(width: 10),
           Expanded(
             child: Text(label,
-                style: const TextStyle(
-                    color: Vibe.text,
+                style: TextStyle(
+                    color: colors.textPrimary,
                     fontSize: 13,
                     fontWeight: FontWeight.w700)),
           ),
           if (!attached)
             TextButton.icon(
               onPressed: onAttach,
-              icon: const Icon(Icons.camera_alt_outlined,
-                  size: 16, color: Vibe.violet),
-              label: const Text('Scan',
-                  style: TextStyle(color: Vibe.violet, fontSize: 12.5)),
+              icon: Icon(Icons.camera_alt_outlined,
+                  size: 16, color: scheme.primary),
+              label: Text('Scan',
+                  style: TextStyle(color: scheme.primary, fontSize: 12.5)),
             ),
         ],
       ),

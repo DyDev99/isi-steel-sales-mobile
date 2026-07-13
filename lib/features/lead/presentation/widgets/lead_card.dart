@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/core/utils/colors.dart';
 import 'package:isi_steel_sales_mobile/core/utils/glass_card.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/lead.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/onboarding_status.dart';
@@ -72,29 +73,31 @@ class _CardBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     return ClipRRect(
-      borderRadius:
-          BorderRadius.circular(Vibe.radius - 4), // Slimmer rounded borders
+      borderRadius: BorderRadius.circular(
+          AppColors.radius - 4), // Slimmer rounded borders
       child: Stack(
         children: [
           GlassCard(
             // Roomy padding so every item has comfortable breathing space.
             padding: const EdgeInsets.fromLTRB(14, 14, 10, 14),
             onTap: onTap,
-            child: _content(),
+            child: _content(scheme, colors),
           ),
           // Thinner profile accent boundary indicator line on the left edge
           Positioned(
               left: 0,
               top: 0,
               bottom: 0,
-              child: Container(width: 2.5, color: Vibe.violet)),
+              child: Container(width: 2.5, color: scheme.primary)),
         ],
       ),
     );
   }
 
-  Widget _content() {
+  Widget _content(ColorScheme scheme, AppThemeColors colors) {
     // Every optional row is built conditionally so empty fields collapse the
     // card height automatically instead of leaving blank gaps.
     final infoChips = <Widget>[
@@ -124,8 +127,8 @@ class _CardBody extends StatelessWidget {
                 lead.companyName,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                    color: Vibe.text,
+                style: TextStyle(
+                    color: colors.textPrimary,
                     fontSize: 15.0,
                     fontWeight: FontWeight.w800),
               ),
@@ -140,9 +143,9 @@ class _CardBody extends StatelessWidget {
                 child: PopupMenuButton<LeadCardAction>(
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
-                  icon: const Icon(Icons.more_vert_rounded,
-                      color: Vibe.muted, size: 18),
-                  color: Vibe.bgSoft,
+                  icon: Icon(Icons.more_vert_rounded,
+                      color: colors.textSecondary, size: 18),
+                  color: colors.surfaceSoft,
                   onSelected: onAction,
                   itemBuilder: (context) => [
                     const PopupMenuItem(
@@ -187,12 +190,12 @@ class _CardBody extends StatelessWidget {
           Row(
             children: [
               if (revenue > 0) ...[
-                Icon(Icons.payments_outlined, size: 15, color: Vibe.mint),
+                Icon(Icons.payments_outlined, size: 15, color: colors.info),
                 const SizedBox(width: 5),
                 Text(
                   '\$${revenue.toStringAsFixed(0)}',
-                  style: const TextStyle(
-                      color: Vibe.mint,
+                  style: TextStyle(
+                      color: colors.info,
                       fontSize: 14,
                       fontWeight: FontWeight.w800),
                 ),
@@ -201,7 +204,7 @@ class _CardBody extends StatelessWidget {
               if (lead.leadSource.label.trim().isNotEmpty)
                 Text(
                   lead.leadSource.label,
-                  style: const TextStyle(color: Vibe.muted, fontSize: 11.5),
+                  style: TextStyle(color: colors.textSecondary, fontSize: 11.5),
                 ),
             ],
           ),
@@ -214,11 +217,11 @@ class _CardBody extends StatelessWidget {
             child: OutlinedButton.icon(
               onPressed: () => onAction!(LeadCardAction.sendToHq),
               icon:
-                  const Icon(Icons.send_rounded, size: 11, color: Vibe.violet),
-              label: const Text('Send to HQ',
-                  style: TextStyle(color: Vibe.violet, fontSize: 10)),
+                  Icon(Icons.send_rounded, size: 11, color: scheme.primary),
+              label: Text('Send to HQ',
+                  style: TextStyle(color: scheme.primary, fontSize: 10)),
               style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Vibe.violet),
+                side: BorderSide(color: scheme.primary),
                 padding: const EdgeInsets.symmetric(
                     vertical: 4), // Heavily condensed inside button height
                 shape: RoundedRectangleBorder(
@@ -233,21 +236,22 @@ class _CardBody extends StatelessWidget {
         Row(
           children: [
             if (lead.assignedRepName.trim().isNotEmpty) ...[
-              const Icon(Icons.badge_outlined, size: 14, color: Vibe.muted),
+              Icon(Icons.badge_outlined, size: 14, color: colors.textSecondary),
               const SizedBox(width: 5),
               Expanded(
                 child: Text(
                   lead.assignedRepName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Vibe.muted, fontSize: 11.5),
+                  style:
+                      TextStyle(color: colors.textSecondary, fontSize: 11.5),
                 ),
               ),
             ] else
               const Spacer(),
             Text(
               _formatDate(lead.createdDate),
-              style: const TextStyle(color: Vibe.muted, fontSize: 11.5),
+              style: TextStyle(color: colors.textSecondary, fontSize: 11.5),
             ),
           ],
         ),
@@ -278,16 +282,17 @@ class _MiniInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 14, color: Vibe.muted),
+        Icon(icon, size: 14, color: colors.textSecondary),
         const SizedBox(width: 4),
         Text(
           text,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(color: Vibe.muted, fontSize: 12),
+          style: TextStyle(color: colors.textSecondary, fontSize: 12),
         ),
       ],
     );
@@ -304,7 +309,8 @@ class _DividerDot extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 5),
       child: Text('•',
           style: TextStyle(
-              color: Vibe.muted.withValues(alpha: 0.5), fontSize: 12)),
+              color: context.appColors.textSecondary.withValues(alpha: 0.5),
+              fontSize: 12)),
     );
   }
 }

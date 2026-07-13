@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/usecase/usecase.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/core/utils/glass_card.dart';
 import 'package:isi_steel_sales_mobile/features/home/presentation/bloc/home_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/quotation.dart';
@@ -47,6 +47,9 @@ class _OrderScreenState extends State<OrderScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final colors = context.appColors;
     return PopScope(
       canPop: false, // Prevent default exit to handle custom tab switching
       onPopInvokedWithResult: (didPop, _) {
@@ -57,7 +60,7 @@ class _OrderScreenState extends State<OrderScreen> {
         sl<ShellTabController>().goTo(ShellTab.home);
       },
       child: Scaffold(
-        backgroundColor: Vibe.bg,
+        backgroundColor: theme.colorScheme.surface,
         body: SafeArea(
           child: Column(
             children: [
@@ -69,15 +72,15 @@ class _OrderScreenState extends State<OrderScreen> {
                     Expanded(
                       child: ElevatedButton.icon(
                         onPressed: _startNewOrder,
-                        icon: const Icon(Icons.storefront_rounded,
-                            color: Colors.white),
+                        icon: Icon(Icons.storefront_rounded,
+                            color: scheme.onPrimary),
                         label: Text('orders.new_order'.tr,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                            style: TextStyle(
                                 fontWeight: FontWeight.w600,
-                                color: Colors.white)),
+                                color: scheme.onPrimary)),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Vibe.violet,
+                          backgroundColor: scheme.primary,
                           padding: const EdgeInsets.symmetric(
                               vertical: 14, horizontal: 20),
                           shape: RoundedRectangleBorder(
@@ -88,12 +91,13 @@ class _OrderScreenState extends State<OrderScreen> {
                     const SizedBox(width: 10),
                     OutlinedButton.icon(
                       onPressed: _openProductFilter,
-                      icon: const Icon(Icons.tune_rounded, color: Vibe.violet),
-                      label: const Text('Filter',
+                      icon: Icon(Icons.tune_rounded, color: scheme.primary),
+                      label: Text('Filter',
                           style: TextStyle(
-                              fontWeight: FontWeight.w700, color: Vibe.violet)),
+                              fontWeight: FontWeight.w700,
+                              color: scheme.primary)),
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Vibe.violet),
+                        side: BorderSide(color: scheme.primary),
                         padding: const EdgeInsets.symmetric(
                             vertical: 14, horizontal: 16),
                         shape: RoundedRectangleBorder(
@@ -108,8 +112,8 @@ class _OrderScreenState extends State<OrderScreen> {
                   padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
                   children: [
                     Text('orders.recent'.tr,
-                        style: const TextStyle(
-                            color: Vibe.text,
+                        style: TextStyle(
+                            color: colors.textPrimary,
                             fontSize: 15,
                             fontWeight: FontWeight.w800)),
                     const SizedBox(height: 10),
@@ -132,8 +136,8 @@ class _OrderScreenState extends State<OrderScreen> {
                                     const EdgeInsets.symmetric(vertical: 24),
                                 child: Center(
                                     child: Text('common.generic_error'.tr,
-                                        style: const TextStyle(
-                                            color: Vibe.muted))),
+                                        style: TextStyle(
+                                            color: colors.textSecondary))),
                               );
                             }
                             final entries = <_OrderEntry>[
@@ -151,8 +155,8 @@ class _OrderScreenState extends State<OrderScreen> {
                                     const EdgeInsets.symmetric(vertical: 24),
                                 child: Center(
                                     child: Text('orders.no_orders'.tr,
-                                        style: const TextStyle(
-                                            color: Vibe.muted))),
+                                        style: TextStyle(
+                                            color: colors.textSecondary))),
                               );
                             }
                             return Column(children: [
@@ -213,6 +217,8 @@ class _OrderTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: InkWell(
@@ -229,33 +235,33 @@ class _OrderTile extends StatelessWidget {
                         'orders.items_count'
                             .tr
                             .replaceAll('{count}', '${entry.itemCount}'),
-                        style: const TextStyle(
-                            color: Vibe.text,
+                        style: TextStyle(
+                            color: colors.textPrimary,
                             fontSize: 13.5,
                             fontWeight: FontWeight.w800)),
                     const SizedBox(height: 2),
                     Text(_formatDate(entry.date),
-                        style:
-                            const TextStyle(color: Vibe.muted, fontSize: 11.5)),
+                        style: TextStyle(
+                            color: colors.textSecondary, fontSize: 11.5)),
                   ],
                 ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: Vibe.amber.withValues(alpha: 0.16),
+                  color: colors.warning.withValues(alpha: 0.16),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(entry.statusLabel,
-                    style: const TextStyle(
-                        color: Vibe.amber,
+                    style: TextStyle(
+                        color: colors.warning,
                         fontSize: 10.5,
                         fontWeight: FontWeight.w700)),
               ),
               const SizedBox(width: 10),
               Text('\$${entry.total.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                      color: Vibe.violet,
+                  style: TextStyle(
+                      color: scheme.primary,
                       fontSize: 14,
                       fontWeight: FontWeight.w800)),
             ],

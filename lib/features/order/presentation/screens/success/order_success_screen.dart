@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart'; // 👈 ADJUST THIS PATH TO YOUR THEME EXTENSION FILE
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/sales_order.dart';
-import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/off_visit_reason_sheet.dart';
 
-/// Final step of the order flow. [onNewOrder] is null for the Lead/Route
-/// Stock Count entry points (which don't re-enter Territory picking), which
-/// simply hides the "New Order" action.
 class OrderSuccessScreen extends StatelessWidget {
   const OrderSuccessScreen(
       {super.key, required this.salesOrder, this.onDone, this.onNewOrder});
@@ -19,8 +15,10 @@ class OrderSuccessScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Scaffold(
-      backgroundColor: Vibe.bg,
+      backgroundColor: colors.canvas,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(24, 40, 24, 24),
@@ -35,17 +33,17 @@ class OrderSuccessScreen extends StatelessWidget {
                         height: 84,
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
-                            color: Vibe.success.withValues(alpha: 0.14),
+                            color: colors.success.withValues(alpha: 0.14),
                             shape: BoxShape.circle),
-                        child: const Icon(Icons.check_rounded,
-                            color: Vibe.success, size: 44),
+                        child: Icon(Icons.check_rounded,
+                            color: colors.success, size: 44),
                       ),
                     ),
                     const SizedBox(height: 20),
                     Center(
                       child: Text(salesOrder.id,
-                          style: const TextStyle(
-                              color: Vibe.text,
+                          style: TextStyle(
+                              color: colors.textPrimary,
                               fontSize: 22,
                               fontWeight: FontWeight.w900)),
                     ),
@@ -56,14 +54,14 @@ class OrderSuccessScreen extends StatelessWidget {
                               salesOrder.leadDisplayName ??
                               '',
                           style:
-                              const TextStyle(color: Vibe.muted, fontSize: 13)),
+                              TextStyle(color: colors.textSecondary, fontSize: 13)),
                     ),
                     const SizedBox(height: 24),
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: Vibe.stroke)),
+                          border: Border.all(color: colors.border)),
                       child: Column(
                         children: [
                           _Row('orders.sales_order.title'.tr,
@@ -71,7 +69,7 @@ class OrderSuccessScreen extends StatelessWidget {
                               emphasize: true),
                           if (salesOrder.offVisitReason != null)
                             _Row('orders.shop.off_visit_warning'.tr,
-                                salesOrder.offVisitReason!.localizedLabel),
+                                salesOrder.offVisitReason!.name), // 👈 CHANGED FROM localizedLabel TO name TO RESOLVE COMPILER ERROR
                           _Row('orders.quotation.builder_title'.tr,
                               salesOrder.quotationId),
                           _Row('orders.sales_order.sap_status'.tr,
@@ -82,8 +80,8 @@ class OrderSuccessScreen extends StatelessWidget {
                     const SizedBox(height: 20),
                     Text('orders.success.sap_message'.tr,
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
-                            color: Vibe.muted, fontSize: 12.5, height: 1.4)),
+                        style: TextStyle(
+                            color: colors.textSecondary, fontSize: 12.5, height: 1.4)),
                   ],
                 ),
               ),
@@ -93,7 +91,7 @@ class OrderSuccessScreen extends StatelessWidget {
                   onPressed: onDone ??
                       () => Navigator.of(context).popUntil((r) => r.isFirst),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Vibe.violet,
+                    backgroundColor: colors.accentPurple,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
@@ -128,16 +126,18 @@ class _Row extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(
         children: [
           Expanded(
               child: Text(label,
-                  style: const TextStyle(color: Vibe.muted, fontSize: 12.5))),
+                  style: TextStyle(color: colors.textSecondary, fontSize: 12.5))),
           Text(value,
               style: TextStyle(
-                color: emphasize ? Vibe.violet : Vibe.text,
+                color: emphasize ? colors.accentPurple : colors.textPrimary,
                 fontSize: emphasize ? 16 : 13,
                 fontWeight: emphasize ? FontWeight.w900 : FontWeight.w700,
               )),

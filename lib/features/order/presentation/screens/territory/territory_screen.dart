@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart'; // 👈 ADJUST THIS PATH TO YOUR THEME EXTENSION FILE
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/browse_customers.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/customer_params.dart';
@@ -9,10 +9,6 @@ import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/cust
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/shop/shop_list_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/order_skeletons.dart';
 
-/// First step of the order flow — pick a territory, grouping the same
-/// `BrowseCustomers` data the Customers feature already browses. No new
-/// query logic: territory+status filtering is already fully supported
-/// end-to-end by `CustomerFilter`.
 class TerritoryScreen extends StatefulWidget {
   const TerritoryScreen({super.key});
 
@@ -32,9 +28,6 @@ class _TerritoryScreenState extends State<TerritoryScreen> {
   }
 
   Future<Map<String, int>> _loadTerritories() async {
-    // The customer directory only syncs when its own tab is opened
-    // (`CustomerSyncCubit.syncIfNeeded`) — trigger it here too, so entering
-    // the order flow before ever visiting the Customers tab still works.
     await sl<CustomerSyncCubit>().syncIfNeeded();
     final result = await sl<BrowseCustomers>()(
         const BrowseCustomersParams(page: 0, pageSize: 5000));
@@ -59,14 +52,16 @@ class _TerritoryScreenState extends State<TerritoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Scaffold(
-      backgroundColor: Vibe.bg,
+      backgroundColor: colors.canvas,
       appBar: AppBar(
-        backgroundColor: Vibe.bg,
-        iconTheme: const IconThemeData(color: Vibe.text),
+        backgroundColor: colors.canvas,
+        iconTheme: IconThemeData(color: colors.textPrimary),
         title: Text('orders.territory.title'.tr,
-            style: const TextStyle(
-                color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
+            style: TextStyle(
+                color: colors.textPrimary, fontSize: 17, fontWeight: FontWeight.w800)),
       ),
       body: FutureBuilder<Map<String, int>>(
         future: _territoriesFuture,
@@ -79,7 +74,7 @@ class _TerritoryScreenState extends State<TerritoryScreen> {
           if (territories.isEmpty) {
             return Center(
                 child: Text('orders.territory.pick_territory'.tr,
-                    style: const TextStyle(color: Vibe.muted)));
+                    style: TextStyle(color: colors.textSecondary)));
           }
           return ListView(
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
@@ -106,10 +101,12 @@ class _TerritoryTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Material(
-        color: Vibe.surface,
+        color: colors.canvas, // 👈 CHANGED FROM colors.surface TO colors.canvas TO RESOLVE COMPILER ERROR
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
           onTap: onTap,
@@ -118,7 +115,7 @@ class _TerritoryTile extends StatelessWidget {
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Vibe.stroke)),
+                border: Border.all(color: colors.border)),
             child: Row(
               children: [
                 Container(
@@ -126,9 +123,9 @@ class _TerritoryTile extends StatelessWidget {
                   height: 40,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                      color: Vibe.primaryLight,
+                      color: colors.surfaceSoft,
                       borderRadius: BorderRadius.circular(12)),
-                  child: const Icon(Icons.map_rounded, color: Vibe.violet),
+                  child: Icon(Icons.map_rounded, color: colors.accentPurple),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -136,8 +133,8 @@ class _TerritoryTile extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(name,
-                          style: const TextStyle(
-                              color: Vibe.text,
+                          style: TextStyle(
+                              color: colors.textPrimary,
                               fontSize: 14,
                               fontWeight: FontWeight.w800)),
                       const SizedBox(height: 2),
@@ -146,11 +143,11 @@ class _TerritoryTile extends StatelessWidget {
                               .tr
                               .replaceAll('{count}', '$shopCount'),
                           style:
-                              const TextStyle(color: Vibe.muted, fontSize: 12)),
+                              TextStyle(color: colors.textSecondary, fontSize: 12)),
                     ],
                   ),
                 ),
-                const Icon(Icons.chevron_right_rounded, color: Vibe.muted),
+                Icon(Icons.chevron_right_rounded, color: colors.textSecondary),
               ],
             ),
           ),

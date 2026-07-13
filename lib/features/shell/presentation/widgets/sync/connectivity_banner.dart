@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/network/connectivity_cubit.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
 /// A calm, always-visible-when-offline banner. Reassures rather than alarms:
 /// work is safe locally. Observe-only — it never navigates. Renders nothing
@@ -14,12 +14,13 @@ class ConnectivityBanner extends StatelessWidget {
     return BlocBuilder<ConnectivityCubit, ConnectivityStatus>(
       builder: (context, status) {
         if (status == ConnectivityStatus.online) return const SizedBox.shrink();
+        final colors = context.appColors;
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
-            color: Vibe.slate,
+            color: colors.slate,
             borderRadius: BorderRadius.circular(14),
-            boxShadow: Vibe.cardShadow,
+            boxShadow: colors.cardShadow,
           ),
           child: const Row(
             children: [

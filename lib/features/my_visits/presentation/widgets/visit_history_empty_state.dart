@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
 /// Shown when the visit history list has no records. UI only — the caller
 /// decides when this applies.
@@ -9,6 +9,8 @@ class VisitHistoryEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final primary = Theme.of(context).colorScheme.primary;
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -20,22 +22,23 @@ class VisitHistoryEmptyState extends StatelessWidget {
               height: 72,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                  color: Vibe.primaryLight,
+                  color: colors.surfaceStrong,
                   borderRadius: BorderRadius.circular(20)),
-              child:
-                  const Icon(Icons.map_outlined, size: 34, color: Vibe.violet),
+              child: Icon(Icons.map_outlined, size: 34, color: primary),
             ),
             const SizedBox(height: 16),
             Text(
               'my_visits.history.empty_title'.tr,
-              style: const TextStyle(
-                  color: Vibe.text, fontSize: 15, fontWeight: FontWeight.w800),
+              style: TextStyle(
+                  color: colors.textPrimary,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 6),
             Text(
               'my_visits.history.empty_subtitle'.tr,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Vibe.muted, fontSize: 13),
+              style: TextStyle(color: colors.textSecondary, fontSize: 13),
             ),
           ],
         ),

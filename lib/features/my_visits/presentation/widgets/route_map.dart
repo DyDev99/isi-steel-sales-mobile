@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/location_sample.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_stop.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_status.dart';
@@ -50,6 +50,8 @@ class _RouteMapState extends State<RouteMap> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     final stopMarkers = <Marker>{
       for (var i = 0; i < widget.stops.length; i++)
         Marker(
@@ -85,7 +87,7 @@ class _RouteMapState extends State<RouteMap> {
         : {
             Polyline(
               polylineId: const PolylineId('route'),
-              color: Vibe.violet,
+              color: scheme.primary,
               width: 4,
               points: [
                 for (final s in widget.stops)
@@ -106,9 +108,9 @@ class _RouteMapState extends State<RouteMap> {
               ),
               radius: widget
                   .stops[widget.currentStopIndex].customer.geofenceRadiusMeters,
-              strokeColor: Vibe.violet,
+              strokeColor: scheme.primary,
               strokeWidth: 2,
-              fillColor: Vibe.violet.withValues(alpha: 0.12),
+              fillColor: scheme.primary.withValues(alpha: 0.12),
             ),
           };
 
@@ -138,10 +140,10 @@ class _RouteMapState extends State<RouteMap> {
           bottom: 12,
           child: FloatingActionButton.small(
             heroTag: 'route_map_follow',
-            backgroundColor: _autoFollow ? Vibe.violet : Vibe.surface,
+            backgroundColor: _autoFollow ? scheme.primary : colors.card,
             onPressed: () => setState(() => _autoFollow = !_autoFollow),
             child: Icon(Icons.my_location_rounded,
-                color: _autoFollow ? Colors.white : Vibe.text),
+                color: _autoFollow ? scheme.onPrimary : colors.textPrimary),
           ),
         ),
       ],

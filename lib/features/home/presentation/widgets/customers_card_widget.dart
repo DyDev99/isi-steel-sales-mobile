@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/home/presentation/widgets/dashboard_kpi_card.dart';
 
 /// Customers summary card. Headline = total customers; the distribution
@@ -25,30 +25,32 @@ class CustomerCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     return DashboardKpiCard(
       title: title ?? 'home.quick_access.customers'.tr,
       icon: Icons.groups_rounded,
-      iconColor: Vibe.success,
+      iconColor: colors.success,
       headline: '$totalCustomers',
       headlineCaption: 'home.quick_access.total_customers'.tr,
       badge: suspendedCount > 0
           ? KpiBadge(
               label: '$suspendedCount ${'home.quick_access.suspended'.tr}',
-              color: Vibe.amber)
+              color: colors.warning)
           : null,
       segments: [
         KpiSegment(
             label: 'home.quick_access.active'.tr,
             value: activeCount,
-            color: Vibe.success),
+            color: colors.success),
         KpiSegment(
             label: 'home.quick_access.prospect'.tr,
             value: prospectCount,
-            color: Vibe.violet),
+            color: scheme.primary),
         KpiSegment(
             label: 'home.quick_access.suspended'.tr,
             value: suspendedCount,
-            color: Vibe.amber),
+            color: colors.warning),
       ],
       onTap: onTap,
     );

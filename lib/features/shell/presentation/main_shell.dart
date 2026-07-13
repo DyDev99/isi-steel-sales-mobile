@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:isi_steel_sales_mobile/core/auth/auth_guard.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/network/connectivity_cubit.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/local/localized_builder.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/features/app_coach/presentation/services/coach_keys.dart';
+import 'package:isi_steel_sales_mobile/features/app_coach/presentation/widgets/app_coach_host.dart';
 import 'package:isi_steel_sales_mobile/features/home/data/home_repository.dart';
 import 'package:isi_steel_sales_mobile/features/home/presentation/bloc/add_customer_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/home/presentation/bloc/home_cubit.dart';
@@ -92,7 +95,13 @@ class _MainShellState extends State<MainShell> {
         'orders.title'.tr,
       ];
 
-  void _openProfile(BuildContext context) {
+  /// Profile is a protected feature: it shows account data and hosts sign-out.
+  /// Guests are prompted to log in via the shared [AuthGuard]; authenticated
+  /// users open it straight away. This is the reusable pattern to apply to any
+  /// other gated action (cart, checkout, create order, saved items, …).
+  Future<void> _openProfile(BuildContext context) async {
+    final allowed = await AuthGuard.requireAuthentication(context);
+    if (!allowed || !context.mounted) return;
     Navigator.of(context).push(MaterialPageRoute(
       builder: (_) => BlocProvider(
         create: (_) => sl<ProfileCubit>(),
@@ -190,10 +199,14 @@ class _MainShellState extends State<MainShell> {
                   // 2. Monthly Target Card aligned safely with 16.w edge-to-edge layout padding
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16.w),
-                    child: const MonthlyTargetCard(
-                      targetAmount: 1000000,
-                      achievedAmount: 750000,
-                      monthName: 'August',
+                    // Coach anchor: "Monthly Target" step spotlights this card.
+                    child: CoachKeys.wrap(
+                      CoachKeys.monthlyTarget,
+                      child: const MonthlyTargetCard(
+                        targetAmount: 1000000,
+                        achievedAmount: 750000,
+                        monthName: 'August',
+                      ),
                     ),
                   ),
                   SizedBox(height: 16.h),
@@ -214,8 +227,16 @@ class _MainShellState extends State<MainShell> {
                     child: const ContinueWorkingCard(),
                   ),
                   SizedBox(height: 8.h),
-                  QuickActionsSection(),
-                  MyWorkGridSection(),
+                  // Coach anchors: "Quick Actions"/"New Lead" and the "My Work"
+                  // navigation steps spotlight these sections.
+                  CoachKeys.wrap(
+                    CoachKeys.quickActions,
+                    child: const QuickActionsSection(),
+                  ),
+                  CoachKeys.wrap(
+                    CoachKeys.myWork,
+                    child: const MyWorkGridSection(),
+                  ),
                 ],
               ),
             ),
@@ -279,7 +300,7 @@ class _MainShellState extends State<MainShell> {
             _tabController.goTo(0);
           },
           child: Scaffold(
-            backgroundColor: Vibe.canvas,
+            backgroundColor: context.appColors.canvas,
             body: Stack(
               children: [
                 // Upgraded Premium Blurred Image Header Background
@@ -351,6 +372,9 @@ class _MainShellState extends State<MainShell> {
                     onAvatarTap: () => _openProfile(context),
                   ),
                 ),
+                // Interactive onboarding layer — sits above the whole shell and
+                // self-hides once the tutorial is completed or skipped.
+                const AppCoachHost(),
               ],
             ),
           ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer_filter.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer_status.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_status_badge.dart';
@@ -36,23 +36,27 @@ class _CustomerFilterSheetState extends State<_CustomerFilterSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
-      decoration: const BoxDecoration(
-        color: Vibe.bg,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('customers.filter_sort'.tr,
-              style: const TextStyle(
-                  color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
+              style: TextStyle(
+                  color: colors.textPrimary,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w800)),
           const SizedBox(height: 16),
           Text('customers.status_label'.tr,
-              style: const TextStyle(
-                  color: Vibe.muted,
+              style: TextStyle(
+                  color: colors.textSecondary,
                   fontSize: 12,
                   fontWeight: FontWeight.w700)),
           const SizedBox(height: 8),
@@ -76,8 +80,8 @@ class _CustomerFilterSheetState extends State<_CustomerFilterSheet> {
           const SizedBox(height: 16),
           if (widget.territories.isNotEmpty) ...[
             Text('customers.territory'.tr,
-                style: const TextStyle(
-                    color: Vibe.muted,
+                style: TextStyle(
+                    color: colors.textSecondary,
                     fontSize: 12,
                     fontWeight: FontWeight.w700)),
             const SizedBox(height: 8),
@@ -102,8 +106,8 @@ class _CustomerFilterSheetState extends State<_CustomerFilterSheet> {
             const SizedBox(height: 16),
           ],
           Text('customers.sort_by'.tr,
-              style: const TextStyle(
-                  color: Vibe.muted,
+              style: TextStyle(
+                  color: colors.textSecondary,
                   fontSize: 12,
                   fontWeight: FontWeight.w700)),
           const SizedBox(height: 8),
@@ -128,14 +132,14 @@ class _CustomerFilterSheetState extends State<_CustomerFilterSheet> {
                 Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Vibe.violet,
+                backgroundColor: scheme.primary,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14)),
               ),
               child: Text('customers.apply'.tr,
-                  style: const TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.w800)),
+                  style: TextStyle(
+                      color: scheme.onPrimary, fontWeight: FontWeight.w800)),
             ),
           ),
         ],
@@ -144,20 +148,25 @@ class _CustomerFilterSheetState extends State<_CustomerFilterSheet> {
   }
 
   Widget _chip(String label, bool selected, VoidCallback onTap) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: selected ? Vibe.violet.withValues(alpha: 0.16) : Vibe.bgSoft,
+          color: selected
+              ? scheme.primary.withValues(alpha: 0.16)
+              : colors.surfaceSoft,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: selected ? Vibe.violet : Vibe.stroke),
+          border:
+              Border.all(color: selected ? scheme.primary : colors.border),
         ),
         child: Text(
           label,
           style: TextStyle(
-              color: selected ? Vibe.violet : Vibe.text,
+              color: selected ? scheme.primary : colors.textPrimary,
               fontSize: 12.5,
               fontWeight: FontWeight.w700),
         ),

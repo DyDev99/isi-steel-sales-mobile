@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/sync/pending_sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/sync/pending_sync_state.dart';
 import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/sync/pending_sync_sheet.dart';
@@ -17,19 +17,21 @@ class PendingSyncBadge extends StatelessWidget {
       builder: (context, state) {
         final outstanding = state.counts.outstanding;
         if (outstanding == 0) return const SizedBox.shrink();
+        final scheme = Theme.of(context).colorScheme;
+        final colors = context.appColors;
         final hasProblems =
             state.counts.failed > 0 || state.counts.conflict > 0;
-        final accent = hasProblems ? Vibe.danger : Vibe.violet;
+        final accent = hasProblems ? scheme.error : scheme.primary;
         return InkWell(
           onTap: () => showPendingSyncSheet(context),
           borderRadius: BorderRadius.circular(24),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: Vibe.surface,
+              color: scheme.surface,
               borderRadius: BorderRadius.circular(24),
               border: Border.all(color: accent.withValues(alpha: 0.4)),
-              boxShadow: Vibe.cardShadow,
+              boxShadow: colors.cardShadow,
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -51,7 +53,7 @@ class PendingSyncBadge extends StatelessWidget {
                 ),
                 if (hasProblems) ...[
                   const SizedBox(width: 6),
-                  const Icon(Icons.error_rounded, size: 15, color: Vibe.danger),
+                  Icon(Icons.error_rounded, size: 15, color: scheme.error),
                 ],
               ],
             ),

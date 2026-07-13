@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
-/// Multi-modal catalog search header: type, speak 🎤, scan 📷 or upload a photo.
-/// The four discovery inputs all feed the same catalog query pipeline; the
-/// [controller] lets voice/image results be echoed back into the field.
 class CatalogSearchBar extends StatelessWidget {
   const CatalogSearchBar({
     super.key,
@@ -25,6 +22,10 @@ class CatalogSearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final appColors = context.appColors;
+
     return Row(
       children: [
         Expanded(
@@ -32,13 +33,13 @@ class CatalogSearchBar extends StatelessWidget {
             height: 44,
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
-              color: Vibe.surface,
+              color: scheme.surface,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: Vibe.stroke),
+              border: Border.all(color: appColors.border),
             ),
             child: Row(
               children: [
-                const Icon(Icons.search_rounded, color: Vibe.muted, size: 20),
+                Icon(Icons.search_rounded, color: scheme.onSurface.withValues(alpha: 0.5), size: 20),
                 const SizedBox(width: 8),
                 Expanded(
                   child: TextField(
@@ -46,13 +47,12 @@ class CatalogSearchBar extends StatelessWidget {
                     onChanged: onSearchChanged,
                     textInputAction: TextInputAction.search,
                     onSubmitted: onSearchChanged,
-                    style: const TextStyle(color: Vibe.text, fontSize: 13.5),
+                    style: TextStyle(color: scheme.onSurface, fontSize: 13.5),
                     decoration: InputDecoration(
                       isDense: true,
                       border: InputBorder.none,
                       hintText: 'orders.catalog.search_hint'.tr,
-                      hintStyle:
-                          const TextStyle(color: Vibe.muted, fontSize: 13.5),
+                      hintStyle: TextStyle(color: scheme.onSurface.withValues(alpha: 0.4), fontSize: 13.5),
                     ),
                   ),
                 ),
@@ -79,8 +79,7 @@ class CatalogSearchBar extends StatelessWidget {
 }
 
 class _InlineIcon extends StatelessWidget {
-  const _InlineIcon(
-      {required this.icon, required this.tooltip, required this.onTap});
+  const _InlineIcon({required this.icon, required this.tooltip, required this.onTap});
   final IconData icon;
   final String tooltip;
   final VoidCallback onTap;
@@ -94,7 +93,7 @@ class _InlineIcon extends StatelessWidget {
         padding: const EdgeInsets.all(4),
         child: Tooltip(
           message: tooltip,
-          child: Icon(icon, color: Vibe.muted, size: 20),
+          child: Icon(icon, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5), size: 20),
         ),
       ),
     );
@@ -102,14 +101,16 @@ class _InlineIcon extends StatelessWidget {
 }
 
 class _SquareButton extends StatelessWidget {
-  const _SquareButton(
-      {required this.icon, required this.onTap, this.highlighted = false});
+  const _SquareButton({required this.icon, required this.onTap, this.highlighted = false});
   final IconData icon;
   final VoidCallback onTap;
   final bool highlighted;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(14),
@@ -118,13 +119,11 @@ class _SquareButton extends StatelessWidget {
         height: 44,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color:
-              highlighted ? Vibe.violet.withValues(alpha: 0.18) : Vibe.surface,
+          color: highlighted ? scheme.primary.withValues(alpha: 0.15) : scheme.surface,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: highlighted ? Vibe.violet : Vibe.stroke),
+          border: Border.all(color: highlighted ? scheme.primary : context.appColors.border),
         ),
-        child:
-            Icon(icon, color: highlighted ? Vibe.violet : Vibe.text, size: 20),
+        child: Icon(icon, color: highlighted ? scheme.primary : scheme.onSurface, size: 20),
       ),
     );
   }

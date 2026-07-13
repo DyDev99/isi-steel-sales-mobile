@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/depot_selection_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/depot_selection_state.dart';
@@ -38,14 +38,17 @@ class _DepotSelectionView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<DepotSelectionCubit>();
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: Vibe.bg,
+      backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: Vibe.bg,
-        iconTheme: const IconThemeData(color: Vibe.text),
-        title: const Text('Select depot / shop',
+        backgroundColor: theme.colorScheme.surface,
+        iconTheme: IconThemeData(color: theme.colorScheme.onSurface),
+        title: Text('Select depot / shop',
             style: TextStyle(
-                color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
+                color: theme.colorScheme.onSurface,
+                fontSize: 17,
+                fontWeight: FontWeight.w800)),
       ),
       body: Column(
         children: [
@@ -93,7 +96,7 @@ class _ShopList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
-      color: Vibe.violet,
+      color: Theme.of(context).colorScheme.primary,
       onRefresh: context.read<DepotSelectionCubit>().refresh,
       child: ListView.separated(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 20),
@@ -126,6 +129,8 @@ class _ShopTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
     final subtitle = [shop.ownerName, shop.district, shop.territory]
         .where((s) => s.isNotEmpty)
         .join(' · ');
@@ -136,10 +141,10 @@ class _ShopTile extends StatelessWidget {
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: selected ? Vibe.surfaceStrong : Vibe.surface,
+          color: selected ? colors.surfaceStrong : colors.card,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: selected ? Vibe.violet : Vibe.stroke,
+            color: selected ? scheme.primary : colors.border,
             width: selected ? 1.5 : 1,
           ),
         ),
@@ -150,11 +155,11 @@ class _ShopTile extends StatelessWidget {
               height: 40,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: Vibe.violet.withValues(alpha: 0.12),
+                color: scheme.primary.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.storefront_rounded,
-                  color: Vibe.violet, size: 20),
+              child: Icon(Icons.storefront_rounded,
+                  color: scheme.primary, size: 20),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -164,8 +169,8 @@ class _ShopTile extends StatelessWidget {
                   Text(shop.shopName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          color: Vibe.text,
+                      style: TextStyle(
+                          color: colors.textPrimary,
                           fontSize: 14,
                           fontWeight: FontWeight.w800)),
                   if (subtitle.isNotEmpty) ...[
@@ -173,8 +178,8 @@ class _ShopTile extends StatelessWidget {
                     Text(subtitle,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style:
-                            const TextStyle(color: Vibe.muted, fontSize: 11.5)),
+                        style: TextStyle(
+                            color: colors.textSecondary, fontSize: 11.5)),
                   ],
                 ],
               ),
@@ -184,7 +189,7 @@ class _ShopTile extends StatelessWidget {
               selected
                   ? Icons.check_circle_rounded
                   : Icons.radio_button_unchecked_rounded,
-              color: selected ? Vibe.violet : Vibe.stroke,
+              color: selected ? scheme.primary : colors.border,
               size: 22,
             ),
           ],
@@ -200,28 +205,30 @@ class _SearchField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Container(
       height: 46,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: Vibe.surface,
+        color: colors.card,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Vibe.stroke),
+        border: Border.all(color: colors.border),
       ),
       child: Row(
         children: [
-          const Icon(Icons.search_rounded, color: Vibe.muted, size: 20),
+          Icon(Icons.search_rounded, color: colors.textSecondary, size: 20),
           const SizedBox(width: 8),
           Expanded(
             child: TextField(
               onChanged: onChanged,
               textInputAction: TextInputAction.search,
-              style: const TextStyle(color: Vibe.text, fontSize: 13.5),
-              decoration: const InputDecoration(
+              style: TextStyle(color: colors.textPrimary, fontSize: 13.5),
+              decoration: InputDecoration(
                 isDense: true,
                 border: InputBorder.none,
                 hintText: 'Search depot or shop…',
-                hintStyle: TextStyle(color: Vibe.muted, fontSize: 13.5),
+                hintStyle:
+                    TextStyle(color: colors.textSecondary, fontSize: 13.5),
               ),
             ),
           ),
@@ -255,25 +262,29 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return RefreshIndicator(
-      color: Vibe.violet,
+      color: Theme.of(context).colorScheme.primary,
       onRefresh: onRefresh,
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
           SizedBox(height: MediaQuery.of(context).size.height * 0.3),
-          const Center(
+          Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.storefront_outlined, size: 44, color: Vibe.muted),
-                SizedBox(height: 12),
+                Icon(Icons.storefront_outlined,
+                    size: 44, color: colors.textSecondary),
+                const SizedBox(height: 12),
                 Text('No depots or shops found',
                     style: TextStyle(
-                        color: Vibe.text, fontWeight: FontWeight.w700)),
-                SizedBox(height: 4),
+                        color: colors.textPrimary,
+                        fontWeight: FontWeight.w700)),
+                const SizedBox(height: 4),
                 Text('Try a different search.',
-                    style: TextStyle(color: Vibe.muted, fontSize: 12.5)),
+                    style:
+                        TextStyle(color: colors.textSecondary, fontSize: 12.5)),
               ],
             ),
           ),
@@ -290,19 +301,20 @@ class _ErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline_rounded,
-                size: 44, color: Vibe.danger),
+            Icon(Icons.error_outline_rounded,
+                size: 44, color: Theme.of(context).colorScheme.error),
             const SizedBox(height: 12),
             Text(message,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                    color: Vibe.text, fontWeight: FontWeight.w700)),
+                style: TextStyle(
+                    color: colors.textPrimary, fontWeight: FontWeight.w700)),
             const SizedBox(height: 16),
             OutlinedButton.icon(
               onPressed: onRetry,
@@ -323,10 +335,12 @@ class _ContinueBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
     return Container(
-      decoration: const BoxDecoration(
-        color: Vibe.bg,
-        border: Border(top: BorderSide(color: Vibe.stroke)),
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        border: Border(top: BorderSide(color: colors.border)),
       ),
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
       child: SafeArea(
@@ -336,10 +350,10 @@ class _ContinueBar extends StatelessWidget {
           child: ElevatedButton(
             onPressed: onContinue,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Vibe.violet,
-              foregroundColor: Colors.white,
-              disabledBackgroundColor: Vibe.violet.withValues(alpha: 0.4),
-              disabledForegroundColor: Colors.white,
+              backgroundColor: scheme.primary,
+              foregroundColor: scheme.onPrimary,
+              disabledBackgroundColor: scheme.primary.withValues(alpha: 0.4),
+              disabledForegroundColor: scheme.onPrimary,
               padding: const EdgeInsets.symmetric(vertical: 15),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14)),

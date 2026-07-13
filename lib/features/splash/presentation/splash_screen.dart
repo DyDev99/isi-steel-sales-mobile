@@ -1,9 +1,17 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
+import 'package:isi_steel_sales_mobile/core/local/app_preferences.dart';
 import 'package:isi_steel_sales_mobile/core/utils/verion.dart';
 import 'package:isi_steel_sales_mobile/routes/app_routes.dart';
 
-/// Splash: ISI Steel logo fades + scales in, holds for ~6s, then -> login.
+/// Splash: ISI Steel logo fades + scales in, then forwards based on onboarding
+/// status — the single decision point for the boot flow:
+///
+///   • onboarding **not** complete -> language selection (the onboarding step)
+///   • onboarding complete         -> main shell (auth is resolved in the
+///                                     background; guests and signed-in users
+///                                     both land on the shell)
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -35,11 +43,15 @@ class _SplashScreenState extends State<SplashScreen>
     // Start animation immediately on first frame.
     WidgetsBinding.instance.addPostFrameCallback((_) => _controller.forward());
 
-    // Navigate to the language-choice screen after 6 seconds. That screen
-    // hands off to login once a language is picked.
-    _navTimer = Timer(const Duration(seconds: 3), () {
+    // After a short brand hold, forward based on onboarding status. First-time
+    // users go through language selection (onboarding); everyone else drops
+    // straight into the app shell as a guest or signed-in user.
+    _navTimer = Timer(const Duration(seconds: 2), () {
       if (!mounted) return;
-      Navigator.of(context).pushReplacementNamed(Static.chooseLanguage);
+      final onboarded = sl<AppPreferences>().isOnboardingComplete;
+      Navigator.of(context).pushReplacementNamed(
+        onboarded ? Static.main : Static.chooseLanguage,
+      );
     });
   }
 

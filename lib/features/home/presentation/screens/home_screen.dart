@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key, this.userName = 'Demo'});
@@ -8,17 +8,18 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     return Scaffold(
-      // Using the light gray background from the image
-      backgroundColor: Vibe.canvas,
+      backgroundColor: colors.canvas,
       body: Stack(
         children: [
-          // 1. The Blue Header Background
+          // 1. The brand header background.
           Container(
             height: 280.h,
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Vibe.violet, Vibe.primaryHover],
+              gradient: LinearGradient(
+                colors: [scheme.primary, colors.primaryHover],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
@@ -36,17 +37,11 @@ class HomeScreen extends StatelessWidget {
               children: [
                 _buildTopBar(),
                 SizedBox(height: 24.h),
-
-                // 2. Overlapping Summary Card
-                _buildSummaryCard(),
+                _buildSummaryCard(context),
                 SizedBox(height: 24.h),
-
-                // 3. 2x2 Action Grid
-                _buildActionGrid(),
+                _buildActionGrid(context),
                 SizedBox(height: 24.h),
-
-                // 4. Today's Visits Section
-                _buildVisitsSection(),
+                _buildVisitsSection(context),
               ],
             ),
           ),
@@ -55,6 +50,8 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+  // The top bar sits on the brand gradient, so its text/avatar stay white in
+  // both themes by design.
   Widget _buildTopBar() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -97,44 +94,43 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSummaryCard() {
+  Widget _buildSummaryCard(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: scheme.surface,
         borderRadius: BorderRadius.circular(16.r),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        boxShadow: colors.cardShadow,
       ),
       child: Column(
         children: [
           Row(
             children: [
               _buildSummaryItem(
+                context,
                 icon: Icons.attach_money_rounded,
-                iconColor: Colors.green,
-                iconBg: Colors.green.withValues(alpha: 0.1),
+                iconColor: colors.success,
+                iconBg: colors.success.withValues(alpha: 0.12),
                 value: 'R 0.00',
                 label: "Today's Sales",
               ),
-              _buildVerticalDivider(),
+              _buildVerticalDivider(context),
               _buildSummaryItem(
+                context,
                 icon: Icons.receipt_long_rounded,
-                iconColor: Colors.blue,
-                iconBg: Colors.blue.withValues(alpha: 0.1),
+                iconColor: scheme.primary,
+                iconBg: scheme.primary.withValues(alpha: 0.12),
                 value: '3',
                 label: "Orders Today",
               ),
-              _buildVerticalDivider(),
+              _buildVerticalDivider(context),
               _buildSummaryItem(
+                context,
                 icon: Icons.location_on_rounded,
-                iconColor: Colors.purple,
-                iconBg: Colors.purple.withValues(alpha: 0.1),
+                iconColor: colors.accentPurple,
+                iconBg: colors.accentPurple.withValues(alpha: 0.12),
                 value: '0',
                 label: "Check-ins",
               ),
@@ -145,7 +141,7 @@ class HomeScreen extends StatelessWidget {
             child: Text(
               'View all sales >',
               style: TextStyle(
-                color: Colors.grey.shade600,
+                color: colors.textSecondary,
                 fontSize: 11.sp,
                 fontWeight: FontWeight.w600,
               ),
@@ -156,21 +152,23 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildVerticalDivider() {
+  Widget _buildVerticalDivider(BuildContext context) {
     return Container(
       height: 40.h,
       width: 1,
-      color: Colors.grey.shade200,
+      color: context.appColors.border,
     );
   }
 
-  Widget _buildSummaryItem({
+  Widget _buildSummaryItem(
+    BuildContext context, {
     required IconData icon,
     required Color iconColor,
     required Color iconBg,
     required String value,
     required String label,
   }) {
+    final scheme = Theme.of(context).colorScheme;
     return Expanded(
       child: Column(
         children: [
@@ -182,12 +180,16 @@ class HomeScreen extends StatelessWidget {
           SizedBox(height: 8.h),
           Text(
             value,
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),
+            style: TextStyle(
+                color: scheme.onSurface,
+                fontWeight: FontWeight.bold,
+                fontSize: 14.sp),
           ),
           SizedBox(height: 4.h),
           Text(
             label,
-            style: TextStyle(color: Colors.grey.shade500, fontSize: 10.sp),
+            style: TextStyle(
+                color: context.appColors.textSecondary, fontSize: 10.sp),
             textAlign: TextAlign.center,
           ),
         ],
@@ -195,7 +197,9 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildActionGrid() {
+  Widget _buildActionGrid(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     return GridView.count(
       crossAxisCount: 2,
       shrinkWrap: true,
@@ -205,30 +209,30 @@ class HomeScreen extends StatelessWidget {
       childAspectRatio: 1.1,
       children: [
         _buildGridCard(
+          context,
           icon: Icons.people_alt_rounded,
-          iconColor: Colors.blue,
-          iconBg: Colors.blue.withValues(alpha: 0.1),
+          accent: scheme.primary,
           value: '10',
           label: 'Customers',
         ),
         _buildGridCard(
+          context,
           icon: Icons.inventory_2_rounded,
-          iconColor: Colors.green,
-          iconBg: Colors.green.withValues(alpha: 0.1),
+          accent: colors.success,
           value: '15',
           label: 'Products',
         ),
         _buildGridCard(
+          context,
           icon: Icons.assignment_late_rounded,
-          iconColor: Colors.orange,
-          iconBg: Colors.orange.withValues(alpha: 0.1),
+          accent: colors.warning,
           value: '3',
           label: 'Pending',
         ),
         _buildGridCard(
+          context,
           icon: Icons.warning_rounded,
-          iconColor: Colors.red,
-          iconBg: Colors.red.withValues(alpha: 0.1),
+          accent: scheme.error,
           value: '4',
           label: 'Low Stock',
         ),
@@ -236,17 +240,18 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildGridCard({
+  Widget _buildGridCard(
+    BuildContext context, {
     required IconData icon,
-    required Color iconColor,
-    required Color iconBg,
+    required Color accent,
     required String value,
     required String label,
   }) {
+    final scheme = Theme.of(context).colorScheme;
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: scheme.surface,
         borderRadius: BorderRadius.circular(16.r),
       ),
       child: Column(
@@ -256,27 +261,33 @@ class HomeScreen extends StatelessWidget {
           Container(
             padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
-              color: iconBg,
+              color: accent.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(8.r),
             ),
-            child: Icon(icon, color: iconColor, size: 20.w),
+            child: Icon(icon, color: accent, size: 20.w),
           ),
           const Spacer(),
           Text(
             value,
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20.sp),
+            style: TextStyle(
+                color: scheme.onSurface,
+                fontWeight: FontWeight.bold,
+                fontSize: 20.sp),
           ),
           SizedBox(height: 4.h),
           Text(
             label,
-            style: TextStyle(color: Colors.grey.shade500, fontSize: 12.sp),
+            style: TextStyle(
+                color: context.appColors.textSecondary, fontSize: 12.sp),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildVisitsSection() {
+  Widget _buildVisitsSection(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -286,6 +297,7 @@ class HomeScreen extends StatelessWidget {
             Text(
               "Today's Visits",
               style: TextStyle(
+                color: scheme.onSurface,
                 fontSize: 16.sp,
                 fontWeight: FontWeight.bold,
               ),
@@ -293,7 +305,7 @@ class HomeScreen extends StatelessWidget {
             Text(
               "See All",
               style: TextStyle(
-                color: Colors.blue,
+                color: scheme.primary,
                 fontSize: 12.sp,
                 fontWeight: FontWeight.w600,
               ),
@@ -305,19 +317,19 @@ class HomeScreen extends StatelessWidget {
           width: double.infinity,
           padding: EdgeInsets.symmetric(vertical: 40.h),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: scheme.surface,
             borderRadius: BorderRadius.circular(16.r),
           ),
           child: Center(
             child: Container(
               padding: EdgeInsets.all(16.w),
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+                color: colors.surfaceSoft,
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.location_off_rounded,
-                color: Colors.grey.shade400,
+                color: colors.textHint,
                 size: 32.w,
               ),
             ),

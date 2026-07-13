@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
 
 class PromotionBadge extends StatelessWidget {
   const PromotionBadge({super.key, required this.label});
@@ -7,20 +6,22 @@ class PromotionBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: Vibe.danger.withValues(alpha: 0.14),
+        color: scheme.error.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.local_offer_rounded, size: 11, color: Vibe.danger),
+          Icon(Icons.local_offer_rounded, size: 11, color: scheme.error),
           const SizedBox(width: 3),
           Text(label,
-              style: const TextStyle(
-                  color: Vibe.danger,
+              style: TextStyle(
+                  color: scheme.error,
                   fontSize: 10.5,
                   fontWeight: FontWeight.w700)),
         ],

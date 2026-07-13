@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer_filter.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/browse_customers.dart';
@@ -13,9 +13,6 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/screens/shop/
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/order_skeletons.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/shop/shop_tile.dart';
 
-/// Second step of the order flow — shops within [territory]. Only Active
-/// shops are selectable; CN/DN badges load lazily per-tile so the list
-/// itself isn't blocked on the (mocked) credit lookup.
 class ShopListScreen extends StatefulWidget {
   const ShopListScreen({
     super.key,
@@ -27,14 +24,7 @@ class ShopListScreen extends StatefulWidget {
   static const routeName = 'order-shop-list';
 
   final String territory;
-
-  /// Forwarded to `ShopOrderEntryScreen` — set by handoffs (e.g. Route Stock
-  /// Count) where the rep is provably already on-visit.
   final bool skipOffVisitCheck;
-
-  /// Forwarded through to the Quotation Builder's initial search — used by
-  /// the Route Stock Count "Build Quotation" handoff to pre-seed the
-  /// out-of-stock item.
   final String? seedSearchTerm;
 
   @override
@@ -74,14 +64,16 @@ class _ShopListScreenState extends State<ShopListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Scaffold(
-      backgroundColor: Vibe.bg,
+      backgroundColor: colors.canvas,
       appBar: AppBar(
-        backgroundColor: Vibe.bg,
-        iconTheme: const IconThemeData(color: Vibe.text),
+        backgroundColor: colors.canvas,
+        iconTheme: IconThemeData(color: colors.textPrimary),
         title: Text(widget.territory,
-            style: const TextStyle(
-                color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
+            style: TextStyle(
+                color: colors.textPrimary, fontSize: 17, fontWeight: FontWeight.w800)),
       ),
       body: FutureBuilder<List<Customer>>(
         future: _shopsFuture,
@@ -101,7 +93,7 @@ class _ShopListScreenState extends State<ShopListScreen> {
           if (shops.isEmpty) {
             return Center(
                 child: Text('orders.catalog.no_products'.tr,
-                    style: const TextStyle(color: Vibe.muted)));
+                    style: TextStyle(color: colors.textSecondary)));
           }
           return ListView(
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),

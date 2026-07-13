@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
 /// Urgency tier for a [DueBadge]. Lets the same compact pill express
 /// "5 Upcoming", "3 Due Today" or "2 Overdue" later — with distinct colours —
@@ -31,10 +31,10 @@ class DueBadge extends StatelessWidget {
   final int? count;
   final DueUrgency? urgency;
 
-  Color get _color => switch (urgency) {
-        DueUrgency.overdue => Vibe.danger,
-        DueUrgency.dueToday => Vibe.amber,
-        DueUrgency.upcoming || null => Vibe.violet,
+  Color _color(ColorScheme scheme, AppThemeColors colors) => switch (urgency) {
+        DueUrgency.overdue => scheme.error,
+        DueUrgency.dueToday => colors.warning,
+        DueUrgency.upcoming || null => scheme.primary,
       };
 
   @override
@@ -43,11 +43,12 @@ class DueBadge extends StatelessWidget {
     if (value == null || value <= 0) return const SizedBox.shrink();
 
     final label = urgency == null ? '$value Due' : '$value ${urgency!.label}';
+    final color = _color(Theme.of(context).colorScheme, context.appColors);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: _color.withValues(alpha: 0.14),
+        color: color.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
@@ -55,7 +56,7 @@ class DueBadge extends StatelessWidget {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: TextStyle(
-            color: _color, fontSize: 10.5, fontWeight: FontWeight.w700),
+            color: color, fontSize: 10.5, fontWeight: FontWeight.w700),
       ),
     );
   }

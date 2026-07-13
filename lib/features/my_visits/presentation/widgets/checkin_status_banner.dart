@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
 /// Surfaces exactly why check-in is (or isn't) allowed right now — blocked
 /// reasons in red, non-blocking fraud/VPN warnings in amber. Covers both
@@ -21,11 +21,12 @@ class CheckinStatusBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _Pill(
-          color: insideGeofence ? Vibe.success : Vibe.amber,
+          color: insideGeofence ? colors.success : colors.warning,
           icon: insideGeofence
               ? Icons.check_circle_rounded
               : Icons.location_searching_rounded,
@@ -36,14 +37,14 @@ class CheckinStatusBanner extends StatelessWidget {
         if (blockedReason != null) ...[
           const SizedBox(height: 8),
           _Pill(
-              color: Vibe.danger,
+              color: Theme.of(context).colorScheme.error,
               icon: Icons.block_rounded,
               text: blockedReason!),
         ],
         for (final warning in warnings) ...[
           const SizedBox(height: 8),
           _Pill(
-              color: Vibe.amber,
+              color: colors.warning,
               icon: Icons.warning_amber_rounded,
               text: warning),
         ],

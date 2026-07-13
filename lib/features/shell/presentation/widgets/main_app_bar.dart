@@ -5,7 +5,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/usecases/lead_usecase.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/core/utils/colors.dart';
+import 'package:isi_steel_sales_mobile/features/app_coach/presentation/services/coach_keys.dart';
 import 'package:isi_steel_sales_mobile/features/localization/presentation/bloc/language_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/notification/domain/usecases/fetch_notifications.dart';
 import 'package:isi_steel_sales_mobile/features/notification/presentation/screen/notifications_sheet.dart';
@@ -35,6 +37,8 @@ class MainAppBar extends StatelessWidget {
       builder: (sheetContext) {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setModalState) {
+            final scheme = Theme.of(context).colorScheme;
+            final colors = context.appColors;
             Widget buildLangCard({
               required String label,
               required String subLabel,
@@ -61,11 +65,11 @@ class MainAppBar extends StatelessWidget {
                     padding: EdgeInsets.all(16.w),
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? Vibe.bg
-                          : Vibe.violet.withValues(alpha: 0.05),
+                          ? scheme.surface
+                          : scheme.primary.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(16.r),
                       border: Border.all(
-                        color: isSelected ? Vibe.violet : Vibe.stroke,
+                        color: isSelected ? scheme.primary : colors.border,
                         width: isSelected ? 2 : 1,
                       ),
                     ),
@@ -80,7 +84,7 @@ class MainAppBar extends StatelessWidget {
                               Text(
                                 label,
                                 style: TextStyle(
-                                  color: Vibe.text,
+                                  color: scheme.onSurface,
                                   fontSize: 16.sp,
                                   fontWeight: isSelected
                                       ? FontWeight.w800
@@ -90,7 +94,7 @@ class MainAppBar extends StatelessWidget {
                               Text(
                                 subLabel,
                                 style: TextStyle(
-                                  color: Vibe.text.withValues(alpha: 0.5),
+                                  color: scheme.onSurface.withValues(alpha: 0.5),
                                   fontSize: 12.sp,
                                 ),
                               ),
@@ -103,15 +107,15 @@ class MainAppBar extends StatelessWidget {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: isSelected ? Vibe.violet : Vibe.stroke,
+                              color: isSelected ? scheme.primary : colors.border,
                               width: 2,
                             ),
                           ),
                           padding: EdgeInsets.all(3.w),
                           child: isSelected
                               ? Container(
-                                  decoration: const BoxDecoration(
-                                    color: Vibe.violet,
+                                  decoration: BoxDecoration(
+                                    color: scheme.primary,
                                     shape: BoxShape.circle,
                                   ),
                                 )
@@ -125,9 +129,10 @@ class MainAppBar extends StatelessWidget {
             }
 
             return Container(
-              decoration: const BoxDecoration(
-                color: Vibe.bg,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+              decoration: BoxDecoration(
+                color: scheme.surface,
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(28)),
               ),
               padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 18.h),
               child: SafeArea(
@@ -140,7 +145,7 @@ class MainAppBar extends StatelessWidget {
                         width: 40.w,
                         height: 5.h,
                         decoration: BoxDecoration(
-                          color: Vibe.stroke,
+                          color: colors.border,
                           borderRadius: BorderRadius.circular(10.r),
                         ),
                       ),
@@ -149,7 +154,7 @@ class MainAppBar extends StatelessWidget {
                     Text(
                       'language.choose_title'.tr,
                       style: TextStyle(
-                        color: Vibe.text,
+                        color: scheme.onSurface,
                         fontSize: 22.sp,
                         fontWeight: FontWeight.w900,
                         letterSpacing: -0.5,
@@ -159,7 +164,7 @@ class MainAppBar extends StatelessWidget {
                     Text(
                       'language.choose_subtitle'.tr,
                       style: TextStyle(
-                        color: Vibe.text.withValues(alpha: 0.5),
+                        color: scheme.onSurface.withValues(alpha: 0.5),
                         fontSize: 14.sp,
                       ),
                     ),
@@ -190,15 +195,17 @@ class MainAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isHome = currentTabIndex == 0;
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       width: double.infinity,
       decoration: BoxDecoration(
-        color: isHome ? Colors.transparent : Vibe.bg,
+        color: isHome ? Colors.transparent : scheme.surface,
         border: isHome
             ? null
-            : const Border(bottom: BorderSide(color: Vibe.stroke)),
+            : Border(bottom: BorderSide(color: colors.border)),
       ),
       child: SafeArea(
         bottom: false,
@@ -210,9 +217,9 @@ class MainAppBar extends StatelessWidget {
               // 1. Back Button (Conditionally rendered)
               if (!isHome) ...[
                 IconButton(
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.arrow_back_ios_new_rounded,
-                    color: Vibe.text,
+                    color: scheme.onSurface,
                     size: 18,
                   ),
                   padding: EdgeInsets.zero,
@@ -240,8 +247,8 @@ class MainAppBar extends StatelessWidget {
                       )
                     : Text(
                         title,
-                        style: const TextStyle(
-                          color: Vibe.text,
+                        style: TextStyle(
+                          color: scheme.onSurface,
                           fontSize: 17,
                           fontWeight: FontWeight.w800,
                         ),
@@ -251,46 +258,57 @@ class MainAppBar extends StatelessWidget {
               ),
               SizedBox(width: 16.w),
 
-              // 3. Language Selector
-              IconButton(
-                icon: Icon(
-                  Icons.language,
-                  color: isHome ? Colors.white : Vibe.text,
-                  size: 20,
+              // 3. Language Selector — coach anchor.
+              CoachKeys.wrap(
+                CoachKeys.language,
+                child: IconButton(
+                  icon: Icon(
+                    Icons.language,
+                    color: isHome ? Colors.white : scheme.onSurface,
+                    size: 20,
+                  ),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  style: const ButtonStyle(
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  onPressed: () => _showLanguageMenu(context),
                 ),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                style: const ButtonStyle(
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                onPressed: () => _showLanguageMenu(context),
               ),
               SizedBox(width: 16.w),
 
-              // 4. Notification Bell
-              _NotificationBell(isInverseColor: isHome),
+              // 4. Notification Bell — coach anchor.
+              CoachKeys.wrap(
+                CoachKeys.notification,
+                child: _NotificationBell(isInverseColor: isHome),
+              ),
               SizedBox(width: 16.w),
 
-              // 5. User Avatar
-              GestureDetector(
-                onTap: onAvatarTap,
-                child: Container(
-                  width: 36.w,
-                  height: 36.h,
-                  decoration: BoxDecoration(
-                    gradient: isHome ? null : Vibe.cta,
-                    color: isHome ? Colors.white.withValues(alpha: 0.2) : null,
-                    borderRadius: BorderRadius.circular(10.r),
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: CachedNetworkImage(
-                    imageUrl:
-                        'https://png.pngtree.com/png-clipart/20240111/original/pngtree-cool-smile-profile-emoji-png-image_14087472.png',
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) =>
-                        const Icon(Icons.person, color: Colors.white, size: 18),
-                    errorWidget: (context, url, error) =>
-                        const Icon(Icons.person, color: Colors.white, size: 18),
+              // 5. User Avatar — coach anchor.
+              CoachKeys.wrap(
+                CoachKeys.profile,
+                child: GestureDetector(
+                  onTap: onAvatarTap,
+                  child: Container(
+                    width: 36.w,
+                    height: 36.h,
+                    decoration: BoxDecoration(
+                      gradient: isHome ? null : AppColors.ctaGradient,
+                      color: isHome ? Colors.white.withValues(alpha: 0.2) : null,
+                      borderRadius: BorderRadius.circular(10.r),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: CachedNetworkImage(
+                      imageUrl:
+                          'https://png.pngtree.com/png-clipart/20240111/original/pngtree-cool-smile-profile-emoji-png-image_14087472.png',
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => const Icon(Icons.person,
+                          color: Colors.white, size: 18),
+                      errorWidget: (context, url, error) => const Icon(
+                          Icons.person,
+                          color: Colors.white,
+                          size: 18),
+                    ),
                   ),
                 ),
               ),
@@ -308,6 +326,7 @@ class _NotificationBell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return FutureBuilder(
       future: sl<FetchNotifications>().call(const NoParams()),
       builder: (context, snapshot) {
@@ -323,7 +342,7 @@ class _NotificationBell extends StatelessWidget {
               children: [
                 Icon(
                   Icons.notifications_none_rounded,
-                  color: isInverseColor ? Colors.white : Vibe.text,
+                  color: isInverseColor ? Colors.white : scheme.onSurface,
                   size: 24,
                 ),
                 if (hasNotifications)
@@ -333,8 +352,8 @@ class _NotificationBell extends StatelessWidget {
                     child: Container(
                       width: 8,
                       height: 8,
-                      decoration: const BoxDecoration(
-                          color: Vibe.danger, shape: BoxShape.circle),
+                      decoration: BoxDecoration(
+                          color: scheme.error, shape: BoxShape.circle),
                     ),
                   ),
               ],

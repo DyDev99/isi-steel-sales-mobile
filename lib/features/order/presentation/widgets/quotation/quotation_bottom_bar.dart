@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_state.dart';
 
@@ -14,19 +14,21 @@ class QuotationBottomBar extends StatelessWidget {
   });
 
   final VoidCallback onSave;
-  final VoidCallback? onBack; // Optional custom back navigation hook
+  final VoidCallback? onBack;
   final int discount;
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppThemeColors>()!;
+    
     return BlocBuilder<CartCubit, CartState>(
       builder: (context, state) {
         final items = state is CartLoaded ? state.items : const [];
 
         return DecoratedBox(
-          decoration: const BoxDecoration(
-            color: Vibe.surface,
-            border: Border(top: BorderSide(color: Vibe.stroke)),
+          decoration: BoxDecoration(
+            color: colors.card,
+            border: Border(top: BorderSide(color: colors.border)),
           ),
           child: SafeArea(
             top: false,
@@ -34,14 +36,12 @@ class QuotationBottomBar extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
               child: Row(
                 children: [
-                  // Outlined Back Button
                   OutlinedButton(
-                    onPressed: onBack ?? () => Navigator.of(context).maybePop(),
+                    onPressed: onBack ?? () => Navigator.pop(context),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF64748B),
-                      side: const BorderSide(color: Vibe.stroke, width: 1.5),
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 14, horizontal: 24),
+                      foregroundColor: colors.textPrimary,
+                      side: BorderSide(color: colors.border, width: 1.5),
+                      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                       ),
@@ -52,13 +52,11 @@ class QuotationBottomBar extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
-
-                  // Expanded Primary Save Button
                   Expanded(
                     child: ElevatedButton(
                       onPressed: items.isEmpty ? null : onSave,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Vibe.violet,
+                        backgroundColor: colors.accentPurple,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(

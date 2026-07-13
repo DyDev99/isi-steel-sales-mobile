@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer_status.dart';
 
 /// Localized display label for a [CustomerStatus]. Kept here (presentation)
@@ -18,24 +18,25 @@ class CustomerStatusBadge extends StatelessWidget {
   const CustomerStatusBadge({super.key, required this.status});
   final CustomerStatus status;
 
-  Color get _color => switch (status) {
-        CustomerStatus.active => Vibe.success,
-        CustomerStatus.dormant => Vibe.muted,
-        CustomerStatus.creditHold => Vibe.danger,
+  Color _color(ColorScheme scheme, AppThemeColors colors) => switch (status) {
+        CustomerStatus.active => colors.success,
+        CustomerStatus.dormant => colors.textSecondary,
+        CustomerStatus.creditHold => scheme.error,
       };
 
   @override
   Widget build(BuildContext context) {
+    final color = _color(Theme.of(context).colorScheme, context.appColors);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: _color.withValues(alpha: 0.14),
+        color: color.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
         status.localizedLabel,
         style:
-            TextStyle(color: _color, fontSize: 11, fontWeight: FontWeight.w700),
+            TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w700),
       ),
     );
   }

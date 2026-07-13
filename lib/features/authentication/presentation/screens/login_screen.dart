@@ -11,6 +11,7 @@ import 'package:isi_steel_sales_mobile/core/utils/glass_card.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/gradient_button.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/status_pill.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/vibe_field.dart';
+import 'package:isi_steel_sales_mobile/routes/app_routes.dart';
 
 /// Gen-Z sign-in for KIC. Mobile-first single column: aurora canvas +
 /// frosted card. Business logic is unchanged — same AuthBloc contract.
@@ -58,11 +59,21 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Vibe.bg,
-      body: Stack(
-        children: [
-          const Positioned.fill(child: AuroraBackground()),
+    // Navigation lives here (not in a global listener) so it only fires for
+    // *this* screen: on a successful sign-in we clear the stack down to a fresh
+    // authenticated shell, whether the user arrived from onboarding or from a
+    // "Login Required" prompt over the shell.
+    return BlocListener<AuthBloc, AuthState>(
+      listenWhen: (prev, curr) => curr is AuthenticatedState,
+      listener: (context, state) {
+        Navigator.of(context)
+            .pushNamedAndRemoveUntil(Static.main, (route) => false);
+      },
+      child: Scaffold(
+        backgroundColor: Vibe.bg,
+        body: Stack(
+          children: [
+            const Positioned.fill(child: AuroraBackground()),
           SafeArea(
             child: Column(
               children: [
@@ -114,7 +125,8 @@ class _LoginScreenState extends State<LoginScreen> {
               ],
             ),
           ),
-        ],
+          ],
+        ),
       ),
     );
   }

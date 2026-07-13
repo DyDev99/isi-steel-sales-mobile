@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
 /// Static placeholder "map" preview — same decorative-grid-plus-pin design as
 /// `GpsLocationCard` (lead feature), reused here so the visit card/detail
@@ -23,6 +23,8 @@ class VisitMapPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     return ClipRRect(
       borderRadius: BorderRadius.circular(borderRadius),
       child: Container(
@@ -31,8 +33,8 @@ class VisitMapPreview extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Vibe.violet.withValues(alpha: 0.22),
-              Vibe.mint.withValues(alpha: 0.16)
+              scheme.primary.withValues(alpha: 0.22),
+              colors.info.withValues(alpha: 0.16)
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -43,7 +45,7 @@ class VisitMapPreview extends StatelessWidget {
           children: [
             CustomPaint(size: Size.infinite, painter: _GridPainter()),
             Icon(Icons.location_on_rounded,
-                color: Vibe.pink, size: height > 100 ? 34 : 26),
+                color: scheme.secondary, size: height > 100 ? 34 : 26),
             if (showCoordinates)
               Positioned(
                 left: 10,
@@ -53,7 +55,7 @@ class VisitMapPreview extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Vibe.text.withValues(alpha: 0.55),
+                    color: scheme.scrim.withValues(alpha: 0.55),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(

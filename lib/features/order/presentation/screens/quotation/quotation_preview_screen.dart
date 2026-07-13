@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/quotation_preview_section.dart';
 
@@ -11,7 +12,7 @@ class QuotationScreen extends StatelessWidget {
     required this.discount,
     required this.tax,
     required this.total,
-    required this.items, // CHANGED: Expecting the full list of items from the cart state
+    required this.items, 
     this.onSavePressed,
   });
 
@@ -25,8 +26,11 @@ class QuotationScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeColors = Theme.of(context).extension<AppThemeColors>()!;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: themeColors.canvas,
       body: SafeArea(
         child: Column(
           children: [
@@ -35,58 +39,48 @@ class QuotationScreen extends StatelessWidget {
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
                 padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 8.h),
-                child: QuotationPreviewSection(
-                  shopName: shopName,
-                  subtotal: subtotal,
-                  discount: discount,
-                  tax: tax,
-                  total: total,
-                  items:
-                      items, // CHANGED: Passing down the real product array directly
-                  onEnlargeTap: null,
+                child: Column(
+                  children: [
+                    QuotationPreviewSection(
+                      shopName: shopName,
+                      subtotal: subtotal,
+                      discount: discount,
+                      tax: tax,
+                      total: total,
+                      items: items,
+                    ),
+                  ],
                 ),
               ),
             ),
 
-            // 2. Bottom Persistent Action Buttons Layout
+            // 2. Fixed Bottom Bar Action Buttons
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
               child: Row(
                 children: [
-                  // "Back" Button
-                  InkWell(
-                    onTap: () => Navigator.of(context).pop(),
-                    borderRadius: BorderRadius.circular(14.r),
-                    child: Container(
-                      height: 52.h,
-                      padding: EdgeInsets.symmetric(horizontal: 28.w),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
+                  // Outlined Back Button
+                  OutlinedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: OutlinedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(vertical: 14.h, horizontal: 24.w),
+                      side: BorderSide(color: themeColors.border, width: 1.5),
+                      shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14.r),
-                        border: Border.all(
-                            color: const Color(0xFFE2E8F0), width: 1.5),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.02),
-                            blurRadius: 6,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
                       ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        'Back',
-                        style: TextStyle(
-                          fontSize: 15.sp,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF475569),
-                        ),
+                    ),
+                    child: Text(
+                      'Back',
+                      style: TextStyle(
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.bold,
+                        color: themeColors.textSecondary,
                       ),
                     ),
                   ),
                   SizedBox(width: 12.w),
 
-                  // "Save Quotation to SAP" Primary Button
+                  // Dynamic Primary Action Save Button
                   Expanded(
                     child: InkWell(
                       onTap: onSavePressed,
@@ -94,12 +88,11 @@ class QuotationScreen extends StatelessWidget {
                       child: Container(
                         height: 52.h,
                         decoration: BoxDecoration(
-                          color: const Color(0xFF94A3B8),
+                          color: colorScheme.primary,
                           borderRadius: BorderRadius.circular(14.r),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF94A3B8)
-                                  .withValues(alpha: 0.2),
+                              color: colorScheme.primary.withValues(alpha: 0.2),
                               blurRadius: 8,
                               offset: const Offset(0, 3),
                             ),
@@ -111,7 +104,7 @@ class QuotationScreen extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 15.sp,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            color: colorScheme.onPrimary,
                           ),
                         ),
                       ),

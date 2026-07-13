@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
 import 'package:isi_steel_sales_mobile/features/profile/domain/entities/worker_profile.dart';
 
@@ -9,7 +9,7 @@ Future<WorkerProfile?> showEditProfileSheet({
 }) {
   return showModalBottomSheet<WorkerProfile>(
     context: context,
-    backgroundColor: Vibe.bgSoft,
+    backgroundColor: context.appColors.surfaceSoft,
     isScrollControlled: true,
     shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
@@ -56,6 +56,8 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final textColor = TextStyle(color: scheme.onSurface);
     return Padding(
       padding:
           EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
@@ -68,14 +70,14 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('profile.edit_profile'.tr,
-                  style: const TextStyle(
-                      color: Vibe.text,
+                  style: TextStyle(
+                      color: scheme.onSurface,
                       fontSize: 16,
                       fontWeight: FontWeight.w800)),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _nameController,
-                style: const TextStyle(color: Vibe.text),
+                style: textColor,
                 decoration: InputDecoration(labelText: 'profile.full_name'.tr),
                 validator: (v) => (v == null || v.trim().isEmpty)
                     ? 'profile.required'.tr
@@ -84,7 +86,7 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
               const SizedBox(height: 12),
               TextFormField(
                 controller: _phoneController,
-                style: const TextStyle(color: Vibe.text),
+                style: textColor,
                 keyboardType: TextInputType.phone,
                 decoration: InputDecoration(labelText: 'profile.phone'.tr),
                 validator: (v) => (v == null || v.trim().isEmpty)
@@ -94,7 +96,7 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
               const SizedBox(height: 12),
               TextFormField(
                 controller: _territoryController,
-                style: const TextStyle(color: Vibe.text),
+                style: textColor,
                 decoration: InputDecoration(labelText: 'profile.territory'.tr),
                 validator: (v) => (v == null || v.trim().isEmpty)
                     ? 'profile.required'.tr
@@ -106,7 +108,8 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
                 child: ElevatedButton(
                   onPressed: _save,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Vibe.violet,
+                    backgroundColor: scheme.primary,
+                    foregroundColor: scheme.onPrimary,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14)),

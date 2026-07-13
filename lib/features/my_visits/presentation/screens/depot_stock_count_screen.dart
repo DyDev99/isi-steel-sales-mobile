@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/depot_stock_count_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/depot_stock_count_state.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/stock_count_row.dart';
@@ -48,14 +48,18 @@ class _DepotStockCountView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: Vibe.bg,
+      backgroundColor: scheme.surface,
       appBar: AppBar(
-        backgroundColor: Vibe.bg,
-        iconTheme: const IconThemeData(color: Vibe.text),
-        title: const Text('Depot Stock',
+        backgroundColor: scheme.surface,
+        iconTheme: IconThemeData(color: colors.textPrimary),
+        title: Text('Depot Stock',
             style: TextStyle(
-                color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
+                color: colors.textPrimary,
+                fontSize: 17,
+                fontWeight: FontWeight.w800)),
       ),
       body: BlocBuilder<DepotStockCountCubit, DepotStockCountState>(
         builder: (context, state) {
@@ -97,6 +101,7 @@ class _LoadedList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
       children: [
@@ -104,15 +109,15 @@ class _LoadedList extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(bottom: 4),
             child: Text(state.shopName!,
-                style: const TextStyle(
-                    color: Vibe.text,
+                style: TextStyle(
+                    color: colors.textPrimary,
                     fontSize: 16,
                     fontWeight: FontWeight.w900)),
           ),
-        const Padding(
-          padding: EdgeInsets.only(bottom: 14),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 14),
           child: Text('Count the on-shelf quantity for each SKU.',
-              style: TextStyle(color: Vibe.muted, fontSize: 12.5)),
+              style: TextStyle(color: colors.textSecondary, fontSize: 12.5)),
         ),
         for (final line in state.lines)
           StockCountRow(
@@ -152,21 +157,23 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    final colors = context.appColors;
+    return Center(
       child: Padding(
-        padding: EdgeInsets.all(32),
+        padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.inventory_2_outlined, size: 44, color: Vibe.muted),
-            SizedBox(height: 12),
+            Icon(Icons.inventory_2_outlined,
+                size: 44, color: colors.textSecondary),
+            const SizedBox(height: 12),
             Text('No inventory to count',
-                style:
-                    TextStyle(color: Vibe.text, fontWeight: FontWeight.w700)),
-            SizedBox(height: 4),
+                style: TextStyle(
+                    color: colors.textPrimary, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 4),
             Text('There are no products available for this depot/shop yet.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Vibe.muted, fontSize: 12.5)),
+                style: TextStyle(color: colors.textSecondary, fontSize: 12.5)),
           ],
         ),
       ),
@@ -181,19 +188,20 @@ class _ErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline_rounded,
-                size: 44, color: Vibe.danger),
+            Icon(Icons.error_outline_rounded,
+                size: 44, color: Theme.of(context).colorScheme.error),
             const SizedBox(height: 12),
             Text(message,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                    color: Vibe.text, fontWeight: FontWeight.w700)),
+                style: TextStyle(
+                    color: colors.textPrimary, fontWeight: FontWeight.w700)),
             const SizedBox(height: 16),
             OutlinedButton.icon(
               onPressed: onRetry,
@@ -214,10 +222,12 @@ class _DoneBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
     return Container(
-      decoration: const BoxDecoration(
-        color: Vibe.bg,
-        border: Border(top: BorderSide(color: Vibe.stroke)),
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        border: Border(top: BorderSide(color: colors.border)),
       ),
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
       child: SafeArea(
@@ -227,8 +237,8 @@ class _DoneBar extends StatelessWidget {
             Expanded(
               child: Text(
                 '$countedSkus SKU${countedSkus == 1 ? '' : 's'} counted',
-                style: const TextStyle(
-                    color: Vibe.muted,
+                style: TextStyle(
+                    color: colors.textSecondary,
                     fontSize: 13,
                     fontWeight: FontWeight.w700),
               ),
@@ -240,8 +250,8 @@ class _DoneBar extends StatelessWidget {
                   style:
                       TextStyle(fontSize: 14.5, fontWeight: FontWeight.w800)),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Vibe.violet,
-                foregroundColor: Colors.white,
+                backgroundColor: scheme.primary,
+                foregroundColor: scheme.onPrimary,
                 padding:
                     const EdgeInsets.symmetric(vertical: 14, horizontal: 22),
                 shape: RoundedRectangleBorder(

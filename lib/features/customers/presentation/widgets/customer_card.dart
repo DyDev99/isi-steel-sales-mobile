@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/core/utils/colors.dart';
 import 'package:isi_steel_sales_mobile/core/utils/glass_card.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_status_badge.dart';
@@ -28,16 +29,18 @@ class CustomerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     return Dismissible(
       key: ValueKey(customer.id),
       background: _swipeBackground(
           alignment: Alignment.centerLeft,
-          color: Vibe.success,
+          color: colors.success,
           icon: Icons.call_rounded,
           label: 'customers.call'.tr),
       secondaryBackground: _swipeBackground(
         alignment: Alignment.centerRight,
-        color: Vibe.violet,
+        color: scheme.primary,
         icon: Icons.trending_up_rounded,
         label: 'customers.new_opportunity_label'.tr,
       ),
@@ -65,8 +68,8 @@ class CustomerCard extends StatelessWidget {
                           customer.shopName,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                              color: Vibe.text,
+                          style: TextStyle(
+                              color: colors.textPrimary,
                               fontSize: 14.5,
                               fontWeight: FontWeight.w800),
                         ),
@@ -80,27 +83,27 @@ class CustomerCard extends StatelessWidget {
                     '${customer.customerCode} · ${customer.ownerName}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Vibe.muted, fontSize: 12),
+                    style: TextStyle(color: colors.textSecondary, fontSize: 12),
                   ),
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      const Icon(Icons.call_outlined,
-                          size: 12, color: Vibe.muted),
+                      Icon(Icons.call_outlined,
+                          size: 12, color: colors.textSecondary),
                       const SizedBox(width: 4),
                       Text(customer.phone,
-                          style: const TextStyle(
-                              color: Vibe.muted, fontSize: 11.5)),
+                          style: TextStyle(
+                              color: colors.textSecondary, fontSize: 11.5)),
                       const SizedBox(width: 10),
-                      const Icon(Icons.storefront_outlined,
-                          size: 12, color: Vibe.muted),
+                      Icon(Icons.storefront_outlined,
+                          size: 12, color: colors.textSecondary),
                       const SizedBox(width: 4),
                       Text(
                         customer.lastOrderDate == null
                             ? 'customers.no_orders'.tr
                             : _formatDate(customer.lastOrderDate!),
-                        style:
-                            const TextStyle(color: Vibe.muted, fontSize: 11.5),
+                        style: TextStyle(
+                            color: colors.textSecondary, fontSize: 11.5),
                       ),
                     ],
                   ),
@@ -114,7 +117,7 @@ class CustomerCard extends StatelessWidget {
                 padding: const EdgeInsets.all(6),
                 child: Icon(
                   isFavorite ? Icons.star_rounded : Icons.star_border_rounded,
-                  color: isFavorite ? Vibe.amber : Vibe.muted,
+                  color: isFavorite ? colors.warning : colors.textSecondary,
                   size: 22,
                 ),
               ),
@@ -136,7 +139,7 @@ class CustomerCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 24),
       decoration: BoxDecoration(
           color: color.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(Vibe.radius)),
+          borderRadius: BorderRadius.circular(AppColors.radius)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

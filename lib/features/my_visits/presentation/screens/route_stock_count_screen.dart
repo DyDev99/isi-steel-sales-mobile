@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/local/localized_builder.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/core/utils/offline_banner.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/shop/shop_list_screen.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_stop.dart';
@@ -94,21 +94,25 @@ class _RouteStockCountScreenState extends State<RouteStockCountScreen> {
   Widget build(BuildContext context) => LocalizedBuilder(builder: _build);
 
   Widget _build(BuildContext context) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: Vibe.bg,
+      backgroundColor: scheme.surface,
       appBar: AppBar(
-        backgroundColor: Vibe.bg,
-        iconTheme: const IconThemeData(color: Vibe.text),
+        backgroundColor: scheme.surface,
+        iconTheme: IconThemeData(color: colors.textPrimary),
         title: Text('my_visits.flow.shelf_count_title'.tr,
-            style: const TextStyle(
-                color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
+            style: TextStyle(
+                color: colors.textPrimary,
+                fontSize: 17,
+                fontWeight: FontWeight.w800)),
       ),
       body: BlocBuilder<ActiveRouteBloc, ActiveRouteState>(
         builder: (context, state) {
           if (state is! ActiveRouteReady || !state.hasCurrentStop) {
             return Center(
                 child: Text('my_visits.flow.no_stop'.tr,
-                    style: const TextStyle(color: Vibe.muted)));
+                    style: TextStyle(color: colors.textSecondary)));
           }
           final stop = state.route.stops[state.currentStopIndex];
           final outOfStock = _outOfStock;
@@ -121,14 +125,14 @@ class _RouteStockCountScreenState extends State<RouteStockCountScreen> {
                   children: [
                     const OfflineBanner(margin: EdgeInsets.only(bottom: 12)),
                     Text(stop.customer.name,
-                        style: const TextStyle(
-                            color: Vibe.text,
+                        style: TextStyle(
+                            color: colors.textPrimary,
                             fontSize: 16,
                             fontWeight: FontWeight.w900)),
                     const SizedBox(height: 2),
                     Text('my_visits.flow.shelf_count_subtitle'.tr,
-                        style:
-                            const TextStyle(color: Vibe.muted, fontSize: 12.5)),
+                        style: TextStyle(
+                            color: colors.textSecondary, fontSize: 12.5)),
                     const SizedBox(height: 14),
                     if (outOfStock.isNotEmpty) ...[
                       _InsightBanner(outOfStock: outOfStock),
@@ -167,24 +171,25 @@ class _InsightBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     final names = outOfStock.join(', ');
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Vibe.amber.withValues(alpha: 0.12),
+        color: colors.warning.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Vibe.amber.withValues(alpha: 0.35)),
+        border: Border.all(color: colors.warning.withValues(alpha: 0.35)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.lightbulb_rounded, color: Vibe.amber, size: 18),
+          Icon(Icons.lightbulb_rounded, color: colors.warning, size: 18),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               'my_visits.flow.stock_insight'.tr.replaceAll('{names}', names),
-              style: const TextStyle(
-                  color: Vibe.amber,
+              style: TextStyle(
+                  color: colors.warning,
                   fontSize: 12.5,
                   fontWeight: FontWeight.w600,
                   height: 1.35),
@@ -203,15 +208,17 @@ class _ShelfRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     final isOut = item.count == 0;
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: Vibe.surface,
+        color: colors.card,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-            color: isOut ? Vibe.amber.withValues(alpha: 0.5) : Vibe.stroke),
+            color:
+                isOut ? colors.warning.withValues(alpha: 0.5) : colors.border),
       ),
       child: Row(
         children: [
@@ -222,8 +229,8 @@ class _ShelfRow extends StatelessWidget {
                 Text(item.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                        color: Vibe.text,
+                    style: TextStyle(
+                        color: colors.textPrimary,
                         fontSize: 14,
                         fontWeight: FontWeight.w800)),
                 const SizedBox(height: 2),
@@ -232,7 +239,8 @@ class _ShelfRow extends StatelessWidget {
                         ? '${'my_visits.flow.on_shelf'.tr} · ${'my_visits.flow.out_of_stock'.tr}'
                         : 'my_visits.flow.on_shelf'.tr,
                     style: TextStyle(
-                        color: isOut ? Vibe.amber : Vibe.muted, fontSize: 11)),
+                        color: isOut ? colors.warning : colors.textSecondary,
+                        fontSize: 11)),
               ],
             ),
           ),
@@ -241,8 +249,8 @@ class _ShelfRow extends StatelessWidget {
             width: 46,
             alignment: Alignment.center,
             child: Text(item.count.toStringAsFixed(0),
-                style: const TextStyle(
-                    color: Vibe.text,
+                style: TextStyle(
+                    color: colors.textPrimary,
                     fontSize: 18,
                     fontWeight: FontWeight.w900)),
           ),
@@ -291,6 +299,7 @@ class _StepButtonState extends State<_StepButton> {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
     return GestureDetector(
       onTap: () => widget.onDelta(widget.sign),
       onLongPressStart: (_) => _startHold(),
@@ -301,10 +310,10 @@ class _StepButtonState extends State<_StepButton> {
         height: 48,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: Vibe.violet.withValues(alpha: 0.12),
+          color: primary.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Icon(widget.icon, color: Vibe.violet, size: 24),
+        child: Icon(widget.icon, color: primary, size: 24),
       ),
     );
   }
@@ -319,10 +328,12 @@ class _StockCountBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
     return Container(
-      decoration: const BoxDecoration(
-        color: Vibe.bg,
-        border: Border(top: BorderSide(color: Vibe.stroke)),
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        border: Border(top: BorderSide(color: colors.border)),
       ),
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
       child: SafeArea(
@@ -332,8 +343,8 @@ class _StockCountBar extends StatelessWidget {
             TextButton(
               onPressed: submitting ? null : onBack,
               child: Text('my_visits.flow.back'.tr,
-                  style: const TextStyle(
-                      color: Vibe.muted,
+                  style: TextStyle(
+                      color: colors.textSecondary,
                       fontSize: 14,
                       fontWeight: FontWeight.w700)),
             ),
@@ -342,18 +353,18 @@ class _StockCountBar extends StatelessWidget {
               child: ElevatedButton.icon(
                 onPressed: submitting ? null : onDone,
                 icon: submitting
-                    ? const SizedBox(
+                    ? SizedBox(
                         width: 18,
                         height: 18,
                         child: CircularProgressIndicator(
-                            strokeWidth: 2, color: Colors.white))
+                            strokeWidth: 2, color: scheme.onPrimary))
                     : const Icon(Icons.request_quote_rounded, size: 20),
                 label: Text('my_visits.flow.done_build_quote'.tr,
                     style: const TextStyle(
                         fontSize: 14.5, fontWeight: FontWeight.w800)),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Vibe.violet,
-                  foregroundColor: Colors.white,
+                  backgroundColor: scheme.primary,
+                  foregroundColor: scheme.onPrimary,
                   padding: const EdgeInsets.symmetric(vertical: 15),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14)),

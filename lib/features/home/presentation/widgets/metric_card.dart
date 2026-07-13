@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/core/utils/glass_card.dart';
 
 class MetricCard extends StatelessWidget {
@@ -22,6 +22,8 @@ class MetricCard extends StatelessWidget {
 // metric_card.dart
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     return GlassCard(
       onTap: onTap,
       child: Column(
@@ -49,7 +51,7 @@ class MetricCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                      color: Vibe.text,
+                      color: scheme.onSurface,
                       fontSize: 22.sp,
                       fontWeight: FontWeight.w900),
                 ),
@@ -63,7 +65,7 @@ class MetricCard extends StatelessWidget {
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: Vibe.muted, fontSize: 12.5.sp),
+              style: TextStyle(color: colors.textSecondary, fontSize: 12.5.sp),
             ),
           ),
         ],

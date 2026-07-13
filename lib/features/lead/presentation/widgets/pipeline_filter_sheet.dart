@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/pipeline_filter.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/priority.dart';
 
@@ -12,7 +12,7 @@ Future<void> showPipelineFilterSheet({
 }) {
   return showModalBottomSheet<void>(
     context: context,
-    backgroundColor: Vibe.bgSoft,
+    backgroundColor: context.appColors.surfaceSoft,
     isScrollControlled: true,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
@@ -51,6 +51,8 @@ class _PipelineFilterSheetState extends State<_PipelineFilterSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     return Padding(
       padding:
           EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
@@ -63,10 +65,10 @@ class _PipelineFilterSheetState extends State<_PipelineFilterSheet> {
             children: [
               Row(
                 children: [
-                  const Expanded(
+                  Expanded(
                     child: Text('Filter & sort',
                         style: TextStyle(
-                            color: Vibe.text,
+                            color: colors.textPrimary,
                             fontSize: 17,
                             fontWeight: FontWeight.w800)),
                   ),
@@ -77,8 +79,8 @@ class _PipelineFilterSheetState extends State<_PipelineFilterSheet> {
                       _priority = null;
                       _sortBy = SortBy.newest;
                     }),
-                    child: const Text('Clear',
-                        style: TextStyle(color: Vibe.muted)),
+                    child: Text('Clear',
+                        style: TextStyle(color: colors.textSecondary)),
                   ),
                 ],
               ),
@@ -137,7 +139,7 @@ class _PipelineFilterSheetState extends State<_PipelineFilterSheet> {
                     Navigator.of(context).pop();
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Vibe.violet,
+                    backgroundColor: scheme.primary,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14)),
@@ -161,8 +163,10 @@ class _Label extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.only(bottom: 8),
         child: Text(text,
-            style: const TextStyle(
-                color: Vibe.muted, fontSize: 12, fontWeight: FontWeight.w700)),
+            style: TextStyle(
+                color: context.appColors.textSecondary,
+                fontSize: 12,
+                fontWeight: FontWeight.w700)),
       );
 }
 
@@ -177,6 +181,8 @@ class _ChipGroup<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     return Wrap(
       spacing: 8,
       runSpacing: 8,
@@ -189,15 +195,16 @@ class _ChipGroup<T> extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
               color: isSelected
-                  ? Vibe.violet.withValues(alpha: 0.2)
-                  : Vibe.surface,
+                  ? scheme.primary.withValues(alpha: 0.2)
+                  : colors.card,
               borderRadius: BorderRadius.circular(999),
-              border: Border.all(color: isSelected ? Vibe.violet : Vibe.stroke),
+              border: Border.all(
+                  color: isSelected ? scheme.primary : colors.border),
             ),
             child: Text(
               e.value,
               style: TextStyle(
-                color: isSelected ? Vibe.violet : Vibe.text,
+                color: isSelected ? scheme.primary : colors.textPrimary,
                 fontSize: 12.5,
                 fontWeight: FontWeight.w600,
               ),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
 /// One removable summary chip describing an active filter facet.
 class FilterChipData {
@@ -28,6 +28,7 @@ class ActiveFilterChipsBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     if (chips.isEmpty) return const SizedBox.shrink();
     return SizedBox(
       height: 36,
@@ -44,19 +45,13 @@ class ActiveFilterChipsBar extends StatelessWidget {
                   _RemovableChip(data: chips[index]),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 4),
           TextButton(
             onPressed: onClearAll,
             style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              minimumSize: const Size(0, 32),
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              foregroundColor: theme.colorScheme.primary,
             ),
-            child: const Text('Clear all',
-                style: TextStyle(
-                    color: Vibe.danger,
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w700)),
+            child: const Text('Clear all'),
           ),
         ],
       ),
@@ -74,8 +69,7 @@ class _CounterBadge extends StatelessWidget {
       width: 24,
       height: 24,
       alignment: Alignment.center,
-      decoration:
-          const BoxDecoration(color: Vibe.violet, shape: BoxShape.circle),
+      decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary, shape: BoxShape.circle),
       child: Text(
         '$count',
         style: const TextStyle(
@@ -91,30 +85,37 @@ class _RemovableChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.only(left: 12, right: 6),
       decoration: BoxDecoration(
-        color: Vibe.surfaceStrong,
+        color: theme.brightness == Brightness.dark
+            ? theme.colorScheme.surfaceContainerHighest
+            : context.appColors.surfaceSoft,
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Vibe.violet.withValues(alpha: 0.35)),
+    border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.35)),
+
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             data.label,
-            style: const TextStyle(
-                color: Vibe.violet,
-                fontSize: 12.5,
+            style: TextStyle(
+                color: Theme.of(context).colorScheme.primary,                fontSize: 12.5,
                 fontWeight: FontWeight.w700),
           ),
           const SizedBox(width: 2),
           InkWell(
             onTap: data.onClear,
             borderRadius: BorderRadius.circular(999),
-            child: const Padding(
-              padding: EdgeInsets.all(4),
-              child: Icon(Icons.close_rounded, size: 14, color: Vibe.violet),
+            child: Padding(
+              padding: const EdgeInsets.all(4),
+              child: Icon(
+                Icons.close_rounded,
+                size: 14,
+                color: theme.colorScheme.primary,
+              ),
             ),
           ),
         ],

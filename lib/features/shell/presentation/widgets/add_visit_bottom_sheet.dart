@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/territory_type.dart';
 
 void showAddVisitSheet(BuildContext context) {
@@ -94,9 +94,10 @@ class _AddVisitBottomSheetState extends State<AddVisitBottomSheet> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: Vibe.bg,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius:
+            const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       padding: EdgeInsets.fromLTRB(
           24.w, 16.h, 24.w, MediaQuery.of(context).viewInsets.bottom + 24.h),
@@ -109,24 +110,25 @@ class _AddVisitBottomSheetState extends State<AddVisitBottomSheet> {
               width: 42.w,
               height: 5.h,
               decoration: BoxDecoration(
-                  color: Vibe.stroke, borderRadius: BorderRadius.circular(10)),
+                  color: context.appColors.border, borderRadius: BorderRadius.circular(10)),
             ),
           ),
           SizedBox(height: 20.h),
           Text('Add My Visit',
               style: TextStyle(
-                  color: Vibe.text,
+                  color: Theme.of(context).colorScheme.onSurface,
                   fontSize: 20.sp,
                   fontWeight: FontWeight.w900)),
           Text('Add a stop to today\'s route',
               style: TextStyle(
-                  color: Vibe.text.withValues(alpha: 0.5), fontSize: 12.sp)),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 12.sp)),
           SizedBox(height: 20.h),
           if (_submitting)
-            const Center(
+            Center(
                 child: Padding(
-                    padding: EdgeInsets.all(40),
-                    child: CircularProgressIndicator(color: Vibe.violet)))
+                    padding: const EdgeInsets.all(40),
+                    child: CircularProgressIndicator(
+                        color: Theme.of(context).colorScheme.primary)))
           else ...[
             Form(
               key: _formKey,
@@ -184,7 +186,7 @@ class _AddVisitBottomSheetState extends State<AddVisitBottomSheet> {
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   padding: EdgeInsets.symmetric(vertical: 16.h),
-                  backgroundColor: Vibe.violet,
+                  backgroundColor: Theme.of(context).colorScheme.primary,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14.r)),
                   elevation: 0,
@@ -207,7 +209,7 @@ class _AddVisitBottomSheetState extends State<AddVisitBottomSheet> {
         padding: EdgeInsets.only(bottom: 6.h, left: 2.w),
         child: Text(label,
             style: TextStyle(
-                color: Vibe.text,
+                color: Theme.of(context).colorScheme.onSurface,
                 fontSize: 13.sp,
                 fontWeight: FontWeight.w700)),
       );
@@ -221,54 +223,55 @@ class _AddVisitBottomSheetState extends State<AddVisitBottomSheet> {
       TextFormField(
         controller: controller,
         maxLines: maxLines,
-        style: const TextStyle(color: Vibe.text),
+        style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
         validator: required
             ? (v) => (v == null || v.trim().isEmpty) ? 'Field required' : null
             : null,
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: TextStyle(
-              color: Vibe.text.withValues(alpha: 0.3), fontSize: 13.sp),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3), fontSize: 13.sp),
           filled: true,
-          fillColor: Vibe.bgSoft,
+          fillColor: context.appColors.surfaceSoft,
           contentPadding:
               EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
           enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
-              borderSide: const BorderSide(color: Vibe.stroke)),
+              borderSide: BorderSide(color: context.appColors.border)),
           focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
-              borderSide: const BorderSide(color: Vibe.text)),
+              borderSide: BorderSide(color: Theme.of(context).colorScheme.onSurface)),
           errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
-              borderSide: const BorderSide(color: Vibe.danger)),
+              borderSide: BorderSide(color: Theme.of(context).colorScheme.error)),
           focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
-              borderSide: const BorderSide(color: Vibe.danger)),
+              borderSide: BorderSide(color: Theme.of(context).colorScheme.error)),
         ),
       );
 
   Widget _buildDropdownField() => Container(
         padding: EdgeInsets.symmetric(horizontal: 16.w),
         decoration: BoxDecoration(
-            color: Vibe.bgSoft,
+            color: context.appColors.surfaceSoft,
             borderRadius: BorderRadius.circular(12.r),
-            border: Border.all(color: Vibe.stroke)),
+            border: Border.all(color: context.appColors.border)),
         child: DropdownButtonHideUnderline(
           child: DropdownButton<TerritoryType>(
             value: _territoryType,
             hint: Text('Pick one…',
                 style: TextStyle(
-                    color: Vibe.text.withValues(alpha: 0.3), fontSize: 13.sp)),
-            dropdownColor: Vibe.bgSoft,
-            icon:
-                const Icon(Icons.keyboard_arrow_down_rounded, color: Vibe.text),
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3), fontSize: 13.sp)),
+            dropdownColor: context.appColors.surfaceSoft,
+            icon: Icon(Icons.keyboard_arrow_down_rounded,
+                color: Theme.of(context).colorScheme.onSurface),
             isExpanded: true,
             items: TerritoryType.values
                 .map((t) => DropdownMenuItem(
                     value: t,
                     child: Text(t.label,
-                        style: const TextStyle(color: Vibe.text))))
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface))))
                 .toList(),
             onChanged: (val) => setState(() => _territoryType = val),
           ),
@@ -285,17 +288,17 @@ class _AddVisitBottomSheetState extends State<AddVisitBottomSheet> {
         child: Container(
           padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 13.h),
           decoration: BoxDecoration(
-              color: Vibe.bgSoft,
+              color: context.appColors.surfaceSoft,
               borderRadius: BorderRadius.circular(12.r),
-              border: Border.all(color: Vibe.stroke)),
+              border: Border.all(color: context.appColors.border)),
           child: Row(
             children: [
-              Icon(icon, size: 16, color: Vibe.muted),
+              Icon(icon, size: 16, color: context.appColors.textSecondary),
               SizedBox(width: 8.w),
               Expanded(
                   child: Text(label,
                       style: TextStyle(
-                          color: Vibe.text,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 13.sp,
                           fontWeight: FontWeight.w700))),
             ],

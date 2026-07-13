@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/local/localized_builder.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_bloc.dart';
@@ -11,6 +11,7 @@ import 'package:isi_steel_sales_mobile/features/profile/presentation/widgets/cha
 import 'package:isi_steel_sales_mobile/features/profile/presentation/widgets/edit_profile_sheet.dart';
 import 'package:isi_steel_sales_mobile/features/profile/presentation/widgets/profile_header.dart';
 import 'package:isi_steel_sales_mobile/features/profile/presentation/widgets/profile_info_section.dart';
+import 'package:isi_steel_sales_mobile/features/settings/theme/presentation/widgets/appearance_section.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -60,11 +61,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Vibe.bgSoft,
+        backgroundColor: context.appColors.surfaceSoft,
         title: Text('profile.logout_confirm_title'.tr,
-            style: const TextStyle(color: Vibe.text)),
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
         content: Text('profile.logout_confirm_body'.tr,
-            style: const TextStyle(color: Vibe.muted)),
+            style: TextStyle(color: context.appColors.textSecondary)),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
@@ -78,21 +79,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (confirmed != true || !context.mounted) return;
     final ok = await context.read<ProfileCubit>().logout();
     if (!ok || !context.mounted) return;
+    // Drop the token/session (AuthBloc returns the user to guest browsing) and
+    // pop back to the shell — the app stays open, guest-first.
     context.read<AuthBloc>().add(const LogoutRequested());
+    Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
   @override
   Widget build(BuildContext context) {
     return LocalizedBuilder(
       builder: (context) {
+        final scheme = Theme.of(context).colorScheme;
         return Scaffold(
-          backgroundColor: Vibe.bg,
+          backgroundColor: scheme.surface,
           appBar: AppBar(
-            backgroundColor: Vibe.bg,
-            iconTheme: const IconThemeData(color: Vibe.text),
+            backgroundColor: scheme.surface,
+            iconTheme: IconThemeData(color: scheme.onSurface),
             title: Text('profile.title'.tr,
-                style: const TextStyle(
-                    color: Vibe.text,
+                style: TextStyle(
+                    color: scheme.onSurface,
                     fontSize: 17,
                     fontWeight: FontWeight.w800)),
           ),
@@ -110,6 +115,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ProfileHeader(profile: state.profile),
                     const SizedBox(height: 24),
                     ProfileInfoSection(profile: state.profile),
+                    const SizedBox(height: 16),
+                    const AppearanceSection(),
                     const SizedBox(height: 20),
                     SizedBox(
                       width: double.infinity,
@@ -136,21 +143,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       width: double.infinity,
                       child: TextButton.icon(
                         onPressed: () => _confirmLogout(context),
-                        icon: const Icon(Icons.logout_rounded,
-                            size: 18, color: Colors.redAccent),
+                        icon: Icon(Icons.logout_rounded,
+                            size: 18, color: scheme.error),
                         label: Text('profile.logout'.tr,
-                            style: const TextStyle(
-                                color: Colors.redAccent,
+                            style: TextStyle(
+                                color: scheme.error,
                                 fontWeight: FontWeight.w700)),
                       ),
                     ),
                   ],
                 ),
               ProfileError(:final message) => Center(
-                  child:
-                      Text(message, style: const TextStyle(color: Vibe.muted))),
-              _ => const Center(
-                  child: CircularProgressIndicator(color: Vibe.violet)),
+                  child: Text(message,
+                      style:
+                          TextStyle(color: context.appColors.textSecondary))),
+              _ => Center(
+                  child: CircularProgressIndicator(color: scheme.primary)),
             },
           ),
         );

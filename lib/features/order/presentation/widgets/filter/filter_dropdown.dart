@@ -1,13 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
 /// A dropdown-style filter field that opens a searchable bottom-sheet picker.
-///
-/// Chosen over a raw [DropdownButtonFormField] because the attribute lists
-/// (sizes, grades, materials…) can be long and benefit from a search box,
-/// a clear action, and proper empty/loading states — none of which the stock
-/// dropdown handles well on mobile. Fully controlled: no internal selection
-/// state, so it round-trips persisted filter values cleanly.
 class FilterDropdown extends StatelessWidget {
   const FilterDropdown({
     super.key,
@@ -23,14 +17,9 @@ class FilterDropdown extends StatelessWidget {
   });
 
   final String label;
-
-  /// Currently selected display value, or `null` when nothing is selected.
   final String? value;
   final List<String> options;
-
-  /// Emits the newly selected value, or `null` when the user clears it.
   final ValueChanged<String?> onChanged;
-
   final IconData? icon;
   final String? hint;
   final bool enabled;
@@ -44,263 +33,208 @@ class FilterDropdown extends StatelessWidget {
     final result = await showModalBottomSheet<_PickResult>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Vibe.bgSoft,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (_) => _OptionsSheet(
+      builder: (_) => _PickerSheet(
         label: label,
+        currentValue: value,
         options: options,
-        selected: value,
         searchable: searchable,
       ),
     );
-    if (result != null) onChanged(result.value);
+
+    if (result != null) {
+      onChanged(result.value);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final hasValue = value != null;
-    return Semantics(
-      button: true,
-      enabled: !_isDisabled,
-      label: '$label filter',
-      value: value ?? hint ?? 'Any',
-      child: Opacity(
-        opacity: _isDisabled ? 0.55 : 1,
-        child: InkWell(
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+          ),
+        ),
+        const SizedBox(height: 6),
+        InkWell(
           onTap: () => _open(context),
           borderRadius: BorderRadius.circular(14),
           child: Container(
-            height: 52,
+            height: 48,
             padding: const EdgeInsets.symmetric(horizontal: 14),
             decoration: BoxDecoration(
-              color: Vibe.surface,
+              color: _isDisabled
+                  ? theme.disabledColor.withValues(alpha: 0.05)
+                  : theme.colorScheme.surface,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: hasValue ? Vibe.violet : Vibe.stroke,
-                width: hasValue ? 1.4 : 1,
+                color: hasValue ? theme.colorScheme.primary : context.appColors.border,
+                width: hasValue ? 1.5 : 1,
               ),
             ),
             child: Row(
               children: [
                 if (icon != null) ...[
-                  Icon(icon,
-                      size: 18, color: hasValue ? Vibe.violet : Vibe.muted),
+                  Icon(
+                    icon,
+                    size: 20,
+                    color: hasValue ? theme.colorScheme.primary : theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                  ),
                   const SizedBox(width: 10),
                 ],
                 Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        label,
-                        style: const TextStyle(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w700,
-                          color: Vibe.muted,
-                          letterSpacing: 0.2,
-                        ),
-                      ),
-                      const SizedBox(height: 1),
-                      Text(
-                        value ?? hint ?? 'Any',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w700,
-                          color: hasValue ? Vibe.text : Vibe.disabledText,
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    value ?? hint ?? 'Select $label',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: hasValue ? FontWeight.w700 : FontWeight.w500,
+                      color: hasValue ? theme.colorScheme.onSurface : theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                    ),
                   ),
                 ),
-                _trailing(context, hasValue),
+                if (loading)
+                  const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                else if (hasValue && enabled)
+                  GestureDetector(
+                    onTap: () => onChanged(null),
+                    child: Icon(Icons.close_rounded, size: 18, color: theme.colorScheme.onSurface.withValues(alpha: 0.5)),
+                  )
+                else
+                  Icon(Icons.keyboard_arrow_down_rounded, size: 20, color: theme.colorScheme.onSurface.withValues(alpha: 0.4)),
               ],
             ),
           ),
         ),
-      ),
+      ],
     );
-  }
-
-  Widget _trailing(BuildContext context, bool hasValue) {
-    if (loading) {
-      return const SizedBox(
-        width: 18,
-        height: 18,
-        child: CircularProgressIndicator(strokeWidth: 2, color: Vibe.violet),
-      );
-    }
-    if (hasValue && enabled) {
-      return InkWell(
-        onTap: () => onChanged(null),
-        borderRadius: BorderRadius.circular(20),
-        child: const Padding(
-          padding: EdgeInsets.all(2),
-          child: Icon(Icons.close_rounded, size: 18, color: Vibe.muted),
-        ),
-      );
-    }
-    return const Icon(Icons.keyboard_arrow_down_rounded,
-        size: 22, color: Vibe.muted);
   }
 }
 
 class _PickResult {
-  const _PickResult(this.value);
   final String? value;
+  const _PickResult(this.value);
 }
 
-class _OptionsSheet extends StatefulWidget {
-  const _OptionsSheet({
+class _PickerSheet extends StatefulWidget {
+  const _PickerSheet({
     required this.label,
+    required this.currentValue,
     required this.options,
-    required this.selected,
     required this.searchable,
   });
 
   final String label;
+  final String? currentValue;
   final List<String> options;
-  final String? selected;
   final bool searchable;
 
   @override
-  State<_OptionsSheet> createState() => _OptionsSheetState();
+  State<_PickerSheet> createState() => _PickerSheetState();
 }
 
-class _OptionsSheetState extends State<_OptionsSheet> {
-  final _searchController = TextEditingController();
+class _PickerSheetState extends State<_PickerSheet> {
+  final _searchCtrl = TextEditingController();
   String _query = '';
 
   @override
   void dispose() {
-    _searchController.dispose();
+    _searchCtrl.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final filtered = _query.isEmpty
-        ? widget.options
-        : widget.options
-            .where((o) => o.toLowerCase().contains(_query.toLowerCase()))
-            .toList();
+    final theme = Theme.of(context);
+    final filtered = widget.options
+        .where((opt) => opt.toLowerCase().contains(_query.toLowerCase()))
+        .toList();
 
-    return Padding(
-      padding:
-          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.75,
+      ),
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: SafeArea(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.7,
-          ),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 14, 20, 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Vibe.stroke,
-                      borderRadius: BorderRadius.circular(2),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 8, 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Select ${widget.label}',
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
                     ),
                   ),
-                ),
-                const SizedBox(height: 14),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        widget.label,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: Vibe.text,
-                        ),
-                      ),
-                    ),
-                    if (widget.selected != null)
-                      TextButton(
-                        onPressed: () =>
-                            Navigator.of(context).pop(const _PickResult(null)),
-                        child: const Text('Clear',
-                            style: TextStyle(color: Vibe.muted)),
-                      ),
-                  ],
-                ),
-                if (widget.searchable) ...[
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _searchController,
-                    autofocus: false,
-                    onChanged: (v) => setState(() => _query = v),
-                    decoration: InputDecoration(
-                      isDense: true,
-                      hintText: 'Search ${widget.label.toLowerCase()}…',
-                      prefixIcon:
-                          const Icon(Icons.search_rounded, color: Vibe.muted),
-                      filled: true,
-                      fillColor: Vibe.surface,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Vibe.stroke),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Vibe.stroke),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Vibe.violet),
-                      ),
-                    ),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded),
+                    onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
-                const SizedBox(height: 8),
-                Flexible(
-                  child: filtered.isEmpty
-                      ? const _EmptyOptions()
-                      : ListView.separated(
-                          shrinkWrap: true,
-                          itemCount: filtered.length,
-                          separatorBuilder: (_, __) =>
-                              const Divider(height: 1, color: Vibe.divider),
-                          itemBuilder: (context, index) {
-                            final option = filtered[index];
-                            final isSelected = option == widget.selected;
-                            return ListTile(
-                              contentPadding: EdgeInsets.zero,
-                              title: Text(
-                                option,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: isSelected
-                                      ? FontWeight.w800
-                                      : FontWeight.w500,
-                                  color: isSelected ? Vibe.violet : Vibe.text,
-                                ),
-                              ),
-                              trailing: isSelected
-                                  ? const Icon(Icons.check_rounded,
-                                      color: Vibe.violet, size: 20)
-                                  : null,
-                              onTap: () => Navigator.of(context)
-                                  .pop(_PickResult(option)),
-                            );
-                          },
-                        ),
-                ),
-              ],
+              ),
             ),
-          ),
+            if (widget.searchable)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: TextField(
+                  controller: _searchCtrl,
+                  onChanged: (v) => setState(() => _query = v),
+                  decoration: InputDecoration(
+                    hintText: 'Search…',
+                    prefixIcon: const Icon(Icons.search_rounded),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+            Flexible(
+              child: filtered.isEmpty
+                  ? const _EmptyOptions()
+                  : ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: filtered.length,
+                      itemBuilder: (context, idx) {
+                        final option = filtered[idx];
+                        final isSelected = option == widget.currentValue;
+                        return ListTile(
+                          title: Text(
+                            option,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
+                              color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurface,
+                            ),
+                          ),
+                          trailing: isSelected
+                              ? Icon(Icons.check_rounded, color: theme.colorScheme.primary, size: 20)
+                              : null,
+                          onTap: () => Navigator.of(context).pop(_PickResult(option)),
+                        );
+                      },
+                    ),
+            ),
+          ],
         ),
       ),
     );
@@ -312,16 +246,19 @@ class _EmptyOptions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.symmetric(vertical: 32),
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 32),
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.search_off_rounded, size: 36, color: Vibe.muted),
-            SizedBox(height: 8),
-            Text('No matching options',
-                style: TextStyle(color: Vibe.muted, fontSize: 13)),
+            Icon(Icons.search_off_rounded, size: 36, color: theme.colorScheme.onSurface.withValues(alpha: 0.4)),
+            const SizedBox(height: 8),
+            Text(
+              'No matching options',
+              style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.4), fontSize: 13),
+            ),
           ],
         ),
       ),

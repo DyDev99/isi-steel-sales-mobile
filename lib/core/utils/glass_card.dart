@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/core/utils/colors.dart';
 
-/// The app's standard card: white background, soft shadow, thin border,
+/// The app's standard card: theme-aware surface, soft shadow, thin border,
 /// rounded corners — the enterprise-CRM flat-card look (no blur/glass).
 class GlassCard extends StatelessWidget {
   const GlassCard({
@@ -17,13 +18,14 @@ class GlassCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final radius = BorderRadius.circular(Vibe.radius);
+    final colors = context.appColors;
+    final radius = BorderRadius.circular(AppColors.radius);
     return Container(
       decoration: BoxDecoration(
-        color: Vibe.surface,
+        color: colors.card,
         borderRadius: radius,
-        border: Border.all(color: Vibe.stroke),
-        boxShadow: Vibe.cardShadow,
+        border: Border.all(color: colors.border),
+        boxShadow: colors.cardShadow,
       ),
       child: Material(
         color: Colors.transparent,
@@ -31,7 +33,7 @@ class GlassCard extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onTap,
-          hoverColor: Vibe.primaryLight.withValues(alpha: 0.35),
+          hoverColor: colors.surfaceStrong.withValues(alpha: 0.35),
           child: Padding(padding: padding, child: child),
         ),
       ),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/lead.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/opportunity_info.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/pipeline_stage.dart';
@@ -43,9 +43,11 @@ Future<StageMoveResult?> showMoveStageSheet({
         context: context, lead: lead, toStage: targets.first);
   }
 
+  final colors = context.appColors;
+  final scheme = Theme.of(context).colorScheme;
   final chosen = await showModalBottomSheet<PipelineStage>(
     context: context,
-    backgroundColor: Vibe.bgSoft,
+    backgroundColor: colors.surfaceSoft,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
     ),
@@ -57,13 +59,13 @@ Future<StageMoveResult?> showMoveStageSheet({
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Move ${lead.companyName}',
-                style: const TextStyle(
-                    color: Vibe.text,
+                style: TextStyle(
+                    color: colors.textPrimary,
                     fontSize: 17,
                     fontWeight: FontWeight.w800)),
             const SizedBox(height: 4),
             Text('Currently in ${lead.stage.label}',
-                style: const TextStyle(color: Vibe.muted, fontSize: 12.5)),
+                style: TextStyle(color: colors.textSecondary, fontSize: 12.5)),
             const SizedBox(height: 16),
             ...targets.map(
               (stage) => Padding(
@@ -75,18 +77,18 @@ Future<StageMoveResult?> showMoveStageSheet({
                     padding: const EdgeInsets.symmetric(
                         horizontal: 14, vertical: 14),
                     decoration: BoxDecoration(
-                      color: Vibe.surface,
+                      color: colors.card,
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: Vibe.stroke),
+                      border: Border.all(color: colors.border),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.arrow_forward_rounded,
-                            color: Vibe.violet, size: 18),
+                        Icon(Icons.arrow_forward_rounded,
+                            color: scheme.primary, size: 18),
                         const SizedBox(width: 10),
                         Text(stage.label,
-                            style: const TextStyle(
-                                color: Vibe.text,
+                            style: TextStyle(
+                                color: colors.textPrimary,
                                 fontSize: 14,
                                 fontWeight: FontWeight.w700)),
                       ],

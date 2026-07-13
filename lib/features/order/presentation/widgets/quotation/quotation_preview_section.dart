@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
 
 class QuotationPreviewSection extends StatelessWidget {
@@ -24,10 +25,16 @@ class QuotationPreviewSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppThemeColors>()!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final logoAsset = isDark
+        ? 'assets/logos/darkmood_logo.jpg'
+        : 'assets/logos/isi_main_screen_logo.png';
+
     return CustomPaint(
       painter: _DottedBorderPainter(
-        borderColor: const Color(0xFFBFDBFE),
-        backgroundColor: Colors.white,
+        borderColor: colors.border,
+        backgroundColor: colors.card,
         strokeWidth: 1.5,
         radius: 16.r,
         dashLength: 4.0,
@@ -38,7 +45,7 @@ class QuotationPreviewSection extends StatelessWidget {
         decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
+              color: colors.textPrimary.withValues(alpha: 0.02),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -58,13 +65,13 @@ class QuotationPreviewSection extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Image.asset(
-                        'assets/logos/isi_main_screen_logo.png',
+                        logoAsset,
                         height: 40.h,
                         width: 120.h,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const Icon(
+                        errorBuilder: (_, __, ___) => Icon(
                           Icons.business,
-                          color: Color(0xFF0F2C7F),
+                          color: colors.brandNavy,
                           size: 20,
                         ),
                       ),
@@ -74,7 +81,7 @@ class QuotationPreviewSection extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 14.sp,
                           fontWeight: FontWeight.w900,
-                          color: const Color(0xFF0F2C7F),
+                          color: colors.brandNavy,
                           letterSpacing: 0.8,
                         ),
                       ),
@@ -84,7 +91,7 @@ class QuotationPreviewSection extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 12.sp,
                           fontWeight: FontWeight.w500,
-                          color: const Color(0xFF64748B),
+                          color: colors.textSecondary,
                         ),
                       ),
                     ],
@@ -101,8 +108,8 @@ class QuotationPreviewSection extends StatelessWidget {
                         padding: EdgeInsets.symmetric(
                             horizontal: 10.w, vertical: 5.h),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF0F5FF),
-                          border: Border.all(color: const Color(0xFFD6E4FF)),
+                          color: colors.surfaceSoft,
+                          border: Border.all(color: colors.border),
                           borderRadius: BorderRadius.circular(8.r),
                         ),
                         child: Row(
@@ -111,7 +118,7 @@ class QuotationPreviewSection extends StatelessWidget {
                             Icon(
                               Icons.fullscreen_rounded,
                               size: 14.w,
-                              color: const Color(0xFF1E3A8A),
+                              color: colors.brandNavy,
                             ),
                             SizedBox(width: 4.w),
                             Text(
@@ -119,7 +126,7 @@ class QuotationPreviewSection extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 11.sp,
                                 fontWeight: FontWeight.w700,
-                                color: const Color(0xFF1E3A8A),
+                                color: colors.brandNavy,
                               ),
                             ),
                           ],
@@ -143,7 +150,7 @@ class QuotationPreviewSection extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 14.sp,
                       fontWeight: FontWeight.w500,
-                      color: const Color(0xFF64748B),
+                      color: colors.textSecondary,
                     ),
                   ),
                 ),
@@ -167,7 +174,7 @@ class QuotationPreviewSection extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 13.sp,
                             fontWeight: FontWeight.w600,
-                            color: const Color(0xFF1E293B),
+                            color: colors.textPrimary,
                           ),
                         ),
                       ),
@@ -183,7 +190,7 @@ class QuotationPreviewSection extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 13.sp,
                                 fontWeight: FontWeight.w500,
-                                color: const Color(0xFF1E293B),
+                                color: colors.textPrimary,
                               ),
                             ),
                             if (product.size.isNotEmpty ||
@@ -192,7 +199,7 @@ class QuotationPreviewSection extends StatelessWidget {
                                 '${product.size} ${product.grade}'.trim(),
                                 style: TextStyle(
                                   fontSize: 11.sp,
-                                  color: const Color(0xFF64748B),
+                                  color: colors.textSecondary,
                                 ),
                               ),
                           ],
@@ -205,7 +212,7 @@ class QuotationPreviewSection extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 13.sp,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF1E293B),
+                          color: colors.textPrimary,
                         ),
                       ),
                     ],
@@ -226,7 +233,7 @@ class QuotationPreviewSection extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w500,
-                    color: const Color(0xFF1E293B),
+                    color: colors.textPrimary,
                   ),
                 ),
                 Text(
@@ -234,7 +241,7 @@ class QuotationPreviewSection extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF1E293B),
+                    color: colors.textPrimary,
                   ),
                 ),
               ],
@@ -250,7 +257,7 @@ class QuotationPreviewSection extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w500,
-                    color: const Color(0xFF1E293B),
+                    color: colors.textPrimary,
                   ),
                 ),
                 Text(
@@ -259,8 +266,8 @@ class QuotationPreviewSection extends StatelessWidget {
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w600,
                     color: discount > 0
-                        ? const Color(0xFF10B981)
-                        : const Color(0xFF1E293B),
+                        ? colors.success
+                        : colors.textPrimary,
                   ),
                 ),
               ],
@@ -276,7 +283,7 @@ class QuotationPreviewSection extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w500,
-                    color: const Color(0xFF1E293B),
+                    color: colors.textPrimary,
                   ),
                 ),
                 Text(
@@ -284,7 +291,7 @@ class QuotationPreviewSection extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF1E293B),
+                    color: colors.textPrimary,
                   ),
                 ),
               ],
@@ -302,7 +309,7 @@ class QuotationPreviewSection extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.w900,
-                    color: const Color(0xFF0F2C7F),
+                    color: colors.brandNavy,
                   ),
                 ),
                 Text(
@@ -310,7 +317,7 @@ class QuotationPreviewSection extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.w900,
-                    color: const Color(0xFF0F2C7F),
+                    color: colors.brandNavy,
                   ),
                 ),
               ],
@@ -325,7 +332,7 @@ class QuotationPreviewSection extends StatelessWidget {
               style: TextStyle(
                 fontSize: 11.sp,
                 fontWeight: FontWeight.w500,
-                color: const Color(0xFF94A3B8),
+                color: colors.textHint,
               ),
               textAlign: TextAlign.center,
             ),
@@ -335,8 +342,6 @@ class QuotationPreviewSection extends StatelessWidget {
     );
   }
 }
-
-// ... [Keep the _DottedBorderPainter and _DashedDivider classes exactly as they were]
 
 class _DottedBorderPainter extends CustomPainter {
   final Color borderColor;
@@ -414,6 +419,8 @@ class _DashedDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppThemeColors>()!;
+
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         final boxWidth = constraints.constrainWidth();
@@ -424,11 +431,11 @@ class _DashedDivider extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           direction: Axis.horizontal,
           children: List.generate(dashCount, (_) {
-            return const SizedBox(
+            return SizedBox(
               width: dashWidth,
               height: dashHeight,
               child: DecoratedBox(
-                decoration: BoxDecoration(color: Color(0xFFCBD5E1)),
+                decoration: BoxDecoration(color: colors.divider),
               ),
             );
           }),

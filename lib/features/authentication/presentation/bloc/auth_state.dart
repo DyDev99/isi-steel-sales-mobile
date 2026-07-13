@@ -31,6 +31,15 @@ final class UnauthenticatedState extends AuthState {
   const UnauthenticatedState();
 }
 
+/// Browsing without an account. This is the *default* resting state for a
+/// user who finished onboarding but never signed in — the app is fully
+/// usable, and protected features prompt for login on demand (see
+/// `AuthGuard`). Distinct from [UnauthenticatedState] (a transient
+/// "must re-authenticate" signal), a guest is a first-class, expected user.
+final class AuthGuestState extends AuthState {
+  const AuthGuestState();
+}
+
 /// A request failed (LoginScreen maps this to `error`).
 final class AuthFailureState extends AuthState {
   const AuthFailureState(this.message);

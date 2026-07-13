@@ -11,6 +11,13 @@ final class AuthCheckRequested extends AuthEvent {
   const AuthCheckRequested();
 }
 
+/// Enter guest browsing explicitly (e.g. after onboarding completes, or when
+/// the user dismisses a login prompt with "Later"). Idempotent — safe to fire
+/// even if already a guest.
+final class AuthGuestRequested extends AuthEvent {
+  const AuthGuestRequested();
+}
+
 /// Fired by the login form. Name + shape must match LoginScreen.
 final class LoginSubmittedEvent extends AuthEvent {
   const LoginSubmittedEvent({required this.email, required this.password});

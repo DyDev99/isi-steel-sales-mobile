@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/credit_status.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/lead.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/lead_source.dart';
@@ -13,7 +13,7 @@ Future<Lead?> showLeadFormSheet(
     {required BuildContext context, Lead? existing}) {
   return showModalBottomSheet<Lead>(
     context: context,
-    backgroundColor: Vibe.bgSoft,
+    backgroundColor: context.appColors.surfaceSoft,
     isScrollControlled: true,
     shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
@@ -71,6 +71,8 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     return Padding(
       padding:
           EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
@@ -85,24 +87,25 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(_isEdit ? 'Edit lead' : 'New lead',
-                      style: const TextStyle(
-                          color: Vibe.text,
+                      style: TextStyle(
+                          color: colors.textPrimary,
                           fontSize: 17,
                           fontWeight: FontWeight.w800)),
                   if (!_isEdit) ...[
                     const SizedBox(height: 4),
-                    const Text(
+                    Text(
                         "That's enough to start — don't grill a cold lead.",
-                        style: TextStyle(color: Vibe.muted, fontSize: 12.5)),
+                        style:
+                            TextStyle(color: colors.textSecondary, fontSize: 12.5)),
                   ],
                   const SizedBox(height: 16),
                   _field('Company / Shop name', _company, required: true),
                   _field('Phone', _phone,
                       required: _isEdit, keyboardType: TextInputType.phone),
                   const SizedBox(height: 4),
-                  const Text('Interested products (optional)',
+                  Text('Interested products (optional)',
                       style: TextStyle(
-                          color: Vibe.muted,
+                          color: colors.textSecondary,
                           fontSize: 12,
                           fontWeight: FontWeight.w700)),
                   const SizedBox(height: 8),
@@ -118,15 +121,16 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
                                   : _products.remove(p)),
                               labelStyle: TextStyle(
                                   color: _products.contains(p)
-                                      ? Vibe.violet
-                                      : Vibe.text,
+                                      ? scheme.primary
+                                      : colors.textPrimary,
                                   fontSize: 12.5),
-                              backgroundColor: Vibe.surface,
-                              selectedColor: Vibe.violet.withValues(alpha: 0.2),
+                              backgroundColor: colors.card,
+                              selectedColor:
+                                  scheme.primary.withValues(alpha: 0.2),
                               side: BorderSide(
                                   color: _products.contains(p)
-                                      ? Vibe.violet
-                                      : Vibe.stroke),
+                                      ? scheme.primary
+                                      : colors.border),
                             ))
                         .toList(),
                   ),
@@ -134,10 +138,10 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
                     const SizedBox(height: 14),
                     TextButton.icon(
                       onPressed: () => setState(() => _showMore = true),
-                      icon: const Icon(Icons.add_rounded,
-                          size: 16, color: Vibe.violet),
-                      label: const Text('Add more details',
-                          style: TextStyle(color: Vibe.violet, fontSize: 13)),
+                      icon: Icon(Icons.add_rounded,
+                          size: 16, color: scheme.primary),
+                      label: Text('Add more details',
+                          style: TextStyle(color: scheme.primary, fontSize: 13)),
                     ),
                   ],
                   if (_isEdit || _showMore) ...[
@@ -149,9 +153,9 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
                     _field('Expected revenue (\$)', _revenue,
                         keyboardType: TextInputType.number),
                     const SizedBox(height: 8),
-                    const Text('Lead source',
+                    Text('Lead source',
                         style: TextStyle(
-                            color: Vibe.muted,
+                            color: colors.textSecondary,
                             fontSize: 12,
                             fontWeight: FontWeight.w700)),
                     const SizedBox(height: 8),
@@ -163,23 +167,24 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
                                 selected: _source == s,
                                 onSelected: (_) => setState(() => _source = s),
                                 labelStyle: TextStyle(
-                                    color:
-                                        _source == s ? Vibe.violet : Vibe.text,
+                                    color: _source == s
+                                        ? scheme.primary
+                                        : colors.textPrimary,
                                     fontSize: 12),
-                                backgroundColor: Vibe.surface,
+                                backgroundColor: colors.card,
                                 selectedColor:
-                                    Vibe.violet.withValues(alpha: 0.2),
+                                    scheme.primary.withValues(alpha: 0.2),
                                 side: BorderSide(
                                     color: _source == s
-                                        ? Vibe.violet
-                                        : Vibe.stroke),
+                                        ? scheme.primary
+                                        : colors.border),
                               ))
                           .toList(),
                     ),
                     const SizedBox(height: 12),
-                    const Text('Priority',
+                    Text('Priority',
                         style: TextStyle(
-                            color: Vibe.muted,
+                            color: colors.textSecondary,
                             fontSize: 12,
                             fontWeight: FontWeight.w700)),
                     const SizedBox(height: 8),
@@ -193,16 +198,16 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
                                     setState(() => _priority = p),
                                 labelStyle: TextStyle(
                                     color: _priority == p
-                                        ? Vibe.violet
-                                        : Vibe.text,
+                                        ? scheme.primary
+                                        : colors.textPrimary,
                                     fontSize: 12),
-                                backgroundColor: Vibe.surface,
+                                backgroundColor: colors.card,
                                 selectedColor:
-                                    Vibe.violet.withValues(alpha: 0.2),
+                                    scheme.primary.withValues(alpha: 0.2),
                                 side: BorderSide(
                                     color: _priority == p
-                                        ? Vibe.violet
-                                        : Vibe.stroke),
+                                        ? scheme.primary
+                                        : colors.border),
                               ))
                           .toList(),
                     ),
@@ -213,7 +218,7 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
                     child: ElevatedButton(
                       onPressed: _submit,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Vibe.violet,
+                        backgroundColor: scheme.primary,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14)),
@@ -233,27 +238,28 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
 
   Widget _field(String label, TextEditingController controller,
       {bool required = false, TextInputType? keyboardType}) {
+    final colors = context.appColors;
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: TextFormField(
         controller: controller,
         keyboardType: keyboardType,
-        style: const TextStyle(color: Vibe.text, fontSize: 14),
+        style: TextStyle(color: colors.textPrimary, fontSize: 14),
         validator: required
             ? (v) => (v == null || v.trim().isEmpty) ? 'Required' : null
             : null,
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: const TextStyle(color: Vibe.muted, fontSize: 13),
+          labelStyle: TextStyle(color: colors.textSecondary, fontSize: 13),
           filled: true,
-          fillColor: Vibe.surface,
+          fillColor: colors.card,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Vibe.stroke),
+            borderSide: BorderSide(color: colors.border),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Vibe.stroke),
+            borderSide: BorderSide(color: colors.border),
           ),
         ),
       ),

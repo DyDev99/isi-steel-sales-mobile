@@ -7,7 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/local/localized_builder.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/core/utils/offline_banner.dart';
 import 'package:isi_steel_sales_mobile/core/utils/page_transitions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_stop.dart';
@@ -113,16 +113,20 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen> {
   Widget build(BuildContext context) => LocalizedBuilder(builder: _build);
 
   Widget _build(BuildContext context) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: Vibe.bg,
+      backgroundColor: scheme.surface,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
-        iconTheme: const IconThemeData(color: Vibe.text),
+        backgroundColor: scheme.surface,
+        iconTheme: IconThemeData(color: colors.textPrimary),
         title: Text(
           'my_visits.flow.checkin_title'.tr,
-          style: const TextStyle(
-              color: Vibe.text, fontSize: 16, fontWeight: FontWeight.bold),
+          style: TextStyle(
+              color: colors.textPrimary,
+              fontSize: 16,
+              fontWeight: FontWeight.bold),
         ),
       ),
       body: BlocListener<ActiveRouteBloc, ActiveRouteState>(
@@ -149,7 +153,7 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen> {
             if (state is! ActiveRouteReady || !state.hasCurrentStop) {
               return Center(
                   child: Text('my_visits.flow.no_stop'.tr,
-                      style: const TextStyle(color: Vibe.muted)));
+                      style: TextStyle(color: colors.textSecondary)));
             }
 
             final stop = state.route.stops[state.currentStopIndex];
@@ -186,10 +190,10 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen> {
                   flex: 5,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: colors.card,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.04),
+                          color: colors.shadowColor.withValues(alpha: 0.04),
                           blurRadius: 10,
                           offset: const Offset(0, -4),
                         )
@@ -212,8 +216,8 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen> {
                           children: [
                             Text(
                               'my_visits.flow.proof_photo'.tr,
-                              style: const TextStyle(
-                                  color: Vibe.text,
+                              style: TextStyle(
+                                  color: colors.textPrimary,
                                   fontSize: 13.5,
                                   fontWeight: FontWeight.bold),
                             ),
@@ -233,8 +237,10 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen> {
                         Text(
                           'my_visits.flow.checkin_explainer'.tr,
                           textAlign: TextAlign.center,
-                          style: const TextStyle(
-                              color: Vibe.muted, fontSize: 11, height: 1.3),
+                          style: TextStyle(
+                              color: colors.textSecondary,
+                              fontSize: 11,
+                              height: 1.3),
                         ),
                       ],
                     ),
@@ -274,8 +280,10 @@ class _UnifiedCustomerHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
     return Container(
-      color: Colors.white,
+      color: colors.card,
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -288,8 +296,8 @@ class _UnifiedCustomerHeader extends StatelessWidget {
                   stop.customer.name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                      color: Vibe.text,
+                  style: TextStyle(
+                      color: colors.textPrimary,
                       fontSize: 16,
                       fontWeight: FontWeight.w900),
                 ),
@@ -298,7 +306,7 @@ class _UnifiedCustomerHeader extends StatelessWidget {
                   stop.customer.address,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Vibe.muted, fontSize: 12),
+                  style: TextStyle(color: colors.textSecondary, fontSize: 12),
                 ),
               ],
             ),
@@ -307,20 +315,19 @@ class _UnifiedCustomerHeader extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: Vibe.bgSoft,
+              color: colors.surfaceSoft,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Vibe.stroke),
+              border: Border.all(color: colors.border),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.navigation_rounded,
-                    color: Vibe.violet, size: 13),
+                Icon(Icons.navigation_rounded, color: scheme.primary, size: 13),
                 const SizedBox(width: 4),
                 Text(
                   '$distanceLabel • ~$etaMinutes ${'my_visits.flow.minutes_shortTemplate'.tr}',
-                  style: const TextStyle(
-                      color: Vibe.text,
+                  style: TextStyle(
+                      color: colors.textPrimary,
                       fontSize: 11,
                       fontWeight: FontWeight.bold),
                 ),
@@ -350,11 +357,13 @@ class _GeoStatusBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _StatusPill(
-          color: insideGeofence ? Vibe.success : Vibe.amber,
+          color: insideGeofence ? colors.success : colors.warning,
           icon: insideGeofence
               ? Icons.check_circle_rounded
               : Icons.location_searching_rounded,
@@ -372,14 +381,14 @@ class _GeoStatusBanner extends StatelessWidget {
         if (blockedReason != null) ...[
           const SizedBox(height: 6),
           _StatusPill(
-              color: Vibe.danger,
+              color: scheme.error,
               icon: Icons.block_rounded,
               text: blockedReason!),
         ],
         for (final warning in warnings) ...[
           const SizedBox(height: 6),
           _StatusPill(
-              color: Vibe.amber,
+              color: colors.warning,
               icon: Icons.warning_amber_rounded,
               text: warning),
         ],
@@ -452,9 +461,13 @@ class _CameraDropzone extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
     final borderColor = isLocked
-        ? Vibe.stroke
-        : (proof != null ? Vibe.success : Vibe.violet.withValues(alpha: 0.5));
+        ? colors.border
+        : (proof != null
+            ? colors.success
+            : scheme.primary.withValues(alpha: 0.5));
 
     return GestureDetector(
       onTap: (capturing || isLocked) ? null : onTap,
@@ -466,12 +479,12 @@ class _CameraDropzone extends StatelessWidget {
             height: 180, // Optimized tracking screen height limit bounds
             width: double.infinity,
             decoration: BoxDecoration(
-              color: isLocked ? Vibe.bgSoft : Colors.transparent,
+              color: isLocked ? colors.surfaceSoft : Colors.transparent,
               borderRadius: BorderRadius.circular(12),
             ),
             child: capturing
-                ? const Center(
-                    child: CircularProgressIndicator(color: Vibe.violet))
+                ? Center(
+                    child: CircularProgressIndicator(color: scheme.primary))
                 : proof == null
                     ? _DropzonePlaceholder(isLocked: isLocked)
                     : _ProofPreview(path: proof!.filePath),
@@ -488,6 +501,8 @@ class _DropzonePlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -496,12 +511,13 @@ class _DropzonePlaceholder extends StatelessWidget {
           height: 44,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: (isLocked ? Vibe.muted : Vibe.violet).withValues(alpha: 0.1),
+            color: (isLocked ? colors.textSecondary : scheme.primary)
+                .withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
           child: Icon(
             isLocked ? Icons.lock_outline_rounded : Icons.photo_camera_rounded,
-            color: isLocked ? Vibe.muted : Vibe.violet,
+            color: isLocked ? colors.textSecondary : scheme.primary,
             size: 20,
           ),
         ),
@@ -511,14 +527,14 @@ class _DropzonePlaceholder extends StatelessWidget {
               ? 'my_visits.flow.transit_banner_lockedTemplate'.tr
               : 'my_visits.flow.take_photo'.tr,
           style: TextStyle(
-              color: isLocked ? Vibe.muted : Vibe.text,
+              color: isLocked ? colors.textSecondary : colors.textPrimary,
               fontSize: 13,
               fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 2),
         Text(
           'my_visits.flow.fit_frame'.tr,
-          style: const TextStyle(color: Vibe.muted, fontSize: 11),
+          style: TextStyle(color: colors.textSecondary, fontSize: 11),
         ),
       ],
     );
@@ -581,10 +597,12 @@ class _CheckInBottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Vibe.stroke)),
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        border: Border(top: BorderSide(color: colors.border)),
       ),
       padding: const EdgeInsets.fromLTRB(20, 10, 20, 12),
       child: SafeArea(
@@ -595,7 +613,7 @@ class _CheckInBottomBar extends StatelessWidget {
             if (hint != null) ...[
               Text(hint!,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: Vibe.muted, fontSize: 11)),
+                  style: TextStyle(color: colors.textSecondary, fontSize: 11)),
               const SizedBox(height: 8),
             ],
             SizedBox(
@@ -603,11 +621,11 @@ class _CheckInBottomBar extends StatelessWidget {
               child: ElevatedButton.icon(
                 onPressed: enabled ? onTap : null,
                 icon: submitting
-                    ? const SizedBox(
+                    ? SizedBox(
                         width: 16,
                         height: 16,
                         child: CircularProgressIndicator(
-                            strokeWidth: 2, color: Colors.white))
+                            strokeWidth: 2, color: scheme.onPrimary))
                     : Icon(
                         enabled
                             ? Icons.check_circle_rounded
@@ -619,10 +637,10 @@ class _CheckInBottomBar extends StatelessWidget {
                       fontSize: 14, fontWeight: FontWeight.bold),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: enabled ? Vibe.success : Vibe.violet,
-                  foregroundColor: Colors.white,
-                  disabledBackgroundColor: Vibe.stroke,
-                  disabledForegroundColor: Vibe.muted,
+                  backgroundColor: enabled ? colors.success : scheme.primary,
+                  foregroundColor: scheme.onPrimary,
+                  disabledBackgroundColor: colors.border,
+                  disabledForegroundColor: colors.textSecondary,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   elevation: enabled ? 2 : 0,
                   shape: RoundedRectangleBorder(
@@ -657,20 +675,19 @@ class _PulseIndicatorState extends State<_PulseIndicator>
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
         decoration: BoxDecoration(
-          color:
-              Vibe.violet.withValues(alpha: 0.1 + (_controller.value * 0.15)),
+          color: primary.withValues(alpha: 0.1 + (_controller.value * 0.15)),
           borderRadius: BorderRadius.circular(6),
         ),
         child: Text(
           'REQUIRED',
           style: TextStyle(
-            color:
-                Vibe.violet.withValues(alpha: 0.7 + (_controller.value * 0.3)),
+            color: primary.withValues(alpha: 0.7 + (_controller.value * 0.3)),
             fontSize: 9,
             fontWeight: FontWeight.w900,
           ),

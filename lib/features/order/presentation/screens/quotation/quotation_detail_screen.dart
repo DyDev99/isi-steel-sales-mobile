@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/local/localized_builder.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart'; // Added for context.appColors
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/customer_params.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/get_customer_by_id.dart';
@@ -14,10 +14,6 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/quotation_builder_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/sales_order/sales_order_screen.dart';
 
-/// Read-only view of a saved quotation, with "Convert to Sales Order" and
-/// "Edit Quotation" actions. Lead-scoped quotations can't yet convert (no
-/// SAP `Customer` exists for a lead) — the action is disabled with an
-/// explanatory label instead of hidden, so the UI stays consistent.
 class QuotationDetailScreen extends StatelessWidget {
   const QuotationDetailScreen({super.key, required this.quotation});
 
@@ -72,16 +68,18 @@ class QuotationDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) => LocalizedBuilder(builder: _build);
 
   Widget _build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = context.appColors;
     final canConvert = !quotation.isLeadScoped;
 
     return Scaffold(
-      backgroundColor: Vibe.bg,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Vibe.bg,
-        iconTheme: const IconThemeData(color: Vibe.text),
+        backgroundColor: theme.scaffoldBackgroundColor,
+        iconTheme: IconThemeData(color: colors.textPrimary),
         title: Text('orders.quotation.details_title'.tr,
-            style: const TextStyle(
-                color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
+            style: TextStyle(
+                color: colors.textPrimary, fontSize: 17, fontWeight: FontWeight.w800)),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
@@ -90,8 +88,8 @@ class QuotationDetailScreen extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(quotation.id,
-                    style: const TextStyle(
-                        color: Vibe.text,
+                    style: TextStyle(
+                        color: colors.textPrimary,
                         fontSize: 20,
                         fontWeight: FontWeight.w900)),
               ),
@@ -99,11 +97,11 @@ class QuotationDetailScreen extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
-                    color: Vibe.primaryLight,
+                    color: theme.colorScheme.primary.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10)),
                 child: Text(quotation.sapDraftStatus,
-                    style: const TextStyle(
-                        color: Vibe.violet,
+                    style: TextStyle(
+                        color: theme.colorScheme.primary,
                         fontSize: 11.5,
                         fontWeight: FontWeight.w700)),
               ),
@@ -111,18 +109,18 @@ class QuotationDetailScreen extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(quotation.shopName ?? quotation.leadDisplayName ?? '',
-              style: const TextStyle(color: Vibe.muted, fontSize: 13)),
+              style: TextStyle(color: colors.textSecondary, fontSize: 13)),
           const SizedBox(height: 4),
           Text(
             '${'orders.quotation.valid_until'.tr}: ${_formatDate(quotation.validUntil)}',
-            style: const TextStyle(color: Vibe.muted, fontSize: 12),
+            style: TextStyle(color: colors.textSecondary, fontSize: 12),
           ),
           const SizedBox(height: 20),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14),
             decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: Vibe.stroke)),
+                border: Border.all(color: colors.border)),
             child: Column(
               children: [
                 for (final line in quotation.lines)
@@ -140,8 +138,8 @@ class QuotationDetailScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: Text('orders.quotation.convert_disabled_lead'.tr,
-                  style: const TextStyle(
-                      color: Vibe.muted,
+                  style: TextStyle(
+                      color: colors.textSecondary,
                       fontSize: 12,
                       fontStyle: FontStyle.italic)),
             ),
@@ -151,9 +149,9 @@ class QuotationDetailScreen extends StatelessWidget {
               onPressed:
                   canConvert ? () => _convertToSalesOrder(context) : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Vibe.violet,
-                foregroundColor: Colors.white,
-                disabledBackgroundColor: Vibe.stroke,
+                backgroundColor: theme.colorScheme.primary,
+                foregroundColor: theme.colorScheme.onPrimary,
+                disabledBackgroundColor: colors.border,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14)),
@@ -187,6 +185,7 @@ class _LineRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
@@ -195,17 +194,17 @@ class _LineRow extends StatelessWidget {
             child: Text(name,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                    color: Vibe.text,
+                style: TextStyle(
+                    color: colors.textPrimary,
                     fontSize: 13,
                     fontWeight: FontWeight.w700)),
           ),
           Text('x${qty.toStringAsFixed(0)}',
-              style: const TextStyle(color: Vibe.muted, fontSize: 12)),
+              style: TextStyle(color: colors.textSecondary, fontSize: 12)),
           const SizedBox(width: 12),
           Text('\$${total.toStringAsFixed(2)}',
-              style: const TextStyle(
-                  color: Vibe.text, fontSize: 13, fontWeight: FontWeight.w700)),
+              style: TextStyle(
+                  color: colors.textPrimary, fontSize: 13, fontWeight: FontWeight.w700)),
         ],
       ),
     );
@@ -222,13 +221,13 @@ class _TotalsCard extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Vibe.stroke)),
+          border: Border.all(color: context.appColors.border)),
       child: Column(
         children: [
           _Row('Subtotal', quotation.subtotal),
           if (quotation.discount > 0) _Row('Discount', -quotation.discount),
           _Row('Tax', quotation.tax),
-          const Divider(color: Vibe.divider, height: 20),
+          Divider(color: context.appColors.divider, height: 20),
           _Row('Total', quotation.total, emphasize: true),
         ],
       ),
@@ -244,6 +243,7 @@ class _Row extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
@@ -251,13 +251,13 @@ class _Row extends StatelessWidget {
           Expanded(
             child: Text(label,
                 style: TextStyle(
-                    color: emphasize ? Vibe.text : Vibe.muted,
+                    color: emphasize ? colors.textPrimary : colors.textSecondary,
                     fontSize: emphasize ? 15 : 13,
                     fontWeight: emphasize ? FontWeight.w800 : FontWeight.w500)),
           ),
           Text('\$${value.toStringAsFixed(2)}',
               style: TextStyle(
-                  color: emphasize ? Vibe.violet : Vibe.text,
+                  color: emphasize ? Theme.of(context).colorScheme.primary : colors.textPrimary,
                   fontSize: emphasize ? 16 : 13,
                   fontWeight: emphasize ? FontWeight.w900 : FontWeight.w600)),
         ],

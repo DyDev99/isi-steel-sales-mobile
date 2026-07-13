@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/local/localized_builder.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/core/utils/glass_card.dart';
 import 'package:isi_steel_sales_mobile/core/utils/offline_banner.dart';
 import 'package:isi_steel_sales_mobile/core/utils/page_transitions.dart';
@@ -98,14 +98,18 @@ class _RouteDispatchScreenState extends State<RouteDispatchScreen> {
   Widget build(BuildContext context) => LocalizedBuilder(builder: _build);
 
   Widget _build(BuildContext context) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: Vibe.bg,
+      backgroundColor: scheme.surface,
       appBar: AppBar(
-        backgroundColor: Vibe.bg,
-        iconTheme: const IconThemeData(color: Vibe.text),
+        backgroundColor: scheme.surface,
+        iconTheme: IconThemeData(color: colors.textPrimary),
         title: Text('my_visits.flow.dispatch_title'.tr,
-            style: const TextStyle(
-                color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
+            style: TextStyle(
+                color: colors.textPrimary,
+                fontSize: 17,
+                fontWeight: FontWeight.w800)),
       ),
       // Keep the geofence status live for the selected stop even while the
       // pushed StopDetailScreen sits on top — this listener stays mounted.
@@ -147,10 +151,10 @@ class _RouteDispatchScreenState extends State<RouteDispatchScreen> {
                 nextIndex: _nextIndex(route),
               ),
             ActiveRouteError(:final message) => Center(
-                child:
-                    Text(message, style: const TextStyle(color: Vibe.muted))),
-            _ => const Center(
-                child: CircularProgressIndicator(color: Vibe.violet)),
+                child: Text(message,
+                    style: TextStyle(color: colors.textSecondary))),
+            _ => Center(
+                child: CircularProgressIndicator(color: scheme.primary)),
           },
         ),
       ),
@@ -191,8 +195,10 @@ class _DispatchBody extends StatelessWidget {
               const SizedBox(height: 6),
               Text(
                 'my_visits.flow.dispatch_helper'.tr,
-                style: const TextStyle(
-                    color: Vibe.muted, fontSize: 12.5, height: 1.4),
+                style: TextStyle(
+                    color: context.appColors.textSecondary,
+                    fontSize: 12.5,
+                    height: 1.4),
               ),
               const SizedBox(height: 16),
               BlocBuilder<LocationTrackingCubit, LocationTrackingState>(
@@ -242,23 +248,27 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
           child: Text(name,
-              style: const TextStyle(
-                  color: Vibe.text, fontSize: 22, fontWeight: FontWeight.w900)),
+              style: TextStyle(
+                  color: colors.textPrimary,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900)),
         ),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           decoration: BoxDecoration(
-            color: Vibe.violet.withValues(alpha: 0.14),
+            color: scheme.primary.withValues(alpha: 0.14),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text('$stopCount ${'my_visits.flow.shops'.tr}',
-              style: const TextStyle(
-                  color: Vibe.violet,
+              style: TextStyle(
+                  color: scheme.primary,
                   fontSize: 12,
                   fontWeight: FontWeight.w800)),
         ),
@@ -298,30 +308,33 @@ class _StopDispatchCard extends StatelessWidget {
         : '${km.toStringAsFixed(1)} km';
   }
 
-  ({String label, Color color}) get _pill {
+  ({String label, Color color}) _pill(
+      ColorScheme scheme, AppThemeColors colors) {
     if (isNext) {
-      return (label: 'my_visits.flow.pill_next'.tr, color: Vibe.violet);
+      return (label: 'my_visits.flow.pill_next'.tr, color: scheme.primary);
     }
     return switch (stop.status) {
       VisitStatus.checkedOut => (
           label: 'my_visits.flow.pill_done'.tr,
-          color: Vibe.success
+          color: colors.success
         ),
       VisitStatus.missed => (
           label: 'my_visits.flow.pill_missed'.tr,
-          color: Vibe.danger
+          color: scheme.error
         ),
       VisitStatus.checkedIn => (
           label: 'my_visits.flow.pill_checked_in'.tr,
-          color: Vibe.amber
+          color: colors.warning
         ),
-      _ => (label: 'my_visits.flow.pill_pending'.tr, color: Vibe.muted),
+      _ => (label: 'my_visits.flow.pill_pending'.tr, color: colors.textSecondary),
     };
   }
 
   @override
   Widget build(BuildContext context) {
-    final pill = _pill;
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
+    final pill = _pill(scheme, colors);
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: GlassCard(
@@ -334,14 +347,15 @@ class _StopDispatchCard extends StatelessWidget {
               height: 40,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color:
-                    isNext ? Vibe.violet : Vibe.violet.withValues(alpha: 0.12),
+                color: isNext
+                    ? scheme.primary
+                    : scheme.primary.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
                 _ordinal(stop.sequence),
                 style: TextStyle(
-                  color: isNext ? Colors.white : Vibe.violet,
+                  color: isNext ? scheme.onPrimary : scheme.primary,
                   fontSize: 12.5,
                   fontWeight: FontWeight.w800,
                 ),
@@ -355,8 +369,8 @@ class _StopDispatchCard extends StatelessWidget {
                   Text(stop.customer.name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          color: Vibe.text,
+                      style: TextStyle(
+                          color: colors.textPrimary,
                           fontSize: 14,
                           fontWeight: FontWeight.w800)),
                   const SizedBox(height: 3),
@@ -364,7 +378,7 @@ class _StopDispatchCard extends StatelessWidget {
                     '${stop.customer.territory} · $_distanceLabel',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Vibe.muted, fontSize: 12),
+                    style: TextStyle(color: colors.textSecondary, fontSize: 12),
                   ),
                 ],
               ),
@@ -398,10 +412,12 @@ class _DispatchCta extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
     return Container(
-      decoration: const BoxDecoration(
-        color: Vibe.bg,
-        border: Border(top: BorderSide(color: Vibe.stroke)),
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        border: Border(top: BorderSide(color: colors.border)),
       ),
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
       child: SafeArea(
@@ -417,10 +433,10 @@ class _DispatchCta extends StatelessWidget {
                 style:
                     const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
             style: ElevatedButton.styleFrom(
-              backgroundColor: enabled ? Vibe.violet : Vibe.stroke,
-              foregroundColor: Colors.white,
-              disabledBackgroundColor: Vibe.success.withValues(alpha: 0.6),
-              disabledForegroundColor: Colors.white,
+              backgroundColor: enabled ? scheme.primary : colors.border,
+              foregroundColor: scheme.onPrimary,
+              disabledBackgroundColor: colors.success.withValues(alpha: 0.6),
+              disabledForegroundColor: scheme.onPrimary,
               padding: const EdgeInsets.symmetric(vertical: 15),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14)),

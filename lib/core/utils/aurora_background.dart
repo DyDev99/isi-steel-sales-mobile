@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
-/// Flat, bright background for the enterprise CRM theme. Kept as its own
-/// widget (rather than inlining `Vibe.bg` everywhere) so screens that used
+/// Flat, theme-aware background for the enterprise CRM theme. Kept as its own
+/// widget (rather than inlining the token everywhere) so screens that used
 /// to layer content over the old dark "aurora" glow keep working unchanged.
+///
+/// Resolves to the active theme's soft surface, so it stays pixel-identical in
+/// light mode and follows the dark palette automatically.
 class AuroraBackground extends StatelessWidget {
   const AuroraBackground({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const ColoredBox(color: Vibe.bgSoft);
+    return ColoredBox(color: context.appColors.surfaceSoft);
   }
 }

@@ -21,7 +21,12 @@ void registerAuthFeature(GetIt sl) {
   // ── Presentation ───────────────────────────────────────────────────
   // Factory: a fresh bloc per screen, disposed with it.
   sl.registerFactory(
-    () => AuthBloc(login: sl(), logout: sl(), getCurrentUser: sl()),
+    () => AuthBloc(
+      login: sl(),
+      logout: sl(),
+      getCurrentUser: sl(),
+      sessionManager: sl(),
+    ),
   );
 
   // ── Domain (use cases) ─────────────────────────────────────────────

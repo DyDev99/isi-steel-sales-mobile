@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/home/presentation/widgets/metric_card.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/pipeline_summary.dart';
 
@@ -11,42 +11,44 @@ class PipelineSummaryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     final metrics = [
       MetricCard(
         label: 'Total Leads',
         value: '${summary.totalLeads}',
         icon: Icons.person_add_alt_1_rounded,
-        accent: Vibe.violet,
+        accent: scheme.primary,
       ),
       MetricCard(
         label: 'Opportunities',
         value: '${summary.totalOpportunities}',
         icon: Icons.trending_up_rounded,
-        accent: Vibe.amber,
+        accent: colors.warning,
       ),
       MetricCard(
         label: 'Won Customers',
         value: '${summary.wonCustomers}',
         icon: Icons.emoji_events_rounded,
-        accent: Vibe.success,
+        accent: colors.success,
       ),
       MetricCard(
         label: 'Potential Revenue',
         value: '\$${_compact(summary.potentialRevenue)}',
         icon: Icons.trending_up_rounded,
-        accent: Vibe.mint,
+        accent: colors.info,
       ),
       MetricCard(
         label: 'Won Revenue',
         value: '\$${_compact(summary.wonRevenue)}',
         icon: Icons.payments_rounded,
-        accent: Vibe.pink,
+        accent: scheme.secondary,
       ),
       MetricCard(
         label: 'Conversion Rate',
         value: '${(summary.conversionRate * 100).toStringAsFixed(1)}%',
         icon: Icons.donut_large_rounded,
-        accent: Vibe.violet,
+        accent: scheme.primary,
       ),
     ];
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/core/utils/glass_card.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
 import 'package:isi_steel_sales_mobile/features/profile/domain/entities/worker_profile.dart';
@@ -22,13 +22,15 @@ class ProfileInfoSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     return GlassCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('profile.details'.tr,
-              style: const TextStyle(
-                  color: Vibe.text,
+              style: TextStyle(
+                  color: scheme.onSurface,
                   fontSize: 14.5,
                   fontWeight: FontWeight.w800)),
           const SizedBox(height: 12),
@@ -60,7 +62,8 @@ class ProfileInfoSection extends StatelessWidget {
             label: 'profile.status'.tr,
             value:
                 profile.isActive ? 'profile.active'.tr : 'profile.inactive'.tr,
-            valueColor: profile.isActive ? Vibe.success : Vibe.muted,
+            valueColor:
+                profile.isActive ? colors.success : colors.textSecondary,
             showDivider: false,
           ),
         ],
@@ -86,26 +89,28 @@ class _InfoTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     return Column(
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 10),
           child: Row(
             children: [
-              Icon(icon, size: 18, color: Vibe.violet),
+              Icon(icon, size: 18, color: scheme.primary),
               const SizedBox(width: 12),
               Text(label,
-                  style: const TextStyle(color: Vibe.muted, fontSize: 13)),
+                  style: TextStyle(color: colors.textSecondary, fontSize: 13)),
               const Spacer(),
               Text(value,
                   style: TextStyle(
-                      color: valueColor ?? Vibe.text,
+                      color: valueColor ?? scheme.onSurface,
                       fontSize: 13,
                       fontWeight: FontWeight.w700)),
             ],
           ),
         ),
-        if (showDivider) const Divider(height: 1, color: Vibe.stroke),
+        if (showDivider) Divider(height: 1, color: colors.border),
       ],
     );
   }

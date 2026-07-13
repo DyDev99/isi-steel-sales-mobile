@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/category.dart';
 
 /// Horizontal, single-select category rail with icon tiles, an animated
-/// active state, a ripple, and — the reason it's a dedicated widget rather
-/// than the shared `CategoryQuickFilterRow` — automatic scroll-to-reveal of
+/// active state, a ripple, and automatic scroll-to-reveal of
 /// the selected tile (e.g. when a persisted category is restored off-screen).
-///
-/// A leading "All" tile clears the category (`onSelect(null)`).
 class FilterCategorySelector extends StatefulWidget {
   const FilterCategorySelector({
     super.key,
@@ -39,7 +36,7 @@ class _FilterCategorySelectorState extends State<FilterCategorySelector> {
   void didUpdateWidget(FilterCategorySelector oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.selectedCategoryId != widget.selectedCategoryId) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _revealSelected());
+      _revealSelected();
     }
   }
 
@@ -50,89 +47,65 @@ class _FilterCategorySelectorState extends State<FilterCategorySelector> {
   }
 
   void _revealSelected() {
-    final key = _tileKeys[widget.selectedCategoryId ?? _allKey];
-    final ctx = key?.currentContext;
-    if (ctx == null || !_controller.hasClients) return;
+    final activeKey = widget.selectedCategoryId ?? _allKey;
+    final key = _tileKeys[activeKey];
+    if (key == null || key.currentContext == null) return;
+
     Scrollable.ensureVisible(
-      ctx,
+      key.currentContext!,
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeInOut,
       alignment: 0.5,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOutCubic,
     );
   }
 
-  static const _fallbackIcon = Icons.category_rounded;
-  static const Map<String, IconData> _iconKeywords = {
-    'rebar': Icons.horizontal_rule_rounded,
-    'pipe': Icons.plumbing_rounded,
-    'tube': Icons.circle_outlined,
-    'sheet': Icons.crop_square_rounded,
-    'plate': Icons.crop_square_rounded,
-    'coil': Icons.data_usage_rounded,
-    'flat': Icons.crop_16_9_rounded,
-    'wire': Icons.cable_rounded,
-    'mesh': Icons.grid_on_rounded,
-    'beam': Icons.view_column_rounded,
-    'structural': Icons.view_column_rounded,
-    'angle': Icons.change_history_rounded,
-    'billet': Icons.view_in_ar_rounded,
-    'tool': Icons.build_rounded,
-    'hardware': Icons.hardware_rounded,
-    'fastener': Icons.hardware_rounded,
-    'bolt': Icons.hardware_rounded,
-    'nut': Icons.hardware_rounded,
-    'nail': Icons.hardware_rounded,
-    'roof': Icons.roofing_rounded,
-  };
-
-  IconData _iconFor(String name) {
-    final lower = name.toLowerCase();
-    for (final entry in _iconKeywords.entries) {
-      if (lower.contains(entry.key)) return entry.value;
-    }
-    return _fallbackIcon;
-  }
+  GlobalKey _keyFor(String id) => _tileKeys.putIfAbsent(id, () => GlobalKey());
 
   @override
   Widget build(BuildContext context) {
-    final topLevel = widget.categories.where((c) => c.isTopLevel).toList()
-      ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
-    if (topLevel.isEmpty) return const SizedBox.shrink();
-
     return SizedBox(
-      height: 82,
-      child: ListView.separated(
+      height: 78,
+      child: ListView(
         controller: _controller,
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 2),
-        itemCount: topLevel.length + 1,
-        separatorBuilder: (_, __) => const SizedBox(width: 10),
-        itemBuilder: (context, index) {
-          if (index == 0) {
-            return _CategoryTile(
-              key: _tileKeys.putIfAbsent(_allKey, GlobalKey.new),
-              label: 'All',
-              icon: Icons.grid_view_rounded,
-              selected: widget.selectedCategoryId == null,
-              onTap: () => widget.onSelect(null),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        children: [
+          _Tile(
+            key: _keyFor(_allKey),
+            label: 'All',
+            icon: Icons.grid_view_rounded,
+            selected: widget.selectedCategoryId == null,
+            onTap: () => widget.onSelect(null),
+          ),
+          ...widget.categories.map((cat) {
+            return Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: _Tile(
+                key: _keyFor(cat.id),
+                label: cat.name,
+                icon: _getIconData(cat.name),
+                selected: widget.selectedCategoryId == cat.id,
+                onTap: () => widget.onSelect(cat.id),
+              ),
             );
-          }
-          final category = topLevel[index - 1];
-          return _CategoryTile(
-            key: _tileKeys.putIfAbsent(category.id, GlobalKey.new),
-            label: category.name,
-            icon: _iconFor(category.name),
-            selected: widget.selectedCategoryId == category.id,
-            onTap: () => widget.onSelect(category.id),
-          );
-        },
+          }),
+        ],
       ),
     );
   }
+
+  IconData _getIconData(String code) {
+    return switch (code.toLowerCase()) {
+      'pipe' => Icons.radio_button_unchecked_rounded,
+      'truss' => Icons.architecture_rounded,
+      'deck' => Icons.layers_rounded,
+      _ => Icons.category_rounded,
+    };
+  }
 }
 
-class _CategoryTile extends StatelessWidget {
-  const _CategoryTile({
+class _Tile extends StatelessWidget {
+  const _Tile({
     super.key,
     required this.label,
     required this.icon,
@@ -147,6 +120,9 @@ class _CategoryTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final activeColor = theme.colorScheme.primary;
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
@@ -156,13 +132,13 @@ class _CategoryTile extends StatelessWidget {
         width: 74,
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
         decoration: BoxDecoration(
-          color: selected ? Vibe.violet : Vibe.surface,
+          color: selected ? activeColor : theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: selected ? Vibe.violet : Vibe.stroke),
+          border: Border.all(color: selected ? activeColor : context.appColors.border),
           boxShadow: selected
               ? [
                   BoxShadow(
-                    color: Vibe.violet.withValues(alpha: 0.28),
+                    color: activeColor.withValues(alpha: 0.28),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -172,7 +148,7 @@ class _CategoryTile extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 22, color: selected ? Colors.white : Vibe.muted),
+            Icon(icon, size: 22, color: selected ? Colors.white : theme.colorScheme.onSurface.withValues(alpha: 0.4)),
             const SizedBox(height: 6),
             Text(
               label,
@@ -182,7 +158,7 @@ class _CategoryTile extends StatelessWidget {
               style: TextStyle(
                 fontSize: 10.5,
                 fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-                color: selected ? Colors.white : Vibe.text,
+                color: selected ? Colors.white : theme.colorScheme.onSurface,
               ),
             ),
           ],

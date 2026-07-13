@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/network/connectivity_cubit.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/sync/pending_sync_cubit.dart';
 
 /// Wraps the shell so that when connectivity is *restored* and quotations are
@@ -33,7 +33,7 @@ class ReconnectSyncListener extends StatelessWidget {
         SnackBar(
           behavior: SnackBarBehavior.floating,
           duration: const Duration(seconds: 6),
-          backgroundColor: Vibe.slate,
+          backgroundColor: context.appColors.slate,
           content: Text(
             'Internet connected · $pending quotation${pending == 1 ? '' : 's'} waiting to sync',
             style: const TextStyle(color: Colors.white),

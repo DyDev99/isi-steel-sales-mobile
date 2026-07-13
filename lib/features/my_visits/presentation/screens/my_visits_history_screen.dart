@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/local/localized_builder.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/mock/visit_history_mock_data.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/models/visit_record.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/visit_history_detail_screen.dart';
@@ -65,19 +65,24 @@ class _MyVisitsHistoryScreenState extends State<MyVisitsHistoryScreen> {
   Widget build(BuildContext context) => LocalizedBuilder(builder: _build);
 
   Widget _build(BuildContext context) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: Vibe.bg,
+      backgroundColor: scheme.surface,
       appBar: AppBar(
-        backgroundColor: Vibe.bg,
-        iconTheme: const IconThemeData(color: Vibe.text),
+        backgroundColor: scheme.surface,
+        iconTheme: IconThemeData(color: colors.textPrimary),
         title: Text('my_visits.history.title'.tr,
-            style: const TextStyle(
-                color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800)),
+            style: TextStyle(
+                color: colors.textPrimary,
+                fontSize: 17,
+                fontWeight: FontWeight.w800)),
         actions: kDebugMode
             ? [
                 PopupMenuButton<_ViewState>(
                   tooltip: 'my_visits.history.preview_state'.tr,
-                  icon: const Icon(Icons.bug_report_rounded, color: Vibe.muted),
+                  icon: Icon(Icons.bug_report_rounded,
+                      color: colors.textSecondary),
                   onSelected: _setDebugPreview,
                   itemBuilder: (_) => [
                     PopupMenuItem(
@@ -102,8 +107,8 @@ class _MyVisitsHistoryScreenState extends State<MyVisitsHistoryScreen> {
         _ViewState.error => VisitHistoryErrorState(onRetry: _load),
         _ViewState.empty => const VisitHistoryEmptyState(),
         _ViewState.loaded => RefreshIndicator(
-            color: Vibe.violet,
-            backgroundColor: Vibe.bgSoft,
+            color: scheme.primary,
+            backgroundColor: colors.surfaceSoft,
             onRefresh: _load,
             child: ListView(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
@@ -112,7 +117,7 @@ class _MyVisitsHistoryScreenState extends State<MyVisitsHistoryScreen> {
                   'my_visits.history.subtitle'
                       .tr
                       .replaceAll('{count}', '${_visits.length}'),
-                  style: const TextStyle(color: Vibe.muted, fontSize: 13),
+                  style: TextStyle(color: colors.textSecondary, fontSize: 13),
                 ),
                 const SizedBox(height: 12),
                 for (final visit in _visits)

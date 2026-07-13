@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
 /// A single counter row: SKU name + subtitle, a big centred count, and ±
 /// steppers. Tap = ±1, long-press = repeat ±10 while held. Presentational — the
@@ -25,15 +25,17 @@ class StockCountRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     final isOut = highlightWhenZero && count == 0;
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: Vibe.surface,
+        color: colors.card,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-            color: isOut ? Vibe.amber.withValues(alpha: 0.5) : Vibe.stroke),
+            color:
+                isOut ? colors.warning.withValues(alpha: 0.5) : colors.border),
       ),
       child: Row(
         children: [
@@ -44,8 +46,8 @@ class StockCountRow extends StatelessWidget {
                 Text(name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                        color: Vibe.text,
+                    style: TextStyle(
+                        color: colors.textPrimary,
                         fontSize: 14,
                         fontWeight: FontWeight.w800)),
                 if (subtitle.isNotEmpty) ...[
@@ -54,7 +56,7 @@ class StockCountRow extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                          color: isOut ? Vibe.amber : Vibe.muted,
+                          color: isOut ? colors.warning : colors.textSecondary,
                           fontSize: 11)),
                 ],
               ],
@@ -66,8 +68,8 @@ class StockCountRow extends StatelessWidget {
             width: 46,
             alignment: Alignment.center,
             child: Text('$count',
-                style: const TextStyle(
-                    color: Vibe.text,
+                style: TextStyle(
+                    color: colors.textPrimary,
                     fontSize: 18,
                     fontWeight: FontWeight.w900)),
           ),
@@ -121,6 +123,7 @@ class _StockStepButtonState extends State<StockStepButton> {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
     return GestureDetector(
       onTap: () => widget.onDelta(widget.sign),
       onLongPressStart: (_) => _startHold(),
@@ -131,10 +134,10 @@ class _StockStepButtonState extends State<StockStepButton> {
         height: 48,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: Vibe.violet.withValues(alpha: 0.12),
+          color: primary.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Icon(widget.icon, color: Vibe.violet, size: 24),
+        child: Icon(widget.icon, color: primary, size: 24),
       ),
     );
   }

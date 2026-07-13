@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customer_sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customer_sync_state.dart';
 
@@ -10,33 +10,35 @@ class CustomerSyncStatusBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     return BlocBuilder<CustomerSyncCubit, CustomerSyncState>(
       builder: (context, state) {
         return switch (state) {
           CustomerSyncInProgress(:final isInitial) => _Banner(
-              color: Vibe.violet,
-              icon: const SizedBox(
+              color: scheme.primary,
+              icon: SizedBox(
                 width: 14,
                 height: 14,
                 child: CircularProgressIndicator(
-                    strokeWidth: 2, color: Vibe.violet),
+                    strokeWidth: 2, color: scheme.primary),
               ),
               text: isInitial
                   ? 'customers.downloading'.tr
                   : 'customers.syncing'.tr,
             ),
           CustomerSyncFailed(:final message) => _Banner(
-              color: Vibe.danger,
-              icon: const Icon(Icons.cloud_off_rounded,
-                  size: 16, color: Vibe.danger),
+              color: scheme.error,
+              icon: Icon(Icons.cloud_off_rounded,
+                  size: 16, color: scheme.error),
               text: message,
             ),
           CustomerSyncSucceeded(:final upserted, :final deleted)
               when upserted > 0 || deleted > 0 =>
             _Banner(
-              color: Vibe.success,
-              icon: const Icon(Icons.check_circle_rounded,
-                  size: 16, color: Vibe.success),
+              color: colors.success,
+              icon: Icon(Icons.check_circle_rounded,
+                  size: 16, color: colors.success),
               text: 'customers.sync_updated'
                       .tr
                       .replaceAll('{count}', '$upserted') +

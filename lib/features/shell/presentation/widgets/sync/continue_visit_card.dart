@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_plan.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/resumable_visit_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/navigation/open_route_dispatch.dart';
@@ -51,7 +51,9 @@ class _VisitCard extends StatelessWidget {
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Dismiss', style: TextStyle(color: Vibe.danger)),
+            child: Text('Dismiss',
+                style: TextStyle(
+                    color: Theme.of(dialogContext).colorScheme.error)),
           ),
         ],
       ),
@@ -61,36 +63,39 @@ class _VisitCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     final total = route.stops.length;
     final done = route.completedStops;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Vibe.surface,
+        color: scheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Vibe.mint.withValues(alpha: 0.4)),
-        boxShadow: Vibe.cardShadow,
+        border: Border.all(color: colors.info.withValues(alpha: 0.4)),
+        boxShadow: colors.cardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.pin_drop_rounded, size: 18, color: Vibe.mint),
+              Icon(Icons.pin_drop_rounded, size: 18, color: colors.info),
               const SizedBox(width: 8),
-              const Expanded(
+              Expanded(
                 child: Text('Continue Previous Work',
                     style: TextStyle(
                         fontSize: 13.5,
                         fontWeight: FontWeight.w800,
-                        color: Vibe.text)),
+                        color: scheme.onSurface)),
               ),
               InkWell(
                 onTap: () => _dismiss(context),
                 borderRadius: BorderRadius.circular(20),
-                child: const Padding(
-                  padding: EdgeInsets.all(2),
-                  child: Icon(Icons.close_rounded, size: 18, color: Vibe.muted),
+                child: Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: Icon(Icons.close_rounded,
+                      size: 18, color: colors.textSecondary),
                 ),
               ),
             ],
@@ -100,15 +105,15 @@ class _VisitCard extends StatelessWidget {
             route.name,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-                fontSize: 12.5, fontWeight: FontWeight.w700, color: Vibe.mint),
+            style: TextStyle(
+                fontSize: 12.5, fontWeight: FontWeight.w700, color: colors.info),
           ),
           const SizedBox(height: 2),
           Text(
             'Check-in in progress · $done of $total stops done',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 12, color: Vibe.muted),
+            style: TextStyle(fontSize: 12, color: colors.textSecondary),
           ),
           const SizedBox(height: 10),
           if (total > 0)
@@ -117,8 +122,8 @@ class _VisitCard extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: done / total,
                 minHeight: 5,
-                backgroundColor: Vibe.stroke,
-                valueColor: const AlwaysStoppedAnimation(Vibe.mint),
+                backgroundColor: colors.border,
+                valueColor: AlwaysStoppedAnimation(colors.info),
               ),
             ),
           const SizedBox(height: 12),
@@ -127,7 +132,7 @@ class _VisitCard extends StatelessWidget {
             child: FilledButton.icon(
               onPressed: () => _continue(context),
               style: FilledButton.styleFrom(
-                backgroundColor: Vibe.mint,
+                backgroundColor: colors.info,
                 padding: const EdgeInsets.symmetric(vertical: 10),
               ),
               icon: const Icon(Icons.play_arrow_rounded, size: 18),

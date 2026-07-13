@@ -1,23 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/models/visit_record.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/visit_map_preview.dart';
 
-(String label, Color color) statusStyle(VisitHistoryStatus status) =>
+(String label, Color color) statusStyle(
+        BuildContext context, VisitHistoryStatus status) =>
     switch (status) {
       VisitHistoryStatus.completed => (
           'my_visits.history.status_completed'.tr,
-          Vibe.success
+          context.appColors.success
         ),
       VisitHistoryStatus.missed => (
           'my_visits.history.status_missed'.tr,
-          Vibe.danger
+          Theme.of(context).colorScheme.error
         ),
       VisitHistoryStatus.pending => (
           'my_visits.history.status_pending'.tr,
-          Vibe.amber
+          context.appColors.warning
         ),
     };
 
@@ -31,12 +32,14 @@ class VisitHistoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (statusLabel, statusColor) = statusStyle(visit.status);
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
+    final (statusLabel, statusColor) = statusStyle(context, visit.status);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Material(
-        color: Vibe.surface,
+        color: colors.card,
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
           onTap: onTap,
@@ -44,7 +47,7 @@ class VisitHistoryCard extends StatelessWidget {
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Vibe.stroke),
+              border: Border.all(color: colors.border),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -72,8 +75,8 @@ class VisitHistoryCard extends StatelessWidget {
                               visit.customerName,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                  color: Vibe.text,
+                              style: TextStyle(
+                                  color: colors.textPrimary,
                                   fontSize: 14,
                                   fontWeight: FontWeight.w800),
                             ),
@@ -101,26 +104,27 @@ class VisitHistoryCard extends StatelessWidget {
                         visit.address,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: Vibe.muted, fontSize: 12),
+                        style:
+                            TextStyle(color: colors.textSecondary, fontSize: 12),
                       ),
                       const SizedBox(height: 8),
                       Row(
                         children: [
-                          const Icon(Icons.calendar_today_rounded,
-                              size: 13, color: Vibe.muted),
+                          Icon(Icons.calendar_today_rounded,
+                              size: 13, color: colors.textSecondary),
                           const SizedBox(width: 6),
                           Text(
                             DateFormat('MMM d, y · h:mm a')
                                 .format(visit.visitDate),
-                            style: const TextStyle(
-                                color: Vibe.muted, fontSize: 12),
+                            style: TextStyle(
+                                color: colors.textSecondary, fontSize: 12),
                           ),
                           const Spacer(),
                           if (visit.orderPlaced)
-                            const Icon(Icons.receipt_long_rounded,
-                                size: 16, color: Vibe.violet),
-                          const Icon(Icons.chevron_right_rounded,
-                              color: Vibe.muted),
+                            Icon(Icons.receipt_long_rounded,
+                                size: 16, color: scheme.primary),
+                          Icon(Icons.chevron_right_rounded,
+                              color: colors.textSecondary),
                         ],
                       ),
                     ],

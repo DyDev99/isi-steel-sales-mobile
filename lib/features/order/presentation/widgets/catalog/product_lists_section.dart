@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/catalog_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/catalog_event.dart';
@@ -35,52 +34,39 @@ class ProductListSection extends StatelessWidget {
   final ValueChanged<String> onToggleExpanded;
   final double? height;
   final bool hasActiveAttributeFilter;
-
-  /// Default quantity applied by the product card's quick-add button.
   final double quantity;
-
-  /// Default sales unit applied by quick-add; falls back to each product's own
-  /// unit when null (preserves the original behaviour for callers that don't
-  /// expose a unit selector).
   final String? unit;
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return switch (state) {
       CatalogIdle() || CatalogLoading() => const CatalogGridSkeleton(),
       CatalogError(:final message) => Padding(
           padding: const EdgeInsets.symmetric(vertical: 24),
-          child: Center(
-              child: Text(message, style: const TextStyle(color: Vibe.muted))),
+          child: Center(child: Text(message, style: TextStyle(color: scheme.onSurface.withValues(alpha: 0.6)))),
         ),
-      CatalogLoaded(:final items, :final hasMore, :final isLoadingMore) =>
-        Column(
+      CatalogLoaded(:final items, :final hasMore, :final isLoadingMore) => Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                const Text(
+                Text(
                   'Products',
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: Color(0xFF1E293B)),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: scheme.onSurface),
                 ),
                 if (hasActiveAttributeFilter) ...[
                   const SizedBox(width: 8),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0F2C7F).withValues(alpha: 0.1),
+                      color: scheme.primary.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       '${items.length} match${items.length == 1 ? '' : 'es'}',
-                      style: const TextStyle(
-                          color: Color(0xFF0F2C7F),
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700),
+                      style: TextStyle(color: scheme.primary, fontSize: 11, fontWeight: FontWeight.w700),
                     ),
                   ),
                 ],
@@ -105,7 +91,7 @@ class ProductListSection extends StatelessWidget {
                                       ? 'No products match this size/length/mesh size/quality combination'
                                       : 'orders.catalog.no_products'.tr,
                                   textAlign: TextAlign.center,
-                                  style: const TextStyle(color: Vibe.muted),
+                                  style: TextStyle(color: scheme.onSurface.withValues(alpha: 0.5)),
                                 ),
                               ),
                             )
@@ -114,36 +100,28 @@ class ProductListSection extends StatelessWidget {
                                   padding: const EdgeInsets.only(bottom: 10),
                                   child: ProductCard(
                                     product: product,
-                                    isFavorite:
-                                        favoriteIds.contains(product.id),
-                                    onFavoriteToggle: () =>
-                                        onToggleFavorite(product.id),
+                                    isFavorite: favoriteIds.contains(product.id),
+                                    onFavoriteToggle: () => onToggleFavorite(product.id),
                                     onTap: () => onToggleExpanded(product.id),
-                                    onAddToCart: () =>
-                                        context.read<CartCubit>().addProduct(
-                                              product,
-                                              quantity: quantity,
-                                              unit: unit,
-                                              leadId: leadId,
-                                              customerId: customerId,
-                                            ),
+                                    onAddToCart: () => context.read<CartCubit>().addProduct(
+                                          product,
+                                          quantity: quantity,
+                                          unit: unit,
+                                          leadId: leadId,
+                                          customerId: customerId,
+                                        ),
                                   ),
                                 )),
                           if (hasMore)
                             Center(
                               child: isLoadingMore
-                                  ? const Padding(
-                                      padding: EdgeInsets.all(16),
-                                      child: CircularProgressIndicator(
-                                          color: Color(0xFF0F2C7F)),
+                                  ? Padding(
+                                      padding: const EdgeInsets.all(16),
+                                      child: CircularProgressIndicator(color: scheme.primary),
                                     )
                                   : TextButton(
-                                      onPressed: () => context
-                                          .read<CatalogBloc>()
-                                          .add(
-                                              const CatalogLoadMoreRequested()),
-                                      child:
-                                          Text('orders.catalog.load_more'.tr),
+                                      onPressed: () => context.read<CatalogBloc>().add(const CatalogLoadMoreRequested()),
+                                      child: Text('orders.catalog.load_more'.tr),
                                     ),
                             ),
                         ],

@@ -1,15 +1,9 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
 /// A `[-]  n  [+]` quantity stepper with press-and-hold auto-repeat.
-///
-/// Presentational and controlled: the parent owns [value] and receives every
-/// change through [onChanged], clamped to [min]…[max]. Holding a button starts
-/// a repeating increment/decrement that accelerates slightly, and the minus
-/// button auto-disables at [min] (same for plus at [max]).
 class QuantityStepper extends StatefulWidget {
   const QuantityStepper({
     super.key,
@@ -48,32 +42,32 @@ class _QuantityStepperState extends State<QuantityStepper> {
   }
 
   void _startRepeat(int delta) {
-    _apply(delta);
     _repeatTimer?.cancel();
-    // Initial hold delay, then a steady fast repeat.
-    _repeatTimer = Timer(const Duration(milliseconds: 350), () {
-      _repeatTimer = Timer.periodic(
-        const Duration(milliseconds: 80),
-        (_) => _apply(delta),
-      );
+    int ms = 300;
+    _repeatTimer = Timer.periodic(Duration(milliseconds: ms), (timer) {
+      _apply(delta);
+      if (ms > 60) {
+        ms = (ms * 0.75).toInt();
+        _repeatTimer?.cancel();
+        _repeatTimer = Timer.periodic(Duration(milliseconds: ms), (t) => _apply(delta));
+      }
     });
   }
 
-  void _stopRepeat() {
-    _repeatTimer?.cancel();
-    _repeatTimer = null;
-  }
+  void _stopRepeat() => _repeatTimer?.cancel();
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final canDecrement = widget.value > widget.min;
     final canIncrement = widget.value < widget.max;
+
     return Container(
-      height: 44,
+      height: 46,
       decoration: BoxDecoration(
-        color: Vibe.surface,
+        color: theme.colorScheme.surface,
+        border: Border.all(color: context.appColors.border),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Vibe.stroke),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -86,14 +80,15 @@ class _QuantityStepperState extends State<QuantityStepper> {
             onHoldEnd: _stopRepeat,
           ),
           Container(
-            constraints: const BoxConstraints(minWidth: 46),
             alignment: Alignment.center,
+            constraints: const BoxConstraints(minWidth: 48),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             child: Text(
               '${widget.value}',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w800,
-                color: Vibe.text,
+                color: theme.colorScheme.onSurface,
               ),
             ),
           ),
@@ -127,6 +122,7 @@ class _StepButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return GestureDetector(
       onLongPressStart: enabled ? (_) => onHoldStart() : null,
       onLongPressEnd: enabled ? (_) => onHoldEnd() : null,
@@ -142,7 +138,7 @@ class _StepButton extends StatelessWidget {
             child: Icon(
               icon,
               size: 20,
-              color: enabled ? Vibe.violet : Vibe.disabledText,
+              color: enabled ? Theme.of(context).colorScheme.primary : theme.disabledColor.withValues(alpha: 0.4),
             ),
           ),
         ),

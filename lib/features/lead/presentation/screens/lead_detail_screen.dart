@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/core/utils/aurora_background.dart';
 import 'package:isi_steel_sales_mobile/core/utils/glass_card.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/domain/entities/user_role.dart';
@@ -77,17 +77,19 @@ class LeadDetailScreen extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Vibe.bgSoft,
-        title: const Text('Delete lead?', style: TextStyle(color: Vibe.text)),
+        backgroundColor: context.appColors.surfaceSoft,
+        title: Text('Delete lead?',
+            style: TextStyle(color: context.appColors.textPrimary)),
         content: Text('This removes ${lead.companyName} from the pipeline.',
-            style: const TextStyle(color: Vibe.muted)),
+            style: TextStyle(color: context.appColors.textSecondary)),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
               child: const Text('Cancel')),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: Vibe.danger)),
+            child: Text('Delete',
+                style: TextStyle(color: Theme.of(context).colorScheme.error)),
           ),
         ],
       ),
@@ -100,8 +102,9 @@ class LeadDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: Vibe.bg,
+      backgroundColor: scheme.surface,
       body: Stack(
         children: [
           const Positioned.fill(child: AuroraBackground()),
@@ -118,10 +121,12 @@ class LeadDetailScreen extends StatelessWidget {
                   ),
                 LeadDetailError(:final message) => Center(
                     child: Text(message,
-                        style: const TextStyle(color: Vibe.muted)),
+                        style:
+                            TextStyle(color: context.appColors.textSecondary)),
                   ),
-                _ => const Center(
-                    child: CircularProgressIndicator(color: Vibe.pink)),
+                _ => Center(
+                    child:
+                        CircularProgressIndicator(color: scheme.secondary)),
               },
             ),
           ),
@@ -182,6 +187,8 @@ class _DetailBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<LeadDetailCubit>();
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
@@ -190,14 +197,14 @@ class _DetailBody extends StatelessWidget {
           children: [
             IconButton(
               onPressed: () => Navigator.of(context).pop(),
-              icon: const Icon(Icons.arrow_back_rounded, color: Vibe.text),
+              icon: Icon(Icons.arrow_back_rounded, color: colors.textPrimary),
             ),
             Expanded(
               child: Text(lead.companyName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                      color: Vibe.text,
+                  style: TextStyle(
+                      color: colors.textPrimary,
                       fontSize: 18,
                       fontWeight: FontWeight.w800)),
             ),
@@ -205,17 +212,17 @@ class _DetailBody extends StatelessWidget {
                 lead.wonInfo?.onboardingStatus == OnboardingStatus.notSubmitted)
               IconButton(
                   onPressed: onSendToHq,
-                  icon: const Icon(Icons.send_rounded, color: Vibe.violet)),
+                  icon: Icon(Icons.send_rounded, color: scheme.primary)),
             IconButton(
                 onPressed: onEdit,
-                icon: const Icon(Icons.edit_outlined, color: Vibe.text)),
+                icon: Icon(Icons.edit_outlined, color: colors.textPrimary)),
             IconButton(
                 onPressed: onMove,
-                icon: const Icon(Icons.swap_horiz_rounded, color: Vibe.text)),
+                icon:
+                    Icon(Icons.swap_horiz_rounded, color: colors.textPrimary)),
             IconButton(
                 onPressed: onDelete,
-                icon: const Icon(Icons.delete_outline_rounded,
-                    color: Vibe.danger)),
+                icon: Icon(Icons.delete_outline_rounded, color: scheme.error)),
           ],
         ),
         const SizedBox(height: 8),
@@ -237,10 +244,10 @@ class _DetailBody extends StatelessWidget {
                 lead.storefrontImageUrl,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) => Container(
-                  color: Vibe.surface,
+                  color: colors.card,
                   alignment: Alignment.center,
-                  child: const Icon(Icons.storefront_rounded,
-                      color: Vibe.muted, size: 36),
+                  child: Icon(Icons.storefront_rounded,
+                      color: colors.textSecondary, size: 36),
                 ),
               ),
             ),
@@ -278,8 +285,8 @@ class _DetailBody extends StatelessWidget {
         _Section(
           title: 'Contacts',
           child: lead.contacts.isEmpty
-              ? const Text('No contacts yet',
-                  style: TextStyle(color: Vibe.muted, fontSize: 12.5))
+              ? Text('No contacts yet',
+                  style: TextStyle(color: colors.textSecondary, fontSize: 12.5))
               : Column(
                   children: lead.contacts
                       .map((c) => Padding(
@@ -292,13 +299,14 @@ class _DetailBody extends StatelessWidget {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text('${c.name} · ${c.role}',
-                                          style: const TextStyle(
-                                              color: Vibe.text,
+                                          style: TextStyle(
+                                              color: colors.textPrimary,
                                               fontSize: 13,
                                               fontWeight: FontWeight.w700)),
                                       Text(c.phone,
-                                          style: const TextStyle(
-                                              color: Vibe.muted, fontSize: 12)),
+                                          style: TextStyle(
+                                              color: colors.textSecondary,
+                                              fontSize: 12)),
                                     ],
                                   ),
                                 ),
@@ -308,12 +316,12 @@ class _DetailBody extends StatelessWidget {
                                         horizontal: 8, vertical: 2),
                                     decoration: BoxDecoration(
                                       color:
-                                          Vibe.violet.withValues(alpha: 0.16),
+                                          scheme.primary.withValues(alpha: 0.16),
                                       borderRadius: BorderRadius.circular(20),
                                     ),
-                                    child: const Text('Primary',
+                                    child: Text('Primary',
                                         style: TextStyle(
-                                            color: Vibe.violet,
+                                            color: scheme.primary,
                                             fontSize: 10.5,
                                             fontWeight: FontWeight.w700)),
                                   ),
@@ -329,7 +337,7 @@ class _DetailBody extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(lead.address,
-                  style: const TextStyle(color: Vibe.text, fontSize: 13)),
+                  style: TextStyle(color: colors.textPrimary, fontSize: 13)),
               const SizedBox(height: 10),
               GpsLocationCard(
                   latitude: lead.latitude,
@@ -364,12 +372,13 @@ class _DetailBody extends StatelessWidget {
                 _KeyValue('Estimated value',
                     '\$${info.estimatedValue.toStringAsFixed(0)}'),
                 const SizedBox(height: 4),
-                const Text('Tap what you know. Nothing here is required.',
-                    style: TextStyle(color: Vibe.muted, fontSize: 11.5)),
+                Text('Tap what you know. Nothing here is required.',
+                    style:
+                        TextStyle(color: colors.textSecondary, fontSize: 11.5)),
                 const SizedBox(height: 10),
                 Text('Stage',
-                    style: const TextStyle(
-                        color: Vibe.muted,
+                    style: TextStyle(
+                        color: colors.textSecondary,
                         fontSize: 12,
                         fontWeight: FontWeight.w700)),
                 const SizedBox(height: 6),
@@ -384,22 +393,22 @@ class _DetailBody extends StatelessWidget {
                                 context, (i) => i.copyWith(subStage: s)),
                             labelStyle: TextStyle(
                                 color: info.subStage == s
-                                    ? Vibe.violet
-                                    : Vibe.text,
+                                    ? scheme.primary
+                                    : colors.textPrimary,
                                 fontSize: 12.5),
-                            backgroundColor: Vibe.surface,
-                            selectedColor: Vibe.violet.withValues(alpha: 0.2),
+                            backgroundColor: colors.card,
+                            selectedColor: scheme.primary.withValues(alpha: 0.2),
                             side: BorderSide(
                                 color: info.subStage == s
-                                    ? Vibe.violet
-                                    : Vibe.stroke),
+                                    ? scheme.primary
+                                    : colors.border),
                           ))
                       .toList(),
                 ),
                 const SizedBox(height: 12),
                 Text('Tonnage',
-                    style: const TextStyle(
-                        color: Vibe.muted,
+                    style: TextStyle(
+                        color: colors.textSecondary,
                         fontSize: 12,
                         fontWeight: FontWeight.w700)),
                 const SizedBox(height: 6),
@@ -419,22 +428,22 @@ class _DetailBody extends StatelessWidget {
                                 context, (i) => i.copyWith(tonnage: t.$2)),
                             labelStyle: TextStyle(
                                 color: info.tonnage == t.$2
-                                    ? Vibe.violet
-                                    : Vibe.text,
+                                    ? scheme.primary
+                                    : colors.textPrimary,
                                 fontSize: 12.5),
-                            backgroundColor: Vibe.surface,
-                            selectedColor: Vibe.violet.withValues(alpha: 0.2),
+                            backgroundColor: colors.card,
+                            selectedColor: scheme.primary.withValues(alpha: 0.2),
                             side: BorderSide(
                                 color: info.tonnage == t.$2
-                                    ? Vibe.violet
-                                    : Vibe.stroke),
+                                    ? scheme.primary
+                                    : colors.border),
                           ))
                       .toList(),
                 ),
                 const SizedBox(height: 12),
                 Text('Budget',
-                    style: const TextStyle(
-                        color: Vibe.muted,
+                    style: TextStyle(
+                        color: colors.textSecondary,
                         fontSize: 12,
                         fontWeight: FontWeight.w700)),
                 const SizedBox(height: 6),
@@ -449,22 +458,22 @@ class _DetailBody extends StatelessWidget {
                                 context, (i) => i.copyWith(budgetStatus: b)),
                             labelStyle: TextStyle(
                                 color: info.budgetStatus == b
-                                    ? Vibe.violet
-                                    : Vibe.text,
+                                    ? scheme.primary
+                                    : colors.textPrimary,
                                 fontSize: 12.5),
-                            backgroundColor: Vibe.surface,
-                            selectedColor: Vibe.violet.withValues(alpha: 0.2),
+                            backgroundColor: colors.card,
+                            selectedColor: scheme.primary.withValues(alpha: 0.2),
                             side: BorderSide(
                                 color: info.budgetStatus == b
-                                    ? Vibe.violet
-                                    : Vibe.stroke),
+                                    ? scheme.primary
+                                    : colors.border),
                           ))
                       .toList(),
                 ),
                 const SizedBox(height: 12),
                 Text('Authority',
-                    style: const TextStyle(
-                        color: Vibe.muted,
+                    style: TextStyle(
+                        color: colors.textSecondary,
                         fontSize: 12,
                         fontWeight: FontWeight.w700)),
                 const SizedBox(height: 6),
@@ -479,15 +488,15 @@ class _DetailBody extends StatelessWidget {
                           (i) => i.copyWith(hasDecisionMakerAccess: true)),
                       labelStyle: TextStyle(
                           color: info.hasDecisionMakerAccess == true
-                              ? Vibe.violet
-                              : Vibe.text,
+                              ? scheme.primary
+                              : colors.textPrimary,
                           fontSize: 12.5),
-                      backgroundColor: Vibe.surface,
-                      selectedColor: Vibe.violet.withValues(alpha: 0.2),
+                      backgroundColor: colors.card,
+                      selectedColor: scheme.primary.withValues(alpha: 0.2),
                       side: BorderSide(
                           color: info.hasDecisionMakerAccess == true
-                              ? Vibe.violet
-                              : Vibe.stroke),
+                              ? scheme.primary
+                              : colors.border),
                     ),
                     ChoiceChip(
                       label: const Text('Not yet'),
@@ -496,15 +505,15 @@ class _DetailBody extends StatelessWidget {
                           (i) => i.copyWith(hasDecisionMakerAccess: false)),
                       labelStyle: TextStyle(
                           color: info.hasDecisionMakerAccess == false
-                              ? Vibe.violet
-                              : Vibe.text,
+                              ? scheme.primary
+                              : colors.textPrimary,
                           fontSize: 12.5),
-                      backgroundColor: Vibe.surface,
-                      selectedColor: Vibe.violet.withValues(alpha: 0.2),
+                      backgroundColor: colors.card,
+                      selectedColor: scheme.primary.withValues(alpha: 0.2),
                       side: BorderSide(
                           color: info.hasDecisionMakerAccess == false
-                              ? Vibe.violet
-                              : Vibe.stroke),
+                              ? scheme.primary
+                              : colors.border),
                     ),
                   ],
                 ),
@@ -564,7 +573,7 @@ class _DetailBody extends StatelessWidget {
                       icon: const Icon(Icons.send_rounded, size: 18),
                       label: const Text('Send to HQ'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Vibe.violet,
+                        backgroundColor: scheme.primary,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12)),
@@ -605,8 +614,8 @@ class _Section extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(title,
-                style: const TextStyle(
-                    color: Vibe.text,
+                style: TextStyle(
+                    color: context.appColors.textPrimary,
                     fontSize: 14.5,
                     fontWeight: FontWeight.w800)),
             const SizedBox(height: 12),
@@ -625,6 +634,7 @@ class _KeyValue extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
@@ -633,12 +643,12 @@ class _KeyValue extends StatelessWidget {
           SizedBox(
             width: 140,
             child: Text(label,
-                style: const TextStyle(color: Vibe.muted, fontSize: 12.5)),
+                style: TextStyle(color: colors.textSecondary, fontSize: 12.5)),
           ),
           Expanded(
             child: Text(value.isEmpty ? '—' : value,
-                style: const TextStyle(
-                    color: Vibe.text,
+                style: TextStyle(
+                    color: colors.textPrimary,
                     fontSize: 12.5,
                     fontWeight: FontWeight.w600)),
           ),

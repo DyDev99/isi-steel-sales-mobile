@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/local/localized_builder.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customer_sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customers_bloc.dart';
@@ -77,7 +77,7 @@ class _CustomersViewState extends State<_CustomersView> {
   Widget build(BuildContext context) {
     return LocalizedBuilder(
       builder: (context) => Scaffold(
-        backgroundColor: Vibe.bg,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         body: BlocBuilder<CustomersBloc, CustomersState>(
           builder: (context, state) {
             return switch (state) {
@@ -89,10 +89,12 @@ class _CustomersViewState extends State<_CustomersView> {
                   onOpenDetail: (id) => _openDetail(context, id),
                 ),
               CustomersError(:final message) => Center(
-                  child:
-                      Text(message, style: const TextStyle(color: Vibe.muted))),
-              _ => const Center(
-                  child: CircularProgressIndicator(color: Vibe.violet)),
+                  child: Text(message,
+                      style:
+                          TextStyle(color: context.appColors.textSecondary))),
+              _ => Center(
+                  child: CircularProgressIndicator(
+                      color: Theme.of(context).colorScheme.primary)),
             };
           },
         ),
@@ -125,13 +127,15 @@ class _Loaded extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     final items = _visibleItems;
     final territories = state.items.map((c) => c.territory).toSet().toList()
       ..sort();
 
     return RefreshIndicator(
-      color: Vibe.violet,
-      backgroundColor: Vibe.bgSoft,
+      color: scheme.primary,
+      backgroundColor: colors.surfaceSoft,
       onRefresh: () async {
         await context.read<CustomerSyncCubit>().refresh();
         if (context.mounted) {
@@ -177,7 +181,7 @@ class _Loaded extends StatelessWidget {
                   quickAccess == _QuickAccess.all
                       ? 'customers.no_customers'.tr
                       : 'customers.nothing_here'.tr,
-                  style: const TextStyle(color: Vibe.muted),
+                  style: TextStyle(color: colors.textSecondary),
                 ),
               ),
             )
@@ -209,11 +213,11 @@ class _Loaded extends StatelessWidget {
               ),
             ),
           if (state.isLoadingMore && quickAccess == _QuickAccess.all)
-            const SliverToBoxAdapter(
+            SliverToBoxAdapter(
               child: Padding(
-                padding: EdgeInsets.all(16),
+                padding: const EdgeInsets.all(16),
                 child: Center(
-                    child: CircularProgressIndicator(color: Vibe.violet)),
+                    child: CircularProgressIndicator(color: scheme.primary)),
               ),
             ),
         ],
@@ -260,20 +264,23 @@ class _Segment extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: selected ? Vibe.violet : Vibe.bgSoft,
+          color: selected ? scheme.primary : colors.surfaceSoft,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: selected ? Vibe.violet : Vibe.stroke),
+          border:
+              Border.all(color: selected ? scheme.primary : colors.border),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: selected ? Colors.white : Vibe.text,
+            color: selected ? scheme.onPrimary : colors.textPrimary,
             fontSize: 12.5,
             fontWeight: FontWeight.w700,
           ),

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart'; // Added for context.appColors
 import 'package:isi_steel_sales_mobile/core/usecase/usecase.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/local/catalog_filter_store.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
@@ -81,7 +81,6 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
   String? _expandedProductId;
   int _selectedDiscount = 0;
 
-  // Line-item defaults applied when quick-adding a product to the cart.
   String _selectedUnit = 'Pc';
   int _quantity = 1;
 
@@ -93,9 +92,6 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
           result.when(success: (c) => c, failure: (_) => const <Category>[]),
     );
 
-    // Restore the last category/facets/search so the filter state survives
-    // navigating away from and back to the quotation (spec: single source of
-    // truth is CatalogBloc, mirrored into CatalogFilterStore for persistence).
     final snapshot = _store.load();
     _searchController.text = snapshot.query;
     _selectedUnit = snapshot.unit;
@@ -125,16 +121,11 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
     super.dispose();
   }
 
-  // ── Filter state (CatalogBloc is the source of truth) ──────────────────
-
   ProductFilter get _currentFilter {
     final state = context.read<CatalogBloc>().state;
     return state is CatalogLoaded ? state.filter : const ProductFilter();
   }
 
-  /// Mirrors the live filter/query/unit/quantity into [CatalogFilterStore] so
-  /// the whole configuration is restored verbatim when returning to the
-  /// quotation. Defaults fall back to the current state when not overridden.
   void _persist({ProductFilter? filter, String? query}) {
     _store.save(CatalogFilterSnapshot(
       filter: filter ?? _currentFilter,
@@ -150,7 +141,7 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
   }
 
   void _onSearchChanged(String query) {
-    setState(() {}); // refresh the search field's clear affordance
+    setState(() {});
     context.read<CatalogBloc>().add(CatalogSearchChanged(query));
     _persist(query: query);
   }
@@ -165,8 +156,6 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
     _persist();
   }
 
-  /// Switching category clears the old attribute facets — they rarely apply to
-  /// the new category (see [ProductFilter.clearAttributes]).
   void _selectCategory(String? categoryId) => _applyFilter(
       _currentFilter.copyWith(categoryId: () => categoryId).clearAttributes());
 
@@ -185,8 +174,6 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
       setState(() => _expandedProductId = onlyMatch.id);
     }
   }
-
-  // ── Favorites / expansion / discount ───────────────────────────────────
 
   Future<void> _loadFavorites() async {
     final result = await sl<FetchFavorites>()(const NoParams());
@@ -256,8 +243,6 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
     ));
   }
 
-  // ── Filter UI builders (backed by ProductFilterFacets) ─────────────────
-
   String? _categoryName(List<Category> categories, String? id) {
     if (id == null) return null;
     for (final category in categories) {
@@ -292,9 +277,6 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
     );
   }
 
-  /// Sales-unit + quantity defaults for quick-add. These feed straight into
-  /// [ProductListSection] → [CartCubit.addProduct], and persist across
-  /// navigation via [_persist].
   Widget _buildUnitAndQuantity() {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
@@ -362,19 +344,22 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: colorScheme.surface,
         elevation: 0,
         centerTitle: false,
-        leading: const BackButton(color: Color(0xFF0F2C7F)),
+        leading: BackButton(color: colorScheme.primary),
         title: Text(
           widget.customer?.shopName ??
               widget.leadDisplayName ??
               'orders.quotation.builder_title'.tr,
-          style: const TextStyle(
-            color: Color(0xFF0F2C7F),
+          style: TextStyle(
+            color: colorScheme.primary,
             fontSize: 17,
             fontWeight: FontWeight.bold,
           ),
@@ -484,8 +469,6 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                         ),
                         const SizedBox(height: 16),
                         const CartPreviewSection(),
-
-                        // --- START OF DYNAMIC QUOTATION PREVIEW SECTION ---
                         BlocBuilder<CartCubit, CartState>(
                           builder: (context, cartState) {
                             final List<CartItem> cartItems =
@@ -497,7 +480,6 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                                 : 0.0;
                             final int totalItemsCount = cartItems.length;
 
-                            // Real-time calculations
                             final double discountAmount =
                                 subtotal * (_selectedDiscount / 100.0);
                             final double taxAmount =
@@ -537,8 +519,6 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                             );
                           },
                         ),
-                        // --- END OF DYNAMIC QUOTATION PREVIEW SECTION ---
-
                         const SizedBox(height: 16),
                       ],
                     );
@@ -562,8 +542,8 @@ class _SectionLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Text(
         text.toUpperCase(),
-        style: const TextStyle(
-          color: Vibe.muted,
+        style: TextStyle(
+          color: context.appColors.textSecondary,
           fontSize: 11,
           fontWeight: FontWeight.w800,
           letterSpacing: 0.4,

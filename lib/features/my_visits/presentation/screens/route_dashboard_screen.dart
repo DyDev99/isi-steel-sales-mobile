@@ -6,7 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/route_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/seed_isi_tower_test_route.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/visit_local_data_source.dart';
@@ -19,6 +19,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/rout
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/route_sync_state.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/navigation/open_route_dispatch.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/my_visits_history_screen.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/calendar_widget_section.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/route_skeletons.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/region_card.dart';
 
@@ -70,15 +71,17 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F6F9),
+      backgroundColor: colors.canvas,
       floatingActionButton: kDebugMode
           ? FloatingActionButton.small(
               heroTag: 'seed-test-route',
-              backgroundColor: Vibe.violet,
+              backgroundColor: scheme.primary,
               tooltip: 'Seed ISI Tower test route',
               onPressed: () => _seedTestRoute(context),
-              child: const Icon(Icons.bug_report_rounded, color: Colors.white),
+              child: Icon(Icons.bug_report_rounded, color: scheme.onPrimary),
             )
           : null,
       body: SafeArea(
@@ -91,8 +94,8 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
           child: BlocBuilder<RouteDashboardCubit, RouteDashboardState>(
             builder: (context, state) => switch (state) {
               RouteDashboardLoaded() => RefreshIndicator(
-                  color: Vibe.violet,
-                  backgroundColor: Vibe.bgSoft,
+                  color: scheme.primary,
+                  backgroundColor: colors.surfaceSoft,
                   onRefresh: () async {
                     final syncCubit = context.read<RouteSyncCubit>();
                     await syncCubit.refresh();
@@ -105,7 +108,7 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
                     padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 20.h),
                     children: [
                       // 1. Grid Calendar Section
-                      _GridCalendarCard(
+                      GridCalendarCard(
                         focusedMonth: _focusedMonth,
                         selectedDate: _selectedDate,
                         onMonthChanged: (newMonth) {
@@ -145,7 +148,7 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
                                 .format(_selectedDate)
                                 .toUpperCase(),
                         style: TextStyle(
-                          color: Vibe.text,
+                          color: colors.textPrimary,
                           fontSize: 14.sp,
                           fontWeight: FontWeight.w900,
                           letterSpacing: 0.5,
@@ -159,8 +162,8 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
                   ),
                 ),
               RouteDashboardError(:final message) => Center(
-                  child:
-                      Text(message, style: const TextStyle(color: Vibe.muted))),
+                  child: Text(message,
+                      style: TextStyle(color: colors.textSecondary))),
               _ => const RouteDashboardSkeleton(),
             },
           ),
@@ -190,11 +193,12 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(Icons.calendar_today_outlined,
-                  size: 28.w, color: Vibe.muted),
+                  size: 28.w, color: context.appColors.textSecondary),
               SizedBox(height: 10.h),
               Text(
                 'No customer visits scheduled for this date',
-                style: TextStyle(color: Vibe.muted, fontSize: 12.sp),
+                style: TextStyle(
+                    color: context.appColors.textSecondary, fontSize: 12.sp),
               ),
             ],
           ),
@@ -290,19 +294,20 @@ class _PendingSyncDebugBadge extends StatelessWidget {
     return FutureBuilder<int>(
       future: sl<VisitLocalDataSource>().countPendingVisitRecords(),
       builder: (context, snapshot) {
+        final colors = context.appColors;
         final count = snapshot.data;
         return Container(
           padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
           decoration: BoxDecoration(
-            color: Vibe.bgSoft,
+            color: colors.surfaceSoft,
             borderRadius: BorderRadius.circular(8.r),
-            border: Border.all(color: Vibe.stroke),
+            border: Border.all(color: colors.border),
           ),
           child: Text(
             count == null
                 ? 'Pending sync: …'
                 : 'Pending sync: $count record(s)',
-            style: TextStyle(color: Vibe.muted, fontSize: 11.sp),
+            style: TextStyle(color: colors.textSecondary, fontSize: 11.sp),
           ),
         );
       },
@@ -329,6 +334,7 @@ class RegionGroupHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(8.r),
@@ -339,7 +345,7 @@ class RegionGroupHeader extends StatelessWidget {
             Text(
               regionName.toUpperCase(),
               style: TextStyle(
-                color: Vibe.text.withValues(alpha: 0.85),
+                color: colors.textPrimary.withValues(alpha: 0.85),
                 fontSize: 12.sp,
                 fontWeight: FontWeight.w900,
                 letterSpacing: 0.6,
@@ -349,13 +355,13 @@ class RegionGroupHeader extends StatelessWidget {
             Container(
               padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
               decoration: BoxDecoration(
-                color: const Color(0xFFE9EDF0),
+                color: colors.surfaceSoft,
                 borderRadius: BorderRadius.circular(12.r),
               ),
               child: Text(
                 '$completedStops/$totalStops',
                 style: TextStyle(
-                  color: const Color(0xFF5A6773),
+                  color: colors.textSecondary,
                   fontSize: 10.sp,
                   fontWeight: FontWeight.bold,
                 ),
@@ -367,7 +373,7 @@ class RegionGroupHeader extends StatelessWidget {
               duration: const Duration(milliseconds: 200),
               child: Icon(
                 Icons.keyboard_arrow_up_rounded,
-                color: Vibe.text.withValues(alpha: 0.6),
+                color: colors.textPrimary.withValues(alpha: 0.6),
                 size: 20.w,
               ),
             ),
@@ -378,201 +384,6 @@ class RegionGroupHeader extends StatelessWidget {
   }
 }
 
-class _GridCalendarCard extends StatelessWidget {
-  const _GridCalendarCard({
-    required this.focusedMonth,
-    required this.selectedDate,
-    required this.onMonthChanged,
-    required this.onDateSelected,
-  });
-
-  final DateTime focusedMonth;
-  final DateTime selectedDate;
-  final ValueChanged<DateTime> onMonthChanged;
-  final ValueChanged<DateTime> onDateSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    final daysInMonth =
-        DateUtils.getDaysInMonth(focusedMonth.year, focusedMonth.month);
-    final firstDayOffset =
-        DateTime(focusedMonth.year, focusedMonth.month, 1).weekday % 7;
-    final weekdayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-
-    return Container(
-      padding: EdgeInsets.all(14.w),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12.r),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 8,
-              offset: const Offset(0, 2)),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'CALENDAR',
-                style: TextStyle(
-                  color: Vibe.text.withValues(alpha: 0.8),
-                  fontSize: 13.sp,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.5,
-                ),
-              ),
-              Row(
-                children: [
-                  IconButton(
-                    icon: Icon(Icons.chevron_left_rounded,
-                        color: Vibe.text, size: 20.w),
-                    constraints: const BoxConstraints(),
-                    padding: EdgeInsets.zero,
-                    onPressed: () {
-                      onMonthChanged(DateTime(
-                          focusedMonth.year, focusedMonth.month - 1, 1));
-                    },
-                  ),
-                  SizedBox(width: 8.w),
-                  Text(
-                    DateFormat('MMMM yyyy').format(focusedMonth),
-                    style: TextStyle(
-                        color: Vibe.text,
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(width: 8.w),
-                  IconButton(
-                    icon: Icon(Icons.chevron_right_rounded,
-                        color: Vibe.text, size: 20.w),
-                    constraints: const BoxConstraints(),
-                    padding: EdgeInsets.zero,
-                    onPressed: () {
-                      onMonthChanged(DateTime(
-                          focusedMonth.year, focusedMonth.month + 1, 1));
-                    },
-                  ),
-                ],
-              ),
-            ],
-          ),
-          SizedBox(height: 12.h),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: weekdayLabels
-                .map((label) => Expanded(
-                      child: Container(
-                        alignment: Alignment.center,
-                        margin: EdgeInsets.symmetric(horizontal: 1.5.w),
-                        padding: EdgeInsets.symmetric(vertical: 5.h),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE9EDF0),
-                          borderRadius: BorderRadius.circular(4.r),
-                        ),
-                        child: Text(
-                          label,
-                          style: TextStyle(
-                              color: const Color(0xFF5A6773),
-                              fontSize: 10.sp,
-                              fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ))
-                .toList(),
-          ),
-          SizedBox(height: 6.h),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: daysInMonth + firstDayOffset,
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 7,
-              mainAxisSpacing: 5.h,
-              crossAxisSpacing: 3.5.w,
-              childAspectRatio: 1.0,
-            ),
-            itemBuilder: (context, index) {
-              if (index < firstDayOffset) return const SizedBox.shrink();
-
-              final dayNumber = index - firstDayOffset + 1;
-              final dayDate =
-                  DateTime(focusedMonth.year, focusedMonth.month, dayNumber);
-
-              final bool isSelected = dayDate.year == selectedDate.year &&
-                  dayDate.month == selectedDate.month &&
-                  dayDate.day == selectedDate.day;
-
-              Color blockBg = const Color(0xFFE9EDF0);
-              Color textColor = Vibe.text;
-              bool hasDot = false;
-              Color dotColor = Colors.transparent;
-
-              if (isSelected) {
-                blockBg = const Color(0xFF7A8B99);
-                textColor = Colors.white;
-              } else {
-                if (dayNumber == 13 || dayNumber == 16) {
-                  blockBg = const Color(0xFFA1DBCB);
-                  hasDot = true;
-                  dotColor = const Color(0xFF1B6B59);
-                } else if (dayNumber == 22) {
-                  blockBg = const Color(0xFFF9C38F);
-                  hasDot = true;
-                  dotColor = const Color(0xFF9E5610);
-                } else if ([4, 10, 23].contains(dayNumber)) {
-                  hasDot = true;
-                  dotColor = const Color(0xFF3A7D6F);
-                }
-              }
-
-              return GestureDetector(
-                onTap: () => onDateSelected(dayDate),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: blockBg,
-                    borderRadius: BorderRadius.circular(6.r),
-                  ),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Positioned(
-                        top: hasDot ? 6.h : null,
-                        child: Text(
-                          '$dayNumber',
-                          style: TextStyle(
-                            color: textColor,
-                            fontSize: 11.5.sp,
-                            fontWeight:
-                                isSelected ? FontWeight.w900 : FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      if (hasDot)
-                        Positioned(
-                          bottom: 5.h,
-                          child: Container(
-                            width: 3.5.w,
-                            height: 3.5.w,
-                            decoration: BoxDecoration(
-                                color: dotColor, shape: BoxShape.circle),
-                          ),
-                        )
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _ActivityHistoryRibbon extends StatelessWidget {
   const _ActivityHistoryRibbon({required this.onTap});
@@ -580,16 +391,17 @@ class _ActivityHistoryRibbon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 13.h),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: colors.card,
           borderRadius: BorderRadius.circular(10.r),
           boxShadow: [
             BoxShadow(
-                color: Colors.black.withValues(alpha: 0.02),
+                color: colors.shadowColor.withValues(alpha: 0.02),
                 blurRadius: 6,
                 offset: const Offset(0, 2)),
           ],
@@ -603,11 +415,12 @@ class _ActivityHistoryRibbon extends StatelessWidget {
                   ? 'my_visits.history.view_historyTemplate'.tr.toUpperCase()
                   : 'ACTIVITY HISTORY',
               style: TextStyle(
-                  color: Vibe.text,
+                  color: colors.textPrimary,
                   fontSize: 13.sp,
                   fontWeight: FontWeight.w800),
             ),
-            Icon(Icons.arrow_forward_ios_rounded, size: 13.w, color: Vibe.text),
+            Icon(Icons.arrow_forward_ios_rounded,
+                size: 13.w, color: colors.textPrimary),
           ],
         ),
       ),

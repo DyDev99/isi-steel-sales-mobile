@@ -9,6 +9,19 @@ abstract interface class AppPreferences {
 
   String? get savedLanguageCode;
   Future<void> setLanguageCode(String code);
+
+  /// Active theme mode as its stored string (`light`/`dark`/`system`), or null
+  /// when the user has never chosen — callers default to Light.
+  String? get savedThemeMode;
+  Future<void> setThemeMode(String mode);
+
+  /// Previously-selected theme mode string, if any.
+  String? get lastThemeMode;
+  Future<void> setLastThemeMode(String mode);
+
+  /// Persisted theme-preferences schema version (future migrations).
+  int get themeVersion;
+  Future<void> setThemeVersion(int version);
 }
 
 class AppPreferencesImpl implements AppPreferences {
@@ -17,6 +30,9 @@ class AppPreferencesImpl implements AppPreferences {
 
   static const String _kOnboarding = 'onboarding_complete';
   static const String _kLanguage = 'language_code';
+  static const String _kThemeMode = 'theme_mode';
+  static const String _kLastThemeMode = 'theme_mode_last';
+  static const String _kThemeVersion = 'theme_version';
 
   @override
   bool get isOnboardingComplete =>
@@ -31,4 +47,24 @@ class AppPreferencesImpl implements AppPreferences {
 
   @override
   Future<void> setLanguageCode(String code) => _box.put(_kLanguage, code);
+
+  @override
+  String? get savedThemeMode => _box.get(_kThemeMode) as String?;
+
+  @override
+  Future<void> setThemeMode(String mode) => _box.put(_kThemeMode, mode);
+
+  @override
+  String? get lastThemeMode => _box.get(_kLastThemeMode) as String?;
+
+  @override
+  Future<void> setLastThemeMode(String mode) =>
+      _box.put(_kLastThemeMode, mode);
+
+  @override
+  int get themeVersion => _box.get(_kThemeVersion, defaultValue: 1) as int;
+
+  @override
+  Future<void> setThemeVersion(int version) =>
+      _box.put(_kThemeVersion, version);
 }

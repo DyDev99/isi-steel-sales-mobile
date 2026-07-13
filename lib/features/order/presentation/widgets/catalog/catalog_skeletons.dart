@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/core/utils/glass_card.dart';
 import 'package:isi_steel_sales_mobile/core/utils/shimmer.dart';
 
-/// Placeholder for one product tile — mirrors `ProductCard`'s horizontal
-/// composition (fixed-size image on the left, code/name/meta/price on the
-/// right) so the grid doesn't reflow when real products arrive. The grid's
-/// fixed `mainAxisExtent` already pins the cell size.
 class ProductCardSkeleton extends StatelessWidget {
   const ProductCardSkeleton({super.key});
 
@@ -14,6 +11,8 @@ class ProductCardSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final baseColor = context.appColors.border.withValues(alpha: 0.4);
+
     return GlassCard(
       padding: const EdgeInsets.all(8),
       child: Shimmer(
@@ -22,7 +21,7 @@ class ProductCardSkeleton extends StatelessWidget {
           children: [
             DecoratedBox(
               decoration: BoxDecoration(
-                  color: kSkeletonBase,
+                  color: baseColor,
                   borderRadius: BorderRadius.circular(10)),
               child: const SizedBox(width: _imageSize, height: _imageSize),
             ),
@@ -36,22 +35,21 @@ class ProductCardSkeleton extends StatelessWidget {
                   children: [
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        SkeletonBox(width: 40, height: 10, radius: 4),
-                        SizedBox(height: 4),
-                        SkeletonBox(
-                            width: double.infinity, height: 13, radius: 4),
-                        SizedBox(height: 4),
-                        SkeletonBox(width: 90, height: 11, radius: 4),
-                        SizedBox(height: 3),
-                        SkeletonBox(width: 70, height: 11, radius: 4),
+                      children: [
+                        SkeletonBox(width: 40, height: 10, radius: 4, color: baseColor),
+                        const SizedBox(height: 4),
+                        SkeletonBox(width: double.infinity, height: 13, radius: 4, color: baseColor),
+                        const SizedBox(height: 4),
+                        SkeletonBox(width: 90, height: 11, radius: 4, color: baseColor),
+                        const SizedBox(height: 3),
+                        SkeletonBox(width: 70, height: 11, radius: 4, color: baseColor),
                       ],
                     ),
                     Row(
-                      children: const [
-                        SkeletonBox(width: 46, height: 14, radius: 4),
-                        Spacer(),
-                        SkeletonBox(width: 28, height: 28, radius: 8),
+                      children: [
+                        SkeletonBox(width: 46, height: 14, radius: 4, color: baseColor),
+                        const Spacer(),
+                        SkeletonBox(width: 28, height: 28, radius: 8, color: baseColor),
                       ],
                     ),
                   ],
@@ -65,8 +63,6 @@ class ProductCardSkeleton extends StatelessWidget {
   }
 }
 
-/// Full loading list for the catalog — same 1-column layout, spacing, and
-/// fixed cell height as the loaded product list.
 class CatalogGridSkeleton extends StatelessWidget {
   const CatalogGridSkeleton({super.key, this.itemCount = 6});
   final int itemCount;

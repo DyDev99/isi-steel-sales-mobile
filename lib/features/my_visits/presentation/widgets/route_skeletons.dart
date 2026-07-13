@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/core/utils/shimmer.dart';
 
 /// Placeholder for one route tile — mirrors `_RouteTile`'s exact box metrics
@@ -17,7 +17,7 @@ class RouteCardSkeleton extends StatelessWidget {
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Vibe.stroke)),
+            border: Border.all(color: context.appColors.border)),
         child: Shimmer(
           child: Row(
             children: [
@@ -76,7 +76,7 @@ class InventoryLineSkeleton extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Vibe.stroke)),
+          border: Border.all(color: context.appColors.border)),
       child: Shimmer(
         child: Row(
           children: const [

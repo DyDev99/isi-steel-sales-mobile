@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_stop.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/fetch_visit_data.dart';
 
@@ -76,9 +76,11 @@ class VisitTimeline extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     if (entries.isEmpty) {
-      return const Text('No activity yet',
-          style: TextStyle(color: Vibe.muted, fontSize: 12.5));
+      return Text('No activity yet',
+          style: TextStyle(color: colors.textSecondary, fontSize: 12.5));
     }
     return Column(
       children: [
@@ -93,20 +95,20 @@ class VisitTimeline extends StatelessWidget {
                   height: 28,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                      color: Vibe.primaryLight,
+                      color: colors.surfaceStrong,
                       borderRadius: BorderRadius.circular(8)),
-                  child: Icon(entry.icon, size: 14, color: Vibe.violet),
+                  child: Icon(entry.icon, size: 14, color: scheme.primary),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(entry.label,
-                      style: const TextStyle(
-                          color: Vibe.text,
+                      style: TextStyle(
+                          color: colors.textPrimary,
                           fontSize: 12.5,
                           fontWeight: FontWeight.w600)),
                 ),
                 Text(_formatTime(entry.time),
-                    style: const TextStyle(color: Vibe.muted, fontSize: 11)),
+                    style: TextStyle(color: colors.textSecondary, fontSize: 11)),
               ],
             ),
           ),

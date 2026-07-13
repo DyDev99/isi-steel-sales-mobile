@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/features/app_coach/presentation/services/coach_keys.dart';
 import 'package:isi_steel_sales_mobile/features/home/presentation/bloc/home_cubit.dart';
 
 class MyWorkGridSection extends StatelessWidget {
@@ -8,13 +10,14 @@ class MyWorkGridSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Section Header: Bold, tracked out uppercase label
           Padding(
             padding: EdgeInsets.only(left: 4.w, bottom: 12.h),
             child: Text(
@@ -23,65 +26,78 @@ class MyWorkGridSection extends StatelessWidget {
                 fontSize: 14.sp,
                 fontWeight: FontWeight.w900,
                 letterSpacing: 1.6,
-                color: const Color(0xFF7A869A), // Sophisticated slate gray
+                color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6) ?? theme.colorScheme.onSurface.withValues(alpha: 0.6),
               ),
             ),
           ),
 
-          // Grid Layout: Row 1
           Row(
             children: [
               Expanded(
-                child: _buildWorkCard(
-                  label: 'My Leads',
-                  icon: Icons.layers_outlined,
-                  iconColor: const Color(0xFF4C9AFF),
-                  iconBgColor: const Color(0xFFE6F0FF),
-                  badgeText: '1 due',
-                  isActive: false,
-                  onTap: () => sl<ShellTabController>().goTo(ShellTab.leads),
+                child: CoachKeys.wrap(
+                  CoachKeys.myLeads,
+                  child: _buildWorkCard(
+                    context: context,
+                    label: 'My Leads',
+                    icon: Icons.layers_outlined,
+                    iconColor: const Color(0xFF4C9AFF),
+                    iconBgColor: const Color(0xFF4C9AFF).withValues(alpha: 0.15),
+                    badgeText: '1 due',
+                    isActive: false,
+                    onTap: () => sl<ShellTabController>().goTo(ShellTab.leads),
+                  ),
                 ),
               ),
               SizedBox(width: 12.w),
               Expanded(
-                child: _buildWorkCard(
-                  label: 'My Visits',
-                  icon: Icons.assignment_turned_in_outlined,
-                  iconColor: const Color(0xFF36B37E),
-                  iconBgColor: const Color(0xFFE3FCEF),
-                  badgeText: '3 today',
-                  isActive:
-                      true, // Highlights with the focused deep border seen in your image
-                  onTap: () => sl<ShellTabController>().goTo(ShellTab.myVisits),
+                child: CoachKeys.wrap(
+                  CoachKeys.myVisits,
+                  child: _buildWorkCard(
+                    context: context,
+                    label: 'My Visits',
+                    icon: Icons.assignment_turned_in_outlined,
+                    iconColor: const Color(0xFF36B37E),
+                    iconBgColor: const Color(0xFF36B37E).withValues(alpha: 0.15),
+                    badgeText: '3 today',
+                    isActive: true,
+                    onTap: () => sl<ShellTabController>().goTo(ShellTab.myVisits),
+                  ),
                 ),
               ),
             ],
           ),
           SizedBox(height: 12.h),
 
-          // Grid Layout: Row 2
           Row(
             children: [
               Expanded(
-                child: _buildWorkCard(
-                  label: 'My Customers',
-                  icon: Icons.people_alt_outlined,
-                  iconColor: const Color(0xFFFF5C00),
-                  iconBgColor: const Color(0xFFFFF0E6),
-                  isActive: false,
-                  onTap: () =>
-                      sl<ShellTabController>().goTo(ShellTab.customers),
+                child: CoachKeys.wrap(
+                  CoachKeys.myCustomers,
+                  child: _buildWorkCard(
+                    context: context,
+                    label: 'My Customers',
+                    icon: Icons.people_alt_outlined,
+                    iconColor: const Color(0xFFFF5C00),
+                    iconBgColor: const Color(0xFFFF5C00).withValues(alpha: 0.15),
+                    isActive: false,
+                    onTap: () =>
+                        sl<ShellTabController>().goTo(ShellTab.customers),
+                  ),
                 ),
               ),
               SizedBox(width: 12.w),
               Expanded(
-                child: _buildWorkCard(
-                  label: 'My Quotes & Orders',
-                  icon: Icons.description_outlined,
-                  iconColor: const Color(0xFFFFAB00),
-                  iconBgColor: const Color(0xFFFFF7E6),
-                  isActive: false,
-                  onTap: () => sl<ShellTabController>().goTo(ShellTab.orders),
+                child: CoachKeys.wrap(
+                  CoachKeys.orders,
+                  child: _buildWorkCard(
+                    context: context,
+                    label: 'My Quotes & Orders',
+                    icon: Icons.description_outlined,
+                    iconColor: const Color(0xFFFFAB00),
+                    iconBgColor: const Color(0xFFFFAB00).withValues(alpha: 0.15),
+                    isActive: false,
+                    onTap: () => sl<ShellTabController>().goTo(ShellTab.orders),
+                  ),
                 ),
               ),
             ],
@@ -91,8 +107,8 @@ class MyWorkGridSection extends StatelessWidget {
     );
   }
 
-  // Core Bento Card Layout Builder
   Widget _buildWorkCard({
+    required BuildContext context,
     required String label,
     required IconData icon,
     required Color iconColor,
@@ -101,17 +117,21 @@ class MyWorkGridSection extends StatelessWidget {
     required bool isActive,
     required VoidCallback onTap,
   }) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final appColors = context.appColors;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 116.h, // Structured layout height
+        height: 116.h,
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20.r), // Playful soft corners
-
+          color: scheme.surface,
+          borderRadius: BorderRadius.circular(20.r),
+         
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: isActive ? 0.05 : 0.02),
+              color: Colors.black.withValues(alpha: theme.brightness == Brightness.dark ? 0.2 : 0.02),
               blurRadius: isActive ? 16 : 10,
               offset: Offset(0, isActive ? 6 : 4),
             ),
@@ -120,11 +140,9 @@ class MyWorkGridSection extends StatelessWidget {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            // Internal Main Content Frame
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Icon Housing Area
                 Stack(
                   clipBehavior: Clip.none,
                   children: [
@@ -143,27 +161,22 @@ class MyWorkGridSection extends StatelessWidget {
                         ),
                       ),
                     ),
-
-                    // Floating Pill Badge implementation
                     if (badgeText != null)
                       Positioned(
                         top: -6.h,
                         right: -32.w,
                         child: Container(
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 8.w, vertical: 3.h),
+                          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
                           decoration: BoxDecoration(
-                            color: const Color(
-                                0xFF0A3066), // Deep energetic navy block
+                            color: scheme.secondary,
                             borderRadius: BorderRadius.circular(100.r),
                           ),
                           child: Text(
                             badgeText,
                             style: TextStyle(
-                              color: Colors.white,
+                              color: scheme.onSecondary,
                               fontSize: 9.sp,
-                              fontWeight:
-                                  FontWeight.w900, // Thick high-impact font
+                              fontWeight: FontWeight.w900,
                             ),
                           ),
                         ),
@@ -171,17 +184,14 @@ class MyWorkGridSection extends StatelessWidget {
                   ],
                 ),
                 SizedBox(height: 12.h),
-
-                // Card Labels
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 8.w),
                   child: Text(
                     label,
                     style: TextStyle(
                       fontSize: 14.sp,
-                      fontWeight: FontWeight.w800, // Heavy punchy style weight
-                      color:
-                          const Color(0xFF091E42), // Strong ink text contrast
+                      fontWeight: FontWeight.w800,
+                      color: scheme.onSurface,
                       letterSpacing: -0.2,
                     ),
                     textAlign: TextAlign.center,

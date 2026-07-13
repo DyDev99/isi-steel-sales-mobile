@@ -78,7 +78,6 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/sync/con
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/sync/pending_sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/services/geolocator_order_location_service.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/services/image_picker_search_service.dart';
-import 'package:isi_steel_sales_mobile/features/order/presentation/services/mobile_barcode_scanner_service.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/services/speech_voice_search_service.dart';
 
 /// Registers the product catalog + quotation/sales-order + sync engine that
@@ -107,8 +106,7 @@ Future<void> registerOrderFeature(GetIt sl) async {
       () => SyncQueueLocalDataSourceImpl(sl()));
 
   // ── Services ────────────────────────────────────────────────────────
-  sl.registerLazySingleton<BarcodeScannerService>(
-      () => const MobileBarcodeScannerService());
+
   sl.registerLazySingleton<VoiceSearchService>(
       () => const SpeechVoiceSearchService());
   sl.registerLazySingleton<ImageSearchService>(

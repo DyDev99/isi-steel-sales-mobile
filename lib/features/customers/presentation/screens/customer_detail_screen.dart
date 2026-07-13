@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/local/localized_builder.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/core/utils/glass_card.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer_activity_type.dart';
@@ -109,6 +109,8 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
   }
 
   void _addNote(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -118,30 +120,31 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
             bottom: MediaQuery.of(sheetContext).viewInsets.bottom),
         child: Container(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-          decoration: const BoxDecoration(
-              color: Vibe.bg,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+          decoration: BoxDecoration(
+              color: scheme.surface,
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(24))),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Add Note',
+              Text('Add Note',
                   style: TextStyle(
-                      color: Vibe.text,
+                      color: colors.textPrimary,
                       fontSize: 16,
                       fontWeight: FontWeight.w800)),
               const SizedBox(height: 12),
               TextField(
                 controller: _noteController,
                 maxLines: 4,
-                style: const TextStyle(color: Vibe.text),
+                style: TextStyle(color: colors.textPrimary),
                 decoration: InputDecoration(
                   hintText: 'Write a note about this customer…',
                   filled: true,
-                  fillColor: Vibe.bgSoft,
+                  fillColor: colors.surfaceSoft,
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Vibe.stroke)),
+                      borderSide: BorderSide(color: colors.border)),
                 ),
               ),
               const SizedBox(height: 16),
@@ -156,14 +159,15 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
                     Navigator.pop(sheetContext);
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Vibe.violet,
+                    backgroundColor: scheme.primary,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14)),
                   ),
-                  child: const Text('Save Note',
+                  child: Text('Save Note',
                       style: TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.w800)),
+                          color: scheme.onPrimary,
+                          fontWeight: FontWeight.w800)),
                 ),
               ),
             ],
@@ -177,18 +181,20 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
   Widget build(BuildContext context) {
     return LocalizedBuilder(
       builder: (context) => Scaffold(
-        backgroundColor: Vibe.bg,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         appBar: AppBar(
-          backgroundColor: Vibe.bg,
+          backgroundColor: Theme.of(context).colorScheme.surface,
           elevation: 0,
-          iconTheme: const IconThemeData(color: Vibe.text),
+          iconTheme: IconThemeData(color: context.appColors.textPrimary),
           title: BlocBuilder<CustomerDetailCubit, CustomerDetailState>(
             builder: (context, state) => Text(
               state is CustomerDetailLoaded
                   ? state.customer.shopName
                   : 'customers.customer_fallback'.tr,
-              style: const TextStyle(
-                  color: Vibe.text, fontSize: 16, fontWeight: FontWeight.w800),
+              style: TextStyle(
+                  color: context.appColors.textPrimary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800),
             ),
           ),
         ),
@@ -217,10 +223,12 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
                   onAddNote: () => _addNote(context),
                 ),
               CustomerDetailError(:final message) => Center(
-                  child:
-                      Text(message, style: const TextStyle(color: Vibe.muted))),
-              _ => const Center(
-                  child: CircularProgressIndicator(color: Vibe.violet)),
+                  child: Text(message,
+                      style:
+                          TextStyle(color: context.appColors.textSecondary))),
+              _ => Center(
+                  child: CircularProgressIndicator(
+                      color: Theme.of(context).colorScheme.primary)),
             };
           },
         ),
@@ -246,6 +254,8 @@ class _Loaded extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     final customer = state.customer;
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
@@ -267,8 +277,8 @@ class _Loaded extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(customer.ownerName,
-                        style: const TextStyle(
-                            color: Vibe.text,
+                        style: TextStyle(
+                            color: colors.textPrimary,
                             fontSize: 14,
                             fontWeight: FontWeight.w700)),
                   ),
@@ -317,24 +327,25 @@ class _Loaded extends StatelessWidget {
                     padding: const EdgeInsets.only(bottom: 8),
                     child: Row(
                       children: [
-                        const CircleAvatar(
+                        CircleAvatar(
                             radius: 16,
-                            backgroundColor: Vibe.primaryLight,
+                            backgroundColor: colors.surfaceStrong,
                             child: Icon(Icons.person,
-                                size: 16, color: Vibe.violet)),
+                                size: 16, color: scheme.primary)),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(contact.name,
-                                  style: const TextStyle(
-                                      color: Vibe.text,
+                                  style: TextStyle(
+                                      color: colors.textPrimary,
                                       fontSize: 13,
                                       fontWeight: FontWeight.w700)),
                               Text('${contact.role} · ${contact.phone}',
-                                  style: const TextStyle(
-                                      color: Vibe.muted, fontSize: 11.5)),
+                                  style: TextStyle(
+                                      color: colors.textSecondary,
+                                      fontSize: 11.5)),
                             ],
                           ),
                         ),
@@ -403,8 +414,8 @@ class _Loaded extends StatelessWidget {
         _SectionCard(
           title: 'Timeline',
           child: state.activities.isEmpty && state.notes.isEmpty
-              ? const Text('No activity yet',
-                  style: TextStyle(color: Vibe.muted, fontSize: 12.5))
+              ? Text('No activity yet',
+                  style: TextStyle(color: colors.textSecondary, fontSize: 12.5))
               : Column(
                   children: [
                     for (final activity in state.activities)
@@ -451,35 +462,38 @@ class _EstimatedValueSheetState extends State<_EstimatedValueSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     return Padding(
       padding:
           EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Container(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-        decoration: const BoxDecoration(
-            color: Vibe.bg,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        decoration: BoxDecoration(
+            color: scheme.surface,
+            borderRadius:
+                const BorderRadius.vertical(top: Radius.circular(24))),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('New Opportunity for ${widget.customer.shopName}',
-                style: const TextStyle(
-                    color: Vibe.text,
+                style: TextStyle(
+                    color: colors.textPrimary,
                     fontSize: 16,
                     fontWeight: FontWeight.w800)),
             const SizedBox(height: 12),
             TextField(
               controller: _controller,
               keyboardType: TextInputType.number,
-              style: const TextStyle(color: Vibe.text),
+              style: TextStyle(color: colors.textPrimary),
               decoration: InputDecoration(
                 labelText: 'Estimated Value (\$)',
                 filled: true,
-                fillColor: Vibe.bgSoft,
+                fillColor: colors.surfaceSoft,
                 border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Vibe.stroke)),
+                    borderSide: BorderSide(color: colors.border)),
               ),
             ),
             const SizedBox(height: 16),
@@ -491,14 +505,15 @@ class _EstimatedValueSheetState extends State<_EstimatedValueSheet> {
                   Navigator.pop(context, value);
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Vibe.violet,
+                  backgroundColor: scheme.primary,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14)),
                 ),
-                child: const Text('Create Opportunity',
+                child: Text('Create Opportunity',
                     style: TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.w800)),
+                        color: scheme.onPrimary,
+                        fontWeight: FontWeight.w800)),
               ),
             ),
           ],
@@ -525,14 +540,14 @@ class _SectionCard extends StatelessWidget {
           Row(
             children: [
               Text(title,
-                  style: const TextStyle(
-                      color: Vibe.text,
+                  style: TextStyle(
+                      color: context.appColors.textPrimary,
                       fontSize: 14,
                       fontWeight: FontWeight.w800)),
               if (locked) ...[
                 const SizedBox(width: 6),
-                const Icon(Icons.lock_outline_rounded,
-                    size: 13, color: Vibe.muted),
+                Icon(Icons.lock_outline_rounded,
+                    size: 13, color: context.appColors.textSecondary),
               ],
             ],
           ),
@@ -553,21 +568,22 @@ class _InfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 14, color: Vibe.muted),
+          Icon(icon, size: 14, color: colors.textSecondary),
           const SizedBox(width: 8),
           SizedBox(
               width: 110,
               child: Text(label,
-                  style: const TextStyle(color: Vibe.muted, fontSize: 12))),
+                  style: TextStyle(color: colors.textSecondary, fontSize: 12))),
           Expanded(
               child: Text(value,
-                  style: const TextStyle(
-                      color: Vibe.text,
+                  style: TextStyle(
+                      color: colors.textPrimary,
                       fontSize: 12.5,
                       fontWeight: FontWeight.w600))),
         ],
@@ -582,14 +598,15 @@ class _ProductChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final info = context.appColors.info;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-          color: Vibe.mint.withValues(alpha: 0.14),
+          color: info.withValues(alpha: 0.14),
           borderRadius: BorderRadius.circular(20)),
       child: Text(label,
-          style: const TextStyle(
-              color: Vibe.mint, fontSize: 11, fontWeight: FontWeight.w700)),
+          style: TextStyle(
+              color: info, fontSize: 11, fontWeight: FontWeight.w700)),
     );
   }
 }
@@ -603,24 +620,27 @@ class _TimelineRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 15, color: Vibe.violet),
+          Icon(icon, size: 15, color: scheme.primary),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(text,
-                    style: const TextStyle(
-                        color: Vibe.text,
+                    style: TextStyle(
+                        color: colors.textPrimary,
                         fontSize: 12.5,
                         fontWeight: FontWeight.w600)),
                 Text(_formatDateTime(at),
-                    style: const TextStyle(color: Vibe.muted, fontSize: 11)),
+                    style:
+                        TextStyle(color: colors.textSecondary, fontSize: 11)),
               ],
             ),
           ),

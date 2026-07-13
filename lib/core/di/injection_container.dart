@@ -6,6 +6,7 @@ import 'package:isi_steel_sales_mobile/core/local/hive_service.dart';
 import 'package:isi_steel_sales_mobile/core/network/connectivity_cubit.dart';
 import 'package:isi_steel_sales_mobile/core/network/network_info.dart';
 import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
+import 'package:isi_steel_sales_mobile/features/app_coach/app_coach_injection.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/authentication_injection.dart';
 import 'package:isi_steel_sales_mobile/features/localization/presentation/bloc/language_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/customers/customers_injection.dart';
@@ -16,6 +17,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/my_visits_injection.da
 import 'package:isi_steel_sales_mobile/features/order/order_injection.dart';
 import 'package:isi_steel_sales_mobile/features/profile/profile_injection.dart';
 import 'package:isi_steel_sales_mobile/features/revenue/revenue_injection.dart';
+import 'package:isi_steel_sales_mobile/features/settings/theme/theme_injection.dart';
 
 /// Global service locator.
 final GetIt sl = GetIt.instance;
@@ -37,6 +39,7 @@ Future<void> initDependencies() async {
   );
   sl.registerLazySingleton<LanguageCubit>(() => LanguageCubit(sl()));
   sl.registerLazySingleton<ShellTabController>(() => ShellTabController());
+  registerThemeFeature(sl);
 
   // ── Features ───────────────────────────────────────────────────────
   registerAuthFeature(sl);
@@ -47,4 +50,5 @@ Future<void> initDependencies() async {
   await registerMyVisitsFeature(sl);
   registerProfileFeature(sl);
   registerRevenueFeature(sl);
+  registerAppCoachFeature(sl);
 }

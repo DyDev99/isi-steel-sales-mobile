@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
 class NotesSection extends StatefulWidget {
   const NotesSection({super.key, required this.notes, required this.onAddNote});
@@ -28,14 +28,16 @@ class _NotesSectionState extends State<NotesSection> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (widget.notes.isEmpty)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
             child: Text('No notes yet',
-                style: TextStyle(color: Vibe.muted, fontSize: 12.5)),
+                style: TextStyle(color: colors.textSecondary, fontSize: 12.5)),
           )
         else
           ...widget.notes.map(
@@ -44,12 +46,12 @@ class _NotesSectionState extends State<NotesSection> {
               margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Vibe.surface,
+                color: colors.card,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Vibe.stroke),
+                border: Border.all(color: colors.border),
               ),
               child: Text(n,
-                  style: const TextStyle(color: Vibe.text, fontSize: 13)),
+                  style: TextStyle(color: colors.textPrimary, fontSize: 13)),
             ),
           ),
         const SizedBox(height: 8),
@@ -58,18 +60,19 @@ class _NotesSectionState extends State<NotesSection> {
             Expanded(
               child: TextField(
                 controller: _controller,
-                style: const TextStyle(color: Vibe.text, fontSize: 13),
+                style: TextStyle(color: colors.textPrimary, fontSize: 13),
                 decoration: InputDecoration(
                   isDense: true,
                   hintText: 'Add a note…',
-                  hintStyle: const TextStyle(color: Vibe.muted, fontSize: 13),
+                  hintStyle:
+                      TextStyle(color: colors.textSecondary, fontSize: 13),
                   filled: true,
-                  fillColor: Vibe.surface,
+                  fillColor: colors.card,
                   contentPadding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Vibe.stroke),
+                    borderSide: BorderSide(color: colors.border),
                   ),
                 ),
                 onSubmitted: (_) => _submit(),
@@ -78,7 +81,7 @@ class _NotesSectionState extends State<NotesSection> {
             const SizedBox(width: 8),
             IconButton(
               onPressed: _submit,
-              icon: const Icon(Icons.send_rounded, color: Vibe.violet),
+              icon: Icon(Icons.send_rounded, color: scheme.primary),
             ),
           ],
         ),

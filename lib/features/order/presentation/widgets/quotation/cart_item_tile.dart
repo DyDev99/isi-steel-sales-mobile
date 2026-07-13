@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/core/utils/glass_card.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
 
@@ -17,6 +17,8 @@ class CartItemTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppThemeColors>()!;
+    
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: GlassCard(
@@ -34,10 +36,13 @@ class CartItemTile extends StatelessWidget {
                 errorBuilder: (context, error, stackTrace) => Container(
                   width: 56,
                   height: 56,
-                  color: Vibe.bgSoft,
+                  color: colors.surfaceSoft,
                   alignment: Alignment.center,
-                  child: const Icon(Icons.inventory_2_outlined,
-                      color: Vibe.muted, size: 22),
+                  child: Icon(
+                    Icons.inventory_2_outlined,
+                    color: colors.textHint,
+                    size: 22,
+                  ),
                 ),
               ),
             ),
@@ -46,41 +51,56 @@ class CartItemTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(item.product.name,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          color: Vibe.text,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w800)),
+                  Text(
+                    item.product.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: colors.textPrimary,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
                   const SizedBox(height: 2),
                   Text(
-                      '${item.product.code} · \$${item.unitPrice.toStringAsFixed(2)}/${item.unit}',
-                      style: const TextStyle(color: Vibe.muted, fontSize: 11)),
+                    '${item.product.code} · \$${item.unitPrice.toStringAsFixed(2)}/${item.unit}',
+                    style: TextStyle(
+                      color: colors.textSecondary,
+                      fontSize: 11,
+                    ),
+                  ),
                   const SizedBox(height: 8),
                   Row(
                     children: [
                       _QtyButton(
-                          icon: Icons.remove_rounded,
-                          onTap: () => onQuantityChanged(item.quantity - 1)),
+                        icon: Icons.remove_rounded,
+                        onTap: () => onQuantityChanged(item.quantity - 1),
+                      ),
                       SizedBox(
                         width: 36,
-                        child: Text(item.quantity.toStringAsFixed(0),
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                                color: Vibe.text,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700)),
+                        child: Text(
+                          item.quantity.toStringAsFixed(0),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: colors.textPrimary,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                       ),
                       _QtyButton(
-                          icon: Icons.add_rounded,
-                          onTap: () => onQuantityChanged(item.quantity + 1)),
+                        icon: Icons.add_rounded,
+                        onTap: () => onQuantityChanged(item.quantity + 1),
+                      ),
                       const Spacer(),
-                      Text('\$${item.lineTotal.toStringAsFixed(2)}',
-                          style: const TextStyle(
-                              color: Vibe.violet,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w800)),
+                      Text(
+                        '\$${item.lineTotal.toStringAsFixed(2)}',
+                        style: TextStyle(
+                          color: colors.accentPurple,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -88,8 +108,11 @@ class CartItemTile extends StatelessWidget {
             ),
             IconButton(
               onPressed: onRemove,
-              icon: const Icon(Icons.delete_outline_rounded,
-                  color: Vibe.danger, size: 20),
+              icon: Icon(
+                Icons.delete_outline_rounded,
+                color: colors.success,
+                size: 20,
+              ),
             ),
           ],
         ),
@@ -105,6 +128,8 @@ class _QtyButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppThemeColors>()!;
+    
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
@@ -113,11 +138,15 @@ class _QtyButton extends StatelessWidget {
         height: 26,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: Vibe.bgSoft,
-          border: Border.all(color: Vibe.stroke),
+          color: colors.surfaceSoft,
+          border: Border.all(color: colors.border),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Icon(icon, size: 13, color: Vibe.text),
+        child: Icon(
+          icon,
+          size: 13,
+          color: colors.textPrimary,
+        ),
       ),
     );
   }

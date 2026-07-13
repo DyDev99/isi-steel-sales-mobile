@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/home/domain/dashboard_summary.dart';
 import 'package:isi_steel_sales_mobile/features/home/presentation/widgets/dashboard_kpi_card.dart';
 
@@ -18,27 +18,28 @@ class OrderPieCard extends StatelessWidget {
     final int totalOrders = (openOrders * 2.5).round() + 5;
     final int pendingOrders = openOrders;
     final int successOrders = totalOrders - pendingOrders;
+    final colors = context.appColors;
 
     return DashboardKpiCard(
       title: 'home.quick_access.orders'.tr,
       icon: Icons.local_shipping_rounded,
-      iconColor: Vibe.mint,
+      iconColor: colors.info,
       headline: '$totalOrders',
       headlineCaption: 'home.quick_access.total_orders'.tr,
       badge: pendingOrders > 0
           ? KpiBadge(
               label: '$pendingOrders ${'home.quick_access.pending'.tr}',
-              color: Vibe.amber)
+              color: colors.warning)
           : null,
       segments: [
         KpiSegment(
             label: 'home.quick_access.success'.tr,
             value: successOrders,
-            color: Vibe.mint),
+            color: colors.info),
         KpiSegment(
             label: 'home.quick_access.pending'.tr,
             value: pendingOrders,
-            color: Vibe.amber),
+            color: colors.warning),
       ],
       onTap: onTap,
     );

@@ -1,65 +1,69 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/activity_log_item.dart';
 
 class ActivityTimeline extends StatelessWidget {
   const ActivityTimeline({super.key, required this.items});
   final List<ActivityLogItem> items;
 
-  ({IconData icon, Color color}) _style(ActivityLogKind kind) => switch (kind) {
+  ({IconData icon, Color color}) _style(
+          ActivityLogKind kind, ColorScheme scheme, AppThemeColors colors) =>
+      switch (kind) {
         ActivityLogKind.leadCreated => (
             icon: Icons.person_add_alt_1_rounded,
-            color: Vibe.violet
+            color: scheme.primary
           ),
         ActivityLogKind.siteVisit => (
             icon: Icons.storefront_rounded,
-            color: Vibe.mint
+            color: colors.info
           ),
         ActivityLogKind.gpsCaptured => (
             icon: Icons.place_rounded,
-            color: Vibe.amber
+            color: colors.warning
           ),
         ActivityLogKind.photoUploaded => (
             icon: Icons.photo_camera_rounded,
-            color: Vibe.pink
+            color: scheme.secondary
           ),
         ActivityLogKind.documentCollected => (
             icon: Icons.description_rounded,
-            color: Vibe.violet
+            color: scheme.primary
           ),
         ActivityLogKind.creditSubmitted => (
             icon: Icons.send_rounded,
-            color: Vibe.amber
+            color: colors.warning
           ),
         ActivityLogKind.creditApproved => (
             icon: Icons.verified_rounded,
-            color: Vibe.success
+            color: colors.success
           ),
         ActivityLogKind.customerCreated => (
             icon: Icons.storage_rounded,
-            color: Vibe.success
+            color: colors.success
           ),
         ActivityLogKind.stageChanged => (
             icon: Icons.trending_up_rounded,
-            color: Vibe.violet
+            color: scheme.primary
           ),
         ActivityLogKind.orderReceived => (
             icon: Icons.receipt_long_rounded,
-            color: Vibe.success
+            color: colors.success
           ),
         ActivityLogKind.note => (
             icon: Icons.sticky_note_2_rounded,
-            color: Vibe.muted
+            color: colors.textSecondary
           ),
       };
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     if (items.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 12),
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
         child: Text('No activity yet',
-            style: TextStyle(color: Vibe.muted, fontSize: 12.5)),
+            style: TextStyle(color: colors.textSecondary, fontSize: 12.5)),
       );
     }
     return Column(
@@ -67,7 +71,7 @@ class ActivityTimeline extends StatelessWidget {
         for (var i = 0; i < items.length; i++)
           _TimelineRow(
               item: items[i],
-              style: _style(items[i].kind),
+              style: _style(items[i].kind, scheme, colors),
               isLast: i == items.length - 1),
       ],
     );
@@ -83,6 +87,7 @@ class _TimelineRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -100,7 +105,7 @@ class _TimelineRow extends StatelessWidget {
                 child: Icon(style.icon, size: 15, color: style.color),
               ),
               if (!isLast)
-                Expanded(child: Container(width: 2, color: Vibe.stroke)),
+                Expanded(child: Container(width: 2, color: colors.border)),
             ],
           ),
           const SizedBox(width: 12),
@@ -111,17 +116,18 @@ class _TimelineRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(item.title,
-                      style: const TextStyle(
-                          color: Vibe.text,
+                      style: TextStyle(
+                          color: colors.textPrimary,
                           fontSize: 13.5,
                           fontWeight: FontWeight.w700)),
                   const SizedBox(height: 2),
                   Text(item.description,
-                      style:
-                          const TextStyle(color: Vibe.muted, fontSize: 12.5)),
+                      style: TextStyle(
+                          color: colors.textSecondary, fontSize: 12.5)),
                   const SizedBox(height: 4),
                   Text('${item.actor} · ${_formatDateTime(item.timestamp)}',
-                      style: const TextStyle(color: Vibe.muted, fontSize: 11)),
+                      style:
+                          TextStyle(color: colors.textSecondary, fontSize: 11)),
                 ],
               ),
             ),

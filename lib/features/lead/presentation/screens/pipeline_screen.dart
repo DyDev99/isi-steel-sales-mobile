@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/core/utils/aurora_background.dart';
 // Add this line back right here:
 import 'package:isi_steel_sales_mobile/features/authentication/domain/entities/user_role.dart';
@@ -28,7 +28,7 @@ class PipelineScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Vibe.bg,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: Stack(
         children: [
           const Positioned.fill(child: AuroraBackground()),
@@ -53,8 +53,9 @@ class PipelineScreen extends StatelessWidget {
                         .read<PipelineBloc>()
                         .add(const PipelineLoadRequested()),
                   ),
-                _ => const Center(
-                    child: CircularProgressIndicator(color: Vibe.pink)),
+                _ => Center(
+                    child: CircularProgressIndicator(
+                        color: Theme.of(context).colorScheme.secondary)),
               },
             ),
           ),
@@ -118,19 +119,20 @@ class _BoardState extends State<_Board> {
         final confirmed = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            backgroundColor: Vibe.bgSoft,
-            title:
-                const Text('Delete lead?', style: TextStyle(color: Vibe.text)),
+            backgroundColor: context.appColors.surfaceSoft,
+            title: Text('Delete lead?',
+                style: TextStyle(color: context.appColors.textPrimary)),
             content: Text('This removes ${lead.companyName} from the pipeline.',
-                style: const TextStyle(color: Vibe.muted)),
+                style: TextStyle(color: context.appColors.textSecondary)),
             actions: [
               TextButton(
                   onPressed: () => Navigator.pop(context, false),
                   child: const Text('Cancel')),
               TextButton(
                 onPressed: () => Navigator.pop(context, true),
-                child:
-                    const Text('Delete', style: TextStyle(color: Vibe.danger)),
+                child: Text('Delete',
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.error)),
               ),
             ],
           ),
@@ -169,6 +171,8 @@ class _BoardState extends State<_Board> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     final territories =
         widget.state.allLeads.map((l) => l.territory).toSet().toList()..sort();
     final reps = widget.state.allLeads
@@ -178,8 +182,8 @@ class _BoardState extends State<_Board> {
       ..sort();
 
     return RefreshIndicator(
-      color: Vibe.pink,
-      backgroundColor: Vibe.bgSoft,
+      color: scheme.secondary,
+      backgroundColor: colors.surfaceSoft,
       onRefresh: () async =>
           context.read<PipelineBloc>().add(const PipelineLoadRequested()),
       child: SingleChildScrollView(
@@ -200,15 +204,15 @@ class _BoardState extends State<_Board> {
                       child: Container(
                         height: 48.h,
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: colors.card,
                           borderRadius: BorderRadius.circular(16.r),
-                          border: Border.all(color: Colors.grey.shade200),
+                          border: Border.all(color: colors.border),
                         ),
                         padding: EdgeInsets.symmetric(horizontal: 14.w),
                         child: Row(
                           children: [
                             Icon(Icons.search,
-                                color: Colors.grey.shade500, size: 22.w),
+                                color: colors.textSecondary, size: 22.w),
                             SizedBox(width: 8.w),
                             Expanded(
                               child: TextField(
@@ -219,14 +223,13 @@ class _BoardState extends State<_Board> {
                                 decoration: InputDecoration(
                                   hintText: "Search company or owner...",
                                   hintStyle: TextStyle(
-                                      color: Colors.grey.shade400,
-                                      fontSize: 14.sp),
+                                      color: colors.textHint, fontSize: 14.sp),
                                   border: InputBorder.none,
                                   isDense: true,
                                   contentPadding: EdgeInsets.zero,
                                 ),
                                 style: TextStyle(
-                                    fontSize: 14.sp, color: Vibe.text),
+                                    fontSize: 14.sp, color: colors.textPrimary),
                               ),
                             ),
                           ],
@@ -257,17 +260,17 @@ class _BoardState extends State<_Board> {
                         width: 48.h,
                         height: 48.h,
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: colors.card,
                           borderRadius: BorderRadius.circular(14.r),
                           border: Border.all(
                             color: !widget.state.filter.isEmpty
-                                ? Vibe.violet
-                                : Colors.grey.shade200,
+                                ? scheme.primary
+                                : colors.border,
                           ),
                         ),
                         child: Icon(
                           Icons.tune_rounded,
-                          color: Vibe.slate,
+                          color: colors.textPrimary,
                           size: 20.w,
                         ),
                       ),
@@ -289,7 +292,7 @@ class _BoardState extends State<_Board> {
                         width: 48.h,
                         height: 48.h,
                         decoration: BoxDecoration(
-                          color: Vibe.violet,
+                          color: scheme.primary,
                           borderRadius: BorderRadius.only(
                             topLeft: Radius.circular(12.r),
                             topRight: Radius.circular(16.r),
@@ -298,13 +301,14 @@ class _BoardState extends State<_Board> {
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Vibe.violet.withValues(alpha: 0.25),
+                              color: scheme.primary.withValues(alpha: 0.25),
                               blurRadius: 8,
                               offset: const Offset(0, 3),
                             )
                           ],
                         ),
-                        child: Icon(Icons.add, color: Colors.white, size: 22.w),
+                        child:
+                            Icon(Icons.add, color: scheme.onPrimary, size: 22.w),
                       ),
                     ),
                   ],
@@ -322,18 +326,22 @@ class _BoardState extends State<_Board> {
     );
   }
 
-  // One accent colour per board.
-  static const _accents = {
-    PipelineStage.leads: Vibe.violet,
-    PipelineStage.opportunities: Vibe.success,
-    PipelineStage.won: Vibe.mint,
-  };
+  // One accent colour per board, resolved from the active theme.
+  Color _accentFor(
+          PipelineStage stage, ColorScheme scheme, AppThemeColors colors) =>
+      switch (stage) {
+        PipelineStage.leads => scheme.primary,
+        PipelineStage.opportunities => colors.success,
+        PipelineStage.won => colors.info,
+      };
 
   /// The pipeline as a horizontally scrollable row of three boards
   /// (Leads | Opportunities | Won). Each column is a fixed width so roughly
   /// two fit on screen and the third scrolls into view; the row auto-scrolls
   /// to the [initialStage] board on first layout.
   Widget _scrollableBoard(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     final columns = widget.state.columns;
     const order = PipelineStage.values;
 
@@ -373,7 +381,7 @@ class _BoardState extends State<_Board> {
               context: context,
               stage: stage,
               title: stage.label,
-              accent: _accents[stage] ?? Vibe.violet,
+              accent: _accentFor(stage, scheme, colors),
               leads: columns[stage] ?? const [],
             ),
           );
@@ -422,19 +430,21 @@ class _ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.cloud_off_rounded, color: Vibe.muted, size: 40),
+          Icon(Icons.cloud_off_rounded, color: colors.textSecondary, size: 40),
           const SizedBox(height: 12),
-          Text(message, style: const TextStyle(color: Vibe.muted)),
+          Text(message, style: TextStyle(color: colors.textSecondary)),
           const SizedBox(height: 12),
           TextButton(
             onPressed: onRetry,
-            child: const Text('Try again',
-                style:
-                    TextStyle(color: Vibe.pink, fontWeight: FontWeight.w700)),
+            child: Text('Try again',
+                style: TextStyle(
+                    color: scheme.secondary, fontWeight: FontWeight.w700)),
           ),
         ],
       ),

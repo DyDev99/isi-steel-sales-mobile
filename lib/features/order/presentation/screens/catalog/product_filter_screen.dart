@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/core/usecase/usecase.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/local/catalog_filter_store.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/category.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.dart';
@@ -26,13 +26,6 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filte
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter/quantity_stepper.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter/unit_selector.dart';
 
-/// Premium, category-aware product filter experience built on the existing
-/// [CatalogBloc] / [ProductFilter] / SQLite stack (no in-memory duplication).
-///
-/// Filter order is fixed per spec: Category → Size → Length → Mesh Size →
-/// Quality → Unit → Quantity, with the attribute row being category-dependent
-/// (see [ProductFilterFacets]). State (filter, query, unit, quantity) is
-/// persisted through [CatalogFilterStore] and restored after navigation.
 class ProductFilterScreen extends StatefulWidget {
   const ProductFilterScreen({super.key, this.leadId, this.customerId});
 
@@ -41,8 +34,6 @@ class ProductFilterScreen extends StatefulWidget {
   final String? leadId;
   final String? customerId;
 
-  /// Wraps the screen with the [CatalogBloc] + [CartCubit] it drives, so
-  /// callers can push it with a single `ProductFilterScreen.provider()`.
   static Widget provider({String? leadId, String? customerId}) {
     return MultiBlocProvider(
       providers: [
@@ -203,16 +194,18 @@ class _ProductFilterScreenState extends State<ProductFilterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppThemeColors>()!;
+
     return Scaffold(
-      backgroundColor: Vibe.bg,
+      backgroundColor: colors.canvas,
       appBar: AppBar(
-        backgroundColor: Vibe.bg,
+        backgroundColor: colors.canvas,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Vibe.text),
-        title: const Text(
+        iconTheme: IconThemeData(color: colors.textPrimary),
+        title: Text(
           'Filter Products',
           style: TextStyle(
-              color: Vibe.text, fontSize: 17, fontWeight: FontWeight.w800),
+              color: colors.textPrimary, fontSize: 17, fontWeight: FontWeight.w800),
         ),
         actions: [
           if (_filter.activeFacetCount > 0)
@@ -220,8 +213,8 @@ class _ProductFilterScreenState extends State<ProductFilterScreen> {
               padding: const EdgeInsets.only(right: 8),
               child: TextButton(
                 onPressed: _clearAllFilters,
-                child: const Text('Clear all',
-                    style: TextStyle(color: Vibe.danger)),
+                child: Text('Clear all',
+                    style: TextStyle(color: colors.warning)),
               ),
             ),
         ],
@@ -237,7 +230,7 @@ class _ProductFilterScreenState extends State<ProductFilterScreen> {
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
                   children: [
-                    _searchField(),
+                    _searchField(context),
                     const SizedBox(height: 16),
                     const _SectionLabel('Category'),
                     const SizedBox(height: 8),
@@ -348,30 +341,32 @@ class _ProductFilterScreenState extends State<ProductFilterScreen> {
     );
   }
 
-  Widget _searchField() {
+  Widget _searchField(BuildContext context) {
+    final colors = Theme.of(context).extension<AppThemeColors>()!;
+
     return Container(
       height: 46,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: Vibe.surface,
+        color: colors.surfaceSoft,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Vibe.stroke),
+        border: Border.all(color: colors.border),
       ),
       child: Row(
         children: [
-          const Icon(Icons.search_rounded, color: Vibe.muted, size: 20),
+          Icon(Icons.search_rounded, color: colors.iconMuted, size: 20),
           const SizedBox(width: 8),
           Expanded(
             child: TextField(
               controller: _searchController,
               onChanged: _onSearch,
               textInputAction: TextInputAction.search,
-              style: const TextStyle(color: Vibe.text, fontSize: 13.5),
-              decoration: const InputDecoration(
+              style: TextStyle(color: colors.textPrimary, fontSize: 13.5),
+              decoration: InputDecoration(
                 isDense: true,
                 border: InputBorder.none,
                 hintText: 'Search name, SKU or barcode…',
-                hintStyle: TextStyle(color: Vibe.muted, fontSize: 13.5),
+                hintStyle: TextStyle(color: colors.textHint, fontSize: 13.5),
               ),
             ),
           ),
@@ -382,8 +377,7 @@ class _ProductFilterScreenState extends State<ProductFilterScreen> {
                 _onSearch('');
               },
               borderRadius: BorderRadius.circular(20),
-              child:
-                  const Icon(Icons.close_rounded, color: Vibe.muted, size: 18),
+              child: Icon(Icons.close_rounded, color: colors.iconMuted, size: 18),
             ),
         ],
       ),
@@ -406,13 +400,16 @@ class _SectionLabel extends StatelessWidget {
   final String text;
 
   @override
-  Widget build(BuildContext context) => Text(
-        text.toUpperCase(),
-        style: const TextStyle(
-          color: Vibe.muted,
-          fontSize: 11,
-          fontWeight: FontWeight.w800,
-          letterSpacing: 0.4,
-        ),
-      );
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<AppThemeColors>()!;
+    return Text(
+      text.toUpperCase(),
+      style: TextStyle(
+        color: colors.textSecondary,
+        fontSize: 11,
+        fontWeight: FontWeight.w800,
+        letterSpacing: 0.4,
+      ),
+    );
+  }
 }

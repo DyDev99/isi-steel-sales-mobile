@@ -1,12 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
 /// Animated segmented control for the sales unit (Pc / Ton / Kg / Bundle).
-///
-/// Purely presentational: it owns no state, takes the [selected] value and
-/// reports changes via [onChanged], so it can be driven equally by a Cubit,
-/// a `StatefulWidget`, or restored persisted state. A single sliding pill
-/// animates between segments for a premium, Material-3 feel.
 class UnitSelector extends StatelessWidget {
   const UnitSelector({
     super.key,
@@ -16,8 +11,6 @@ class UnitSelector extends StatelessWidget {
     this.enabled = true,
   });
 
-  /// Ordered, de-duplicated segment labels. Defaults to the standard steel
-  /// selling units when constructed via [UnitSelector.standard].
   final List<String> units;
   final String selected;
   final ValueChanged<String> onChanged;
@@ -25,7 +18,6 @@ class UnitSelector extends StatelessWidget {
 
   static const standardUnits = ['Pc', 'Ton', 'Kg', 'Bundle'];
 
-  /// Convenience constructor for the standard steel selling units.
   factory UnitSelector.standard({
     Key? key,
     required String selected,
@@ -42,37 +34,39 @@ class UnitSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final selectedIndex =
-        units.indexOf(selected).clamp(0, units.length - 1).toDouble();
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final segmentWidth = constraints.maxWidth / units.length;
-        return Opacity(
-          opacity: enabled ? 1 : 0.5,
-          child: Container(
-            height: 44,
-            decoration: BoxDecoration(
-              color: Vibe.bgSoft,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: Vibe.stroke),
-            ),
-            child: Stack(
+    final theme = Theme.of(context);
+    final selectedIndex = units.indexOf(selected).clamp(0, units.length - 1);
+
+    return Opacity(
+      opacity: enabled ? 1.0 : 0.5,
+      child: Container(
+        height: 46,
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: theme.brightness == Brightness.dark
+              ? theme.colorScheme.surfaceContainerHighest
+              : context.appColors.surfaceSoft,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: context.appColors.border),
+        ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final segmentWidth = constraints.maxWidth / units.length;
+            return Stack(
               children: [
-                // Sliding selection pill.
                 AnimatedPositioned(
                   duration: const Duration(milliseconds: 220),
-                  curve: Curves.easeOutCubic,
-                  left: selectedIndex * segmentWidth + 3,
-                  top: 3,
-                  bottom: 3,
-                  width: segmentWidth - 6,
-                  child: DecoratedBox(
+                  curve: Curves.easeInOut,
+                  left: selectedIndex * segmentWidth,
+                  width: segmentWidth,
+                  height: 38,
+                  child: Container(
                     decoration: BoxDecoration(
-                      color: Vibe.violet,
+                      color: Theme.of(context).colorScheme.primary,
                       borderRadius: BorderRadius.circular(11),
                       boxShadow: [
                         BoxShadow(
-                          color: Vibe.violet.withValues(alpha: 0.25),
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.25),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -93,10 +87,10 @@ class UnitSelector extends StatelessWidget {
                   ],
                 ),
               ],
-            ),
-          ),
-        );
-      },
+            );
+          },
+        ),
+      ),
     );
   }
 }
@@ -114,6 +108,7 @@ class _Segment extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(11),
@@ -123,7 +118,7 @@ class _Segment extends StatelessWidget {
           style: TextStyle(
             fontSize: 13,
             fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-            color: selected ? Colors.white : Vibe.muted,
+            color: selected ? Colors.white : theme.colorScheme.onSurface.withValues(alpha: 0.4),
           ),
           child: Text(label),
         ),
