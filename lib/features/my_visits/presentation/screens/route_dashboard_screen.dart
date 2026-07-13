@@ -22,6 +22,11 @@ import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/m
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/calendar_widget_section.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/route_skeletons.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/region_card.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/catalog_bloc.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/catalog_event.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/sync_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/quotation_builder_screen.dart';
 
 class MyVisitsDashboardScreen extends StatefulWidget {
   const MyVisitsDashboardScreen({super.key});
@@ -58,6 +63,30 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
     await openRouteDispatch(context, routeId, syncCubit: syncCubit);
     if (!mounted) return;
     dashboardCubit.load();
+  }
+
+  /// Opens the Quotation Builder for a completed stop so the rep can turn the
+  /// visit into an order. A route stop only carries [CustomerStopInfo] (not a
+  /// full SAP `Customer`), so this uses the builder's lead-scoped mode — the
+  /// same "no shop to source credit/territory from" path the Lead detail
+  /// screen uses.
+  void _openQuotationBuilder(BuildContext context, RouteStop stop) {
+    Navigator.of(context).push(MaterialPageRoute(
+      settings: const RouteSettings(name: QuotationBuilderScreen.routeName),
+      builder: (_) => MultiBlocProvider(
+        providers: [
+          BlocProvider(
+              create: (_) =>
+                  sl<CatalogBloc>()..add(const CatalogLoadRequested())),
+          BlocProvider(create: (_) => sl<CartCubit>()..load()),
+          BlocProvider(create: (_) => sl<SyncCubit>()),
+        ],
+        child: QuotationBuilderScreen(
+          leadId: stop.customer.id,
+          leadDisplayName: stop.customer.name,
+        ),
+      ),
+    ));
   }
 
   Future<void> _seedTestRoute(BuildContext context) async {
@@ -261,6 +290,7 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
                         },
                         onCartTap: () {
                           HapticFeedback.mediumImpact();
+                          _openQuotationBuilder(context, item.stop);
                         },
                       );
                     },
