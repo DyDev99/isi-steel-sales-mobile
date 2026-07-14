@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:isi_steel_sales_mobile/core/constants/app_constant.dart';
-import 'package:isi_steel_sales_mobile/core/network/app_middleware.dart';
+import 'package:isi_steel_sales_mobile/core/middleware/app_middleware.dart';
 
 /// Factory for the app's Dio clients. Keeping construction here means the
 /// timeout / header policy lives in exactly one place.

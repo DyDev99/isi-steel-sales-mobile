@@ -11,10 +11,12 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/fraud_
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_plan.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_stop.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_status.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_workflow.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/fraud_detection_service.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/check_in.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/check_out.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/clear_active_workflow.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/get_active_workflow.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/get_route.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/record_fraud_flag.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/routes_params.dart';
@@ -22,8 +24,8 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/save_a
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/update_route_status.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/update_stop_status.dart';
 import 'package:isi_steel_sales_mobile/core/usecase/usecase.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/active_route_event.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/active_route_state.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/events/active_route_event.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/state/active_route_state.dart';
 
 const _policy = FraudPolicy();
 
@@ -42,6 +44,7 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
     required FraudDetectionService fraudDetectionService,
     required SaveActiveWorkflow saveActiveWorkflow,
     required ClearActiveWorkflow clearActiveWorkflow,
+    required GetActiveWorkflow getActiveWorkflow,
   })  : _getRoute = getRoute,
         _updateRouteStatus = updateRouteStatus,
         _updateStopStatus = updateStopStatus,
@@ -51,6 +54,7 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
         _fraudDetectionService = fraudDetectionService,
         _saveActiveWorkflow = saveActiveWorkflow,
         _clearActiveWorkflow = clearActiveWorkflow,
+        _getActiveWorkflow = getActiveWorkflow,
         super(const ActiveRouteLoading()) {
     on<ActiveRouteLoadRequested>(_onLoad);
     on<StartDayRequested>(_onStartDay, transformer: droppable());
@@ -71,20 +75,74 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
   final FraudDetectionService _fraudDetectionService;
   final SaveActiveWorkflow _saveActiveWorkflow;
   final ClearActiveWorkflow _clearActiveWorkflow;
+  final GetActiveWorkflow _getActiveWorkflow;
 
   /// Fire-and-forget resume-pointer upsert — advisory (stop status in the
   /// DB is the real source of truth on resume), so a slow/failed write here
   /// never blocks the UI.
+  ///
+  /// When the current stop is checked in, the pointer is enriched into a
+  /// *workflow-aware* row: Shop/Depot + check-in time + a baseline
+  /// [VisitWorkflow.stockCount] (the guided step that immediately follows
+  /// check-in) + the [navigationArguments] the resume dispatcher needs to
+  /// rebuild the exact screen. Business-task transitions (Quotation/Sales Order)
+  /// layer onto this via [UpdateWorkflowStep]. When the stop is not checked in
+  /// (before check-in or after check-out), the workflow fields are cleared so
+  /// resume falls back to the guided route flow.
   void _persistWorkflow(ActiveRouteReady state) {
     if (!state.dayStarted) return;
-    unawaited(_saveActiveWorkflow(ActiveWorkflow(
+    unawaited(_writeWorkflowPointer(state));
+  }
+
+  Future<void> _writeWorkflowPointer(ActiveRouteReady state) async {
+    final stop = state.hasCurrentStop
+        ? state.route.stops[state.currentStopIndex]
+        : null;
+    final isActive = stop != null && stop.status == VisitStatus.checkedIn;
+    final now = DateTime.now();
+
+    // Baseline for a live visit: the guided Stock Count step.
+    var workflow = isActive ? VisitWorkflow.stockCount : null;
+    String? screen;
+    Map<String, dynamic>? args = isActive
+        ? {
+            'stopId': stop.id,
+            'customerId': stop.customer.id,
+            'territory': stop.customer.territory,
+          }
+        : null;
+
+    // Never *downgrade* a business task the rep already advanced into
+    // (Quotation/Sales Order) back to Stock Count when a later route event
+    // re-persists for the same stop — that would strand "Continue Working" on
+    // the wrong screen. Deferred check-out means the stop stays checked in
+    // through those tasks, so this guard keeps the resume pointer stable.
+    if (isActive) {
+      final existingResult = await _getActiveWorkflow(const NoParams());
+      final existing =
+          existingResult.when(success: (w) => w, failure: (_) => null);
+      if (existing != null &&
+          existing.currentStopId == stop.id &&
+          (existing.currentWorkflow?.isBusinessTask ?? false)) {
+        workflow = existing.currentWorkflow;
+        screen = existing.currentScreen;
+        args = existing.navigationArguments ?? args;
+      }
+    }
+
+    await _saveActiveWorkflow(ActiveWorkflow(
       routeId: state.route.id,
-      currentStopId: state.hasCurrentStop
-          ? state.route.stops[state.currentStopIndex].id
-          : null,
+      currentStopId: stop?.id,
       dayStarted: state.dayStarted,
-      updatedAt: DateTime.now(),
-    )));
+      updatedAt: now,
+      customerId: isActive ? stop.customer.id : null,
+      shopName: isActive ? stop.customer.name : null,
+      checkInAt: isActive ? stop.actualArrival : null,
+      currentWorkflow: workflow,
+      currentScreen: screen,
+      navigationArguments: args,
+      workflowUpdatedAt: isActive ? now : null,
+    ));
   }
 
   Future<void> _onLoad(

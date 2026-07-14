@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/active_workflow.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_plan.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/resumable_visit_cubit.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/navigation/open_route_dispatch.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/resumable_visit_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/navigation/resume_workflow_dispatcher.dart';
 
 /// Visit-flow "Continue Previous Work" card — the check-in twin of
 /// [ContinueWorkingCard]. Appears in the Home continue section when the rep has
@@ -18,21 +19,27 @@ class ContinueVisitCard extends StatelessWidget {
       builder: (context, state) {
         final route = state.route;
         if (!state.loaded || route == null) return const SizedBox.shrink();
-        return _VisitCard(route: route);
+        return _VisitCard(route: route, workflow: state.workflow);
       },
     );
   }
 }
 
 class _VisitCard extends StatelessWidget {
-  const _VisitCard({required this.route});
+  const _VisitCard({required this.route, this.workflow});
   final RoutePlan route;
+
+  /// The persisted navigation pointer, used to restore the exact screen the rep
+  /// stopped on (Route Count Stock, etc.). Null → guided route resume.
+  final ActiveWorkflow? workflow;
 
   Future<void> _continue(BuildContext context) async {
     final cubit = context.read<ResumableVisitCubit>();
-    await openRouteDispatch(context, route.id);
-    // Coming back from the check-in flow: re-resolve so a finished route drops
-    // off the card and progress updates.
+    // Single source of restore truth: map the persisted workflow → the exact
+    // screen (falls back to Choose Stop when nothing is restorable).
+    await resumeActiveWorkflow(context, route, workflow);
+    // Coming back from the flow: re-resolve so a finished route drops off the
+    // card and progress updates.
     await cubit.refresh();
   }
 
@@ -59,6 +66,32 @@ class _VisitCard extends StatelessWidget {
       ),
     );
     if (confirmed ?? false) await cubit.dismiss();
+  }
+
+  /// Explicit end of the visit. Check-out is deferred now that Stock Count no
+  /// longer auto-checks-out, so this is how the rep closes the stop when the
+  /// Quotation/Sales Order task is done.
+  Future<void> _checkOut(BuildContext context) async {
+    final cubit = context.read<ResumableVisitCubit>();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Check out of this visit?'),
+        content: const Text(
+            'This completes the visit and closes the current stop.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Check out'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed ?? false) await cubit.checkOut();
   }
 
   @override
@@ -127,17 +160,32 @@ class _VisitCard extends StatelessWidget {
               ),
             ),
           const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              onPressed: () => _continue(context),
-              style: FilledButton.styleFrom(
-                backgroundColor: colors.info,
-                padding: const EdgeInsets.symmetric(vertical: 10),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => _checkOut(context),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: colors.info,
+                    side: BorderSide(color: colors.info),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                  ),
+                  child: const Text('Check out'),
+                ),
               ),
-              icon: const Icon(Icons.play_arrow_rounded, size: 18),
-              label: const Text('Continue check-in'),
-            ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: () => _continue(context),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: colors.info,
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                  ),
+                  icon: const Icon(Icons.play_arrow_rounded, size: 18),
+                  label: const Text('Continue'),
+                ),
+              ),
+            ],
           ),
         ],
       ),

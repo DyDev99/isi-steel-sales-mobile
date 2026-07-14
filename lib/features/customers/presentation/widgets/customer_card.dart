@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/core/utils/colors.dart';
-import 'package:isi_steel_sales_mobile/core/utils/glass_card.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/glass_card.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_status_badge.dart';
 

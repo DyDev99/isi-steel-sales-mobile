@@ -1,3 +1,8 @@
+# Environment secrets (Envied source files — never commit; keep .env.example only)
+.env
+.env.*
+!.env.example
+
 # Miscellaneous
 *.class
 *.log

@@ -1,10 +1,13 @@
 import 'package:get_it/get_it.dart';
-import 'package:isi_steel_sales_mobile/core/local/hive_service.dart';
+import 'package:isi_steel_sales_mobile/core/storage/database/drift/app_database.dart';
+import 'package:isi_steel_sales_mobile/core/storage/hive/hive_service.dart';
 import 'package:isi_steel_sales_mobile/core/network/network_info.dart';
-import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
+import 'package:isi_steel_sales_mobile/core/storage/session/session_manager.dart';
+import 'package:isi_steel_sales_mobile/features/order/data/local/cart_drift_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/local/cart_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/local/catalog_database.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/local/catalog_filter_store.dart';
+import 'package:isi_steel_sales_mobile/features/order/data/local/product_drift_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/local/product_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/local/quotation_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/local/sync_queue_local_data_source.dart';
@@ -90,10 +93,12 @@ Future<void> registerOrderFeature(GetIt sl) async {
   sl.registerLazySingleton<CatalogDatabase>(() => catalogDb);
 
   // ── Data sources ────────────────────────────────────────────────────
+  // Products/prices/stock live in the single encrypted Drift DB (T4 cutover);
+  // cart/quotation/sales-order/sync-queue still use `catalogDb` (own slice).
   sl.registerLazySingleton<ProductLocalDataSource>(
-      () => ProductLocalDataSourceImpl(sl()));
+      () => ProductDriftLocalDataSource(sl<AppDatabase>().catalogDao));
   sl.registerLazySingleton<CartLocalDataSource>(
-      () => CartLocalDataSourceImpl(sl()));
+      () => CartDriftLocalDataSource(sl<AppDatabase>().cartDao));
   sl.registerLazySingleton<QuotationLocalDataSource>(
       () => QuotationLocalDataSourceImpl(sl()));
   sl.registerLazySingleton<SalesOrderLocalDataSource>(

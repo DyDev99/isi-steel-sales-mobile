@@ -1,7 +1,7 @@
 import 'package:get_it/get_it.dart';
-import 'package:isi_steel_sales_mobile/core/local/hive_service.dart';
+import 'package:isi_steel_sales_mobile/core/storage/hive/hive_service.dart';
 import 'package:isi_steel_sales_mobile/core/network/network_info.dart';
-import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
+import 'package:isi_steel_sales_mobile/core/storage/session/session_manager.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/depot_selection_store.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/location_sample_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/route_local_data_source.dart';
@@ -38,6 +38,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/add_vi
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/check_in.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/check_out.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/clear_active_workflow.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/complete_visit_check_out.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/get_active_workflow.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/get_resumable_route.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/push_pending_visit_data.dart';
@@ -52,16 +53,17 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/record
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/run_route_delta_sync.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/run_route_initial_sync.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/update_route_status.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/update_workflow_step.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/update_stop_status.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/watch_today_routes.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/active_route_bloc.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/location_tracking_cubit.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/route_dashboard_cubit.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/route_sync_cubit.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/resumable_visit_cubit.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/depot_selection_cubit.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/depot_stock_count_cubit.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/visit_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/location_tracking_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/route_dashboard_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/route_sync_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/resumable_visit_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/depot_selection_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/depot_stock_count_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/visit_cubit.dart';
 
 /// Registers the route-management feature: GPS tracking, geofence
 /// check-in/out, offline visit capture, and the route sync engine. Async
@@ -139,12 +141,22 @@ Future<void> registerMyVisitsFeature(GetIt sl) async {
   sl.registerLazySingleton(() => ClearActiveWorkflow(sl()));
   sl.registerLazySingleton(() => GetActiveWorkflow(sl()));
   sl.registerLazySingleton(() => GetResumableRoute(sl(), sl()));
+  // Write-side for business-task transitions (Quotation/Sales Order/…): records
+  // the current workflow + screen + navigation args onto the active pointer so
+  // the resume dispatcher can restore the exact screen.
+  sl.registerLazySingleton(() => UpdateWorkflowStep(sl()));
+  // Deferred check-out: closes the visit off the persisted pointer (no live
+  // ActiveRouteBloc needed) — triggered by the explicit "Check out" on the
+  // Continue-Working card now that Stock Count no longer auto-checks-out.
+  sl.registerLazySingleton(
+      () => CompleteVisitCheckOut(sl(), sl(), sl(), sl()));
 
   // ── Presentation ────────────────────────────────────────────────────
   sl.registerFactory(() => RouteDashboardCubit(watchTodayRoutes: sl()));
   sl.registerFactory(() => ActiveRouteBloc(
         saveActiveWorkflow: sl(),
         clearActiveWorkflow: sl(),
+        getActiveWorkflow: sl(),
         getRoute: sl(),
         updateRouteStatus: sl(),
         updateStopStatus: sl(),
@@ -181,7 +193,9 @@ Future<void> registerMyVisitsFeature(GetIt sl) async {
   sl.registerLazySingleton(() => ResumableVisitCubit(
         getResumableRoute: sl(),
         getRoute: sl(),
+        getActiveWorkflow: sl(),
         clearActiveWorkflow: sl(),
+        completeVisitCheckOut: sl(),
       ));
 
   // ── Depot Stock flow ────────────────────────────────────────────────

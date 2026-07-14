@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/theme/app_colors_dark.dart';
 import 'package:isi_steel_sales_mobile/core/theme/app_typography.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
 import 'package:isi_steel_sales_mobile/core/utils/colors.dart';
 import 'package:isi_steel_sales_mobile/core/utils/page_transitions.dart';
 
@@ -236,7 +235,7 @@ class _LightTokens extends _Tokens {
   @override
   Color get indicator => AppColors.primaryLight;
   @override
-  Color get snackBarBackground => Vibe.slate;
+  Color get snackBarBackground => AppColors.textInverse;
   @override
   Color get snackBarText => AppColors.textInverse;
 }

@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
-/// Fixed Bottom Action Bar — subtotal/discount/total breakdown and the
-/// primary "Create Order" action.
 class RevenueBottomActionBar extends StatelessWidget {
   const RevenueBottomActionBar({
     super.key,
@@ -22,10 +20,12 @@ class RevenueBottomActionBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return DecoratedBox(
-      decoration: const BoxDecoration(
-        color: Vibe.surface,
-        border: Border(top: BorderSide(color: Vibe.stroke)),
+      decoration: BoxDecoration(
+        color: colors.card, // Replaced Vibe.surface
+        border: Border(top: BorderSide(color: colors.border)), // Replaced Vibe.stroke
       ),
       child: SafeArea(
         top: false,
@@ -41,7 +41,7 @@ class RevenueBottomActionBar extends StatelessWidget {
                     label: 'revenue.cart.discount'.tr,
                     value: -discountAmount,
                     isDiscount: true),
-              const Divider(color: Vibe.divider, height: 16),
+              Divider(color: colors.divider, height: 16), // Replaced Vibe.divider
               _SummaryRow(
                   label: 'revenue.cart.total'.tr,
                   value: total,
@@ -52,7 +52,7 @@ class RevenueBottomActionBar extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: enabled ? onCreateOrder : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Vibe.violet,
+                    backgroundColor: colors.accentPurple, // Replaced Vibe.violet
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
@@ -84,6 +84,9 @@ class _SummaryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final errorColor = Theme.of(context).colorScheme.error;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
@@ -93,8 +96,8 @@ class _SummaryRow extends StatelessWidget {
               label,
               style: TextStyle(
                 color: emphasize
-                    ? Vibe.text
-                    : (isDiscount ? Vibe.danger : Vibe.muted),
+                    ? colors.textPrimary // Replaced Vibe.text
+                    : (isDiscount ? errorColor : colors.textSecondary), // Replaced Vibe.danger/muted
                 fontSize: emphasize ? 15 : 13,
                 fontWeight: emphasize ? FontWeight.w800 : FontWeight.w500,
               ),
@@ -106,8 +109,8 @@ class _SummaryRow extends StatelessWidget {
                 : '\$${value.toStringAsFixed(2)}',
             style: TextStyle(
               color: emphasize
-                  ? Vibe.violet
-                  : (isDiscount ? Vibe.danger : Vibe.text),
+                  ? colors.accentPurple // Replaced Vibe.violet
+                  : (isDiscount ? errorColor : colors.textPrimary), // Replaced Vibe.danger/text
               fontSize: emphasize ? 16 : 13,
               fontWeight: emphasize ? FontWeight.w900 : FontWeight.w600,
             ),

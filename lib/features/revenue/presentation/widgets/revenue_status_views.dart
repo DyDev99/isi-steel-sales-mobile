@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
-import 'package:isi_steel_sales_mobile/core/utils/glass_card.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/glass_card.dart';
 import 'package:isi_steel_sales_mobile/core/utils/shimmer.dart';
 
 /// Skeleton grid shown while products are loading.
@@ -47,6 +47,8 @@ class RevenueEmptyView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 32),
@@ -58,22 +60,22 @@ class RevenueEmptyView extends StatelessWidget {
               height: 72,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                  color: Vibe.primaryLight,
+                  color: colors.primaryHover.withValues(alpha: 0.16), // Replaced Vibe.primaryLight
                   borderRadius: BorderRadius.circular(20)),
-              child: const Icon(Icons.inventory_2_outlined,
-                  size: 34, color: Vibe.violet),
+              child: Icon(Icons.inventory_2_outlined,
+                  size: 34, color: colors.accentPurple), // Replaced Vibe.violet
             ),
             const SizedBox(height: 16),
             Text(
               'revenue.empty.title'.tr,
-              style: const TextStyle(
-                  color: Vibe.text, fontSize: 15, fontWeight: FontWeight.w800),
+              style: TextStyle(
+                  color: colors.textPrimary, fontSize: 15, fontWeight: FontWeight.w800), // Replaced Vibe.text
             ),
             const SizedBox(height: 6),
             Text(
               'revenue.empty.subtitle'.tr,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Vibe.muted, fontSize: 13),
+              style: TextStyle(color: colors.textSecondary, fontSize: 13), // Replaced Vibe.muted
             ),
           ],
         ),
@@ -92,6 +94,9 @@ class RevenueErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final errorColor = Theme.of(context).colorScheme.error;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 32),
@@ -103,28 +108,28 @@ class RevenueErrorView extends StatelessWidget {
               height: 72,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                  color: Vibe.danger.withValues(alpha: 0.12),
+                  color: errorColor.withValues(alpha: 0.12), // Replaced Vibe.danger
                   borderRadius: BorderRadius.circular(20)),
-              child: const Icon(Icons.cloud_off_rounded,
-                  size: 34, color: Vibe.danger),
+              child: Icon(Icons.cloud_off_rounded,
+                  size: 34, color: errorColor), // Replaced Vibe.danger
             ),
             const SizedBox(height: 16),
             Text(
               'revenue.error.title'.tr,
-              style: const TextStyle(
-                  color: Vibe.text, fontSize: 15, fontWeight: FontWeight.w800),
+              style: TextStyle(
+                  color: colors.textPrimary, fontSize: 15, fontWeight: FontWeight.w800), // Replaced Vibe.text
             ),
             const SizedBox(height: 6),
             Text(
               message ?? 'common.generic_error'.tr,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Vibe.muted, fontSize: 13),
+              style: TextStyle(color: colors.textSecondary, fontSize: 13), // Replaced Vibe.muted
             ),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: onRetry,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Vibe.violet,
+                backgroundColor: colors.accentPurple, // Replaced Vibe.violet
                 foregroundColor: Colors.white,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 24, vertical: 12),

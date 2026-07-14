@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 
 /// The small floating assistant shown while the coach is paused. Tapping it
 /// resumes the walkthrough; it stays clear of the bottom inset and is fully

@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
-import 'package:isi_steel_sales_mobile/core/network/app_middleware.dart';
+import 'package:isi_steel_sales_mobile/core/middleware/app_middleware.dart';
 import 'package:isi_steel_sales_mobile/core/network/app_network.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/data/datasources/auth_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/data/datasources/auth_remote_data_source.dart';

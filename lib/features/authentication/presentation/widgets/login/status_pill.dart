@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/theme/auth_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
 enum AuthVibeStatus { idle, verifying, error, success }
 
@@ -13,19 +13,21 @@ class StatusPill extends StatelessWidget {
   Widget build(BuildContext context) {
     if (status == AuthVibeStatus.idle) return const SizedBox.shrink();
 
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     final (Color color, IconData? icon, String text) = switch (status) {
-      AuthVibeStatus.verifying => (Vibe.violet, null, 'Verifying…'),
+      AuthVibeStatus.verifying => (scheme.primary, null, 'Verifying…'),
       AuthVibeStatus.success => (
-          Vibe.success,
+          colors.success,
           Icons.check_circle,
           "You're in ✨"
         ),
       AuthVibeStatus.error => (
-          Vibe.danger,
+          scheme.error,
           Icons.error_outline,
           message ?? 'Something went wrong'
         ),
-      AuthVibeStatus.idle => (Vibe.muted, null, ''),
+      AuthVibeStatus.idle => (colors.textSecondary, null, ''),
     };
 
     return Container(

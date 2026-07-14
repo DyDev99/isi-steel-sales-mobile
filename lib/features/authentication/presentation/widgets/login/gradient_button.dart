@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/theme/auth_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/utils/colors.dart';
 
 class GradientButton extends StatelessWidget {
   const GradientButton({
@@ -20,11 +20,14 @@ class GradientButton extends StatelessWidget {
       opacity: disabled ? 0.7 : 1,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          gradient: Vibe.cta,
-          borderRadius: BorderRadius.circular(Vibe.radius),
+          gradient: AppColors.ctaGradient,
+          borderRadius: BorderRadius.circular(AppColors.radius),
           boxShadow: [
             BoxShadow(
-              color: Vibe.pink.withValues(alpha: 0.35),
+              color: Theme.of(context)
+                  .colorScheme
+                  .secondary
+                  .withValues(alpha: 0.35),
               blurRadius: 24,
               offset: const Offset(0, 10),
             ),
@@ -33,7 +36,7 @@ class GradientButton extends StatelessWidget {
         child: Material(
           color: Colors.transparent,
           child: InkWell(
-            borderRadius: BorderRadius.circular(Vibe.radius),
+            borderRadius: BorderRadius.circular(AppColors.radius),
             onTap: disabled ? null : onPressed,
             child: SizedBox(
               height: 56,

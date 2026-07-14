@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/local/localized_builder.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localized_builder.dart';
 
 /// App-wide default transition for every [MaterialPageRoute] (`Navigator.push`
 /// calls and the named-route `_page()` helper alike) — `MaterialPageRoute`

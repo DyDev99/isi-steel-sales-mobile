@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/theme/auth_vibe.dart';
-import 'package:isi_steel_sales_mobile/core/utils/aurora_background.dart';
-import 'package:isi_steel_sales_mobile/core/utils/glass_card.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/aurora_background.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/glass_card.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/gradient_button.dart';
 
 /// A generic "all done" confirmation screen — same aurora/glass visual
@@ -44,7 +44,7 @@ class SuccessScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Vibe.bg,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: Stack(
         children: [
           const Positioned.fill(child: AuroraBackground()),
@@ -67,7 +67,7 @@ class SuccessScreen extends StatelessWidget {
                             title,
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              color: Vibe.text,
+                              color: Theme.of(context).colorScheme.onSurface,
                               fontSize: 26,
                               fontWeight: FontWeight.w900,
                               height: 1.15,
@@ -79,7 +79,7 @@ class SuccessScreen extends StatelessWidget {
                               subtitle!,
                               textAlign: TextAlign.center,
                               style:
-                                  TextStyle(color: Vibe.muted, fontSize: 15),
+                                  TextStyle(color: context.appColors.textSecondary, fontSize: 15),
                             ),
                           ],
                         ],
@@ -101,7 +101,7 @@ class SuccessScreen extends StatelessWidget {
                                   child: Text(
                                     secondaryLabel!,
                                     style: TextStyle(
-                                      color: Vibe.mint,
+                                      color: context.appColors.info,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
@@ -137,10 +137,10 @@ class _SuccessBadge extends StatelessWidget {
       height: 84,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: Vibe.pink.withValues(alpha: 0.12),
-        border: Border.all(color: Vibe.pink.withValues(alpha: 0.35), width: 1.5),
+        color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.12),
+        border: Border.all(color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.35), width: 1.5),
       ),
-      child: Icon(icon, size: 42, color: Vibe.pink),
+      child: Icon(icon, size: 42, color: Theme.of(context).colorScheme.secondary),
     );
   }
 }

@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
-import 'package:isi_steel_sales_mobile/core/utils/glass_card.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/glass_card.dart';
 import 'package:isi_steel_sales_mobile/core/utils/interactive.dart';
 import 'package:isi_steel_sales_mobile/features/revenue/presentation/mapper/revenue_view_model_mapper.dart';
 
-/// Discount Card — selectable discount preset chips.
 class DiscountCard extends StatelessWidget {
   const DiscountCard(
       {super.key, required this.options, required this.onSelected});
@@ -15,6 +14,8 @@ class DiscountCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return GlassCard(
       padding: const EdgeInsets.all(14),
       child: Column(
@@ -22,12 +23,12 @@ class DiscountCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.discount_outlined, color: Vibe.violet, size: 18),
+              Icon(Icons.discount_outlined, color: colors.accentPurple, size: 18), // Replaced Vibe.violet
               const SizedBox(width: 6),
               Text('revenue.discount.title'.tr,
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontWeight: FontWeight.w700,
-                      color: Vibe.text,
+                      color: colors.textPrimary, // Replaced Vibe.text
                       fontSize: 13)),
             ],
           ),
@@ -60,6 +61,8 @@ class _DiscountChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return InteractiveScale(
       onTap: onTap,
       builder: (context, isHovered, isPressed) => AnimatedContainer(
@@ -67,18 +70,18 @@ class _DiscountChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
           color: selected
-              ? Vibe.violet
+              ? colors.accentPurple // Replaced Vibe.violet
               : (isHovered
-                  ? Vibe.primaryLight.withValues(alpha: 0.4)
-                  : Vibe.surface),
+                  ? colors.primaryHover.withValues(alpha: 0.16) // Replaced Vibe.primaryLight
+                  : colors.card), // Replaced Vibe.surface
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-              color: selected || isHovered ? Vibe.violet : Vibe.stroke),
+              color: selected || isHovered ? colors.accentPurple : colors.border), // Replaced Vibe.violet/stroke
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: selected ? Colors.white : Vibe.text,
+            color: selected ? Colors.white : colors.textPrimary, // Replaced Vibe.text
             fontWeight: FontWeight.w700,
             fontSize: 12.5,
           ),

@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
-import 'package:isi_steel_sales_mobile/core/utils/glass_card.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/glass_card.dart';
 import 'package:isi_steel_sales_mobile/features/revenue/presentation/mapper/revenue_view_model_mapper.dart';
 
-/// Customer Credit Summary — available credit, limit and outstanding
-/// balance, with a usage progress bar.
 class CustomerCreditSummaryCard extends StatelessWidget {
   const CustomerCreditSummaryCard({super.key, required this.viewModel});
 
@@ -13,11 +11,14 @@ class CustomerCreditSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final errorColor = Theme.of(context).colorScheme.error;
+
     final barColor = viewModel.isOverLimit
-        ? Vibe.danger
+        ? errorColor // Replaced Vibe.danger
         : viewModel.usageRatio > 0.8
-            ? Vibe.amber
-            : Vibe.violet;
+            ? colors.warning // Replaced Vibe.amber
+            : colors.accentPurple; // Replaced Vibe.violet
 
     return GlassCard(
       padding: const EdgeInsets.all(14),
@@ -29,8 +30,8 @@ class CustomerCreditSummaryCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   viewModel.customerName,
-                  style: const TextStyle(
-                      color: Vibe.text,
+                  style: TextStyle(
+                      color: colors.textPrimary, // Replaced Vibe.text
                       fontSize: 13,
                       fontWeight: FontWeight.w700),
                   maxLines: 1,
@@ -42,12 +43,12 @@ class CustomerCreditSummaryCard extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                      color: Vibe.danger.withValues(alpha: 0.12),
+                      color: errorColor.withValues(alpha: 0.12), // Replaced Vibe.danger
                       borderRadius: BorderRadius.circular(8)),
                   child: Text(
                     'revenue.credit.over_limit'.tr,
-                    style: const TextStyle(
-                        color: Vibe.danger,
+                    style: TextStyle(
+                        color: errorColor, // Replaced Vibe.danger
                         fontSize: 10.5,
                         fontWeight: FontWeight.w800),
                   ),
@@ -56,12 +57,12 @@ class CustomerCreditSummaryCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text('revenue.credit.available'.tr,
-              style: const TextStyle(color: Vibe.muted, fontSize: 11.5)),
+              style: TextStyle(color: colors.textSecondary, fontSize: 11.5)), // Replaced Vibe.muted
           const SizedBox(height: 2),
           Text(
             viewModel.formattedAvailableCredit,
             style: TextStyle(
-              color: viewModel.isOverLimit ? Vibe.danger : Vibe.text,
+              color: viewModel.isOverLimit ? errorColor : colors.textPrimary, // Replaced Vibe.danger/text
               fontSize: 20,
               fontWeight: FontWeight.w800,
             ),
@@ -72,7 +73,7 @@ class CustomerCreditSummaryCard extends StatelessWidget {
             child: LinearProgressIndicator(
               value: viewModel.usageRatio,
               minHeight: 6,
-              backgroundColor: Vibe.divider,
+              backgroundColor: colors.divider, // Replaced Vibe.divider
               valueColor: AlwaysStoppedAnimation(barColor),
             ),
           ),
@@ -104,14 +105,16 @@ class _MetricLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(color: Vibe.muted, fontSize: 10.5)),
+        Text(label, style: TextStyle(color: colors.textSecondary, fontSize: 10.5)), // Replaced Vibe.muted
         const SizedBox(height: 2),
         Text(value,
-            style: const TextStyle(
-                color: Vibe.text, fontSize: 12, fontWeight: FontWeight.w700)),
+            style: TextStyle(
+                color: colors.textPrimary, fontSize: 12, fontWeight: FontWeight.w700)), // Replaced Vibe.text
       ],
     );
   }

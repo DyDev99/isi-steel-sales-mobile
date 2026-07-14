@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/local/localized_builder.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localized_builder.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
-import 'package:isi_steel_sales_mobile/core/utils/glass_card.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/glass_card.dart';
 import 'package:isi_steel_sales_mobile/core/utils/offline_banner.dart';
 import 'package:isi_steel_sales_mobile/core/utils/page_transitions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_plan.dart';
@@ -12,12 +12,13 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_status.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/geofence_service.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/active_route_bloc.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/active_route_event.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/active_route_state.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/location_tracking_cubit.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/location_tracking_state.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/visit_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/events/active_route_event.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/state/active_route_state.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/location_tracking_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/state/location_tracking_state.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/visit_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/route_check_in_screen.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/route_stock_count_screen.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/route_map.dart';
 
 /// Step 1 of the guided field flow — Route Overview & Dispatch.
@@ -31,7 +32,12 @@ import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/r
 /// For now the CTA bridges straight into the existing `StopDetailScreen`
 /// (check-in + capture); Step 2 (Transit & Navigation) will slot in between.
 class RouteDispatchScreen extends StatefulWidget {
-  const RouteDispatchScreen({super.key});
+  const RouteDispatchScreen({super.key, this.resumeStopId});
+
+  /// When set (a "Continue Working" resume), the stop the rep was checked into.
+  /// Dispatch restores it and forwards straight to the Stock Count screen
+  /// instead of waiting for the rep to pick a stop. Null for a normal open.
+  final String? resumeStopId;
 
   /// Route name so the Step 4 "Build Quotation" handoff can `popUntil` back
   /// here before opening the order catalog.
@@ -43,6 +49,10 @@ class RouteDispatchScreen extends StatefulWidget {
 
 class _RouteDispatchScreenState extends State<RouteDispatchScreen> {
   bool _trackingRequested = false;
+
+  /// Guards the one-shot resume deep-link so it fires once per screen, never on
+  /// every bloc rebuild.
+  bool _resumeHandled = false;
 
   /// Begin GPS tracking once the route is loaded so the cards can show live
   /// distances. Guarded so it only fires once. If permission is denied the
@@ -56,6 +66,50 @@ class _RouteDispatchScreenState extends State<RouteDispatchScreen> {
   /// First stop that still needs visiting — the planned "next" target.
   int _nextIndex(RoutePlan route) => route.stops.indexWhere((s) =>
       s.status != VisitStatus.checkedOut && s.status != VisitStatus.missed);
+
+  /// One-shot "Continue Working" resume: restore the checked-in stop and jump
+  /// straight to the Stock Count screen — the exact screen the rep stopped on.
+  ///
+  /// Validation → falls back to this Dispatch (Choose Stop) list, per spec, when
+  /// the stored stop can't be restored: it isn't in the route (deleted/invalid),
+  /// or it's no longer checked in (already checked out). In those cases we just
+  /// leave the rep on the list they're already looking at.
+  void _maybeResumeStockCount(BuildContext context, RoutePlan route) {
+    if (_resumeHandled) return;
+    final stopId = widget.resumeStopId;
+    if (stopId == null) return;
+    _resumeHandled = true;
+
+    final index = route.stops.indexWhere((s) => s.id == stopId);
+    if (index < 0) return; // Stored stop no longer exists → stay on Dispatch.
+    if (route.stops[index].status != VisitStatus.checkedIn) {
+      return; // Already checked out / not checked in → stay on Dispatch.
+    }
+
+    final bloc = context.read<ActiveRouteBloc>();
+    final state = bloc.state;
+    if (state is ActiveRouteReady && !state.dayStarted) {
+      bloc.add(const StartDayRequested());
+    }
+    // Reselect the persisted stop so the shared ActiveRouteBloc points at it —
+    // exactly what the guided flow does when the rep taps a stop.
+    bloc.add(StopSelected(index));
+    _ensureTracking(route);
+
+    // Push Stock Count on top, forwarding the same bloc/VisitCubit instances the
+    // guided flow uses (`RouteCheckInScreen._goToVisit`). Dispatch stays beneath
+    // as the back/`popUntil` target the Stock Count screen expects.
+    final visitCubit = context.read<VisitCubit>();
+    Navigator.of(context).push(slideLeftRoute(
+      MultiBlocProvider(
+        providers: [
+          BlocProvider.value(value: bloc),
+          BlocProvider.value(value: visitCubit),
+        ],
+        child: const RouteStockCountScreen(),
+      ),
+    ));
+  }
 
   Future<void> _startWithStop(BuildContext context, int index,
       {required int nextIndex}) async {
@@ -135,26 +189,37 @@ class _RouteDispatchScreenState extends State<RouteDispatchScreen> {
               ));
         },
         child: BlocBuilder<ActiveRouteBloc, ActiveRouteState>(
-          builder: (context, state) => switch (state) {
-            ActiveRouteReady() => _DispatchBody(
-                route: state.route,
-                onStart: (i, nextIndex) =>
-                    _startWithStop(context, i, nextIndex: nextIndex),
-                onReady: _ensureTracking,
-                nextIndex: _nextIndex(state.route),
-              ),
-            ActiveRouteCompleted(:final route) => _DispatchBody(
-                route: route,
-                onStart: (i, nextIndex) =>
-                    _startWithStop(context, i, nextIndex: nextIndex),
-                onReady: _ensureTracking,
-                nextIndex: _nextIndex(route),
-              ),
-            ActiveRouteError(:final message) => Center(
-                child: Text(message,
-                    style: TextStyle(color: colors.textSecondary))),
-            _ => Center(
-                child: CircularProgressIndicator(color: scheme.primary)),
+          builder: (context, state) {
+            // Resume deep-link: once the route is loaded, restore the checked-in
+            // stop and forward to Stock Count (guarded to fire once).
+            if (state is ActiveRouteReady &&
+                !_resumeHandled &&
+                widget.resumeStopId != null) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) _maybeResumeStockCount(context, state.route);
+              });
+            }
+            return switch (state) {
+              ActiveRouteReady() => _DispatchBody(
+                  route: state.route,
+                  onStart: (i, nextIndex) =>
+                      _startWithStop(context, i, nextIndex: nextIndex),
+                  onReady: _ensureTracking,
+                  nextIndex: _nextIndex(state.route),
+                ),
+              ActiveRouteCompleted(:final route) => _DispatchBody(
+                  route: route,
+                  onStart: (i, nextIndex) =>
+                      _startWithStop(context, i, nextIndex: nextIndex),
+                  onReady: _ensureTracking,
+                  nextIndex: _nextIndex(route),
+                ),
+              ActiveRouteError(:final message) => Center(
+                  child: Text(message,
+                      style: TextStyle(color: colors.textSecondary))),
+              _ => Center(
+                  child: CircularProgressIndicator(color: scheme.primary)),
+            };
           },
         ),
       ),

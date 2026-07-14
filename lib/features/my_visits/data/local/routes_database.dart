@@ -12,7 +12,7 @@ class RoutesDatabase {
     final dbDir = await getDatabasesPath();
     final path = p.join(dbDir, fileName);
     final db = await openDatabase(path,
-        version: 2, onCreate: _onCreate, onUpgrade: _onUpgrade);
+        version: 4, onCreate: _onCreate, onUpgrade: _onUpgrade);
     return RoutesDatabase._(db);
   }
 
@@ -239,9 +239,43 @@ class RoutesDatabase {
         route_id TEXT NOT NULL,
         current_stop_id TEXT,
         day_started INTEGER NOT NULL DEFAULT 0,
-        updated_at TEXT NOT NULL
+        updated_at TEXT NOT NULL,
+        customer_id TEXT,
+        shop_name TEXT,
+        check_in_at TEXT,
+        current_workflow TEXT,
+        current_screen TEXT,
+        navigation_arguments TEXT,
+        workflow_updated_at TEXT
       )
     ''');
+  }
+
+  /// v2 -> v3: widens the resume pointer from route-only to *workflow-aware*.
+  /// Adds the Shop/Depot + business-activity columns on [workflow_state] so the
+  /// Home "Continue Working" card can resume the exact Quotation/Sales Order the
+  /// rep was in, not just the route. All nullable — old rows keep working.
+  static const _workflowStateV3Columns = [
+    'customer_id TEXT',
+    'shop_name TEXT',
+    'check_in_at TEXT',
+    'current_workflow TEXT',
+    'current_screen TEXT',
+    'workflow_updated_at TEXT',
+  ];
+
+  static Future<void> _upgradeToV3(Database db) async {
+    for (final column in _workflowStateV3Columns) {
+      await db.execute('ALTER TABLE workflow_state ADD COLUMN $column');
+    }
+  }
+
+  /// v3 -> v4: adds the free-form JSON [navigation_arguments] column so the
+  /// resume dispatcher can rebuild the exact screen (territory, customerId, …),
+  /// not just the route/stop. Nullable — old rows keep working.
+  static Future<void> _addNavigationArgumentsColumn(Database db) async {
+    await db.execute(
+        'ALTER TABLE workflow_state ADD COLUMN navigation_arguments TEXT');
   }
 
   /// v1 -> v2: adds the offline-resume pointer table ([workflow_state]) and
@@ -252,6 +286,8 @@ class RoutesDatabase {
   static Future<void> _onUpgrade(
       Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
+      // Creates [workflow_state] with the current (v3) column set already, so
+      // an upgrade jumping v1 -> v3 must NOT also run [_upgradeToV3] below.
       await _createWorkflowStateTable(db);
       for (final table in _visitCaptureTables) {
         await db.execute('ALTER TABLE $table ADD COLUMN $_syncStatusColumn');
@@ -260,6 +296,16 @@ class RoutesDatabase {
           'CREATE UNIQUE INDEX idx_checkins_stop_unique ON checkins(stop_id)');
       await db.execute(
           'CREATE UNIQUE INDEX idx_checkouts_stop_unique ON checkouts(stop_id)');
+    }
+    // Only a genuine v2 install has a [workflow_state] table that predates the
+    // workflow-aware columns; a v1 install just created it fully above.
+    if (oldVersion == 2) {
+      await _upgradeToV3(db);
+    }
+    // v2 and v3 installs both lack [navigation_arguments] (v1 got it from the
+    // full create above). Add it for either.
+    if (oldVersion == 2 || oldVersion == 3) {
+      await _addNavigationArgumentsColumn(db);
     }
   }
 }

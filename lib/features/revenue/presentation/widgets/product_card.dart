@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
-import 'package:isi_steel_sales_mobile/core/utils/glass_card.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/glass_card.dart';
 import 'package:isi_steel_sales_mobile/core/utils/interactive.dart';
 import 'package:isi_steel_sales_mobile/features/revenue/presentation/mapper/revenue_view_model_mapper.dart';
 
-/// A single product tile inside the Product Grid — name, price, stock and a
-/// quantity stepper. Pure UI + callbacks, no bloc/data access.
 class ProductCard extends StatelessWidget {
   const ProductCard({
     super.key,
@@ -20,20 +18,20 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // HoverLift (not InteractiveScale) — the card hosts its own tap targets
-    // (the +/- stepper below), so only mouse hover is handled here; taps
-    // are left entirely to the stepper's own gesture detectors.
+    final colors = context.appColors;
+    final errorColor = Theme.of(context).colorScheme.error;
+
     return HoverLift(
       liftScale: 1.02,
       builder: (context, isHovered) => AnimatedContainer(
         duration: const Duration(milliseconds: 160),
         curve: Curves.easeOut,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(Vibe.radius),
+          borderRadius: BorderRadius.circular(12), // Native radius value or Theme based
           boxShadow: isHovered
               ? [
                   BoxShadow(
-                      color: Vibe.violet.withValues(alpha: 0.16),
+                      color: colors.accentPurple.withValues(alpha: 0.16), // Replaced Vibe.violet
                       blurRadius: 20,
                       offset: const Offset(0, 8))
                 ]
@@ -48,19 +46,19 @@ class ProductCard extends StatelessWidget {
                 height: 64,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                    color: Vibe.bgSoft,
+                    color: colors.surfaceSoft, // Replaced Vibe.bgSoft
                     borderRadius: BorderRadius.circular(10)),
                 alignment: Alignment.center,
-                child: const Icon(Icons.inventory_2_outlined,
-                    color: Vibe.muted, size: 28),
+                child: Icon(Icons.inventory_2_outlined,
+                    color: colors.textSecondary, size: 28), // Replaced Vibe.muted
               ),
               const SizedBox(height: 8),
               Text(
                 viewModel.name,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                    color: Vibe.text,
+                style: TextStyle(
+                    color: colors.textPrimary, // Replaced Vibe.text
                     fontSize: 12.5,
                     fontWeight: FontWeight.w700,
                     height: 1.15),
@@ -70,13 +68,13 @@ class ProductCard extends StatelessWidget {
                 viewModel.subtitle,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: Vibe.muted, fontSize: 10.5),
+                style: TextStyle(color: colors.textSecondary, fontSize: 10.5), // Replaced Vibe.muted
               ),
               const SizedBox(height: 4),
               Text(
                 viewModel.stockLabel,
                 style: TextStyle(
-                  color: viewModel.inStock ? Vibe.success : Vibe.danger,
+                  color: viewModel.inStock ? colors.success : errorColor, // Replaced Vibe.success/danger
                   fontSize: 10.5,
                   fontWeight: FontWeight.w600,
                 ),
@@ -84,8 +82,8 @@ class ProductCard extends StatelessWidget {
               const SizedBox(height: 6),
               Text(
                 viewModel.formattedPrice,
-                style: const TextStyle(
-                    color: Vibe.violet,
+                style: TextStyle(
+                    color: colors.accentPurple, // Replaced Vibe.violet
                     fontSize: 14,
                     fontWeight: FontWeight.w800),
               ),
@@ -119,6 +117,8 @@ class _QuantityStepper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return Row(
       children: [
         _StepperButton(
@@ -128,8 +128,8 @@ class _QuantityStepper extends StatelessWidget {
           child: Text(
             '$quantity',
             textAlign: TextAlign.center,
-            style: const TextStyle(
-                color: Vibe.text, fontSize: 13, fontWeight: FontWeight.w800),
+            style: TextStyle(
+                color: colors.textPrimary, fontSize: 13, fontWeight: FontWeight.w800), // Replaced Vibe.text
           ),
         ),
         _StepperButton(
@@ -146,22 +146,24 @@ class _StepperButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     final active = onTap != null;
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
-      hoverColor: Vibe.violet.withValues(alpha: 0.12),
-      splashColor: Vibe.violet.withValues(alpha: 0.16),
+      hoverColor: colors.accentPurple.withValues(alpha: 0.12), // Replaced Vibe.violet
+      splashColor: colors.accentPurple.withValues(alpha: 0.16), // Replaced Vibe.violet
       child: Container(
         width: 28,
         height: 28,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: active ? Vibe.primaryLight : Vibe.bgSoft,
+          color: active ? colors.primaryHover.withValues(alpha: 0.16) : colors.surfaceSoft, // Replaced Vibe.primaryLight/bgSoft
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(icon,
-            size: 16, color: active ? Vibe.violet : Vibe.disabledText),
+            size: 16, color: active ? colors.accentPurple : colors.textDisabled), // Replaced Vibe.violet/disabledText
       ),
     );
   }

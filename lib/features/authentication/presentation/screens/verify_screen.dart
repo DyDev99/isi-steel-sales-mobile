@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/theme/auth_vibe.dart';
-import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/utils/aurora_background.dart';
-import 'package:isi_steel_sales_mobile/core/utils/glass_card.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/aurora_background.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/glass_card.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/gradient_button.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/verify/otp_field.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/status_pill.dart';
@@ -36,14 +36,14 @@ class VerifyResult {
 ///   VerifyScreen(
 ///     target: identifier,
 ///     onVerify: (code) async {
-///       context.read<AuthBloc>().add(VerifyOtpRequestedEvent(identifier, code));
+///       `context.read<AuthBloc>().add(VerifyOtpRequestedEvent(identifier, code));`
 ///       // ...await the resulting state and map it to a VerifyResult
 ///     },
 ///     onVerified: (code) => Navigator.of(context).pushReplacement(
 ///       MaterialPageRoute(
 ///         builder: (_) => CreateNewPasswordScreen(
 ///           onSubmit: (newPassword) async {
-///             context.read<AuthBloc>().add(
+///             `context.read<AuthBloc>().add(`
 ///               ResetPasswordRequestedEvent(identifier, code, newPassword),
 ///             );
 ///             // ...await the resulting state and map it to a ResetPasswordResult
@@ -52,7 +52,7 @@ class VerifyResult {
 ///       ),
 ///     ),
 ///     onResend: () async {
-///       context.read<AuthBloc>().add(ForgotPasswordRequestedEvent(identifier));
+///       `context.read<AuthBloc>().add(ForgotPasswordRequestedEvent(identifier));`
 ///     },
 ///   )
 class VerifyScreen extends StatefulWidget {
@@ -194,7 +194,7 @@ class _VerifyScreenState extends State<VerifyScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Vibe.bg,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: Stack(
         children: [
           const Positioned.fill(child: AuroraBackground()),
@@ -218,17 +218,18 @@ class _VerifyScreenState extends State<VerifyScreen> {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.mark_email_unread_outlined,
                                   size: 40,
-                                  color: Vibe.pink,
+                                  color:
+                                      Theme.of(context).colorScheme.secondary,
                                 ),
                                 const SizedBox(height: 18),
                                 Text(
                                   'auth.verify_code_title'.tr,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
-                                    color: Vibe.text,
+                                    color: Theme.of(context).colorScheme.onSurface,
                                     fontSize: 26,
                                     fontWeight: FontWeight.w900,
                                     height: 1.15,
@@ -240,7 +241,7 @@ class _VerifyScreenState extends State<VerifyScreen> {
                                       .trParams({'target': widget.target}),
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
-                                      color: Vibe.muted, fontSize: 15),
+                                      color: context.appColors.textSecondary, fontSize: 15),
                                 ),
                               ],
                             ),
@@ -289,7 +290,7 @@ class _VerifyScreenState extends State<VerifyScreen> {
                     })
                   : 'auth.resend_code'.tr,
               style: TextStyle(
-                color: _secondsLeft > 0 ? Vibe.muted : Vibe.mint,
+                color: _secondsLeft > 0 ? context.appColors.textSecondary : context.appColors.info,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -314,7 +315,7 @@ class _BackButton extends StatelessWidget {
         child: IconButton(
           onPressed: onPressed,
           icon: const Icon(Icons.arrow_back_ios_new, size: 18),
-          color: Vibe.text,
+          color: Theme.of(context).colorScheme.onSurface,
         ),
       ),
     );

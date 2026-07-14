@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:isi_steel_sales_mobile/core/constants/app_constant.dart';
 import 'package:isi_steel_sales_mobile/core/error/exceptions.dart';
-import 'package:isi_steel_sales_mobile/core/network/app_middleware.dart';
+import 'package:isi_steel_sales_mobile/core/middleware/app_middleware.dart';
 import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/data/models/auth_token_model.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/data/models/user_model.dart';

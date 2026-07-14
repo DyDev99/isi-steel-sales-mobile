@@ -19,4 +19,16 @@ class AppConstants {
   static const String kAccessToken = 'isi.access_token';
   static const String kRefreshToken = 'isi.refresh_token';
   static const String kCachedUser = 'isi.cached_user';
+
+  // ── Encrypted database (Blueprint §3) ──────────────────────────────
+  /// Secure-storage key holding the hardware-sealed 256-bit device key. This
+  /// is the dynamic half of the composite SQLCipher passphrase — never the
+  /// final key, which is derived at runtime and never persisted.
+  static const String kDbDeviceKey = 'isi.db_device_key';
+
+  /// Secure-storage key holding the device-key version (for rotation).
+  static const String kDbDeviceKeyVersion = 'isi.db_device_key_version';
+
+  /// On-disk file name of the single encrypted application database.
+  static const String encryptedDbFileName = 'isi_secure.db';
 }

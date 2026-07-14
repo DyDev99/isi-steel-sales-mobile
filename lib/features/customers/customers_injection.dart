@@ -1,7 +1,8 @@
 import 'package:get_it/get_it.dart';
+import 'package:isi_steel_sales_mobile/core/storage/database/drift/app_database.dart';
 import 'package:isi_steel_sales_mobile/core/network/network_info.dart';
+import 'package:isi_steel_sales_mobile/features/customers/data/local/customer_drift_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/local/customer_local_data_source.dart';
-import 'package:isi_steel_sales_mobile/features/customers/data/local/customers_database.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/remote/customer_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/remote/mock_customer_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/repositories/customer_repository_impl.dart';
@@ -25,18 +26,13 @@ import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/cust
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customer_sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customers_bloc.dart';
 
-/// Registers the approved-customer directory: its own sqflite database
-/// (separate from the product catalog's, see `CustomersDatabase`), local
-/// data source, mock SAP feed, and the sync/read repositories. Async for
-/// the same reason `registerOrderFeature` is — it opens a database before
-/// anything else can be registered against it.
+/// Registers the approved-customer directory. Persistence is the single
+/// SQLCipher-encrypted Drift database (`AppDatabase`) via [CustomerDao] — the
+/// legacy plaintext `customers.db` was retired in the T2 cutover.
 Future<void> registerCustomerFeature(GetIt sl) async {
-  final customersDb = await CustomersDatabase.open();
-  sl.registerLazySingleton<CustomersDatabase>(() => customersDb);
-
   // ── Data sources ────────────────────────────────────────────────────
   sl.registerLazySingleton<CustomerLocalDataSource>(
-      () => CustomerLocalDataSourceImpl(sl()));
+      () => CustomerDriftLocalDataSource(sl<AppDatabase>().customerDao));
   sl.registerLazySingleton<CustomerRemoteDataSource>(
       () => MockCustomerRemoteDataSource());
 

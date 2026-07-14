@@ -1,17 +1,24 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
-import 'package:isi_steel_sales_mobile/core/local/app_preferences.dart';
-import 'package:isi_steel_sales_mobile/core/local/hive_service.dart';
+import 'package:isi_steel_sales_mobile/core/config/env.dart';
+import 'package:isi_steel_sales_mobile/core/storage/database/drift/app_database.dart';
+import 'package:isi_steel_sales_mobile/core/storage/database/drift/app_database_rekey_executor.dart';
+import 'package:isi_steel_sales_mobile/core/storage/secure/app_database_key_provider.dart';
+import 'package:isi_steel_sales_mobile/core/storage/secure/database_key_rotator.dart';
+import 'package:isi_steel_sales_mobile/core/storage/secure/dynamic_key_store.dart';
+import 'package:isi_steel_sales_mobile/core/storage/secure/key_derivation.dart';
+import 'package:isi_steel_sales_mobile/core/storage/hive/app_preferences.dart';
+import 'package:isi_steel_sales_mobile/core/storage/hive/hive_service.dart';
 import 'package:isi_steel_sales_mobile/core/network/connectivity_cubit.dart';
 import 'package:isi_steel_sales_mobile/core/network/network_info.dart';
-import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
+import 'package:isi_steel_sales_mobile/core/storage/session/session_manager.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/app_coach_injection.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/authentication_injection.dart';
 import 'package:isi_steel_sales_mobile/features/localization/presentation/bloc/language_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/customers/customers_injection.dart';
 import 'package:isi_steel_sales_mobile/features/home/presentation/bloc/home_cubit.dart';
-import 'package:isi_steel_sales_mobile/features/home/presentation/home_injection.dart';
+import 'package:isi_steel_sales_mobile/features/home/home_injection.dart';
 import 'package:isi_steel_sales_mobile/features/lead/lead_injection.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/my_visits_injection.dart';
 import 'package:isi_steel_sales_mobile/features/order/order_injection.dart';
@@ -31,6 +38,30 @@ Future<void> initDependencies() async {
     ),
   );
   sl.registerLazySingleton<Connectivity>(() => Connectivity());
+
+  // ── Encrypted database (Blueprint §3: composite-key SQLCipher) ──────
+  sl.registerLazySingleton<DynamicKeyStore>(() => DynamicKeyStore(sl()));
+  sl.registerLazySingleton<KeyDerivation>(() => const KeyDerivation());
+  sl.registerLazySingleton<AppDatabaseKeyProvider>(
+    () => AppDatabaseKeyProvider(
+      deviceKeyStore: sl(),
+      keyDerivation: sl(),
+      salt: Env.dbSalt,
+    ),
+  );
+  sl.registerLazySingleton<AppDatabase>(() => AppDatabase.encrypted(sl()));
+  sl.registerLazySingleton<DatabaseRekeyExecutor>(
+    () => AppDatabaseRekeyExecutor(sl()),
+  );
+  sl.registerLazySingleton<DatabaseKeyRotator>(
+    () => DatabaseKeyRotator(
+      deviceKeyStore: sl(),
+      keyDerivation: sl(),
+      executor: sl(),
+      salt: Env.dbSalt,
+    ),
+  );
+
   sl.registerFactory<ConnectivityCubit>(() => ConnectivityCubit(sl()));
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
   sl.registerLazySingleton<SessionManager>(() => SessionManager());
@@ -43,7 +74,7 @@ Future<void> initDependencies() async {
 
   // ── Features ───────────────────────────────────────────────────────
   registerAuthFeature(sl);
-  initCustomerFeatures();
+  registerHomeFeature(sl);
   registerLeadFeature(sl);
   await registerOrderFeature(sl);
   await registerCustomerFeature(sl);

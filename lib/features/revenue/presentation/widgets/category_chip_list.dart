@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/core/utils/interactive.dart';
 import 'package:isi_steel_sales_mobile/features/revenue/presentation/mapper/revenue_view_model_mapper.dart';
 
-/// Category Card — horizontal scroll of category quick-filter chips.
 class CategoryChipList extends StatelessWidget {
   const CategoryChipList(
       {super.key, required this.categories, required this.onSelect});
@@ -42,6 +41,8 @@ class _CategoryChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return InteractiveScale(
       onTap: onTap,
       builder: (context, isHovered, isPressed) => AnimatedContainer(
@@ -49,19 +50,19 @@ class _CategoryChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           color: selected
-              ? Vibe.violet
+              ? colors.accentPurple // Replaced Vibe.violet
               : (isHovered
-                  ? Vibe.primaryLight.withValues(alpha: 0.4)
-                  : Vibe.surface),
+                  ? colors.primaryHover.withValues(alpha: 0.16) // Replaced Vibe.primaryLight
+                  : colors.card), // Replaced Vibe.surface
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-              color: selected || isHovered ? Vibe.violet : Vibe.stroke),
+              color: selected || isHovered ? colors.accentPurple : colors.border), // Replaced Vibe.violet/stroke
         ),
         alignment: Alignment.center,
         child: Text(
           label,
           style: TextStyle(
-            color: selected ? Colors.white : Vibe.text,
+            color: selected ? Colors.white : colors.textPrimary, // Replaced Vibe.text
             fontSize: 12.5,
             fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
           ),

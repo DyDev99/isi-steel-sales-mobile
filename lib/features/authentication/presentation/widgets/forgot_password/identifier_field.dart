@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:phone_form_field/phone_form_field.dart';
-import 'package:isi_steel_sales_mobile/core/theme/auth_vibe.dart';
-import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/core/utils/colors.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/vibe_field.dart';
 
 /// NOTE ON SETUP
@@ -160,21 +161,24 @@ class IdentifierFieldState extends State<IdentifierField> {
       key: _phoneFieldKey,
       controller: _phoneController,
       textInputAction: widget.textInputAction,
-      style: const TextStyle(color: Vibe.text, fontSize: 15),
-      cursorColor: Vibe.pink,
+      style: TextStyle(
+          color: Theme.of(context).colorScheme.onSurface, fontSize: 15),
+      cursorColor: Theme.of(context).colorScheme.secondary,
       autovalidateMode: AutovalidateMode.onUserInteraction,
       countrySelectorNavigator: const CountrySelectorNavigator.bottomSheet(),
       isCountrySelectionEnabled: true,
       isCountryButtonPersistent: true,
       autofillHints: const [AutofillHints.telephoneNumber],
-      countryButtonStyle: const CountryButtonStyle(
+      countryButtonStyle: CountryButtonStyle(
         showDialCode: true,
         showIsoCode: false,
         showFlag: true,
         flagSize: 16,
-        textStyle: TextStyle(color: Vibe.text, fontSize: 15),
+        textStyle: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface, fontSize: 15),
       ),
       decoration: vibeFieldDecoration(
+        context,
         label: 'auth.phone_number'.tr,
         required: widget.required,
       ),
@@ -193,22 +197,25 @@ class _ModeSwitcher extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: Vibe.surfaceStrong,
-        borderRadius: BorderRadius.circular(Vibe.radius),
-        border: Border.all(color: Vibe.stroke),
+        color: colors.surfaceStrong,
+        borderRadius: BorderRadius.circular(AppColors.radius),
+        border: Border.all(color: colors.border),
       ),
       child: Row(
         children: [
           _segment(
+            context,
             label: 'auth.email'.tr,
             icon: Icons.alternate_email,
             selected: mode == ContactMode.email,
             onTap: () => onChanged(ContactMode.email),
           ),
           _segment(
+            context,
             label: 'auth.phone_number'.tr,
             icon: Icons.phone_outlined,
             selected: mode == ContactMode.phone,
@@ -219,12 +226,15 @@ class _ModeSwitcher extends StatelessWidget {
     );
   }
 
-  Widget _segment({
+  Widget _segment(
+    BuildContext context, {
     required String label,
     required IconData icon,
     required bool selected,
     required VoidCallback onTap,
   }) {
+    final accent = Theme.of(context).colorScheme.secondary;
+    final muted = context.appColors.textSecondary;
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
@@ -233,21 +243,21 @@ class _ModeSwitcher extends StatelessWidget {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: selected ? Vibe.pink.withValues(alpha: 0.14) : null,
-            borderRadius: BorderRadius.circular(Vibe.radius - 2),
+            color: selected ? accent.withValues(alpha: 0.14) : null,
+            borderRadius: BorderRadius.circular(AppColors.radius - 2),
             border: selected
-                ? Border.all(color: Vibe.pink.withValues(alpha: 0.5))
+                ? Border.all(color: accent.withValues(alpha: 0.5))
                 : null,
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 16, color: selected ? Vibe.pink : Vibe.muted),
+              Icon(icon, size: 16, color: selected ? accent : muted),
               const SizedBox(width: 6),
               Text(
                 label,
                 style: TextStyle(
-                  color: selected ? Vibe.pink : Vibe.muted,
+                  color: selected ? accent : muted,
                   fontSize: 13,
                   fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
                 ),

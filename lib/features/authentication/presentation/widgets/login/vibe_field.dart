@@ -1,54 +1,64 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/theme/auth_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/core/utils/colors.dart';
 
 /// Builds the "Label *" rich-text used as an [InputDecoration.label] so the
-/// asterisk can be styled in [Vibe.danger] while the rest of the label stays
-/// [Vibe.muted]. Shared by [VibeField] and any other Vibe-styled input
-/// (e.g. the phone half of `IdentifierField`) so required-field styling
-/// stays consistent across the form.
-Widget vibeFieldLabel(String label, {bool required = false}) {
-  if (!required) return Text(label, style: const TextStyle(color: Vibe.muted));
+/// asterisk can be styled in the error color while the rest of the label stays
+/// muted. Shared by [VibeField] and any other themed input (e.g. the phone
+/// half of `IdentifierField`) so required-field styling stays consistent
+/// across the form. Takes [context] so the colors track the active theme.
+Widget vibeFieldLabel(BuildContext context, String label,
+    {bool required = false}) {
+  final muted = context.appColors.textSecondary;
+  if (!required) return Text(label, style: TextStyle(color: muted));
   return RichText(
     text: TextSpan(
-      style: const TextStyle(color: Vibe.muted, fontSize: 16),
+      style: TextStyle(color: muted, fontSize: 16),
       children: [
         TextSpan(text: label),
-        const TextSpan(
+        TextSpan(
           text: ' *',
-          style: TextStyle(color: Vibe.danger, fontWeight: FontWeight.w700),
+          style: TextStyle(
+              color: Theme.of(context).colorScheme.error,
+              fontWeight: FontWeight.w700),
         ),
       ],
     ),
   );
 }
 
-/// Shared enabled/focused/error border builder for Vibe-styled inputs.
+/// Shared enabled/focused/error border builder for themed inputs.
 OutlineInputBorder vibeFieldBorder(Color c, [double w = 1]) =>
     OutlineInputBorder(
-      borderRadius: BorderRadius.circular(Vibe.radius),
+      borderRadius: BorderRadius.circular(AppColors.radius),
       borderSide: BorderSide(color: c, width: w),
     );
 
-/// Shared base decoration (fill, borders, padding) for Vibe-styled inputs,
-/// so fields like the phone input in `IdentifierField` render identically
-/// to [VibeField] without duplicating the styling.
-InputDecoration vibeFieldDecoration({
+/// Shared base decoration (fill, borders, padding) for themed inputs, so
+/// fields like the phone input in `IdentifierField` render identically to
+/// [VibeField] without duplicating the styling.
+InputDecoration vibeFieldDecoration(
+  BuildContext context, {
   required String label,
   bool required = false,
   IconData? icon,
   Widget? suffix,
 }) {
+  final scheme = Theme.of(context).colorScheme;
+  final colors = context.appColors;
   return InputDecoration(
-    label: vibeFieldLabel(label, required: required),
-    prefixIcon: icon == null ? null : Icon(icon, color: Vibe.muted, size: 20),
+    label: vibeFieldLabel(context, label, required: required),
+    prefixIcon: icon == null
+        ? null
+        : Icon(icon, color: colors.textSecondary, size: 20),
     suffixIcon: suffix,
     filled: true,
-    fillColor: Vibe.surfaceStrong,
-    enabledBorder: vibeFieldBorder(Vibe.stroke),
-    focusedBorder: vibeFieldBorder(Vibe.pink, 1.6),
-    errorBorder: vibeFieldBorder(Vibe.danger),
-    focusedErrorBorder: vibeFieldBorder(Vibe.danger, 1.6),
-    errorStyle: const TextStyle(color: Vibe.danger),
+    fillColor: colors.surfaceStrong,
+    enabledBorder: vibeFieldBorder(colors.border),
+    focusedBorder: vibeFieldBorder(scheme.secondary, 1.6),
+    errorBorder: vibeFieldBorder(scheme.error),
+    focusedErrorBorder: vibeFieldBorder(scheme.error, 1.6),
+    errorStyle: TextStyle(color: scheme.error),
     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
   );
 }
@@ -101,9 +111,11 @@ class VibeField extends StatelessWidget {
       autofillHints: autofillHints,
       onFieldSubmitted: onSubmitted,
       validator: validator,
-      style: const TextStyle(color: Vibe.text, fontSize: 15),
-      cursorColor: Vibe.pink,
+      style: TextStyle(
+          color: Theme.of(context).colorScheme.onSurface, fontSize: 15),
+      cursorColor: Theme.of(context).colorScheme.secondary,
       decoration: vibeFieldDecoration(
+        context,
         label: label,
         required: required,
         icon: icon,

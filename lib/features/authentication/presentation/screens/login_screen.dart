@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:isi_steel_sales_mobile/core/utils/verion.dart';
+import 'package:isi_steel_sales_mobile/core/utils/version.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_event.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_state.dart';
-import 'package:isi_steel_sales_mobile/core/theme/auth_vibe.dart';
-import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/utils/aurora_background.dart';
-import 'package:isi_steel_sales_mobile/core/utils/glass_card.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/aurora_background.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/glass_card.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/gradient_button.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/forgot_password/identifier_field.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/status_pill.dart';
@@ -81,7 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
             .pushNamedAndRemoveUntil(Static.main, (route) => false);
       },
       child: Scaffold(
-        backgroundColor: Vibe.bg,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         body: Stack(
           children: [
             const Positioned.fill(child: AuroraBackground()),
@@ -108,7 +108,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                   'auth.welcome_back'.tr,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
-                                    color: Vibe.text,
+                                    color:
+                                        Theme.of(context).colorScheme.onSurface,
                                     fontSize: 30,
                                     fontWeight: FontWeight.w900,
                                     height: 1.1,
@@ -119,7 +120,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                   'auth.sign_in_subtitle'.tr,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
-                                      color: Vibe.muted, fontSize: 15),
+                                      color: context.appColors.textSecondary,
+                                      fontSize: 15),
                                 ),
                               ],
                             ),
@@ -168,7 +170,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 _obscure
                     ? Icons.visibility_outlined
                     : Icons.visibility_off_outlined,
-                color: Vibe.muted,
+                color: context.appColors.textSecondary,
                 size: 20,
               ),
               onPressed: () => setState(() => _obscure = !_obscure),
@@ -182,8 +184,9 @@ class _LoginScreenState extends State<LoginScreen> {
             child: TextButton(
               onPressed: () => Navigator.of(context).pushNamed(Static.forgotPassword),
               child: Text('auth.forgot_password'.tr,
-                  style:
-                      TextStyle(color: Vibe.mint, fontWeight: FontWeight.w600)),
+                  style: TextStyle(
+                      color: context.appColors.info,
+                      fontWeight: FontWeight.w600)),
             ),
           ),
           const SizedBox(height: 6),

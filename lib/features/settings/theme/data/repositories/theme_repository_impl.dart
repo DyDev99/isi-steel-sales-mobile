@@ -1,4 +1,4 @@
-import 'package:isi_steel_sales_mobile/core/local/app_preferences.dart';
+import 'package:isi_steel_sales_mobile/core/storage/hive/app_preferences.dart';
 import 'package:isi_steel_sales_mobile/features/settings/theme/domain/entities/app_theme_mode.dart';
 import 'package:isi_steel_sales_mobile/features/settings/theme/domain/repositories/theme_repository.dart';
 

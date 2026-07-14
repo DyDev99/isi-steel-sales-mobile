@@ -1,28 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/resumable_visit_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/quotation.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/sync/continue_work_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/sync/pending_sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/quotation_detail_screen.dart';
+import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/sync/continue_work_resolver.dart';
 
 /// The floating "Continue Previous Work" card. Surfaces the most recent draft
 /// (or a "Continue Working (N)" opener for several). **Never auto-navigates** —
 /// resuming, submitting or discarding is always an explicit tap.
+///
+/// Drafts that belong to the rep's active visit's shop are folded into the
+/// visit's own Continue card ([ContinueVisitCard]) and hidden here, so one
+/// journey never shows two "Continue" cards (see [standaloneDrafts]).
 class ContinueWorkingCard extends StatelessWidget {
   const ContinueWorkingCard({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final activeShopId =
+        context.watch<ResumableVisitCubit>().state.activeShopId;
     return BlocBuilder<ContinueWorkCubit, ContinueWorkState>(
       builder: (context, state) {
-        if (!state.loaded || state.drafts.isEmpty) {
+        final drafts = standaloneDrafts(state.drafts, activeShopId);
+        if (!state.loaded || drafts.isEmpty) {
           return const SizedBox.shrink();
         }
-        if (state.hasMultiple) {
-          return _MultiDraftCard(count: state.drafts.length);
+        if (drafts.length > 1) {
+          return _MultiDraftCard(count: drafts.length);
         }
-        return _DraftCard(draft: state.drafts.first);
+        return _DraftCard(draft: drafts.first);
       },
     );
   }

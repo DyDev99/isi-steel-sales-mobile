@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
-import 'package:isi_steel_sales_mobile/core/local/localization_services.dart'; // Handles the .tr extension
-import 'package:isi_steel_sales_mobile/core/local/localized_builder.dart'; // Triggers reactive rebuilds
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart'; // Handles the .tr extension
+import 'package:isi_steel_sales_mobile/core/localization/localized_builder.dart'; // Triggers reactive rebuilds
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/notification_item.dart';
 import 'package:isi_steel_sales_mobile/features/notification/domain/usecases/fetch_notifications.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/usecases/lead_usecase.dart';
@@ -10,9 +10,10 @@ Future<void> showNotificationsSheet({
   required BuildContext context,
   required FetchNotifications fetchNotifications,
 }) {
+  final colors = context.appColors;
   return showModalBottomSheet<void>(
     context: context,
-    backgroundColor: Vibe.bgSoft,
+    backgroundColor: colors.surfaceSoft, // Replaced Vibe.bgSoft
     isScrollControlled: true,
     shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
@@ -24,32 +25,35 @@ class _NotificationsSheet extends StatelessWidget {
   const _NotificationsSheet({required this.fetchNotifications});
   final FetchNotifications fetchNotifications;
 
-  ({IconData icon, Color color}) _style(NotificationKind kind) =>
-      switch (kind) {
-        NotificationKind.creditApproved => (
-            icon: Icons.verified_rounded,
-            color: Vibe.success
-          ),
-        NotificationKind.leadAssigned => (
-            icon: Icons.person_add_alt_1_rounded,
-            color: Vibe.violet
-          ),
-        NotificationKind.opportunityMoved => (
-            icon: Icons.trending_up_rounded,
-            color: Vibe.amber
-          ),
-        NotificationKind.creditPending => (
-            icon: Icons.hourglass_top_rounded,
-            color: Vibe.amber
-          ),
-        NotificationKind.followUpDue => (
-            icon: Icons.event_repeat_rounded,
-            color: Vibe.danger
-          ),
-      };
+  ({IconData icon, Color color}) _style(BuildContext context, NotificationKind kind) {
+    final colors = context.appColors;
+    return switch (kind) {
+      NotificationKind.creditApproved => (
+          icon: Icons.verified_rounded,
+          color: colors.success // Replaced Vibe.success
+        ),
+      NotificationKind.leadAssigned => (
+          icon: Icons.person_add_alt_1_rounded,
+          color: colors.accentPurple // Replaced Vibe.violet
+        ),
+      NotificationKind.opportunityMoved => (
+          icon: Icons.trending_up_rounded,
+          color: colors.warning // Replaced Vibe.amber
+        ),
+      NotificationKind.creditPending => (
+          icon: Icons.hourglass_top_rounded,
+          color: colors.warning // Replaced Vibe.amber
+        ),
+      NotificationKind.followUpDue => (
+          icon: Icons.event_repeat_rounded,
+          color: Theme.of(context).colorScheme.error // Replaced Vibe.danger with Material 3 semantic error
+        ),
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return SafeArea(
       // LocalizedBuilder forces a sub-tree rebuild when language changes smoothly
       child: LocalizedBuilder(
@@ -63,8 +67,8 @@ class _NotificationsSheet extends StatelessWidget {
                 children: [
                   Text(
                     'notifications.title'.tr,
-                    style: const TextStyle(
-                        color: Vibe.text,
+                    style: TextStyle(
+                        color: colors.textPrimary, // Replaced Vibe.text
                         fontSize: 17,
                         fontWeight: FontWeight.w800),
                   ),
@@ -74,16 +78,16 @@ class _NotificationsSheet extends StatelessWidget {
                       future: fetchNotifications(const NoParams()),
                       builder: (context, snapshot) {
                         if (!snapshot.hasData) {
-                          return const Center(
-                              child:
-                                  CircularProgressIndicator(color: Vibe.pink));
+                          return Center(
+                              child: CircularProgressIndicator(
+                                  color: Theme.of(context).colorScheme.primary)); // Replaced Vibe.pink with primary theme indicator
                         }
                         final items = snapshot.data!;
                         if (items.isEmpty) {
                           return Center(
                             child: Text(
                               'notifications.no_notifications'.tr,
-                              style: const TextStyle(color: Vibe.muted),
+                              style: TextStyle(color: colors.textHint), // Replaced Vibe.muted
                             ),
                           );
                         }
@@ -93,7 +97,7 @@ class _NotificationsSheet extends StatelessWidget {
                               const SizedBox(height: 4),
                           itemBuilder: (context, i) {
                             final item = items[i];
-                            final s = _style(item.kind);
+                            final s = _style(context, item.kind);
 
                             // Check if title or body are localized system translation keys
                             // If they are regular strings, use fallback item.title directly.
@@ -128,16 +132,16 @@ class _NotificationsSheet extends StatelessWidget {
                                       children: [
                                         Text(
                                           displayTitle,
-                                          style: const TextStyle(
-                                              color: Vibe.text,
+                                          style: TextStyle(
+                                              color: colors.textPrimary, // Replaced Vibe.text
                                               fontSize: 13.5,
                                               fontWeight: FontWeight.w700),
                                         ),
                                         const SizedBox(height: 2),
                                         Text(
                                           displayBody,
-                                          style: const TextStyle(
-                                              color: Vibe.muted,
+                                          style: TextStyle(
+                                              color: colors.textSecondary, // Replaced Vibe.muted with readable textSecondary
                                               fontSize: 12.5),
                                         ),
                                       ],

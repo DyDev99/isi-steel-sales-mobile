@@ -1,9 +1,9 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart'; // Ensure correct path to AppThemeColors
 
-/// A thin amber strip that appears only while the device is offline, reassuring
+/// A thin warning-tinted strip that appears only while the device is offline, reassuring
 /// the field agent that GPS logs, photos, and captured data are queued on the
 /// device (SQLite) and will sync once a connection returns. Collapses to
 /// nothing when online.
@@ -14,6 +14,9 @@ class OfflineBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = context.appColors; // Access the resolved semantic theme extension tokens
+
     return StreamBuilder<List<ConnectivityResult>>(
       stream: Connectivity().onConnectivityChanged,
       builder: (context, snapshot) {
@@ -27,21 +30,22 @@ class OfflineBanner extends StatelessWidget {
           margin: margin,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: Vibe.amber.withValues(alpha: 0.12),
+            color: theme.colorScheme.surface.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Vibe.amber.withValues(alpha: 0.35)),
+            border: Border.all(color: colors.warning.withValues(alpha: 0.35)),
           ),
           child: Row(
             children: [
-              const Icon(Icons.cloud_off_rounded, color: Vibe.amber, size: 16),
+              Icon(Icons.cloud_off_rounded, color: colors.warning, size: 16),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   'my_visits.flow.offline_saved'.tr,
-                  style: const TextStyle(
-                      color: Vibe.amber,
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    color: colors.warning,
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],

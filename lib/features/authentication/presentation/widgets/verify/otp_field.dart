@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:isi_steel_sales_mobile/core/theme/auth_vibe.dart';
-import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/core/utils/colors.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 
 /// A row of single-digit boxes for entering an OTP / verification code,
 /// styled to match [VibeField]. Not a [FormField] itself (same reasoning as
@@ -111,8 +112,8 @@ class OtpFieldState extends State<OtpField> {
           const SizedBox(height: 8),
           Text(
             _error!,
-            style: const TextStyle(
-              color: Vibe.danger,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.error,
               fontSize: 12,
               fontWeight: FontWeight.w600,
             ),
@@ -123,8 +124,10 @@ class OtpFieldState extends State<OtpField> {
   }
 
   Widget _box(int index) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     OutlineInputBorder border(Color c, [double w = 1]) => OutlineInputBorder(
-          borderRadius: BorderRadius.circular(Vibe.radius),
+          borderRadius: BorderRadius.circular(AppColors.radius),
           borderSide: BorderSide(color: c, width: w),
         );
 
@@ -158,19 +161,20 @@ class OtpFieldState extends State<OtpField> {
           // SMS autofill on Android typically targets the first box.
           autofillHints:
               index == 0 ? const [AutofillHints.oneTimeCode] : null,
-          style: const TextStyle(
-            color: Vibe.text,
+          style: TextStyle(
+            color: scheme.onSurface,
             fontSize: 20,
             fontWeight: FontWeight.w700,
           ),
-          cursorColor: Vibe.pink,
+          cursorColor: scheme.secondary,
           decoration: InputDecoration(
             isDense: true,
             filled: true,
-            fillColor: Vibe.surfaceStrong,
+            fillColor: colors.surfaceStrong,
             contentPadding: const EdgeInsets.symmetric(vertical: 14),
-            enabledBorder: border(hasError ? Vibe.danger : Vibe.stroke),
-            focusedBorder: border(hasError ? Vibe.danger : Vibe.pink, 1.6),
+            enabledBorder: border(hasError ? scheme.error : colors.border),
+            focusedBorder:
+                border(hasError ? scheme.error : scheme.secondary, 1.6),
           ),
           onChanged: (text) => _handleChange(index, text),
         ),

@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
-import 'package:isi_steel_sales_mobile/core/local/app_preferences.dart';
-import 'package:isi_steel_sales_mobile/core/utils/verion.dart';
+import 'package:isi_steel_sales_mobile/core/storage/hive/app_preferences.dart';
+import 'package:isi_steel_sales_mobile/core/utils/version.dart';
 import 'package:isi_steel_sales_mobile/routes/app_routes.dart';
 
 /// Splash: ISI Steel logo fades + scales in, then forwards based on onboarding

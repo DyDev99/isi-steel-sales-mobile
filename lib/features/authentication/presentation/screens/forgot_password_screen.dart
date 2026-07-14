@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/theme/auth_vibe.dart';
-import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/utils/aurora_background.dart';
-import 'package:isi_steel_sales_mobile/core/utils/glass_card.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/aurora_background.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/glass_card.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/gradient_button.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/forgot_password/identifier_field.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/status_pill.dart';
@@ -92,7 +92,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Vibe.bg,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: Stack(
         children: [
           const Positioned.fill(child: AuroraBackground()),
@@ -118,7 +118,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                       ? Icons.mark_email_read_outlined
                                       : Icons.lock_reset_outlined,
                                   size: 40,
-                                  color: Vibe.pink,
+                                  color: Theme.of(context).colorScheme.secondary,
                                 ),
                                 const SizedBox(height: 18),
                                 Text(
@@ -127,7 +127,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                       : 'auth.forgot_password_title'.tr,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
-                                    color: Vibe.text,
+                                    color: Theme.of(context).colorScheme.onSurface,
                                     fontSize: 26,
                                     fontWeight: FontWeight.w900,
                                     height: 1.15,
@@ -141,7 +141,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                       : 'auth.forgot_password_subtitle'.tr,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
-                                      color: Vibe.muted, fontSize: 15),
+                                      color: context.appColors.textSecondary, fontSize: 15),
                                 ),
                               ],
                             ),
@@ -218,7 +218,7 @@ class _SuccessActions extends StatelessWidget {
             onPressed: onResend,
             child: Text(
               'auth.resend_or_try_different'.tr,
-              style: TextStyle(color: Vibe.mint, fontWeight: FontWeight.w600),
+              style: TextStyle(color: context.appColors.info, fontWeight: FontWeight.w600),
             ),
           ),
         ),
@@ -241,7 +241,7 @@ class _BackButton extends StatelessWidget {
         child: IconButton(
           onPressed: onPressed,
           icon: const Icon(Icons.arrow_back_ios_new, size: 18),
-          color: Vibe.text,
+          color: Theme.of(context).colorScheme.onSurface,
         ),
       ),
     );

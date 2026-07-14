@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/depot_stock_count_cubit.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/depot_stock_count_state.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/depot_stock_count_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/state/depot_stock_count_state.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/stock_count_row.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/order_skeletons.dart';
 

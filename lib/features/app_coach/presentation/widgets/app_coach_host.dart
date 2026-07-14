@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
-import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
+import 'package:isi_steel_sales_mobile/core/storage/session/session_manager.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/domain/entities/coach_action.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/domain/entities/coach_status.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/presentation/blocs/app_coach_bloc.dart';

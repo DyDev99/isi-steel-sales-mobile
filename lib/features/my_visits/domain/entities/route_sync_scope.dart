@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
+import 'package:isi_steel_sales_mobile/core/storage/session/session_manager.dart';
 
 /// Narrows sync to the signed-in rep's own routes — mirrors
 /// `order`'s `SyncScope.forCurrentUser` shape/rationale exactly (the

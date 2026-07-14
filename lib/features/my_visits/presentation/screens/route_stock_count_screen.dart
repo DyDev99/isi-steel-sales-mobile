@@ -3,17 +3,19 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/local/localized_builder.dart';
+import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localized_builder.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/core/utils/offline_banner.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/shop/shop_list_screen.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_stop.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_stock_update.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_workflow.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/update_workflow_step.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/active_route_bloc.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/active_route_event.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/active_route_state.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/visit_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/state/active_route_state.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/visit_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/route_dispatch_screen.dart';
 
 /// Step 4 of the guided field flow — Market Intelligence Inventory Count
@@ -24,6 +26,10 @@ import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/r
 /// and hands off to the order catalog to quote what the shop is missing.
 class RouteStockCountScreen extends StatefulWidget {
   const RouteStockCountScreen({super.key});
+
+  /// Stable resume-target key persisted on [ActiveWorkflow.currentScreen] and
+  /// mapped back by the resume dispatcher. Matches [VisitWorkflow.stockCount].
+  static const String routeName = 'route_stock_count';
 
   @override
   State<RouteStockCountScreen> createState() => _RouteStockCountScreenState();
@@ -57,7 +63,6 @@ class _RouteStockCountScreenState extends State<RouteStockCountScreen> {
 
     final navigator = Navigator.of(context);
     final visit = context.read<VisitCubit>();
-    final activeRoute = context.read<ActiveRouteBloc>();
 
     // 1. Persist every shelf count as a stock update (offline-safe).
     for (final item in _items) {
@@ -71,8 +76,20 @@ class _RouteStockCountScreenState extends State<RouteStockCountScreen> {
       ));
     }
 
-    // 2. Complete the visit.
-    activeRoute.add(const CheckOutRequested('Shelf count completed'));
+    // 2. Advance the *navigation state* to the Quotation task WITHOUT checking
+    // out. Check-out is now deferred until the rep is done (explicit "Check out"
+    // on the Continue-Working card / CompleteVisitCheckOut), so the stop stays
+    // "Checked In" and "Continue Working" resumes straight into the order flow
+    // for this shop — the exact screen the rep stopped on. The recorded
+    // navigation args let the resume dispatcher rebuild the Shop list.
+    unawaited(sl<UpdateWorkflowStep>()(UpdateWorkflowStepParams(
+      VisitWorkflow.quotation,
+      screen: ShopListScreen.routeName,
+      navigationArguments: {
+        'territory': stop.customer.territory,
+        'customerId': stop.customer.id,
+      },
+    )));
 
     // 3. Return to Dispatch, then hand off to the Shop list — pre-filtered
     // to this stop's territory (the one reliable join between my_visits'
