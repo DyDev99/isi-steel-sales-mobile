@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart' show Value;
-import 'package:isi_steel_sales_mobile/core/storage/database/drift/app_database.dart' as db;
-import 'package:isi_steel_sales_mobile/core/storage/database/drift/daos/customer_dao.dart';
+import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart' as db;
+import 'package:isi_steel_sales_mobile/core/database/drift/daos/customer_dao.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/models/customer_activity_model.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/models/customer_contact_model.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/models/customer_model.dart';

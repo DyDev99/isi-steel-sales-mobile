@@ -1,11 +1,15 @@
 import 'package:get_it/get_it.dart';
-import 'package:isi_steel_sales_mobile/core/storage/hive/hive_service.dart';
+import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
+import 'package:isi_steel_sales_mobile/core/database/hive/hive_service.dart';
 import 'package:isi_steel_sales_mobile/core/network/network_info.dart';
-import 'package:isi_steel_sales_mobile/core/storage/session/session_manager.dart';
+import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/depot_selection_store.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/data/local/location_sample_drift_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/location_sample_local_data_source.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/data/local/route_drift_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/route_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/routes_database.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/data/local/visit_drift_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/visit_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/workflow_state_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/remote/mock_route_remote_data_source.dart';
@@ -77,11 +81,17 @@ Future<void> registerMyVisitsFeature(GetIt sl) async {
   sl.registerLazySingleton<RouteRemoteDataSource>(
       () => MockRouteRemoteDataSource());
   sl.registerLazySingleton<RouteLocalDataSource>(
-      () => RouteLocalDataSourceImpl(sl()));
+      () => RouteDriftLocalDataSource(sl<AppDatabase>().routeDao, sl()));
   sl.registerLazySingleton<VisitLocalDataSource>(
-      () => VisitLocalDataSourceImpl(sl()));
-  sl.registerLazySingleton<LocationSampleLocalDataSource>(
-      () => LocationSampleLocalDataSourceImpl(sl()));
+      () => VisitDriftLocalDataSource(sl<AppDatabase>().visitDao, sl()));
+  // T1.5 cutover: telemetry now reads/writes the encrypted Drift database
+  // instead of the plaintext `routes.db`. The interface is unchanged, so the
+  // repository and everything above it are untouched (ADR-003 seam).
+  // `LocationSampleLocalDataSourceImpl` (sqflite) is retained but unregistered
+  // until the import is verified in production — do not delete it before then
+  // (`docs/AI_ENGINEERING_PLAYBOOK.md` §8: parity first).
+  sl.registerLazySingleton<LocationSampleLocalDataSource>(() =>
+      LocationSampleDriftLocalDataSource(sl<AppDatabase>().routeTelemetryDao));
   sl.registerLazySingleton<WorkflowStateLocalDataSource>(
       () => WorkflowStateLocalDataSourceImpl(sl()));
   sl.registerLazySingleton<VisitSyncRemoteDataSource>(
@@ -148,8 +158,7 @@ Future<void> registerMyVisitsFeature(GetIt sl) async {
   // Deferred check-out: closes the visit off the persisted pointer (no live
   // ActiveRouteBloc needed) — triggered by the explicit "Check out" on the
   // Continue-Working card now that Stock Count no longer auto-checks-out.
-  sl.registerLazySingleton(
-      () => CompleteVisitCheckOut(sl(), sl(), sl(), sl()));
+  sl.registerLazySingleton(() => CompleteVisitCheckOut(sl(), sl(), sl(), sl()));
 
   // ── Presentation ────────────────────────────────────────────────────
   sl.registerFactory(() => RouteDashboardCubit(watchTodayRoutes: sl()));

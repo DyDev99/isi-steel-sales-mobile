@@ -1,9 +1,9 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:isi_steel_sales_mobile/core/storage/database/drift/app_database.dart';
-import 'package:isi_steel_sales_mobile/core/storage/database/drift/daos/catalog_dao.dart';
-import 'package:isi_steel_sales_mobile/core/storage/database/drift/migrations/schema_migrations.dart';
+import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
+import 'package:isi_steel_sales_mobile/core/database/drift/daos/catalog_dao.dart';
+import 'package:isi_steel_sales_mobile/core/database/drift/migrations/schema_migrations.dart';
 
 ProductsCompanion _product({
   required String id,
@@ -132,7 +132,8 @@ void main() {
     expect((await dao.getPrice('1'))!.standardPrice, 15);
     final stock = await dao.getWarehouseStock('1');
     expect(stock.length, 2);
-    expect(stock.map((s) => s.warehouseCode)..toList(), containsAll(['WH1', 'WH2']));
+    expect(stock.map((s) => s.warehouseCode)..toList(),
+        containsAll(['WH1', 'WH2']));
   });
 
   test('categories list ordered by sortOrder', () async {

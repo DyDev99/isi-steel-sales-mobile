@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
@@ -39,16 +40,23 @@ class AssistantBubble extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: Container(
-          padding: EdgeInsets.fromLTRB(16.w, 14.h, 16.w, 14.h),
+          padding: EdgeInsets.fromLTRB(18.w, 16.h, 16.w, 16.h),
           decoration: BoxDecoration(
             color: colors.card,
-            borderRadius: BorderRadius.circular(20.r),
-            border: Border.all(color: colors.border),
+            borderRadius: BorderRadius.circular(22.r),
+            border: Border.all(color: scheme.primary.withValues(alpha: 0.10)),
             boxShadow: [
+              // Tight contact shadow for definition against the scrim...
               BoxShadow(
-                color: colors.shadowColor.withValues(alpha: 0.18),
-                blurRadius: 24,
-                offset: const Offset(0, 10),
+                color: colors.shadowColor.withValues(alpha: 0.14),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              ),
+              // ...plus a soft ambient shadow for lift.
+              BoxShadow(
+                color: colors.shadowColor.withValues(alpha: 0.20),
+                blurRadius: 32,
+                offset: const Offset(0, 16),
               ),
             ],
           ),
@@ -60,7 +68,7 @@ class AssistantBubble extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _Avatar(color: scheme.primary),
-                  SizedBox(width: 10.w),
+                  SizedBox(width: 12.w),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -71,20 +79,21 @@ class AssistantBubble extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            fontSize: 15.sp,
+                            fontSize: 15.5.sp,
                             fontWeight: FontWeight.w800,
                             color: colors.textPrimary,
-                            letterSpacing: -0.2,
+                            letterSpacing: -0.3,
+                            height: 1.15,
                           ),
                         ),
-                        SizedBox(height: 3.h),
+                        SizedBox(height: 4.h),
                         Text(
                           step.messageKey.tr,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             fontSize: 12.5.sp,
-                            height: 1.3,
+                            height: 1.35,
                             color: colors.textSecondary,
                           ),
                         ),
@@ -100,16 +109,15 @@ class AssistantBubble extends StatelessWidget {
                   ),
                 ],
               ),
-              SizedBox(height: 12.h),
+              SizedBox(height: 14.h),
               _ProgressBar(
                 value: progress,
                 stepNumber: stepNumber,
                 total: totalSteps,
                 trackColor: colors.surfaceStrong,
                 fillColor: scheme.primary,
-                labelColor: colors.textHint,
               ),
-              SizedBox(height: 12.h),
+              SizedBox(height: 14.h),
               Row(
                 children: [
                   if (step.canSkip)
@@ -141,11 +149,19 @@ class _Avatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        width: 36.r,
-        height: 36.r,
+        width: 38.r,
+        height: 38.r,
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.14),
-          borderRadius: BorderRadius.circular(12.r),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              color.withValues(alpha: 0.24),
+              color.withValues(alpha: 0.10),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(13.r),
+          border: Border.all(color: color.withValues(alpha: 0.18)),
         ),
         child: Icon(Icons.auto_awesome_rounded, size: 20.r, color: color),
       );
@@ -158,7 +174,6 @@ class _ProgressBar extends StatelessWidget {
     required this.total,
     required this.trackColor,
     required this.fillColor,
-    required this.labelColor,
   });
 
   final double value;
@@ -166,7 +181,6 @@ class _ProgressBar extends StatelessWidget {
   final int total;
   final Color trackColor;
   final Color fillColor;
-  final Color labelColor;
 
   @override
   Widget build(BuildContext context) {
@@ -175,34 +189,72 @@ class _ProgressBar extends StatelessWidget {
         Expanded(
           child: ClipRRect(
             borderRadius: BorderRadius.circular(100),
-            child: TweenAnimationBuilder<double>(
-              tween: Tween(begin: 0, end: value.clamp(0.0, 1.0)),
-              duration: const Duration(milliseconds: 350),
-              curve: Curves.easeOut,
-              builder: (_, v, __) => LinearProgressIndicator(
-                value: v,
-                minHeight: 5.h,
-                backgroundColor: trackColor,
-                valueColor: AlwaysStoppedAnimation(fillColor),
+            child: Container(
+              height: 6.h,
+              color: trackColor,
+              alignment: Alignment.centerLeft,
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0, end: value.clamp(0.0, 1.0)),
+                duration: const Duration(milliseconds: 450),
+                curve: Curves.easeOutCubic,
+                builder: (_, v, __) => FractionallySizedBox(
+                  alignment: Alignment.centerLeft,
+                  widthFactor: v,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(100),
+                      gradient: LinearGradient(
+                        colors: [
+                          fillColor.withValues(alpha: 0.70),
+                          fillColor,
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
         ),
         SizedBox(width: 10.w),
-        Text(
-          '$stepNumber/$total',
-          style: TextStyle(
-            fontSize: 11.sp,
-            fontWeight: FontWeight.w700,
-            color: labelColor,
-          ),
-        ),
+        _StepPill(stepNumber: stepNumber, total: total, color: fillColor),
       ],
     );
   }
 }
 
-class _PrimaryButton extends StatelessWidget {
+/// Tinted pill badge for "n/total" — reads as a status chip rather than a
+/// plain caption, and keeps the same accent as the progress fill.
+class _StepPill extends StatelessWidget {
+  const _StepPill({
+    required this.stepNumber,
+    required this.total,
+    required this.color,
+  });
+
+  final int stepNumber;
+  final int total;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.10),
+          borderRadius: BorderRadius.circular(100),
+        ),
+        child: Text(
+          '$stepNumber/$total',
+          style: TextStyle(
+            fontSize: 11.sp,
+            fontWeight: FontWeight.w800,
+            color: color,
+          ),
+        ),
+      );
+}
+
+class _PrimaryButton extends StatefulWidget {
   const _PrimaryButton({
     required this.label,
     required this.background,
@@ -216,22 +268,59 @@ class _PrimaryButton extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
+  State<_PrimaryButton> createState() => _PrimaryButtonState();
+}
+
+class _PrimaryButtonState extends State<_PrimaryButton> {
+  bool _pressed = false;
+
+  @override
   Widget build(BuildContext context) {
-    return Material(
-      color: background,
-      borderRadius: BorderRadius.circular(12.r),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12.r),
-        onTap: onTap,
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 10.h),
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 13.sp,
-              fontWeight: FontWeight.w800,
-              color: foreground,
-              letterSpacing: -0.1,
+    return AnimatedScale(
+      scale: _pressed ? 0.96 : 1.0,
+      duration: const Duration(milliseconds: 110),
+      curve: Curves.easeOut,
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(14.r),
+        child: Ink(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14.r),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                widget.background,
+                Color.lerp(widget.background, Colors.black, 0.14) ??
+                    widget.background,
+              ],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: widget.background.withValues(alpha: 0.32),
+                blurRadius: 14,
+                offset: const Offset(0, 5),
+              ),
+            ],
+          ),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(14.r),
+            onTap: () {
+              HapticFeedback.selectionClick();
+              widget.onTap();
+            },
+            onHighlightChanged: (v) => setState(() => _pressed = v),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 11.h),
+              child: Text(
+                widget.label,
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  fontWeight: FontWeight.w800,
+                  color: widget.foreground,
+                  letterSpacing: -0.1,
+                ),
+              ),
             ),
           ),
         ),
@@ -249,15 +338,18 @@ class _TextButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => InkWell(
-        borderRadius: BorderRadius.circular(8.r),
-        onTap: onTap,
+        borderRadius: BorderRadius.circular(10.r),
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onTap();
+        },
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
           child: Text(
             label,
             style: TextStyle(
               fontSize: 12.5.sp,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
               color: color,
             ),
           ),
@@ -278,12 +370,18 @@ class _IconButton extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => IconButton(
-        onPressed: onTap,
-        tooltip: tooltip,
-        visualDensity: VisualDensity.compact,
-        constraints: BoxConstraints.tight(Size(32.r, 32.r)),
-        padding: EdgeInsets.zero,
-        icon: Icon(icon, size: 18.r, color: color),
+  Widget build(BuildContext context) => Container(
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.08),
+          shape: BoxShape.circle,
+        ),
+        child: IconButton(
+          onPressed: onTap,
+          tooltip: tooltip,
+          visualDensity: VisualDensity.compact,
+          constraints: BoxConstraints.tight(Size(32.r, 32.r)),
+          padding: EdgeInsets.zero,
+          icon: Icon(icon, size: 16.r, color: color),
+        ),
       );
 }

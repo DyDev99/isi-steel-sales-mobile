@@ -108,7 +108,8 @@ class VisitTimeline extends StatelessWidget {
                           fontWeight: FontWeight.w600)),
                 ),
                 Text(_formatTime(entry.time),
-                    style: TextStyle(color: colors.textSecondary, fontSize: 11)),
+                    style:
+                        TextStyle(color: colors.textSecondary, fontSize: 11)),
               ],
             ),
           ),

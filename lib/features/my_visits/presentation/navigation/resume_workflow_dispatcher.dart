@@ -68,7 +68,8 @@ Future<void> resumeActiveWorkflow(
 ) {
   if (workflow == null) return openRouteDispatch(context, route.id);
 
-  final key = workflow.currentScreen ?? _screenForWorkflow(workflow.currentWorkflow);
+  final key =
+      workflow.currentScreen ?? _screenForWorkflow(workflow.currentWorkflow);
   final builder = key == null ? null : _navigationRegistry[key];
   return builder?.call(context, route, workflow) ??
       openRouteDispatch(context, route.id);

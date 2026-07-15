@@ -25,8 +25,8 @@ class VisitHistoryErrorState extends StatelessWidget {
               decoration: BoxDecoration(
                   color: scheme.error.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(20)),
-              child: Icon(Icons.cloud_off_rounded,
-                  size: 34, color: scheme.error),
+              child:
+                  Icon(Icons.cloud_off_rounded, size: 34, color: scheme.error),
             ),
             const SizedBox(height: 16),
             Text(

@@ -12,97 +12,101 @@ class MyWorkGridSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Padding(
-            padding: EdgeInsets.only(left: 4.w, bottom: 12.h),
-            child: Text(
-              'MY WORK',
-              style: TextStyle(
-                fontSize: 14.sp,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 1.6,
-                color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6) ?? theme.colorScheme.onSurface.withValues(alpha: 0.6),
+    // Wrapping the entire section in the coach key so the spotlight targets it cleanly[cite: 11, 12]
+    return CoachKeys.wrap(
+      CoachKeys.myWork,
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(left: 4.w, bottom: 12.h),
+              child: Text(
+                'MY WORK',
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.6,
+                  color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6) ?? theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                ),
               ),
             ),
-          ),
 
-          Row(
-            children: [
-              Expanded(
-                child: CoachKeys.wrap(
-                  CoachKeys.myLeads,
-                  child: _buildWorkCard(
-                    context: context,
-                    label: 'My Leads',
-                    icon: Icons.layers_outlined,
-                    iconColor: const Color(0xFF4C9AFF),
-                    iconBgColor: const Color(0xFF4C9AFF).withValues(alpha: 0.15),
-                    badgeText: '1 due',
-                    isActive: false,
-                    onTap: () => sl<ShellTabController>().goTo(ShellTab.leads),
+            Row(
+              children: [
+                Expanded(
+                  child: CoachKeys.wrap(
+                    CoachKeys.myLeads,
+                    child: _buildWorkCard(
+                      context: context,
+                      label: 'My Leads',
+                      icon: Icons.layers_outlined,
+                      iconColor: const Color(0xFF4C9AFF),
+                      iconBgColor: const Color(0xFF4C9AFF).withValues(alpha: 0.15),
+                      badgeText: '1 due',
+                      isActive: false,
+                      onTap: () => sl<ShellTabController>().goTo(ShellTab.leads),
+                    ),
                   ),
                 ),
-              ),
-              SizedBox(width: 12.w),
-              Expanded(
-                child: CoachKeys.wrap(
-                  CoachKeys.myVisits,
-                  child: _buildWorkCard(
-                    context: context,
-                    label: 'My Visits',
-                    icon: Icons.assignment_turned_in_outlined,
-                    iconColor: const Color(0xFF36B37E),
-                    iconBgColor: const Color(0xFF36B37E).withValues(alpha: 0.15),
-                    badgeText: '3 today',
-                    isActive: true,
-                    onTap: () => sl<ShellTabController>().goTo(ShellTab.myVisits),
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: CoachKeys.wrap(
+                    CoachKeys.myVisits,
+                    child: _buildWorkCard(
+                      context: context,
+                      label: 'My Visits',
+                      icon: Icons.assignment_turned_in_outlined,
+                      iconColor: const Color(0xFF36B37E),
+                      iconBgColor: const Color(0xFF36B37E).withValues(alpha: 0.15),
+                      badgeText: '3 today',
+                      isActive: true,
+                      onTap: () => sl<ShellTabController>().goTo(ShellTab.myVisits),
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-          SizedBox(height: 12.h),
+              ],
+            ),
+            SizedBox(height: 12.h),
 
-          Row(
-            children: [
-              Expanded(
-                child: CoachKeys.wrap(
-                  CoachKeys.myCustomers,
-                  child: _buildWorkCard(
-                    context: context,
-                    label: 'My Customers',
-                    icon: Icons.people_alt_outlined,
-                    iconColor: const Color(0xFFFF5C00),
-                    iconBgColor: const Color(0xFFFF5C00).withValues(alpha: 0.15),
-                    isActive: false,
-                    onTap: () =>
-                        sl<ShellTabController>().goTo(ShellTab.customers),
+            Row(
+              children: [
+                Expanded(
+                  child: CoachKeys.wrap(
+                    CoachKeys.myCustomers,
+                    child: _buildWorkCard(
+                      context: context,
+                      label: 'My Customers',
+                      icon: Icons.people_alt_outlined,
+                      iconColor: const Color(0xFFFF5C00),
+                      iconBgColor: const Color(0xFFFF5C00).withValues(alpha: 0.15),
+                      isActive: false,
+                      onTap: () =>
+                          sl<ShellTabController>().goTo(ShellTab.customers),
+                    ),
                   ),
                 ),
-              ),
-              SizedBox(width: 12.w),
-              Expanded(
-                child: CoachKeys.wrap(
-                  CoachKeys.orders,
-                  child: _buildWorkCard(
-                    context: context,
-                    label: 'My Quotes & Orders',
-                    icon: Icons.description_outlined,
-                    iconColor: const Color(0xFFFFAB00),
-                    iconBgColor: const Color(0xFFFFAB00).withValues(alpha: 0.15),
-                    isActive: false,
-                    onTap: () => sl<ShellTabController>().goTo(ShellTab.orders),
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: CoachKeys.wrap(
+                    CoachKeys.orders,
+                    child: _buildWorkCard(
+                      context: context,
+                      label: 'My Quotes & Orders',
+                      icon: Icons.description_outlined,
+                      iconColor: const Color(0xFFFFAB00),
+                      iconBgColor: const Color(0xFFFFAB00).withValues(alpha: 0.15),
+                      isActive: false,
+                      onTap: () => sl<ShellTabController>().goTo(ShellTab.orders),
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -119,7 +123,6 @@ class MyWorkGridSection extends StatelessWidget {
   }) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final appColors = context.appColors;
 
     return GestureDetector(
       onTap: onTap,
@@ -128,7 +131,6 @@ class MyWorkGridSection extends StatelessWidget {
         decoration: BoxDecoration(
           color: scheme.surface,
           borderRadius: BorderRadius.circular(20.r),
-         
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: theme.brightness == Brightness.dark ? 0.2 : 0.02),

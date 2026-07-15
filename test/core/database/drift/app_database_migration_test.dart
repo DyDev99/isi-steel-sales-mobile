@@ -1,7 +1,7 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:isi_steel_sales_mobile/core/storage/database/drift/app_database.dart';
-import 'package:isi_steel_sales_mobile/core/storage/database/drift/migrations/schema_migrations.dart';
+import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
+import 'package:isi_steel_sales_mobile/core/database/drift/migrations/schema_migrations.dart';
 
 /// Exercises the migrator/registry (T1.4) against an in-memory NativeDatabase —
 /// no SQLCipher required, so it runs on the host CI. The encryption wrapper is

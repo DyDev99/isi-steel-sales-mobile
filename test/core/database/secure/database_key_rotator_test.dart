@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:isi_steel_sales_mobile/core/storage/secure/database_key_rotator.dart';
-import 'package:isi_steel_sales_mobile/core/storage/secure/dynamic_key_store.dart';
-import 'package:isi_steel_sales_mobile/core/storage/secure/key_derivation.dart';
+import 'package:isi_steel_sales_mobile/core/database/secure/database_key_rotator.dart';
+import 'package:isi_steel_sales_mobile/core/database/secure/dynamic_key_store.dart';
+import 'package:isi_steel_sales_mobile/core/database/secure/key_derivation.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _MockDeviceKeyStore extends Mock implements DynamicKeyStore {}

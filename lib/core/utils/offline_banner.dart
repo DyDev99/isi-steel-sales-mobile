@@ -1,12 +1,18 @@
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
+import 'package:isi_steel_sales_mobile/core/network/connectivity_service.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart'; // Ensure correct path to AppThemeColors
 
 /// A thin warning-tinted strip that appears only while the device is offline, reassuring
 /// the field agent that GPS logs, photos, and captured data are queued on the
-/// device (SQLite) and will sync once a connection returns. Collapses to
-/// nothing when online.
+/// device and will sync once a connection returns. Collapses to nothing when
+/// online.
+///
+/// Reads [ConnectivityService], never `connectivity_plus` directly (ADR-005 §3):
+/// this banner and the sync engine must agree on what "offline" means, and the
+/// plugin's interface-up signal would report "online" on a captive-portal Wi-Fi
+/// where nothing can actually sync.
 class OfflineBanner extends StatelessWidget {
   const OfflineBanner({super.key, this.margin = EdgeInsets.zero});
 
@@ -15,15 +21,15 @@ class OfflineBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colors = context.appColors; // Access the resolved semantic theme extension tokens
+    final colors = context
+        .appColors; // Access the resolved semantic theme extension tokens
+    final connectivity = sl<ConnectivityService>();
 
-    return StreamBuilder<List<ConnectivityResult>>(
-      stream: Connectivity().onConnectivityChanged,
+    return StreamBuilder<ConnectivityStatus>(
+      stream: connectivity.changes,
+      initialData: connectivity.status,
       builder: (context, snapshot) {
-        final results = snapshot.data;
-        // Before the first event we assume online (avoids a flash on launch).
-        final offline = results != null &&
-            results.every((r) => r == ConnectivityResult.none);
+        final offline = snapshot.data == ConnectivityStatus.offline;
         if (!offline) return const SizedBox.shrink();
 
         return Container(

@@ -1,6 +1,6 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:isi_steel_sales_mobile/core/storage/database/drift/app_database.dart';
+import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/local/product_drift_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/models/product_model.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product_filter.dart';

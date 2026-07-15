@@ -10,7 +10,7 @@ import 'package:isi_steel_sales_mobile/features/app_coach/presentation/services/
 /// whenever the script changes materially so persisted progress migrates.
 abstract final class CoachStepCatalog {
   /// Schema version — increment when steps are added/removed/reordered.
-  static const int coachVersion = 2;
+  static const int coachVersion = 3; // Bumped version from 2 to 3
 
   static const List<CoachStep> steps = [
     CoachStep(
@@ -80,6 +80,17 @@ abstract final class CoachStepCatalog {
       targetKeyId: CoachKeys.depotStock,
       order: 7,
     ),
+    // New Step inserted before My Leads
+    CoachStep(
+      id: 'my_work',
+      titleKey: 'coach.my_work.title',
+      messageKey: 'coach.my_work.message',
+      ctaKey: 'coach.cta.next',
+      requiredAction: CoachAction.none,
+      advanceOnCta: true,
+      targetKeyId: CoachKeys.myWork,
+      order: 8,
+    ),
     CoachStep(
       id: 'my_leads',
       titleKey: 'coach.my_leads.title',
@@ -87,7 +98,7 @@ abstract final class CoachStepCatalog {
       ctaKey: 'coach.cta.skip_step',
       requiredAction: CoachAction.openMyLeads,
       targetKeyId: CoachKeys.myLeads,
-      order: 8,
+      order: 9, // Incremented from 8
     ),
     CoachStep(
       id: 'my_visits',
@@ -96,7 +107,7 @@ abstract final class CoachStepCatalog {
       ctaKey: 'coach.cta.skip_step',
       requiredAction: CoachAction.openMyVisits,
       targetKeyId: CoachKeys.myVisits,
-      order: 9,
+      order: 10, // Incremented from 9
     ),
     CoachStep(
       id: 'my_customers',
@@ -105,7 +116,7 @@ abstract final class CoachStepCatalog {
       ctaKey: 'coach.cta.skip_step',
       requiredAction: CoachAction.openCustomers,
       targetKeyId: CoachKeys.myCustomers,
-      order: 10,
+      order: 11, // Incremented from 10
     ),
     CoachStep(
       id: 'orders',
@@ -114,7 +125,7 @@ abstract final class CoachStepCatalog {
       ctaKey: 'coach.cta.skip_step',
       requiredAction: CoachAction.openOrders,
       targetKeyId: CoachKeys.orders,
-      order: 11,
+      order: 12, // Incremented from 11
     ),
     CoachStep(
       id: 'language',
@@ -124,7 +135,7 @@ abstract final class CoachStepCatalog {
       requiredAction: CoachAction.none,
       advanceOnCta: true,
       targetKeyId: CoachKeys.language,
-      order: 12,
+      order: 13, // Incremented from 12
     ),
     CoachStep(
       id: 'notification',
@@ -134,7 +145,7 @@ abstract final class CoachStepCatalog {
       requiredAction: CoachAction.none,
       advanceOnCta: true,
       targetKeyId: CoachKeys.notification,
-      order: 13,
+      order: 14, // Incremented from 13
     ),
     CoachStep(
       id: 'profile',
@@ -144,7 +155,7 @@ abstract final class CoachStepCatalog {
       requiredAction: CoachAction.none,
       advanceOnCta: true,
       targetKeyId: CoachKeys.profile,
-      order: 14,
+      order: 15, // Incremented from 14
     ),
     CoachStep(
       id: 'completed',
@@ -154,7 +165,7 @@ abstract final class CoachStepCatalog {
       requiredAction: CoachAction.none,
       advanceOnCta: true,
       canSkip: false,
-      order: 15,
+      order: 16, // Incremented from 15
     ),
   ];
 }

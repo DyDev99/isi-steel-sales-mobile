@@ -1,5 +1,5 @@
 import 'package:get_it/get_it.dart';
-import 'package:isi_steel_sales_mobile/core/storage/database/drift/app_database.dart';
+import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
 import 'package:isi_steel_sales_mobile/core/network/network_info.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/local/customer_drift_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/local/customer_local_data_source.dart';

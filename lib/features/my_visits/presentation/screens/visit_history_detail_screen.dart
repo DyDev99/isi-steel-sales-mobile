@@ -159,8 +159,9 @@ class VisitHistoryDetailScreen extends StatelessWidget {
                   ? 'my_visits.history.no_notes'.tr
                   : visit.notes!,
               style: TextStyle(
-                  color:
-                      visit.notes == null ? colors.textSecondary : colors.textPrimary,
+                  color: visit.notes == null
+                      ? colors.textSecondary
+                      : colors.textPrimary,
                   fontSize: 13),
             ),
           ),
@@ -179,8 +180,8 @@ class VisitHistoryDetailScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(color: colors.border)),
                   child: Text('my_visits.history.no_photos'.tr,
-                      style: TextStyle(
-                          color: colors.textSecondary, fontSize: 13)),
+                      style:
+                          TextStyle(color: colors.textSecondary, fontSize: 13)),
                 )
               : GridView.builder(
                   shrinkWrap: true,

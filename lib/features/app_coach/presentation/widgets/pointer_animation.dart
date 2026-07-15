@@ -18,8 +18,10 @@ class _PointerAnimationState extends State<PointerAnimation>
     with SingleTickerProviderStateMixin {
   late final AnimationController _c = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 1100),
+    duration: const Duration(milliseconds: 1600),
   );
+
+  static const double _dotSize = 22.0;
 
   @override
   void initState() {
@@ -35,39 +37,75 @@ class _PointerAnimationState extends State<PointerAnimation>
 
   @override
   Widget build(BuildContext context) {
-    const size = 22.0;
     if (!widget.animate) {
-      return _Dot(color: widget.color, size: size);
+      return _Dot(color: widget.color, size: _dotSize);
     }
     return SizedBox(
-      width: size * 2,
-      height: size * 2,
+      width: _dotSize * 2.6,
+      height: _dotSize * 2.6,
       child: AnimatedBuilder(
         animation: _c,
-        builder: (_, child) {
-          final t = _c.value;
-          return Stack(
-            alignment: Alignment.center,
-            children: [
-              Opacity(
-                opacity: (1 - t) * 0.5,
-                child: Transform.scale(
-                  scale: 0.6 + t * 1.4,
-                  child: _Dot(color: widget.color, size: size),
-                ),
-              ),
-              child!,
-            ],
-          );
-        },
-        child: _Dot(color: widget.color, size: size * 0.7),
+        builder: (_, child) => Stack(
+          alignment: Alignment.center,
+          children: [
+            // Two staggered ripples read as a continuous pulse rather than a
+            // single mechanical loop.
+            _ripple(_c.value),
+            _ripple((_c.value + 0.5) % 1.0),
+            child!,
+          ],
+        ),
+        child: _Dot(color: widget.color, size: _dotSize * 0.62),
+      ),
+    );
+  }
+
+  Widget _ripple(double t) {
+    final eased = Curves.easeOutCubic.transform(t);
+    return Opacity(
+      opacity: (1 - eased) * 0.45,
+      child: Transform.scale(
+        scale: 0.5 + eased * 1.6,
+        child: _RingDot(color: widget.color, size: _dotSize),
       ),
     );
   }
 }
 
+/// The solid tap indicator: a soft gradient fill with a light contact shadow
+/// so it reads as a raised, tappable point rather than a flat sticker.
 class _Dot extends StatelessWidget {
   const _Dot({required this.color, required this.size});
+  final Color color;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: RadialGradient(
+            colors: [
+              Color.lerp(color, Colors.white, 0.35) ?? color,
+              color,
+            ],
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: color.withValues(alpha: 0.45),
+              blurRadius: 10,
+              spreadRadius: 1,
+            ),
+          ],
+        ),
+      );
+}
+
+/// Lightweight flat circle used for the expanding ripple echoes — no shadow,
+/// since several are drawn per frame.
+class _RingDot extends StatelessWidget {
+  const _RingDot({required this.color, required this.size});
   final Color color;
   final double size;
 

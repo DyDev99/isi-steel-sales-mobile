@@ -45,8 +45,9 @@ class ActiveWorkflowModel extends ActiveWorkflow {
         'check_in_at': checkInAt?.toIso8601String(),
         'current_workflow': currentWorkflow?.storageKey,
         'current_screen': currentScreen,
-        'navigation_arguments':
-            navigationArguments == null ? null : jsonEncode(navigationArguments),
+        'navigation_arguments': navigationArguments == null
+            ? null
+            : jsonEncode(navigationArguments),
         'workflow_updated_at': workflowUpdatedAt?.toIso8601String(),
       };
 

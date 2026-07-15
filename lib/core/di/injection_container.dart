@@ -1,18 +1,21 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:isi_steel_sales_mobile/core/config/env.dart';
-import 'package:isi_steel_sales_mobile/core/storage/database/drift/app_database.dart';
-import 'package:isi_steel_sales_mobile/core/storage/database/drift/app_database_rekey_executor.dart';
-import 'package:isi_steel_sales_mobile/core/storage/secure/app_database_key_provider.dart';
-import 'package:isi_steel_sales_mobile/core/storage/secure/database_key_rotator.dart';
-import 'package:isi_steel_sales_mobile/core/storage/secure/dynamic_key_store.dart';
-import 'package:isi_steel_sales_mobile/core/storage/secure/key_derivation.dart';
-import 'package:isi_steel_sales_mobile/core/storage/hive/app_preferences.dart';
-import 'package:isi_steel_sales_mobile/core/storage/hive/hive_service.dart';
+import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
+import 'package:isi_steel_sales_mobile/core/database/drift/app_database_rekey_executor.dart';
+import 'package:isi_steel_sales_mobile/core/database/secure/app_database_key_provider.dart';
+import 'package:isi_steel_sales_mobile/core/database/secure/database_key_rotator.dart';
+import 'package:isi_steel_sales_mobile/core/database/secure/dynamic_key_store.dart';
+import 'package:isi_steel_sales_mobile/core/database/secure/key_derivation.dart';
+import 'package:isi_steel_sales_mobile/core/database/hive/app_preferences.dart';
+import 'package:isi_steel_sales_mobile/core/database/hive/hive_service.dart';
+import 'package:isi_steel_sales_mobile/core/logging/app_logger.dart';
 import 'package:isi_steel_sales_mobile/core/network/connectivity_cubit.dart';
+import 'package:isi_steel_sales_mobile/core/network/connectivity_service.dart';
 import 'package:isi_steel_sales_mobile/core/network/network_info.dart';
-import 'package:isi_steel_sales_mobile/core/storage/session/session_manager.dart';
+import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/app_coach_injection.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/authentication_injection.dart';
 import 'package:isi_steel_sales_mobile/features/localization/presentation/bloc/language_cubit.dart';
@@ -23,7 +26,6 @@ import 'package:isi_steel_sales_mobile/features/lead/lead_injection.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/my_visits_injection.dart';
 import 'package:isi_steel_sales_mobile/features/order/order_injection.dart';
 import 'package:isi_steel_sales_mobile/features/profile/profile_injection.dart';
-import 'package:isi_steel_sales_mobile/features/revenue/revenue_injection.dart';
 import 'package:isi_steel_sales_mobile/features/settings/theme/theme_injection.dart';
 
 /// Global service locator.
@@ -62,6 +64,23 @@ Future<void> initDependencies() async {
     ),
   );
 
+  // ── Observability (SECURITY.md §10: structured, PII-free) ──────────
+  sl.registerLazySingleton<AppLogger>(() => const ConsoleAppLogger());
+
+  // ── Connectivity (ADR-005: real reachability, not interface-up) ─────
+  // One instance, app-wide: the UI status pill and the sync drain trigger must
+  // never disagree. No UI/bloc/repository/DAO may touch connectivity_plus.
+  sl.registerLazySingleton<ReachabilityProbe>(
+    () => HttpReachabilityProbe(dio: Dio(), logger: sl()),
+  );
+  sl.registerLazySingleton<ConnectivityService>(
+    () => ConnectivityServiceImpl(
+      connectivity: sl(),
+      probe: sl(),
+      logger: sl(),
+    ),
+  );
+
   sl.registerFactory<ConnectivityCubit>(() => ConnectivityCubit(sl()));
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
   sl.registerLazySingleton<SessionManager>(() => SessionManager());
@@ -80,6 +99,5 @@ Future<void> initDependencies() async {
   await registerCustomerFeature(sl);
   await registerMyVisitsFeature(sl);
   registerProfileFeature(sl);
-  registerRevenueFeature(sl);
   registerAppCoachFeature(sl);
 }

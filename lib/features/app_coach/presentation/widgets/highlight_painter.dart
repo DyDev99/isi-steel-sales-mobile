@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// Paints the dimming scrim with a rounded-rectangle "hole" punched out around
-/// the spotlighted widget, plus an animated glow ring on its edge.
+/// the spotlighted widget, plus a soft layered glow on its edge.
 ///
 /// Purely visual — it never handles hit-testing (the overlay uses separate
 /// absorbing panels so taps fall through the hole to the real widget).
@@ -42,18 +42,42 @@ class HighlightPainter extends CustomPainter {
       ..addRRect(rrect);
     canvas.drawPath(path, scrim);
 
-    // Animated glow ring hugging the cutout.
-    if (glow > 0) {
-      final ring = Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2 + 2 * glow
-        ..color = glowColor.withValues(alpha: 0.25 + 0.45 * glow);
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(
-            hole!.inflate(2 + 2 * glow), Radius.circular(radius + 2)),
-        ring,
-      );
-    }
+    if (glow <= 0) return;
+
+    // Soft outer bloom — the "premium" depth cue that separates the cutout
+    // from the flat scrim behind it.
+    final bloom = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 10 + 6 * glow
+      ..color = glowColor.withValues(alpha: 0.10 + 0.10 * glow)
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, 8 + 4 * glow);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        hole!.inflate(6 + 6 * glow),
+        Radius.circular(radius + 6),
+      ),
+      bloom,
+    );
+
+    // Crisp mid ring — carries the pulsing color.
+    final ring = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2 + 1.5 * glow
+      ..color = glowColor.withValues(alpha: 0.35 + 0.45 * glow);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        hole!.inflate(2 + 2 * glow),
+        Radius.circular(radius + 2),
+      ),
+      ring,
+    );
+
+    // Hairline glass highlight hugging the cutout edge itself.
+    final inner = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1
+      ..color = Colors.white.withValues(alpha: 0.22 * glow);
+    canvas.drawRRect(rrect, inner);
   }
 
   @override

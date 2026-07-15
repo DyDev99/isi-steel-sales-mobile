@@ -1,5 +1,5 @@
 import 'package:get_it/get_it.dart';
-import 'package:isi_steel_sales_mobile/core/storage/hive/app_preferences.dart';
+import 'package:isi_steel_sales_mobile/core/database/hive/app_preferences.dart';
 import 'package:isi_steel_sales_mobile/features/settings/theme/data/repositories/theme_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/settings/theme/domain/repositories/theme_repository.dart';
 import 'package:isi_steel_sales_mobile/features/settings/theme/presentation/cubit/theme_cubit.dart';

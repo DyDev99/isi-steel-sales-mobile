@@ -414,7 +414,6 @@ class RegionGroupHeader extends StatelessWidget {
   }
 }
 
-
 class _ActivityHistoryRibbon extends StatelessWidget {
   const _ActivityHistoryRibbon({required this.onTap});
   final VoidCallback onTap;

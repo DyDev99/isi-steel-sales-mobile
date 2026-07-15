@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart' show Value;
-import 'package:isi_steel_sales_mobile/core/storage/database/drift/app_database.dart';
-import 'package:isi_steel_sales_mobile/core/storage/database/drift/daos/cart_dao.dart';
+import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
+import 'package:isi_steel_sales_mobile/core/database/drift/daos/cart_dao.dart';
 import 'package:isi_steel_sales_mobile/core/error/exceptions.dart';
 import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/local/cart_local_data_source.dart';

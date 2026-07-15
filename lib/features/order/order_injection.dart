@@ -1,8 +1,8 @@
 import 'package:get_it/get_it.dart';
-import 'package:isi_steel_sales_mobile/core/storage/database/drift/app_database.dart';
-import 'package:isi_steel_sales_mobile/core/storage/hive/hive_service.dart';
+import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
+import 'package:isi_steel_sales_mobile/core/database/hive/hive_service.dart';
 import 'package:isi_steel_sales_mobile/core/network/network_info.dart';
-import 'package:isi_steel_sales_mobile/core/storage/session/session_manager.dart';
+import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/local/cart_drift_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/local/cart_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/local/catalog_database.dart';

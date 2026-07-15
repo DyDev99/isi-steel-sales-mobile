@@ -1,4 +1,4 @@
-import 'package:isi_steel_sales_mobile/core/storage/database/drift/daos/customer_dao.dart';
+import 'package:isi_steel_sales_mobile/core/database/drift/daos/customer_dao.dart';
 import 'package:isi_steel_sales_mobile/core/error/exceptions.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/local/customer_drift_mappers.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/local/customer_local_data_source.dart';

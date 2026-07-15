@@ -1,9 +1,9 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:isi_steel_sales_mobile/core/storage/database/drift/app_database.dart';
-import 'package:isi_steel_sales_mobile/core/storage/database/drift/daos/customer_dao.dart';
-import 'package:isi_steel_sales_mobile/core/storage/database/drift/migrations/schema_migrations.dart';
+import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
+import 'package:isi_steel_sales_mobile/core/database/drift/daos/customer_dao.dart';
+import 'package:isi_steel_sales_mobile/core/database/drift/migrations/schema_migrations.dart';
 
 CustomersCompanion _customer({
   required String id,
@@ -104,7 +104,10 @@ void main() {
             _customer(id: '2', sapId: 'S2', shopName: 'Alpha'), const []),
         CustomerWithContacts(
             _customer(
-                id: '3', sapId: 'S3', shopName: 'Other', territory: 'Siem Reap'),
+                id: '3',
+                sapId: 'S3',
+                shopName: 'Other',
+                territory: 'Siem Reap'),
             const []),
         CustomerWithContacts(
             _customer(id: '4', sapId: 'S4', shopName: 'Gone', deleted: true),
@@ -141,9 +144,15 @@ void main() {
 
     test('notes are returned newest-first', () async {
       await dao.addNote(CustomerNotesCompanion.insert(
-          id: 'n1', customerId: '1', body: 'old', createdAt: DateTime.utc(2026, 1, 1)));
+          id: 'n1',
+          customerId: '1',
+          body: 'old',
+          createdAt: DateTime.utc(2026, 1, 1)));
       await dao.addNote(CustomerNotesCompanion.insert(
-          id: 'n2', customerId: '1', body: 'new', createdAt: DateTime.utc(2026, 1, 2)));
+          id: 'n2',
+          customerId: '1',
+          body: 'new',
+          createdAt: DateTime.utc(2026, 1, 2)));
       final notes = await dao.fetchNotes('1');
       expect(notes.map((n) => n.body), ['new', 'old']);
     });

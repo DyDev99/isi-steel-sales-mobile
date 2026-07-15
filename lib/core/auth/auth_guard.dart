@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:get_it/get_it.dart';
 import 'package:isi_steel_sales_mobile/core/auth/login_required_dialog.dart';
-import 'package:isi_steel_sales_mobile/core/storage/session/session_manager.dart';
+import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
 
 /// The single, reusable entry point for gating protected features behind a
 /// signed-in session.

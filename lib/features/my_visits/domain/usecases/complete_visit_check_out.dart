@@ -71,9 +71,7 @@ class CompleteVisitCheckOut extends UseCase<bool, NoParams> {
       return Failed(checkOutResult.failure);
     }
     await _updateStopStatus(UpdateStopStatusParams(
-        stopId: stop.id,
-        status: VisitStatus.checkedOut,
-        actualDeparture: now));
+        stopId: stop.id, status: VisitStatus.checkedOut, actualDeparture: now));
     return _clearAndReturn(true);
   }
 

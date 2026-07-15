@@ -1,5 +1,26 @@
 # ISI Steel Sales Mobile — Enterprise Architecture Blueprint
 
+> ## ⛔ SUPERSEDED — DO NOT USE AS AUTHORITY (2026-07-15)
+>
+> This document is **Priority 6** (one engineer's analysis) under the authority
+> hierarchy. It has been **superseded** by the ratified constitution in `docs/`:
+> `ENGINEERING_STANDARD.md` (P1) → `docs/adr/ADR-001..007` (P2) →
+> `AI_ENGINEERING_PLAYBOOK.md` (P3) → `ARCHITECTURE.md`, `OFFLINE_FIRST.md`,
+> `DATABASE_GUIDE.md`, `SYNC_ENGINE.md`, `SECURITY.md`, `MIGRATION_PLAN.md` (P4)
+> → `.claude/CLAUDE.md` (P5).
+>
+> **Where this document is now WRONG — do not follow it:**
+> - It proposes `core/storage/{database,hive,secure,session}`. The ratified
+>   structure is **`core/database/{drift,hive,secure,files}` + `core/session`**
+>   (`ENGINEERING_STANDARD.md` §8, `ADR-004`). The code was reverted to comply.
+> - It recommends deleting `core/database/files/*` and `core/sync/*` stubs as
+>   "dead code". These are **tracked P0/P1 infrastructure**
+>   (`MIGRATION_PLAN.md` §8, `.claude/CLAUDE.md`, playbook §12). They were restored.
+> - Its §9 migration plan is superseded by `MIGRATION_PLAN.md`'s sprint sequencing.
+>
+> Retained only as historical analysis of the pre-constitution codebase.
+> For anything normative, read `docs/` instead.
+
 > Centralized enterprise mobile solution for KIC GROUP and subsidiaries.
 > Offline-first sales & field-visit CRM with SAP integration.
 

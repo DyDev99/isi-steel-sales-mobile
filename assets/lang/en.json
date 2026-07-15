@@ -507,6 +507,12 @@
       "title": "Create a lead",
       "message": "Tap “New lead” to add your first customer."
     },
+    "my_work":{
+      "title":"My Work Section",
+      "message":"Manage your daily tasks, leads, and customer details directly from this central hub."
+    },
+
+    
     "my_leads": {
       "title": "My Leads",
       "message": "Tap “My Leads” to manage your pipeline."

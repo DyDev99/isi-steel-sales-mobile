@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
-import 'package:isi_steel_sales_mobile/core/storage/session/session_manager.dart';
+import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/domain/entities/coach_action.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/domain/entities/coach_status.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/presentation/blocs/app_coach_bloc.dart';
@@ -121,24 +121,45 @@ class _AppCoachHostState extends State<AppCoachHost> {
   }
 
   Widget _buildLayer(AppCoachState state, bool reduceMotion) {
+    final Key key;
+    final Widget child;
+
     if (state.status == CoachStatus.paused) {
-      return FloatingAssistantButton(
+      key = const ValueKey('coach-paused');
+      child = FloatingAssistantButton(
         onResume: () => _bloc.add(const CoachResumed()),
       );
+    } else {
+      final step = state.currentStep;
+      if (!state.isVisible || step == null) {
+        key = const ValueKey('coach-empty');
+        child = const SizedBox.shrink();
+      } else {
+        // Deliberately NOT keyed by step.id: AssistantOverlay must stay the
+        // same State instance across steps so its own rect-sync and
+        // step-to-step transition logic (see didUpdateWidget) keeps working.
+        // Only the three *modes* below (paused / overlay / empty) cross-fade
+        // against each other.
+        key = const ValueKey('coach-overlay');
+        child = AssistantOverlay(
+          step: step,
+          stepNumber: step.order,
+          totalSteps: state.steps.length,
+          progress: state.progress,
+          reduceMotion: reduceMotion,
+          onCta: () => _bloc.add(const CoachCtaPressed()),
+          onSkip: () => _bloc.add(const CoachSkipped()),
+          onClose: () => _bloc.add(const CoachPaused()),
+        );
+      }
     }
 
-    final step = state.currentStep;
-    if (!state.isVisible || step == null) return const SizedBox.shrink();
-
-    return AssistantOverlay(
-      step: step,
-      stepNumber: step.order,
-      totalSteps: state.steps.length,
-      progress: state.progress,
-      reduceMotion: reduceMotion,
-      onCta: () => _bloc.add(const CoachCtaPressed()),
-      onSkip: () => _bloc.add(const CoachSkipped()),
-      onClose: () => _bloc.add(const CoachPaused()),
+    return AnimatedSwitcher(
+      duration:
+          reduceMotion ? Duration.zero : const Duration(milliseconds: 220),
+      switchInCurve: Curves.easeOut,
+      switchOutCurve: Curves.easeIn,
+      child: KeyedSubtree(key: key, child: child),
     );
   }
 }

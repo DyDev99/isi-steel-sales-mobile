@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/domain/entities/coach_step.dart';
@@ -6,10 +8,11 @@ import 'package:isi_steel_sales_mobile/features/app_coach/presentation/widgets/a
 import 'package:isi_steel_sales_mobile/features/app_coach/presentation/widgets/highlight_painter.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/presentation/widgets/pointer_animation.dart';
 
-/// Full-screen coaching layer: a dimming scrim with a spotlight cutout around
-/// the current target, a glow ring + tap-pointer, and the assistant bubble
-/// anchored beside it. Taps fall through the cutout to the real widget so the
-/// user completes the step for real; everything else is absorbed.
+/// Full-screen coaching layer: a dimming, gently blurred scrim with a
+/// spotlight cutout around the current target, a glow ring + tap-pointer, and
+/// the assistant bubble anchored beside it. Taps fall through the cutout to
+/// the real widget so the user completes the step for real; everything else
+/// is absorbed.
 ///
 /// Robust by design: when the target key isn't laid out (deleted screen, not
 /// scrolled into view, orientation change mid-frame) it degrades to a centered,
@@ -51,6 +54,7 @@ class _AssistantOverlayState extends State<AssistantOverlay>
 
   static const double _pad = 8; // spotlight breathing room
   static const double _gap = 12; // space between target and bubble
+  static const double _holeRadius = 20; // shared with the backdrop clip
 
   @override
   void initState() {
@@ -93,7 +97,7 @@ class _AssistantOverlayState extends State<AssistantOverlay>
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final media = MediaQuery.of(context);
-    final scrim = Colors.black.withValues(alpha: 0.66);
+    final scrim = Colors.black.withValues(alpha: 0.62);
 
     // Clamp the cutout to the visible area so a partially-scrolled target never
     // paints the hole off-screen.
@@ -106,7 +110,21 @@ class _AssistantOverlayState extends State<AssistantOverlay>
 
     return Stack(
       children: [
-        // 1. Scrim + glow — never intercepts touches.
+        // 1. Soft backdrop blur — glass depth cue behind the scrim. Clipped to
+        // exclude the cutout so the real, focused target stays perfectly sharp.
+        Positioned.fill(
+          child: IgnorePointer(
+            child: ClipPath(
+              clipper: _ScrimClipper(hole, _holeRadius),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+                child: const SizedBox.expand(),
+              ),
+            ),
+          ),
+        ),
+
+        // 2. Scrim + glow — never intercepts touches.
         Positioned.fill(
           child: IgnorePointer(
             child: AnimatedBuilder(
@@ -114,7 +132,7 @@ class _AssistantOverlayState extends State<AssistantOverlay>
               builder: (_, __) => CustomPaint(
                 painter: HighlightPainter(
                   hole: hole,
-                  radius: 16,
+                  radius: _holeRadius,
                   scrimColor: scrim,
                   glowColor: scheme.primary,
                   glow: widget.reduceMotion ? 0 : _glow.value,
@@ -124,10 +142,10 @@ class _AssistantOverlayState extends State<AssistantOverlay>
           ),
         ),
 
-        // 2. Touch handling: absorb everywhere except the cutout.
+        // 3. Touch handling: absorb everywhere except the cutout.
         ..._buildAbsorbers(hole),
 
-        // 3. Tap-pointer over the target.
+        // 4. Tap-pointer over the target.
         if (hole != null)
           Positioned(
             left: hole.center.dx - 22.r,
@@ -140,7 +158,7 @@ class _AssistantOverlayState extends State<AssistantOverlay>
             ),
           ),
 
-        // 4. Assistant bubble.
+        // 5. Assistant bubble.
         _buildBubble(context, hole, media),
       ],
     );
@@ -159,7 +177,13 @@ class _AssistantOverlayState extends State<AssistantOverlay>
         ),
       ];
     }
-    Widget panel({double? left, double? top, double? right, double? bottom, double? width, double? height}) =>
+    Widget panel(
+            {double? left,
+            double? top,
+            double? right,
+            double? bottom,
+            double? width,
+            double? height}) =>
         Positioned(
           left: left,
           top: top,
@@ -179,6 +203,7 @@ class _AssistantOverlayState extends State<AssistantOverlay>
 
   Widget _buildBubble(BuildContext context, Rect? hole, MediaQueryData media) {
     final bubble = AssistantBubble(
+      key: ValueKey(widget.step.id),
       step: widget.step,
       stepNumber: widget.stepNumber,
       totalSteps: widget.totalSteps,
@@ -188,18 +213,39 @@ class _AssistantOverlayState extends State<AssistantOverlay>
       onClose: widget.onClose,
     );
 
+    // Cross-fade + gentle pop between steps, instead of the content just
+    // snapping to new text mid-tour.
+    final content = AnimatedSwitcher(
+      duration:
+          widget.reduceMotion ? Duration.zero : const Duration(milliseconds: 260),
+      switchInCurve: Curves.easeOutCubic,
+      switchOutCurve: Curves.easeIn,
+      transitionBuilder: (child, anim) => FadeTransition(
+        opacity: anim,
+        child: ScaleTransition(
+          scale: Tween(begin: 0.96, end: 1.0).animate(anim),
+          child: child,
+        ),
+      ),
+      child: bubble,
+    );
+
     final hMargin = 16.w;
     final safeTop = media.padding.top + 8.h;
     final safeBottom = media.padding.bottom + 8.h;
+    final moveDuration =
+        widget.reduceMotion ? Duration.zero : const Duration(milliseconds: 260);
 
     if (hole == null) {
       // Centered card, respecting safe areas and keyboard.
-      return Positioned(
+      return AnimatedPositioned(
+        duration: moveDuration,
+        curve: Curves.easeOutCubic,
         left: hMargin,
         right: hMargin,
         top: safeTop,
         bottom: safeBottom + media.viewInsets.bottom,
-        child: Center(child: bubble),
+        child: Center(child: content),
       );
     }
 
@@ -207,14 +253,38 @@ class _AssistantOverlayState extends State<AssistantOverlay>
     final spaceBelow = media.size.height - hole.bottom - safeBottom;
     final placeBelow = spaceBelow > media.size.height * 0.32;
 
-    return Positioned(
+    return AnimatedPositioned(
+      duration: moveDuration,
+      curve: Curves.easeOutCubic,
       left: hMargin,
       right: hMargin,
       top: placeBelow ? hole.bottom + _gap : null,
       bottom: placeBelow ? null : media.size.height - hole.top + _gap,
-      child: bubble,
+      child: content,
     );
   }
+}
+
+/// Clips the backdrop-blur layer to everything except the spotlighted hole, so
+/// the focused target itself is never blurred — only the world around it.
+class _ScrimClipper extends CustomClipper<Path> {
+  const _ScrimClipper(this.hole, this.radius);
+  final Rect? hole;
+  final double radius;
+
+  @override
+  Path getClip(Size size) {
+    final path = Path()..fillType = PathFillType.evenOdd;
+    path.addRect(Offset.zero & size);
+    if (hole != null) {
+      path.addRRect(RRect.fromRectAndRadius(hole!, Radius.circular(radius)));
+    }
+    return path;
+  }
+
+  @override
+  bool shouldReclip(_ScrimClipper old) =>
+      old.hole != hole || old.radius != radius;
 }
 
 /// Eats taps over the dimmed area so background UI can't be triggered while a

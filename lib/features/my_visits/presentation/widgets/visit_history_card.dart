@@ -104,8 +104,8 @@ class VisitHistoryCard extends StatelessWidget {
                         visit.address,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style:
-                            TextStyle(color: colors.textSecondary, fontSize: 12),
+                        style: TextStyle(
+                            color: colors.textSecondary, fontSize: 12),
                       ),
                       const SizedBox(height: 8),
                       Row(

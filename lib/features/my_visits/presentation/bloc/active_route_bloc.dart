@@ -95,9 +95,8 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
   }
 
   Future<void> _writeWorkflowPointer(ActiveRouteReady state) async {
-    final stop = state.hasCurrentStop
-        ? state.route.stops[state.currentStopIndex]
-        : null;
+    final stop =
+        state.hasCurrentStop ? state.route.stops[state.currentStopIndex] : null;
     final isActive = stop != null && stop.status == VisitStatus.checkedIn;
     final now = DateTime.now();
 

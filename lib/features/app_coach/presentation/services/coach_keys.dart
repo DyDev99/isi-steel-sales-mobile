@@ -15,6 +15,7 @@ abstract final class CoachKeys {
   /// Whole-row anchors (kept for section-level overview steps).
   static const String quickActions = 'quick_actions';
   static const String myWork = 'my_work';
+  
 
   // Quick-action items.
   static const String newQuote = 'qa_new_quote';

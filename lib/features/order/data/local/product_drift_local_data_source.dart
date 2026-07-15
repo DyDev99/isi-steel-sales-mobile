@@ -1,5 +1,5 @@
 import 'package:drift/drift.dart' show QueryRow;
-import 'package:isi_steel_sales_mobile/core/storage/database/drift/daos/catalog_dao.dart';
+import 'package:isi_steel_sales_mobile/core/database/drift/daos/catalog_dao.dart';
 import 'package:isi_steel_sales_mobile/core/error/exceptions.dart';
 import 'package:isi_steel_sales_mobile/core/utils/mock_latency.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/local/product_drift_mappers.dart';

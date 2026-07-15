@@ -233,10 +233,9 @@ class _MainShellState extends State<MainShell> {
                     CoachKeys.quickActions,
                     child: const QuickActionsSection(),
                   ),
-                  CoachKeys.wrap(
-                    CoachKeys.myWork,
-                    child: const MyWorkGridSection(),
-                  ),
+               
+                  const MyWorkGridSection(),
+                
                 ],
               ),
             ),

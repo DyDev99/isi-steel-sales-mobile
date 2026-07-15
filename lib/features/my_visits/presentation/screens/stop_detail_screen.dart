@@ -115,10 +115,12 @@ class _StopDetailScreenState extends State<StopDetailScreen> {
                       fontWeight: FontWeight.w900)),
               const SizedBox(height: 4),
               Text(stop.customer.address,
-                  style: TextStyle(color: colors.textSecondary, fontSize: 12.5)),
+                  style:
+                      TextStyle(color: colors.textSecondary, fontSize: 12.5)),
               const SizedBox(height: 4),
               Text('${stop.customer.contact} · ${stop.customer.phone}',
-                  style: TextStyle(color: colors.textSecondary, fontSize: 12.5)),
+                  style:
+                      TextStyle(color: colors.textSecondary, fontSize: 12.5)),
               const SizedBox(height: 16),
               CheckinStatusBanner(
                 insideGeofence: state.insideGeofence,

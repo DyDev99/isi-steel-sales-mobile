@@ -23,23 +23,25 @@ class GridCalendarCard extends StatelessWidget {
   Widget build(BuildContext context) {
     // Read the app's custom theme tokens for active brightness (e.g., card, textPrimary, cardShadow)[cite: 2]
     final colors = context.appColors;
-    
+
     // Read Material standard tokens (e.g., primary, onPrimary)[cite: 4]
     final colorScheme = Theme.of(context).colorScheme;
 
-    final daysInMonth = DateUtils.getDaysInMonth(focusedMonth.year, focusedMonth.month);
+    final daysInMonth =
+        DateUtils.getDaysInMonth(focusedMonth.year, focusedMonth.month);
     final firstDay = DateTime(focusedMonth.year, focusedMonth.month, 1);
     final firstDayOffset = firstDay.weekday == 7 ? 0 : firstDay.weekday;
-    
+
     final weekdayLabels = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
-    const int totalGridSlots = 42; 
+    const int totalGridSlots = 42;
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
       decoration: BoxDecoration(
         color: colors.card, // Responsive card color[cite: 2]
         borderRadius: BorderRadius.circular(16.r),
-        boxShadow: colors.cardShadow, // Soft elevation resolved for active theme[cite: 2]
+        boxShadow: colors
+            .cardShadow, // Soft elevation resolved for active theme[cite: 2]
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -49,35 +51,42 @@ class GridCalendarCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               IconButton(
-                icon: Icon(Icons.chevron_left_rounded, color: colors.iconMuted, size: 28.w), // Theme-aware muted icon[cite: 2]
+                icon: Icon(Icons.chevron_left_rounded,
+                    color: colors.iconMuted,
+                    size: 28.w), // Theme-aware muted icon[cite: 2]
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
                 onPressed: () {
-                  onMonthChanged(DateTime(focusedMonth.year, focusedMonth.month - 1, 1));
+                  onMonthChanged(
+                      DateTime(focusedMonth.year, focusedMonth.month - 1, 1));
                 },
               ),
               SizedBox(width: 24.w),
               Text(
                 DateFormat('MMMM yyyy').format(focusedMonth),
                 style: TextStyle(
-                  color: colors.textPrimary, // Theme-aware primary text[cite: 2]
+                  color:
+                      colors.textPrimary, // Theme-aware primary text[cite: 2]
                   fontSize: 18.sp,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               SizedBox(width: 24.w),
               IconButton(
-                icon: Icon(Icons.chevron_right_rounded, color: colors.iconMuted, size: 28.w), // Theme-aware muted icon[cite: 2]
+                icon: Icon(Icons.chevron_right_rounded,
+                    color: colors.iconMuted,
+                    size: 28.w), // Theme-aware muted icon[cite: 2]
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
                 onPressed: () {
-                  onMonthChanged(DateTime(focusedMonth.year, focusedMonth.month + 1, 1));
+                  onMonthChanged(
+                      DateTime(focusedMonth.year, focusedMonth.month + 1, 1));
                 },
               ),
             ],
           ),
           SizedBox(height: 24.h),
-          
+
           // Weekday Labels
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -88,7 +97,8 @@ class GridCalendarCard extends StatelessWidget {
                         child: Text(
                           label,
                           style: TextStyle(
-                            color: colors.textSecondary, // Secondary text for headers[cite: 2]
+                            color: colors
+                                .textSecondary, // Secondary text for headers[cite: 2]
                             fontSize: 14.sp,
                             fontWeight: FontWeight.w500,
                           ),
@@ -98,7 +108,7 @@ class GridCalendarCard extends StatelessWidget {
                 .toList(),
           ),
           SizedBox(height: 16.h),
-          
+
           // Calendar Grid
           GridView.builder(
             shrinkWrap: true,
@@ -112,7 +122,7 @@ class GridCalendarCard extends StatelessWidget {
             ),
             itemBuilder: (context, index) {
               if (index < firstDayOffset) {
-                return const SizedBox.shrink(); 
+                return const SizedBox.shrink();
               }
 
               final dayNumber = index - firstDayOffset + 1;
@@ -125,7 +135,8 @@ class GridCalendarCard extends StatelessWidget {
                   child: Text(
                     '$nextMonthDay',
                     style: TextStyle(
-                      color: colors.textHint, // Faded hint text for next month's days[cite: 2]
+                      color: colors
+                          .textHint, // Faded hint text for next month's days[cite: 2]
                       fontSize: 14.sp,
                       fontWeight: FontWeight.w500,
                     ),
@@ -134,7 +145,8 @@ class GridCalendarCard extends StatelessWidget {
               }
 
               // Current Month Days
-              final dayDate = DateTime(focusedMonth.year, focusedMonth.month, dayNumber);
+              final dayDate =
+                  DateTime(focusedMonth.year, focusedMonth.month, dayNumber);
               final bool isSelected = dayDate.year == selectedDate.year &&
                   dayDate.month == selectedDate.month &&
                   dayDate.day == selectedDate.day;
@@ -161,9 +173,13 @@ class GridCalendarCard extends StatelessWidget {
                       Text(
                         '$dayNumber',
                         style: TextStyle(
-                          color: isSelected ? colorScheme.onPrimary : colors.textPrimary, // Inverse text if selected[cite: 4]
+                          color: isSelected
+                              ? colorScheme.onPrimary
+                              : colors
+                                  .textPrimary, // Inverse text if selected[cite: 4]
                           fontSize: 14.sp,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                          fontWeight:
+                              isSelected ? FontWeight.bold : FontWeight.w500,
                         ),
                       ),
                       // Notification dot for events
@@ -175,7 +191,8 @@ class GridCalendarCard extends StatelessWidget {
                             width: 6.w,
                             height: 6.w,
                             decoration: BoxDecoration(
-                              color: colorScheme.error, // Reddish error hue for notification dots[cite: 4]
+                              color: colorScheme
+                                  .error, // Reddish error hue for notification dots[cite: 4]
                               shape: BoxShape.circle,
                             ),
                           ),

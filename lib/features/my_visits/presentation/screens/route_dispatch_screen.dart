@@ -217,8 +217,8 @@ class _RouteDispatchScreenState extends State<RouteDispatchScreen> {
               ActiveRouteError(:final message) => Center(
                   child: Text(message,
                       style: TextStyle(color: colors.textSecondary))),
-              _ => Center(
-                  child: CircularProgressIndicator(color: scheme.primary)),
+              _ =>
+                Center(child: CircularProgressIndicator(color: scheme.primary)),
             };
           },
         ),
@@ -391,7 +391,10 @@ class _StopDispatchCard extends StatelessWidget {
           label: 'my_visits.flow.pill_checked_in'.tr,
           color: colors.warning
         ),
-      _ => (label: 'my_visits.flow.pill_pending'.tr, color: colors.textSecondary),
+      _ => (
+          label: 'my_visits.flow.pill_pending'.tr,
+          color: colors.textSecondary
+        ),
     };
   }
 

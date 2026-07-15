@@ -1,5 +1,5 @@
 import 'package:get_it/get_it.dart';
-import 'package:isi_steel_sales_mobile/core/storage/hive/hive_service.dart';
+import 'package:isi_steel_sales_mobile/core/database/hive/hive_service.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/data/datasource/coach_local_datasource.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/data/repositories/coach_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/domain/repositories/coach_repository.dart';
