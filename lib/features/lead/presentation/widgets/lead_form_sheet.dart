@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/device/device_insets.dart';
+import 'package:phone_form_field/phone_form_field.dart'; // Upgraded phone field package
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/credit_status.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/lead.dart';
@@ -36,7 +38,6 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
   late final _company =
       TextEditingController(text: widget.existing?.companyName);
   late final _owner = TextEditingController(text: widget.existing?.ownerName);
-  late final _phone = TextEditingController(text: widget.existing?.phone);
   late final _address = TextEditingController(text: widget.existing?.address);
   late final _territory =
       TextEditingController(text: widget.existing?.territory);
@@ -44,6 +45,10 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
       TextEditingController(text: widget.existing?.assignedRepName);
   late final _revenue = TextEditingController(
       text: widget.existing?.expectedRevenue.toStringAsFixed(0) ?? '');
+  
+  // State for the upgraded PhoneFormField
+  PhoneNumber? _phoneValue;
+  
   late LeadSource _source =
       widget.existing?.leadSource ?? LeadSource.fieldVisit;
   late Priority _priority = widget.existing?.priority ?? Priority.medium;
@@ -54,11 +59,23 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
   bool _showMore = false;
 
   @override
+  void initState() {
+    super.initState();
+    // Parse existing plain phone string to PhoneNumber initialization object safely
+    if (widget.existing?.phone != null && widget.existing!.phone.isNotEmpty) {
+      try {
+        _phoneValue = PhoneNumber.parse(widget.existing!.phone);
+      } catch (_) {
+        _phoneValue = null;
+      }
+    }
+  }
+
+  @override
   void dispose() {
     for (final c in [
       _company,
       _owner,
-      _phone,
       _address,
       _territory,
       _rep,
@@ -73,9 +90,10 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final colors = context.appColors;
+    
     return Padding(
-      padding:
-          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      // Handled using your custom context device insets helper extension
+      padding: EdgeInsets.only(bottom: context.deviceInsets.keyboard),
       child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
@@ -86,22 +104,85 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(_isEdit ? 'Edit lead' : 'New lead',
-                      style: TextStyle(
-                          color: colors.textPrimary,
-                          fontSize: 17,
-                          fontWeight: FontWeight.w800)),
-                  if (!_isEdit) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                        "That's enough to start — don't grill a cold lead.",
-                        style:
-                            TextStyle(color: colors.textSecondary, fontSize: 12.5)),
-                  ],
+                  // Top Row Header containing Title and new explicit Close Button
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(_isEdit ? 'Edit lead' : 'New lead',
+                                style: TextStyle(
+                                    color: colors.textPrimary,
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w800)),
+                            if (!_isEdit) ...[
+                              const SizedBox(height: 4),
+                              Text("That's enough to start — don't grill a cold lead.",
+                                  style: TextStyle(
+                                      color: colors.textSecondary, fontSize: 12.5)),
+                            ],
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close_rounded),
+                        color: colors.textSecondary,
+                        visualDensity: VisualDensity.compact,
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 16),
                   _field('Company / Shop name', _company, required: true),
-                  _field('Phone', _phone,
-                      required: _isEdit, keyboardType: TextInputType.phone),
+                  
+                  // Upgraded PhoneFormField styled natively to match theme specs
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: PhoneFormField(
+                      initialValue: _phoneValue,
+                      onChanged: (value) => setState(() => _phoneValue = value),
+                      style: TextStyle(color: colors.textPrimary, fontSize: 14),
+                      // Always strictly required validation format execution rule
+                      validator: (v) {
+                        if (v == null || v.nsn.trim().isEmpty) {
+                          return 'Required';
+                        }
+                        if (!v.isValid()) {
+                          return 'Invalid phone number';
+                        }
+                        return null;
+                      },
+                      decoration: InputDecoration(
+                        label: const Text.rich(
+                          TextSpan(
+                            text: 'Phone',
+                            children: [
+                              TextSpan(
+                                text: ' *',
+                                style: TextStyle(color: Colors.red),
+                              ),
+                            ],
+                          ),
+                        ),
+                        labelStyle: TextStyle(color: colors.textSecondary, fontSize: 13),
+                        filled: true,
+                        fillColor: colors.card,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: colors.border),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: colors.border),
+                        ),
+                      ),
+                    ),
+                  ),
+                  
                   const SizedBox(height: 4),
                   Text('Interested products (optional)',
                       style: TextStyle(
@@ -141,7 +222,8 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
                       icon: Icon(Icons.add_rounded,
                           size: 16, color: scheme.primary),
                       label: Text('Add more details',
-                          style: TextStyle(color: scheme.primary, fontSize: 13)),
+                          style:
+                              TextStyle(color: scheme.primary, fontSize: 13)),
                     ),
                   ],
                   if (_isEdit || _showMore) ...[
@@ -249,7 +331,19 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
             ? (v) => (v == null || v.trim().isEmpty) ? 'Required' : null
             : null,
         decoration: InputDecoration(
-          labelText: label,
+          label: Text.rich(
+            TextSpan(
+              text: label,
+              children: required
+                  ? const [
+                      TextSpan(
+                        text: ' *',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ]
+                  : null,
+            ),
+          ),
           labelStyle: TextStyle(color: colors.textSecondary, fontSize: 13),
           filled: true,
           fillColor: colors.card,
@@ -270,13 +364,16 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
     if (!_formKey.currentState!.validate()) return;
     final revenue = double.tryParse(_revenue.text.trim()) ?? 0;
     final base = widget.existing;
+    
+    // Extract format option string from PhoneNumber configuration model
+    final phoneString = _phoneValue?.international ?? '';
 
     final lead = base == null
         ? Lead(
             id: 'LEAD-${DateTime.now().microsecondsSinceEpoch}',
             companyName: _company.text.trim(),
             ownerName: _owner.text.trim(),
-            phone: _phone.text.trim(),
+            phone: phoneString,
             email: '',
             address: _address.text.trim(),
             province: _territory.text.trim(),
@@ -303,7 +400,7 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
             id: base.id,
             companyName: _company.text.trim(),
             ownerName: _owner.text.trim(),
-            phone: _phone.text.trim(),
+            phone: phoneString,
             email: base.email,
             address: _address.text.trim(),
             province: base.province,

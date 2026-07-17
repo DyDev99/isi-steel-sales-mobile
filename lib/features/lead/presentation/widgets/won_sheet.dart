@@ -62,7 +62,8 @@ class _WonSheetState extends State<_WonSheet> {
               const SizedBox(height: 4),
               Text(
                   "Nice work. One more step gets this to SAP so HQ can set up billing.",
-                  style: TextStyle(color: colors.textSecondary, fontSize: 12.5)),
+                  style:
+                      TextStyle(color: colors.textSecondary, fontSize: 12.5)),
               const SizedBox(height: 16),
               TextField(
                 controller: _finalValue,

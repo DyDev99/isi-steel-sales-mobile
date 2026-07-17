@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/device/device_insets.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart'; // Handles the .tr extension
 import 'package:isi_steel_sales_mobile/core/localization/localized_builder.dart'; // Triggers reactive rebuilds
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
@@ -9,23 +10,40 @@ import 'package:isi_steel_sales_mobile/features/lead/domain/usecases/lead_usecas
 Future<void> showNotificationsSheet({
   required BuildContext context,
   required FetchNotifications fetchNotifications,
+  bool isGuest = false,
+  // Wired by the caller to the app's shared login flow (AuthGuard). Only used
+  // in guest mode, where the empty state turns into a "sign in to see your
+  // notifications" call to action rather than a dead end.
+  VoidCallback? onLogin,
 }) {
   final colors = context.appColors;
   return showModalBottomSheet<void>(
     context: context,
-    backgroundColor: colors.surfaceSoft, // Replaced Vibe.bgSoft
+    backgroundColor: colors.surfaceSoft,
     isScrollControlled: true,
     shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
-    builder: (_) => _NotificationsSheet(fetchNotifications: fetchNotifications),
+    builder: (_) => _NotificationsSheet(
+      fetchNotifications: fetchNotifications,
+      isGuest: isGuest,
+      onLogin: onLogin,
+    ),
   );
 }
 
 class _NotificationsSheet extends StatelessWidget {
-  const _NotificationsSheet({required this.fetchNotifications});
-  final FetchNotifications fetchNotifications;
+  const _NotificationsSheet({
+    required this.fetchNotifications,
+    this.isGuest = false,
+    this.onLogin,
+  });
 
-  ({IconData icon, Color color}) _style(BuildContext context, NotificationKind kind) {
+  final FetchNotifications fetchNotifications;
+  final bool isGuest;
+  final VoidCallback? onLogin;
+
+  ({IconData icon, Color color}) _style(
+      BuildContext context, NotificationKind kind) {
     final colors = context.appColors;
     return switch (kind) {
       NotificationKind.creditApproved => (
@@ -46,7 +64,9 @@ class _NotificationsSheet extends StatelessWidget {
         ),
       NotificationKind.followUpDue => (
           icon: Icons.event_repeat_rounded,
-          color: Theme.of(context).colorScheme.error // Replaced Vibe.danger with Material 3 semantic error
+          color: Theme.of(context)
+              .colorScheme
+              .error // Replaced Vibe.danger with Material 3 semantic error
         ),
     };
   }
@@ -59,7 +79,10 @@ class _NotificationsSheet extends StatelessWidget {
       child: LocalizedBuilder(
         builder: (context) {
           return SizedBox(
-            height: MediaQuery.of(context).size.height * 0.7,
+            // screenSize uses the scoped MediaQuery.sizeOf, so this sheet
+            // rebuilds on a size change but not on every keyboard/inset tick —
+            // see DeviceInsets' rationale.
+            height: context.deviceInsets.screenSize.height * 0.7,
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
               child: Column(
@@ -74,92 +97,172 @@ class _NotificationsSheet extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   Expanded(
-                    child: FutureBuilder<List<NotificationItem>>(
-                      future: fetchNotifications(const NoParams()),
-                      builder: (context, snapshot) {
-                        if (!snapshot.hasData) {
-                          return Center(
-                              child: CircularProgressIndicator(
-                                  color: Theme.of(context).colorScheme.primary)); // Replaced Vibe.pink with primary theme indicator
-                        }
-                        final items = snapshot.data!;
-                        if (items.isEmpty) {
-                          return Center(
-                            child: Text(
-                              'notifications.no_notifications'.tr,
-                              style: TextStyle(color: colors.textHint), // Replaced Vibe.muted
-                            ),
-                          );
-                        }
-                        return ListView.separated(
-                          itemCount: items.length,
-                          separatorBuilder: (_, __) =>
-                              const SizedBox(height: 4),
-                          itemBuilder: (context, i) {
-                            final item = items[i];
-                            final s = _style(context, item.kind);
-
-                            // Check if title or body are localized system translation keys
-                            // If they are regular strings, use fallback item.title directly.
-                            final displayTitle = item.title.contains('.')
-                                ? item.title.tr
-                                : item.title;
-                            final displayBody = item.body.contains('.')
-                                ? item.body.tr
-                                : item.body;
-
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    width: 36,
-                                    height: 36,
-                                    alignment: Alignment.center,
-                                    decoration: BoxDecoration(
-                                      color: s.color.withValues(alpha: 0.16),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child:
-                                        Icon(s.icon, color: s.color, size: 18),
+                    // Check if guest: show welcome message, otherwise fetch notifications
+                    child: isGuest
+                        ? _buildGuestMessage(context)
+                        : FutureBuilder<List<NotificationItem>>(
+                            future: fetchNotifications(const NoParams()),
+                            builder: (context, snapshot) {
+                              if (!snapshot.hasData) {
+                                return Center(
+                                    child: CircularProgressIndicator(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary)); // Replaced Vibe.pink with primary theme indicator
+                              }
+                              final items = snapshot.data!;
+                              if (items.isEmpty) {
+                                return Center(
+                                  child: Text(
+                                    'notifications.no_notifications'.tr,
+                                    style: TextStyle(
+                                        color: colors
+                                            .textHint), // Replaced Vibe.muted
                                   ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
+                                );
+                              }
+                              return ListView.separated(
+                                itemCount: items.length,
+                                separatorBuilder: (_, __) =>
+                                    const SizedBox(height: 4),
+                                itemBuilder: (context, i) {
+                                  final item = items[i];
+                                  final s = _style(context, item.kind);
+
+                                  // Check if title or body are localized system translation keys
+                                  // If they are regular strings, use fallback item.title directly.
+                                  final displayTitle = item.title.contains('.')
+                                      ? item.title.tr
+                                      : item.title;
+                                  final displayBody = item.body.contains('.')
+                                      ? item.body.tr
+                                      : item.body;
+
+                                  return Padding(
+                                    padding:
+                                        const EdgeInsets.symmetric(vertical: 8),
+                                    child: Row(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        Text(
-                                          displayTitle,
-                                          style: TextStyle(
-                                              color: colors.textPrimary, // Replaced Vibe.text
-                                              fontSize: 13.5,
-                                              fontWeight: FontWeight.w700),
+                                        Container(
+                                          width: 36,
+                                          height: 36,
+                                          alignment: Alignment.center,
+                                          decoration: BoxDecoration(
+                                            color:
+                                                s.color.withValues(alpha: 0.16),
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                          ),
+                                          child: Icon(s.icon,
+                                              color: s.color, size: 18),
                                         ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          displayBody,
-                                          style: TextStyle(
-                                              color: colors.textSecondary, // Replaced Vibe.muted with readable textSecondary
-                                              fontSize: 12.5),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                displayTitle,
+                                                style: TextStyle(
+                                                    color: colors
+                                                        .textPrimary, // Replaced Vibe.text
+                                                    fontSize: 13.5,
+                                                    fontWeight:
+                                                        FontWeight.w700),
+                                              ),
+                                              const SizedBox(height: 2),
+                                              Text(
+                                                displayBody,
+                                                style: TextStyle(
+                                                    color: colors
+                                                        .textSecondary, // Replaced Vibe.muted with readable textSecondary
+                                                    fontSize: 12.5),
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ],
                                     ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        );
-                      },
-                    ),
+                                  );
+                                },
+                              );
+                            },
+                          ),
                   ),
                 ],
               ),
             ),
           );
         },
+      ),
+    );
+  }
+
+  // The custom UI for a guest user
+  Widget _buildGuestMessage(BuildContext context) {
+    final colors = context.appColors;
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.waving_hand_rounded,
+              size: 56,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Welcome!', // Optionally use .tr if you want to add this to your localization files
+              style: TextStyle(
+                color: colors.textPrimary,
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Please log in to view your notifications and get the full app experience.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: colors.textSecondary,
+                fontSize: 14,
+                height: 1.4,
+              ),
+            ),
+            // The actual "ask for login": without this the guest state is a
+            // dead end. Closes the sheet first, then hands control to the app's
+            // shared login flow so there's a single sign-in path.
+            if (onLogin != null) ...[
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    onLogin!.call();
+                  },
+                  icon: const Icon(Icons.login_rounded, size: 18),
+                  // Plain string to match the rest of this guest state; there's
+                  // no `common.login` key yet. Add one and switch to `.tr` when
+                  // the guest copy is localized.
+                  label: const Text('Log in',
+                      style: TextStyle(fontWeight: FontWeight.w700)),
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }

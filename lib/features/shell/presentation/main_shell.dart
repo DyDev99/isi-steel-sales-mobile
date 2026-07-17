@@ -4,9 +4,12 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/auth/auth_guard.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/network/connectivity_cubit.dart';
+import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
+import 'package:isi_steel_sales_mobile/core/device/device_insets.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localized_builder.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/features/app_coach/presentation/services/coach_anchor_registry.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/presentation/services/coach_keys.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/presentation/widgets/app_coach_host.dart';
 import 'package:isi_steel_sales_mobile/features/home/data/home_repository.dart';
@@ -31,8 +34,11 @@ import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/sync/
 import 'package:isi_steel_sales_mobile/features/customers/presentation/screens/customers_screen.dart';
 import 'package:isi_steel_sales_mobile/features/profile/presentation/bloc/profile_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/profile/presentation/screens/profile_screen.dart';
+import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/guest/guest_home_screen.dart';
+import 'package:isi_steel_sales_mobile/features/notification/domain/usecases/fetch_notifications.dart';
+import 'package:isi_steel_sales_mobile/features/notification/presentation/screen/notifications_sheet.dart';
 import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/main_app_bar.dart';
-import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/monthly_target_widget.dart'; // Ensure correct path name
+import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/monthly_target_widget.dart';
 import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/my_work_grid_section.dart';
 import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/quick_action_widget.dart';
 
@@ -52,6 +58,13 @@ class MainShell extends StatefulWidget {
 
 class _MainShellState extends State<MainShell> {
   final ShellTabController _tabController = sl<ShellTabController>();
+  final SessionManager _session = sl<SessionManager>();
+
+  /// Owned per shell instance (not static): each MainShell publishes its coach
+  /// anchors into its *own* registry, so two shells coexisting during the login
+  /// transition can never collide the way the old static GlobalKeys did.
+  final CoachAnchorRegistry _coachAnchors = CoachAnchorRegistry();
+
   int _index = 0;
 
   @override
@@ -59,9 +72,6 @@ class _MainShellState extends State<MainShell> {
     super.initState();
     _index = _tabController.value;
     _tabController.addListener(_onTabChanged);
-    // Offline-first rule: never auto-navigate on startup. A resumable route (or
-    // draft) is surfaced through the Continue-Working card on the Home tab and
-    // resumed only on an explicit tap — no automatic redirect to Visits.
     sl<ResumableVisitCubit>().refresh();
   }
 
@@ -75,7 +85,6 @@ class _MainShellState extends State<MainShell> {
     setState(() {
       _index = _tabController.value;
     });
-    // Returning to Home re-checks for an in-progress check-in to resume.
     if (_tabController.value == 0) sl<ResumableVisitCubit>().refresh();
   }
 
@@ -95,10 +104,6 @@ class _MainShellState extends State<MainShell> {
         'orders.title'.tr,
       ];
 
-  /// Profile is a protected feature: it shows account data and hosts sign-out.
-  /// Guests are prompted to log in via the shared [AuthGuard]; authenticated
-  /// users open it straight away. This is the reusable pattern to apply to any
-  /// other gated action (cart, checkout, create order, saved items, …).
   Future<void> _openProfile(BuildContext context) async {
     final allowed = await AuthGuard.requireAuthentication(context);
     if (!allowed || !context.mounted) return;
@@ -110,9 +115,17 @@ class _MainShellState extends State<MainShell> {
     ));
   }
 
+  void _openGuestNotifications(BuildContext context) {
+    showNotificationsSheet(
+      context: context,
+      fetchNotifications: sl<FetchNotifications>(),
+      isGuest: !_session.isAuthenticated,
+      onLogin: () => _openProfile(context),
+    );
+  }
+
   Widget _buildWelcomeSection(BuildContext context) {
     final int hour = DateTime.now().hour;
-
     late final String greetingKey;
     if (hour < 12) {
       greetingKey = 'common.good_morning';
@@ -159,11 +172,11 @@ class _MainShellState extends State<MainShell> {
             ),
           ),
           SizedBox(width: 8.w),
-          Column(
+          const Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              const PendingSyncBadge(),
+              PendingSyncBadge(),
             ],
           ),
         ],
@@ -171,35 +184,41 @@ class _MainShellState extends State<MainShell> {
     );
   }
 
-  Widget _buildHomeTab() {
+  Widget _buildAuthenticatedHomeTab({Key? key}) {
     return MultiBlocProvider(
+      key: key,
       providers: [
         BlocProvider(
             create: (_) => HomeCubit(const HomeRepositoryImpl())..load()),
         BlocProvider(create: (_) => sl<AddCustomerBloc>()),
+        // QuickActionsSection reads PipelineBloc to seed "add customer from a
+        // Won lead" and to dispatch LeadCreated. Without this provider in the
+        // Home-tab scope, tapping a quick action throws
+        // ProviderNotFoundException<PipelineBloc> — the crash reported after the
+        // dashboard was reworked. Its own scope, loaded up front so the Won
+        // column is ready by the time the sheet opens.
+        BlocProvider(
+          create: (_) => sl<PipelineBloc>()..add(const PipelineLoadRequested()),
+        ),
       ],
       child: SizedBox.expand(
         child: Column(
           children: [
-            // Pushes down dynamic screen list view past appbar safety boundary
             SafeArea(
               bottom: false,
               child: SizedBox(height: 70.h),
             ),
-
             Expanded(
               child: ListView(
+                key: const ValueKey('authenticated_home_scroll_root'),
                 physics: const BouncingScrollPhysics(),
-                padding: EdgeInsets.fromLTRB(0, 8.h, 0, 16.h),
+                padding: EdgeInsets.fromLTRB(0, 8.h, 0,
+                    context.deviceInsets.scrollBottomInset(extra: 16.h)),
                 children: [
-                  // 1. Welcome Header Section
                   _buildWelcomeSection(context),
                   SizedBox(height: 16.h),
-
-                  // 2. Monthly Target Card aligned safely with 16.w edge-to-edge layout padding
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16.w),
-                    // Coach anchor: "Monthly Target" step spotlights this card.
                     child: CoachKeys.wrap(
                       CoachKeys.monthlyTarget,
                       child: const MonthlyTargetCard(
@@ -210,10 +229,6 @@ class _MainShellState extends State<MainShell> {
                     ),
                   ),
                   SizedBox(height: 16.h),
-                  // Offline-first "Continue last action" section: resume drafts
-                  // and monitor SAP sync inline — no floating overlay, no auto
-                  // navigation. Each widget self-hides when it has nothing to
-                  // show.
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16.w),
                     child: const ConnectivityBanner(),
@@ -227,21 +242,53 @@ class _MainShellState extends State<MainShell> {
                     child: const ContinueWorkingCard(),
                   ),
                   SizedBox(height: 8.h),
-                  // Coach anchors: "Quick Actions"/"New Lead" and the "My Work"
-                  // navigation steps spotlight these sections.
                   CoachKeys.wrap(
                     CoachKeys.quickActions,
                     child: const QuickActionsSection(),
                   ),
-               
                   const MyWorkGridSection(),
-                
                 ],
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildHomeTab() {
+    return StreamBuilder<Object?>(
+      stream: _session.changes,
+      builder: (context, snapshot) {
+        final authenticated = _session.isAuthenticated;
+
+        // FIX: AnimatedSwitcher prevents immediate layout snaps during login
+        return AnimatedSwitcher(
+          duration: const Duration(milliseconds: 500),
+          switchInCurve: Curves.easeInOutCubic,
+          switchOutCurve: Curves.easeInOutCubic,
+          transitionBuilder: (Widget child, Animation<double> animation) {
+            return FadeTransition(
+              opacity: animation,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0.0, 0.02),
+                  end: Offset.zero,
+                ).animate(animation),
+                child: child,
+              ),
+            );
+          },
+          child: authenticated
+              ? _buildAuthenticatedHomeTab(
+                  key: const ValueKey('authenticated_home_view'))
+              : GuestHomeScreen(
+                  key: const ValueKey('guest_home_view'),
+                  topInset: 70.h,
+                  onLogin: () => _openProfile(context),
+                ),
+        );
+      },
     );
   }
 
@@ -267,11 +314,8 @@ class _MainShellState extends State<MainShell> {
           child: wrapWithTopSpacing(const MyVisitsDashboardScreen()),
         );
       case 3:
-        return BlocProvider(
-          create: (_) => sl<PipelineBloc>()..add(const PipelineLoadRequested()),
-          child: wrapWithTopSpacing(
-              const PipelineScreen(initialStage: PipelineStage.leads)),
-        );
+        return wrapWithTopSpacing(
+            const PipelineScreen(initialStage: PipelineStage.leads));
       case 4:
         return wrapWithTopSpacing(const OrderScreen());
       default:
@@ -283,98 +327,123 @@ class _MainShellState extends State<MainShell> {
   Widget build(BuildContext context) {
     if (_index >= _tabs.length) _index = 0;
 
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider<ConnectivityCubit>(create: (_) => sl<ConnectivityCubit>()),
-        BlocProvider<PendingSyncCubit>(create: (_) => sl<PendingSyncCubit>()),
-        BlocProvider<ContinueWorkCubit>(create: (_) => sl<ContinueWorkCubit>()),
-        BlocProvider<ResumableVisitCubit>.value(
-            value: sl<ResumableVisitCubit>()),
-      ],
-      child: ReconnectSyncListener(
-        child: PopScope(
-          canPop: _index == 0,
-          onPopInvokedWithResult: (didPop, _) {
-            if (didPop) return;
-            _tabController.goTo(0);
-          },
-          child: Scaffold(
-            backgroundColor: context.appColors.canvas,
-            body: Stack(
-              children: [
-                // Upgraded Premium Blurred Image Header Background
-                if (_index == 0)
+    // Scope the coach anchor registry above the whole shell so every anchor
+    // (dashboard cards, app-bar items) and the AppCoachHost that reads them
+    // share this instance — see CoachAnchorRegistry for why this replaces the
+    // old static GlobalKeys.
+    return CoachAnchorScope(
+      registry: _coachAnchors,
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider<ConnectivityCubit>(
+              create: (_) => sl<ConnectivityCubit>()),
+          BlocProvider<PendingSyncCubit>(create: (_) => sl<PendingSyncCubit>()),
+          BlocProvider<ContinueWorkCubit>(
+              create: (_) => sl<ContinueWorkCubit>()),
+          BlocProvider<ResumableVisitCubit>.value(
+              value: sl<ResumableVisitCubit>()),
+          BlocProvider<PipelineBloc>(
+            create: (_) =>
+                sl<PipelineBloc>()..add(const PipelineLoadRequested()),
+          ),
+        ],
+        child: ReconnectSyncListener(
+          child: PopScope(
+            canPop: _index == 0,
+            onPopInvokedWithResult: (didPop, _) {
+              if (didPop) return;
+              _tabController.goTo(0);
+            },
+            child: Scaffold(
+              backgroundColor: context.appColors.canvas,
+              body: Stack(
+                children: [
+                  // FIX: Replaced layout-snapping absolute condition with a smooth fade opacity transition
                   Positioned(
                     top: 0,
                     left: 0,
                     right: 0,
                     height: MediaQuery.of(context).size.height * 0.26,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.only(
-                        bottomLeft: Radius.circular(32.r),
-                        bottomRight: Radius.circular(32.r),
-                      ),
-                      child: Stack(
-                        children: [
-                          // 1. Background Image Asset
-                          Positioned.fill(
-                            child: Image.asset(
-                              'assets/images/isi_main_app_bar_bg.png', // <-- Insert your dashboard image asset route path here
-                              fit: BoxFit.cover,
-                            ),
+                    child: AnimatedOpacity(
+                      duration: const Duration(milliseconds: 350),
+                      opacity: _index == 0 ? 1.0 : 0.0,
+                      curve: Curves.easeInOut,
+                      child: IgnorePointer(
+                        ignoring: _index != 0,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.only(
+                            bottomLeft: Radius.circular(32.r),
+                            bottomRight: Radius.circular(32.r),
                           ),
-                          // 1b. Black gradient scrim: opaque at the bottom,
-                          // fading to transparent toward the top — keeps the
-                          // header text readable over any image.
-                          Positioned.fill(
-                            child: DecoratedBox(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.bottomCenter,
-                                  end: Alignment.topCenter,
-                                  colors: [
-                                    Colors.black.withValues(alpha: 0.75),
-                                    Colors.black.withValues(alpha: 0.25),
-                                    Colors.transparent,
-                                  ],
-                                  stops: const [0.0, 0.5, 1.0],
+                          child: Stack(
+                            children: [
+                              Positioned.fill(
+                                child: Image.asset(
+                                  'assets/images/isi_main_app_bar_bg.png',
+                                  fit: BoxFit.cover,
                                 ),
                               ),
+                              Positioned.fill(
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.bottomCenter,
+                                      end: Alignment.topCenter,
+                                      colors: [
+                                        Colors.black.withValues(alpha: 0.75),
+                                        Colors.black.withValues(alpha: 0.25),
+                                        Colors.transparent,
+                                      ],
+                                      stops: const [0.0, 0.5, 1.0],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Theme(
+                    data: Theme.of(context).copyWith(
+                      scaffoldBackgroundColor: Colors.transparent,
+                    ),
+                    child: Positioned.fill(
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 350),
+                        switchInCurve: Curves.easeOutQuad,
+                        switchOutCurve: Curves.easeInQuad,
+                        child: KeyedSubtree(
+                          key: ValueKey('main_shell_tab_active_$_index'),
+                          child: IndexedStack(
+                            index: _index,
+                            children: List.generate(
+                              _tabs.length,
+                              (i) => _buildTab(i),
                             ),
                           ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
-                Theme(
-                  data: Theme.of(context).copyWith(
-                    scaffoldBackgroundColor: Colors.transparent,
-                  ),
-                  child: Positioned.fill(
-                    child: IndexedStack(
-                      index: _index,
-                      children: List.generate(
-                        _tabs.length,
-                        (i) => _buildTab(i),
-                      ),
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    child: MainAppBar(
+                      title: _titles[_index],
+                      currentTabIndex: _index,
+                      onBackToHomeTap: () => _tabController.goTo(0),
+                      onAvatarTap: () => _openProfile(context),
+                      onNotificationTap: _session.isAuthenticated
+                          ? null
+                          : () => _openGuestNotifications(context),
                     ),
                   ),
-                ),
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  child: MainAppBar(
-                    title: _titles[_index],
-                    currentTabIndex: _index,
-                    onBackToHomeTap: () => _tabController.goTo(0),
-                    onAvatarTap: () => _openProfile(context),
-                  ),
-                ),
-                // Interactive onboarding layer — sits above the whole shell and
-                // self-hides once the tutorial is completed or skipped.
-                const AppCoachHost(),
-              ],
+                  const AppCoachHost(),
+                ],
+              ),
             ),
           ),
         ),

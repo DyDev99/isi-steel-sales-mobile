@@ -5,7 +5,7 @@ import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/domain/entities/coach_action.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/domain/entities/coach_status.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/presentation/blocs/app_coach_bloc.dart';
-import 'package:isi_steel_sales_mobile/features/app_coach/presentation/services/coach_keys.dart';
+import 'package:isi_steel_sales_mobile/features/app_coach/presentation/services/coach_anchor_registry.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/presentation/widgets/assistant_overlay.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/presentation/widgets/floating_assistant_button.dart';
 import 'package:isi_steel_sales_mobile/features/home/presentation/bloc/home_cubit.dart';
@@ -85,8 +85,10 @@ class _AppCoachHostState extends State<AppCoachHost> {
 
     final id = step.targetKeyId;
     if (id == null) return;
+    final registry = CoachAnchorScope.maybeOf(context);
+    if (registry == null) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final ctx = CoachKeys.contextFor(id);
+      final ctx = registry.contextFor(id);
       if (ctx != null && ctx.mounted) {
         Scrollable.ensureVisible(
           ctx,

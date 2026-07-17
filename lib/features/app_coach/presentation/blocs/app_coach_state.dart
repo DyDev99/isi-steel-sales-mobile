@@ -27,8 +27,7 @@ class AppCoachState extends Equatable {
       (index >= 0 && index < steps.length) ? steps[index] : null;
 
   /// True while a step should be visible on screen.
-  bool get isVisible =>
-      status == CoachStatus.running && currentStep != null;
+  bool get isVisible => status == CoachStatus.running && currentStep != null;
 
   /// 0..1 completion for the progress indicator.
   double get progress =>

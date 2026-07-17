@@ -32,11 +32,21 @@ class RouteSyncCubit extends Cubit<RouteSyncState> {
   final PushPendingVisitData _pushPendingVisitData;
   final SessionManager _sessionManager;
 
+  /// Pulls routes whenever the dashboard opens.
+  ///
+  /// Unlike `order`'s catalog (date-agnostic products, synced once), routes are
+  /// **day-scoped**: the dashboard filters strictly to the selected day, so a
+  /// watermark left by *any* prior sync must NOT suppress pulling the current
+  /// day's routes — otherwise a returning rep sees an empty "today" until they
+  /// manually pull-to-refresh. So: run an **initial** sync when there's no
+  /// watermark yet, and a **delta** on every subsequent open (a real backend
+  /// returns routes published since the watermark; the mock returns the current
+  /// day's set). Either way today's routes always land locally.
   Future<void> syncIfNeeded() async {
     final lastSynced = await _getLastSyncedAt(const NoParams());
     final needsInitial =
         lastSynced.when(success: (at) => at == null, failure: (_) => true);
-    if (needsInitial) await _run(isInitial: true);
+    await _run(isInitial: needsInitial);
   }
 
   Future<void> refresh() => _run(isInitial: false);

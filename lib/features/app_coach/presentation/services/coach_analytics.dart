@@ -26,7 +26,8 @@ class DebugCoachAnalytics implements CoachAnalytics {
   const DebugCoachAnalytics();
 
   @override
-  void log(CoachAnalyticsEvent event, {Map<String, Object?> params = const {}}) {
+  void log(CoachAnalyticsEvent event,
+      {Map<String, Object?> params = const {}}) {
     if (kDebugMode) {
       debugPrint('[coach] ${event.name} ${params.isEmpty ? '' : params}');
     }

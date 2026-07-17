@@ -19,10 +19,7 @@ class DocumentsSection extends StatelessWidget {
             icon: Icons.picture_as_pdf_rounded,
             color: colors.warning
           ),
-        DocumentType.ownerId => (
-            icon: Icons.badge_rounded,
-            color: colors.info
-          ),
+        DocumentType.ownerId => (icon: Icons.badge_rounded, color: colors.info),
         DocumentType.storefrontPhoto => (
             icon: Icons.storefront_rounded,
             color: scheme.secondary

@@ -1,13 +1,19 @@
 import 'package:flutter/widgets.dart';
+import 'package:isi_steel_sales_mobile/features/app_coach/presentation/services/coach_anchor_registry.dart';
 
-/// Registry that maps a step's `targetKeyId` (a stable `const String`) to a live
-/// [GlobalKey] on the widget to spotlight.
+/// The catalog of coach anchor ids and the [wrap] helper that attaches an anchor
+/// to a widget.
 ///
-/// Two-part design keeps the domain framework-free: the catalog references only
-/// the const string ids below, while the presentation layer resolves them to
-/// keys here. Attach a key at the anchor with [wrap]; the overlay reads its
-/// render box, and safely falls back to a centered bubble if the widget is
-/// absent or unmounted.
+/// The domain stays framework-free: `CoachStepCatalog` references only the
+/// `const String` ids below, and the presentation layer resolves an id to a
+/// live widget position through the [CoachAnchorRegistry] (see
+/// `coach_anchor_registry.dart`).
+///
+/// **No `GlobalKey`s here anymore.** They used to be cached statically, which
+/// crashed with "Duplicate GlobalKeys" whenever two shells were mounted at once
+/// (the login navigation transition). [wrap] now attaches a lightweight
+/// [_CoachAnchor] that publishes its own `BuildContext`, so nothing global is
+/// shared between widget instances.
 abstract final class CoachKeys {
   // ── Anchor ids (must match CoachStepCatalog.targetKeyId values) ──────────
   static const String monthlyTarget = 'monthly_target';
@@ -15,7 +21,6 @@ abstract final class CoachKeys {
   /// Whole-row anchors (kept for section-level overview steps).
   static const String quickActions = 'quick_actions';
   static const String myWork = 'my_work';
-  
 
   // Quick-action items.
   static const String newQuote = 'qa_new_quote';
@@ -33,26 +38,54 @@ abstract final class CoachKeys {
   static const String notification = 'ab_notification';
   static const String profile = 'ab_profile';
 
-  static final Map<String, GlobalKey> _keys = {};
-
-  /// The [GlobalKey] for [id], created on first request and reused after.
-  static GlobalKey keyFor(String id) =>
-      _keys.putIfAbsent(id, () => GlobalKey(debugLabel: 'coach_$id'));
-
   /// Wrap an anchor widget so the coach can locate it:
   /// `CoachKeys.wrap(CoachKeys.monthlyTarget, child: MonthlyTargetCard(...))`.
+  ///
+  /// Requires a [CoachAnchorScope] ancestor (provided by `MainShell`). If none
+  /// is present the child is returned unchanged — the coach simply won't find
+  /// this anchor, which is a graceful no-op rather than a crash.
   static Widget wrap(String id, {required Widget child}) =>
-      KeyedSubtree(key: keyFor(id), child: child);
+      _CoachAnchor(id: id, child: child);
+}
 
-  /// Current global bounds of [id]'s widget, or null when it isn't laid out.
-  static Rect? rectFor(String id) {
-    final ctx = _keys[id]?.currentContext;
-    final box = ctx?.findRenderObject();
-    if (box is! RenderBox || !box.hasSize || !box.attached) return null;
-    final offset = box.localToGlobal(Offset.zero);
-    return offset & box.size;
+/// Registers its own [BuildContext] as the live anchor for [id] while mounted.
+///
+/// Deliberately a `StatefulWidget`: it needs a stable element whose lifecycle
+/// (`didChangeDependencies`/`dispose`) maps 1:1 to the anchor being on/off
+/// screen, and its `context.findRenderObject()` yields the child's render box —
+/// exactly what the previous `GlobalKey` provided, minus the global sharing.
+class _CoachAnchor extends StatefulWidget {
+  const _CoachAnchor({required this.id, required this.child});
+
+  final String id;
+  final Widget child;
+
+  @override
+  State<_CoachAnchor> createState() => _CoachAnchorState();
+}
+
+class _CoachAnchorState extends State<_CoachAnchor> {
+  CoachAnchorRegistry? _registry;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // The scope is stable, so this resolves once and never churns. Re-register
+    // if this element is ever moved under a different scope.
+    final registry = CoachAnchorScope.maybeOf(context);
+    if (!identical(registry, _registry)) {
+      _registry?.unregister(widget.id, context);
+      _registry = registry;
+      _registry?.register(widget.id, context);
+    }
   }
 
-  /// The [BuildContext] of [id]'s widget (for `Scrollable.ensureVisible`).
-  static BuildContext? contextFor(String id) => _keys[id]?.currentContext;
+  @override
+  void dispose() {
+    _registry?.unregister(widget.id, context);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }

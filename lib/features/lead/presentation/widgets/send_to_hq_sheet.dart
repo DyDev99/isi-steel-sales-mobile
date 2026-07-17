@@ -252,7 +252,8 @@ class _ConfirmedRow extends StatelessWidget {
           SizedBox(
               width: 100,
               child: Text(label,
-                  style: TextStyle(color: colors.textSecondary, fontSize: 12.5))),
+                  style:
+                      TextStyle(color: colors.textSecondary, fontSize: 12.5))),
           Expanded(
             child: Text(value.isEmpty ? '—' : value,
                 style: TextStyle(

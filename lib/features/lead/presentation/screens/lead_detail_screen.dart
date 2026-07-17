@@ -125,8 +125,7 @@ class LeadDetailScreen extends StatelessWidget {
                             TextStyle(color: context.appColors.textSecondary)),
                   ),
                 _ => Center(
-                    child:
-                        CircularProgressIndicator(color: scheme.secondary)),
+                    child: CircularProgressIndicator(color: scheme.secondary)),
               },
             ),
           ),
@@ -315,8 +314,8 @@ class _DetailBody extends StatelessWidget {
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 8, vertical: 2),
                                     decoration: BoxDecoration(
-                                      color:
-                                          scheme.primary.withValues(alpha: 0.16),
+                                      color: scheme.primary
+                                          .withValues(alpha: 0.16),
                                       borderRadius: BorderRadius.circular(20),
                                     ),
                                     child: Text('Primary',
@@ -397,7 +396,8 @@ class _DetailBody extends StatelessWidget {
                                     : colors.textPrimary,
                                 fontSize: 12.5),
                             backgroundColor: colors.card,
-                            selectedColor: scheme.primary.withValues(alpha: 0.2),
+                            selectedColor:
+                                scheme.primary.withValues(alpha: 0.2),
                             side: BorderSide(
                                 color: info.subStage == s
                                     ? scheme.primary
@@ -432,7 +432,8 @@ class _DetailBody extends StatelessWidget {
                                     : colors.textPrimary,
                                 fontSize: 12.5),
                             backgroundColor: colors.card,
-                            selectedColor: scheme.primary.withValues(alpha: 0.2),
+                            selectedColor:
+                                scheme.primary.withValues(alpha: 0.2),
                             side: BorderSide(
                                 color: info.tonnage == t.$2
                                     ? scheme.primary
@@ -462,7 +463,8 @@ class _DetailBody extends StatelessWidget {
                                     : colors.textPrimary,
                                 fontSize: 12.5),
                             backgroundColor: colors.card,
-                            selectedColor: scheme.primary.withValues(alpha: 0.2),
+                            selectedColor:
+                                scheme.primary.withValues(alpha: 0.2),
                             side: BorderSide(
                                 color: info.budgetStatus == b
                                     ? scheme.primary

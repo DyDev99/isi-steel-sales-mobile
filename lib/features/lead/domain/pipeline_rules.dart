@@ -48,7 +48,9 @@ int leadDueCount(Lead lead, {DateTime? now}) {
         due += 1;
       } else {
         if (info.budgetStatus == null) due += 1; // qualify budget
-        if (info.hasDecisionMakerAccess != true) due += 1; // reach decision-maker
+        if (info.hasDecisionMakerAccess != true) {
+          due += 1; // reach decision-maker
+        }
         final closing = info.expectedClosingDate;
         if (closing != null && !closing.isAfter(today)) {
           due += 1; // expected close date has passed

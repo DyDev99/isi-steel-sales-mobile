@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/domain/entities/coach_step.dart';
-import 'package:isi_steel_sales_mobile/features/app_coach/presentation/services/coach_keys.dart';
+import 'package:isi_steel_sales_mobile/features/app_coach/presentation/services/coach_anchor_registry.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/presentation/widgets/assistant_bubble.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/presentation/widgets/highlight_painter.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/presentation/widgets/pointer_animation.dart';
@@ -52,6 +52,11 @@ class _AssistantOverlayState extends State<AssistantOverlay>
 
   Rect? _rect;
 
+  /// Captured from the [CoachAnchorScope] above the shell, so `_syncRect` can
+  /// read anchor bounds from post-frame callbacks (where an inherited-widget
+  /// lookup isn't valid).
+  CoachAnchorRegistry? _registry;
+
   static const double _pad = 8; // spotlight breathing room
   static const double _gap = 12; // space between target and bubble
   static const double _holeRadius = 20; // shared with the backdrop clip
@@ -60,6 +65,13 @@ class _AssistantOverlayState extends State<AssistantOverlay>
   void initState() {
     super.initState();
     if (!widget.reduceMotion) _glow.repeat(reverse: true);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _registry = CoachAnchorScope.maybeOf(context);
+    // First rect read happens here (not initState) because it needs the scope.
     _syncRect();
   }
 
@@ -80,14 +92,14 @@ class _AssistantOverlayState extends State<AssistantOverlay>
   /// stops changing, no further rebuilds are scheduled.
   void _syncRect() {
     final id = widget.step.targetKeyId;
-    final next = id == null ? null : CoachKeys.rectFor(id);
+    final next = id == null ? null : _registry?.rectFor(id);
     if (next != _rect && mounted) {
       setState(() => _rect = next);
     }
     if (id != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        final latest = CoachKeys.rectFor(id);
+        final latest = _registry?.rectFor(id);
         if (latest != _rect) setState(() => _rect = latest);
       });
     }
@@ -216,8 +228,9 @@ class _AssistantOverlayState extends State<AssistantOverlay>
     // Cross-fade + gentle pop between steps, instead of the content just
     // snapping to new text mid-tour.
     final content = AnimatedSwitcher(
-      duration:
-          widget.reduceMotion ? Duration.zero : const Duration(milliseconds: 260),
+      duration: widget.reduceMotion
+          ? Duration.zero
+          : const Duration(milliseconds: 260),
       switchInCurve: Curves.easeOutCubic,
       switchOutCurve: Curves.easeIn,
       transitionBuilder: (child, anim) => FadeTransition(

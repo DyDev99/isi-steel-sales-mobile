@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/pipeline_filter.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/priority.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/app_bottom_sheet.dart';
 
 Future<void> showPipelineFilterSheet({
   required BuildContext context,
@@ -10,13 +11,10 @@ Future<void> showPipelineFilterSheet({
   required List<String> reps,
   required void Function(PipelineFilter filter) onApply,
 }) {
-  return showModalBottomSheet<void>(
+  // Surface, shape, isScrollControlled, keyboard insets and safe area all come
+  // from the shared wrapper now.
+  return showAppBottomSheet<void>(
     context: context,
-    backgroundColor: context.appColors.surfaceSoft,
-    isScrollControlled: true,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
-    ),
     builder: (_) => _PipelineFilterSheet(
       filter: filter,
       territories: territories,
@@ -53,104 +51,97 @@ class _PipelineFilterSheetState extends State<_PipelineFilterSheet> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final colors = context.appColors;
+    // Keyboard inset + SafeArea now live in AppBottomSheet; this keeps only its
+    // own content padding.
     return Padding(
-      padding:
-          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text('Filter & sort',
-                        style: TextStyle(
-                            color: colors.textPrimary,
-                            fontSize: 17,
-                            fontWeight: FontWeight.w800)),
-                  ),
-                  TextButton(
-                    onPressed: () => setState(() {
-                      _territory = null;
-                      _rep = null;
-                      _priority = null;
-                      _sortBy = SortBy.newest;
-                    }),
-                    child: Text('Clear',
-                        style: TextStyle(color: colors.textSecondary)),
-                  ),
-                ],
+              Expanded(
+                child: Text('Filter & sort',
+                    style: TextStyle(
+                        color: colors.textPrimary,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800)),
               ),
-              const SizedBox(height: 12),
-              const _Label('Sort by'),
-              _ChipGroup<SortBy>(
-                options: const {
-                  SortBy.newest: 'Newest',
-                  SortBy.oldest: 'Oldest',
-                  SortBy.revenue: 'Revenue',
-                  SortBy.priority: 'Priority',
-                },
-                selected: _sortBy,
-                onSelected: (v) => setState(() => _sortBy = v),
-              ),
-              const SizedBox(height: 16),
-              const _Label('Priority'),
-              _ChipGroup<Priority?>(
-                options: const {
-                  null: 'Any',
-                  Priority.high: 'High',
-                  Priority.medium: 'Medium',
-                  Priority.low: 'Low'
-                },
-                selected: _priority,
-                onSelected: (v) => setState(() => _priority = v),
-              ),
-              const SizedBox(height: 16),
-              const _Label('Territory'),
-              _ChipGroup<String?>(
-                options: {
-                  null: 'Any',
-                  for (final t in widget.territories) t: t
-                },
-                selected: _territory,
-                onSelected: (v) => setState(() => _territory = v),
-              ),
-              const SizedBox(height: 16),
-              const _Label('Sales rep'),
-              _ChipGroup<String?>(
-                options: {null: 'Any', for (final r in widget.reps) r: r},
-                selected: _rep,
-                onSelected: (v) => setState(() => _rep = v),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    widget.onApply(widget.filter.copyWith(
-                      territory: () => _territory,
-                      assignedRepName: () => _rep,
-                      priority: () => _priority,
-                      sortBy: _sortBy,
-                    ));
-                    Navigator.of(context).pop();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: scheme.primary,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14)),
-                  ),
-                  child: const Text('Apply',
-                      style: TextStyle(fontWeight: FontWeight.w700)),
-                ),
+              TextButton(
+                onPressed: () => setState(() {
+                  _territory = null;
+                  _rep = null;
+                  _priority = null;
+                  _sortBy = SortBy.newest;
+                }),
+                child: Text('Clear',
+                    style: TextStyle(color: colors.textSecondary)),
               ),
             ],
           ),
-        ),
+          const SizedBox(height: 12),
+          const _Label('Sort by'),
+          _ChipGroup<SortBy>(
+            options: const {
+              SortBy.newest: 'Newest',
+              SortBy.oldest: 'Oldest',
+              SortBy.revenue: 'Revenue',
+              SortBy.priority: 'Priority',
+            },
+            selected: _sortBy,
+            onSelected: (v) => setState(() => _sortBy = v),
+          ),
+          const SizedBox(height: 16),
+          const _Label('Priority'),
+          _ChipGroup<Priority?>(
+            options: const {
+              null: 'Any',
+              Priority.high: 'High',
+              Priority.medium: 'Medium',
+              Priority.low: 'Low'
+            },
+            selected: _priority,
+            onSelected: (v) => setState(() => _priority = v),
+          ),
+          const SizedBox(height: 16),
+          const _Label('Territory'),
+          _ChipGroup<String?>(
+            options: {null: 'Any', for (final t in widget.territories) t: t},
+            selected: _territory,
+            onSelected: (v) => setState(() => _territory = v),
+          ),
+          const SizedBox(height: 16),
+          const _Label('Sales rep'),
+          _ChipGroup<String?>(
+            options: {null: 'Any', for (final r in widget.reps) r: r},
+            selected: _rep,
+            onSelected: (v) => setState(() => _rep = v),
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                widget.onApply(widget.filter.copyWith(
+                  territory: () => _territory,
+                  assignedRepName: () => _rep,
+                  priority: () => _priority,
+                  sortBy: _sortBy,
+                ));
+                Navigator.of(context).pop();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: scheme.primary,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
+              ),
+              child: const Text('Apply',
+                  style: TextStyle(fontWeight: FontWeight.w700)),
+            ),
+          ),
+        ],
       ),
     );
   }

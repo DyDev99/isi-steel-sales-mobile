@@ -27,7 +27,13 @@ class RoutePlanModel extends RoutePlan {
         visitDate: DateTime.parse(json['visitDate'] as String),
         plannedStart: DateTime.parse(json['plannedStart'] as String),
         plannedEnd: DateTime.parse(json['plannedEnd'] as String),
-        status: RouteStatus.published,
+        // Read the route's own state rather than assuming `published`, so a
+        // day's mix of completed / in-progress / planned routes survives into
+        // the UI. Falls back to `published` when the payload omits it.
+        status: json['status'] != null
+            ? RouteStatus.values.asNameMap()[json['status']] ??
+                RouteStatus.published
+            : RouteStatus.published,
         stops: stops,
       );
 

@@ -90,7 +90,9 @@ class AppCoachBloc extends Bloc<AppCoachEvent, AppCoachState> {
   }
 
   void _onCta(CoachCtaPressed e, Emitter<AppCoachState> emit) {
-    if (state.status != CoachStatus.running || state.currentStep == null) return;
+    if (state.status != CoachStatus.running || state.currentStep == null) {
+      return;
+    }
     // Informational steps advance; action steps treat CTA as "skip this step".
     _advance(emit);
   }
@@ -120,7 +122,8 @@ class AppCoachBloc extends Bloc<AppCoachEvent, AppCoachState> {
       CoachRestarted e, Emitter<AppCoachState> emit) async {
     await _repository.reset();
     final steps = _steps;
-    _analytics.log(CoachAnalyticsEvent.tutorialStarted, params: {'restart': true});
+    _analytics
+        .log(CoachAnalyticsEvent.tutorialStarted, params: {'restart': true});
     emit(state.copyWith(
       status: steps.isEmpty ? CoachStatus.completed : CoachStatus.running,
       steps: steps,

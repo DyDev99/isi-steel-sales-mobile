@@ -28,7 +28,21 @@ class RouteStopModel extends RouteStop {
         sequence: (json['sequence'] as num).toInt(),
         plannedArrival: DateTime.parse(json['plannedArrival'] as String),
         plannedDeparture: DateTime.parse(json['plannedDeparture'] as String),
-        status: VisitStatus.pending,
+        // Read the execution state the payload carries instead of hardcoding
+        // `pending`. Hardcoding here meant the dashboard summary always computed
+        // 0 completed / 0% progress regardless of the data — the "mock data
+        // doesn't drive the UI" bug. Falls back to `pending` when absent so a
+        // payload without a status still parses.
+        status: json['status'] != null
+            ? VisitStatus.values.asNameMap()[json['status']] ??
+                VisitStatus.pending
+            : VisitStatus.pending,
+        actualArrival: json['actualArrival'] != null
+            ? DateTime.parse(json['actualArrival'] as String)
+            : null,
+        actualDeparture: json['actualDeparture'] != null
+            ? DateTime.parse(json['actualDeparture'] as String)
+            : null,
       );
 
   factory RouteStopModel.fromRow(DataMap row,

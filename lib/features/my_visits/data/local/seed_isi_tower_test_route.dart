@@ -1,3 +1,4 @@
+import 'package:isi_steel_sales_mobile/features/customers/data/local/customer_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/route_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/models/customer_stop_info_model.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/models/route_plan_model.dart';
@@ -10,9 +11,40 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_
 /// K Mall Veng Sreng) so the transit/check-in geofence flow can be exercised
 /// on a real device without waiting for a backend sync.
 ///
+/// ## Why this takes a [CustomerLocalDataSource] now
+///
+/// `customers` is SAP-controlled, single-source-of-truth as of the T1.5 Drift
+/// cutover (ADR-001) — `RouteDriftLocalDataSource.upsertCustomers` only
+/// *updates* an existing customer row's route-execution attributes
+/// (territoryType, geofenceRadiusOverride); it can no longer insert one.
+/// `route_stops.customer_id` is a real foreign key into that table. This used
+/// to fabricate its own `test-cust-*` IDs, which don't exist there, so
+/// `upsertRoutes` failed with `FOREIGN KEY constraint failed` the moment it
+/// tried to write a stop pointing at one — `upsertCustomers` silently skips
+/// unknown IDs rather than creating them, so there was nothing for the stop
+/// to reference.
+///
+/// This version borrows the `id` of 3 real, already-synced customers instead,
+/// so the FK resolves — everything else (the 999 Condo / ISI Tower / K Mall
+/// labels, addresses, coordinates) is unchanged, since `route_stops` has no
+/// columns for them anyway (only `customer_id`, confirmed from the schema).
+///
+/// **GPS caveat:** whatever the geofence/arrival flow actually checks
+/// distance against almost certainly comes from the real customer's own
+/// synced address, not the coordinates below — those never reached the DB
+/// through this path even before the FK bug. If you need the walk-test to
+/// land at these 3 specific buildings, replace the `browse()` call below with
+/// 3 hardcoded real customer IDs that are actually near them.
+///
+/// Requires at least 3 customers already synced locally — run customer sync
+/// first if this throws a [StateError].
+///
 /// Usage (e.g. behind a debug-only button or `kDebugMode` check):
 /// ```dart
-/// await seedIsiTowerTestRoute(sl<RouteLocalDataSource>());
+/// await seedIsiTowerTestRoute(
+///   sl<RouteLocalDataSource>(),
+///   sl<CustomerLocalDataSource>(),
+/// );
 /// ```
 /// Then pull-to-refresh (or re-open) the Route Dashboard — the seeded route
 /// shows up like any synced route since it's written through the same
@@ -20,11 +52,24 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_
 ///
 /// Remove this file (or the call site) before shipping — it's a fixture,
 /// not production code.
-Future<void> seedIsiTowerTestRoute(RouteLocalDataSource localDataSource) async {
+Future<void> seedIsiTowerTestRoute(
+  RouteLocalDataSource routeLocalDataSource,
+  CustomerLocalDataSource customerLocalDataSource,
+) async {
   final now = DateTime.now();
 
+  final realCustomers =
+      await customerLocalDataSource.browse(page: 0, pageSize: 3);
+  if (realCustomers.length < 3) {
+    throw StateError(
+      'seedIsiTowerTestRoute needs at least 3 customers already synced '
+      'locally (found ${realCustomers.length}) — run customer sync first, '
+      'then try seeding again.',
+    );
+  }
+
   final customer999Condo = CustomerStopInfoModel(
-    id: 'test-cust-999-condo',
+    id: realCustomers[0].id, // was 'test-cust-999-condo' — see doc comment
     name: '999 Condo (Test)',
     code: 'TEST-001',
     contact: 'Test Contact',
@@ -38,7 +83,7 @@ Future<void> seedIsiTowerTestRoute(RouteLocalDataSource localDataSource) async {
   );
 
   final customerIsiTower = CustomerStopInfoModel(
-    id: 'test-cust-isi-tower',
+    id: realCustomers[1].id, // was 'test-cust-isi-tower' — see doc comment
     name: 'ISI Tower (Test)',
     code: 'TEST-002',
     contact: 'Test Contact',
@@ -54,7 +99,7 @@ Future<void> seedIsiTowerTestRoute(RouteLocalDataSource localDataSource) async {
   );
 
   final customerKMall = CustomerStopInfoModel(
-    id: 'test-cust-kmall-veng-sreng',
+    id: realCustomers[2].id, // was 'test-cust-kmall-veng-sreng' — see doc comment
     name: 'K Mall Veng Sreng (Test)',
     code: 'TEST-003',
     contact: 'Test Contact',
@@ -110,10 +155,10 @@ Future<void> seedIsiTowerTestRoute(RouteLocalDataSource localDataSource) async {
     stops: [stop1, stop2, stop3],
   );
 
-  await localDataSource.upsertCustomers([
+  await routeLocalDataSource.upsertCustomers([
     customer999Condo,
     customerIsiTower,
     customerKMall,
   ]);
-  await localDataSource.upsertRoutes([route]);
+  await routeLocalDataSource.upsertRoutes([route]);
 }

@@ -15,6 +15,10 @@ import 'package:isi_steel_sales_mobile/core/logging/app_logger.dart';
 import 'package:isi_steel_sales_mobile/core/network/connectivity_cubit.dart';
 import 'package:isi_steel_sales_mobile/core/network/connectivity_service.dart';
 import 'package:isi_steel_sales_mobile/core/network/network_info.dart';
+import 'package:isi_steel_sales_mobile/core/services/pdf/pdf_assets.dart';
+import 'package:isi_steel_sales_mobile/core/services/pdf/pdf_file_service.dart';
+import 'package:isi_steel_sales_mobile/core/services/pdf/pdf_service.dart';
+import 'package:isi_steel_sales_mobile/core/services/pdf/pdf_share_service.dart';
 import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/app_coach_injection.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/authentication_injection.dart';
@@ -87,6 +91,14 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton<AppPreferences>(
     () => AppPreferencesImpl(HiveService.cacheBox),
   );
+  // ── PDF export (reusable across every CRM document type) ────────────
+  // Feature-agnostic: generators (quotation/invoice/report…) plug into the
+  // same PdfService/File/Share pipeline. PdfAssets caches fonts+logo once.
+  sl.registerLazySingleton<PdfAssets>(() => PdfAssets());
+  sl.registerLazySingleton<PdfService>(() => PdfServiceImpl(sl<PdfAssets>()));
+  sl.registerLazySingleton<PdfFileService>(() => const PdfFileServiceImpl());
+  sl.registerLazySingleton<PdfShareService>(() => const PdfShareServiceImpl());
+
   sl.registerLazySingleton<LanguageCubit>(() => LanguageCubit(sl()));
   sl.registerLazySingleton<ShellTabController>(() => ShellTabController());
   registerThemeFeature(sl);

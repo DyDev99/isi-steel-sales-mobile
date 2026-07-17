@@ -1,12 +1,14 @@
-import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
+import 'package:isi_steel_sales_mobile/core/error/exceptions.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/features/customers/data/local/customer_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/route_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/seed_isi_tower_test_route.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/visit_local_data_source.dart';
@@ -19,7 +21,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubi
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/state/route_sync_state.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/navigation/open_route_dispatch.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/my_visits_history_screen.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/calendar_widget_section.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/calendar/calendar_widget_section.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/route_skeletons.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/region_card.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_cubit.dart';
@@ -34,6 +36,12 @@ class MyVisitsDashboardScreen extends StatefulWidget {
   @override
   State<MyVisitsDashboardScreen> createState() =>
       _MyVisitsDashboardScreenState();
+}
+
+List<RoutePlan> routesScheduledOn(DateTime date, List<RoutePlan> routes) {
+  return routes
+      .where((route) => DateUtils.isSameDay(route.visitDate, date))
+      .toList();
 }
 
 class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
@@ -65,11 +73,6 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
     dashboardCubit.load();
   }
 
-  /// Opens the Quotation Builder for a completed stop so the rep can turn the
-  /// visit into an order. A route stop only carries [CustomerStopInfo] (not a
-  /// full SAP `Customer`), so this uses the builder's lead-scoped mode — the
-  /// same "no shop to source credit/territory from" path the Lead detail
-  /// screen uses.
   void _openQuotationBuilder(BuildContext context, RouteStop stop) {
     Navigator.of(context).push(MaterialPageRoute(
       settings: const RouteSettings(name: QuotationBuilderScreen.routeName),
@@ -90,7 +93,20 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
   }
 
   Future<void> _seedTestRoute(BuildContext context) async {
-    await seedIsiTowerTestRoute(sl<RouteLocalDataSource>());
+    try {
+      await seedIsiTowerTestRoute(
+        sl<RouteLocalDataSource>(),
+        sl<CustomerLocalDataSource>(),
+      );
+    } catch (e) {
+      final detail = e is CacheException ? e.message : e.toString();
+      debugPrint('Seed test route failed: $detail');
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Seed failed: $detail')),
+      );
+      return;
+    }
     if (!context.mounted) return;
     context.read<RouteDashboardCubit>().load();
     ScaffoldMessenger.of(context).showSnackBar(
@@ -136,8 +152,8 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
                   child: ListView(
                     padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 20.h),
                     children: [
-                      // 1. Grid Calendar Section
-                      GridCalendarCard(
+                      // 1. Compact Expandable Calendar Section
+                      RouteCalendarSection(
                         focusedMonth: _focusedMonth,
                         selectedDate: _selectedDate,
                         onMonthChanged: (newMonth) {
@@ -150,6 +166,8 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
                             _selectedStopId = null;
                           });
                         },
+                        routeCountForDate: (date) =>
+                            routesScheduledOn(date, state.routes).length,
                       ),
                       SizedBox(height: 12.h),
 
@@ -203,9 +221,40 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
 
   Widget _buildFilteredRouteContent(
       BuildContext context, List<RoutePlan> routes) {
-    final filteredRoutes = routes.where((route) {
-      return (route.id.hashCode + _selectedDate.day) % 2 == 0;
-    }).toList();
+    // DIAGNOSTIC ISSUE FIX 1: Database completely empty
+    if (routes.isEmpty) {
+      return Padding(
+        padding: EdgeInsets.symmetric(vertical: 40.h),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.cloud_off_rounded,
+                  size: 36.w, color: context.appColors.textHint),
+              SizedBox(height: 12.h),
+              Text(
+                'No local data found.',
+                style: TextStyle(
+                    color: context.appColors.textPrimary, 
+                    fontSize: 14.sp, 
+                    fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 6.h),
+              Text(
+                kDebugMode 
+                    ? 'Pull down to sync from remote or tap the bug icon floating button to seed a mock route.'
+                    : 'Pull down to sync your route plan itinerary.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    color: context.appColors.textSecondary, fontSize: 12.sp),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final filteredRoutes = routesScheduledOn(_selectedDate, routes);
 
     final List<_RouteStopWithPlanId> stopsWithPlan = [];
     for (var route in filteredRoutes) {
@@ -214,18 +263,28 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
       }
     }
 
+    // DIAGNOSTIC ISSUE FIX 2: Data exists in DB, but not on this selected calendar date
     if (stopsWithPlan.isEmpty) {
       return Padding(
-        padding: EdgeInsets.symmetric(vertical: 32.h),
+        padding: EdgeInsets.symmetric(vertical: 40.h),
         child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.calendar_today_outlined,
-                  size: 28.w, color: context.appColors.textSecondary),
-              SizedBox(height: 10.h),
+              Icon(Icons.calendar_month_rounded,
+                  size: 36.w, color: context.appColors.textHint),
+              SizedBox(height: 12.h),
               Text(
-                'No customer visits scheduled for this date',
+                'No customer visits for this date',
+                style: TextStyle(
+                    color: context.appColors.textPrimary, 
+                    fontSize: 14.sp, 
+                    fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 6.h),
+              Text(
+                'You have ${routes.length} total route plan(s) available on other calendar dates. Check for days marked with dots above.',
+                textAlign: TextAlign.center,
                 style: TextStyle(
                     color: context.appColors.textSecondary, fontSize: 12.sp),
               ),
@@ -305,17 +364,12 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
   }
 }
 
-/// Local structural model payload helper to bundle relationships safely
 class _RouteStopWithPlanId {
   final RouteStop stop;
   final String routeId;
   const _RouteStopWithPlanId({required this.stop, required this.routeId});
 }
 
-/// Debug-only visibility into the visit-capture push-sync queue — not
-/// production UX, just enough to demonstrate/verify the pending count
-/// draining after `RouteSyncCubit.pushPending()` runs. Rebuilt (via its
-/// `ValueKey`) whenever a sync completes.
 class _PendingSyncDebugBadge extends StatelessWidget {
   const _PendingSyncDebugBadge({super.key});
 
@@ -345,7 +399,6 @@ class _PendingSyncDebugBadge extends StatelessWidget {
   }
 }
 
-/// Dynamic Region Collapsible Header Component
 class RegionGroupHeader extends StatelessWidget {
   const RegionGroupHeader({
     super.key,

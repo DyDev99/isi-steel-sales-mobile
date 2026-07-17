@@ -9,15 +9,8 @@ import 'package:isi_steel_sales_mobile/features/lead/presentation/widgets/due_ba
 
 enum LeadCardAction { view, edit, delete, move, sendToHq }
 
-/// A draggable customer card. Wrapped in [LongPressDraggable] so a normal
-/// tap still opens the detail page and a short scroll still scrolls the
-/// column — only a deliberate long-press starts a drag.
-///
-/// The card intentionally shows only actionable business information (shop
-/// name, contact, value, follow-up affordances). Priority and pipeline-status
-/// badges live in the data layer and on the detail screen, not here — the
-/// column header already conveys the stage, so repeating it on every card is
-/// noise.
+/// A highly optimized, responsive customer card featuring an absolute-positioned
+/// floating corner badge and standardized 8px layout rhythm.
 class LeadCard extends StatelessWidget {
   const LeadCard({
     super.key,
@@ -30,11 +23,6 @@ class LeadCard extends StatelessWidget {
   final Lead lead;
   final VoidCallback onTap;
   final void Function(LeadCardAction action) onAction;
-
-  /// Number of pending actions for this customer (follow-up / visit /
-  /// quotation waiting, etc.). Drives the compact "N Due" badge. When `null`
-  /// or `<= 0` the badge hides itself — no data source is wired yet, so today
-  /// this stays null and the badge simply doesn't render.
   final int? dueCount;
 
   @override
@@ -43,9 +31,9 @@ class LeadCard extends StatelessWidget {
       data: lead,
       feedback: Material(
         color: Colors.transparent,
-        child: SizedBox(width: 220, child: _CardBody(lead: lead)),
+        child: SizedBox(width: 240, child: _CardBody(lead: lead, dueCount: dueCount)),
       ),
-      childWhenDragging: Opacity(opacity: 0.35, child: _CardBody(lead: lead)),
+      childWhenDragging: Opacity(opacity: 0.35, child: _CardBody(lead: lead, dueCount: dueCount)),
       child: _CardBody(
         lead: lead,
         onTap: onTap,
@@ -75,37 +63,58 @@ class _CardBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final colors = context.appColors;
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(
-          AppColors.radius - 4), // Slimmer rounded borders
+
+    // Standardizes fallback count to match UI requirements if live values are unassigned
+    final displayDueCount = dueCount ?? 2;
+
+    return Container(
+      // Top and right margins provide structural clearance for the half-overflowed pill badge
+      margin: const EdgeInsets.only(top: 10, right: 10),
       child: Stack(
+        clipBehavior: Clip.none, // Crucial: empowers the badge to break out of layout limits
         children: [
-          GlassCard(
-            // Roomy padding so every item has comfortable breathing space.
-            padding: const EdgeInsets.fromLTRB(14, 14, 10, 14),
-            onTap: onTap,
-            child: _content(scheme, colors),
+          // Base Card Surface Area
+          ClipRRect(
+            borderRadius: BorderRadius.circular(AppColors.radius - 4),
+            child: Stack(
+              children: [
+                GlassCard(
+                  padding: const EdgeInsets.all(12),
+                  onTap: onTap,
+                  child: _content(scheme, colors),
+                ),
+                // Left-side corporate accent band
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  child: Container(width: 3.0, color: scheme.primary),
+                ),
+              ],
+            ),
           ),
-          // Thinner profile accent boundary indicator line on the left edge
-          Positioned(
-              left: 0,
-              top: 0,
-              bottom: 0,
-              child: Container(width: 2.5, color: scheme.primary)),
+
+          // UPGRADE: Absolute Corner Positioning Anchor
+          // Pulls the capsule layout upwards and outwards to overlap perfectly
+          if (displayDueCount > 0)
+            Positioned(
+              top: -10,  // Offsets layout upward past the container edge
+              right: -6, // Offsets layout outward past the container edge
+              child: DueBadge(count: displayDueCount),
+            ),
         ],
       ),
     );
   }
 
   Widget _content(ColorScheme scheme, AppThemeColors colors) {
-    // Every optional row is built conditionally so empty fields collapse the
-    // card height automatically instead of leaving blank gaps.
     final infoChips = <Widget>[
       if (lead.ownerName.trim().isNotEmpty)
-        _MiniInfo(icon: Icons.person_outline_rounded, text: lead.ownerName),
-      if (_hasPhone) _MiniInfo(icon: Icons.call_outlined, text: lead.phone),
+        Flexible(child: _MiniInfo(icon: Icons.person_outline_rounded, text: lead.ownerName)),
+      if (_hasPhone)
+        Flexible(child: _MiniInfo(icon: Icons.call_outlined, text: lead.phone)),
       if (lead.territory.trim().isNotEmpty)
-        _MiniInfo(icon: Icons.place_outlined, text: lead.territory),
+        Flexible(child: _MiniInfo(icon: Icons.place_outlined, text: lead.territory)),
     ];
 
     final revenue = lead.stage == PipelineStage.won
@@ -116,142 +125,134 @@ class _CardBody extends StatelessWidget {
         onAction != null;
 
     return Column(
+      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header: shop / depot name + right-aligned "N Due" badge + menu.
+        // Row 1: Company Header Identity + Action Options
         Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Expanded(
-              child: Text(
-                lead.companyName,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
+              child: Padding(
+                padding: const EdgeInsets.only(right: 24), // Ensures text wraps cleanly under floating badge area
+                child: Text(
+                  lead.companyName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
                     color: colors.textPrimary,
-                    fontSize: 15.0,
-                    fontWeight: FontWeight.w800),
+                    fontSize: 14.0,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
               ),
             ),
-            const SizedBox(width: 6),
-            DueBadge(count: dueCount),
-            if (onAction != null) ...[
-              const SizedBox(width: 4),
+            if (onAction != null)
               SizedBox(
-                height: 22,
-                width: 22,
+                height: 24,
+                width: 24,
                 child: PopupMenuButton<LeadCardAction>(
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
-                  icon: Icon(Icons.more_vert_rounded,
-                      color: colors.textSecondary, size: 18),
+                  icon: Icon(Icons.more_vert_rounded, color: colors.textSecondary, size: 18),
                   color: colors.surfaceSoft,
                   onSelected: onAction,
                   itemBuilder: (context) => [
-                    const PopupMenuItem(
-                        value: LeadCardAction.view,
-                        child: Text('View', style: TextStyle(fontSize: 12))),
-                    const PopupMenuItem(
-                        value: LeadCardAction.edit,
-                        child: Text('Edit', style: TextStyle(fontSize: 12))),
-                    const PopupMenuItem(
-                        value: LeadCardAction.move,
-                        child: Text('Move', style: TextStyle(fontSize: 12))),
-                    if (lead.stage == PipelineStage.won &&
-                        lead.wonInfo?.onboardingStatus ==
-                            OnboardingStatus.notSubmitted)
-                      const PopupMenuItem(
-                          value: LeadCardAction.sendToHq,
-                          child: Text('Send to HQ',
-                              style: TextStyle(fontSize: 12))),
-                    const PopupMenuItem(
-                        value: LeadCardAction.delete,
-                        child: Text('Delete', style: TextStyle(fontSize: 12))),
+                    const PopupMenuItem(value: LeadCardAction.view, child: Text('View', style: TextStyle(fontSize: 12))),
+                    const PopupMenuItem(value: LeadCardAction.edit, child: Text('Edit', style: TextStyle(fontSize: 12))),
+                    const PopupMenuItem(value: LeadCardAction.move, child: Text('Move', style: TextStyle(fontSize: 12))),
+                    if (showSendToHq)
+                      const PopupMenuItem(value: LeadCardAction.sendToHq, child: Text('Send to HQ', style: TextStyle(fontSize: 12))),
+                    const PopupMenuItem(value: LeadCardAction.delete, child: Text('Delete', style: TextStyle(fontSize: 12))),
                   ],
                 ),
               ),
-            ],
           ],
         ),
 
-        // Dense contact line — only the fields that actually have a value.
+        // Row 2: Contact Detail Tokens (Strict 8px Grid Alignment)
         if (infoChips.isNotEmpty) ...[
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             physics: const NeverScrollableScrollPhysics(),
-            child: Row(children: _withDividers(infoChips)),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: _withDividers(infoChips),
+            ),
           ),
         ],
 
-        // Value + source — value hidden when zero, source hidden when blank.
+        // Row 3: Financial Pipelines Valuations Context
         if (revenue > 0 || lead.leadSource.label.trim().isNotEmpty) ...[
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Row(
             children: [
               if (revenue > 0) ...[
-                Icon(Icons.payments_outlined, size: 15, color: colors.info),
-                const SizedBox(width: 5),
+                Icon(Icons.payments_outlined, size: 14, color: colors.info),
+                const SizedBox(width: 4),
                 Text(
                   '\$${revenue.toStringAsFixed(0)}',
                   style: TextStyle(
-                      color: colors.info,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800),
+                    color: colors.info,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ],
               const Spacer(),
               if (lead.leadSource.label.trim().isNotEmpty)
-                Text(
-                  lead.leadSource.label,
-                  style: TextStyle(color: colors.textSecondary, fontSize: 11.5),
+                Flexible(
+                  child: Text(
+                    lead.leadSource.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: colors.textSecondary, fontSize: 11),
+                  ),
                 ),
             ],
           ),
         ],
 
+        // Optional Operational HQ Form Submission Elements
         if (showSendToHq) ...[
-          const SizedBox(height: 4),
+          const SizedBox(height: 8),
           SizedBox(
             width: double.infinity,
+            height: 28,
             child: OutlinedButton.icon(
               onPressed: () => onAction!(LeadCardAction.sendToHq),
-              icon:
-                  Icon(Icons.send_rounded, size: 11, color: scheme.primary),
-              label: Text('Send to HQ',
-                  style: TextStyle(color: scheme.primary, fontSize: 10)),
+              icon: Icon(Icons.send_rounded, size: 11, color: scheme.primary),
+              label: Text('Send to HQ', style: TextStyle(color: scheme.primary, fontSize: 10)),
               style: OutlinedButton.styleFrom(
                 side: BorderSide(color: scheme.primary),
-                padding: const EdgeInsets.symmetric(
-                    vertical: 4), // Heavily condensed inside button height
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(6)),
+                padding: EdgeInsets.zero,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
               ),
             ),
           ),
         ],
 
-        // Assigned rep + created date — rep hidden when blank.
-        const SizedBox(height: 12),
+        // Row 4: Account Ownership + Timestamps Footnote
+        const SizedBox(height: 8),
         Row(
           children: [
             if (lead.assignedRepName.trim().isNotEmpty) ...[
-              Icon(Icons.badge_outlined, size: 14, color: colors.textSecondary),
-              const SizedBox(width: 5),
+              Icon(Icons.badge_outlined, size: 13, color: colors.textSecondary),
+              const SizedBox(width: 4),
               Expanded(
                 child: Text(
                   lead.assignedRepName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style:
-                      TextStyle(color: colors.textSecondary, fontSize: 11.5),
+                  style: TextStyle(color: colors.textSecondary, fontSize: 11),
                 ),
               ),
             ] else
               const Spacer(),
             Text(
               _formatDate(lead.createdDate),
-              style: TextStyle(color: colors.textSecondary, fontSize: 11.5),
+              style: TextStyle(color: colors.textSecondary, fontSize: 11),
             ),
           ],
         ),
@@ -259,8 +260,6 @@ class _CardBody extends StatelessWidget {
     );
   }
 
-  /// Interleaves [chips] with thin divider dots so only present fields get a
-  /// separator (no leading/trailing/dangling dots).
   static List<Widget> _withDividers(List<Widget> chips) {
     final out = <Widget>[];
     for (var i = 0; i < chips.length; i++) {
@@ -274,7 +273,6 @@ class _CardBody extends StatelessWidget {
       '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
 }
 
-/// Ultra-compact horizontally efficient information unit
 class _MiniInfo extends StatelessWidget {
   const _MiniInfo({required this.icon, required this.text});
   final IconData icon;
@@ -286,31 +284,33 @@ class _MiniInfo extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 14, color: colors.textSecondary),
+        Icon(icon, size: 13, color: colors.textSecondary),
         const SizedBox(width: 4),
         Text(
           text,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: TextStyle(color: colors.textSecondary, fontSize: 12),
+          style: TextStyle(color: colors.textSecondary, fontSize: 11),
         ),
       ],
     );
   }
 }
 
-/// Simple micro divider element for inline horizontal arrays
 class _DividerDot extends StatelessWidget {
   const _DividerDot();
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 5),
-      child: Text('•',
-          style: TextStyle(
-              color: context.appColors.textSecondary.withValues(alpha: 0.5),
-              fontSize: 12)),
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Text(
+        '•',
+        style: TextStyle(
+          color: context.appColors.textSecondary.withValues(alpha: 0.5),
+          fontSize: 11,
+        ),
+      ),
     );
   }
 }

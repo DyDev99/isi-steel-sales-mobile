@@ -511,7 +511,12 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                                             tax: taxAmount,
                                             total: finalTotal,
                                             items: cartItems,
-                                            onSavePressed: _saveQuotation,
+                                            quotationNumber:
+                                                widget.editingQuotation?.id,
+                                            customerPhone:
+                                                widget.customer?.phone,
+                                            customerAddress:
+                                                widget.customer?.address,
                                           ),
                                         ),
                                       );

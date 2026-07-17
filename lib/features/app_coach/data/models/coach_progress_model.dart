@@ -20,7 +20,8 @@ class CoachProgressModel extends CoachProgress {
 
   /// Tolerant parse: any malformed field degrades to a safe default rather than
   /// throwing, so a corrupt record can never crash startup.
-  factory CoachProgressModel.fromMap(Map<dynamic, dynamic> map, int fallbackVersion) {
+  factory CoachProgressModel.fromMap(
+      Map<dynamic, dynamic> map, int fallbackVersion) {
     return CoachProgressModel(
       completed: map['completed'] == true,
       currentStepId: map['currentStepId'] as String?,
@@ -28,7 +29,8 @@ class CoachProgressModel extends CoachProgress {
               ?.whereType<String>()
               .toList(growable: false) ??
           const <String>[],
-      version: (map['version'] is int) ? map['version'] as int : fallbackVersion,
+      version:
+          (map['version'] is int) ? map['version'] as int : fallbackVersion,
     );
   }
 

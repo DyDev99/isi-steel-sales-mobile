@@ -235,6 +235,22 @@ class RouteGenerator {
       final routeId = 'ROUTE-${(1000 + r)}';
       final rep = _repNames[rand.nextInt(_repNames.length)];
 
+      // Give the day a realistic execution mix so the dashboard summary
+      // (completed / remaining / missed / progress) actually has something to
+      // show. Profiles cycle: fully-visited, in-progress, and not-yet-started.
+      //   0 → completed  (every stop checked out)
+      //   1 → in-progress (visited up to `doneThrough`, currently at that stop)
+      //   2,3 → planned   (nothing done yet)
+      final routeProfile = r % 4;
+      final doneThrough = switch (routeProfile) {
+        0 => stopCount,
+        1 => (stopCount * 0.4).round(),
+        _ => 0,
+      };
+      // One skipped call on longer in-progress routes, to exercise "missed".
+      final missedIndex =
+          routeProfile == 1 && stopCount > 4 ? doneThrough ~/ 2 : -1;
+
       var cursor = visitDate.add(const Duration(hours: 8));
       final stops = <Map<String, dynamic>>[];
       for (var s = 0; s < stopCount; s++) {
@@ -244,16 +260,47 @@ class RouteGenerator {
         final plannedArrival = cursor.add(Duration(minutes: travelMinutes));
         final plannedDeparture =
             plannedArrival.add(Duration(minutes: visitMinutes));
-        stops.add({
+
+        final stop = <String, dynamic>{
           'id': '$routeId-STOP-${s + 1}',
           'routeId': routeId,
           'customerId': customer['id'],
           'sequence': s + 1,
           'plannedArrival': plannedArrival.toIso8601String(),
           'plannedDeparture': plannedDeparture.toIso8601String(),
-        });
+        };
+
+        if (s == missedIndex) {
+          stop['status'] = 'missed';
+        } else if (s < doneThrough) {
+          // Visited: actual times jitter a few minutes off the plan so the
+          // summary's visit-time totals look natural rather than exact.
+          final actualArrival =
+              plannedArrival.add(Duration(minutes: rand.nextInt(6) - 2));
+          final actualDeparture = actualArrival
+              .add(Duration(minutes: visitMinutes + rand.nextInt(8) - 3));
+          stop['status'] = 'checkedOut';
+          stop['actualArrival'] = actualArrival.toIso8601String();
+          stop['actualDeparture'] = actualDeparture.toIso8601String();
+        } else if (s == doneThrough && routeProfile == 1) {
+          // The rep is currently checked in at this stop.
+          stop['status'] = 'checkedIn';
+          stop['actualArrival'] = plannedArrival
+              .add(Duration(minutes: rand.nextInt(6) - 2))
+              .toIso8601String();
+        } else {
+          stop['status'] = 'pending';
+        }
+
+        stops.add(stop);
         cursor = plannedDeparture;
       }
+
+      final routeStatus = switch (routeProfile) {
+        0 => 'completed',
+        1 => 'inProgress',
+        _ => 'published',
+      };
 
       routes.add({
         'id': routeId,
@@ -265,7 +312,7 @@ class RouteGenerator {
         'plannedStart':
             visitDate.add(const Duration(hours: 8)).toIso8601String(),
         'plannedEnd': cursor.toIso8601String(),
-        'status': 'published',
+        'status': routeStatus,
         'stops': stops,
       });
     }

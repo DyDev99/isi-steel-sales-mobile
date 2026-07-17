@@ -19,12 +19,14 @@ class MainAppBar extends StatelessWidget {
     required this.onAvatarTap,
     required this.currentTabIndex,
     this.onBackToHomeTap,
+    this.onNotificationTap, // Added callback for the notification icon
   });
 
   final String title;
   final VoidCallback onAvatarTap;
   final int currentTabIndex;
   final VoidCallback? onBackToHomeTap;
+  final VoidCallback? onNotificationTap;
 
   void _showLanguageMenu(BuildContext context) {
     final languageCubit = context.read<LanguageCubit>();
@@ -236,12 +238,12 @@ class MainAppBar extends StatelessWidget {
                         alignment: Alignment.centerLeft,
                         child: ClipRRect(
                           borderRadius:
-                              BorderRadius.circular(12.r), // Visible now!
+                              BorderRadius.circular(12.r),
                           child: Image.asset(
                             'assets/logos/isi_main_screen_logo.png',
                             height: 40.h,
                             width: 140.w,
-                            fit: BoxFit.cover, // Changed from contain to cover
+                            fit: BoxFit.cover,
                           ),
                         ),
                       )
@@ -280,7 +282,10 @@ class MainAppBar extends StatelessWidget {
               // 4. Notification Bell — coach anchor.
               CoachKeys.wrap(
                 CoachKeys.notification,
-                child: _NotificationBell(isInverseColor: isHome),
+                child: _NotificationBell(
+                  isInverseColor: isHome,
+                  onTapOverride: onNotificationTap, // Pass the override callback down
+                ),
               ),
               SizedBox(width: 16.w),
 
@@ -321,12 +326,34 @@ class MainAppBar extends StatelessWidget {
 }
 
 class _NotificationBell extends StatelessWidget {
-  const _NotificationBell({this.isInverseColor = false});
+  const _NotificationBell({this.isInverseColor = false, this.onTapOverride});
   final bool isInverseColor;
+  
+  /// If provided, bypasses the notification fetch and triggers this callback instead (e.g. for guest login)
+  final VoidCallback? onTapOverride;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+
+    // If an override is provided (like a login prompt for guests), render a simple icon 
+    // without triggering the FutureBuilder API call.
+    if (onTapOverride != null) {
+      return InkWell(
+        onTap: onTapOverride,
+        borderRadius: BorderRadius.circular(10),
+        child: Padding(
+          padding: const EdgeInsets.all(6),
+          child: Icon(
+            Icons.notifications_none_rounded,
+            color: isInverseColor ? Colors.white : scheme.onSurface,
+            size: 24,
+          ),
+        ),
+      );
+    }
+
+    // Default behavior for authenticated users
     return FutureBuilder(
       future: sl<FetchNotifications>().call(const NoParams()),
       builder: (context, snapshot) {
