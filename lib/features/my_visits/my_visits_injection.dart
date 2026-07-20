@@ -59,6 +59,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/run_ro
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/update_route_status.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/update_workflow_step.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/update_stop_status.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/watch_all_routes.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/watch_today_routes.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/active_route_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/location_tracking_cubit.dart';
@@ -124,6 +125,7 @@ Future<void> registerMyVisitsFeature(GetIt sl) async {
   // ── Use cases ───────────────────────────────────────────────────────
   sl.registerLazySingleton(() => FetchTodayRoutes(sl()));
   sl.registerLazySingleton(() => WatchTodayRoutes(sl()));
+  sl.registerLazySingleton(() => WatchAllRoutes(sl()));
   sl.registerLazySingleton(() => GetRoute(sl()));
   sl.registerLazySingleton(() => UpdateRouteStatus(sl()));
   sl.registerLazySingleton(() => UpdateStopStatus(sl()));
@@ -161,7 +163,7 @@ Future<void> registerMyVisitsFeature(GetIt sl) async {
   sl.registerLazySingleton(() => CompleteVisitCheckOut(sl(), sl(), sl(), sl()));
 
   // ── Presentation ────────────────────────────────────────────────────
-  sl.registerFactory(() => RouteDashboardCubit(watchTodayRoutes: sl()));
+  sl.registerFactory(() => RouteDashboardCubit(watchAllRoutes: sl()));
   sl.registerFactory(() => ActiveRouteBloc(
         saveActiveWorkflow: sl(),
         clearActiveWorkflow: sl(),

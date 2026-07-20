@@ -10,6 +10,10 @@ import 'package:sqflite/sqflite.dart';
 
 abstract interface class RouteLocalDataSource {
   Future<List<RoutePlanModel>> fetchTodayRoutes();
+
+  /// Every locally-synced route regardless of date — feeds the calendar's
+  /// per-day route-count dots and date-selection browsing.
+  Future<List<RoutePlanModel>> fetchAllRoutes();
   Future<RoutePlanModel?> getRoute(String routeId);
   Future<void> updateRouteStatus(String routeId, RouteStatus status);
   Future<void> updateStopStatus(
@@ -78,6 +82,20 @@ class RouteLocalDataSourceImpl implements RouteLocalDataSource {
       return routes;
     } catch (e) {
       throw CacheException(message: 'Failed to load routes: $e');
+    }
+  }
+
+  @override
+  Future<List<RoutePlanModel>> fetchAllRoutes() async {
+    try {
+      final routeRows = await _db.query('routes', orderBy: 'visit_date ASC');
+      final routes = <RoutePlanModel>[];
+      for (final row in routeRows) {
+        routes.add(await _composeRoute(row));
+      }
+      return routes;
+    } catch (e) {
+      throw CacheException(message: 'Failed to load all routes: $e');
     }
   }
 

@@ -4,6 +4,7 @@ import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localized_builder.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/add_customer_bottom_sheet.dart'; 
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customer_sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customers_bloc.dart';
@@ -14,6 +15,10 @@ import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/c
 import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_filter_sheet.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_search_bar.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_sync_status_banner.dart';
+import 'package:isi_steel_sales_mobile/features/lead/domain/entities/pipeline_stage.dart';
+import 'package:isi_steel_sales_mobile/features/lead/presentation/bloc/pipeline_bloc.dart';
+import 'package:isi_steel_sales_mobile/features/lead/presentation/bloc/pipeline_event.dart';
+import 'package:isi_steel_sales_mobile/features/lead/presentation/bloc/pipeline_state.dart';
 
 enum _QuickAccess { all, recent, favorites }
 
@@ -31,6 +36,10 @@ class CustomersScreen extends StatelessWidget {
             create: (_) =>
                 sl<CustomersBloc>()..add(const CustomersLoadRequested())),
         BlocProvider(create: (_) => sl<CustomerSyncCubit>()..syncIfNeeded()),
+        // Added PipelineBloc provider to retrieve won leads similarly to the Home view
+        BlocProvider(
+          create: (_) => sl<PipelineBloc>()..add(const PipelineLoadRequested()),
+        ),
       ],
       child: const _CustomersView(),
     );
@@ -166,6 +175,23 @@ class _Loaded extends StatelessWidget {
                           .read<CustomersBloc>()
                           .add(CustomersFilterChanged(f)),
                     ),
+                    onAddTap: () {
+                      // Obtains the PipelineBloc state exactly like QuickActionsSection
+                      final pipelineState = context.read<PipelineBloc>().state;
+                      if (pipelineState is PipelineLoaded) {
+                        final wonLeads = pipelineState.columns[PipelineStage.won] ?? [];
+
+                        showModalBottomSheet(
+                          context: context,
+                          backgroundColor: context.appColors.surfaceSoft,
+                          isScrollControlled: true,
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+                          ),
+                          builder: (_) => AddCustomerBottomSheet(wonLeads: wonLeads),
+                        );
+                      }
+                    },
                   ),
                   const SizedBox(height: 12),
                   _QuickAccessRow(
@@ -197,14 +223,6 @@ class _Loaded extends StatelessWidget {
                     customer: customer,
                     isFavorite: state.favoriteIds.contains(customer.id),
                     onTap: () => onOpenDetail(customer.id),
-                    onCall: () => ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                          content: Text('customers.calling'
-                              .tr
-                              .replaceAll('{phone}', customer.phone)),
-                          duration: const Duration(seconds: 1)),
-                    ),
-                    onCreateOpportunity: () => onOpenDetail(customer.id),
                     onFavoriteToggle: () => context
                         .read<CustomersBloc>()
                         .add(CustomersFavoriteToggled(customer.id)),

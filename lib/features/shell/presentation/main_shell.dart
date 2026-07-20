@@ -31,6 +31,7 @@ import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/sync/
 import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/sync/continue_working_card.dart';
 import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/sync/pending_sync_badge.dart';
 import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/sync/sync_overlay.dart';
+import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customer_sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/screens/customers_screen.dart';
 import 'package:isi_steel_sales_mobile/features/profile/presentation/bloc/profile_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/profile/presentation/screens/profile_screen.dart';
@@ -73,6 +74,11 @@ class _MainShellState extends State<MainShell> {
     _index = _tabController.value;
     _tabController.addListener(_onTabChanged);
     sl<ResumableVisitCubit>().refresh();
+    // Customer directory sync must run before route sync can attach stops to
+    // customers (route_stops.customer_id is a real FK into the customer
+    // directory, ADR-001) — kick it off here, as early as possible, rather
+    // than leaving it to only run once the user opens the Customers tab.
+    sl<CustomerSyncCubit>().syncIfNeeded();
   }
 
   @override
@@ -208,6 +214,7 @@ class _MainShellState extends State<MainShell> {
               bottom: false,
               child: SizedBox(height: 70.h),
             ),
+            // FIX: Added the Expanded wrapper back to the ListView.
             Expanded(
               child: ListView(
                 key: const ValueKey('authenticated_home_scroll_root'),
@@ -237,6 +244,7 @@ class _MainShellState extends State<MainShell> {
                     padding: EdgeInsets.symmetric(horizontal: 16.w),
                     child: const ContinueVisitCard(),
                   ),
+                  // FIX: Correctly spaced without Expanded here!
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16.w),
                     child: const ContinueWorkingCard(),
@@ -311,7 +319,7 @@ class _MainShellState extends State<MainShell> {
             BlocProvider(create: (_) => sl<RouteDashboardCubit>()..load()),
             BlocProvider(create: (_) => sl<RouteSyncCubit>()),
           ],
-          child: wrapWithTopSpacing(const MyVisitsDashboardScreen()),
+          child: wrapWithTopSpacing(const MyVisitsDashboardScreen()), // ✅ Replaced with a comma
         );
       case 3:
         return wrapWithTopSpacing(
@@ -414,14 +422,16 @@ class _MainShellState extends State<MainShell> {
                         duration: const Duration(milliseconds: 350),
                         switchInCurve: Curves.easeOutQuad,
                         switchOutCurve: Curves.easeInQuad,
-                        child: KeyedSubtree(
-                          key: ValueKey('main_shell_tab_active_$_index'),
-                          child: IndexedStack(
-                            index: _index,
-                            children: List.generate(
-                              _tabs.length,
-                              (i) => _buildTab(i),
-                            ),
+                        // No per-tab key here: IndexedStack must keep a stable
+                        // widget identity across tab switches so it actually
+                        // preserves each tab's state instead of tearing down
+                        // and recreating every tab (incl. factory-registered
+                        // Blocs/Cubits) on every switch.
+                        child: IndexedStack(
+                          index: _index,
+                          children: List.generate(
+                            _tabs.length,
+                            (i) => _buildTab(i),
                           ),
                         ),
                       ),

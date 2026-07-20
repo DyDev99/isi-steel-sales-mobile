@@ -18,6 +18,10 @@ class RouteRepositoryImpl implements RouteRepository {
   final StreamController<List<RoutePlan>> _routesController =
       StreamController<List<RoutePlan>>.broadcast();
 
+  /// Same idea as [_routesController], for [watchAllRoutes] listeners.
+  final StreamController<List<RoutePlan>> _allRoutesController =
+      StreamController<List<RoutePlan>>.broadcast();
+
   @override
   ResultFuture<List<RoutePlan>> fetchTodayRoutes() async {
     try {
@@ -35,12 +39,28 @@ class RouteRepositoryImpl implements RouteRepository {
     yield* _routesController.stream;
   }
 
+  @override
+  Stream<List<RoutePlan>> watchAllRoutes() async* {
+    yield await _local.fetchAllRoutes();
+    yield* _allRoutesController.stream;
+  }
+
   /// Re-read the local cache and broadcast it to listeners. Called after any
   /// mutation so open screens (e.g. the dashboard) reflect the change live.
   Future<void> _broadcastTodayRoutes() async {
     if (!_routesController.hasListener) return;
     try {
       _routesController.add(await _local.fetchTodayRoutes());
+    } on CacheException {
+      // Keep the last good snapshot on a transient read error.
+    }
+  }
+
+  /// Same idea as [_broadcastTodayRoutes], for [watchAllRoutes] listeners.
+  Future<void> _broadcastAllRoutes() async {
+    if (!_allRoutesController.hasListener) return;
+    try {
+      _allRoutesController.add(await _local.fetchAllRoutes());
     } on CacheException {
       // Keep the last good snapshot on a transient read error.
     }
@@ -65,6 +85,7 @@ class RouteRepositoryImpl implements RouteRepository {
     try {
       await _local.updateRouteStatus(routeId, status);
       unawaited(_broadcastTodayRoutes());
+      unawaited(_broadcastAllRoutes());
       return const Success(null);
     } on CacheException catch (e) {
       return Failed(CacheFailure(message: e.message));
@@ -86,6 +107,7 @@ class RouteRepositoryImpl implements RouteRepository {
         actualDeparture: actualDeparture,
       );
       unawaited(_broadcastTodayRoutes());
+      unawaited(_broadcastAllRoutes());
       return const Success(null);
     } on CacheException catch (e) {
       return Failed(CacheFailure(message: e.message));

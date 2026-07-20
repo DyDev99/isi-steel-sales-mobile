@@ -15,6 +15,8 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quota
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/territory/territory_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/order_skeletons.dart';
 
+enum _OrderStatusFilter { all, salesOrder, quotations, pendingSyncing, completed }
+
 /// Entry point into the order flow.
 class OrderScreen extends StatefulWidget {
   const OrderScreen({super.key});
@@ -30,13 +32,8 @@ class _OrderScreenState extends State<OrderScreen> {
   late final Stream<List<SalesOrder>> _salesOrdersStream =
       sl<WatchSalesOrders>()(const NoParams());
 
-  void _startNewOrder() {
-    // This will now push onto the application's root navigator (covering the shell/bottom nav)
-    Navigator.of(context).push(MaterialPageRoute(
-      settings: const RouteSettings(name: TerritoryScreen.routeName),
-      builder: (_) => const TerritoryScreen(),
-    ));
-  }
+  // Track active filter state
+  _OrderStatusFilter _selectedFilter = _OrderStatusFilter.all;
 
   void _openProductFilter() {
     Navigator.of(context).push(MaterialPageRoute(
@@ -64,46 +61,52 @@ class _OrderScreenState extends State<OrderScreen> {
         body: SafeArea(
           child: Column(
             children: [
-              // Fixed header
+              // Fixed Filter Toolbar Header
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
                 child: Row(
                   children: [
                     Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: _startNewOrder,
-                        icon: Icon(Icons.storefront_rounded,
-                            color: scheme.onPrimary),
-                        label: Text('orders.new_order'.tr,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                color: scheme.onPrimary)),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: scheme.primary,
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 14, horizontal: 20),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14)),
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        physics: const BouncingScrollPhysics(),
+                        child: Row(
+                          children: [
+                            _FilterSegment(
+                              label: 'All',
+                              selected: _selectedFilter == _OrderStatusFilter.all,
+                              onTap: () => setState(() => _selectedFilter = _OrderStatusFilter.all),
+                            ),
+                            const SizedBox(width: 8),
+                            _FilterSegment(
+                              label: 'Sales Order',
+                              selected: _selectedFilter == _OrderStatusFilter.salesOrder,
+                              onTap: () => setState(() => _selectedFilter = _OrderStatusFilter.salesOrder),
+                            ),
+                            const SizedBox(width: 8),
+                            _FilterSegment(
+                              label: 'Quotations',
+                              selected: _selectedFilter == _OrderStatusFilter.quotations,
+                              onTap: () => setState(() => _selectedFilter = _OrderStatusFilter.quotations),
+                            ),
+                            const SizedBox(width: 8),
+                            _FilterSegment(
+                              label: 'Pending Syncing',
+                              selected: _selectedFilter == _OrderStatusFilter.pendingSyncing,
+                              onTap: () => setState(() => _selectedFilter = _OrderStatusFilter.pendingSyncing),
+                            ),
+                            const SizedBox(width: 8),
+                            _FilterSegment(
+                              label: 'Completed',
+                              selected: _selectedFilter == _OrderStatusFilter.completed,
+                              onTap: () => setState(() => _selectedFilter = _OrderStatusFilter.completed),
+                            ),
+                          ],
                         ),
                       ),
                     ),
                     const SizedBox(width: 10),
-                    OutlinedButton.icon(
-                      onPressed: _openProductFilter,
-                      icon: Icon(Icons.tune_rounded, color: scheme.primary),
-                      label: Text('Filter',
-                          style: TextStyle(
-                              fontWeight: FontWeight.w700,
-                              color: scheme.primary)),
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: scheme.primary),
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 14, horizontal: 16),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14)),
-                      ),
-                    ),
+                  
                   ],
                 ),
               ),
@@ -140,14 +143,33 @@ class _OrderScreenState extends State<OrderScreen> {
                                             color: colors.textSecondary))),
                               );
                             }
-                            final entries = <_OrderEntry>[
-                              for (final q in quotationSnapshot.data ??
-                                  const <Quotation>[])
+                            
+                            // Map source arrays to UI abstraction union
+                            var entries = <_OrderEntry>[
+                              for (final q in quotationSnapshot.data ?? const <Quotation>[])
                                 _OrderEntry.quotation(q),
-                              for (final o in salesOrderSnapshot.data ??
-                                  const <SalesOrder>[])
+                              for (final o in salesOrderSnapshot.data ?? const <SalesOrder>[])
                                 _OrderEntry.salesOrder(o),
                             ]..sort((a, b) => b.date.compareTo(a.date));
+
+                            // Filter client-side based on horizontal selector selection
+                            if (_selectedFilter != _OrderStatusFilter.all) {
+                              entries = entries.where((entry) {
+                                switch (_selectedFilter) {
+                                  case _OrderStatusFilter.salesOrder:
+                                    return entry.isSalesOrder;
+                                  case _OrderStatusFilter.quotations:
+                                    return !entry.isSalesOrder && entry.isQuotationConverted;
+                                  case _OrderStatusFilter.pendingSyncing:
+                                    return !entry.isSalesOrder && !entry.isQuotationConverted;
+                                  case _OrderStatusFilter.completed:
+                                    // Complete states match items cleanly synced to a backend record (e.g. Sales Orders)
+                                    return entry.isSalesOrder; 
+                                  default:
+                                    return true;
+                                }
+                              }).toList();
+                            }
 
                             if (entries.isEmpty) {
                               return Padding(
@@ -178,6 +200,44 @@ class _OrderScreenState extends State<OrderScreen> {
   }
 }
 
+class _FilterSegment extends StatelessWidget {
+  const _FilterSegment({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: selected ? scheme.primary : colors.surfaceSoft,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: selected ? scheme.primary : colors.border),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: selected ? scheme.onPrimary : colors.textPrimary,
+            fontSize: 12.5,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// Lightweight display union so the dashboard can render Quotations and
 /// Sales Orders in one merged, date-sorted list without a shared entity.
 class _OrderEntry {
@@ -186,6 +246,8 @@ class _OrderEntry {
         itemCount = q.lines.length,
         total = q.total,
         date = q.updatedAt,
+        isSalesOrder = false,
+        isQuotationConverted = q.status == QuotationStatus.converted,
         statusLabel = q.status == QuotationStatus.converted
             ? 'orders.quotation.builder_title'.tr
             : 'orders.pending_sync'.tr,
@@ -200,6 +262,8 @@ class _OrderEntry {
         itemCount = o.lines.length,
         total = o.total,
         date = o.createdAt,
+        isSalesOrder = true,
+        isQuotationConverted = false,
         statusLabel = 'orders.sales_order.title'.tr,
         onTap = null;
 
@@ -208,6 +272,8 @@ class _OrderEntry {
   final double total;
   final DateTime date;
   final String statusLabel;
+  final bool isSalesOrder;
+  final bool isQuotationConverted;
   final void Function(BuildContext context)? onTap;
 }
 

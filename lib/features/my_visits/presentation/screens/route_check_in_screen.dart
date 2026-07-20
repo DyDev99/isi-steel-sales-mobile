@@ -20,6 +20,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/stat
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/location_tracking_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/state/location_tracking_state.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/visit_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/state/visit_state.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/route_stock_count_screen.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/transit_map.dart';
 
@@ -34,7 +35,6 @@ class RouteCheckInScreen extends StatefulWidget {
 }
 
 class _RouteCheckInScreenState extends State<RouteCheckInScreen> {
-  ProofPhotoResult? _proof;
   bool _capturing = false;
   bool _submitting = false;
 
@@ -70,29 +70,30 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen> {
     );
 
     if (!mounted) return;
+    setState(() => _capturing = false);
 
-    setState(() {
-      _capturing = false;
-      if (result != null) {
-        _proof = result;
-      }
-    });
-  }
-
-  void _submit(RouteStop stop) {
-    final proof = _proof;
-    if (proof == null) return;
-    HapticFeedback.mediumImpact();
-
+    if (result == null) return;
+    // Persisted to the Drift-backed VisitCubit/VisitRepository immediately so
+    // the photo survives rebuilds, navigation, and app restarts instead of
+    // living only in this screen's ephemeral State.
     context.read<VisitCubit>().addPhoto(VisitPhoto(
           id: '${DateTime.now().microsecondsSinceEpoch}',
           stopId: stop.id,
-          url: proof.filePath,
+          url: result.filePath,
           caption: 'Shopfront proof',
-          takenAt: proof.takenAt,
+          takenAt: result.takenAt,
         ));
+  }
+
+  void _submit(RouteStop stop) {
+    HapticFeedback.mediumImpact();
     setState(() => _submitting = true);
     context.read<ActiveRouteBloc>().add(const CheckInRequested());
+  }
+
+  static List<VisitPhoto> _photosForStop(VisitState state, String stopId) {
+    if (state is! VisitLoaded) return const [];
+    return state.data.photos.where((p) => p.stopId == stopId).toList();
   }
 
   void _goToVisit(BuildContext context) {
@@ -159,106 +160,113 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen> {
             final stop = state.route.stops[state.currentStopIndex];
             final bool dynamicInsideGeofence =
                 state.insideGeofence || kDebugForceInsideGeofence;
-            final bool canSubmit =
-                dynamicInsideGeofence && _proof != null && !_submitting;
 
-            return Column(
-              children: [
-                const OfflineBanner(margin: EdgeInsets.zero),
+            return BlocBuilder<VisitCubit, VisitState>(
+              builder: (context, visitState) {
+                final photos = _photosForStop(visitState, stop.id);
+                final bool canSubmit = dynamicInsideGeofence &&
+                    photos.isNotEmpty &&
+                    !_submitting;
 
-                // Segment 1: Header Customer Profile Info Card
-                _UnifiedCustomerHeader(
-                  stop: stop,
-                  distanceLabel: _distanceLabel(state.distanceMeters),
-                  etaMinutes: _etaMinutes(state.distanceMeters),
-                ),
+                return Column(
+                  children: [
+                    const OfflineBanner(margin: EdgeInsets.zero),
 
-                // Segment 2: Interactive Real-time Embedded Map Viewport
-                Expanded(
-                  flex: 4,
-                  child:
-                      BlocBuilder<LocationTrackingCubit, LocationTrackingState>(
-                    builder: (context, locationState) => TransitMap(
-                      target: stop,
-                      currentPosition: locationState.current,
+                    // Segment 1: Header Customer Profile Info Card
+                    _UnifiedCustomerHeader(
+                      stop: stop,
+                      distanceLabel: _distanceLabel(state.distanceMeters),
+                      etaMinutes: _etaMinutes(state.distanceMeters),
                     ),
-                  ),
-                ),
 
-                // Segment 3: Workspace Action Board
-                Expanded(
-                  flex: 5,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: colors.card,
-                      boxShadow: [
-                        BoxShadow(
-                          color: colors.shadowColor.withValues(alpha: 0.04),
-                          blurRadius: 10,
-                          offset: const Offset(0, -4),
-                        )
-                      ],
-                    ),
-                    child: ListView(
-                      padding: const EdgeInsets.all(16),
-                      shrinkWrap: true,
-                      children: [
-                        _GeoStatusBanner(
-                          insideGeofence: dynamicInsideGeofence,
-                          distanceMeters: state.distanceMeters,
-                          blockedReason: state.blockedCheckInReason,
-                          warnings: state.checkInWarnings,
-                          radiusMeters:
-                              stop.customer.geofenceRadiusMeters.round(),
+                    // Segment 2: Interactive Real-time Embedded Map Viewport
+                    Expanded(
+                      flex: 4,
+                      child: BlocBuilder<LocationTrackingCubit,
+                          LocationTrackingState>(
+                        builder: (context, locationState) => TransitMap(
+                          target: stop,
+                          currentPosition: locationState.current,
                         ),
-                        const SizedBox(height: 14),
-                        Row(
-                          children: [
-                            Text(
-                              'my_visits.flow.proof_photo'.tr,
-                              style: TextStyle(
-                                  color: colors.textPrimary,
-                                  fontSize: 13.5,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                            const Spacer(),
-                            if (dynamicInsideGeofence && _proof == null)
-                              _PulseIndicator(),
+                      ),
+                    ),
+
+                    // Segment 3: Workspace Action Board
+                    Expanded(
+                      flex: 5,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: colors.card,
+                          boxShadow: [
+                            BoxShadow(
+                              color: colors.shadowColor.withValues(alpha: 0.04),
+                              blurRadius: 10,
+                              offset: const Offset(0, -4),
+                            )
                           ],
                         ),
-                        const SizedBox(height: 10),
-                        _CameraDropzone(
-                          proof: _proof,
-                          capturing: _capturing,
-                          isLocked: !dynamicInsideGeofence,
-                          onTap: () => _capture(stop),
+                        child: ListView(
+                          padding: const EdgeInsets.all(16),
+                          shrinkWrap: true,
+                          children: [
+                            _GeoStatusBanner(
+                              insideGeofence: dynamicInsideGeofence,
+                              distanceMeters: state.distanceMeters,
+                              blockedReason: state.blockedCheckInReason,
+                              warnings: state.checkInWarnings,
+                              radiusMeters:
+                                  stop.customer.geofenceRadiusMeters.round(),
+                            ),
+                            const SizedBox(height: 14),
+                            Row(
+                              children: [
+                                Text(
+                                  'my_visits.flow.proof_photo'.tr,
+                                  style: TextStyle(
+                                      color: colors.textPrimary,
+                                      fontSize: 13.5,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                const Spacer(),
+                                if (dynamicInsideGeofence && photos.isEmpty)
+                                  _PulseIndicator(),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            _CameraDropzone(
+                              photos: photos,
+                              capturing: _capturing,
+                              isLocked: !dynamicInsideGeofence,
+                              onTap: () => _capture(stop),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'my_visits.flow.checkin_explainer'.tr,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  color: colors.textSecondary,
+                                  fontSize: 11,
+                                  height: 1.3),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'my_visits.flow.checkin_explainer'.tr,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              color: colors.textSecondary,
-                              fontSize: 11,
-                              height: 1.3),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
 
-                // Contextual CTA Processing Button Bar
-                _CheckInBottomBar(
-                  enabled: canSubmit,
-                  submitting: _submitting,
-                  hint: !dynamicInsideGeofence
-                      ? 'my_visits.flow.hint_move_inside'.tr
-                      : (_proof == null
-                          ? 'my_visits.flow.hint_take_photo'.tr
-                          : null),
-                  onTap: () => _submit(stop),
-                ),
-              ],
+                    // Contextual CTA Processing Button Bar
+                    _CheckInBottomBar(
+                      enabled: canSubmit,
+                      submitting: _submitting,
+                      hint: !dynamicInsideGeofence
+                          ? 'my_visits.flow.hint_move_inside'.tr
+                          : (photos.isEmpty
+                              ? 'my_visits.flow.hint_take_photo'.tr
+                              : null),
+                      onTap: () => _submit(stop),
+                    ),
+                  ],
+                );
+              },
             );
           },
         ),
@@ -448,13 +456,13 @@ class _StatusPill extends StatelessWidget {
 
 class _CameraDropzone extends StatelessWidget {
   const _CameraDropzone({
-    required this.proof,
+    required this.photos,
     required this.capturing,
     required this.isLocked,
     required this.onTap,
   });
 
-  final ProofPhotoResult? proof;
+  final List<VisitPhoto> photos;
   final bool capturing;
   final bool isLocked;
   final VoidCallback onTap;
@@ -465,7 +473,7 @@ class _CameraDropzone extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final borderColor = isLocked
         ? colors.border
-        : (proof != null
+        : (photos.isNotEmpty
             ? colors.success
             : scheme.primary.withValues(alpha: 0.5));
 
@@ -485,9 +493,9 @@ class _CameraDropzone extends StatelessWidget {
             child: capturing
                 ? Center(
                     child: CircularProgressIndicator(color: scheme.primary))
-                : proof == null
+                : photos.isEmpty
                     ? _DropzonePlaceholder(isLocked: isLocked)
-                    : _ProofPreview(path: proof!.filePath),
+                    : _ProofGallery(photos: photos),
           ),
         ),
       ),
@@ -541,18 +549,27 @@ class _DropzonePlaceholder extends StatelessWidget {
   }
 }
 
-class _ProofPreview extends StatelessWidget {
-  const _ProofPreview({required this.path});
-  final String path;
+class _ProofGallery extends StatelessWidget {
+  const _ProofGallery({required this.photos});
+  final List<VisitPhoto> photos;
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       fit: StackFit.expand,
       children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(11),
-          child: Image.file(File(path), fit: BoxFit.cover),
+        ListView.separated(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.all(8),
+          itemCount: photos.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 8),
+          itemBuilder: (context, index) => ClipRRect(
+            borderRadius: BorderRadius.circular(11),
+            child: AspectRatio(
+              aspectRatio: 1,
+              child: Image.file(File(photos[index].url), fit: BoxFit.cover),
+            ),
+          ),
         ),
         Positioned(
           right: 10,
@@ -565,11 +582,11 @@ class _ProofPreview extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.refresh_rounded,
+                const Icon(Icons.add_a_photo_rounded,
                     color: Colors.white, size: 13),
                 const SizedBox(width: 4),
                 Text(
-                  'my_visits.flow.retake'.tr,
+                  '${photos.length}',
                   style: const TextStyle(
                       color: Colors.white,
                       fontSize: 11,

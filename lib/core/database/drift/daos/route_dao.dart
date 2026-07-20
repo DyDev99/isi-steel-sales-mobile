@@ -70,6 +70,14 @@ class RouteDao extends DatabaseAccessor<AppDatabase> with _$RouteDaoMixin {
         ..where((t) => t.deleted.equals(false)))
       .getSingleOrNull();
 
+  /// Every locally-synced route regardless of date — feeds the calendar's
+  /// per-day route-count dots and date-selection browsing, neither of which
+  /// can be answered by [fetchRoutesForDay]'s single-day window.
+  Future<List<RouteRow>> fetchAllRoutes() => (select(routes)
+        ..where((t) => t.deleted.equals(false))
+        ..orderBy([(t) => OrderingTerm.asc(t.visitDate)]))
+      .get();
+
   /// Stops of a route in visit order.
   Future<List<RouteStopRow>> fetchStops(String routeId) => (select(routeStops)
         ..where((t) => t.routeId.equals(routeId))

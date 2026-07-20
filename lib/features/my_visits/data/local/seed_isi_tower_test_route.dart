@@ -142,13 +142,20 @@ Future<void> seedIsiTowerTestRoute(
     status: VisitStatus.pending,
   );
 
+  // RouteDao.fetchRoutesForDay filters by the UTC calendar day (visit_date is
+  // stored as UTC text). Anchoring to local midnight here would land on the
+  // wrong UTC day in any positive-offset timezone (e.g. Cambodia UTC+7),
+  // making the seeded route silently invisible to "today" — same class of
+  // bug MockRouteRemoteDataSource._rebaseToToday() already guards against.
+  final nowUtc = now.toUtc();
+
   final route = RoutePlanModel(
     id: 'test-route-3-stops',
     name: 'Test Route — 3 Stops',
     repId: 'test-rep',
     repName: 'Test Rep',
     territory: 'Phnom Penh',
-    visitDate: DateTime(now.year, now.month, now.day),
+    visitDate: DateTime.utc(nowUtc.year, nowUtc.month, nowUtc.day),
     plannedStart: now,
     plannedEnd: now.add(const Duration(hours: 2)),
     status: RouteStatus.published,

@@ -11,6 +11,7 @@ import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/local/customer_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/route_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/seed_isi_tower_test_route.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/data/local/seed_mock_routes_for_dates.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/visit_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_plan.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_stop.dart';
@@ -98,6 +99,10 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
         sl<RouteLocalDataSource>(),
         sl<CustomerLocalDataSource>(),
       );
+      await seedMockRoutesForDates(
+        sl<RouteLocalDataSource>(),
+        sl<CustomerLocalDataSource>(),
+      );
     } catch (e) {
       final detail = e is CacheException ? e.message : e.toString();
       debugPrint('Seed test route failed: $detail');
@@ -110,7 +115,8 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
     if (!context.mounted) return;
     context.read<RouteDashboardCubit>().load();
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Seeded test route: ISI Tower')),
+      const SnackBar(
+          content: Text('Seeded ISI Tower + 20/21 Jul mock routes')),
     );
   }
 
@@ -131,8 +137,15 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
           : null,
       body: SafeArea(
         child: BlocListener<RouteSyncCubit, RouteSyncState>(
-          listenWhen: (prev, curr) => curr is RouteSyncSucceeded,
-          listener: (context, _) {
+          listenWhen: (prev, curr) =>
+              curr is RouteSyncSucceeded || curr is RouteSyncFailed,
+          listener: (context, state) {
+            if (state is RouteSyncFailed) {
+              ScaffoldMessenger.of(context)
+                ..hideCurrentSnackBar()
+                ..showSnackBar(SnackBar(content: Text(state.message)));
+              return;
+            }
             context.read<RouteDashboardCubit>().load();
             if (kDebugMode) setState(() => _pendingSyncBump++);
           },
@@ -205,6 +218,19 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
 
                       // 4. Filtered Route Content Pipeline loaded into StopCards
                       _buildFilteredRouteContent(context, state.routes),
+
+                      // 5. Background-sync shimmer — fills the trailing gap
+                      // below sparse content with a loading placeholder
+                      // instead of blank space while a pull/delta sync runs.
+                      BlocBuilder<RouteSyncCubit, RouteSyncState>(
+                        builder: (context, syncState) =>
+                            syncState is RouteSyncInProgress
+                                ? const Padding(
+                                    padding: EdgeInsets.only(top: 4),
+                                    child: RouteCardSkeleton(),
+                                  )
+                                : const SizedBox.shrink(),
+                      ),
                     ],
                   ),
                 ),

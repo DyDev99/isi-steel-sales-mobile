@@ -37,6 +37,20 @@ class RouteDriftLocalDataSource implements RouteLocalDataSource {
   }
 
   @override
+  Future<List<RoutePlanModel>> fetchAllRoutes() async {
+    try {
+      final routes = await _dao.fetchAllRoutes();
+      final plans = <RoutePlanModel>[];
+      for (final route in routes) {
+        plans.add(route.toModel(await _stopsFor(route.id)));
+      }
+      return plans;
+    } catch (e) {
+      throw CacheException(message: 'Failed to load all routes: $e');
+    }
+  }
+
+  @override
   Future<RoutePlanModel?> getRoute(String routeId) async {
     try {
       final route = await _dao.getRoute(routeId);

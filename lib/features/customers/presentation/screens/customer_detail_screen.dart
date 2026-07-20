@@ -265,12 +265,23 @@ class _Loaded extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
       children: [
-        CustomerQuickActions(
-          onCall: onCall,
-          onCreateOpportunity: onCreateOpportunity,
-          onLogVisit: onLogVisit,
-          onAddNote: onAddNote,
-        ),
+
+        _SalesInsightsSection(
+  customer: customer,
+  onCreateOpportunityForProduct: (productName) {
+    // This allows the rep to instantly convert a cross-sell insight into a workflow deal!
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Creating opportunity for $productName...')),
+    );
+  },
+),
+const SizedBox(height: 12),
+      //  CustomerQuickActions(
+       //   onCall: onCall,
+       //   onCreateOpportunity: onCreateOpportunity,
+         // onLogVisit: onLogVisit,
+        //  onAddNote: onAddNote,
+      //  ),
         const SizedBox(height: 16),
         _SectionCard(
           title: 'Overview',
@@ -519,6 +530,227 @@ class _EstimatedValueSheetState extends State<_EstimatedValueSheet> {
                     style: TextStyle(
                         color: scheme.onPrimary,
                         fontWeight: FontWeight.w800)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SalesInsightsSection extends StatelessWidget {
+  const _SalesInsightsSection({
+    required this.customer,
+    required this.onCreateOpportunityForProduct,
+  });
+
+  final Customer customer;
+  final Function(String productName) onCreateOpportunityForProduct;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    // Derived or mocked sample cross-sell data based on your focus area
+    final crossSellOpportunities = [
+      'Galvanized Pipes',
+      'Roofing Screws',
+      'Steel Wire Mesh',
+    ];
+
+    return GlassCard(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                'Sales History & Insights',
+                style: TextStyle(
+                  color: colors.textPrimary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Icon(Icons.lock_outline_rounded,
+                  size: 13, color: colors.textSecondary),
+            ],
+          ),
+          const SizedBox(height: 12),
+          
+          // Row 1: Key Performance Metrics
+          Row(
+            children: [
+              Expanded(
+                child: _MetricTile(
+                  icon: Icons.payments_outlined,
+                  label: 'Lifetime Value',
+                  value: '\$${customer.lifetimeValue.toStringAsFixed(0)}',
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _MetricTile(
+                  icon: Icons.event_outlined,
+                  label: 'Last Order',
+                  value: customer.lastOrderDate == null
+                      ? 'No orders yet'
+                      : _formatDate(customer.lastOrderDate!),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          
+          // Row 2: Currently Purchased Lines
+          Text(
+            'Active Product Mix',
+            style: TextStyle(
+              color: colors.textSecondary,
+              fontSize: 11.5,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 8),
+          if (customer.productsPurchased.isNotEmpty)
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                for (final product in customer.productsPurchased)
+                  _InsightChip(label: product, isPurchased: true),
+              ],
+            )
+          else
+            Text(
+              'No active product lines found.',
+              style: TextStyle(color: colors.textSecondary, fontSize: 12),
+            ),
+          
+          const SizedBox(height: 16),
+          
+          // Row 3: Gap Analysis / White Spaces
+          Text(
+            'Cross-Sell Gaps (Tap to target)',
+            style: TextStyle(
+              color: colors.textSecondary,
+              fontSize: 11.5,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              for (final opportunity in crossSellOpportunities)
+                _InsightChip(
+                  label: opportunity,
+                  isPurchased: false,
+                  onTap: () => onCreateOpportunityForProduct(opportunity),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  static String _formatDate(DateTime date) =>
+      '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+}
+
+class _MetricTile extends StatelessWidget {
+  const _MetricTile({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: colors.surfaceSoft,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: colors.border.withValues(alpha: 0.4)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 13, color: colors.textSecondary),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: TextStyle(color: colors.textSecondary, fontSize: 11),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: TextStyle(
+              color: colors.textPrimary,
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InsightChip extends StatelessWidget {
+  const _InsightChip({
+    required this.label,
+    required this.isPurchased,
+    this.onTap,
+  });
+
+  final String label;
+  final bool isPurchased;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final themeColor = isPurchased ? colors.info : colors.textSecondary;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: themeColor.withValues(alpha: isPurchased ? 0.14 : 0.06),
+          borderRadius: BorderRadius.circular(20),
+          border: isPurchased ? null : Border.all(color: colors.border, width: 0.5),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (!isPurchased) ...[
+              Icon(Icons.add_circle_outline_rounded, size: 12, color: themeColor),
+              const SizedBox(width: 4),
+            ],
+            Text(
+              label,
+              style: TextStyle(
+                color: isPurchased ? themeColor : colors.textPrimary,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ],

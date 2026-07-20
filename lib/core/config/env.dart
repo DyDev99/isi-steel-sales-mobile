@@ -2,21 +2,28 @@ import 'package:envied/envied.dart';
 
 part 'env.g.dart';
 
-/// Compile-time environment configuration (Blueprint §3, "Config Isolation via
-/// Envied"). Values are read from the git-ignored `.env` file at build time and
-/// obfuscated into Dart byte-code, so no endpoint or salt appears as a literal
-/// string in the shipped binary.
-///
-/// [dbSalt] is deliberately *not* a standalone secret: it is combined with the
-/// hardware-sealed device key (see `DynamicKeyStore`) to derive the SQLCipher
-/// passphrase, so recovering it from the binary alone does not expose the DB.
 @Envied(path: '.env', obfuscate: true)
 abstract class Env {
-  /// SAP Core API gateway base URL.
-  @EnviedField(varName: 'SAP_API_URL', obfuscate: true)
-  static final String sapApiUrl = _Env.sapApiUrl;
+  @EnviedField(varName: 'SAP_API_URL_1', obfuscate: true)
+  static final String sapApiUrl1 = _Env.sapApiUrl1;
 
-  /// Salt mixed into the database-key derivation. Defense-in-depth only.
+  @EnviedField(varName: 'SAP_API_URL_2', obfuscate: true)
+  static final String sapApiUrl2 = _Env.sapApiUrl2;
+
+  @EnviedField(varName: 'SAP_API_URL_3', obfuscate: true)
+  static final String sapApiUrl3 = _Env.sapApiUrl3;
+
+  @EnviedField(varName: 'SAP_API_URL_4', obfuscate: true)
+  static final String sapApiUrl4 = _Env.sapApiUrl4;
+
   @EnviedField(varName: 'DB_SALT', obfuscate: true)
   static final String dbSalt = _Env.dbSalt;
+
+  /// Ordered list of SAP API gateways for auto-failover.
+  static List<String> get sapApiUrls => [
+        sapApiUrl1,
+        sapApiUrl2,
+        sapApiUrl3,
+        sapApiUrl4,
+      ];
 }

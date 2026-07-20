@@ -16,6 +16,12 @@ abstract interface class RouteRepository {
   /// dashboard stays live without manual reloads.
   Stream<List<RoutePlan>> watchTodayRoutes();
 
+  /// Continuous stream of every locally-synced route regardless of date —
+  /// feeds the calendar's per-day route-count dots and lets a rep browse a
+  /// different day's routes, neither of which [watchTodayRoutes] can answer
+  /// since it's scoped to today only. Re-emits on the same triggers.
+  Stream<List<RoutePlan>> watchAllRoutes();
+
   ResultFuture<RoutePlan> getRoute(String routeId);
   ResultFuture<void> updateRouteStatus(String routeId, RouteStatus status);
   ResultFuture<void> updateStopStatus(

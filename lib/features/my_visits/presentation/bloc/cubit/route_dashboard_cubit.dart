@@ -6,32 +6,55 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_plan.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_status.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/geofence_service.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/watch_today_routes.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/watch_all_routes.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/state/route_dashboard_state.dart';
 
-/// Drives the dashboard off a live [WatchTodayRoutes] stream: emits
+/// Drives the dashboard off a live [WatchAllRoutes] stream: emits
 /// [RouteDashboardLoading] (→ skeletons) until the first snapshot arrives, then
 /// [RouteDashboardLoaded] on every update, and [RouteDashboardError] on a
 /// stream error. Check-in/out anywhere in the app pushes through here live.
+///
+/// Backed by every locally-synced route (not just today's) since `state.routes`
+/// feeds both the calendar's per-day route-count dots and date-selection
+/// browsing in `RouteDashboardScreen` — both need routes for arbitrary days,
+/// which a today-only stream can't provide.
 class RouteDashboardCubit extends Cubit<RouteDashboardState> {
-  RouteDashboardCubit({required WatchTodayRoutes watchTodayRoutes})
-      : _watchTodayRoutes = watchTodayRoutes,
+  RouteDashboardCubit({required WatchAllRoutes watchAllRoutes})
+      : _watchAllRoutes = watchAllRoutes,
         super(const RouteDashboardLoading()) {
     _subscribe();
   }
 
-  final WatchTodayRoutes _watchTodayRoutes;
+  final WatchAllRoutes _watchAllRoutes;
   StreamSubscription<List<RoutePlan>>? _subscription;
 
   void _subscribe() {
     // Only flash skeletons when we don't already have data on screen.
     if (state is! RouteDashboardLoaded) emit(const RouteDashboardLoading());
     _subscription?.cancel();
-    _subscription = _watchTodayRoutes(const NoParams()).listen(
-      (routes) => emit(
-          RouteDashboardLoaded(routes: routes, summary: _summarize(routes))),
+    _subscription = _watchAllRoutes(const NoParams()).listen(
+      (routes) => emit(RouteDashboardLoaded(
+          routes: routes, summary: _summarize(_todayOnly(routes)))),
       onError: (Object e) => emit(RouteDashboardError(e.toString())),
     );
+  }
+
+  /// The summary cards (`stopsToday`, `completed`, `progress`, ...) are
+  /// explicitly about *today* — [routes] now spans every synced day (needed
+  /// for the calendar dots and date-selection), so it must be narrowed back
+  /// down before summarizing or the cards would silently aggregate every
+  /// day's stats together. Compares against the UTC calendar day — `visitDate`
+  /// is UTC-anchored throughout this feature (see `RouteDao.fetchRoutesForDay`,
+  /// `MockRouteRemoteDataSource._rebaseToToday`) — comparing local `y/m/d`
+  /// instead would misclassify "today" in any positive-UTC-offset zone.
+  List<RoutePlan> _todayOnly(List<RoutePlan> routes) {
+    final nowUtc = DateTime.now().toUtc();
+    return routes
+        .where((r) =>
+            r.visitDate.year == nowUtc.year &&
+            r.visitDate.month == nowUtc.month &&
+            r.visitDate.day == nowUtc.day)
+        .toList();
   }
 
   /// Re-attach the stream (re-reads the local cache) — used by pull-to-refresh

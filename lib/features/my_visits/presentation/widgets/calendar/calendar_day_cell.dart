@@ -4,8 +4,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'route_indicator_dots.dart';
 
-/// One cell in [CalendarMonthView]'s grid: a date number with up to 5 route
-/// dots centered directly beneath it (never beside it, per the design spec).
+/// One cell in [CalendarMonthView]'s grid: a date number with wrapping route
+/// dots (up to 4 columns) centered directly beneath it.
 ///
 /// - **Today** always gets a filled primary circle + bold white text — this
 ///   holds even if today also happens to be the selected date.
@@ -59,9 +59,10 @@ class CalendarDayCell extends StatelessWidget {
       onTap: isCurrentMonth ? onTap : null,
       behavior: HitTestBehavior.opaque,
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
+          SizedBox(height: 4.h),
           AnimatedContainer(
             duration: const Duration(milliseconds: 180),
             curve: Curves.easeOut,
@@ -84,10 +85,11 @@ class CalendarDayCell extends StatelessWidget {
           isCurrentMonth
               ? RouteIndicatorDots(
                   count: routeCount,
-                  maxVisible: 5,
+                  maxVisible: 8,
+                  columns: 4,
                   activeColor: isToday ? scheme.primary : colors.iconMuted,
                 )
-              : SizedBox(height: 4.w),
+              : const SizedBox.shrink(),
         ],
       ),
     );
