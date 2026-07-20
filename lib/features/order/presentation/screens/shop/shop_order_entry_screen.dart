@@ -108,7 +108,9 @@ class _ShopOrderEntryScreenState extends State<ShopOrderEntryScreen> {
         iconTheme: IconThemeData(color: colors.textPrimary),
         title: Text(customer.shopName,
             style: TextStyle(
-                color: colors.textPrimary, fontSize: 17, fontWeight: FontWeight.w800)),
+                color: colors.textPrimary,
+                fontSize: 17,
+                fontWeight: FontWeight.w800)),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
@@ -125,7 +127,8 @@ class _ShopOrderEntryScreenState extends State<ShopOrderEntryScreen> {
                 return Center(
                     child: Padding(
                         padding: const EdgeInsets.all(20),
-                        child: CircularProgressIndicator(color: colors.accentPurple)));
+                        child: CircularProgressIndicator(
+                            color: colors.accentPurple)));
               }
               final summary = snapshot.data;
               if (summary == null) {
@@ -148,7 +151,8 @@ class _ShopOrderEntryScreenState extends State<ShopOrderEntryScreen> {
           const SizedBox(height: 14),
           Row(
             children: [
-              Icon(Icons.gps_fixed_rounded, size: 15, color: colors.textSecondary),
+              Icon(Icons.gps_fixed_rounded,
+                  size: 15, color: colors.textSecondary),
               const SizedBox(width: 6),
               Text(
                 _capturingGps

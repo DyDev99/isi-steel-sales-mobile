@@ -4,7 +4,7 @@ import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localized_builder.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
-import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/add_customer_bottom_sheet.dart'; 
+import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/add_customer_bottom_sheet.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customer_sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customers_bloc.dart';
@@ -139,7 +139,13 @@ class _Loaded extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final colors = context.appColors;
     final items = _visibleItems;
-    final territories = state.items.map((c) => c.territory).toSet().toList()
+    // Customers synced from SAP carry no territory, so the filter offers only
+    // the territories actually present rather than an "unknown" bucket.
+    final territories = state.items
+        .map((c) => c.territory)
+        .whereType<String>()
+        .toSet()
+        .toList()
       ..sort();
 
     return RefreshIndicator(
@@ -179,16 +185,19 @@ class _Loaded extends StatelessWidget {
                       // Obtains the PipelineBloc state exactly like QuickActionsSection
                       final pipelineState = context.read<PipelineBloc>().state;
                       if (pipelineState is PipelineLoaded) {
-                        final wonLeads = pipelineState.columns[PipelineStage.won] ?? [];
+                        final wonLeads =
+                            pipelineState.columns[PipelineStage.won] ?? [];
 
                         showModalBottomSheet(
                           context: context,
                           backgroundColor: context.appColors.surfaceSoft,
                           isScrollControlled: true,
                           shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+                            borderRadius:
+                                BorderRadius.vertical(top: Radius.circular(22)),
                           ),
-                          builder: (_) => AddCustomerBottomSheet(wonLeads: wonLeads),
+                          builder: (_) =>
+                              AddCustomerBottomSheet(wonLeads: wonLeads),
                         );
                       }
                     },
@@ -292,8 +301,7 @@ class _Segment extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected ? scheme.primary : colors.surfaceSoft,
           borderRadius: BorderRadius.circular(20),
-          border:
-              Border.all(color: selected ? scheme.primary : colors.border),
+          border: Border.all(color: selected ? scheme.primary : colors.border),
         ),
         child: Text(
           label,

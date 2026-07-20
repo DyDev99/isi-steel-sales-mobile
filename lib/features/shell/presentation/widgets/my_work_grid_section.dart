@@ -301,9 +301,17 @@ class MyWorkGridSkeleton extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           const _SectionHeader('MY WORK', letterSpacing: 1.6),
-          Row(children: [_skeletonCell(context), SizedBox(width: 12.w), _skeletonCell(context)]),
+          Row(children: [
+            _skeletonCell(context),
+            SizedBox(width: 12.w),
+            _skeletonCell(context)
+          ]),
           SizedBox(height: 12.h),
-          Row(children: [_skeletonCell(context), SizedBox(width: 12.w), _skeletonCell(context)]),
+          Row(children: [
+            _skeletonCell(context),
+            SizedBox(width: 12.w),
+            _skeletonCell(context)
+          ]),
         ],
       ),
     );

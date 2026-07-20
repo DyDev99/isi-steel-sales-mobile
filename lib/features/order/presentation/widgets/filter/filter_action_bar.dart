@@ -47,12 +47,15 @@ class FilterActionBar extends StatelessWidget {
               onPressed: canReset ? onReset : null,
               style: OutlinedButton.styleFrom(
                 foregroundColor: theme.colorScheme.error,
-                side: BorderSide(color: theme.colorScheme.error.withValues(alpha: 0.4)),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                side: BorderSide(
+                    color: theme.colorScheme.error.withValues(alpha: 0.4)),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14)),
               ),
-              child: const Text('Reset', style: TextStyle(fontWeight: FontWeight.w700)),
+              child: const Text('Reset',
+                  style: TextStyle(fontWeight: FontWeight.w700)),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -61,7 +64,8 @@ class FilterActionBar extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: theme.colorScheme.primary,
                   foregroundColor: Colors.white,
-                  disabledBackgroundColor: theme.colorScheme.primary.withValues(alpha: 0.6),
+                  disabledBackgroundColor:
+                      theme.colorScheme.primary.withValues(alpha: 0.6),
                   disabledForegroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(

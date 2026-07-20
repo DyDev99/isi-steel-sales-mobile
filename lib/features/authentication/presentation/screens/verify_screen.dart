@@ -229,7 +229,8 @@ class _VerifyScreenState extends State<VerifyScreen> {
                                   'auth.verify_code_title'.tr,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
-                                    color: Theme.of(context).colorScheme.onSurface,
+                                    color:
+                                        Theme.of(context).colorScheme.onSurface,
                                     fontSize: 26,
                                     fontWeight: FontWeight.w900,
                                     height: 1.15,
@@ -241,7 +242,8 @@ class _VerifyScreenState extends State<VerifyScreen> {
                                       .trParams({'target': widget.target}),
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
-                                      color: context.appColors.textSecondary, fontSize: 15),
+                                      color: context.appColors.textSecondary,
+                                      fontSize: 15),
                                 ),
                               ],
                             ),
@@ -278,11 +280,10 @@ class _VerifyScreenState extends State<VerifyScreen> {
           onPressed: () => _submit(),
         ),
         const SizedBox(height: 10),
-      Center(
+        Center(
           child: TextButton(
-            onPressed: (_secondsLeft > 0 || widget.onResend == null)
-                ? null
-                : _resend,
+            onPressed:
+                (_secondsLeft > 0 || widget.onResend == null) ? null : _resend,
             child: Text(
               _secondsLeft > 0
                   ? 'auth.resend_code_in'.trParams({
@@ -290,7 +291,9 @@ class _VerifyScreenState extends State<VerifyScreen> {
                     })
                   : 'auth.resend_code'.tr,
               style: TextStyle(
-                color: _secondsLeft > 0 ? context.appColors.textSecondary : context.appColors.info,
+                color: _secondsLeft > 0
+                    ? context.appColors.textSecondary
+                    : context.appColors.info,
                 fontWeight: FontWeight.w600,
               ),
             ),

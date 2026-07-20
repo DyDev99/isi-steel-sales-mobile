@@ -48,3 +48,14 @@ final class AuthFailureState extends AuthState {
   @override
   List<Object?> get props => [message];
 }
+
+/// The SAP session lapsed and could not be renewed.
+///
+/// Separate from [UnauthenticatedState] and [AuthGuestState] because the cause
+/// matters to the user: they did not sign out and did not choose to browse as a
+/// guest — their ~60-minute SAP token expired, possibly mid-task. The UI should
+/// say so, so being returned to the login screen reads as expected rather than
+/// as the app losing their work for no reason.
+final class AuthSessionExpiredState extends AuthState {
+  const AuthSessionExpiredState();
+}

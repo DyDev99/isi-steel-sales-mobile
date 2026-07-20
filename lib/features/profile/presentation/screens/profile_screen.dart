@@ -41,8 +41,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-
-
   Future<void> _confirmLogout(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -117,8 +115,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton.icon(
-                        onPressed: () => Navigator.of(context).pushNamed(Static.forgotPassword),
-
+                        onPressed: () => Navigator.of(context)
+                            .pushNamed(Static.forgotPassword),
                         icon: const Icon(Icons.lock_reset_rounded, size: 18),
                         label: Text('profile.change_password'.tr),
                       ),
@@ -142,8 +140,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Text(message,
                       style:
                           TextStyle(color: context.appColors.textSecondary))),
-              _ => Center(
-                  child: CircularProgressIndicator(color: scheme.primary)),
+              _ =>
+                Center(child: CircularProgressIndicator(color: scheme.primary)),
             },
           ),
         );

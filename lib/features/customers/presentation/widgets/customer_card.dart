@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
-import 'package:isi_steel_sales_mobile/core/utils/colors.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/glass_card.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_status_badge.dart';
 
-/// One row in the customer list. 
+/// One row in the customer list.
 /// Swipe functionalities have been disabled, returning a clean GlassCard.
 class CustomerCard extends StatelessWidget {
   const CustomerCard({
@@ -15,7 +14,7 @@ class CustomerCard extends StatelessWidget {
     required this.isFavorite,
     required this.onTap,
     required this.onFavoriteToggle,
-    // Note: onCall and onCreateOpportunity can be removed from parameters 
+    // Note: onCall and onCreateOpportunity can be removed from parameters
     // if they are no longer needed anywhere else in the parent widget.
   });
 
@@ -27,7 +26,7 @@ class CustomerCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    
+
     return GlassCard(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
       onTap: onTap,

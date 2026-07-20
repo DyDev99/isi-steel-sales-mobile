@@ -17,8 +17,6 @@ import 'package:flutter/material.dart';
 class AppColorsDark {
   AppColorsDark._();
 
-  
-
   // ── Brand / Primary ───────────────────────────────────────────────
   static const primary = Color(0xFF60A5FA); // lifted brand blue for dark bg
   static const primaryHover = Color(0xFF3B82F6);

@@ -68,7 +68,8 @@ class _CatalogFilterSheetState extends State<_CatalogFilterSheet> {
                       _sortBy = ProductSortBy.relevance;
                     }),
                     child: Text('Clear',
-                        style: TextStyle(color: scheme.onSurface.withValues(alpha: 0.5))),
+                        style: TextStyle(
+                            color: scheme.onSurface.withValues(alpha: 0.5))),
                   ),
                 ],
               ),
@@ -143,8 +144,11 @@ class _Label extends StatelessWidget {
         padding: const EdgeInsets.only(bottom: 8),
         child: Text(text,
             style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5), 
-                fontSize: 12, 
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.5),
+                fontSize: 12,
                 fontWeight: FontWeight.w700)),
       );
 }
@@ -179,7 +183,8 @@ class _ChipGroup<T> extends StatelessWidget {
                   ? scheme.primary.withValues(alpha: 0.15)
                   : scheme.surface,
               borderRadius: BorderRadius.circular(999),
-              border: Border.all(color: isSelected ? scheme.primary : appColors.border),
+              border: Border.all(
+                  color: isSelected ? scheme.primary : appColors.border),
             ),
             child: Text(
               e.value,

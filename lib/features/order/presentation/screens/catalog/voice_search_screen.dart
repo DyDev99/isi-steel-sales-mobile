@@ -113,7 +113,9 @@ class _VoiceSearchScreenState extends State<VoiceSearchScreen> {
         iconTheme: IconThemeData(color: colors.textPrimary),
         title: Text('Voice Search',
             style: TextStyle(
-                color: colors.textPrimary, fontSize: 17, fontWeight: FontWeight.w800)),
+                color: colors.textPrimary,
+                fontSize: 17,
+                fontWeight: FontWeight.w800)),
       ),
       body: SafeArea(
         child: Padding(
@@ -161,7 +163,9 @@ class _VoiceSearchScreenState extends State<VoiceSearchScreen> {
                     : _words,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: _words.isEmpty ? colors.textSecondary : colors.textPrimary,
+                  color: _words.isEmpty
+                      ? colors.textSecondary
+                      : colors.textPrimary,
                   fontSize: _words.isEmpty ? 13 : 18,
                   fontWeight:
                       _words.isEmpty ? FontWeight.w400 : FontWeight.w700,

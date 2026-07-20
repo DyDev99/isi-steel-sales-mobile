@@ -39,7 +39,7 @@ class _DiscountSectionState extends State<DiscountSection> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppThemeColors>()!;
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -48,7 +48,8 @@ class _DiscountSectionState extends State<DiscountSection> {
           runSpacing: 8,
           children: [
             ..._presets.map((percent) {
-              final isSelected = !_isCustomActive && widget.selectedDiscount == percent;
+              final isSelected =
+                  !_isCustomActive && widget.selectedDiscount == percent;
               return ChoiceChip(
                 label: Text('$percent%'),
                 selected: isSelected,
@@ -78,7 +79,8 @@ class _DiscountSectionState extends State<DiscountSection> {
                 color: colors.textPrimary,
               ),
               decoration: InputDecoration(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 hintText: 'Enter value',
                 hintStyle: TextStyle(fontSize: 12, color: colors.textHint),
                 suffixText: '%',

@@ -42,13 +42,21 @@ extension CustomerRowStopInfoMapper on Customer {
         contact: ownerName,
         phone: phone,
         address: address,
-        territory: territory,
+        territory: territory ?? '',
         territoryType: territoryType == null
             ? kUnknownTerritoryFallback
             : TerritoryType.values.asNameMap()[territoryType!] ??
                 kUnknownTerritoryFallback,
-        latitude: latitude,
-        longitude: longitude,
+        // A customer synced from SAP has no coordinates — the business-partner
+        // payload carries none — so a stop built from one falls back to 0,0.
+        //
+        // That fails *closed* for geofencing, which is the safe direction: the
+        // rep is never within the radius of 0°,0°, so "I've Arrived" stays
+        // locked and no fraudulent check-in is possible. It does mean such a
+        // stop cannot be checked into at all until real coordinates exist,
+        // which is the open question this integration surfaces.
+        latitude: latitude ?? 0,
+        longitude: longitude ?? 0,
         geofenceRadiusOverride: geofenceRadiusOverride,
       );
 }

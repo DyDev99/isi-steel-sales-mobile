@@ -152,7 +152,8 @@ class ProductDriftLocalDataSource implements ProductLocalDataSource {
   @override
   Future<void> upsertCategories(List<CategoryModel> categories) async {
     try {
-      await _dao.upsertCategories(categories.map((c) => c.toCompanion()).toList());
+      await _dao
+          .upsertCategories(categories.map((c) => c.toCompanion()).toList());
     } catch (e) {
       throw CacheException(message: 'Failed to save categories: $e');
     }

@@ -20,7 +20,8 @@ class CartDriftLocalDataSource implements CartLocalDataSource {
       productId: row['product_id'] as String,
       quantity: (row['quantity'] as num).toDouble(),
       unit: row['unit'] as String,
-      discountPercent: Value((row['discount_percent'] as num?)?.toDouble() ?? 0),
+      discountPercent:
+          Value((row['discount_percent'] as num?)?.toDouble() ?? 0),
       leadId: Value(row['lead_id'] as String?),
       customerId: Value(row['customer_id'] as String?),
       editingQuotationId: Value(row['editing_quotation_id'] as String?),

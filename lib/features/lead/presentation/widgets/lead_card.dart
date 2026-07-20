@@ -31,9 +31,11 @@ class LeadCard extends StatelessWidget {
       data: lead,
       feedback: Material(
         color: Colors.transparent,
-        child: SizedBox(width: 240, child: _CardBody(lead: lead, dueCount: dueCount)),
+        child: SizedBox(
+            width: 240, child: _CardBody(lead: lead, dueCount: dueCount)),
       ),
-      childWhenDragging: Opacity(opacity: 0.35, child: _CardBody(lead: lead, dueCount: dueCount)),
+      childWhenDragging: Opacity(
+          opacity: 0.35, child: _CardBody(lead: lead, dueCount: dueCount)),
       child: _CardBody(
         lead: lead,
         onTap: onTap,
@@ -71,7 +73,8 @@ class _CardBody extends StatelessWidget {
       // Top and right margins provide structural clearance for the half-overflowed pill badge
       margin: const EdgeInsets.only(top: 10, right: 10),
       child: Stack(
-        clipBehavior: Clip.none, // Crucial: empowers the badge to break out of layout limits
+        clipBehavior: Clip
+            .none, // Crucial: empowers the badge to break out of layout limits
         children: [
           // Base Card Surface Area
           ClipRRect(
@@ -98,7 +101,7 @@ class _CardBody extends StatelessWidget {
           // Pulls the capsule layout upwards and outwards to overlap perfectly
           if (displayDueCount > 0)
             Positioned(
-              top: -10,  // Offsets layout upward past the container edge
+              top: -10, // Offsets layout upward past the container edge
               right: -6, // Offsets layout outward past the container edge
               child: DueBadge(count: displayDueCount),
             ),
@@ -110,11 +113,14 @@ class _CardBody extends StatelessWidget {
   Widget _content(ColorScheme scheme, AppThemeColors colors) {
     final infoChips = <Widget>[
       if (lead.ownerName.trim().isNotEmpty)
-        Flexible(child: _MiniInfo(icon: Icons.person_outline_rounded, text: lead.ownerName)),
+        Flexible(
+            child: _MiniInfo(
+                icon: Icons.person_outline_rounded, text: lead.ownerName)),
       if (_hasPhone)
         Flexible(child: _MiniInfo(icon: Icons.call_outlined, text: lead.phone)),
       if (lead.territory.trim().isNotEmpty)
-        Flexible(child: _MiniInfo(icon: Icons.place_outlined, text: lead.territory)),
+        Flexible(
+            child: _MiniInfo(icon: Icons.place_outlined, text: lead.territory)),
     ];
 
     final revenue = lead.stage == PipelineStage.won
@@ -134,7 +140,9 @@ class _CardBody extends StatelessWidget {
           children: [
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.only(right: 24), // Ensures text wraps cleanly under floating badge area
+                padding: const EdgeInsets.only(
+                    right:
+                        24), // Ensures text wraps cleanly under floating badge area
                 child: Text(
                   lead.companyName,
                   maxLines: 1,
@@ -154,16 +162,28 @@ class _CardBody extends StatelessWidget {
                 child: PopupMenuButton<LeadCardAction>(
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
-                  icon: Icon(Icons.more_vert_rounded, color: colors.textSecondary, size: 18),
+                  icon: Icon(Icons.more_vert_rounded,
+                      color: colors.textSecondary, size: 18),
                   color: colors.surfaceSoft,
                   onSelected: onAction,
                   itemBuilder: (context) => [
-                    const PopupMenuItem(value: LeadCardAction.view, child: Text('View', style: TextStyle(fontSize: 12))),
-                    const PopupMenuItem(value: LeadCardAction.edit, child: Text('Edit', style: TextStyle(fontSize: 12))),
-                    const PopupMenuItem(value: LeadCardAction.move, child: Text('Move', style: TextStyle(fontSize: 12))),
+                    const PopupMenuItem(
+                        value: LeadCardAction.view,
+                        child: Text('View', style: TextStyle(fontSize: 12))),
+                    const PopupMenuItem(
+                        value: LeadCardAction.edit,
+                        child: Text('Edit', style: TextStyle(fontSize: 12))),
+                    const PopupMenuItem(
+                        value: LeadCardAction.move,
+                        child: Text('Move', style: TextStyle(fontSize: 12))),
                     if (showSendToHq)
-                      const PopupMenuItem(value: LeadCardAction.sendToHq, child: Text('Send to HQ', style: TextStyle(fontSize: 12))),
-                    const PopupMenuItem(value: LeadCardAction.delete, child: Text('Delete', style: TextStyle(fontSize: 12))),
+                      const PopupMenuItem(
+                          value: LeadCardAction.sendToHq,
+                          child: Text('Send to HQ',
+                              style: TextStyle(fontSize: 12))),
+                    const PopupMenuItem(
+                        value: LeadCardAction.delete,
+                        child: Text('Delete', style: TextStyle(fontSize: 12))),
                   ],
                 ),
               ),
@@ -223,11 +243,13 @@ class _CardBody extends StatelessWidget {
             child: OutlinedButton.icon(
               onPressed: () => onAction!(LeadCardAction.sendToHq),
               icon: Icon(Icons.send_rounded, size: 11, color: scheme.primary),
-              label: Text('Send to HQ', style: TextStyle(color: scheme.primary, fontSize: 10)),
+              label: Text('Send to HQ',
+                  style: TextStyle(color: scheme.primary, fontSize: 10)),
               style: OutlinedButton.styleFrom(
                 side: BorderSide(color: scheme.primary),
                 padding: EdgeInsets.zero,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6)),
               ),
             ),
           ),

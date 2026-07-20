@@ -20,19 +20,27 @@ class SyncStatusBanner extends StatelessWidget {
               icon: SizedBox(
                 width: 14,
                 height: 14,
-                child: CircularProgressIndicator(strokeWidth: 2, color: scheme.primary),
+                child: CircularProgressIndicator(
+                    strokeWidth: 2, color: scheme.primary),
               ),
-              text: isInitial ? 'Downloading product catalog…' : 'Syncing latest changes…',
+              text: isInitial
+                  ? 'Downloading product catalog…'
+                  : 'Syncing latest changes…',
             ),
           SyncFailed(:final message) => _Banner(
               color: scheme.error,
-              icon: Icon(Icons.cloud_off_rounded, size: 16, color: scheme.error),
+              icon:
+                  Icon(Icons.cloud_off_rounded, size: 16, color: scheme.error),
               text: message,
             ),
-          SyncSucceeded(:final upserted, :final deleted) when upserted > 0 || deleted > 0 => _Banner(
+          SyncSucceeded(:final upserted, :final deleted)
+              when upserted > 0 || deleted > 0 =>
+            _Banner(
               color: appColors.success,
-              icon: Icon(Icons.check_circle_rounded, size: 16, color: appColors.success),
-              text: '$upserted updated${deleted > 0 ? ', $deleted removed' : ''}',
+              icon: Icon(Icons.check_circle_rounded,
+                  size: 16, color: appColors.success),
+              text:
+                  '$upserted updated${deleted > 0 ? ', $deleted removed' : ''}',
             ),
           _ => const SizedBox.shrink(),
         };
@@ -62,7 +70,9 @@ class _Banner extends StatelessWidget {
           icon,
           const SizedBox(width: 8),
           Expanded(
-            child: Text(text, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w600)),
+            child: Text(text,
+                style: TextStyle(
+                    color: color, fontSize: 12, fontWeight: FontWeight.w600)),
           ),
         ],
       ),

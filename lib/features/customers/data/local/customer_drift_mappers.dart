@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' show Value;
-import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart' as db;
+import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart'
+    as db;
 import 'package:isi_steel_sales_mobile/core/database/drift/daos/customer_dao.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/models/customer_activity_model.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/models/customer_contact_model.dart';
@@ -17,6 +18,17 @@ import 'package:isi_steel_sales_mobile/features/customers/domain/entities/custom
 /// domain entities the models extend.
 
 const _kProductsSeparator = '|';
+
+/// Parses a persisted status name, tolerating both null and an unrecognised
+/// value rather than throwing the way `CustomerStatus.values.byName` does. One
+/// unexpected string in one row must not fail the whole read.
+CustomerStatus? _statusOrNull(String? name) {
+  if (name == null || name.isEmpty) return null;
+  for (final status in CustomerStatus.values) {
+    if (status.name == name) return status;
+  }
+  return null;
+}
 
 extension CustomerRowMapper on db.Customer {
   CustomerModel toModel({List<CustomerContactModel> contacts = const []}) {
@@ -36,7 +48,7 @@ extension CustomerRowMapper on db.Customer {
       latitude: latitude,
       longitude: longitude,
       creditLimit: creditLimit,
-      status: CustomerStatus.values.byName(status),
+      status: _statusOrNull(status),
       assignedRepId: assignedRepId,
       assignedRepName: assignedRepName,
       updatedAt: updatedAt,
@@ -69,13 +81,13 @@ extension CustomerModelMapper on CustomerModel {
       address: address,
       province: province,
       district: district,
-      territory: territory,
-      latitude: latitude,
-      longitude: longitude,
+      territory: Value(territory),
+      latitude: Value(latitude),
+      longitude: Value(longitude),
       creditLimit: creditLimit,
-      status: status.name,
-      assignedRepId: assignedRepId,
-      assignedRepName: assignedRepName,
+      status: Value(status?.name),
+      assignedRepId: Value(assignedRepId),
+      assignedRepName: Value(assignedRepName),
       updatedAt: updatedAt,
       originLeadId: Value(originLeadId),
       productsPurchased: Value(productsPurchased.join(_kProductsSeparator)),

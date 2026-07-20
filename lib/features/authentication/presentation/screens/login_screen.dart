@@ -85,59 +85,60 @@ class _LoginScreenState extends State<LoginScreen> {
         body: Stack(
           children: [
             const Positioned.fill(child: AuroraBackground()),
-          SafeArea(
-            child: Column(
-              children: [
-                Expanded(
-                  child: Center(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 16),
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 420),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            // Centered Header Section (Logo, Title, Subtitle)
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                const _Brand(),
-                                const SizedBox(height: 28),
-                                Text(
-                                  'auth.welcome_back'.tr,
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color:
-                                        Theme.of(context).colorScheme.onSurface,
-                                    fontSize: 30,
-                                    fontWeight: FontWeight.w900,
-                                    height: 1.1,
+            SafeArea(
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Center(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 16),
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 420),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              // Centered Header Section (Logo, Title, Subtitle)
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  const _Brand(),
+                                  const SizedBox(height: 28),
+                                  Text(
+                                    'auth.welcome_back'.tr,
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface,
+                                      fontSize: 30,
+                                      fontWeight: FontWeight.w900,
+                                      height: 1.1,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'auth.sign_in_subtitle'.tr,
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                      color: context.appColors.textSecondary,
-                                      fontSize: 15),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 24),
-                            GlassCard(child: _form()),
-                          ],
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'auth.sign_in_subtitle'.tr,
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                        color: context.appColors.textSecondary,
+                                        fontSize: 15),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 24),
+                              GlassCard(child: _form()),
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-                // Versioning signature aligned perfectly at the bottom edge
-                const VersionFooter(),
-              ],
+                  // Versioning signature aligned perfectly at the bottom edge
+                  const VersionFooter(),
+                ],
+              ),
             ),
-          ),
           ],
         ),
       ),
@@ -182,7 +183,8 @@ class _LoginScreenState extends State<LoginScreen> {
           Align(
             alignment: Alignment.centerRight,
             child: TextButton(
-              onPressed: () => Navigator.of(context).pushNamed(Static.forgotPassword),
+              onPressed: () =>
+                  Navigator.of(context).pushNamed(Static.forgotPassword),
               child: Text('auth.forgot_password'.tr,
                   style: TextStyle(
                       color: context.appColors.info,

@@ -14,19 +14,31 @@ extension CustomerStatusL10n on CustomerStatus {
       };
 }
 
+/// Status pill for a customer.
+///
+/// [status] is nullable because the SAP business-partner payload carries no
+/// CRM status (`SapAPI_Technical_Document_v1_BP.docx` §5.2), so a SAP-synced
+/// customer legitimately has none.
+///
+/// An unknown status renders a neutral "—" pill rather than defaulting to
+/// `active`. Defaulting would be actively dangerous here: it would show a
+/// customer on credit hold as tradeable, which is a commercial decision made on
+/// false information.
 class CustomerStatusBadge extends StatelessWidget {
   const CustomerStatusBadge({super.key, required this.status});
-  final CustomerStatus status;
+  final CustomerStatus? status;
 
   Color _color(ColorScheme scheme, AppThemeColors colors) => switch (status) {
         CustomerStatus.active => colors.success,
         CustomerStatus.dormant => colors.textSecondary,
         CustomerStatus.creditHold => scheme.error,
+        null => colors.textSecondary,
       };
 
   @override
   Widget build(BuildContext context) {
     final color = _color(Theme.of(context).colorScheme, context.appColors);
+    final label = status?.localizedLabel ?? '—';
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
@@ -34,7 +46,7 @@ class CustomerStatusBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
-        status.localizedLabel,
+        label,
         style:
             TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w700),
       ),

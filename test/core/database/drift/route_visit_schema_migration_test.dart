@@ -26,9 +26,13 @@ void main() {
     setUp(() => db = AppDatabase(NativeDatabase.memory()));
     tearDown(() => db.close());
 
-    test('schema version is 8', () async {
-      expect(db.schemaVersion, 8);
-      expect(kCurrentSchemaVersion, 8);
+    // Deliberately a literal, not `kCurrentSchemaVersion` on both sides: this
+    // assertion exists to make a version bump a conscious act. Bumped to 9 by
+    // the SAP customer integration, which relaxed the six `customers` columns
+    // the business-partner payload cannot populate.
+    test('schema version is 9', () async {
+      expect(db.schemaVersion, 9);
+      expect(kCurrentSchemaVersion, 9);
     });
 
     test('every ported table is created', () async {
@@ -302,7 +306,7 @@ void main() {
       expect(tables, containsAll(['routes', 'route_stops', 'visit_check_ins']));
       expect(
         await db.appMetadataDao.getValue(SchemaMetadataKeys.schemaVersion),
-        '8',
+        '9',
       );
       expect(
         await db.appMetadataDao.getValue(SchemaMetadataKeys.lastMigratedFrom),

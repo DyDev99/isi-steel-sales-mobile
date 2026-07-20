@@ -457,7 +457,8 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                             onToggleFavorite: _toggleFavorite,
                             onToggleExpanded: _toggleExpanded,
                             height: 280,
-                            hasActiveAttributeFilter: filter.hasActiveAttributes,
+                            hasActiveAttributeFilter:
+                                filter.hasActiveAttributes,
                             quantity: _quantity.toDouble(),
                             unit: _selectedUnit,
                           ),

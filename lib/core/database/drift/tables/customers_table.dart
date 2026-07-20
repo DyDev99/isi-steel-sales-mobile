@@ -26,13 +26,31 @@ class Customers extends Table {
   TextColumn get address => text()();
   TextColumn get province => text()();
   TextColumn get district => text()();
-  TextColumn get territory => text()();
-  RealColumn get latitude => real()();
-  RealColumn get longitude => real()();
+
+  // ── SAP-unavailable attributes (schema v9) ──────────────────────────
+  // The SAP business-partner payload does not carry these. `GetDetail`/
+  // `GetPaging` return customer number, names, sales area, address, phone,
+  // payment terms, credit limit and sales employee — there is no geolocation,
+  // no CRM-style status, and no territory in the app's sense of the word
+  // (`SapAPI_Technical_Document_v1_BP.docx` §5.2).
+  //
+  // They were `NOT NULL`, which was tenable only while the sole writer was a
+  // mock that invented values. Against the real customer master a mapper cannot
+  // populate them, and the alternatives were both worse: writing sentinel
+  // coordinates would place every customer at 0°,0° on the map, and dropping
+  // the columns would discard data the route/visit features do use once it has
+  // been captured by other means.
+  //
+  // Nullable states the truth — "SAP has not told us" — and lets the UI render
+  // an explicit unknown instead of a plausible-looking lie.
+  TextColumn get territory => text().nullable()();
+  RealColumn get latitude => real().nullable()();
+  RealColumn get longitude => real().nullable()();
+  TextColumn get status => text().nullable()();
+  TextColumn get assignedRepId => text().nullable()();
+  TextColumn get assignedRepName => text().nullable()();
+
   RealColumn get creditLimit => real()();
-  TextColumn get status => text()();
-  TextColumn get assignedRepId => text()();
-  TextColumn get assignedRepName => text()();
   DateTimeColumn get updatedAt => dateTime()();
   TextColumn get originLeadId => text().nullable()();
   TextColumn get productsPurchased => text().withDefault(const Constant(''))();

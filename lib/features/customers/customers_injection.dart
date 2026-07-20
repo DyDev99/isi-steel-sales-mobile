@@ -1,10 +1,15 @@
 import 'package:get_it/get_it.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
 import 'package:isi_steel_sales_mobile/core/network/network_info.dart';
+import 'package:isi_steel_sales_mobile/core/api_client/api_service/api_service.dart';
+import 'package:isi_steel_sales_mobile/core/di/injection_container.dart'
+    show sapBackend;
+import 'package:isi_steel_sales_mobile/features/customers/data/datasource/remote/sap/customer_sap_remote_datasource.dart';
+import 'package:isi_steel_sales_mobile/features/customers/data/datasource/remote/sap/customer_sap_remote_datasource_impl.dart';
+import 'package:isi_steel_sales_mobile/features/customers/data/datasource/remote/sap/sap_customer_sync_source.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/local/customer_drift_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/local/customer_local_data_source.dart';
-import 'package:isi_steel_sales_mobile/features/customers/data/remote/customer_remote_data_source.dart';
-import 'package:isi_steel_sales_mobile/features/customers/data/remote/mock_customer_remote_data_source.dart';
+import 'package:isi_steel_sales_mobile/features/customers/data/datasource/remote/customer_sync_source.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/repositories/customer_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/repositories/customer_sync_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/repositories/customer_repository.dart';
@@ -33,8 +38,20 @@ Future<void> registerCustomerFeature(GetIt sl) async {
   // ── Data sources ────────────────────────────────────────────────────
   sl.registerLazySingleton<CustomerLocalDataSource>(
       () => CustomerDriftLocalDataSource(sl<AppDatabase>().customerDao));
-  sl.registerLazySingleton<CustomerRemoteDataSource>(
-      () => MockCustomerRemoteDataSource());
+  // SAP is now the only source of customer rows. There is no mock branch and no
+  // `ENABLE_MOCK` check here any more: the in-memory generator was deleted, so
+  // the customer directory is whatever SAP returns and nothing else.
+  //
+  // The datasource depends on `ApiService`, never on Dio. The SAP instance is
+  // selected by name, so re-hosting the backend is a DI change the datasource
+  // cannot observe.
+  sl.registerLazySingleton<CustomerSapRemoteDataSource>(
+    () => CustomerSapRemoteDataSourceImpl(
+      sl<ApiService>(instanceName: sapBackend),
+    ),
+  );
+  sl.registerLazySingleton<CustomerSyncSource>(
+      () => SapCustomerSyncSource(sl<CustomerSapRemoteDataSource>()));
 
   // ── Repositories ────────────────────────────────────────────────────
   sl.registerLazySingleton<CustomerRepository>(

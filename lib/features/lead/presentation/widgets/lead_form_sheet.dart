@@ -45,10 +45,10 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
       TextEditingController(text: widget.existing?.assignedRepName);
   late final _revenue = TextEditingController(
       text: widget.existing?.expectedRevenue.toStringAsFixed(0) ?? '');
-  
+
   // State for the upgraded PhoneFormField
   PhoneNumber? _phoneValue;
-  
+
   late LeadSource _source =
       widget.existing?.leadSource ?? LeadSource.fieldVisit;
   late Priority _priority = widget.existing?.priority ?? Priority.medium;
@@ -73,14 +73,7 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
 
   @override
   void dispose() {
-    for (final c in [
-      _company,
-      _owner,
-      _address,
-      _territory,
-      _rep,
-      _revenue
-    ]) {
+    for (final c in [_company, _owner, _address, _territory, _rep, _revenue]) {
       c.dispose();
     }
     super.dispose();
@@ -90,7 +83,7 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final colors = context.appColors;
-    
+
     return Padding(
       // Handled using your custom context device insets helper extension
       padding: EdgeInsets.only(bottom: context.deviceInsets.keyboard),
@@ -121,9 +114,11 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
                                     fontWeight: FontWeight.w800)),
                             if (!_isEdit) ...[
                               const SizedBox(height: 4),
-                              Text("That's enough to start — don't grill a cold lead.",
+                              Text(
+                                  "That's enough to start — don't grill a cold lead.",
                                   style: TextStyle(
-                                      color: colors.textSecondary, fontSize: 12.5)),
+                                      color: colors.textSecondary,
+                                      fontSize: 12.5)),
                             ],
                           ],
                         ),
@@ -138,7 +133,7 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
                   ),
                   const SizedBox(height: 16),
                   _field('Company / Shop name', _company, required: true),
-                  
+
                   // Upgraded PhoneFormField styled natively to match theme specs
                   Padding(
                     padding: const EdgeInsets.only(bottom: 12),
@@ -168,7 +163,8 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
                             ],
                           ),
                         ),
-                        labelStyle: TextStyle(color: colors.textSecondary, fontSize: 13),
+                        labelStyle: TextStyle(
+                            color: colors.textSecondary, fontSize: 13),
                         filled: true,
                         fillColor: colors.card,
                         border: OutlineInputBorder(
@@ -182,7 +178,7 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
                       ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 4),
                   Text('Interested products (optional)',
                       style: TextStyle(
@@ -364,7 +360,7 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
     if (!_formKey.currentState!.validate()) return;
     final revenue = double.tryParse(_revenue.text.trim()) ?? 0;
     final base = widget.existing;
-    
+
     // Extract format option string from PhoneNumber configuration model
     final phoneString = _phoneValue?.international ?? '';
 

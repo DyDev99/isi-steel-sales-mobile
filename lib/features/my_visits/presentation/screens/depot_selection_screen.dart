@@ -131,7 +131,10 @@ class _ShopTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
-    final subtitle = [shop.ownerName, shop.district, shop.territory]
+    // `territory` is null for SAP-synced customers; `whereType` drops it so the
+    // subtitle simply omits the segment rather than rendering "null".
+    final subtitle = <String?>[shop.ownerName, shop.district, shop.territory]
+        .whereType<String>()
         .where((s) => s.isNotEmpty)
         .join(' · ');
     return InkWell(

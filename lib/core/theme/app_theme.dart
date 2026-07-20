@@ -16,7 +16,6 @@ class AppTheme {
   AppTheme._();
 
   static final Map<String, ThemeData> _cache = {};
-  
 
   /// Light [ThemeData] for [fontFamily]. Cached.
   static ThemeData light(String fontFamily) =>
@@ -40,21 +39,22 @@ class AppTheme {
     // tertiary, outline, ...) that no screen currently overrides; only the
     // slots the app actively renders through are pinned to real design tokens
     // so `Theme.of(context).colorScheme` resolves to them.
- // ── Change this block inside _build(...) ──
-      final colorScheme = ColorScheme.fromSeed(
-        seedColor: tokens.primary, // Use tokens.primary instead of AppColors.primary
-        brightness: brightness,
-      ).copyWith(
-        primary: tokens.primary,
-        onPrimary: tokens.onPrimary,
-        secondary: tokens.secondary,
-        onSecondary: tokens.onPrimary,
-        surface: tokens.surface,
-        onSurface: tokens.textPrimary,
-        error: tokens.error,
-        onError: tokens.onError,
-        outline: tokens.border, // Switch from context.appColors to tokens.border
-      );
+    // ── Change this block inside _build(...) ──
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor:
+          tokens.primary, // Use tokens.primary instead of AppColors.primary
+      brightness: brightness,
+    ).copyWith(
+      primary: tokens.primary,
+      onPrimary: tokens.onPrimary,
+      secondary: tokens.secondary,
+      onSecondary: tokens.onPrimary,
+      surface: tokens.surface,
+      onSurface: tokens.textPrimary,
+      error: tokens.error,
+      onError: tokens.onError,
+      outline: tokens.border, // Switch from context.appColors to tokens.border
+    );
 
     return ThemeData(
       useMaterial3: true,
@@ -62,8 +62,8 @@ class AppTheme {
       // Global font family — every screen, dialog, and Material widget inherits
       // it from here unless a widget explicitly overrides fontFamily.
       fontFamily: fontFamily,
-      textTheme: AppTypography.textTheme(tokens.textPrimary,
-          fontFamily: fontFamily),
+      textTheme:
+          AppTypography.textTheme(tokens.textPrimary, fontFamily: fontFamily),
       colorScheme: colorScheme,
       scaffoldBackgroundColor: tokens.scaffoldBackground,
       // Semantic tokens for the app's custom surfaces (used by the theme UI now,

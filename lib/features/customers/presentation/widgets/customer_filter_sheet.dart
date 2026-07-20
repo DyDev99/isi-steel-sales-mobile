@@ -160,8 +160,7 @@ class _CustomerFilterSheetState extends State<_CustomerFilterSheet> {
               ? scheme.primary.withValues(alpha: 0.16)
               : colors.surfaceSoft,
           borderRadius: BorderRadius.circular(20),
-          border:
-              Border.all(color: selected ? scheme.primary : colors.border),
+          border: Border.all(color: selected ? scheme.primary : colors.border),
         ),
         child: Text(
           label,

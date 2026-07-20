@@ -20,7 +20,8 @@ class ProfileHeader extends StatelessWidget {
     final colors = context.appColors;
 
     // 1. FIXED URL (Stripped formatting breaks and spaces)
-    const defaultAvatarUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSNjUdsOFxJmaz8TZrILnv6OrfDw86WBWVQUkwMUKCakA&s=10';
+    const defaultAvatarUrl =
+        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSNjUdsOFxJmaz8TZrILnv6OrfDw86WBWVQUkwMUKCakA&s=10';
     final imageUrl = profile.avatarUrl ?? defaultAvatarUrl;
 
     return Column(
@@ -32,7 +33,7 @@ class ProfileHeader extends StatelessWidget {
             color: colors.surfaceStrong,
             shape: BoxShape.circle,
             border: Border.all(
-              color: scheme.primary.withValues(alpha: 0.4), 
+              color: scheme.primary.withValues(alpha: 0.4),
               width: 2,
             ),
           ),

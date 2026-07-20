@@ -17,14 +17,14 @@ class CustomerModel extends Customer {
     required super.address,
     required super.province,
     required super.district,
-    required super.territory,
-    required super.latitude,
-    required super.longitude,
     required super.creditLimit,
-    required super.status,
-    required super.assignedRepId,
-    required super.assignedRepName,
     required super.updatedAt,
+    super.territory,
+    super.latitude,
+    super.longitude,
+    super.status,
+    super.assignedRepId,
+    super.assignedRepName,
     super.email,
     super.whatsapp,
     super.originLeadId,
@@ -39,6 +39,21 @@ class CustomerModel extends Customer {
 
   final bool deleted;
 
+  /// Parses a persisted/remote status name, tolerating both absence and an
+  /// unrecognised value.
+  ///
+  /// `CustomerStatus.values.byName` throws on an unknown name, which would turn
+  /// one unexpected string from SAP into a crash that takes out the whole sync
+  /// page. Returning null degrades to "status unknown" for that record instead
+  /// — the same state a record with no status at all is already in.
+  static CustomerStatus? _statusOrNull(String? name) {
+    if (name == null || name.isEmpty) return null;
+    for (final status in CustomerStatus.values) {
+      if (status.name == name) return status;
+    }
+    return null;
+  }
+
   factory CustomerModel.fromJson(DataMap json) => CustomerModel(
         id: json['id'] as String,
         sapCustomerId: json['sapCustomerId'] as String,
@@ -51,13 +66,13 @@ class CustomerModel extends Customer {
         address: json['address'] as String,
         province: json['province'] as String,
         district: json['district'] as String,
-        territory: json['territory'] as String,
-        latitude: (json['latitude'] as num).toDouble(),
-        longitude: (json['longitude'] as num).toDouble(),
-        creditLimit: (json['creditLimit'] as num).toDouble(),
-        status: CustomerStatus.values.byName(json['status'] as String),
-        assignedRepId: json['assignedRepId'] as String,
-        assignedRepName: json['assignedRepName'] as String,
+        territory: json['territory'] as String?,
+        latitude: (json['latitude'] as num?)?.toDouble(),
+        longitude: (json['longitude'] as num?)?.toDouble(),
+        creditLimit: (json['creditLimit'] as num?)?.toDouble() ?? 0,
+        status: _statusOrNull(json['status'] as String?),
+        assignedRepId: json['assignedRepId'] as String?,
+        assignedRepName: json['assignedRepName'] as String?,
         updatedAt: DateTime.parse(json['updatedAt'] as String),
         originLeadId: json['originLeadId'] as String?,
         productsPurchased:
@@ -92,13 +107,13 @@ class CustomerModel extends Customer {
         address: row['address'] as String,
         province: row['province'] as String,
         district: row['district'] as String,
-        territory: row['territory'] as String,
-        latitude: (row['latitude'] as num).toDouble(),
-        longitude: (row['longitude'] as num).toDouble(),
-        creditLimit: (row['credit_limit'] as num).toDouble(),
-        status: CustomerStatus.values.byName(row['status'] as String),
-        assignedRepId: row['assigned_rep_id'] as String,
-        assignedRepName: row['assigned_rep_name'] as String,
+        territory: row['territory'] as String?,
+        latitude: (row['latitude'] as num?)?.toDouble(),
+        longitude: (row['longitude'] as num?)?.toDouble(),
+        creditLimit: (row['credit_limit'] as num?)?.toDouble() ?? 0,
+        status: _statusOrNull(row['status'] as String?),
+        assignedRepId: row['assigned_rep_id'] as String?,
+        assignedRepName: row['assigned_rep_name'] as String?,
         updatedAt: DateTime.parse(row['updated_at'] as String),
         originLeadId: row['origin_lead_id'] as String?,
         productsPurchased: ((row['products_purchased'] as String?) ?? '')
@@ -133,7 +148,7 @@ class CustomerModel extends Customer {
         'latitude': latitude,
         'longitude': longitude,
         'credit_limit': creditLimit,
-        'status': status.name,
+        'status': status?.name,
         'assigned_rep_id': assignedRepId,
         'assigned_rep_name': assignedRepName,
         'updated_at': updatedAt.toIso8601String(),

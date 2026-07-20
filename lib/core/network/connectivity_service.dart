@@ -21,7 +21,7 @@ abstract interface class ReachabilityProbe {
   Future<bool> isReachable();
 }
 
-/// Probes the app's **own** API gateway ([Env.sapApiUrl]).
+/// Probes the app's **own** API gateway ([Env.sapBaseUrlPrimary]).
 ///
 /// ADR-005 is explicit that the probe must target our own infrastructure rather
 /// than a third-party endpoint, so "reachable" means "reachable enough to sync"
@@ -48,7 +48,7 @@ class HttpReachabilityProbe implements ReachabilityProbe {
   Future<bool> isReachable() async {
     try {
       final response = await _dio.head<void>(
-        Env.sapApiUrl,
+        Env.sapBaseUrlPrimary,
         options: Options(
           sendTimeout: _timeout,
           receiveTimeout: _timeout,

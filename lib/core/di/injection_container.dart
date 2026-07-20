@@ -14,6 +14,15 @@ import 'package:isi_steel_sales_mobile/core/database/hive/hive_service.dart';
 import 'package:isi_steel_sales_mobile/core/logging/app_logger.dart';
 import 'package:isi_steel_sales_mobile/core/network/connectivity_cubit.dart';
 import 'package:isi_steel_sales_mobile/core/network/connectivity_service.dart';
+import 'package:isi_steel_sales_mobile/core/api_client/api_service/api_service.dart';
+import 'package:isi_steel_sales_mobile/core/api_client/api_service/isi_api_service.dart';
+import 'package:isi_steel_sales_mobile/core/api_client/api_service/sap_api_service.dart';
+import 'package:isi_steel_sales_mobile/core/api_client/auth/token_manager.dart';
+import 'package:isi_steel_sales_mobile/core/api_client/config/api_config.dart';
+import 'package:isi_steel_sales_mobile/core/api_client/dio/dio_client.dart';
+import 'package:isi_steel_sales_mobile/core/api_client/dio/dio_factory.dart';
+import 'package:isi_steel_sales_mobile/core/api_client/network/network_checker.dart';
+import 'package:isi_steel_sales_mobile/core/api_client/security/secure_storage_service.dart';
 import 'package:isi_steel_sales_mobile/core/network/network_info.dart';
 import 'package:isi_steel_sales_mobile/core/services/pdf/pdf_assets.dart';
 import 'package:isi_steel_sales_mobile/core/services/pdf/pdf_file_service.dart';
@@ -34,6 +43,20 @@ import 'package:isi_steel_sales_mobile/features/settings/theme/theme_injection.d
 
 /// Global service locator.
 final GetIt sl = GetIt.instance;
+
+/// `get_it` instance names for the per-backend networking registrations.
+///
+/// Exported so a feature can resolve the right `ApiService`:
+/// `sl<ApiService>(instanceName: sapBackend)`.
+///
+/// Constants rather than bare strings — a typo'd instance name is a runtime
+/// lookup failure, not a compile error, and would surface as a crash on first
+/// use rather than at build time.
+const String sapBackend = _sapBackend;
+const String isiBackend = _isiBackend;
+
+const String _sapBackend = 'sap';
+const String _isiBackend = 'isi';
 
 /// Call once from `main()` before `runApp`.
 Future<void> initDependencies() async {
@@ -87,6 +110,76 @@ Future<void> initDependencies() async {
 
   sl.registerFactory<ConnectivityCubit>(() => ConnectivityCubit(sl()));
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
+
+  // ── Networking (core/api_client) ───────────────────────────────────
+  //
+  // One shared layer for every backend. Adding a service — notifications,
+  // uploads, analytics, reporting — is one `ApiConfig` plus one registration
+  // here; no interceptor, DioClient or ApiService change.
+  //
+  // Registered unconditionally so wiring is identical in mock and live builds:
+  // nothing connects until a datasource issues a call, and with ENABLE_MOCK=true
+  // none ever does.
+  sl.registerLazySingleton<SecureStorageService>(
+    () => FlutterSecureStorageService(sl<FlutterSecureStorage>()),
+  );
+  sl.registerLazySingleton<NetworkChecker>(
+    () => ConnectivityNetworkChecker(sl<ConnectivityService>()),
+  );
+
+  // SAP token manager. Its login Dio deliberately carries no auth interceptor —
+  // a 401 while signing in must not trigger another sign-in.
+  sl.registerLazySingleton<TokenManager>(
+    () => SapTokenManager(
+      loginDio: DioFactory.createLoginDio(
+        config: ApiConfig.sap,
+        networkChecker: sl(),
+      ),
+      storage: sl(),
+    ),
+    instanceName: _sapBackend,
+  );
+
+  // One DioClient per backend. The *class*, its interceptor stack and its error
+  // mapping are shared; only the configured instance differs, because the two
+  // backends have different hosts and different credentials — a single instance
+  // would attach the SAP bearer token to ISI requests.
+  sl.registerLazySingleton<DioClient>(
+    () => DioFactory.createSapClient(
+      networkChecker: sl(),
+      // Resolved lazily: the token manager and the Dio it attaches to are
+      // mutually dependent at construction time.
+      tokenManager: () => sl<TokenManager>(instanceName: _sapBackend),
+    ),
+    instanceName: _sapBackend,
+  );
+  sl.registerLazySingleton<DioClient>(
+    // No token manager yet: the ISI backend's auth contract is not specified in
+    // any document supplied, so nothing is guessed. Requests go out
+    // unauthenticated until it is defined.
+    () => DioFactory.createIsiClient(networkChecker: sl()),
+    instanceName: _isiBackend,
+  );
+
+  // Named services, so a datasource declares its backend in its constructor
+  // signature and wiring it to the wrong one fails to compile.
+  sl.registerLazySingleton<SapApiService>(
+    () => SapApiService(sl<DioClient>(instanceName: _sapBackend)),
+  );
+  sl.registerLazySingleton<IsiApiService>(
+    () => IsiApiService(sl<DioClient>(instanceName: _isiBackend)),
+  );
+
+  // Also exposed under the plain `ApiService` interface for datasources that
+  // are backend-agnostic. Same instances — not a second construction.
+  sl.registerLazySingleton<ApiService>(
+    () => sl<SapApiService>(),
+    instanceName: _sapBackend,
+  );
+  sl.registerLazySingleton<ApiService>(
+    () => sl<IsiApiService>(),
+    instanceName: _isiBackend,
+  );
   sl.registerLazySingleton<SessionManager>(() => SessionManager());
   sl.registerLazySingleton<AppPreferences>(
     () => AppPreferencesImpl(HiveService.cacheBox),

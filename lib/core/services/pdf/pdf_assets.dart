@@ -47,12 +47,12 @@ class PdfAssets {
       await rootBundle.load('assets/fonts/Inter/static/Inter_18pt-Bold.ttf'),
     );
     _khmer = pw.Font.ttf(
-      await rootBundle
-          .load('assets/fonts/kantumruy_5.2.5/ttf/kantumruy-khmer-400-normal.ttf'),
+      await rootBundle.load(
+          'assets/fonts/kantumruy_5.2.5/ttf/kantumruy-khmer-400-normal.ttf'),
     );
     _khmerBold = pw.Font.ttf(
-      await rootBundle
-          .load('assets/fonts/kantumruy_5.2.5/ttf/kantumruy-khmer-700-normal.ttf'),
+      await rootBundle.load(
+          'assets/fonts/kantumruy_5.2.5/ttf/kantumruy-khmer-700-normal.ttf'),
     );
 
     try {

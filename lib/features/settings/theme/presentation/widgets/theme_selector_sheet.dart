@@ -113,8 +113,7 @@ class _ThemeOptionTile extends StatelessWidget {
                   child: Icon(
                     mode.icon,
                     size: 22,
-                    color:
-                        selected ? scheme.primary : scheme.onSurfaceVariant,
+                    color: selected ? scheme.primary : scheme.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(width: 14),

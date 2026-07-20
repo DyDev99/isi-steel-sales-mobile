@@ -63,13 +63,13 @@ class _StockStatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppThemeColors>()!;
-    
+
     final (label, color) = !available
         ? ('orders.sales_order.stock_out'.tr, colors.success)
         : low
             ? ('orders.sales_order.stock_low'.tr, colors.warningAlt)
             : ('orders.sales_order.stock_in'.tr, colors.success);
-            
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(

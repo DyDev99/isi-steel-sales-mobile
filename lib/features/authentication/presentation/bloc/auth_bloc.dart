@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
@@ -20,6 +22,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     required Logout logout,
     required GetCurrentUser getCurrentUser,
     required SessionManager sessionManager,
+    Stream<void>? sessionExpiredStream,
   })  : _login = login,
         _logout = logout,
         _getCurrentUser = getCurrentUser,
@@ -31,12 +34,21 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     // is in flight are ignored rather than queued.
     on<LoginSubmittedEvent>(_onLogin, transformer: droppable());
     on<LogoutRequested>(_onLogout);
+    on<AuthSessionExpired>(_onSessionExpired);
+
+    // The auth interceptor discovers an unrenewable session mid-request and can
+    // neither navigate nor emit state. It notifies `TokenManager`, which emits
+    // here, giving the app exactly one place that reacts to expiry.
+    _expirySubscription = sessionExpiredStream?.listen(
+      (_) => add(const AuthSessionExpired()),
+    );
   }
 
   final Login _login;
   final Logout _logout;
   final GetCurrentUser _getCurrentUser;
   final SessionManager _session;
+  StreamSubscription<void>? _expirySubscription;
 
   /// Session restore on boot. A cached session promotes to [AuthenticatedState];
   /// its absence is *not* an error here — the user simply continues as a guest,
@@ -90,5 +102,26 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     await _logout(const NoParams());
     _session.clear();
     emit(const AuthGuestState());
+  }
+
+  /// The SAP token lapsed and could not be renewed.
+  ///
+  /// Clears local state exactly as a sign-out does, but emits
+  /// [AuthSessionExpiredState] so the UI can say *why* the user is back at the
+  /// login screen. Reporting this as an ordinary sign-out would look like the
+  /// app logged them out for no reason, mid-visit.
+  Future<void> _onSessionExpired(
+    AuthSessionExpired event,
+    Emitter<AuthState> emit,
+  ) async {
+    await _logout(const NoParams());
+    _session.clear();
+    emit(const AuthSessionExpiredState());
+  }
+
+  @override
+  Future<void> close() {
+    _expirySubscription?.cancel();
+    return super.close();
   }
 }

@@ -59,10 +59,12 @@ Future<void> seedMockRoutesForDates(
         contact: c.ownerName,
         phone: c.phone,
         address: c.address,
-        territory: c.territory,
+        territory: c.territory ?? '',
         territoryType: TerritoryType.urban,
-        latitude: c.latitude,
-        longitude: c.longitude,
+        // Debug seed only. A seeded customer without coordinates yields a stop
+        // at 0,0, which can never be checked into — see `route_drift_mappers`.
+        latitude: c.latitude ?? 0,
+        longitude: c.longitude ?? 0,
         geofenceRadiusOverride: 150,
       );
 

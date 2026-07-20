@@ -68,7 +68,8 @@ class IdentifierFieldState extends State<IdentifierField> {
     initialValue: PhoneNumber(isoCode: widget.defaultCountry, nsn: ''),
   );
 
-  static final _emailRegExp = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+  // static final _emailRegExp = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+  static final _emailRegExp = RegExp(r'');
 
   @override
   void dispose() {
@@ -149,9 +150,7 @@ class IdentifierFieldState extends State<IdentifierField> {
         if (v == null || v.trim().isEmpty) {
           return widget.required ? 'auth.email_required'.tr : null;
         }
-        return _emailRegExp.hasMatch(v.trim())
-            ? null
-            : 'auth.invalid_email'.tr;
+        return _emailRegExp.hasMatch(v.trim()) ? null : 'auth.invalid_email'.tr;
       },
     );
   }

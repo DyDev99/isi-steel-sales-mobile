@@ -31,3 +31,17 @@ final class LoginSubmittedEvent extends AuthEvent {
 final class LogoutRequested extends AuthEvent {
   const LogoutRequested();
 }
+
+/// The stored SAP session can no longer be renewed.
+///
+/// Pushed by `TokenManager.onSessionExpired`, not raised by any screen: the
+/// auth interceptor discovers this mid-request, deep below the widget tree, and
+/// an interceptor can neither navigate nor emit a state. Routing it through the
+/// bloc gives the app one place to react.
+///
+/// Distinct from [LogoutRequested] because the user did not ask for it: the UI
+/// should explain that the session ended rather than presenting a normal
+/// sign-out.
+final class AuthSessionExpired extends AuthEvent {
+  const AuthSessionExpired();
+}

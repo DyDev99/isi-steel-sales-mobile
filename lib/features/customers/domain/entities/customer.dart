@@ -6,7 +6,7 @@ import 'package:isi_steel_sales_mobile/features/customers/domain/entities/custom
 ///
 /// This is deliberately **not** a superset of `Lead` — it only ever comes
 /// into being via sync from the SAP customer master
-/// ([CustomerRemoteDataSource]/`upsertFromSapPayload`). There is no local
+/// ([CustomerSyncSource]/`upsertFromSapPayload`). There is no local
 /// constructor path for a rep to hand-create one; that would violate the
 /// Won -> Submitted -> HQ Approved -> SAP-created entry rule.
 /// [sapCustomerId] is non-nullable by design: a record cannot exist here
@@ -22,14 +22,14 @@ class Customer extends Equatable {
     required this.address,
     required this.province,
     required this.district,
-    required this.territory,
-    required this.latitude,
-    required this.longitude,
     required this.creditLimit,
-    required this.status,
-    required this.assignedRepId,
-    required this.assignedRepName,
     required this.updatedAt,
+    this.territory,
+    this.latitude,
+    this.longitude,
+    this.status,
+    this.assignedRepId,
+    this.assignedRepName,
     this.email,
     this.whatsapp,
     this.originLeadId,
@@ -52,17 +52,32 @@ class Customer extends Equatable {
   final String address;
   final String province;
   final String district;
-  final String territory;
-  final double latitude;
-  final double longitude;
 
   /// SAP/HQ-controlled financials — read-only on the mobile app.
   final double creditLimit;
-  final CustomerStatus status;
 
-  final String assignedRepId;
-  final String assignedRepName;
   final DateTime updatedAt;
+
+  // ── Not carried by the SAP business-partner payload ──────────────────
+  // Null means "SAP has not told us", not "zero" or "unassigned". The SAP
+  // customer master returns customer number, names, sales area, address, phone,
+  // payment terms, credit limit and sales employee — no geolocation, no
+  // CRM status, no territory in this app's sense
+  // (`SapAPI_Technical_Document_v1_BP.docx` §5.2).
+  //
+  // Callers must render an explicit unknown rather than substitute a default:
+  // a `latitude ?? 0` puts the customer in the Gulf of Guinea, and a
+  // `status ?? active` silently misreports a credit hold.
+
+  final String? territory;
+  final double? latitude;
+  final double? longitude;
+  final CustomerStatus? status;
+  final String? assignedRepId;
+  final String? assignedRepName;
+
+  /// Whether this record carries usable map coordinates.
+  bool get hasCoordinates => latitude != null && longitude != null;
 
   /// The Lead this customer originated from, kept for traceability only —
   /// there is no foreign key back to `leads` and nothing here ever writes

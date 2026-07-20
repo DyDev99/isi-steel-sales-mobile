@@ -319,7 +319,8 @@ class _MainShellState extends State<MainShell> {
             BlocProvider(create: (_) => sl<RouteDashboardCubit>()..load()),
             BlocProvider(create: (_) => sl<RouteSyncCubit>()),
           ],
-          child: wrapWithTopSpacing(const MyVisitsDashboardScreen()), // ✅ Replaced with a comma
+          child: wrapWithTopSpacing(
+              const MyVisitsDashboardScreen()), // ✅ Replaced with a comma
         );
       case 3:
         return wrapWithTopSpacing(

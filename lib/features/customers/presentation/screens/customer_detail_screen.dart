@@ -9,7 +9,6 @@ import 'package:isi_steel_sales_mobile/features/customers/domain/entities/custom
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer_activity_type.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customer_detail_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customer_detail_state.dart';
-import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_quick_actions.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_status_badge.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/credit_status.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/lead.dart';
@@ -78,8 +77,14 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
       address: customer.address,
       province: customer.province,
       district: customer.district,
-      latitude: customer.latitude,
-      longitude: customer.longitude,
+      // TODO(release-gate): `Lead` still requires a pin and a rep, but a
+      // SAP-synced customer carries neither (the business-partner payload has
+      // no geolocation and no CRM owner). Falling back to 0,0 puts the lead in
+      // the Gulf of Guinea on any map view. Either `Lead` gains nullable
+      // coordinates, or this flow must capture the rep's GPS at creation time —
+      // decided alongside the customer-coordinate ownership question.
+      latitude: customer.latitude ?? 0,
+      longitude: customer.longitude ?? 0,
       storefrontImageUrl: '',
       businessRegistrationNumber: '',
       taxId: '',
@@ -87,13 +92,13 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
       createdDate: DateTime.now(),
       expectedRevenue: estimatedValue,
       currentRevenue: 0,
-      assignedRepName: customer.assignedRepName,
+      assignedRepName: customer.assignedRepName ?? '',
       creditLimit: customer.creditLimit,
       creditStatus: CreditStatus.approved,
       stage: PipelineStage.opportunities,
       priority: Priority.medium,
       industry: 'Steel & Hardware',
-      territory: customer.territory,
+      territory: customer.territory ?? '',
       opportunityInfo: OpportunityInfo(estimatedValue: estimatedValue),
     );
 
@@ -265,23 +270,14 @@ class _Loaded extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
       children: [
-
-        _SalesInsightsSection(
-  customer: customer,
-  onCreateOpportunityForProduct: (productName) {
-    // This allows the rep to instantly convert a cross-sell insight into a workflow deal!
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Creating opportunity for $productName...')),
-    );
-  },
-),
-const SizedBox(height: 12),
-      //  CustomerQuickActions(
-       //   onCall: onCall,
-       //   onCreateOpportunity: onCreateOpportunity,
-         // onLogVisit: onLogVisit,
+        _SalesInsightsSection(customer: customer),
+        const SizedBox(height: 12),
+        //  CustomerQuickActions(
+        //   onCall: onCall,
+        //   onCreateOpportunity: onCreateOpportunity,
+        // onLogVisit: onLogVisit,
         //  onAddNote: onAddNote,
-      //  ),
+        //  ),
         const SizedBox(height: 16),
         _SectionCard(
           title: 'Overview',
@@ -323,7 +319,9 @@ const SizedBox(height: 12),
               _InfoRow(
                   icon: Icons.person_pin_circle_outlined,
                   label: 'Assigned Rep',
-                  value: customer.assignedRepName),
+                  // An em dash, not a blank: the row should read as "we do not
+                  // know" rather than looking like a rendering glitch.
+                  value: customer.assignedRepName ?? '—'),
               if (customer.openOpportunityCount > 0)
                 _InfoRow(
                     icon: Icons.trending_up_rounded,
@@ -528,8 +526,7 @@ class _EstimatedValueSheetState extends State<_EstimatedValueSheet> {
                 ),
                 child: Text('Create Opportunity',
                     style: TextStyle(
-                        color: scheme.onPrimary,
-                        fontWeight: FontWeight.w800)),
+                        color: scheme.onPrimary, fontWeight: FontWeight.w800)),
               ),
             ),
           ],
@@ -540,24 +537,28 @@ class _EstimatedValueSheetState extends State<_EstimatedValueSheet> {
 }
 
 class _SalesInsightsSection extends StatelessWidget {
-  const _SalesInsightsSection({
-    required this.customer,
-    required this.onCreateOpportunityForProduct,
-  });
+  const _SalesInsightsSection({required this.customer});
 
   final Customer customer;
-  final Function(String productName) onCreateOpportunityForProduct;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
 
-    // Derived or mocked sample cross-sell data based on your focus area
-    final crossSellOpportunities = [
-      'Galvanized Pipes',
-      'Roofing Screws',
-      'Steel Wire Mesh',
-    ];
+    // Cross-sell recommendations were a hardcoded three-product list here —
+    // the same 'Galvanized Pipes / Roofing Screws / Steel Wire Mesh' shown for
+    // every customer regardless of what they buy. Removed with the rest of the
+    // customer mock data.
+    //
+    // It was not merely cosmetic: each chip was tappable and created a real
+    // Lead via `onCreateOpportunityForProduct`, so a rep could raise a genuine
+    // opportunity off a recommendation nothing had computed.
+    //
+    // Restoring the section needs a real source — SAP's business-partner
+    // payload carries no purchase history or recommendation, so this would come
+    // from an ISI-side analytics endpoint or a local rule over the order
+    // history, surfaced through a usecase rather than assembled in `build()`
+    // (`docs/AI_ENGINEERING_PLAYBOOK.md` §1: no business logic in widgets).
 
     return GlassCard(
       padding: const EdgeInsets.all(16),
@@ -580,7 +581,7 @@ class _SalesInsightsSection extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          
+
           // Row 1: Key Performance Metrics
           Row(
             children: [
@@ -604,7 +605,7 @@ class _SalesInsightsSection extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          
+
           // Row 2: Currently Purchased Lines
           Text(
             'Active Product Mix',
@@ -621,7 +622,7 @@ class _SalesInsightsSection extends StatelessWidget {
               runSpacing: 6,
               children: [
                 for (final product in customer.productsPurchased)
-                  _InsightChip(label: product, isPurchased: true),
+                  _InsightChip(label: product),
               ],
             )
           else
@@ -629,12 +630,12 @@ class _SalesInsightsSection extends StatelessWidget {
               'No active product lines found.',
               style: TextStyle(color: colors.textSecondary, fontSize: 12),
             ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Row 3: Gap Analysis / White Spaces
           Text(
-            'Cross-Sell Gaps (Tap to target)',
+            'Cross-Sell Gaps',
             style: TextStyle(
               color: colors.textSecondary,
               fontSize: 11.5,
@@ -642,17 +643,9 @@ class _SalesInsightsSection extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: [
-              for (final opportunity in crossSellOpportunities)
-                _InsightChip(
-                  label: opportunity,
-                  isPurchased: false,
-                  onTap: () => onCreateOpportunityForProduct(opportunity),
-                ),
-            ],
+          Text(
+            'Not available yet.',
+            style: TextStyle(color: colors.textSecondary, fontSize: 12),
           ),
         ],
       ),
@@ -713,47 +706,32 @@ class _MetricTile extends StatelessWidget {
 }
 
 class _InsightChip extends StatelessWidget {
-  const _InsightChip({
-    required this.label,
-    required this.isPurchased,
-    this.onTap,
-  });
+  const _InsightChip({required this.label});
 
   final String label;
-  final bool isPurchased;
-  final VoidCallback? onTap;
+
+  // Previously had an `isPurchased` flag and an `onTap`, to render two variants:
+  // products the customer buys, and tappable "cross-sell gap" suggestions. The
+  // suggestions were hardcoded and their tap did nothing, so both are gone and
+  // this is now what it always actually was — a read-only label for a product
+  // the customer purchases.
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    final themeColor = isPurchased ? colors.info : colors.textSecondary;
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        decoration: BoxDecoration(
-          color: themeColor.withValues(alpha: isPurchased ? 0.14 : 0.06),
-          borderRadius: BorderRadius.circular(20),
-          border: isPurchased ? null : Border.all(color: colors.border, width: 0.5),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (!isPurchased) ...[
-              Icon(Icons.add_circle_outline_rounded, size: 12, color: themeColor),
-              const SizedBox(width: 4),
-            ],
-            Text(
-              label,
-              style: TextStyle(
-                color: isPurchased ? themeColor : colors.textPrimary,
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: colors.info.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: colors.info,
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );

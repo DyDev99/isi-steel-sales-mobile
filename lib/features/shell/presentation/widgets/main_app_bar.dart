@@ -96,7 +96,8 @@ class MainAppBar extends StatelessWidget {
                               Text(
                                 subLabel,
                                 style: TextStyle(
-                                  color: scheme.onSurface.withValues(alpha: 0.5),
+                                  color:
+                                      scheme.onSurface.withValues(alpha: 0.5),
                                   fontSize: 12.sp,
                                 ),
                               ),
@@ -109,7 +110,8 @@ class MainAppBar extends StatelessWidget {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: isSelected ? scheme.primary : colors.border,
+                              color:
+                                  isSelected ? scheme.primary : colors.border,
                               width: 2,
                             ),
                           ),
@@ -205,9 +207,8 @@ class MainAppBar extends StatelessWidget {
       width: double.infinity,
       decoration: BoxDecoration(
         color: isHome ? Colors.transparent : scheme.surface,
-        border: isHome
-            ? null
-            : Border(bottom: BorderSide(color: colors.border)),
+        border:
+            isHome ? null : Border(bottom: BorderSide(color: colors.border)),
       ),
       child: SafeArea(
         bottom: false,
@@ -237,8 +238,7 @@ class MainAppBar extends StatelessWidget {
                     ? Align(
                         alignment: Alignment.centerLeft,
                         child: ClipRRect(
-                          borderRadius:
-                              BorderRadius.circular(12.r),
+                          borderRadius: BorderRadius.circular(12.r),
                           child: Image.asset(
                             'assets/logos/isi_main_screen_logo.png',
                             height: 40.h,
@@ -284,7 +284,8 @@ class MainAppBar extends StatelessWidget {
                 CoachKeys.notification,
                 child: _NotificationBell(
                   isInverseColor: isHome,
-                  onTapOverride: onNotificationTap, // Pass the override callback down
+                  onTapOverride:
+                      onNotificationTap, // Pass the override callback down
                 ),
               ),
               SizedBox(width: 16.w),
@@ -299,7 +300,8 @@ class MainAppBar extends StatelessWidget {
                     height: 36.h,
                     decoration: BoxDecoration(
                       gradient: isHome ? null : AppColors.ctaGradient,
-                      color: isHome ? Colors.white.withValues(alpha: 0.2) : null,
+                      color:
+                          isHome ? Colors.white.withValues(alpha: 0.2) : null,
                       borderRadius: BorderRadius.circular(10.r),
                     ),
                     clipBehavior: Clip.antiAlias,
@@ -328,7 +330,7 @@ class MainAppBar extends StatelessWidget {
 class _NotificationBell extends StatelessWidget {
   const _NotificationBell({this.isInverseColor = false, this.onTapOverride});
   final bool isInverseColor;
-  
+
   /// If provided, bypasses the notification fetch and triggers this callback instead (e.g. for guest login)
   final VoidCallback? onTapOverride;
 
@@ -336,7 +338,7 @@ class _NotificationBell extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
 
-    // If an override is provided (like a login prompt for guests), render a simple icon 
+    // If an override is provided (like a login prompt for guests), render a simple icon
     // without triggering the FutureBuilder API call.
     if (onTapOverride != null) {
       return InkWell(

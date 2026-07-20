@@ -53,48 +53,47 @@ class ISISteelSalesApp extends StatelessWidget {
       // which keeps guests from being yanked around and avoids duplicate
       // redirects. This root only decides the *initial* route on (re)build.
       child: ScreenUtilInit(
-          designSize: const Size(390, 844),
-          // Full "restart" on language change: the ValueKey below is rebuilt
-          // with the new language code, which tears down and recreates the
-          // entire MaterialApp/Navigator so every screen — and all the data it
-          // loads — comes back up in the freshly selected language. Signed-in
-          // users and guests land straight back on the shell (not the splash)
-          // via the auth-aware initial route.
-          builder: (context, child) => BlocBuilder<LanguageCubit, Locale>(
-            builder: (context, locale) {
-              final authState = context.read<AuthBloc>().state;
-              final initialRoute = _resolveInitialRoute(authState);
-              final fontFamily = AppTypography.fontFamilyForLocale(locale);
-              // Only the theme *mode* drives this rebuild — the two ThemeData
-              // objects themselves are cached in AppTheme, so switching light
-              // ⇄ dark never re-derives a theme and the whole app restyles in
-              // one frame with no restart.
-              return BlocSelector<ThemeCubit, ThemeState, AppThemeMode>(
-                selector: (state) => state.mode,
-                builder: (context, themeMode) {
-                  return MaterialApp(
-                    key: ValueKey('lang_${locale.languageCode}'),
-                    navigatorKey: navigatorKey, // Assign the key here
-                    title: 'ISI Steel Sales',
-                    debugShowCheckedModeBanner: false,
-                    scrollBehavior: _AppScrollBehavior(),
-                    theme: AppTheme.light(fontFamily),
-                    darkTheme: AppTheme.dark(fontFamily),
-                    themeMode: _materialThemeMode(themeMode),
-                    locale: locale,
-                    initialRoute: initialRoute,
-                    // Build the initial route as a single page (avoids Flutter's
-                    // default '/'-splitting pulling in a not-found parent route).
-                    onGenerateInitialRoutes: (name) => [
-                      AppPages.onGenerateRoute(RouteSettings(name: name))
-                    ],
-                    onGenerateRoute: AppPages.onGenerateRoute,
-                  );
-                },
-              );
-            },
-          ),
+        designSize: const Size(390, 844),
+        // Full "restart" on language change: the ValueKey below is rebuilt
+        // with the new language code, which tears down and recreates the
+        // entire MaterialApp/Navigator so every screen — and all the data it
+        // loads — comes back up in the freshly selected language. Signed-in
+        // users and guests land straight back on the shell (not the splash)
+        // via the auth-aware initial route.
+        builder: (context, child) => BlocBuilder<LanguageCubit, Locale>(
+          builder: (context, locale) {
+            final authState = context.read<AuthBloc>().state;
+            final initialRoute = _resolveInitialRoute(authState);
+            final fontFamily = AppTypography.fontFamilyForLocale(locale);
+            // Only the theme *mode* drives this rebuild — the two ThemeData
+            // objects themselves are cached in AppTheme, so switching light
+            // ⇄ dark never re-derives a theme and the whole app restyles in
+            // one frame with no restart.
+            return BlocSelector<ThemeCubit, ThemeState, AppThemeMode>(
+              selector: (state) => state.mode,
+              builder: (context, themeMode) {
+                return MaterialApp(
+                  key: ValueKey('lang_${locale.languageCode}'),
+                  navigatorKey: navigatorKey, // Assign the key here
+                  title: 'ISI Steel Sales',
+                  debugShowCheckedModeBanner: false,
+                  scrollBehavior: _AppScrollBehavior(),
+                  theme: AppTheme.light(fontFamily),
+                  darkTheme: AppTheme.dark(fontFamily),
+                  themeMode: _materialThemeMode(themeMode),
+                  locale: locale,
+                  initialRoute: initialRoute,
+                  // Build the initial route as a single page (avoids Flutter's
+                  // default '/'-splitting pulling in a not-found parent route).
+                  onGenerateInitialRoutes: (name) =>
+                      [AppPages.onGenerateRoute(RouteSettings(name: name))],
+                  onGenerateRoute: AppPages.onGenerateRoute,
+                );
+              },
+            );
+          },
         ),
+      ),
     );
   }
 
@@ -111,7 +110,8 @@ class ISISteelSalesApp extends StatelessWidget {
   ///    directly, so toggling a language on that screen never flashes splash.
   String _resolveInitialRoute(AuthState authState) {
     final onboarded = GetIt.instance<AppPreferences>().isOnboardingComplete;
-    final resolved = authState is AuthenticatedState || authState is AuthGuestState;
+    final resolved =
+        authState is AuthenticatedState || authState is AuthGuestState;
     if (onboarded && resolved) return Static.main;
     if (!_splashShown) {
       _splashShown = true;

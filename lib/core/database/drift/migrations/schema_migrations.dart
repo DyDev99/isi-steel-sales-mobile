@@ -4,7 +4,7 @@ import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
 /// The single source of truth for the encrypted database's schema version.
 /// Bump this by exactly one whenever a schema change ships, and add the matching
 /// step to [_stepwiseMigrations].
-const int kCurrentSchemaVersion = 8;
+const int kCurrentSchemaVersion = 9;
 
 /// Keys under which the migrator records bookkeeping in `app_metadata`, so the
 /// on-device schema history is auditable and a failed/partial upgrade is
@@ -84,6 +84,18 @@ final Map<int, SchemaMigrationStep> _stepwiseMigrations =
     await m.createTable(db.visitNotes);
     await m.createTable(db.visitPhotos);
   },
+  // v9 (SAP customer integration): relax the six `customers` columns the SAP
+  // business-partner payload cannot populate.
+  //
+  // SQLite cannot drop a NOT NULL constraint in place, so `alterTable` recreates
+  // the table from the current Dart definition and copies every row across.
+  // This is a *widening* change — every existing value satisfies the new, looser
+  // constraint — so no row is lost and no value is rewritten. That property is
+  // what `schema_v9_migration_test.dart` asserts.
+  //
+  // No `columnTransformer` is supplied because no column changes type or
+  // meaning; only their nullability changes.
+  9: (m, db) async => m.alterTable(TableMigration(db.customers)),
 };
 
 /// Builds the [MigrationStrategy] for [db]: creates the schema on first run,

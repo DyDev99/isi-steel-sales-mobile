@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
@@ -55,13 +56,13 @@ void main() {
           address: 'St 271',
           province: 'PP',
           district: 'TK',
-          territory: 'T1',
-          latitude: 11.55,
-          longitude: 104.91,
+          territory: const Value('T1'),
+          latitude: const Value(11.55),
+          longitude: const Value(104.91),
           creditLimit: 5000,
-          status: 'active',
-          assignedRepId: 'rep-1',
-          assignedRepName: 'Rep One',
+          status: const Value('active'),
+          assignedRepId: const Value('rep-1'),
+          assignedRepName: const Value('Rep One'),
           updatedAt: visitDay,
         ),
       );

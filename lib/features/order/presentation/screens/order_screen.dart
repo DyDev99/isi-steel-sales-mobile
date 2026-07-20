@@ -15,7 +15,13 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quota
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/territory/territory_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/order_skeletons.dart';
 
-enum _OrderStatusFilter { all, salesOrder, quotations, pendingSyncing, completed }
+enum _OrderStatusFilter {
+  all,
+  salesOrder,
+  quotations,
+  pendingSyncing,
+  completed
+}
 
 /// Entry point into the order flow.
 class OrderScreen extends StatefulWidget {
@@ -74,39 +80,48 @@ class _OrderScreenState extends State<OrderScreen> {
                           children: [
                             _FilterSegment(
                               label: 'All',
-                              selected: _selectedFilter == _OrderStatusFilter.all,
-                              onTap: () => setState(() => _selectedFilter = _OrderStatusFilter.all),
+                              selected:
+                                  _selectedFilter == _OrderStatusFilter.all,
+                              onTap: () => setState(() =>
+                                  _selectedFilter = _OrderStatusFilter.all),
                             ),
                             const SizedBox(width: 8),
                             _FilterSegment(
                               label: 'Sales Order',
-                              selected: _selectedFilter == _OrderStatusFilter.salesOrder,
-                              onTap: () => setState(() => _selectedFilter = _OrderStatusFilter.salesOrder),
+                              selected: _selectedFilter ==
+                                  _OrderStatusFilter.salesOrder,
+                              onTap: () => setState(() => _selectedFilter =
+                                  _OrderStatusFilter.salesOrder),
                             ),
                             const SizedBox(width: 8),
                             _FilterSegment(
                               label: 'Quotations',
-                              selected: _selectedFilter == _OrderStatusFilter.quotations,
-                              onTap: () => setState(() => _selectedFilter = _OrderStatusFilter.quotations),
+                              selected: _selectedFilter ==
+                                  _OrderStatusFilter.quotations,
+                              onTap: () => setState(() => _selectedFilter =
+                                  _OrderStatusFilter.quotations),
                             ),
                             const SizedBox(width: 8),
                             _FilterSegment(
                               label: 'Pending Syncing',
-                              selected: _selectedFilter == _OrderStatusFilter.pendingSyncing,
-                              onTap: () => setState(() => _selectedFilter = _OrderStatusFilter.pendingSyncing),
+                              selected: _selectedFilter ==
+                                  _OrderStatusFilter.pendingSyncing,
+                              onTap: () => setState(() => _selectedFilter =
+                                  _OrderStatusFilter.pendingSyncing),
                             ),
                             const SizedBox(width: 8),
                             _FilterSegment(
                               label: 'Completed',
-                              selected: _selectedFilter == _OrderStatusFilter.completed,
-                              onTap: () => setState(() => _selectedFilter = _OrderStatusFilter.completed),
+                              selected: _selectedFilter ==
+                                  _OrderStatusFilter.completed,
+                              onTap: () => setState(() => _selectedFilter =
+                                  _OrderStatusFilter.completed),
                             ),
                           ],
                         ),
                       ),
                     ),
                     const SizedBox(width: 10),
-                  
                   ],
                 ),
               ),
@@ -143,12 +158,14 @@ class _OrderScreenState extends State<OrderScreen> {
                                             color: colors.textSecondary))),
                               );
                             }
-                            
+
                             // Map source arrays to UI abstraction union
                             var entries = <_OrderEntry>[
-                              for (final q in quotationSnapshot.data ?? const <Quotation>[])
+                              for (final q in quotationSnapshot.data ??
+                                  const <Quotation>[])
                                 _OrderEntry.quotation(q),
-                              for (final o in salesOrderSnapshot.data ?? const <SalesOrder>[])
+                              for (final o in salesOrderSnapshot.data ??
+                                  const <SalesOrder>[])
                                 _OrderEntry.salesOrder(o),
                             ]..sort((a, b) => b.date.compareTo(a.date));
 
@@ -159,12 +176,14 @@ class _OrderScreenState extends State<OrderScreen> {
                                   case _OrderStatusFilter.salesOrder:
                                     return entry.isSalesOrder;
                                   case _OrderStatusFilter.quotations:
-                                    return !entry.isSalesOrder && entry.isQuotationConverted;
+                                    return !entry.isSalesOrder &&
+                                        entry.isQuotationConverted;
                                   case _OrderStatusFilter.pendingSyncing:
-                                    return !entry.isSalesOrder && !entry.isQuotationConverted;
+                                    return !entry.isSalesOrder &&
+                                        !entry.isQuotationConverted;
                                   case _OrderStatusFilter.completed:
                                     // Complete states match items cleanly synced to a backend record (e.g. Sales Orders)
-                                    return entry.isSalesOrder; 
+                                    return entry.isSalesOrder;
                                   default:
                                     return true;
                                 }

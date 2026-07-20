@@ -58,8 +58,7 @@ class AppPreferencesImpl implements AppPreferences {
   String? get lastThemeMode => _box.get(_kLastThemeMode) as String?;
 
   @override
-  Future<void> setLastThemeMode(String mode) =>
-      _box.put(_kLastThemeMode, mode);
+  Future<void> setLastThemeMode(String mode) => _box.put(_kLastThemeMode, mode);
 
   @override
   int get themeVersion => _box.get(_kThemeVersion, defaultValue: 1) as int;

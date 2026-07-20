@@ -66,7 +66,10 @@ class UnitSelector extends StatelessWidget {
                       borderRadius: BorderRadius.circular(11),
                       boxShadow: [
                         BoxShadow(
-                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.25),
+                          color: Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withValues(alpha: 0.25),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -118,7 +121,9 @@ class _Segment extends StatelessWidget {
           style: TextStyle(
             fontSize: 13,
             fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-            color: selected ? Colors.white : theme.colorScheme.onSurface.withValues(alpha: 0.4),
+            color: selected
+                ? Colors.white
+                : theme.colorScheme.onSurface.withValues(alpha: 0.4),
           ),
           child: Text(label),
         ),

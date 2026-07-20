@@ -21,8 +21,7 @@ class ProductCardSkeleton extends StatelessWidget {
           children: [
             DecoratedBox(
               decoration: BoxDecoration(
-                  color: baseColor,
-                  borderRadius: BorderRadius.circular(10)),
+                  color: baseColor, borderRadius: BorderRadius.circular(10)),
               child: const SizedBox(width: _imageSize, height: _imageSize),
             ),
             const SizedBox(width: 10),
@@ -36,20 +35,29 @@ class ProductCardSkeleton extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SkeletonBox(width: 40, height: 10, radius: 4, color: baseColor),
+                        SkeletonBox(
+                            width: 40, height: 10, radius: 4, color: baseColor),
                         const SizedBox(height: 4),
-                        SkeletonBox(width: double.infinity, height: 13, radius: 4, color: baseColor),
+                        SkeletonBox(
+                            width: double.infinity,
+                            height: 13,
+                            radius: 4,
+                            color: baseColor),
                         const SizedBox(height: 4),
-                        SkeletonBox(width: 90, height: 11, radius: 4, color: baseColor),
+                        SkeletonBox(
+                            width: 90, height: 11, radius: 4, color: baseColor),
                         const SizedBox(height: 3),
-                        SkeletonBox(width: 70, height: 11, radius: 4, color: baseColor),
+                        SkeletonBox(
+                            width: 70, height: 11, radius: 4, color: baseColor),
                       ],
                     ),
                     Row(
                       children: [
-                        SkeletonBox(width: 46, height: 14, radius: 4, color: baseColor),
+                        SkeletonBox(
+                            width: 46, height: 14, radius: 4, color: baseColor),
                         const Spacer(),
-                        SkeletonBox(width: 28, height: 28, radius: 8, color: baseColor),
+                        SkeletonBox(
+                            width: 28, height: 28, radius: 8, color: baseColor),
                       ],
                     ),
                   ],

@@ -4,7 +4,8 @@ import 'package:isi_steel_sales_mobile/core/utils/colors.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/glass_card.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/lead.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/pipeline_stage.dart';
-import 'package:isi_steel_sales_mobile/features/lead/presentation/widgets/lead_card.dart' show LeadCardAction;
+import 'package:isi_steel_sales_mobile/features/lead/presentation/widgets/lead_card.dart'
+    show LeadCardAction;
 import 'package:isi_steel_sales_mobile/features/lead/presentation/widgets/due_badge.dart';
 
 /// The specific card implementation displayed on the pipeline board sections.
@@ -31,13 +32,15 @@ class LeadPipelineCard extends StatelessWidget {
 
     // Standardizes fallback count to 2 to guarantee visual design layout validation
     final displayDueCount = dueCount ?? 2;
-    
+
     // FIXED: Changed from inner scope getter to local variable assignment
     final hasPhone = lead.phone.trim().isNotEmpty;
 
     final infoChips = <Widget>[
       if (lead.ownerName.trim().isNotEmpty)
-        Flexible(child: _MiniInfo(icon: Icons.person_outline_rounded, text: lead.ownerName)),
+        Flexible(
+            child: _MiniInfo(
+                icon: Icons.person_outline_rounded, text: lead.ownerName)),
       if (hasPhone)
         Flexible(child: _MiniInfo(icon: Icons.call_outlined, text: lead.phone)),
     ];
@@ -50,7 +53,8 @@ class LeadPipelineCard extends StatelessWidget {
       // Margin clearance vectors prevent overlapping text blocks across structural list grids
       margin: const EdgeInsets.only(top: 6, right: 6),
       child: Stack(
-        clipBehavior: Clip.none, // Empowers the corner badge layout to break out past margins safely
+        clipBehavior: Clip
+            .none, // Empowers the corner badge layout to break out past margins safely
         children: [
           // Base Card Layer Blueprint
           ClipRRect(
@@ -70,7 +74,8 @@ class LeadPipelineCard extends StatelessWidget {
                         children: [
                           Expanded(
                             child: Padding(
-                              padding: const EdgeInsets.only(right: 28), // Safe border clear path zone
+                              padding: const EdgeInsets.only(
+                                  right: 28), // Safe border clear path zone
                               child: Text(
                                 lead.companyName,
                                 maxLines: 2,
@@ -89,14 +94,27 @@ class LeadPipelineCard extends StatelessWidget {
                             child: PopupMenuButton<LeadCardAction>(
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(),
-                              icon: Icon(Icons.more_vert_rounded, color: colors.textSecondary, size: 18),
+                              icon: Icon(Icons.more_vert_rounded,
+                                  color: colors.textSecondary, size: 18),
                               color: colors.surfaceSoft,
                               onSelected: onAction,
                               itemBuilder: (context) => [
-                                const PopupMenuItem(value: LeadCardAction.view, child: Text('View', style: TextStyle(fontSize: 12))),
-                                const PopupMenuItem(value: LeadCardAction.edit, child: Text('Edit', style: TextStyle(fontSize: 12))),
-                                const PopupMenuItem(value: LeadCardAction.move, child: Text('Move', style: TextStyle(fontSize: 12))),
-                                const PopupMenuItem(value: LeadCardAction.delete, child: Text('Delete', style: TextStyle(fontSize: 12))),
+                                const PopupMenuItem(
+                                    value: LeadCardAction.view,
+                                    child: Text('View',
+                                        style: TextStyle(fontSize: 12))),
+                                const PopupMenuItem(
+                                    value: LeadCardAction.edit,
+                                    child: Text('Edit',
+                                        style: TextStyle(fontSize: 12))),
+                                const PopupMenuItem(
+                                    value: LeadCardAction.move,
+                                    child: Text('Move',
+                                        style: TextStyle(fontSize: 12))),
+                                const PopupMenuItem(
+                                    value: LeadCardAction.delete,
+                                    child: Text('Delete',
+                                        style: TextStyle(fontSize: 12))),
                               ],
                             ),
                           ),
@@ -117,12 +135,14 @@ class LeadPipelineCard extends StatelessWidget {
                       ],
 
                       // Financial Valuation Metrics Rows
-                      if (revenue > 0 || lead.leadSource.label.trim().isNotEmpty) ...[
+                      if (revenue > 0 ||
+                          lead.leadSource.label.trim().isNotEmpty) ...[
                         const SizedBox(height: 8),
                         Row(
                           children: [
                             if (revenue > 0) ...[
-                              Icon(Icons.payments_outlined, size: 14, color: colors.info),
+                              Icon(Icons.payments_outlined,
+                                  size: 14, color: colors.info),
                               const SizedBox(width: 4),
                               Text(
                                 '\$${revenue.toStringAsFixed(0)}',
@@ -140,7 +160,9 @@ class LeadPipelineCard extends StatelessWidget {
                                   lead.leadSource.label,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(color: colors.textSecondary, fontSize: 11),
+                                  style: TextStyle(
+                                      color: colors.textSecondary,
+                                      fontSize: 11),
                                 ),
                               ),
                           ],
@@ -152,21 +174,24 @@ class LeadPipelineCard extends StatelessWidget {
                       Row(
                         children: [
                           if (lead.assignedRepName.trim().isNotEmpty) ...[
-                            Icon(Icons.badge_outlined, size: 13, color: colors.textSecondary),
+                            Icon(Icons.badge_outlined,
+                                size: 13, color: colors.textSecondary),
                             const SizedBox(width: 4),
                             Expanded(
                               child: Text(
                                 lead.assignedRepName,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: TextStyle(color: colors.textSecondary, fontSize: 11),
+                                style: TextStyle(
+                                    color: colors.textSecondary, fontSize: 11),
                               ),
                             ),
                           ] else
                             const Spacer(),
                           Text(
                             _formatDate(lead.createdDate),
-                            style: TextStyle(color: colors.textSecondary, fontSize: 11),
+                            style: TextStyle(
+                                color: colors.textSecondary, fontSize: 11),
                           ),
                         ],
                       ),

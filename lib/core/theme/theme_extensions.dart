@@ -82,8 +82,6 @@ class AppThemeColors extends ThemeExtension<AppThemeColors> {
         ),
       ];
 
-  
-
   /// Light-mode tokens — sourced from the existing [AppColors] so light mode is
   /// pixel-identical to today.
   static const AppThemeColors light = AppThemeColors(

@@ -4,26 +4,26 @@ import 'package:isi_steel_sales_mobile/core/network/network_info.dart';
 import 'package:isi_steel_sales_mobile/core/utils/result.dart';
 import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/local/customer_local_data_source.dart';
-import 'package:isi_steel_sales_mobile/features/customers/data/remote/customer_remote_data_source.dart';
+import 'package:isi_steel_sales_mobile/features/customers/data/datasource/remote/customer_sync_source.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer_sync_result.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/repositories/customer_sync_repository.dart';
 
 const _customersEntity = 'customers';
 
-/// The only repository allowed to touch [CustomerRemoteDataSource] — this
+/// The only repository allowed to touch [CustomerSyncSource] — this
 /// is where "a Customer row only ever comes from SAP" is enforced: nothing
 /// in this feature calls `_local.upsertCustomers` except the two sync
 /// methods below.
 class CustomerSyncRepositoryImpl implements CustomerSyncRepository {
   const CustomerSyncRepositoryImpl({
-    required CustomerRemoteDataSource remote,
+    required CustomerSyncSource remote,
     required CustomerLocalDataSource local,
     required NetworkInfo network,
   })  : _remote = remote,
         _local = local,
         _network = network;
 
-  final CustomerRemoteDataSource _remote;
+  final CustomerSyncSource _remote;
   final CustomerLocalDataSource _local;
   final NetworkInfo _network;
 

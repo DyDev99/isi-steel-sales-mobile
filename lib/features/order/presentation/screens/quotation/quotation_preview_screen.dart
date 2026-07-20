@@ -123,8 +123,7 @@ class _QuotationView extends StatelessWidget {
           customerPhone: customerPhone,
           customerAddress: customerAddress,
           createdDate: createdDate ?? DateTime.now(),
-          validUntil:
-              validUntil ?? DateTime.now().add(const Duration(days: 7)),
+          validUntil: validUntil ?? DateTime.now().add(const Duration(days: 7)),
           items: items,
           subtotal: subtotal,
           discount: discount,
@@ -173,8 +172,7 @@ class _QuotationView extends StatelessWidget {
                       ..showSnackBar(
                         SnackBar(
                           backgroundColor: themeColors.success,
-                          content:
-                              Text('orders.quotation.pdf.success'.tr),
+                          content: Text('orders.quotation.pdf.success'.tr),
                         ),
                       );
                   } else if (state is PdfGenerationFailed) {
@@ -193,14 +191,13 @@ class _QuotationView extends StatelessWidget {
                   return Row(
                     children: [
                       OutlinedButton(
-                        onPressed: isGenerating
-                            ? null
-                            : () => Navigator.pop(context),
+                        onPressed:
+                            isGenerating ? null : () => Navigator.pop(context),
                         style: OutlinedButton.styleFrom(
                           padding: EdgeInsets.symmetric(
                               vertical: 14.h, horizontal: 24.w),
-                          side: BorderSide(
-                              color: themeColors.border, width: 1.5),
+                          side:
+                              BorderSide(color: themeColors.border, width: 1.5),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14.r),
                           ),
@@ -217,15 +214,13 @@ class _QuotationView extends StatelessWidget {
                       SizedBox(width: 12.w),
                       Expanded(
                         child: InkWell(
-                          onTap:
-                              isGenerating ? null : () => _download(context),
+                          onTap: isGenerating ? null : () => _download(context),
                           borderRadius: BorderRadius.circular(14.r),
                           child: Container(
                             height: 52.h,
                             decoration: BoxDecoration(
                               color: isGenerating
-                                  ? colorScheme.primary
-                                      .withValues(alpha: 0.7)
+                                  ? colorScheme.primary.withValues(alpha: 0.7)
                                   : colorScheme.primary,
                               borderRadius: BorderRadius.circular(14.r),
                               boxShadow: [

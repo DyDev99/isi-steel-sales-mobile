@@ -48,9 +48,8 @@ InputDecoration vibeFieldDecoration(
   final colors = context.appColors;
   return InputDecoration(
     label: vibeFieldLabel(context, label, required: required),
-    prefixIcon: icon == null
-        ? null
-        : Icon(icon, color: colors.textSecondary, size: 20),
+    prefixIcon:
+        icon == null ? null : Icon(icon, color: colors.textSecondary, size: 20),
     suffixIcon: suffix,
     filled: true,
     fillColor: colors.surfaceStrong,

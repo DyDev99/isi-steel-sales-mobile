@@ -61,7 +61,9 @@ class _SalesOrderScreenState extends State<SalesOrderScreen> {
         iconTheme: IconThemeData(color: colors.textPrimary),
         title: Text('orders.sales_order.title'.tr,
             style: TextStyle(
-                color: colors.textPrimary, fontSize: 17, fontWeight: FontWeight.w800)),
+                color: colors.textPrimary,
+                fontSize: 17,
+                fontWeight: FontWeight.w800)),
       ),
       body: BlocBuilder<CartCubit, CartState>(
         builder: (context, state) {
@@ -161,7 +163,8 @@ class _Row extends StatelessWidget {
           Expanded(
             child: Text(label,
                 style: TextStyle(
-                    color: emphasize ? colors.textPrimary : colors.textSecondary,
+                    color:
+                        emphasize ? colors.textPrimary : colors.textSecondary,
                     fontSize: emphasize ? 15 : 13,
                     fontWeight: emphasize ? FontWeight.w800 : FontWeight.w500)),
           ),

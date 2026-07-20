@@ -164,9 +164,8 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen> {
             return BlocBuilder<VisitCubit, VisitState>(
               builder: (context, visitState) {
                 final photos = _photosForStop(visitState, stop.id);
-                final bool canSubmit = dynamicInsideGeofence &&
-                    photos.isNotEmpty &&
-                    !_submitting;
+                final bool canSubmit =
+                    dynamicInsideGeofence && photos.isNotEmpty && !_submitting;
 
                 return Column(
                   children: [

@@ -73,7 +73,9 @@ class _ShopListScreenState extends State<ShopListScreen> {
         iconTheme: IconThemeData(color: colors.textPrimary),
         title: Text(widget.territory,
             style: TextStyle(
-                color: colors.textPrimary, fontSize: 17, fontWeight: FontWeight.w800)),
+                color: colors.textPrimary,
+                fontSize: 17,
+                fontWeight: FontWeight.w800)),
       ),
       body: FutureBuilder<List<Customer>>(
         future: _shopsFuture,

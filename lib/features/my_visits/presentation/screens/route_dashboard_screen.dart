@@ -115,8 +115,7 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
     if (!context.mounted) return;
     context.read<RouteDashboardCubit>().load();
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-          content: Text('Seeded ISI Tower + 20/21 Jul mock routes')),
+      const SnackBar(content: Text('Seeded ISI Tower + 20/21 Jul mock routes')),
     );
   }
 
@@ -261,13 +260,13 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
               Text(
                 'No local data found.',
                 style: TextStyle(
-                    color: context.appColors.textPrimary, 
-                    fontSize: 14.sp, 
+                    color: context.appColors.textPrimary,
+                    fontSize: 14.sp,
                     fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 6.h),
               Text(
-                kDebugMode 
+                kDebugMode
                     ? 'Pull down to sync from remote or tap the bug icon floating button to seed a mock route.'
                     : 'Pull down to sync your route plan itinerary.',
                 textAlign: TextAlign.center,
@@ -303,8 +302,8 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
               Text(
                 'No customer visits for this date',
                 style: TextStyle(
-                    color: context.appColors.textPrimary, 
-                    fontSize: 14.sp, 
+                    color: context.appColors.textPrimary,
+                    fontSize: 14.sp,
                     fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 6.h),

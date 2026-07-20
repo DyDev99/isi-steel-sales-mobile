@@ -39,7 +39,8 @@ class CatalogSearchBar extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Icon(Icons.search_rounded, color: scheme.onSurface.withValues(alpha: 0.5), size: 20),
+                Icon(Icons.search_rounded,
+                    color: scheme.onSurface.withValues(alpha: 0.5), size: 20),
                 const SizedBox(width: 8),
                 Expanded(
                   child: TextField(
@@ -52,7 +53,9 @@ class CatalogSearchBar extends StatelessWidget {
                       isDense: true,
                       border: InputBorder.none,
                       hintText: 'orders.catalog.search_hint'.tr,
-                      hintStyle: TextStyle(color: scheme.onSurface.withValues(alpha: 0.4), fontSize: 13.5),
+                      hintStyle: TextStyle(
+                          color: scheme.onSurface.withValues(alpha: 0.4),
+                          fontSize: 13.5),
                     ),
                   ),
                 ),
@@ -79,7 +82,8 @@ class CatalogSearchBar extends StatelessWidget {
 }
 
 class _InlineIcon extends StatelessWidget {
-  const _InlineIcon({required this.icon, required this.tooltip, required this.onTap});
+  const _InlineIcon(
+      {required this.icon, required this.tooltip, required this.onTap});
   final IconData icon;
   final String tooltip;
   final VoidCallback onTap;
@@ -93,7 +97,12 @@ class _InlineIcon extends StatelessWidget {
         padding: const EdgeInsets.all(4),
         child: Tooltip(
           message: tooltip,
-          child: Icon(icon, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5), size: 20),
+          child: Icon(icon,
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.5),
+              size: 20),
         ),
       ),
     );
@@ -101,7 +110,8 @@ class _InlineIcon extends StatelessWidget {
 }
 
 class _SquareButton extends StatelessWidget {
-  const _SquareButton({required this.icon, required this.onTap, this.highlighted = false});
+  const _SquareButton(
+      {required this.icon, required this.onTap, this.highlighted = false});
   final IconData icon;
   final VoidCallback onTap;
   final bool highlighted;
@@ -119,11 +129,15 @@ class _SquareButton extends StatelessWidget {
         height: 44,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: highlighted ? scheme.primary.withValues(alpha: 0.15) : scheme.surface,
+          color: highlighted
+              ? scheme.primary.withValues(alpha: 0.15)
+              : scheme.surface,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: highlighted ? scheme.primary : context.appColors.border),
+          border: Border.all(
+              color: highlighted ? scheme.primary : context.appColors.border),
         ),
-        child: Icon(icon, color: highlighted ? scheme.primary : scheme.onSurface, size: 20),
+        child: Icon(icon,
+            color: highlighted ? scheme.primary : scheme.onSurface, size: 20),
       ),
     );
   }

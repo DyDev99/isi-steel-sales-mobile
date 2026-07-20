@@ -265,9 +265,7 @@ class QuotationPreviewSection extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w600,
-                    color: discount > 0
-                        ? colors.success
-                        : colors.textPrimary,
+                    color: discount > 0 ? colors.success : colors.textPrimary,
                   ),
                 ),
               ],

@@ -306,43 +306,43 @@ class $CustomersTable extends Customers
       const VerificationMeta('territory');
   @override
   late final GeneratedColumn<String> territory = GeneratedColumn<String>(
-      'territory', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+      'territory', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _latitudeMeta =
       const VerificationMeta('latitude');
   @override
   late final GeneratedColumn<double> latitude = GeneratedColumn<double>(
-      'latitude', aliasedName, false,
-      type: DriftSqlType.double, requiredDuringInsert: true);
+      'latitude', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
   static const VerificationMeta _longitudeMeta =
       const VerificationMeta('longitude');
   @override
   late final GeneratedColumn<double> longitude = GeneratedColumn<double>(
-      'longitude', aliasedName, false,
-      type: DriftSqlType.double, requiredDuringInsert: true);
+      'longitude', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+      'status', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _assignedRepIdMeta =
+      const VerificationMeta('assignedRepId');
+  @override
+  late final GeneratedColumn<String> assignedRepId = GeneratedColumn<String>(
+      'assigned_rep_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _assignedRepNameMeta =
+      const VerificationMeta('assignedRepName');
+  @override
+  late final GeneratedColumn<String> assignedRepName = GeneratedColumn<String>(
+      'assigned_rep_name', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _creditLimitMeta =
       const VerificationMeta('creditLimit');
   @override
   late final GeneratedColumn<double> creditLimit = GeneratedColumn<double>(
       'credit_limit', aliasedName, false,
       type: DriftSqlType.double, requiredDuringInsert: true);
-  static const VerificationMeta _statusMeta = const VerificationMeta('status');
-  @override
-  late final GeneratedColumn<String> status = GeneratedColumn<String>(
-      'status', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _assignedRepIdMeta =
-      const VerificationMeta('assignedRepId');
-  @override
-  late final GeneratedColumn<String> assignedRepId = GeneratedColumn<String>(
-      'assigned_rep_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _assignedRepNameMeta =
-      const VerificationMeta('assignedRepName');
-  @override
-  late final GeneratedColumn<String> assignedRepName = GeneratedColumn<String>(
-      'assigned_rep_name', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _updatedAtMeta =
       const VerificationMeta('updatedAt');
   @override
@@ -429,10 +429,10 @@ class $CustomersTable extends Customers
         territory,
         latitude,
         longitude,
-        creditLimit,
         status,
         assignedRepId,
         assignedRepName,
+        creditLimit,
         updatedAt,
         originLeadId,
         productsPurchased,
@@ -522,20 +522,30 @@ class $CustomersTable extends Customers
     if (data.containsKey('territory')) {
       context.handle(_territoryMeta,
           territory.isAcceptableOrUnknown(data['territory']!, _territoryMeta));
-    } else if (isInserting) {
-      context.missing(_territoryMeta);
     }
     if (data.containsKey('latitude')) {
       context.handle(_latitudeMeta,
           latitude.isAcceptableOrUnknown(data['latitude']!, _latitudeMeta));
-    } else if (isInserting) {
-      context.missing(_latitudeMeta);
     }
     if (data.containsKey('longitude')) {
       context.handle(_longitudeMeta,
           longitude.isAcceptableOrUnknown(data['longitude']!, _longitudeMeta));
-    } else if (isInserting) {
-      context.missing(_longitudeMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(_statusMeta,
+          status.isAcceptableOrUnknown(data['status']!, _statusMeta));
+    }
+    if (data.containsKey('assigned_rep_id')) {
+      context.handle(
+          _assignedRepIdMeta,
+          assignedRepId.isAcceptableOrUnknown(
+              data['assigned_rep_id']!, _assignedRepIdMeta));
+    }
+    if (data.containsKey('assigned_rep_name')) {
+      context.handle(
+          _assignedRepNameMeta,
+          assignedRepName.isAcceptableOrUnknown(
+              data['assigned_rep_name']!, _assignedRepNameMeta));
     }
     if (data.containsKey('credit_limit')) {
       context.handle(
@@ -544,28 +554,6 @@ class $CustomersTable extends Customers
               data['credit_limit']!, _creditLimitMeta));
     } else if (isInserting) {
       context.missing(_creditLimitMeta);
-    }
-    if (data.containsKey('status')) {
-      context.handle(_statusMeta,
-          status.isAcceptableOrUnknown(data['status']!, _statusMeta));
-    } else if (isInserting) {
-      context.missing(_statusMeta);
-    }
-    if (data.containsKey('assigned_rep_id')) {
-      context.handle(
-          _assignedRepIdMeta,
-          assignedRepId.isAcceptableOrUnknown(
-              data['assigned_rep_id']!, _assignedRepIdMeta));
-    } else if (isInserting) {
-      context.missing(_assignedRepIdMeta);
-    }
-    if (data.containsKey('assigned_rep_name')) {
-      context.handle(
-          _assignedRepNameMeta,
-          assignedRepName.isAcceptableOrUnknown(
-              data['assigned_rep_name']!, _assignedRepNameMeta));
-    } else if (isInserting) {
-      context.missing(_assignedRepNameMeta);
     }
     if (data.containsKey('updated_at')) {
       context.handle(_updatedAtMeta,
@@ -657,19 +645,19 @@ class $CustomersTable extends Customers
       district: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}district'])!,
       territory: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}territory'])!,
+          .read(DriftSqlType.string, data['${effectivePrefix}territory']),
       latitude: attachedDatabase.typeMapping
-          .read(DriftSqlType.double, data['${effectivePrefix}latitude'])!,
+          .read(DriftSqlType.double, data['${effectivePrefix}latitude']),
       longitude: attachedDatabase.typeMapping
-          .read(DriftSqlType.double, data['${effectivePrefix}longitude'])!,
+          .read(DriftSqlType.double, data['${effectivePrefix}longitude']),
+      status: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}status']),
+      assignedRepId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}assigned_rep_id']),
+      assignedRepName: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}assigned_rep_name']),
       creditLimit: attachedDatabase.typeMapping
           .read(DriftSqlType.double, data['${effectivePrefix}credit_limit'])!,
-      status: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}status'])!,
-      assignedRepId: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}assigned_rep_id'])!,
-      assignedRepName: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}assigned_rep_name'])!,
       updatedAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
       originLeadId: attachedDatabase.typeMapping
@@ -712,13 +700,13 @@ class Customer extends DataClass implements Insertable<Customer> {
   final String address;
   final String province;
   final String district;
-  final String territory;
-  final double latitude;
-  final double longitude;
+  final String? territory;
+  final double? latitude;
+  final double? longitude;
+  final String? status;
+  final String? assignedRepId;
+  final String? assignedRepName;
   final double creditLimit;
-  final String status;
-  final String assignedRepId;
-  final String assignedRepName;
   final DateTime updatedAt;
   final String? originLeadId;
   final String productsPurchased;
@@ -746,13 +734,13 @@ class Customer extends DataClass implements Insertable<Customer> {
       required this.address,
       required this.province,
       required this.district,
-      required this.territory,
-      required this.latitude,
-      required this.longitude,
+      this.territory,
+      this.latitude,
+      this.longitude,
+      this.status,
+      this.assignedRepId,
+      this.assignedRepName,
       required this.creditLimit,
-      required this.status,
-      required this.assignedRepId,
-      required this.assignedRepName,
       required this.updatedAt,
       this.originLeadId,
       required this.productsPurchased,
@@ -781,13 +769,25 @@ class Customer extends DataClass implements Insertable<Customer> {
     map['address'] = Variable<String>(address);
     map['province'] = Variable<String>(province);
     map['district'] = Variable<String>(district);
-    map['territory'] = Variable<String>(territory);
-    map['latitude'] = Variable<double>(latitude);
-    map['longitude'] = Variable<double>(longitude);
+    if (!nullToAbsent || territory != null) {
+      map['territory'] = Variable<String>(territory);
+    }
+    if (!nullToAbsent || latitude != null) {
+      map['latitude'] = Variable<double>(latitude);
+    }
+    if (!nullToAbsent || longitude != null) {
+      map['longitude'] = Variable<double>(longitude);
+    }
+    if (!nullToAbsent || status != null) {
+      map['status'] = Variable<String>(status);
+    }
+    if (!nullToAbsent || assignedRepId != null) {
+      map['assigned_rep_id'] = Variable<String>(assignedRepId);
+    }
+    if (!nullToAbsent || assignedRepName != null) {
+      map['assigned_rep_name'] = Variable<String>(assignedRepName);
+    }
     map['credit_limit'] = Variable<double>(creditLimit);
-    map['status'] = Variable<String>(status);
-    map['assigned_rep_id'] = Variable<String>(assignedRepId);
-    map['assigned_rep_name'] = Variable<String>(assignedRepName);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     if (!nullToAbsent || originLeadId != null) {
       map['origin_lead_id'] = Variable<String>(originLeadId);
@@ -828,13 +828,24 @@ class Customer extends DataClass implements Insertable<Customer> {
       address: Value(address),
       province: Value(province),
       district: Value(district),
-      territory: Value(territory),
-      latitude: Value(latitude),
-      longitude: Value(longitude),
+      territory: territory == null && nullToAbsent
+          ? const Value.absent()
+          : Value(territory),
+      latitude: latitude == null && nullToAbsent
+          ? const Value.absent()
+          : Value(latitude),
+      longitude: longitude == null && nullToAbsent
+          ? const Value.absent()
+          : Value(longitude),
+      status:
+          status == null && nullToAbsent ? const Value.absent() : Value(status),
+      assignedRepId: assignedRepId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(assignedRepId),
+      assignedRepName: assignedRepName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(assignedRepName),
       creditLimit: Value(creditLimit),
-      status: Value(status),
-      assignedRepId: Value(assignedRepId),
-      assignedRepName: Value(assignedRepName),
       updatedAt: Value(updatedAt),
       originLeadId: originLeadId == null && nullToAbsent
           ? const Value.absent()
@@ -873,13 +884,13 @@ class Customer extends DataClass implements Insertable<Customer> {
       address: serializer.fromJson<String>(json['address']),
       province: serializer.fromJson<String>(json['province']),
       district: serializer.fromJson<String>(json['district']),
-      territory: serializer.fromJson<String>(json['territory']),
-      latitude: serializer.fromJson<double>(json['latitude']),
-      longitude: serializer.fromJson<double>(json['longitude']),
+      territory: serializer.fromJson<String?>(json['territory']),
+      latitude: serializer.fromJson<double?>(json['latitude']),
+      longitude: serializer.fromJson<double?>(json['longitude']),
+      status: serializer.fromJson<String?>(json['status']),
+      assignedRepId: serializer.fromJson<String?>(json['assignedRepId']),
+      assignedRepName: serializer.fromJson<String?>(json['assignedRepName']),
       creditLimit: serializer.fromJson<double>(json['creditLimit']),
-      status: serializer.fromJson<String>(json['status']),
-      assignedRepId: serializer.fromJson<String>(json['assignedRepId']),
-      assignedRepName: serializer.fromJson<String>(json['assignedRepName']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       originLeadId: serializer.fromJson<String?>(json['originLeadId']),
       productsPurchased: serializer.fromJson<String>(json['productsPurchased']),
@@ -909,13 +920,13 @@ class Customer extends DataClass implements Insertable<Customer> {
       'address': serializer.toJson<String>(address),
       'province': serializer.toJson<String>(province),
       'district': serializer.toJson<String>(district),
-      'territory': serializer.toJson<String>(territory),
-      'latitude': serializer.toJson<double>(latitude),
-      'longitude': serializer.toJson<double>(longitude),
+      'territory': serializer.toJson<String?>(territory),
+      'latitude': serializer.toJson<double?>(latitude),
+      'longitude': serializer.toJson<double?>(longitude),
+      'status': serializer.toJson<String?>(status),
+      'assignedRepId': serializer.toJson<String?>(assignedRepId),
+      'assignedRepName': serializer.toJson<String?>(assignedRepName),
       'creditLimit': serializer.toJson<double>(creditLimit),
-      'status': serializer.toJson<String>(status),
-      'assignedRepId': serializer.toJson<String>(assignedRepId),
-      'assignedRepName': serializer.toJson<String>(assignedRepName),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'originLeadId': serializer.toJson<String?>(originLeadId),
       'productsPurchased': serializer.toJson<String>(productsPurchased),
@@ -942,13 +953,13 @@ class Customer extends DataClass implements Insertable<Customer> {
           String? address,
           String? province,
           String? district,
-          String? territory,
-          double? latitude,
-          double? longitude,
+          Value<String?> territory = const Value.absent(),
+          Value<double?> latitude = const Value.absent(),
+          Value<double?> longitude = const Value.absent(),
+          Value<String?> status = const Value.absent(),
+          Value<String?> assignedRepId = const Value.absent(),
+          Value<String?> assignedRepName = const Value.absent(),
           double? creditLimit,
-          String? status,
-          String? assignedRepId,
-          String? assignedRepName,
           DateTime? updatedAt,
           Value<String?> originLeadId = const Value.absent(),
           String? productsPurchased,
@@ -971,13 +982,16 @@ class Customer extends DataClass implements Insertable<Customer> {
         address: address ?? this.address,
         province: province ?? this.province,
         district: district ?? this.district,
-        territory: territory ?? this.territory,
-        latitude: latitude ?? this.latitude,
-        longitude: longitude ?? this.longitude,
+        territory: territory.present ? territory.value : this.territory,
+        latitude: latitude.present ? latitude.value : this.latitude,
+        longitude: longitude.present ? longitude.value : this.longitude,
+        status: status.present ? status.value : this.status,
+        assignedRepId:
+            assignedRepId.present ? assignedRepId.value : this.assignedRepId,
+        assignedRepName: assignedRepName.present
+            ? assignedRepName.value
+            : this.assignedRepName,
         creditLimit: creditLimit ?? this.creditLimit,
-        status: status ?? this.status,
-        assignedRepId: assignedRepId ?? this.assignedRepId,
-        assignedRepName: assignedRepName ?? this.assignedRepName,
         updatedAt: updatedAt ?? this.updatedAt,
         originLeadId:
             originLeadId.present ? originLeadId.value : this.originLeadId,
@@ -1015,8 +1029,6 @@ class Customer extends DataClass implements Insertable<Customer> {
       territory: data.territory.present ? data.territory.value : this.territory,
       latitude: data.latitude.present ? data.latitude.value : this.latitude,
       longitude: data.longitude.present ? data.longitude.value : this.longitude,
-      creditLimit:
-          data.creditLimit.present ? data.creditLimit.value : this.creditLimit,
       status: data.status.present ? data.status.value : this.status,
       assignedRepId: data.assignedRepId.present
           ? data.assignedRepId.value
@@ -1024,6 +1036,8 @@ class Customer extends DataClass implements Insertable<Customer> {
       assignedRepName: data.assignedRepName.present
           ? data.assignedRepName.value
           : this.assignedRepName,
+      creditLimit:
+          data.creditLimit.present ? data.creditLimit.value : this.creditLimit,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       originLeadId: data.originLeadId.present
           ? data.originLeadId.value
@@ -1070,10 +1084,10 @@ class Customer extends DataClass implements Insertable<Customer> {
           ..write('territory: $territory, ')
           ..write('latitude: $latitude, ')
           ..write('longitude: $longitude, ')
-          ..write('creditLimit: $creditLimit, ')
           ..write('status: $status, ')
           ..write('assignedRepId: $assignedRepId, ')
           ..write('assignedRepName: $assignedRepName, ')
+          ..write('creditLimit: $creditLimit, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('originLeadId: $originLeadId, ')
           ..write('productsPurchased: $productsPurchased, ')
@@ -1104,10 +1118,10 @@ class Customer extends DataClass implements Insertable<Customer> {
         territory,
         latitude,
         longitude,
-        creditLimit,
         status,
         assignedRepId,
         assignedRepName,
+        creditLimit,
         updatedAt,
         originLeadId,
         productsPurchased,
@@ -1137,10 +1151,10 @@ class Customer extends DataClass implements Insertable<Customer> {
           other.territory == this.territory &&
           other.latitude == this.latitude &&
           other.longitude == this.longitude &&
-          other.creditLimit == this.creditLimit &&
           other.status == this.status &&
           other.assignedRepId == this.assignedRepId &&
           other.assignedRepName == this.assignedRepName &&
+          other.creditLimit == this.creditLimit &&
           other.updatedAt == this.updatedAt &&
           other.originLeadId == this.originLeadId &&
           other.productsPurchased == this.productsPurchased &&
@@ -1165,13 +1179,13 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
   final Value<String> address;
   final Value<String> province;
   final Value<String> district;
-  final Value<String> territory;
-  final Value<double> latitude;
-  final Value<double> longitude;
+  final Value<String?> territory;
+  final Value<double?> latitude;
+  final Value<double?> longitude;
+  final Value<String?> status;
+  final Value<String?> assignedRepId;
+  final Value<String?> assignedRepName;
   final Value<double> creditLimit;
-  final Value<String> status;
-  final Value<String> assignedRepId;
-  final Value<String> assignedRepName;
   final Value<DateTime> updatedAt;
   final Value<String?> originLeadId;
   final Value<String> productsPurchased;
@@ -1198,10 +1212,10 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
     this.territory = const Value.absent(),
     this.latitude = const Value.absent(),
     this.longitude = const Value.absent(),
-    this.creditLimit = const Value.absent(),
     this.status = const Value.absent(),
     this.assignedRepId = const Value.absent(),
     this.assignedRepName = const Value.absent(),
+    this.creditLimit = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.originLeadId = const Value.absent(),
     this.productsPurchased = const Value.absent(),
@@ -1226,13 +1240,13 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
     required String address,
     required String province,
     required String district,
-    required String territory,
-    required double latitude,
-    required double longitude,
+    this.territory = const Value.absent(),
+    this.latitude = const Value.absent(),
+    this.longitude = const Value.absent(),
+    this.status = const Value.absent(),
+    this.assignedRepId = const Value.absent(),
+    this.assignedRepName = const Value.absent(),
     required double creditLimit,
-    required String status,
-    required String assignedRepId,
-    required String assignedRepName,
     required DateTime updatedAt,
     this.originLeadId = const Value.absent(),
     this.productsPurchased = const Value.absent(),
@@ -1253,13 +1267,7 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
         address = Value(address),
         province = Value(province),
         district = Value(district),
-        territory = Value(territory),
-        latitude = Value(latitude),
-        longitude = Value(longitude),
         creditLimit = Value(creditLimit),
-        status = Value(status),
-        assignedRepId = Value(assignedRepId),
-        assignedRepName = Value(assignedRepName),
         updatedAt = Value(updatedAt);
   static Insertable<Customer> custom({
     Expression<String>? id,
@@ -1276,10 +1284,10 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
     Expression<String>? territory,
     Expression<double>? latitude,
     Expression<double>? longitude,
-    Expression<double>? creditLimit,
     Expression<String>? status,
     Expression<String>? assignedRepId,
     Expression<String>? assignedRepName,
+    Expression<double>? creditLimit,
     Expression<DateTime>? updatedAt,
     Expression<String>? originLeadId,
     Expression<String>? productsPurchased,
@@ -1307,10 +1315,10 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
       if (territory != null) 'territory': territory,
       if (latitude != null) 'latitude': latitude,
       if (longitude != null) 'longitude': longitude,
-      if (creditLimit != null) 'credit_limit': creditLimit,
       if (status != null) 'status': status,
       if (assignedRepId != null) 'assigned_rep_id': assignedRepId,
       if (assignedRepName != null) 'assigned_rep_name': assignedRepName,
+      if (creditLimit != null) 'credit_limit': creditLimit,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (originLeadId != null) 'origin_lead_id': originLeadId,
       if (productsPurchased != null) 'products_purchased': productsPurchased,
@@ -1339,13 +1347,13 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
       Value<String>? address,
       Value<String>? province,
       Value<String>? district,
-      Value<String>? territory,
-      Value<double>? latitude,
-      Value<double>? longitude,
+      Value<String?>? territory,
+      Value<double?>? latitude,
+      Value<double?>? longitude,
+      Value<String?>? status,
+      Value<String?>? assignedRepId,
+      Value<String?>? assignedRepName,
       Value<double>? creditLimit,
-      Value<String>? status,
-      Value<String>? assignedRepId,
-      Value<String>? assignedRepName,
       Value<DateTime>? updatedAt,
       Value<String?>? originLeadId,
       Value<String>? productsPurchased,
@@ -1372,10 +1380,10 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
       territory: territory ?? this.territory,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
-      creditLimit: creditLimit ?? this.creditLimit,
       status: status ?? this.status,
       assignedRepId: assignedRepId ?? this.assignedRepId,
       assignedRepName: assignedRepName ?? this.assignedRepName,
+      creditLimit: creditLimit ?? this.creditLimit,
       updatedAt: updatedAt ?? this.updatedAt,
       originLeadId: originLeadId ?? this.originLeadId,
       productsPurchased: productsPurchased ?? this.productsPurchased,
@@ -1436,9 +1444,6 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
     if (longitude.present) {
       map['longitude'] = Variable<double>(longitude.value);
     }
-    if (creditLimit.present) {
-      map['credit_limit'] = Variable<double>(creditLimit.value);
-    }
     if (status.present) {
       map['status'] = Variable<String>(status.value);
     }
@@ -1447,6 +1452,9 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
     }
     if (assignedRepName.present) {
       map['assigned_rep_name'] = Variable<String>(assignedRepName.value);
+    }
+    if (creditLimit.present) {
+      map['credit_limit'] = Variable<double>(creditLimit.value);
     }
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
@@ -1502,10 +1510,10 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
           ..write('territory: $territory, ')
           ..write('latitude: $latitude, ')
           ..write('longitude: $longitude, ')
-          ..write('creditLimit: $creditLimit, ')
           ..write('status: $status, ')
           ..write('assignedRepId: $assignedRepId, ')
           ..write('assignedRepName: $assignedRepName, ')
+          ..write('creditLimit: $creditLimit, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('originLeadId: $originLeadId, ')
           ..write('productsPurchased: $productsPurchased, ')
@@ -14904,13 +14912,13 @@ typedef $$CustomersTableCreateCompanionBuilder = CustomersCompanion Function({
   required String address,
   required String province,
   required String district,
-  required String territory,
-  required double latitude,
-  required double longitude,
+  Value<String?> territory,
+  Value<double?> latitude,
+  Value<double?> longitude,
+  Value<String?> status,
+  Value<String?> assignedRepId,
+  Value<String?> assignedRepName,
   required double creditLimit,
-  required String status,
-  required String assignedRepId,
-  required String assignedRepName,
   required DateTime updatedAt,
   Value<String?> originLeadId,
   Value<String> productsPurchased,
@@ -14935,13 +14943,13 @@ typedef $$CustomersTableUpdateCompanionBuilder = CustomersCompanion Function({
   Value<String> address,
   Value<String> province,
   Value<String> district,
-  Value<String> territory,
-  Value<double> latitude,
-  Value<double> longitude,
+  Value<String?> territory,
+  Value<double?> latitude,
+  Value<double?> longitude,
+  Value<String?> status,
+  Value<String?> assignedRepId,
+  Value<String?> assignedRepName,
   Value<double> creditLimit,
-  Value<String> status,
-  Value<String> assignedRepId,
-  Value<String> assignedRepName,
   Value<DateTime> updatedAt,
   Value<String?> originLeadId,
   Value<String> productsPurchased,
@@ -15107,9 +15115,6 @@ class $$CustomersTableFilterComposer
   ColumnFilters<double> get longitude => $composableBuilder(
       column: $table.longitude, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<double> get creditLimit => $composableBuilder(
-      column: $table.creditLimit, builder: (column) => ColumnFilters(column));
-
   ColumnFilters<String> get status => $composableBuilder(
       column: $table.status, builder: (column) => ColumnFilters(column));
 
@@ -15119,6 +15124,9 @@ class $$CustomersTableFilterComposer
   ColumnFilters<String> get assignedRepName => $composableBuilder(
       column: $table.assignedRepName,
       builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get creditLimit => $composableBuilder(
+      column: $table.creditLimit, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
       column: $table.updatedAt, builder: (column) => ColumnFilters(column));
@@ -15333,9 +15341,6 @@ class $$CustomersTableOrderingComposer
   ColumnOrderings<double> get longitude => $composableBuilder(
       column: $table.longitude, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<double> get creditLimit => $composableBuilder(
-      column: $table.creditLimit, builder: (column) => ColumnOrderings(column));
-
   ColumnOrderings<String> get status => $composableBuilder(
       column: $table.status, builder: (column) => ColumnOrderings(column));
 
@@ -15346,6 +15351,9 @@ class $$CustomersTableOrderingComposer
   ColumnOrderings<String> get assignedRepName => $composableBuilder(
       column: $table.assignedRepName,
       builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get creditLimit => $composableBuilder(
+      column: $table.creditLimit, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
       column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
@@ -15437,9 +15445,6 @@ class $$CustomersTableAnnotationComposer
   GeneratedColumn<double> get longitude =>
       $composableBuilder(column: $table.longitude, builder: (column) => column);
 
-  GeneratedColumn<double> get creditLimit => $composableBuilder(
-      column: $table.creditLimit, builder: (column) => column);
-
   GeneratedColumn<String> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
 
@@ -15448,6 +15453,9 @@ class $$CustomersTableAnnotationComposer
 
   GeneratedColumn<String> get assignedRepName => $composableBuilder(
       column: $table.assignedRepName, builder: (column) => column);
+
+  GeneratedColumn<double> get creditLimit => $composableBuilder(
+      column: $table.creditLimit, builder: (column) => column);
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
@@ -15648,13 +15656,13 @@ class $$CustomersTableTableManager extends RootTableManager<
             Value<String> address = const Value.absent(),
             Value<String> province = const Value.absent(),
             Value<String> district = const Value.absent(),
-            Value<String> territory = const Value.absent(),
-            Value<double> latitude = const Value.absent(),
-            Value<double> longitude = const Value.absent(),
+            Value<String?> territory = const Value.absent(),
+            Value<double?> latitude = const Value.absent(),
+            Value<double?> longitude = const Value.absent(),
+            Value<String?> status = const Value.absent(),
+            Value<String?> assignedRepId = const Value.absent(),
+            Value<String?> assignedRepName = const Value.absent(),
             Value<double> creditLimit = const Value.absent(),
-            Value<String> status = const Value.absent(),
-            Value<String> assignedRepId = const Value.absent(),
-            Value<String> assignedRepName = const Value.absent(),
             Value<DateTime> updatedAt = const Value.absent(),
             Value<String?> originLeadId = const Value.absent(),
             Value<String> productsPurchased = const Value.absent(),
@@ -15682,10 +15690,10 @@ class $$CustomersTableTableManager extends RootTableManager<
             territory: territory,
             latitude: latitude,
             longitude: longitude,
-            creditLimit: creditLimit,
             status: status,
             assignedRepId: assignedRepId,
             assignedRepName: assignedRepName,
+            creditLimit: creditLimit,
             updatedAt: updatedAt,
             originLeadId: originLeadId,
             productsPurchased: productsPurchased,
@@ -15710,13 +15718,13 @@ class $$CustomersTableTableManager extends RootTableManager<
             required String address,
             required String province,
             required String district,
-            required String territory,
-            required double latitude,
-            required double longitude,
+            Value<String?> territory = const Value.absent(),
+            Value<double?> latitude = const Value.absent(),
+            Value<double?> longitude = const Value.absent(),
+            Value<String?> status = const Value.absent(),
+            Value<String?> assignedRepId = const Value.absent(),
+            Value<String?> assignedRepName = const Value.absent(),
             required double creditLimit,
-            required String status,
-            required String assignedRepId,
-            required String assignedRepName,
             required DateTime updatedAt,
             Value<String?> originLeadId = const Value.absent(),
             Value<String> productsPurchased = const Value.absent(),
@@ -15744,10 +15752,10 @@ class $$CustomersTableTableManager extends RootTableManager<
             territory: territory,
             latitude: latitude,
             longitude: longitude,
-            creditLimit: creditLimit,
             status: status,
             assignedRepId: assignedRepId,
             assignedRepName: assignedRepName,
+            creditLimit: creditLimit,
             updatedAt: updatedAt,
             originLeadId: originLeadId,
             productsPurchased: productsPurchased,

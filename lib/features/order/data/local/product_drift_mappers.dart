@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' show Value;
-import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart' as db;
+import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart'
+    as db;
 import 'package:isi_steel_sales_mobile/core/database/drift/daos/catalog_dao.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/models/category_model.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/models/product_model.dart';
