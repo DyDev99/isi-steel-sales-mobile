@@ -80,22 +80,44 @@ class _RouteCalendarSectionState extends State<RouteCalendarSection> {
             todayRouteCount: widget.routeCountForDate(today),
             onTap: () => setState(() => _expanded = !_expanded),
           ),
-          AnimatedSize(
-            duration: const Duration(milliseconds: 260),
-            curve: Curves.easeOutCubic,
-            alignment: Alignment.topCenter,
-            child: _expanded
-                ? Padding(
-                    padding: EdgeInsets.only(top: 16.h),
-                    child: CalendarMonthView(
-                      focusedMonth: widget.focusedMonth,
-                      selectedDate: widget.selectedDate,
-                      onMonthChanged: widget.onMonthChanged,
-                      onDateSelected: widget.onDateSelected,
-                      routeCountForDate: widget.routeCountForDate,
+          // ClipRect + AnimatedSize, with both branches explicitly keyed.
+          //
+          // `RenderAnimatedSize` only restarts its animation when it observes a
+          // layout in which the child's size actually changed. If the child is
+          // swapped while this subtree is laid out but not visible — an
+          // offstage `IndexedStack` tab, or a `ListView` recycling it — that
+          // size change is never observed and the render box keeps its previous
+          // height. The card above has a solid `colors.card` background, so the
+          // visible result was a tall empty white block where the calendar
+          // should be: the collapsed (zero-height) child painted inside a box
+          // still sized for the expanded month grid.
+          //
+          // Distinct keys force a genuine element swap so the new size is
+          // always observed, and ClipRect guarantees nothing paints outside the
+          // animating bounds even if a frame lands mid-transition.
+          ClipRect(
+            child: AnimatedSize(
+              duration: const Duration(milliseconds: 260),
+              curve: Curves.easeOutCubic,
+              alignment: Alignment.topCenter,
+              child: _expanded
+                  ? Padding(
+                      key: const ValueKey('calendar-expanded'),
+                      padding: EdgeInsets.only(top: 16.h),
+                      child: CalendarMonthView(
+                        focusedMonth: widget.focusedMonth,
+                        selectedDate: widget.selectedDate,
+                        onMonthChanged: widget.onMonthChanged,
+                        onDateSelected: widget.onDateSelected,
+                        routeCountForDate: widget.routeCountForDate,
+                      ),
+                    )
+                  : const SizedBox(
+                      key: ValueKey('calendar-collapsed'),
+                      width: double.infinity,
+                      height: 0,
                     ),
-                  )
-                : const SizedBox(width: double.infinity),
+            ),
           ),
         ],
       ),

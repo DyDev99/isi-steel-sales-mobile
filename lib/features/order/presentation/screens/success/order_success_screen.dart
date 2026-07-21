@@ -53,8 +53,8 @@ class OrderSuccessScreen extends StatelessWidget {
                           salesOrder.shopName ??
                               salesOrder.leadDisplayName ??
                               '',
-                          style:
-                              TextStyle(color: colors.textSecondary, fontSize: 13)),
+                          style: TextStyle(
+                              color: colors.textSecondary, fontSize: 13)),
                     ),
                     const SizedBox(height: 24),
                     Container(
@@ -68,8 +68,10 @@ class OrderSuccessScreen extends StatelessWidget {
                               '\$${salesOrder.total.toStringAsFixed(2)}',
                               emphasize: true),
                           if (salesOrder.offVisitReason != null)
-                            _Row('orders.shop.off_visit_warning'.tr,
-                                salesOrder.offVisitReason!.name), // 👈 CHANGED FROM localizedLabel TO name TO RESOLVE COMPILER ERROR
+                            _Row(
+                                'orders.shop.off_visit_warning'.tr,
+                                salesOrder.offVisitReason!
+                                    .name), // 👈 CHANGED FROM localizedLabel TO name TO RESOLVE COMPILER ERROR
                           _Row('orders.quotation.builder_title'.tr,
                               salesOrder.quotationId),
                           _Row('orders.sales_order.sap_status'.tr,
@@ -81,7 +83,9 @@ class OrderSuccessScreen extends StatelessWidget {
                     Text('orders.success.sap_message'.tr,
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                            color: colors.textSecondary, fontSize: 12.5, height: 1.4)),
+                            color: colors.textSecondary,
+                            fontSize: 12.5,
+                            height: 1.4)),
                   ],
                 ),
               ),
@@ -134,7 +138,8 @@ class _Row extends StatelessWidget {
         children: [
           Expanded(
               child: Text(label,
-                  style: TextStyle(color: colors.textSecondary, fontSize: 12.5))),
+                  style:
+                      TextStyle(color: colors.textSecondary, fontSize: 12.5))),
           Text(value,
               style: TextStyle(
                 color: emphasize ? colors.accentPurple : colors.textPrimary,

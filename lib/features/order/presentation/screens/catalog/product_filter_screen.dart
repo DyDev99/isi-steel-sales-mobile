@@ -205,7 +205,9 @@ class _ProductFilterScreenState extends State<ProductFilterScreen> {
         title: Text(
           'Filter Products',
           style: TextStyle(
-              color: colors.textPrimary, fontSize: 17, fontWeight: FontWeight.w800),
+              color: colors.textPrimary,
+              fontSize: 17,
+              fontWeight: FontWeight.w800),
         ),
         actions: [
           if (_filter.activeFacetCount > 0)
@@ -213,8 +215,8 @@ class _ProductFilterScreenState extends State<ProductFilterScreen> {
               padding: const EdgeInsets.only(right: 8),
               child: TextButton(
                 onPressed: _clearAllFilters,
-                child: Text('Clear all',
-                    style: TextStyle(color: colors.warning)),
+                child:
+                    Text('Clear all', style: TextStyle(color: colors.warning)),
               ),
             ),
         ],
@@ -377,7 +379,8 @@ class _ProductFilterScreenState extends State<ProductFilterScreen> {
                 _onSearch('');
               },
               borderRadius: BorderRadius.circular(20),
-              child: Icon(Icons.close_rounded, color: colors.iconMuted, size: 18),
+              child:
+                  Icon(Icons.close_rounded, color: colors.iconMuted, size: 18),
             ),
         ],
       ),

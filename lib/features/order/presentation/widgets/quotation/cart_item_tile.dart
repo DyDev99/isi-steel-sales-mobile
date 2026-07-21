@@ -18,7 +18,7 @@ class CartItemTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppThemeColors>()!;
-    
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: GlassCard(
@@ -129,7 +129,7 @@ class _QtyButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppThemeColors>()!;
-    
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),

@@ -45,28 +45,39 @@ class ProductListSection extends StatelessWidget {
       CatalogIdle() || CatalogLoading() => const CatalogGridSkeleton(),
       CatalogError(:final message) => Padding(
           padding: const EdgeInsets.symmetric(vertical: 24),
-          child: Center(child: Text(message, style: TextStyle(color: scheme.onSurface.withValues(alpha: 0.6)))),
+          child: Center(
+              child: Text(message,
+                  style: TextStyle(
+                      color: scheme.onSurface.withValues(alpha: 0.6)))),
         ),
-      CatalogLoaded(:final items, :final hasMore, :final isLoadingMore) => Column(
+      CatalogLoaded(:final items, :final hasMore, :final isLoadingMore) =>
+        Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 Text(
                   'Products',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: scheme.onSurface),
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: scheme.onSurface),
                 ),
                 if (hasActiveAttributeFilter) ...[
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
                       color: scheme.primary.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       '${items.length} match${items.length == 1 ? '' : 'es'}',
-                      style: TextStyle(color: scheme.primary, fontSize: 11, fontWeight: FontWeight.w700),
+                      style: TextStyle(
+                          color: scheme.primary,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700),
                     ),
                   ),
                 ],
@@ -91,7 +102,9 @@ class ProductListSection extends StatelessWidget {
                                       ? 'No products match this size/length/mesh size/quality combination'
                                       : 'orders.catalog.no_products'.tr,
                                   textAlign: TextAlign.center,
-                                  style: TextStyle(color: scheme.onSurface.withValues(alpha: 0.5)),
+                                  style: TextStyle(
+                                      color: scheme.onSurface
+                                          .withValues(alpha: 0.5)),
                                 ),
                               ),
                             )
@@ -100,16 +113,19 @@ class ProductListSection extends StatelessWidget {
                                   padding: const EdgeInsets.only(bottom: 10),
                                   child: ProductCard(
                                     product: product,
-                                    isFavorite: favoriteIds.contains(product.id),
-                                    onFavoriteToggle: () => onToggleFavorite(product.id),
+                                    isFavorite:
+                                        favoriteIds.contains(product.id),
+                                    onFavoriteToggle: () =>
+                                        onToggleFavorite(product.id),
                                     onTap: () => onToggleExpanded(product.id),
-                                    onAddToCart: () => context.read<CartCubit>().addProduct(
-                                          product,
-                                          quantity: quantity,
-                                          unit: unit,
-                                          leadId: leadId,
-                                          customerId: customerId,
-                                        ),
+                                    onAddToCart: () =>
+                                        context.read<CartCubit>().addProduct(
+                                              product,
+                                              quantity: quantity,
+                                              unit: unit,
+                                              leadId: leadId,
+                                              customerId: customerId,
+                                            ),
                                   ),
                                 )),
                           if (hasMore)
@@ -117,11 +133,16 @@ class ProductListSection extends StatelessWidget {
                               child: isLoadingMore
                                   ? Padding(
                                       padding: const EdgeInsets.all(16),
-                                      child: CircularProgressIndicator(color: scheme.primary),
+                                      child: CircularProgressIndicator(
+                                          color: scheme.primary),
                                     )
                                   : TextButton(
-                                      onPressed: () => context.read<CatalogBloc>().add(const CatalogLoadMoreRequested()),
-                                      child: Text('orders.catalog.load_more'.tr),
+                                      onPressed: () => context
+                                          .read<CatalogBloc>()
+                                          .add(
+                                              const CatalogLoadMoreRequested()),
+                                      child:
+                                          Text('orders.catalog.load_more'.tr),
                                     ),
                             ),
                         ],

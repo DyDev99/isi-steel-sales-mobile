@@ -68,10 +68,25 @@ class _MainShellState extends State<MainShell> {
 
   int _index = 0;
 
+  /// Tabs the user has actually opened.
+  ///
+  /// `IndexedStack` lays out *every* child, so building all five tabs up front
+  /// mounted four offstage screens at boot: each opened its database streams,
+  /// created its Blocs, and — via the skeleton widgets — started repeating
+  /// `AnimationController`s that never stopped, because an offstage
+  /// `IndexedStack` child still ticks. That cost the cold-start budget
+  /// (AI_ENGINEERING_PLAYBOOK.md §9) and burned CPU for the whole session.
+  ///
+  /// Building lazily and *keeping* what has been built preserves the reason
+  /// `IndexedStack` is here in the first place: once a tab is open, its state,
+  /// scroll position and Blocs survive every subsequent switch.
+  final Set<int> _builtTabs = <int>{0};
+
   @override
   void initState() {
     super.initState();
     _index = _tabController.value;
+    _builtTabs.add(_index);
     _tabController.addListener(_onTabChanged);
     sl<ResumableVisitCubit>().refresh();
     // Customer directory sync must run before route sync can attach stops to
@@ -90,6 +105,7 @@ class _MainShellState extends State<MainShell> {
   void _onTabChanged() {
     setState(() {
       _index = _tabController.value;
+      _builtTabs.add(_index);
     });
     if (_tabController.value == 0) sl<ResumableVisitCubit>().refresh();
   }
@@ -316,10 +332,16 @@ class _MainShellState extends State<MainShell> {
       case 2:
         return MultiBlocProvider(
           providers: [
-            BlocProvider(create: (_) => sl<RouteDashboardCubit>()..load()),
+            // No `..load()` here: RouteDashboardCubit's constructor already
+            // calls _subscribe(). Chaining load() cancelled that first
+            // subscription mid-fetch, re-emitted RouteDashboardLoading (an
+            // extra skeleton flash) and ran a second redundant fetchAllRoutes()
+            // on every tab open.
+            BlocProvider(create: (_) => sl<RouteDashboardCubit>()),
             BlocProvider(create: (_) => sl<RouteSyncCubit>()),
           ],
-          child: wrapWithTopSpacing(const MyVisitsDashboardScreen()), // ✅ Replaced with a comma
+          child: wrapWithTopSpacing(
+              const MyVisitsDashboardScreen()), // ✅ Replaced with a comma
         );
       case 3:
         return wrapWithTopSpacing(
@@ -431,7 +453,12 @@ class _MainShellState extends State<MainShell> {
                           index: _index,
                           children: List.generate(
                             _tabs.length,
-                            (i) => _buildTab(i),
+                            // Unvisited tabs are a zero-cost placeholder until
+                            // first opened; once built they stay built, so
+                            // state is preserved exactly as before.
+                            (i) => _builtTabs.contains(i)
+                                ? _buildTab(i)
+                                : const SizedBox.shrink(),
                           ),
                         ),
                       ),

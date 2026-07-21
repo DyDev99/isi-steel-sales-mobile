@@ -115,8 +115,7 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
     if (!context.mounted) return;
     context.read<RouteDashboardCubit>().load();
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-          content: Text('Seeded ISI Tower + 20/21 Jul mock routes')),
+      const SnackBar(content: Text('Seeded ISI Tower + 20/21 Jul mock routes')),
     );
   }
 
@@ -143,7 +142,23 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
             if (state is RouteSyncFailed) {
               ScaffoldMessenger.of(context)
                 ..hideCurrentSnackBar()
-                ..showSnackBar(SnackBar(content: Text(state.message)));
+                ..showSnackBar(SnackBar(
+                  // Bounded on purpose. `Failure.message` can carry a long
+                  // server string, and an unbounded SnackBar grows to fit it —
+                  // which is how the invisible-text bug became a full-screen
+                  // rectangle rather than a small unreadable bar. Capping the
+                  // height means even a pathological message stays a SnackBar.
+                  content: Text(
+                    state.message,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  action: SnackBarAction(
+                    label: 'common.retry'.tr,
+                    onPressed: () =>
+                        context.read<RouteSyncCubit>().syncIfNeeded(),
+                  ),
+                ));
               return;
             }
             context.read<RouteDashboardCubit>().load();
@@ -261,13 +276,13 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
               Text(
                 'No local data found.',
                 style: TextStyle(
-                    color: context.appColors.textPrimary, 
-                    fontSize: 14.sp, 
+                    color: context.appColors.textPrimary,
+                    fontSize: 14.sp,
                     fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 6.h),
               Text(
-                kDebugMode 
+                kDebugMode
                     ? 'Pull down to sync from remote or tap the bug icon floating button to seed a mock route.'
                     : 'Pull down to sync your route plan itinerary.',
                 textAlign: TextAlign.center,
@@ -303,8 +318,8 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
               Text(
                 'No customer visits for this date',
                 style: TextStyle(
-                    color: context.appColors.textPrimary, 
-                    fontSize: 14.sp, 
+                    color: context.appColors.textPrimary,
+                    fontSize: 14.sp,
                     fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 6.h),

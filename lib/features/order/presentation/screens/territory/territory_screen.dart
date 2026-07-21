@@ -61,7 +61,9 @@ class _TerritoryScreenState extends State<TerritoryScreen> {
         iconTheme: IconThemeData(color: colors.textPrimary),
         title: Text('orders.territory.title'.tr,
             style: TextStyle(
-                color: colors.textPrimary, fontSize: 17, fontWeight: FontWeight.w800)),
+                color: colors.textPrimary,
+                fontSize: 17,
+                fontWeight: FontWeight.w800)),
       ),
       body: FutureBuilder<Map<String, int>>(
         future: _territoriesFuture,
@@ -106,7 +108,8 @@ class _TerritoryTile extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Material(
-        color: colors.canvas, // 👈 CHANGED FROM colors.surface TO colors.canvas TO RESOLVE COMPILER ERROR
+        color: colors
+            .canvas, // 👈 CHANGED FROM colors.surface TO colors.canvas TO RESOLVE COMPILER ERROR
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
           onTap: onTap,
@@ -142,8 +145,8 @@ class _TerritoryTile extends StatelessWidget {
                           'orders.territory.shop_count'
                               .tr
                               .replaceAll('{count}', '$shopCount'),
-                          style:
-                              TextStyle(color: colors.textSecondary, fontSize: 12)),
+                          style: TextStyle(
+                              color: colors.textSecondary, fontSize: 12)),
                     ],
                   ),
                 ),

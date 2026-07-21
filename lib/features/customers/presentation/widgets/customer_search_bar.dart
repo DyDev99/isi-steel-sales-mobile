@@ -39,14 +39,15 @@ class CustomerSearchBar extends StatelessWidget {
                 Expanded(
                   child: TextField(
                     onChanged: onSearchChanged, //[cite: 3]
-                    style:
-                        TextStyle(color: colors.textPrimary, fontSize: 13.5), //[cite: 3]
+                    style: TextStyle(
+                        color: colors.textPrimary, fontSize: 13.5), //[cite: 3]
                     decoration: InputDecoration(
                       isDense: true,
                       border: InputBorder.none,
                       hintText: 'customers.search_hint'.tr, //[cite: 3]
                       hintStyle: TextStyle(
-                          color: colors.textSecondary, fontSize: 13.5), //[cite: 3]
+                          color: colors.textSecondary,
+                          fontSize: 13.5), //[cite: 3]
                     ),
                   ),
                 ),
@@ -68,15 +69,19 @@ class CustomerSearchBar extends StatelessWidget {
                   : colors.card, //[cite: 3]
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                  color: hasActiveFilters ? scheme.primary : colors.border), //[cite: 3]
+                  color: hasActiveFilters
+                      ? scheme.primary
+                      : colors.border), //[cite: 3]
             ),
             child: Icon(Icons.tune_rounded,
-                color: hasActiveFilters ? scheme.primary : colors.textPrimary, //[cite: 3]
+                color: hasActiveFilters
+                    ? scheme.primary
+                    : colors.textPrimary, //[cite: 3]
                 size: 20),
           ),
         ),
         const SizedBox(width: 10), // Space between filter and add button
-        
+
         // 3. New Add Customer Button on the right of filter
         InkWell(
           onTap: onAddTap,

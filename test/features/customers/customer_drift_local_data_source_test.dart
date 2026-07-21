@@ -107,7 +107,10 @@ void main() {
   test('notes and activities persist and read back newest-first', () async {
     await source.upsertCustomers([_model(id: '1')]);
     await source.addNote(CustomerNoteModel(
-        id: 'n1', customerId: '1', body: 'first', createdAt: DateTime.utc(2026, 1, 1)));
+        id: 'n1',
+        customerId: '1',
+        body: 'first',
+        createdAt: DateTime.utc(2026, 1, 1)));
     await source.addActivity(CustomerActivityModel(
         id: 'a1',
         customerId: '1',

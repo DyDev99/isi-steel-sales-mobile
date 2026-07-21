@@ -96,8 +96,7 @@ class _AddVisitBottomSheetState extends State<AddVisitBottomSheet> {
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius:
-            const BorderRadius.vertical(top: Radius.circular(28)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       padding: EdgeInsets.fromLTRB(
           24.w, 16.h, 24.w, MediaQuery.of(context).viewInsets.bottom + 24.h),
@@ -110,7 +109,8 @@ class _AddVisitBottomSheetState extends State<AddVisitBottomSheet> {
               width: 42.w,
               height: 5.h,
               decoration: BoxDecoration(
-                  color: context.appColors.border, borderRadius: BorderRadius.circular(10)),
+                  color: context.appColors.border,
+                  borderRadius: BorderRadius.circular(10)),
             ),
           ),
           SizedBox(height: 20.h),
@@ -121,7 +121,11 @@ class _AddVisitBottomSheetState extends State<AddVisitBottomSheet> {
                   fontWeight: FontWeight.w900)),
           Text('Add a stop to today\'s route',
               style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 12.sp)),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.5),
+                  fontSize: 12.sp)),
           SizedBox(height: 20.h),
           if (_submitting)
             Center(
@@ -230,7 +234,11 @@ class _AddVisitBottomSheetState extends State<AddVisitBottomSheet> {
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: TextStyle(
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3), fontSize: 13.sp),
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.3),
+              fontSize: 13.sp),
           filled: true,
           fillColor: context.appColors.surfaceSoft,
           contentPadding:
@@ -240,13 +248,16 @@ class _AddVisitBottomSheetState extends State<AddVisitBottomSheet> {
               borderSide: BorderSide(color: context.appColors.border)),
           focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
-              borderSide: BorderSide(color: Theme.of(context).colorScheme.onSurface)),
+              borderSide:
+                  BorderSide(color: Theme.of(context).colorScheme.onSurface)),
           errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
-              borderSide: BorderSide(color: Theme.of(context).colorScheme.error)),
+              borderSide:
+                  BorderSide(color: Theme.of(context).colorScheme.error)),
           focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
-              borderSide: BorderSide(color: Theme.of(context).colorScheme.error)),
+              borderSide:
+                  BorderSide(color: Theme.of(context).colorScheme.error)),
         ),
       );
 
@@ -261,7 +272,11 @@ class _AddVisitBottomSheetState extends State<AddVisitBottomSheet> {
             value: _territoryType,
             hint: Text('Pick one…',
                 style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3), fontSize: 13.sp)),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.3),
+                    fontSize: 13.sp)),
             dropdownColor: context.appColors.surfaceSoft,
             icon: Icon(Icons.keyboard_arrow_down_rounded,
                 color: Theme.of(context).colorScheme.onSurface),

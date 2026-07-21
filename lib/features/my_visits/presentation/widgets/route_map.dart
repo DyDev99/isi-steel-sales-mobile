@@ -29,6 +29,16 @@ class _RouteMapState extends State<RouteMap> {
   GoogleMapController? _controller;
   bool _autoFollow = true;
 
+  /// Releases the native map view — see the matching note in `transit_map.dart`.
+  /// Without this the platform view outlives the widget and keeps compositing
+  /// over later screens as a blank rounded rectangle.
+  @override
+  void dispose() {
+    _controller?.dispose();
+    _controller = null;
+    super.dispose();
+  }
+
   @override
   void didUpdateWidget(covariant RouteMap oldWidget) {
     super.didUpdateWidget(oldWidget);

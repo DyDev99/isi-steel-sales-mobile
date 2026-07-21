@@ -230,6 +230,12 @@
     "all": "All",
     "recent": "Recent",
     "favorites": "Favorites",
+    "unassigned": "Unassigned",
+    "group": {
+      "customer": "Customer",
+      "sales_org": "Sales Org",
+      "division": "Division"
+    },
     "search_hint": "Search shop, code, owner, phone…",
     "calling": "Calling {phone}…",
     "visit_logged": "Visit logged",
@@ -265,8 +271,12 @@
     "filter_sort": "Filter & Sort",
     "status_label": "Status",
     "territory": "Territory",
+    "product_category": "Product Category",
     "sort_by": "Sort by",
     "apply": "Apply",
+    "reset": "Reset",
+    "search_filter_hint": "Search…",
+    "no_matches": "No matches",
     "downloading": "Downloading customer directory…",
     "syncing": "Syncing latest changes…",
     "sync_updated": "{count} updated",
@@ -547,6 +557,10 @@
     "new_lead": {
       "title": "Create a lead",
       "message": "Tap “New lead” to add your first customer."
+    },
+    "add_customer": {
+      "title": "Add customer",
+      "message": "Turn a won lead into a customer account here."
     },
     "my_work":{
       "title":"My Work Section",

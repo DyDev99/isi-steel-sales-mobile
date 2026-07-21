@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' show Value;
-import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart' as db;
+import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart'
+    as db;
 import 'package:isi_steel_sales_mobile/core/database/drift/daos/customer_dao.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/models/customer_activity_model.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/models/customer_contact_model.dart';
@@ -50,6 +51,18 @@ extension CustomerRowMapper on db.Customer {
       lastVisitDate: lastVisitDate,
       lifetimeValue: lifetimeValue,
       openOpportunityCount: openOpportunityCount,
+      salesOrg: salesOrg,
+      division: division,
+      distributionChannel: distributionChannel,
+      customerGroup: customerGroup,
+      priceGroup: priceGroup,
+      enName: enName,
+      khName: khName,
+      taxNumber: taxNumber,
+      creditBalance: creditBalance,
+      currency: currency,
+      totalOrders: totalOrders,
+      createdAt: createdAt,
       deleted: deleted,
     );
   }
@@ -83,6 +96,18 @@ extension CustomerModelMapper on CustomerModel {
       lastVisitDate: Value(lastVisitDate),
       lifetimeValue: Value(lifetimeValue),
       openOpportunityCount: Value(openOpportunityCount),
+      salesOrg: Value(salesOrg),
+      division: Value(division),
+      distributionChannel: Value(distributionChannel),
+      customerGroup: Value(customerGroup),
+      priceGroup: Value(priceGroup),
+      enName: Value(enName),
+      khName: Value(khName),
+      taxNumber: Value(taxNumber),
+      creditBalance: Value(creditBalance),
+      currency: Value(currency),
+      totalOrders: Value(totalOrders),
+      createdAt: Value(createdAt),
       deleted: Value(deleted),
     );
   }

@@ -79,7 +79,9 @@ class FilterDropdown extends StatelessWidget {
                   : theme.colorScheme.surface,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: hasValue ? theme.colorScheme.primary : context.appColors.border,
+                color: hasValue
+                    ? theme.colorScheme.primary
+                    : context.appColors.border,
                 width: hasValue ? 1.5 : 1,
               ),
             ),
@@ -89,7 +91,9 @@ class FilterDropdown extends StatelessWidget {
                   Icon(
                     icon,
                     size: 20,
-                    color: hasValue ? theme.colorScheme.primary : theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                    color: hasValue
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.onSurface.withValues(alpha: 0.4),
                   ),
                   const SizedBox(width: 10),
                 ],
@@ -101,7 +105,9 @@ class FilterDropdown extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: hasValue ? FontWeight.w700 : FontWeight.w500,
-                      color: hasValue ? theme.colorScheme.onSurface : theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                      color: hasValue
+                          ? theme.colorScheme.onSurface
+                          : theme.colorScheme.onSurface.withValues(alpha: 0.4),
                     ),
                   ),
                 ),
@@ -114,10 +120,16 @@ class FilterDropdown extends StatelessWidget {
                 else if (hasValue && enabled)
                   GestureDetector(
                     onTap: () => onChanged(null),
-                    child: Icon(Icons.close_rounded, size: 18, color: theme.colorScheme.onSurface.withValues(alpha: 0.5)),
+                    child: Icon(Icons.close_rounded,
+                        size: 18,
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.5)),
                   )
                 else
-                  Icon(Icons.keyboard_arrow_down_rounded, size: 20, color: theme.colorScheme.onSurface.withValues(alpha: 0.4)),
+                  Icon(Icons.keyboard_arrow_down_rounded,
+                      size: 20,
+                      color:
+                          theme.colorScheme.onSurface.withValues(alpha: 0.4)),
               ],
             ),
           ),
@@ -170,7 +182,8 @@ class _PickerSheetState extends State<_PickerSheet> {
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.75,
       ),
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding:
+          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -182,7 +195,8 @@ class _PickerSheetState extends State<_PickerSheet> {
                   Expanded(
                     child: Text(
                       'Select ${widget.label}',
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w800),
                     ),
                   ),
                   IconButton(
@@ -194,7 +208,8 @@ class _PickerSheetState extends State<_PickerSheet> {
             ),
             if (widget.searchable)
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: TextField(
                   controller: _searchCtrl,
                   onChanged: (v) => setState(() => _query = v),
@@ -222,14 +237,20 @@ class _PickerSheetState extends State<_PickerSheet> {
                             option,
                             style: TextStyle(
                               fontSize: 14,
-                              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                              color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurface,
+                              fontWeight: isSelected
+                                  ? FontWeight.w800
+                                  : FontWeight.w500,
+                              color: isSelected
+                                  ? theme.colorScheme.primary
+                                  : theme.colorScheme.onSurface,
                             ),
                           ),
                           trailing: isSelected
-                              ? Icon(Icons.check_rounded, color: theme.colorScheme.primary, size: 20)
+                              ? Icon(Icons.check_rounded,
+                                  color: theme.colorScheme.primary, size: 20)
                               : null,
-                          onTap: () => Navigator.of(context).pop(_PickResult(option)),
+                          onTap: () =>
+                              Navigator.of(context).pop(_PickResult(option)),
                         );
                       },
                     ),
@@ -253,11 +274,15 @@ class _EmptyOptions extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.search_off_rounded, size: 36, color: theme.colorScheme.onSurface.withValues(alpha: 0.4)),
+            Icon(Icons.search_off_rounded,
+                size: 36,
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.4)),
             const SizedBox(height: 8),
             Text(
               'No matching options',
-              style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.4), fontSize: 13),
+              style: TextStyle(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                  fontSize: 13),
             ),
           ],
         ),

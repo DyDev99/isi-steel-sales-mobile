@@ -68,7 +68,8 @@ class CalendarDayCell extends StatelessWidget {
             curve: Curves.easeOut,
             width: 30.w,
             height: 30.w,
-            decoration: BoxDecoration(color: circleColor, shape: BoxShape.circle),
+            decoration:
+                BoxDecoration(color: circleColor, shape: BoxShape.circle),
             alignment: Alignment.center,
             child: Text(
               '${date.day}',

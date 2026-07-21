@@ -69,7 +69,8 @@ class _CounterBadge extends StatelessWidget {
       width: 24,
       height: 24,
       alignment: Alignment.center,
-      decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary, shape: BoxShape.circle),
+      decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.primary, shape: BoxShape.circle),
       child: Text(
         '$count',
         style: const TextStyle(
@@ -93,8 +94,9 @@ class _RemovableChip extends StatelessWidget {
             ? theme.colorScheme.surfaceContainerHighest
             : context.appColors.surfaceSoft,
         borderRadius: BorderRadius.circular(999),
-    border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.35)),
-
+        border: Border.all(
+            color:
+                Theme.of(context).colorScheme.primary.withValues(alpha: 0.35)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -102,7 +104,8 @@ class _RemovableChip extends StatelessWidget {
           Text(
             data.label,
             style: TextStyle(
-                color: Theme.of(context).colorScheme.primary,                fontSize: 12.5,
+                color: Theme.of(context).colorScheme.primary,
+                fontSize: 12.5,
                 fontWeight: FontWeight.w700),
           ),
           const SizedBox(width: 2),

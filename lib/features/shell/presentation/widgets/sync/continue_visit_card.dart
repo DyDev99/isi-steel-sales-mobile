@@ -77,8 +77,8 @@ class _VisitCard extends StatelessWidget {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Check out of this visit?'),
-        content: const Text(
-            'This completes the visit and closes the current stop.'),
+        content:
+            const Text('This completes the visit and closes the current stop.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
@@ -139,7 +139,9 @@ class _VisitCard extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-                fontSize: 12.5, fontWeight: FontWeight.w700, color: colors.info),
+                fontSize: 12.5,
+                fontWeight: FontWeight.w700,
+                color: colors.info),
           ),
           const SizedBox(height: 2),
           Text(

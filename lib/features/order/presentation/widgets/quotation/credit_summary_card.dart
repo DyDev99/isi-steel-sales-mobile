@@ -18,7 +18,7 @@ class CreditSummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppThemeColors>()!;
     final remaining = creditLimit - summary.outstandingBalance;
-    
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -84,7 +84,7 @@ class _NoteRow extends StatelessWidget {
     final colors = Theme.of(context).extension<AppThemeColors>()!;
     final isCredit = note.type == CreditDebitNoteType.creditNote;
     final statusColor = isCredit ? colors.success : colors.warning;
-    
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(

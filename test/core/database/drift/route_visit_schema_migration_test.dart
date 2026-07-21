@@ -26,9 +26,11 @@ void main() {
     setUp(() => db = AppDatabase(NativeDatabase.memory()));
     tearDown(() => db.close());
 
-    test('schema version is 8', () async {
-      expect(db.schemaVersion, 8);
-      expect(kCurrentSchemaVersion, 8);
+    test('schema version matches the registry constant', () async {
+      // Asserted against the constant rather than a literal so a version bump
+      // (v9 added the SAP sales-area columns) doesn't fail a test that is
+      // really about the route/visit tables.
+      expect(db.schemaVersion, kCurrentSchemaVersion);
     });
 
     test('every ported table is created', () async {
@@ -246,6 +248,28 @@ void main() {
       ]) {
         raw.execute('DROP TABLE IF EXISTS $table;');
       }
+      // Indexes first — SQLite refuses to drop a column an index references.
+      raw.execute('DROP INDEX IF EXISTS idx_customers_sales_org;');
+      raw.execute('DROP INDEX IF EXISTS idx_customers_division;');
+      // v9's SAP columns must come off too, otherwise step 9 re-adds columns
+      // that already exist and the upgrade fails with "duplicate column name".
+      for (final column in [
+        'sales_org',
+        'division',
+        'distribution_channel',
+        'customer_group',
+        'price_group',
+        'en_name',
+        'kh_name',
+        'credit_balance',
+        'currency',
+        'tax_number',
+        'total_orders',
+        'created_at',
+        'sync_state',
+      ]) {
+        raw.execute('ALTER TABLE customers DROP COLUMN $column;');
+      }
       raw.execute('ALTER TABLE customers DROP COLUMN territory_type;');
       raw.execute(
           'ALTER TABLE customers DROP COLUMN geofence_radius_override;');
@@ -302,7 +326,7 @@ void main() {
       expect(tables, containsAll(['routes', 'route_stops', 'visit_check_ins']));
       expect(
         await db.appMetadataDao.getValue(SchemaMetadataKeys.schemaVersion),
-        '8',
+        '$kCurrentSchemaVersion',
       );
       expect(
         await db.appMetadataDao.getValue(SchemaMetadataKeys.lastMigratedFrom),

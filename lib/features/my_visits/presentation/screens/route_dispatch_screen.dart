@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/route_skeletons.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localized_builder.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
@@ -217,8 +219,22 @@ class _RouteDispatchScreenState extends State<RouteDispatchScreen> {
               ActiveRouteError(:final message) => Center(
                   child: Text(message,
                       style: TextStyle(color: colors.textSecondary))),
-              _ =>
-                Center(child: CircularProgressIndicator(color: scheme.primary)),
+              // A bare spinner on a full-bleed `scheme.surface` Scaffold meant
+              // that for the whole push transition this route rendered as a
+              // blank white page sliding up over the dashboard — read by users
+              // as "a huge white widget appeared". A skeleton mirroring
+              // _DispatchBody's stop list keeps the incoming page legible from
+              // the first frame and removes the layout jump when data lands.
+              _ => ListView(
+                  padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 16.h),
+                  physics: const NeverScrollableScrollPhysics(),
+                  children: const [
+                    RouteCardSkeleton(),
+                    RouteCardSkeleton(),
+                    RouteCardSkeleton(),
+                    RouteCardSkeleton(),
+                  ],
+                ),
             };
           },
         ),

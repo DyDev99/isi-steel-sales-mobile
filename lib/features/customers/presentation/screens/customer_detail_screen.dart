@@ -9,7 +9,6 @@ import 'package:isi_steel_sales_mobile/features/customers/domain/entities/custom
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer_activity_type.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customer_detail_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customer_detail_state.dart';
-import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_quick_actions.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_status_badge.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/credit_status.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/lead.dart';
@@ -265,23 +264,23 @@ class _Loaded extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
       children: [
-
         _SalesInsightsSection(
-  customer: customer,
-  onCreateOpportunityForProduct: (productName) {
-    // This allows the rep to instantly convert a cross-sell insight into a workflow deal!
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Creating opportunity for $productName...')),
-    );
-  },
-),
-const SizedBox(height: 12),
-      //  CustomerQuickActions(
-       //   onCall: onCall,
-       //   onCreateOpportunity: onCreateOpportunity,
-         // onLogVisit: onLogVisit,
+          customer: customer,
+          onCreateOpportunityForProduct: (productName) {
+            // This allows the rep to instantly convert a cross-sell insight into a workflow deal!
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                  content: Text('Creating opportunity for $productName...')),
+            );
+          },
+        ),
+        const SizedBox(height: 12),
+        //  CustomerQuickActions(
+        //   onCall: onCall,
+        //   onCreateOpportunity: onCreateOpportunity,
+        // onLogVisit: onLogVisit,
         //  onAddNote: onAddNote,
-      //  ),
+        //  ),
         const SizedBox(height: 16),
         _SectionCard(
           title: 'Overview',
@@ -528,8 +527,7 @@ class _EstimatedValueSheetState extends State<_EstimatedValueSheet> {
                 ),
                 child: Text('Create Opportunity',
                     style: TextStyle(
-                        color: scheme.onPrimary,
-                        fontWeight: FontWeight.w800)),
+                        color: scheme.onPrimary, fontWeight: FontWeight.w800)),
               ),
             ),
           ],
@@ -580,7 +578,7 @@ class _SalesInsightsSection extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          
+
           // Row 1: Key Performance Metrics
           Row(
             children: [
@@ -604,7 +602,7 @@ class _SalesInsightsSection extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          
+
           // Row 2: Currently Purchased Lines
           Text(
             'Active Product Mix',
@@ -629,9 +627,9 @@ class _SalesInsightsSection extends StatelessWidget {
               'No active product lines found.',
               style: TextStyle(color: colors.textSecondary, fontSize: 12),
             ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Row 3: Gap Analysis / White Spaces
           Text(
             'Cross-Sell Gaps (Tap to target)',
@@ -736,13 +734,15 @@ class _InsightChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: themeColor.withValues(alpha: isPurchased ? 0.14 : 0.06),
           borderRadius: BorderRadius.circular(20),
-          border: isPurchased ? null : Border.all(color: colors.border, width: 0.5),
+          border:
+              isPurchased ? null : Border.all(color: colors.border, width: 0.5),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (!isPurchased) ...[
-              Icon(Icons.add_circle_outline_rounded, size: 12, color: themeColor),
+              Icon(Icons.add_circle_outline_rounded,
+                  size: 12, color: themeColor),
               const SizedBox(width: 4),
             ],
             Text(

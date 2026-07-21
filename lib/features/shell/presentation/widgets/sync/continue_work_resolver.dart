@@ -21,5 +21,6 @@ bool draftBelongsToActiveVisit(Quotation draft, String? activeShopId) {
 
 /// The drafts to keep on the standalone "Continue Working" card — everything
 /// *not* folded into the active-visit card.
-List<Quotation> standaloneDrafts(List<Quotation> drafts, String? activeShopId) =>
+List<Quotation> standaloneDrafts(
+        List<Quotation> drafts, String? activeShopId) =>
     drafts.where((d) => !draftBelongsToActiveVisit(d, activeShopId)).toList();

@@ -48,7 +48,8 @@ class ProductCard extends StatelessWidget {
                     errorBuilder: (_, __, ___) => Container(
                       color: appColors.surfaceSoft,
                       child: Icon(Icons.inventory_2_outlined,
-                          color: scheme.onSurface.withValues(alpha: 0.4), size: 24),
+                          color: scheme.onSurface.withValues(alpha: 0.4),
+                          size: 24),
                     ),
                   ),
                 ),
@@ -65,15 +66,20 @@ class ProductCard extends StatelessWidget {
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                      isFavorite
+                          ? Icons.favorite_rounded
+                          : Icons.favorite_border_rounded,
                       size: 14,
-                      color: isFavorite ? scheme.error : scheme.onSurface.withValues(alpha: 0.4),
+                      color: isFavorite
+                          ? scheme.error
+                          : scheme.onSurface.withValues(alpha: 0.4),
                     ),
                   ),
                 ),
               ),
               if (product.hasPromotion)
-                const Positioned(top: 2, left: 2, child: PromotionBadge(label: 'Sale')),
+                const Positioned(
+                    top: 2, left: 2, child: PromotionBadge(label: 'Sale')),
             ],
           ),
           const SizedBox(width: 10),
@@ -108,7 +114,9 @@ class ProductCard extends StatelessWidget {
                   '${product.subCategory} · ${product.unit}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: scheme.onSurface.withValues(alpha: 0.5), fontSize: 10.5),
+                  style: TextStyle(
+                      color: scheme.onSurface.withValues(alpha: 0.5),
+                      fontSize: 10.5),
                 ),
                 const SizedBox(height: 6),
                 Row(
@@ -127,7 +135,8 @@ class ProductCard extends StatelessWidget {
                       onTap: onAddToCart,
                       borderRadius: BorderRadius.circular(8),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
                           color: scheme.primary,
                           borderRadius: BorderRadius.circular(8),

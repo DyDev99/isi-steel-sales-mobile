@@ -80,8 +80,8 @@ class PdfGenerationCubit extends Cubit<PdfGenerationState> {
 
       final generator = QuotationPdfGenerator(data);
       final bytes = await _pdfService.generate(generator);
-      final file =
-          await _fileService.save(bytes, fileNamePrefix: generator.documentName);
+      final file = await _fileService.save(bytes,
+          fileNamePrefix: generator.documentName);
 
       if (isClosed) return;
       // Surface success immediately so the UI can confirm; the preview sheet is

@@ -79,7 +79,9 @@ class QuotationDetailScreen extends StatelessWidget {
         iconTheme: IconThemeData(color: colors.textPrimary),
         title: Text('orders.quotation.details_title'.tr,
             style: TextStyle(
-                color: colors.textPrimary, fontSize: 17, fontWeight: FontWeight.w800)),
+                color: colors.textPrimary,
+                fontSize: 17,
+                fontWeight: FontWeight.w800)),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
@@ -204,7 +206,9 @@ class _LineRow extends StatelessWidget {
           const SizedBox(width: 12),
           Text('\$${total.toStringAsFixed(2)}',
               style: TextStyle(
-                  color: colors.textPrimary, fontSize: 13, fontWeight: FontWeight.w700)),
+                  color: colors.textPrimary,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700)),
         ],
       ),
     );
@@ -251,13 +255,16 @@ class _Row extends StatelessWidget {
           Expanded(
             child: Text(label,
                 style: TextStyle(
-                    color: emphasize ? colors.textPrimary : colors.textSecondary,
+                    color:
+                        emphasize ? colors.textPrimary : colors.textSecondary,
                     fontSize: emphasize ? 15 : 13,
                     fontWeight: emphasize ? FontWeight.w800 : FontWeight.w500)),
           ),
           Text('\$${value.toStringAsFixed(2)}',
               style: TextStyle(
-                  color: emphasize ? Theme.of(context).colorScheme.primary : colors.textPrimary,
+                  color: emphasize
+                      ? Theme.of(context).colorScheme.primary
+                      : colors.textPrimary,
                   fontSize: emphasize ? 16 : 13,
                   fontWeight: emphasize ? FontWeight.w900 : FontWeight.w600)),
         ],

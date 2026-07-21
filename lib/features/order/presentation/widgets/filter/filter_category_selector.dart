@@ -134,7 +134,8 @@ class _Tile extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected ? activeColor : theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: selected ? activeColor : context.appColors.border),
+          border: Border.all(
+              color: selected ? activeColor : context.appColors.border),
           boxShadow: selected
               ? [
                   BoxShadow(
@@ -148,7 +149,11 @@ class _Tile extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 22, color: selected ? Colors.white : theme.colorScheme.onSurface.withValues(alpha: 0.4)),
+            Icon(icon,
+                size: 22,
+                color: selected
+                    ? Colors.white
+                    : theme.colorScheme.onSurface.withValues(alpha: 0.4)),
             const SizedBox(height: 6),
             Text(
               label,

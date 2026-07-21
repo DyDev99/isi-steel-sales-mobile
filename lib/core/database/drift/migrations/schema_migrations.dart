@@ -4,7 +4,7 @@ import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
 /// The single source of truth for the encrypted database's schema version.
 /// Bump this by exactly one whenever a schema change ships, and add the matching
 /// step to [_stepwiseMigrations].
-const int kCurrentSchemaVersion = 8;
+const int kCurrentSchemaVersion = 9;
 
 /// Keys under which the migrator records bookkeeping in `app_metadata`, so the
 /// on-device schema history is auditable and a failed/partial upgrade is
@@ -83,6 +83,37 @@ final Map<int, SchemaMigrationStep> _stepwiseMigrations =
     await m.createTable(db.visitCollections);
     await m.createTable(db.visitNotes);
     await m.createTable(db.visitPhotos);
+  },
+  // v9: SAP sales-area and commercial attributes on `customers`.
+  //
+  // Purely additive — every column is nullable or defaulted, so existing rows
+  // upgrade without a rewrite and no data is touched. The two indexes back the
+  // Sales Organization / Division filters (DATABASE_GUIDE.md §3).
+  9: (m, db) async {
+    await m.addColumn(db.customers, db.customers.salesOrg);
+    await m.addColumn(db.customers, db.customers.division);
+    await m.addColumn(db.customers, db.customers.distributionChannel);
+    await m.addColumn(db.customers, db.customers.customerGroup);
+    await m.addColumn(db.customers, db.customers.priceGroup);
+    await m.addColumn(db.customers, db.customers.enName);
+    await m.addColumn(db.customers, db.customers.khName);
+    await m.addColumn(db.customers, db.customers.creditBalance);
+    await m.addColumn(db.customers, db.customers.currency);
+    await m.addColumn(db.customers, db.customers.taxNumber);
+    await m.addColumn(db.customers, db.customers.totalOrders);
+    await m.addColumn(db.customers, db.customers.createdAt);
+    await m.addColumn(db.customers, db.customers.syncState);
+
+    // `IF NOT EXISTS` keeps the step re-runnable after a crash mid-upgrade,
+    // which DATABASE_GUIDE.md §5 requires of every migration.
+    await db.customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_customers_sales_org '
+      'ON customers (sales_org);',
+    );
+    await db.customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_customers_division '
+      'ON customers (division);',
+    );
   },
 };
 

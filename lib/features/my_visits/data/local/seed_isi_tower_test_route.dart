@@ -99,7 +99,8 @@ Future<void> seedIsiTowerTestRoute(
   );
 
   final customerKMall = CustomerStopInfoModel(
-    id: realCustomers[2].id, // was 'test-cust-kmall-veng-sreng' — see doc comment
+    id: realCustomers[2]
+        .id, // was 'test-cust-kmall-veng-sreng' — see doc comment
     name: 'K Mall Veng Sreng (Test)',
     code: 'TEST-003',
     contact: 'Test Contact',

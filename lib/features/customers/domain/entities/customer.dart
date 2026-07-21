@@ -39,6 +39,18 @@ class Customer extends Equatable {
     this.lastVisitDate,
     this.lifetimeValue = 0,
     this.openOpportunityCount = 0,
+    this.salesOrg,
+    this.division,
+    this.distributionChannel,
+    this.customerGroup,
+    this.priceGroup,
+    this.enName,
+    this.khName,
+    this.taxNumber,
+    this.creditBalance = 0,
+    this.currency = 'USD',
+    this.totalOrders = 0,
+    this.createdAt,
   });
 
   final String id;
@@ -76,6 +88,48 @@ class Customer extends Equatable {
   final double lifetimeValue;
   final int openOpportunityCount;
 
+  // ── SAP sales area (schema v9) ──────────────────────────────────────
+  // Nullable because SAP leaves the sales area blank until a customer is
+  // assigned one, and because rows written before v9 have no value. A filter
+  // must treat null as "unassigned", never as a match.
+  final String? salesOrg;
+  final String? division;
+  final String? distributionChannel;
+
+  /// SAP commercial classification.
+  final String? customerGroup;
+  final String? priceGroup;
+
+  /// SAP `name1` / `name3`. [shopName] remains the display name; these are the
+  /// legal names used for search and printed documents.
+  final String? enName;
+  final String? khName;
+
+  /// VAT / tax identification number.
+  final String? taxNumber;
+
+  /// Consumed portion of [creditLimit]; [availableCredit] is the useful figure.
+  final double creditBalance;
+  final String currency;
+
+  /// Lifetime order count — the countable twin of [lifetimeValue].
+  final int totalOrders;
+
+  /// When SAP created the record ([updatedAt] covers modification).
+  final DateTime? createdAt;
+
+  /// Headroom left against the credit limit. Clamped at zero so an
+  /// over-limit account reads as "no credit available" rather than negative.
+  double get availableCredit {
+    final remaining = creditLimit - creditBalance;
+    return remaining < 0 ? 0 : remaining;
+  }
+
+  /// True once SAP has assigned a full sales area. Screens that act on sales
+  /// area should check this rather than null-testing three fields.
+  bool get hasSalesArea =>
+      (salesOrg?.isNotEmpty ?? false) && (division?.isNotEmpty ?? false);
+
   @override
   List<Object?> get props => [
         id,
@@ -104,5 +158,17 @@ class Customer extends Equatable {
         lastVisitDate,
         lifetimeValue,
         openOpportunityCount,
+        salesOrg,
+        division,
+        distributionChannel,
+        customerGroup,
+        priceGroup,
+        enName,
+        khName,
+        taxNumber,
+        creditBalance,
+        currency,
+        totalOrders,
+        createdAt,
       ];
 }

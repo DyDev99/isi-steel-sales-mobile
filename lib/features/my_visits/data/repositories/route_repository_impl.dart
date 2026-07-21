@@ -32,17 +32,63 @@ class RouteRepositoryImpl implements RouteRepository {
   }
 
   @override
-  Stream<List<RoutePlan>> watchTodayRoutes() async* {
-    // Immediate local snapshot (may throw CacheException → surfaces as a stream
-    // error the cubit maps to RouteDashboardError), then live updates.
-    yield await _local.fetchTodayRoutes();
-    yield* _routesController.stream;
-  }
+  Stream<List<RoutePlan>> watchTodayRoutes() =>
+      _watch(_routesController, _local.fetchTodayRoutes);
 
   @override
-  Stream<List<RoutePlan>> watchAllRoutes() async* {
-    yield await _local.fetchAllRoutes();
-    yield* _allRoutesController.stream;
+  Stream<List<RoutePlan>> watchAllRoutes() =>
+      _watch(_allRoutesController, _local.fetchAllRoutes);
+
+  /// Emits an immediate local snapshot, then every subsequent broadcast.
+  ///
+  /// The obvious `async*` version of this —
+  /// `yield await read(); yield* controller.stream;` — had a silent data-loss
+  /// window: a generator only reaches its `yield*` *after* the initial `await`
+  /// completes, so for the duration of that database read nothing was
+  /// subscribed to [controller]. Any mutation landing in that window hit the
+  /// `hasListener` guard in the `_broadcast*` methods and was dropped for good,
+  /// leaving the dashboard showing stale or empty content until some unrelated
+  /// event happened to retrigger it.
+  ///
+  /// Subscribing to [controller] *before* starting the read closes that window.
+  /// A broadcast arriving mid-read wins over the initial snapshot, since it is
+  /// by definition the newer state — `_hasLiveValue` enforces that ordering
+  /// rather than letting a slow read overwrite fresh data.
+  Stream<List<RoutePlan>> _watch(
+    StreamController<List<RoutePlan>> controller,
+    Future<List<RoutePlan>> Function() read,
+  ) {
+    late StreamController<List<RoutePlan>> out;
+    StreamSubscription<List<RoutePlan>>? upstream;
+    var hasLiveValue = false;
+
+    out = StreamController<List<RoutePlan>>(
+      onListen: () {
+        upstream = controller.stream.listen(
+          (routes) {
+            hasLiveValue = true;
+            if (!out.isClosed) out.add(routes);
+          },
+          onError: (Object e, StackTrace s) {
+            if (!out.isClosed) out.addError(e, s);
+          },
+        );
+
+        // Initial snapshot. A CacheException surfaces as a stream error, which
+        // the cubit maps to RouteDashboardError — same contract as before.
+        read().then(
+          (routes) {
+            if (!out.isClosed && !hasLiveValue) out.add(routes);
+          },
+          onError: (Object e, StackTrace s) {
+            if (!out.isClosed) out.addError(e, s);
+          },
+        );
+      },
+      onCancel: () async => upstream?.cancel(),
+    );
+
+    return out.stream;
   }
 
   /// Re-read the local cache and broadcast it to listeners. Called after any

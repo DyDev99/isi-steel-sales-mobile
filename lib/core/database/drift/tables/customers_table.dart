@@ -11,6 +11,11 @@ import 'package:drift/drift.dart';
 @TableIndex(name: 'idx_customers_territory', columns: {#territory})
 @TableIndex(name: 'idx_customers_rep', columns: {#assignedRepId})
 @TableIndex(name: 'idx_customers_status', columns: {#status})
+// Both back a hot-path `WHERE` in `CustomerDao.browse` once the Sales
+// Organization / Division filters are selectable, so they are indexed per
+// DATABASE_GUIDE.md §3.
+@TableIndex(name: 'idx_customers_sales_org', columns: {#salesOrg})
+@TableIndex(name: 'idx_customers_division', columns: {#division})
 class Customers extends Table {
   @override
   String get tableName => 'customers';
@@ -60,6 +65,52 @@ class Customers extends Table {
   /// Per-customer geofence radius in metres, overriding the global policy when
   /// a site is unusually large (a depot yard) or tight (a stall in a market).
   RealColumn get geofenceRadiusOverride => real().nullable()();
+
+  // ── SAP sales-area & commercial attributes (schema v9) ──────────────
+  // Names deliberately mirror the SAP Customer (BP) API field names documented
+  // in `SapAPI_Technical_Document_v1_BP.docx` §5, so swapping the mock remote
+  // datasource for a real SAP one is a mapper change, not a schema change
+  // (ADR-009 decision 4).
+  //
+  // All are nullable or defaulted: `addColumn` must supply a value for rows
+  // that already exist at v8, and SAP itself leaves most of these blank for
+  // prospects that have no sales area assigned yet.
+
+  /// Sales area — the three fields SAP uses together to scope a customer.
+  TextColumn get salesOrg => text().nullable()();
+  TextColumn get division => text().nullable()();
+  TextColumn get distributionChannel => text().nullable()();
+
+  /// Commercial classification.
+  TextColumn get customerGroup => text().nullable()();
+  TextColumn get priceGroup => text().nullable()();
+
+  /// Latin and Khmer legal names. `shopName` stays the display name; these are
+  /// the SAP `name1` / `name3` equivalents used for search and documents.
+  TextColumn get enName => text().nullable()();
+  TextColumn get khName => text().nullable()();
+
+  /// Credit position. `creditLimit` already exists above; the balance is the
+  /// currently-consumed portion, so available credit is limit − balance.
+  RealColumn get creditBalance => real().withDefault(const Constant(0))();
+  TextColumn get currency => text().withDefault(const Constant('USD'))();
+
+  /// VAT / tax identification number (SAP `taxNumber`).
+  TextColumn get taxNumber => text().nullable()();
+
+  /// Lifetime order count. `lifetimeValue` above is the matching money figure.
+  IntColumn get totalOrders => integer().withDefault(const Constant(0))();
+
+  /// When SAP first created the record. `updatedAt` already covers the
+  /// modification side.
+  DateTimeColumn get createdAt => dateTime().nullable()();
+
+  /// Per-row sync state — `synced` / `dirty` / `syncing` / `conflict`
+  /// (SYNC_ENGINE.md §5). Adding it here closes part of the standard
+  /// syncable-column gap in DATABASE_GUIDE.md §3.1; `server_revision` and
+  /// `dirty` remain outstanding and belong with the sync-engine work rather
+  /// than this feature change.
+  TextColumn get syncState => text().withDefault(const Constant('synced'))();
 
   @override
   Set<Column> get primaryKey => {id};

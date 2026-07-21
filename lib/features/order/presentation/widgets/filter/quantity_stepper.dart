@@ -49,7 +49,8 @@ class _QuantityStepperState extends State<QuantityStepper> {
       if (ms > 60) {
         ms = (ms * 0.75).toInt();
         _repeatTimer?.cancel();
-        _repeatTimer = Timer.periodic(Duration(milliseconds: ms), (t) => _apply(delta));
+        _repeatTimer =
+            Timer.periodic(Duration(milliseconds: ms), (t) => _apply(delta));
       }
     });
   }
@@ -138,7 +139,9 @@ class _StepButton extends StatelessWidget {
             child: Icon(
               icon,
               size: 20,
-              color: enabled ? Theme.of(context).colorScheme.primary : theme.disabledColor.withValues(alpha: 0.4),
+              color: enabled
+                  ? Theme.of(context).colorScheme.primary
+                  : theme.disabledColor.withValues(alpha: 0.4),
             ),
           ),
         ),

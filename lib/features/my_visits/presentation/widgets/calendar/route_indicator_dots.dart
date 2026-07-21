@@ -43,10 +43,11 @@ class RouteIndicatorDots extends StatelessWidget {
 
     // Calculate specific width needed to force wrapping after [columns] items.
     // Width = (dot * count) + (spacing * (count - 1))
-    final wrapContainerWidth = (dotSizeW * columns) + (spacingW * (columns - 1));
+    final wrapContainerWidth =
+        (dotSizeW * columns) + (spacingW * (columns - 1));
 
     return Center(
-      // We wrap it in a sized box with calculated width to force 
+      // We wrap it in a sized box with calculated width to force
       // the Wrap widget to break lines exactly where we want (column 4).
       child: SizedBox(
         width: wrapContainerWidth,

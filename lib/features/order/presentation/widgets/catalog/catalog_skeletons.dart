@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/glass_card.dart';
-import 'package:isi_steel_sales_mobile/core/utils/shimmer.dart';
+import 'package:isi_steel_sales_mobile/core/animations/shimmer_loading.dart';
 
 class ProductCardSkeleton extends StatelessWidget {
   const ProductCardSkeleton({super.key});
@@ -21,8 +21,7 @@ class ProductCardSkeleton extends StatelessWidget {
           children: [
             DecoratedBox(
               decoration: BoxDecoration(
-                  color: baseColor,
-                  borderRadius: BorderRadius.circular(10)),
+                  color: baseColor, borderRadius: BorderRadius.circular(10)),
               child: const SizedBox(width: _imageSize, height: _imageSize),
             ),
             const SizedBox(width: 10),
@@ -36,20 +35,29 @@ class ProductCardSkeleton extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SkeletonBox(width: 40, height: 10, radius: 4, color: baseColor),
+                        ShimmerBox(
+                            width: 40, height: 10, radius: 4, color: baseColor),
                         const SizedBox(height: 4),
-                        SkeletonBox(width: double.infinity, height: 13, radius: 4, color: baseColor),
+                        ShimmerBox(
+                            width: double.infinity,
+                            height: 13,
+                            radius: 4,
+                            color: baseColor),
                         const SizedBox(height: 4),
-                        SkeletonBox(width: 90, height: 11, radius: 4, color: baseColor),
+                        ShimmerBox(
+                            width: 90, height: 11, radius: 4, color: baseColor),
                         const SizedBox(height: 3),
-                        SkeletonBox(width: 70, height: 11, radius: 4, color: baseColor),
+                        ShimmerBox(
+                            width: 70, height: 11, radius: 4, color: baseColor),
                       ],
                     ),
                     Row(
                       children: [
-                        SkeletonBox(width: 46, height: 14, radius: 4, color: baseColor),
+                        ShimmerBox(
+                            width: 46, height: 14, radius: 4, color: baseColor),
                         const Spacer(),
-                        SkeletonBox(width: 28, height: 28, radius: 8, color: baseColor),
+                        ShimmerBox(
+                            width: 28, height: 28, radius: 8, color: baseColor),
                       ],
                     ),
                   ],

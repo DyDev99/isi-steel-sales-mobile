@@ -131,6 +131,7 @@ Every domain declares upfront how it behaves offline and how it eventually syncs
 | Authentication | Cached user boots the app fully offline | Token refresh only, when online | Built |
 | Organization/Role/Permission | Read-mostly cache | Pull | Missing — needed for RBAC |
 | Customer/Contact | Full offline read + edit | Pull + delta | Built (migrating off sqflite) |
+| Customer master data (SAP Helper lists) | Cache-first from Hive; falls back to a stale copy when offline or SAP is unreachable, badged as stale. Never blocks a screen. | Pull only, on cache miss or explicit refresh (7-day TTL) | Built behind a mock — real source blocked on `core/network/sap_client.dart` (ADR-009) |
 | Lead/Opportunity | Offline draft | Push queue | Partial |
 | Catalog/Product/Category/PriceBook | Full offline catalog, including search (FTS) | Pull, paged + delta | Built |
 | Territory/Route/Visit/Check-in | Full offline | Pull + push telemetry | Built |

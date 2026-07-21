@@ -151,7 +151,8 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
       child: pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
-          pw.Text('ISI STEEL — ${_l('orders.quotation.pdf.title', 'QUOTATION')}',
+          pw.Text(
+              'ISI STEEL — ${_l('orders.quotation.pdf.title', 'QUOTATION')}',
               style: pw.TextStyle(
                   fontSize: 9,
                   color: theme.muted,
@@ -283,7 +284,8 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
   }
 
   pw.TableRow _tableHeaderRow(PdfTheme theme) {
-    pw.Widget cell(String text, {pw.Alignment align = pw.Alignment.centerLeft}) {
+    pw.Widget cell(String text,
+        {pw.Alignment align = pw.Alignment.centerLeft}) {
       return pw.Container(
         alignment: align,
         padding: const pw.EdgeInsets.symmetric(vertical: 7, horizontal: 6),
@@ -331,8 +333,9 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
         : line.quantity.toStringAsFixed(2);
 
     return pw.TableRow(
-      decoration:
-          zebra ? pw.BoxDecoration(color: theme.zebra) : const pw.BoxDecoration(),
+      decoration: zebra
+          ? pw.BoxDecoration(color: theme.zebra)
+          : const pw.BoxDecoration(),
       children: [
         cell(pw.Text('$number',
             style: pw.TextStyle(fontSize: 8.5, color: theme.muted))),
@@ -359,9 +362,7 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
         ),
         cell(pw.Text(line.unit,
             style: pw.TextStyle(fontSize: 8.5, color: theme.ink))),
-        cell(
-            pw.Text(qty,
-                style: pw.TextStyle(fontSize: 8.5, color: theme.ink)),
+        cell(pw.Text(qty, style: pw.TextStyle(fontSize: 8.5, color: theme.ink)),
             align: pw.Alignment.centerRight),
         cell(
             pw.Text(currency.format(line.unitPrice),
@@ -453,7 +454,8 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
               ? notes
               : _l('orders.quotation.pdf.notes_default',
                   'Prices are held for 7 days from the quotation date. This is a quotation only and not a final invoice. Delivery lead times are confirmed on order.'),
-          style: pw.TextStyle(fontSize: 8.5, color: theme.muted, lineSpacing: 2),
+          style:
+              pw.TextStyle(fontSize: 8.5, color: theme.muted, lineSpacing: 2),
         ),
       ],
     );
@@ -489,8 +491,8 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
         pw.SizedBox(width: theme.gapXl),
         slot(_l('orders.quotation.pdf.approved_by', 'Approved by')),
         pw.SizedBox(width: theme.gapXl),
-        slot(_l('orders.quotation.pdf.customer_signature',
-            'Customer signature')),
+        slot(_l(
+            'orders.quotation.pdf.customer_signature', 'Customer signature')),
       ],
     );
   }

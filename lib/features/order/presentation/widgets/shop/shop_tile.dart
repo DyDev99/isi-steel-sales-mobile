@@ -97,7 +97,8 @@ class ShopTile extends StatelessWidget {
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
-                                    color: colors.warning.withValues(alpha: 0.14),
+                                    color:
+                                        colors.warning.withValues(alpha: 0.14),
                                     borderRadius: BorderRadius.circular(6)),
                                 child: Text(
                                     '${creditSummary!.notes.length} CN/DN',
@@ -113,7 +114,8 @@ class ShopTile extends StatelessWidget {
                     ),
                   ),
                   if (_isActive)
-                    Icon(Icons.chevron_right_rounded, color: colors.textSecondary),
+                    Icon(Icons.chevron_right_rounded,
+                        color: colors.textSecondary),
                 ],
               ),
             ),

@@ -34,6 +34,18 @@ class CustomerModel extends Customer {
     super.lastVisitDate,
     super.lifetimeValue,
     super.openOpportunityCount,
+    super.salesOrg,
+    super.division,
+    super.distributionChannel,
+    super.customerGroup,
+    super.priceGroup,
+    super.enName,
+    super.khName,
+    super.taxNumber,
+    super.creditBalance,
+    super.currency,
+    super.totalOrders,
+    super.createdAt,
     this.deleted = false,
   });
 
@@ -75,6 +87,23 @@ class CustomerModel extends Customer {
             : DateTime.parse(json['lastVisitDate'] as String),
         lifetimeValue: (json['lifetimeValue'] as num?)?.toDouble() ?? 0,
         openOpportunityCount: json['openOpportunityCount'] as int? ?? 0,
+        // SAP sales area / commercial block. Keys match the SAP Customer (BP)
+        // API field names in `SapAPI_Technical_Document_v1_BP.docx` §5.4, so a
+        // real SAP payload deserialises here unchanged (ADR-009 decision 4).
+        salesOrg: json['salesOrg'] as String?,
+        division: json['division'] as String?,
+        distributionChannel: json['distributionChannel'] as String?,
+        customerGroup: json['customerGroup'] as String?,
+        priceGroup: json['priceGroup'] as String?,
+        enName: json['enName'] as String?,
+        khName: json['khName'] as String?,
+        taxNumber: json['taxNumber'] as String?,
+        creditBalance: (json['creditBalance'] as num?)?.toDouble() ?? 0,
+        currency: json['currency'] as String? ?? 'USD',
+        totalOrders: json['totalOrders'] as int? ?? 0,
+        createdAt: json['createdAt'] == null
+            ? null
+            : DateTime.parse(json['createdAt'] as String),
         deleted: json['deleted'] as bool? ?? false,
       );
 

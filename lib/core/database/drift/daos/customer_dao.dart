@@ -46,6 +46,8 @@ class CustomerDao extends DatabaseAccessor<AppDatabase>
     String? territory,
     String? status,
     String? productCategory,
+    String? salesOrg,
+    String? division,
     CustomerBrowseSort sort = CustomerBrowseSort.nameAsc,
   }) {
     final statement = select(customers)
@@ -56,14 +58,27 @@ class CustomerDao extends DatabaseAccessor<AppDatabase>
         if (productCategory != null) {
           cond = cond & t.productsPurchased.like('%$productCategory%');
         }
+        // Sales area (schema v9). Index-backed — see idx_customers_sales_org /
+        // idx_customers_division. Equality, not LIKE: these are SAP codes, so a
+        // partial match would silently widen the filter.
+        if (salesOrg != null) cond = cond & t.salesOrg.equals(salesOrg);
+        if (division != null) cond = cond & t.division.equals(division);
         final trimmed = query.trim();
         if (trimmed.isNotEmpty) {
+          // SQLite's LIKE is already case-insensitive for ASCII, which covers
+          // the codes and Latin names searched here.
           final like = '%$trimmed%';
           cond = cond &
               (t.shopName.like(like) |
                   t.customerCode.like(like) |
                   t.ownerName.like(like) |
-                  t.phone.like(like));
+                  t.phone.like(like) |
+                  // v9 fields — the brief's requirement that typing "PRD" or
+                  // "Steel" finds customers by sales area, not just by name.
+                  t.enName.like(like) |
+                  t.khName.like(like) |
+                  t.salesOrg.like(like) |
+                  t.division.like(like));
         }
         return cond;
       })

@@ -39,7 +39,7 @@ class GuestHomeScreen extends StatelessWidget {
         context.deviceInsets.scrollBottomInset(extra: 16),
       ),
       children: [
-           GuestFadeIn(
+        GuestFadeIn(
           delay: _step * 3,
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -56,7 +56,6 @@ class GuestHomeScreen extends StatelessWidget {
           delay: _step * 2,
           child: GuestMyWorkGrid(onRequireLogin: onLogin),
         ),
-
         const SizedBox(height: 12),
       ],
     );

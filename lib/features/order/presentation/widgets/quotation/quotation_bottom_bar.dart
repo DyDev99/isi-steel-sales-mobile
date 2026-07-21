@@ -20,7 +20,7 @@ class QuotationBottomBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppThemeColors>()!;
-    
+
     return BlocBuilder<CartCubit, CartState>(
       builder: (context, state) {
         final items = state is CartLoaded ? state.items : const [];
@@ -41,7 +41,8 @@ class QuotationBottomBar extends StatelessWidget {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: colors.textPrimary,
                       side: BorderSide(color: colors.border, width: 1.5),
-                      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 14, horizontal: 24),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                       ),

@@ -16,7 +16,7 @@ class DiscountPresetChips extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppThemeColors>()!;
-    
+
     return Wrap(
       spacing: 6,
       children: [
@@ -30,7 +30,9 @@ class DiscountPresetChips extends StatelessWidget {
             visualDensity: VisualDensity.compact,
             selectedColor: colors.surfaceSoft,
             labelStyle: TextStyle(
-              color: selected == preset ? colors.accentPurple : colors.textSecondary,
+              color: selected == preset
+                  ? colors.accentPurple
+                  : colors.textSecondary,
               fontWeight: FontWeight.w700,
             ),
             onSelected: (_) => onSelected(preset),

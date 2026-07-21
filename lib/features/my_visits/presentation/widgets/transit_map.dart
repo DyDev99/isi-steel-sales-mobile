@@ -29,6 +29,23 @@ class _TransitMapState extends State<TransitMap> {
       : LatLng(
           widget.currentPosition!.latitude, widget.currentPosition!.longitude);
 
+  /// Releases the native map view.
+  ///
+  /// `GoogleMapController` owns an Android/iOS platform view — a native surface
+  /// the engine composites *above* the Flutter layer, not a widget in the Dart
+  /// tree. Dropping the Dart reference without disposing it leaves that surface
+  /// alive and registered with the platform-view controller, so it keeps
+  /// painting at its last screen-space rect over whatever screen is now on top.
+  /// That is the stray rounded white rectangle seen on Home and the Route
+  /// Dashboard: it is invisible to any widget-tree audit precisely because it
+  /// is not a widget.
+  @override
+  void dispose() {
+    _controller?.dispose();
+    _controller = null;
+    super.dispose();
+  }
+
   @override
   void didUpdateWidget(covariant TransitMap oldWidget) {
     super.didUpdateWidget(oldWidget);
