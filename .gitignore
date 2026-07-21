@@ -3,6 +3,12 @@
 .env.*
 !.env.example
 
+# Envied output. Deliberately the ONE generated file that is not committed:
+# unlike the drift *.g.dart files, it embeds the obfuscated SAP gateway URL and
+# the database salt. Obfuscation is defense-in-depth, not a secret store
+# (docs/SECURITY.md §4), so it is regenerated at build time instead.
+lib/core/config/env.g.dart
+
 # Miscellaneous
 *.class
 *.log
@@ -52,3 +58,7 @@ app.*.map.json
 
 # Graphify knowledge graph (rebuildable artifact: `graphify update .`)
 graphify-out/
+
+# Gradle writes its build-scan/problems reports here. The root /build/ rule
+# above does not cover android/build/, so this artifact was being tracked.
+/android/build/

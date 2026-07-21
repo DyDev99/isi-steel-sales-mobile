@@ -12,11 +12,22 @@ part 'env.g.dart';
 /// passphrase, so recovering it from the binary alone does not expose the DB.
 @Envied(path: '.env', obfuscate: true)
 abstract class Env {
-/// SAP Core API gateway base URL.
- @EnviedField(varName: 'SAP_API_URL', obfuscate: true)
- static final String sapApiUrl = _Env.sapApiUrl;
+  /// Base URL every Dio client is constructed against (`AppNetwork`).
+  ///
+  /// This is what makes environment switching work: swapping the `.env` file
+  /// (see `.env.development` / `.env.staging` / `.env.production`) repoints the
+  /// whole app without a source change, as `docs/cl_cd_deployment.md`
+  /// "Environment Configuration" requires. It previously lived as a hardcoded
+  /// literal in `AppConstants.baseUrl`, which silently pinned every build to
+  /// production.
+  @EnviedField(varName: 'API_BASE_URL', obfuscate: true)
+  static final String apiBaseUrl = _Env.apiBaseUrl;
 
- /// Salt mixed into the database-key derivation. Defense-in-depth only.
- @EnviedField(varName: 'DB_SALT', obfuscate: true)
- static final String dbSalt = _Env.dbSalt;
+  /// SAP Core API gateway base URL — target of the ADR-005 reachability probe.
+  @EnviedField(varName: 'SAP_API_URL', obfuscate: true)
+  static final String sapApiUrl = _Env.sapApiUrl;
+
+  /// Salt mixed into the database-key derivation. Defense-in-depth only.
+  @EnviedField(varName: 'DB_SALT', obfuscate: true)
+  static final String dbSalt = _Env.dbSalt;
 }

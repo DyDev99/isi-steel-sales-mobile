@@ -52,6 +52,11 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
   final Set<String> _collapsedRegions = {};
   int _pendingSyncBump = 0;
 
+  /// Process-scoped latch for [_autoSeedDebugFixtures]. Static so navigating
+  /// away and back doesn't re-run the seeders on every visit — it is not a
+  /// correctness guard (seeding is idempotent), just an efficiency one.
+  static bool _debugFixturesSeeded = false;
+
   bool get _isToday {
     final now = DateTime.now();
     return _selectedDate.year == now.year &&
@@ -64,6 +69,7 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
     super.initState();
     context.read<RouteSyncCubit>().syncIfNeeded();
     context.read<RouteSyncCubit>().pushPending();
+    if (kDebugMode) _autoSeedDebugFixtures();
   }
 
   Future<void> _openRoute(BuildContext context, String routeId) async {
@@ -93,7 +99,26 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
     ));
   }
 
-  Future<void> _seedTestRoute(BuildContext context) async {
+  /// TODO(release-gate): debug-only fixture seeding — must never run in a
+  /// release build (`docs/SECURITY.md` §11: "mock data and mock APIs removed").
+  /// Enforced by the [kDebugMode] guard at the single call site in [initState].
+  ///
+  /// Replaces the debug FloatingActionButton that used to trigger this by hand:
+  /// a fresh device now shows route data on first open with no manual tap.
+  ///
+  /// Safe to re-run. Both seeders write fixed ids (`test-route-3-stops`,
+  /// `test-route-<date>-<n>`) through the same `upsertCustomers`/`upsertRoutes`
+  /// calls the sync engine uses, so a repeat run updates rows in place instead
+  /// of duplicating them. [_debugFixturesSeeded] only avoids redundant disk
+  /// work; it is not what makes this safe.
+  Future<void> _autoSeedDebugFixtures() async {
+    if (_debugFixturesSeeded) return;
+    _debugFixturesSeeded = true;
+
+    // Captured before the first await — the State may be disposed by the time
+    // seeding finishes, and reading an inherited widget after that throws.
+    final dashboardCubit = context.read<RouteDashboardCubit>();
+
     try {
       await seedIsiTowerTestRoute(
         sl<RouteLocalDataSource>(),
@@ -103,20 +128,27 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
         sl<RouteLocalDataSource>(),
         sl<CustomerLocalDataSource>(),
       );
+    } on StateError catch (e) {
+      // Expected on a cold first launch, not a bug: both seeders borrow real
+      // customer ids so `route_stops.customer_id` resolves (ADR-001), and the
+      // customer sync may not have landed yet. Release the latch so the next
+      // visit to this screen retries once customers exist.
+      _debugFixturesSeeded = false;
+      debugPrint('Auto-seed skipped: ${e.message}');
+      return;
     } catch (e) {
+      _debugFixturesSeeded = false;
       final detail = e is CacheException ? e.message : e.toString();
-      debugPrint('Seed test route failed: $detail');
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Seed failed: $detail')),
-      );
+      debugPrint('Auto-seed failed: $detail');
       return;
     }
-    if (!context.mounted) return;
-    context.read<RouteDashboardCubit>().load();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Seeded ISI Tower + 20/21 Jul mock routes')),
-    );
+
+    // Seeding writes straight to the local DB behind the cubit's back, so the
+    // dashboard has to be told to re-read. Offline-first: a failed seed above
+    // returns early and leaves the screen on whatever real data exists rather
+    // than surfacing an error state (ADR-002 §4).
+    if (!mounted) return;
+    dashboardCubit.load();
   }
 
   @override
@@ -125,15 +157,6 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
     final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       backgroundColor: colors.canvas,
-      floatingActionButton: kDebugMode
-          ? FloatingActionButton.small(
-              heroTag: 'seed-test-route',
-              backgroundColor: scheme.primary,
-              tooltip: 'Seed ISI Tower test route',
-              onPressed: () => _seedTestRoute(context),
-              child: Icon(Icons.bug_report_rounded, color: scheme.onPrimary),
-            )
-          : null,
       body: SafeArea(
         child: BlocListener<RouteSyncCubit, RouteSyncState>(
           listenWhen: (prev, curr) =>
@@ -283,7 +306,10 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
               SizedBox(height: 6.h),
               Text(
                 kDebugMode
-                    ? 'Pull down to sync from remote or tap the bug icon floating button to seed a mock route.'
+                    // Debug builds auto-seed on open; reaching this state means
+                    // the seeders found no synced customers to borrow ids from.
+                    ? 'Pull down to sync from remote. Debug fixtures seed '
+                        'automatically once customers have synced.'
                     : 'Pull down to sync your route plan itinerary.',
                 textAlign: TextAlign.center,
                 style: TextStyle(

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:isi_steel_sales_mobile/core/config/env.dart';
 import 'package:isi_steel_sales_mobile/core/constants/app_constant.dart';
 import 'package:isi_steel_sales_mobile/core/middleware/app_middleware.dart';
 
@@ -8,7 +9,10 @@ class AppNetwork {
   AppNetwork._();
 
   static BaseOptions get _baseOptions => BaseOptions(
-        baseUrl: AppConstants.baseUrl,
+        // Environment-driven, never a literal: the target gateway comes from
+        // the `.env` compiled in at build time, so a QA/staging build is a
+        // different `.env` rather than a different source tree.
+        baseUrl: Env.apiBaseUrl,
         connectTimeout: AppConstants.connectTimeout,
         receiveTimeout: AppConstants.receiveTimeout,
         responseType: ResponseType.json,

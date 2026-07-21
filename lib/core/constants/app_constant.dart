@@ -3,7 +3,10 @@ class AppConstants {
   AppConstants._();
 
   // ── API ────────────────────────────────────────────────────────────
-  static const String baseUrl = 'https://api.kicgroup.com';
+  // NOTE: there is deliberately no `baseUrl` constant here. The gateway host is
+  // environment-specific and comes from `Env.apiBaseUrl` (see `AppNetwork`).
+  // A hardcoded literal previously lived here and pinned every build —
+  // including QA and staging — to the production host.
   static const String apiPrefix = '/v1';
 
   static const Duration connectTimeout = Duration(seconds: 15);
