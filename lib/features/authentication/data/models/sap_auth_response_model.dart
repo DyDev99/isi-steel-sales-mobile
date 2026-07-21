@@ -24,7 +24,21 @@ class SapAuthResponseModel {
   factory SapAuthResponseModel.fromJson(Map<String, dynamic> json) {
     final token = json['token'];
     if (token is! String || token.isEmpty) {
-      throw const FormatException('SAP login response contained no token.');
+      // The key *names* are named in the message, never the values. A response
+      // shape mismatch is the likeliest cause of this failure and is otherwise
+      // invisible: the façade is ASP.NET Core, which camelCases by default, but
+      // a `JsonSerializerOptions` change server-side would emit `Token` /
+      // `ExpiresAt` instead and every field would silently read as null.
+      // Listing the keys turns that into a one-glance diagnosis.
+      //
+      // Safe under `docs/SECURITY.md` §10: key names carry no PII, and the
+      // token value itself is never included.
+      throw FormatException(
+        'SAP login response contained no "token" key. '
+        'Keys present: ${json.keys.toList()..sort()}. '
+        'If these are PascalCase, the façade\'s JSON casing has changed and '
+        'this mapper needs updating.',
+      );
     }
 
     final rawExpiry = json['expiresAt'];

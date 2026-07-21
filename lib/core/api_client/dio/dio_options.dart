@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:isi_steel_sales_mobile/core/api_client/config/api_config.dart';
 import 'package:isi_steel_sales_mobile/core/api_client/dio/auth_interceptor.dart';
+import 'package:isi_steel_sales_mobile/core/api_client/dio/connectivity_interceptor.dart';
 import 'package:isi_steel_sales_mobile/core/api_client/dio/retry_interceptor.dart';
 
 /// Builds Dio option objects from an [ApiConfig].
@@ -28,6 +29,7 @@ abstract final class DioOptionsBuilder {
     Map<String, dynamic>? headers,
     ResponseType? responseType,
     bool skipAuth = false,
+    bool skipConnectivityCheck = false,
     bool forceRetryable = false,
     Duration? receiveTimeout,
   }) =>
@@ -38,6 +40,7 @@ abstract final class DioOptionsBuilder {
         receiveTimeout: receiveTimeout,
         extra: {
           if (skipAuth) skipAuthFlag: true,
+          if (skipConnectivityCheck) skipConnectivityFlag: true,
           // Opt a non-idempotent call into retry. Only correct where the
           // endpoint deduplicates — see `RetryInterceptor`.
           if (forceRetryable) RetryInterceptor.retryableFlag: true,

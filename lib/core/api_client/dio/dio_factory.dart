@@ -91,6 +91,30 @@ abstract final class DioFactory {
     return dio;
   }
 
+  /// Bare client for the reachability probe: correct TLS, **no interceptors**.
+  ///
+  /// The probe cannot go through [create] or [createLoginDio] because both
+  /// install [ConnectivityInterceptor] — the probe is what *establishes*
+  /// connectivity, so routing it through the connectivity gate makes it reject
+  /// itself and the app can never leave the offline state.
+  ///
+  /// It equally cannot use a bare `Dio()`, which is what it did before: the SAP
+  /// host serves a self-signed certificate from a raw IP, so Dart's default
+  /// trust rules refuse the handshake and the probe fails 100% of the time —
+  /// leaving the app permanently "offline" and every SAP call rejected
+  /// pre-flight. Applying the same TLS policy as the real client is the whole
+  /// point: the probe must fail exactly when the real request would fail, and
+  /// succeed exactly when it would succeed.
+  ///
+  /// It also means a missing or wrong pin surfaces the presented fingerprint
+  /// through [_applyTls]'s debug line, which is how an operator repairs the pin
+  /// after a certificate renewal.
+  static Dio createProbeDio({required ApiConfig config}) {
+    final dio = Dio(DioOptionsBuilder.base(config));
+    _applyTls(dio, config);
+    return dio;
+  }
+
   /// Installs certificate pinning where the backend needs it.
   ///
   /// Only hosts that cannot be validated normally get a custom trust callback.

@@ -250,6 +250,28 @@ void main() {
       ]) {
         raw.execute('DROP TABLE IF EXISTS $table;');
       }
+      // Indexes first — SQLite refuses to drop a column an index references.
+      raw.execute('DROP INDEX IF EXISTS idx_customers_sales_org;');
+      raw.execute('DROP INDEX IF EXISTS idx_customers_division;');
+      // v9's SAP columns must come off too, otherwise step 9 re-adds columns
+      // that already exist and the upgrade fails with "duplicate column name".
+      for (final column in [
+        'sales_org',
+        'division',
+        'distribution_channel',
+        'customer_group',
+        'price_group',
+        'en_name',
+        'kh_name',
+        'credit_balance',
+        'currency',
+        'tax_number',
+        'total_orders',
+        'created_at',
+        'sync_state',
+      ]) {
+        raw.execute('ALTER TABLE customers DROP COLUMN $column;');
+      }
       raw.execute('ALTER TABLE customers DROP COLUMN territory_type;');
       raw.execute(
           'ALTER TABLE customers DROP COLUMN geofence_radius_override;');

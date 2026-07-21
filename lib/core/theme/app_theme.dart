@@ -237,7 +237,14 @@ class _LightTokens extends _Tokens {
   @override
   Color get snackBarBackground => AppColors.textInverse;
   @override
-  Color get snackBarText => AppColors.textInverse;
+  // Must contrast with [snackBarBackground]. This previously also returned
+  // `textInverse`, i.e. white text on a white SnackBar: the message was still
+  // rendered and still occupied layout, it was simply invisible. A long
+  // failure string therefore inflated the (floating, rounded, elevated)
+  // SnackBar into a large blank white rectangle floating over the page —
+  // reported as a phantom "white widget" on Home and the Route Dashboard.
+  // The dark tokens below were always correct, which is why it was light-only.
+  Color get snackBarText => AppColors.textPrimary;
 }
 
 class _DarkTokens extends _Tokens {

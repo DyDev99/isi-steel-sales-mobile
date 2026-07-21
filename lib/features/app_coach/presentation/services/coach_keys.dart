@@ -26,6 +26,7 @@ abstract final class CoachKeys {
   static const String newQuote = 'qa_new_quote';
   static const String newLead = 'qa_new_lead';
   static const String depotStock = 'qa_depot_stock';
+  static const String addCustomer = 'qa_add_customer';
 
   // My-work items.
   static const String myLeads = 'mw_my_leads';

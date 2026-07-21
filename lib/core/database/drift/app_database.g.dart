@@ -413,6 +413,90 @@ class $CustomersTable extends Customers
   late final GeneratedColumn<double> geofenceRadiusOverride =
       GeneratedColumn<double>('geofence_radius_override', aliasedName, true,
           type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _salesOrgMeta =
+      const VerificationMeta('salesOrg');
+  @override
+  late final GeneratedColumn<String> salesOrg = GeneratedColumn<String>(
+      'sales_org', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _divisionMeta =
+      const VerificationMeta('division');
+  @override
+  late final GeneratedColumn<String> division = GeneratedColumn<String>(
+      'division', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _distributionChannelMeta =
+      const VerificationMeta('distributionChannel');
+  @override
+  late final GeneratedColumn<String> distributionChannel =
+      GeneratedColumn<String>('distribution_channel', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _customerGroupMeta =
+      const VerificationMeta('customerGroup');
+  @override
+  late final GeneratedColumn<String> customerGroup = GeneratedColumn<String>(
+      'customer_group', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _priceGroupMeta =
+      const VerificationMeta('priceGroup');
+  @override
+  late final GeneratedColumn<String> priceGroup = GeneratedColumn<String>(
+      'price_group', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _enNameMeta = const VerificationMeta('enName');
+  @override
+  late final GeneratedColumn<String> enName = GeneratedColumn<String>(
+      'en_name', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _khNameMeta = const VerificationMeta('khName');
+  @override
+  late final GeneratedColumn<String> khName = GeneratedColumn<String>(
+      'kh_name', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _creditBalanceMeta =
+      const VerificationMeta('creditBalance');
+  @override
+  late final GeneratedColumn<double> creditBalance = GeneratedColumn<double>(
+      'credit_balance', aliasedName, false,
+      type: DriftSqlType.double,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _currencyMeta =
+      const VerificationMeta('currency');
+  @override
+  late final GeneratedColumn<String> currency = GeneratedColumn<String>(
+      'currency', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('USD'));
+  static const VerificationMeta _taxNumberMeta =
+      const VerificationMeta('taxNumber');
+  @override
+  late final GeneratedColumn<String> taxNumber = GeneratedColumn<String>(
+      'tax_number', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _totalOrdersMeta =
+      const VerificationMeta('totalOrders');
+  @override
+  late final GeneratedColumn<int> totalOrders = GeneratedColumn<int>(
+      'total_orders', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _syncStateMeta =
+      const VerificationMeta('syncState');
+  @override
+  late final GeneratedColumn<String> syncState = GeneratedColumn<String>(
+      'sync_state', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('synced'));
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -442,7 +526,20 @@ class $CustomersTable extends Customers
         openOpportunityCount,
         deleted,
         territoryType,
-        geofenceRadiusOverride
+        geofenceRadiusOverride,
+        salesOrg,
+        division,
+        distributionChannel,
+        customerGroup,
+        priceGroup,
+        enName,
+        khName,
+        creditBalance,
+        currency,
+        taxNumber,
+        totalOrders,
+        createdAt,
+        syncState
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -613,6 +710,68 @@ class $CustomersTable extends Customers
           geofenceRadiusOverride.isAcceptableOrUnknown(
               data['geofence_radius_override']!, _geofenceRadiusOverrideMeta));
     }
+    if (data.containsKey('sales_org')) {
+      context.handle(_salesOrgMeta,
+          salesOrg.isAcceptableOrUnknown(data['sales_org']!, _salesOrgMeta));
+    }
+    if (data.containsKey('division')) {
+      context.handle(_divisionMeta,
+          division.isAcceptableOrUnknown(data['division']!, _divisionMeta));
+    }
+    if (data.containsKey('distribution_channel')) {
+      context.handle(
+          _distributionChannelMeta,
+          distributionChannel.isAcceptableOrUnknown(
+              data['distribution_channel']!, _distributionChannelMeta));
+    }
+    if (data.containsKey('customer_group')) {
+      context.handle(
+          _customerGroupMeta,
+          customerGroup.isAcceptableOrUnknown(
+              data['customer_group']!, _customerGroupMeta));
+    }
+    if (data.containsKey('price_group')) {
+      context.handle(
+          _priceGroupMeta,
+          priceGroup.isAcceptableOrUnknown(
+              data['price_group']!, _priceGroupMeta));
+    }
+    if (data.containsKey('en_name')) {
+      context.handle(_enNameMeta,
+          enName.isAcceptableOrUnknown(data['en_name']!, _enNameMeta));
+    }
+    if (data.containsKey('kh_name')) {
+      context.handle(_khNameMeta,
+          khName.isAcceptableOrUnknown(data['kh_name']!, _khNameMeta));
+    }
+    if (data.containsKey('credit_balance')) {
+      context.handle(
+          _creditBalanceMeta,
+          creditBalance.isAcceptableOrUnknown(
+              data['credit_balance']!, _creditBalanceMeta));
+    }
+    if (data.containsKey('currency')) {
+      context.handle(_currencyMeta,
+          currency.isAcceptableOrUnknown(data['currency']!, _currencyMeta));
+    }
+    if (data.containsKey('tax_number')) {
+      context.handle(_taxNumberMeta,
+          taxNumber.isAcceptableOrUnknown(data['tax_number']!, _taxNumberMeta));
+    }
+    if (data.containsKey('total_orders')) {
+      context.handle(
+          _totalOrdersMeta,
+          totalOrders.isAcceptableOrUnknown(
+              data['total_orders']!, _totalOrdersMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    if (data.containsKey('sync_state')) {
+      context.handle(_syncStateMeta,
+          syncState.isAcceptableOrUnknown(data['sync_state']!, _syncStateMeta));
+    }
     return context;
   }
 
@@ -679,6 +838,32 @@ class $CustomersTable extends Customers
       geofenceRadiusOverride: attachedDatabase.typeMapping.read(
           DriftSqlType.double,
           data['${effectivePrefix}geofence_radius_override']),
+      salesOrg: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}sales_org']),
+      division: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}division']),
+      distributionChannel: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}distribution_channel']),
+      customerGroup: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}customer_group']),
+      priceGroup: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}price_group']),
+      enName: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}en_name']),
+      khName: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}kh_name']),
+      creditBalance: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}credit_balance'])!,
+      currency: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}currency'])!,
+      taxNumber: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}tax_number']),
+      totalOrders: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}total_orders'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at']),
+      syncState: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}sync_state'])!,
     );
   }
 
@@ -722,6 +907,42 @@ class Customer extends DataClass implements Insertable<Customer> {
   /// Per-customer geofence radius in metres, overriding the global policy when
   /// a site is unusually large (a depot yard) or tight (a stall in a market).
   final double? geofenceRadiusOverride;
+
+  /// Sales area — the three fields SAP uses together to scope a customer.
+  final String? salesOrg;
+  final String? division;
+  final String? distributionChannel;
+
+  /// Commercial classification.
+  final String? customerGroup;
+  final String? priceGroup;
+
+  /// Latin and Khmer legal names. `shopName` stays the display name; these are
+  /// the SAP `name1` / `name3` equivalents used for search and documents.
+  final String? enName;
+  final String? khName;
+
+  /// Credit position. `creditLimit` already exists above; the balance is the
+  /// currently-consumed portion, so available credit is limit − balance.
+  final double creditBalance;
+  final String currency;
+
+  /// VAT / tax identification number (SAP `taxNumber`).
+  final String? taxNumber;
+
+  /// Lifetime order count. `lifetimeValue` above is the matching money figure.
+  final int totalOrders;
+
+  /// When SAP first created the record. `updatedAt` already covers the
+  /// modification side.
+  final DateTime? createdAt;
+
+  /// Per-row sync state — `synced` / `dirty` / `syncing` / `conflict`
+  /// (SYNC_ENGINE.md §5). Adding it here closes part of the standard
+  /// syncable-column gap in DATABASE_GUIDE.md §3.1; `server_revision` and
+  /// `dirty` remain outstanding and belong with the sync-engine work rather
+  /// than this feature change.
+  final String syncState;
   const Customer(
       {required this.id,
       required this.sapCustomerId,
@@ -750,7 +971,20 @@ class Customer extends DataClass implements Insertable<Customer> {
       required this.openOpportunityCount,
       required this.deleted,
       this.territoryType,
-      this.geofenceRadiusOverride});
+      this.geofenceRadiusOverride,
+      this.salesOrg,
+      this.division,
+      this.distributionChannel,
+      this.customerGroup,
+      this.priceGroup,
+      this.enName,
+      this.khName,
+      required this.creditBalance,
+      required this.currency,
+      this.taxNumber,
+      required this.totalOrders,
+      this.createdAt,
+      required this.syncState});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -809,6 +1043,37 @@ class Customer extends DataClass implements Insertable<Customer> {
       map['geofence_radius_override'] =
           Variable<double>(geofenceRadiusOverride);
     }
+    if (!nullToAbsent || salesOrg != null) {
+      map['sales_org'] = Variable<String>(salesOrg);
+    }
+    if (!nullToAbsent || division != null) {
+      map['division'] = Variable<String>(division);
+    }
+    if (!nullToAbsent || distributionChannel != null) {
+      map['distribution_channel'] = Variable<String>(distributionChannel);
+    }
+    if (!nullToAbsent || customerGroup != null) {
+      map['customer_group'] = Variable<String>(customerGroup);
+    }
+    if (!nullToAbsent || priceGroup != null) {
+      map['price_group'] = Variable<String>(priceGroup);
+    }
+    if (!nullToAbsent || enName != null) {
+      map['en_name'] = Variable<String>(enName);
+    }
+    if (!nullToAbsent || khName != null) {
+      map['kh_name'] = Variable<String>(khName);
+    }
+    map['credit_balance'] = Variable<double>(creditBalance);
+    map['currency'] = Variable<String>(currency);
+    if (!nullToAbsent || taxNumber != null) {
+      map['tax_number'] = Variable<String>(taxNumber);
+    }
+    map['total_orders'] = Variable<int>(totalOrders);
+    if (!nullToAbsent || createdAt != null) {
+      map['created_at'] = Variable<DateTime>(createdAt);
+    }
+    map['sync_state'] = Variable<String>(syncState);
     return map;
   }
 
@@ -866,6 +1131,35 @@ class Customer extends DataClass implements Insertable<Customer> {
       geofenceRadiusOverride: geofenceRadiusOverride == null && nullToAbsent
           ? const Value.absent()
           : Value(geofenceRadiusOverride),
+      salesOrg: salesOrg == null && nullToAbsent
+          ? const Value.absent()
+          : Value(salesOrg),
+      division: division == null && nullToAbsent
+          ? const Value.absent()
+          : Value(division),
+      distributionChannel: distributionChannel == null && nullToAbsent
+          ? const Value.absent()
+          : Value(distributionChannel),
+      customerGroup: customerGroup == null && nullToAbsent
+          ? const Value.absent()
+          : Value(customerGroup),
+      priceGroup: priceGroup == null && nullToAbsent
+          ? const Value.absent()
+          : Value(priceGroup),
+      enName:
+          enName == null && nullToAbsent ? const Value.absent() : Value(enName),
+      khName:
+          khName == null && nullToAbsent ? const Value.absent() : Value(khName),
+      creditBalance: Value(creditBalance),
+      currency: Value(currency),
+      taxNumber: taxNumber == null && nullToAbsent
+          ? const Value.absent()
+          : Value(taxNumber),
+      totalOrders: Value(totalOrders),
+      createdAt: createdAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdAt),
+      syncState: Value(syncState),
     );
   }
 
@@ -903,6 +1197,20 @@ class Customer extends DataClass implements Insertable<Customer> {
       territoryType: serializer.fromJson<String?>(json['territoryType']),
       geofenceRadiusOverride:
           serializer.fromJson<double?>(json['geofenceRadiusOverride']),
+      salesOrg: serializer.fromJson<String?>(json['salesOrg']),
+      division: serializer.fromJson<String?>(json['division']),
+      distributionChannel:
+          serializer.fromJson<String?>(json['distributionChannel']),
+      customerGroup: serializer.fromJson<String?>(json['customerGroup']),
+      priceGroup: serializer.fromJson<String?>(json['priceGroup']),
+      enName: serializer.fromJson<String?>(json['enName']),
+      khName: serializer.fromJson<String?>(json['khName']),
+      creditBalance: serializer.fromJson<double>(json['creditBalance']),
+      currency: serializer.fromJson<String>(json['currency']),
+      taxNumber: serializer.fromJson<String?>(json['taxNumber']),
+      totalOrders: serializer.fromJson<int>(json['totalOrders']),
+      createdAt: serializer.fromJson<DateTime?>(json['createdAt']),
+      syncState: serializer.fromJson<String>(json['syncState']),
     );
   }
   @override
@@ -938,6 +1246,19 @@ class Customer extends DataClass implements Insertable<Customer> {
       'territoryType': serializer.toJson<String?>(territoryType),
       'geofenceRadiusOverride':
           serializer.toJson<double?>(geofenceRadiusOverride),
+      'salesOrg': serializer.toJson<String?>(salesOrg),
+      'division': serializer.toJson<String?>(division),
+      'distributionChannel': serializer.toJson<String?>(distributionChannel),
+      'customerGroup': serializer.toJson<String?>(customerGroup),
+      'priceGroup': serializer.toJson<String?>(priceGroup),
+      'enName': serializer.toJson<String?>(enName),
+      'khName': serializer.toJson<String?>(khName),
+      'creditBalance': serializer.toJson<double>(creditBalance),
+      'currency': serializer.toJson<String>(currency),
+      'taxNumber': serializer.toJson<String?>(taxNumber),
+      'totalOrders': serializer.toJson<int>(totalOrders),
+      'createdAt': serializer.toJson<DateTime?>(createdAt),
+      'syncState': serializer.toJson<String>(syncState),
     };
   }
 
@@ -969,7 +1290,20 @@ class Customer extends DataClass implements Insertable<Customer> {
           int? openOpportunityCount,
           bool? deleted,
           Value<String?> territoryType = const Value.absent(),
-          Value<double?> geofenceRadiusOverride = const Value.absent()}) =>
+          Value<double?> geofenceRadiusOverride = const Value.absent(),
+          Value<String?> salesOrg = const Value.absent(),
+          Value<String?> division = const Value.absent(),
+          Value<String?> distributionChannel = const Value.absent(),
+          Value<String?> customerGroup = const Value.absent(),
+          Value<String?> priceGroup = const Value.absent(),
+          Value<String?> enName = const Value.absent(),
+          Value<String?> khName = const Value.absent(),
+          double? creditBalance,
+          String? currency,
+          Value<String?> taxNumber = const Value.absent(),
+          int? totalOrders,
+          Value<DateTime?> createdAt = const Value.absent(),
+          String? syncState}) =>
       Customer(
         id: id ?? this.id,
         sapCustomerId: sapCustomerId ?? this.sapCustomerId,
@@ -1008,6 +1342,22 @@ class Customer extends DataClass implements Insertable<Customer> {
         geofenceRadiusOverride: geofenceRadiusOverride.present
             ? geofenceRadiusOverride.value
             : this.geofenceRadiusOverride,
+        salesOrg: salesOrg.present ? salesOrg.value : this.salesOrg,
+        division: division.present ? division.value : this.division,
+        distributionChannel: distributionChannel.present
+            ? distributionChannel.value
+            : this.distributionChannel,
+        customerGroup:
+            customerGroup.present ? customerGroup.value : this.customerGroup,
+        priceGroup: priceGroup.present ? priceGroup.value : this.priceGroup,
+        enName: enName.present ? enName.value : this.enName,
+        khName: khName.present ? khName.value : this.khName,
+        creditBalance: creditBalance ?? this.creditBalance,
+        currency: currency ?? this.currency,
+        taxNumber: taxNumber.present ? taxNumber.value : this.taxNumber,
+        totalOrders: totalOrders ?? this.totalOrders,
+        createdAt: createdAt.present ? createdAt.value : this.createdAt,
+        syncState: syncState ?? this.syncState,
       );
   Customer copyWithCompanion(CustomersCompanion data) {
     return Customer(
@@ -1064,6 +1414,27 @@ class Customer extends DataClass implements Insertable<Customer> {
       geofenceRadiusOverride: data.geofenceRadiusOverride.present
           ? data.geofenceRadiusOverride.value
           : this.geofenceRadiusOverride,
+      salesOrg: data.salesOrg.present ? data.salesOrg.value : this.salesOrg,
+      division: data.division.present ? data.division.value : this.division,
+      distributionChannel: data.distributionChannel.present
+          ? data.distributionChannel.value
+          : this.distributionChannel,
+      customerGroup: data.customerGroup.present
+          ? data.customerGroup.value
+          : this.customerGroup,
+      priceGroup:
+          data.priceGroup.present ? data.priceGroup.value : this.priceGroup,
+      enName: data.enName.present ? data.enName.value : this.enName,
+      khName: data.khName.present ? data.khName.value : this.khName,
+      creditBalance: data.creditBalance.present
+          ? data.creditBalance.value
+          : this.creditBalance,
+      currency: data.currency.present ? data.currency.value : this.currency,
+      taxNumber: data.taxNumber.present ? data.taxNumber.value : this.taxNumber,
+      totalOrders:
+          data.totalOrders.present ? data.totalOrders.value : this.totalOrders,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      syncState: data.syncState.present ? data.syncState.value : this.syncState,
     );
   }
 
@@ -1097,7 +1468,20 @@ class Customer extends DataClass implements Insertable<Customer> {
           ..write('openOpportunityCount: $openOpportunityCount, ')
           ..write('deleted: $deleted, ')
           ..write('territoryType: $territoryType, ')
-          ..write('geofenceRadiusOverride: $geofenceRadiusOverride')
+          ..write('geofenceRadiusOverride: $geofenceRadiusOverride, ')
+          ..write('salesOrg: $salesOrg, ')
+          ..write('division: $division, ')
+          ..write('distributionChannel: $distributionChannel, ')
+          ..write('customerGroup: $customerGroup, ')
+          ..write('priceGroup: $priceGroup, ')
+          ..write('enName: $enName, ')
+          ..write('khName: $khName, ')
+          ..write('creditBalance: $creditBalance, ')
+          ..write('currency: $currency, ')
+          ..write('taxNumber: $taxNumber, ')
+          ..write('totalOrders: $totalOrders, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('syncState: $syncState')
           ..write(')'))
         .toString();
   }
@@ -1131,7 +1515,20 @@ class Customer extends DataClass implements Insertable<Customer> {
         openOpportunityCount,
         deleted,
         territoryType,
-        geofenceRadiusOverride
+        geofenceRadiusOverride,
+        salesOrg,
+        division,
+        distributionChannel,
+        customerGroup,
+        priceGroup,
+        enName,
+        khName,
+        creditBalance,
+        currency,
+        taxNumber,
+        totalOrders,
+        createdAt,
+        syncState
       ]);
   @override
   bool operator ==(Object other) =>
@@ -1164,7 +1561,20 @@ class Customer extends DataClass implements Insertable<Customer> {
           other.openOpportunityCount == this.openOpportunityCount &&
           other.deleted == this.deleted &&
           other.territoryType == this.territoryType &&
-          other.geofenceRadiusOverride == this.geofenceRadiusOverride);
+          other.geofenceRadiusOverride == this.geofenceRadiusOverride &&
+          other.salesOrg == this.salesOrg &&
+          other.division == this.division &&
+          other.distributionChannel == this.distributionChannel &&
+          other.customerGroup == this.customerGroup &&
+          other.priceGroup == this.priceGroup &&
+          other.enName == this.enName &&
+          other.khName == this.khName &&
+          other.creditBalance == this.creditBalance &&
+          other.currency == this.currency &&
+          other.taxNumber == this.taxNumber &&
+          other.totalOrders == this.totalOrders &&
+          other.createdAt == this.createdAt &&
+          other.syncState == this.syncState);
 }
 
 class CustomersCompanion extends UpdateCompanion<Customer> {
@@ -1196,6 +1606,19 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
   final Value<bool> deleted;
   final Value<String?> territoryType;
   final Value<double?> geofenceRadiusOverride;
+  final Value<String?> salesOrg;
+  final Value<String?> division;
+  final Value<String?> distributionChannel;
+  final Value<String?> customerGroup;
+  final Value<String?> priceGroup;
+  final Value<String?> enName;
+  final Value<String?> khName;
+  final Value<double> creditBalance;
+  final Value<String> currency;
+  final Value<String?> taxNumber;
+  final Value<int> totalOrders;
+  final Value<DateTime?> createdAt;
+  final Value<String> syncState;
   final Value<int> rowid;
   const CustomersCompanion({
     this.id = const Value.absent(),
@@ -1226,6 +1649,19 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
     this.deleted = const Value.absent(),
     this.territoryType = const Value.absent(),
     this.geofenceRadiusOverride = const Value.absent(),
+    this.salesOrg = const Value.absent(),
+    this.division = const Value.absent(),
+    this.distributionChannel = const Value.absent(),
+    this.customerGroup = const Value.absent(),
+    this.priceGroup = const Value.absent(),
+    this.enName = const Value.absent(),
+    this.khName = const Value.absent(),
+    this.creditBalance = const Value.absent(),
+    this.currency = const Value.absent(),
+    this.taxNumber = const Value.absent(),
+    this.totalOrders = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.syncState = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   CustomersCompanion.insert({
@@ -1257,6 +1693,19 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
     this.deleted = const Value.absent(),
     this.territoryType = const Value.absent(),
     this.geofenceRadiusOverride = const Value.absent(),
+    this.salesOrg = const Value.absent(),
+    this.division = const Value.absent(),
+    this.distributionChannel = const Value.absent(),
+    this.customerGroup = const Value.absent(),
+    this.priceGroup = const Value.absent(),
+    this.enName = const Value.absent(),
+    this.khName = const Value.absent(),
+    this.creditBalance = const Value.absent(),
+    this.currency = const Value.absent(),
+    this.taxNumber = const Value.absent(),
+    this.totalOrders = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.syncState = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         sapCustomerId = Value(sapCustomerId),
@@ -1298,6 +1747,19 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
     Expression<bool>? deleted,
     Expression<String>? territoryType,
     Expression<double>? geofenceRadiusOverride,
+    Expression<String>? salesOrg,
+    Expression<String>? division,
+    Expression<String>? distributionChannel,
+    Expression<String>? customerGroup,
+    Expression<String>? priceGroup,
+    Expression<String>? enName,
+    Expression<String>? khName,
+    Expression<double>? creditBalance,
+    Expression<String>? currency,
+    Expression<String>? taxNumber,
+    Expression<int>? totalOrders,
+    Expression<DateTime>? createdAt,
+    Expression<String>? syncState,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1331,6 +1793,20 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
       if (territoryType != null) 'territory_type': territoryType,
       if (geofenceRadiusOverride != null)
         'geofence_radius_override': geofenceRadiusOverride,
+      if (salesOrg != null) 'sales_org': salesOrg,
+      if (division != null) 'division': division,
+      if (distributionChannel != null)
+        'distribution_channel': distributionChannel,
+      if (customerGroup != null) 'customer_group': customerGroup,
+      if (priceGroup != null) 'price_group': priceGroup,
+      if (enName != null) 'en_name': enName,
+      if (khName != null) 'kh_name': khName,
+      if (creditBalance != null) 'credit_balance': creditBalance,
+      if (currency != null) 'currency': currency,
+      if (taxNumber != null) 'tax_number': taxNumber,
+      if (totalOrders != null) 'total_orders': totalOrders,
+      if (createdAt != null) 'created_at': createdAt,
+      if (syncState != null) 'sync_state': syncState,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1364,6 +1840,19 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
       Value<bool>? deleted,
       Value<String?>? territoryType,
       Value<double?>? geofenceRadiusOverride,
+      Value<String?>? salesOrg,
+      Value<String?>? division,
+      Value<String?>? distributionChannel,
+      Value<String?>? customerGroup,
+      Value<String?>? priceGroup,
+      Value<String?>? enName,
+      Value<String?>? khName,
+      Value<double>? creditBalance,
+      Value<String>? currency,
+      Value<String?>? taxNumber,
+      Value<int>? totalOrders,
+      Value<DateTime?>? createdAt,
+      Value<String>? syncState,
       Value<int>? rowid}) {
     return CustomersCompanion(
       id: id ?? this.id,
@@ -1395,6 +1884,19 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
       territoryType: territoryType ?? this.territoryType,
       geofenceRadiusOverride:
           geofenceRadiusOverride ?? this.geofenceRadiusOverride,
+      salesOrg: salesOrg ?? this.salesOrg,
+      division: division ?? this.division,
+      distributionChannel: distributionChannel ?? this.distributionChannel,
+      customerGroup: customerGroup ?? this.customerGroup,
+      priceGroup: priceGroup ?? this.priceGroup,
+      enName: enName ?? this.enName,
+      khName: khName ?? this.khName,
+      creditBalance: creditBalance ?? this.creditBalance,
+      currency: currency ?? this.currency,
+      taxNumber: taxNumber ?? this.taxNumber,
+      totalOrders: totalOrders ?? this.totalOrders,
+      createdAt: createdAt ?? this.createdAt,
+      syncState: syncState ?? this.syncState,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1487,6 +1989,45 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
       map['geofence_radius_override'] =
           Variable<double>(geofenceRadiusOverride.value);
     }
+    if (salesOrg.present) {
+      map['sales_org'] = Variable<String>(salesOrg.value);
+    }
+    if (division.present) {
+      map['division'] = Variable<String>(division.value);
+    }
+    if (distributionChannel.present) {
+      map['distribution_channel'] = Variable<String>(distributionChannel.value);
+    }
+    if (customerGroup.present) {
+      map['customer_group'] = Variable<String>(customerGroup.value);
+    }
+    if (priceGroup.present) {
+      map['price_group'] = Variable<String>(priceGroup.value);
+    }
+    if (enName.present) {
+      map['en_name'] = Variable<String>(enName.value);
+    }
+    if (khName.present) {
+      map['kh_name'] = Variable<String>(khName.value);
+    }
+    if (creditBalance.present) {
+      map['credit_balance'] = Variable<double>(creditBalance.value);
+    }
+    if (currency.present) {
+      map['currency'] = Variable<String>(currency.value);
+    }
+    if (taxNumber.present) {
+      map['tax_number'] = Variable<String>(taxNumber.value);
+    }
+    if (totalOrders.present) {
+      map['total_orders'] = Variable<int>(totalOrders.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (syncState.present) {
+      map['sync_state'] = Variable<String>(syncState.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1524,6 +2065,19 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
           ..write('deleted: $deleted, ')
           ..write('territoryType: $territoryType, ')
           ..write('geofenceRadiusOverride: $geofenceRadiusOverride, ')
+          ..write('salesOrg: $salesOrg, ')
+          ..write('division: $division, ')
+          ..write('distributionChannel: $distributionChannel, ')
+          ..write('customerGroup: $customerGroup, ')
+          ..write('priceGroup: $priceGroup, ')
+          ..write('enName: $enName, ')
+          ..write('khName: $khName, ')
+          ..write('creditBalance: $creditBalance, ')
+          ..write('currency: $currency, ')
+          ..write('taxNumber: $taxNumber, ')
+          ..write('totalOrders: $totalOrders, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('syncState: $syncState, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -14533,6 +15087,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       'CREATE INDEX idx_customers_rep ON customers (assigned_rep_id)');
   late final Index idxCustomersStatus = Index('idx_customers_status',
       'CREATE INDEX idx_customers_status ON customers (status)');
+  late final Index idxCustomersSalesOrg = Index('idx_customers_sales_org',
+      'CREATE INDEX idx_customers_sales_org ON customers (sales_org)');
+  late final Index idxCustomersDivision = Index('idx_customers_division',
+      'CREATE INDEX idx_customers_division ON customers (division)');
   late final Index idxCustomerContactsCustomer = Index(
       'idx_customer_contacts_customer',
       'CREATE INDEX idx_customer_contacts_customer ON customer_contacts (customer_id)');
@@ -14636,6 +15194,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         idxCustomersTerritory,
         idxCustomersRep,
         idxCustomersStatus,
+        idxCustomersSalesOrg,
+        idxCustomersDivision,
         idxCustomerContactsCustomer,
         idxCustomerNotesCustomer,
         idxCustomerActivitiesCustomer,
@@ -14929,6 +15489,19 @@ typedef $$CustomersTableCreateCompanionBuilder = CustomersCompanion Function({
   Value<bool> deleted,
   Value<String?> territoryType,
   Value<double?> geofenceRadiusOverride,
+  Value<String?> salesOrg,
+  Value<String?> division,
+  Value<String?> distributionChannel,
+  Value<String?> customerGroup,
+  Value<String?> priceGroup,
+  Value<String?> enName,
+  Value<String?> khName,
+  Value<double> creditBalance,
+  Value<String> currency,
+  Value<String?> taxNumber,
+  Value<int> totalOrders,
+  Value<DateTime?> createdAt,
+  Value<String> syncState,
   Value<int> rowid,
 });
 typedef $$CustomersTableUpdateCompanionBuilder = CustomersCompanion Function({
@@ -14960,6 +15533,19 @@ typedef $$CustomersTableUpdateCompanionBuilder = CustomersCompanion Function({
   Value<bool> deleted,
   Value<String?> territoryType,
   Value<double?> geofenceRadiusOverride,
+  Value<String?> salesOrg,
+  Value<String?> division,
+  Value<String?> distributionChannel,
+  Value<String?> customerGroup,
+  Value<String?> priceGroup,
+  Value<String?> enName,
+  Value<String?> khName,
+  Value<double> creditBalance,
+  Value<String> currency,
+  Value<String?> taxNumber,
+  Value<int> totalOrders,
+  Value<DateTime?> createdAt,
+  Value<String> syncState,
   Value<int> rowid,
 });
 
@@ -15160,6 +15746,46 @@ class $$CustomersTableFilterComposer
   ColumnFilters<double> get geofenceRadiusOverride => $composableBuilder(
       column: $table.geofenceRadiusOverride,
       builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get salesOrg => $composableBuilder(
+      column: $table.salesOrg, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get division => $composableBuilder(
+      column: $table.division, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get distributionChannel => $composableBuilder(
+      column: $table.distributionChannel,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get customerGroup => $composableBuilder(
+      column: $table.customerGroup, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get priceGroup => $composableBuilder(
+      column: $table.priceGroup, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get enName => $composableBuilder(
+      column: $table.enName, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get khName => $composableBuilder(
+      column: $table.khName, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get creditBalance => $composableBuilder(
+      column: $table.creditBalance, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get currency => $composableBuilder(
+      column: $table.currency, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get taxNumber => $composableBuilder(
+      column: $table.taxNumber, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get totalOrders => $composableBuilder(
+      column: $table.totalOrders, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get syncState => $composableBuilder(
+      column: $table.syncState, builder: (column) => ColumnFilters(column));
 
   Expression<bool> customerContactsRefs(
       Expression<bool> Function($$CustomerContactsTableFilterComposer f) f) {
@@ -15392,6 +16018,48 @@ class $$CustomersTableOrderingComposer
   ColumnOrderings<double> get geofenceRadiusOverride => $composableBuilder(
       column: $table.geofenceRadiusOverride,
       builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get salesOrg => $composableBuilder(
+      column: $table.salesOrg, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get division => $composableBuilder(
+      column: $table.division, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get distributionChannel => $composableBuilder(
+      column: $table.distributionChannel,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get customerGroup => $composableBuilder(
+      column: $table.customerGroup,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get priceGroup => $composableBuilder(
+      column: $table.priceGroup, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get enName => $composableBuilder(
+      column: $table.enName, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get khName => $composableBuilder(
+      column: $table.khName, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get creditBalance => $composableBuilder(
+      column: $table.creditBalance,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get currency => $composableBuilder(
+      column: $table.currency, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get taxNumber => $composableBuilder(
+      column: $table.taxNumber, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get totalOrders => $composableBuilder(
+      column: $table.totalOrders, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get syncState => $composableBuilder(
+      column: $table.syncState, builder: (column) => ColumnOrderings(column));
 }
 
 class $$CustomersTableAnnotationComposer
@@ -15486,6 +16154,45 @@ class $$CustomersTableAnnotationComposer
 
   GeneratedColumn<double> get geofenceRadiusOverride => $composableBuilder(
       column: $table.geofenceRadiusOverride, builder: (column) => column);
+
+  GeneratedColumn<String> get salesOrg =>
+      $composableBuilder(column: $table.salesOrg, builder: (column) => column);
+
+  GeneratedColumn<String> get division =>
+      $composableBuilder(column: $table.division, builder: (column) => column);
+
+  GeneratedColumn<String> get distributionChannel => $composableBuilder(
+      column: $table.distributionChannel, builder: (column) => column);
+
+  GeneratedColumn<String> get customerGroup => $composableBuilder(
+      column: $table.customerGroup, builder: (column) => column);
+
+  GeneratedColumn<String> get priceGroup => $composableBuilder(
+      column: $table.priceGroup, builder: (column) => column);
+
+  GeneratedColumn<String> get enName =>
+      $composableBuilder(column: $table.enName, builder: (column) => column);
+
+  GeneratedColumn<String> get khName =>
+      $composableBuilder(column: $table.khName, builder: (column) => column);
+
+  GeneratedColumn<double> get creditBalance => $composableBuilder(
+      column: $table.creditBalance, builder: (column) => column);
+
+  GeneratedColumn<String> get currency =>
+      $composableBuilder(column: $table.currency, builder: (column) => column);
+
+  GeneratedColumn<String> get taxNumber =>
+      $composableBuilder(column: $table.taxNumber, builder: (column) => column);
+
+  GeneratedColumn<int> get totalOrders => $composableBuilder(
+      column: $table.totalOrders, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<String> get syncState =>
+      $composableBuilder(column: $table.syncState, builder: (column) => column);
 
   Expression<T> customerContactsRefs<T extends Object>(
       Expression<T> Function($$CustomerContactsTableAnnotationComposer a) f) {
@@ -15673,6 +16380,19 @@ class $$CustomersTableTableManager extends RootTableManager<
             Value<bool> deleted = const Value.absent(),
             Value<String?> territoryType = const Value.absent(),
             Value<double?> geofenceRadiusOverride = const Value.absent(),
+            Value<String?> salesOrg = const Value.absent(),
+            Value<String?> division = const Value.absent(),
+            Value<String?> distributionChannel = const Value.absent(),
+            Value<String?> customerGroup = const Value.absent(),
+            Value<String?> priceGroup = const Value.absent(),
+            Value<String?> enName = const Value.absent(),
+            Value<String?> khName = const Value.absent(),
+            Value<double> creditBalance = const Value.absent(),
+            Value<String> currency = const Value.absent(),
+            Value<String?> taxNumber = const Value.absent(),
+            Value<int> totalOrders = const Value.absent(),
+            Value<DateTime?> createdAt = const Value.absent(),
+            Value<String> syncState = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               CustomersCompanion(
@@ -15704,6 +16424,19 @@ class $$CustomersTableTableManager extends RootTableManager<
             deleted: deleted,
             territoryType: territoryType,
             geofenceRadiusOverride: geofenceRadiusOverride,
+            salesOrg: salesOrg,
+            division: division,
+            distributionChannel: distributionChannel,
+            customerGroup: customerGroup,
+            priceGroup: priceGroup,
+            enName: enName,
+            khName: khName,
+            creditBalance: creditBalance,
+            currency: currency,
+            taxNumber: taxNumber,
+            totalOrders: totalOrders,
+            createdAt: createdAt,
+            syncState: syncState,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -15735,6 +16468,19 @@ class $$CustomersTableTableManager extends RootTableManager<
             Value<bool> deleted = const Value.absent(),
             Value<String?> territoryType = const Value.absent(),
             Value<double?> geofenceRadiusOverride = const Value.absent(),
+            Value<String?> salesOrg = const Value.absent(),
+            Value<String?> division = const Value.absent(),
+            Value<String?> distributionChannel = const Value.absent(),
+            Value<String?> customerGroup = const Value.absent(),
+            Value<String?> priceGroup = const Value.absent(),
+            Value<String?> enName = const Value.absent(),
+            Value<String?> khName = const Value.absent(),
+            Value<double> creditBalance = const Value.absent(),
+            Value<String> currency = const Value.absent(),
+            Value<String?> taxNumber = const Value.absent(),
+            Value<int> totalOrders = const Value.absent(),
+            Value<DateTime?> createdAt = const Value.absent(),
+            Value<String> syncState = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               CustomersCompanion.insert(
@@ -15766,6 +16512,19 @@ class $$CustomersTableTableManager extends RootTableManager<
             deleted: deleted,
             territoryType: territoryType,
             geofenceRadiusOverride: geofenceRadiusOverride,
+            salesOrg: salesOrg,
+            division: division,
+            distributionChannel: distributionChannel,
+            customerGroup: customerGroup,
+            priceGroup: priceGroup,
+            enName: enName,
+            khName: khName,
+            creditBalance: creditBalance,
+            currency: currency,
+            taxNumber: taxNumber,
+            totalOrders: totalOrders,
+            createdAt: createdAt,
+            syncState: syncState,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0

@@ -3,7 +3,11 @@ class AppConstants {
   AppConstants._();
 
   // ── API ────────────────────────────────────────────────────────────
-  static const String baseUrl = 'https://api.kicgroup.com';
+  // NOTE: there is deliberately no `baseUrl` constant here. Host and timeouts
+  // are environment-specific and come from `Env` (see the typed `SapConfig` /
+  // `IsiConfig` views in `core/config/app_config.dart`). A hardcoded literal
+  // previously lived here and pinned every build — including QA and staging —
+  // to the production host.
   static const String apiPrefix = '/v1';
 
   static const Duration connectTimeout = Duration(seconds: 15);

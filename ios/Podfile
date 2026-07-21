@@ -1,5 +1,14 @@
-# Uncomment this line to define a global platform for your project
-# platform :ios, '13.0'
+# Pinned explicitly rather than inheriting Flutter's default. 14.0 is the
+# highest floor among this app's plugins, verified from their podspecs:
+#   google_maps_flutter_ios 2.18.4 → 14.0  ← binding constraint
+#   image_picker_ios        0.8.13 → 13.0
+#   mobile_scanner          5.2.3  → 12.0
+#   geolocator_apple        2.3.14 → 11.0
+#   sqlcipher_flutter_libs  0.6.8  →  8.0
+# The project previously declared 13.0, which is below the Maps floor. Leaving
+# the platform unpinned surfaces that as an opaque pod resolution error.
+# Keep in sync with IPHONEOS_DEPLOYMENT_TARGET in Runner.xcodeproj.
+platform :ios, '14.0'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'

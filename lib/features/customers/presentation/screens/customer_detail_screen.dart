@@ -270,6 +270,8 @@ class _Loaded extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
       children: [
+        // `onCreateOpportunityForProduct` was removed with the hardcoded
+        // cross-sell chips — see the rationale on _SalesInsightsSection.build.
         _SalesInsightsSection(customer: customer),
         const SizedBox(height: 12),
         //  CustomerQuickActions(

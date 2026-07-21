@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
-import 'package:isi_steel_sales_mobile/core/utils/shimmer.dart';
+import 'package:isi_steel_sales_mobile/core/animations/shimmer_loading.dart';
 
 /// Placeholder for one `VisitHistoryCard` — mirrors its exact box metrics
 /// (100 map height, 14 padding, r16 border) so the swap from skeleton to
@@ -20,17 +20,17 @@ class VisitHistoryCardSkeleton extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SkeletonBox(height: 100, radius: 0),
+              const ShimmerBox(height: 100, radius: 0),
               Padding(
                 padding: const EdgeInsets.all(14),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: const [
-                    SkeletonBox(width: 160, height: 13, radius: 6),
+                    ShimmerBox(width: 160, height: 13, radius: 6),
                     SizedBox(height: 8),
-                    SkeletonBox(width: 200, height: 11, radius: 6),
+                    ShimmerBox(width: 200, height: 11, radius: 6),
                     SizedBox(height: 10),
-                    SkeletonBox(width: 120, height: 11, radius: 6),
+                    ShimmerBox(width: 120, height: 11, radius: 6),
                   ],
                 ),
               ),

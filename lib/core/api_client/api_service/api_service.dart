@@ -25,12 +25,25 @@ abstract interface class ApiService {
     bool allowEmpty,
   });
 
+  /// [headers] are merged over the client's `defaultHeaders` for this one
+  /// request. Use it only where an endpoint genuinely differs from the backend
+  /// default — it is not a general escape hatch, and anything that belongs on
+  /// every request belongs in `ApiConfig.defaultHeaders` instead.
+  ///
+  /// Never pass an `Authorization` header here: bearer tokens are the
+  /// `AuthInterceptor`'s job, and setting one by hand bypasses the token
+  /// lifecycle (`docs/SECURITY.md` §5).
+  /// [skipConnectivityCheck] sends the request even when the cached
+  /// connectivity verdict says offline. Correct for login and nothing else so
+  /// far — see `skipConnectivityFlag`.
   Future<ApiResponse<T>> post<T>(
     String path, {
     Object? data,
     Map<String, dynamic>? queryParameters,
     T Function(Object? body)? decoder,
     bool skipAuth,
+    bool skipConnectivityCheck,
+    Map<String, dynamic>? headers,
   });
 
   Future<ApiResponse<T>> put<T>(
@@ -95,13 +108,24 @@ class DioApiService implements ApiService {
     Map<String, dynamic>? queryParameters,
     T Function(Object? body)? decoder,
     bool skipAuth = false,
+    bool skipConnectivityCheck = false,
+    Map<String, dynamic>? headers,
   }) =>
       _client.post<T>(
         path,
         data: data,
         queryParameters: queryParameters,
         decoder: decoder,
-        options: skipAuth ? DioOptionsBuilder.request(skipAuth: true) : null,
+        // Left null when none is set so the request keeps Dio's BaseOptions
+        // untouched — passing an empty Options would drop nothing today, but it
+        // makes the "no per-request override" case explicit.
+        options: (skipAuth || skipConnectivityCheck || headers != null)
+            ? DioOptionsBuilder.request(
+                skipAuth: skipAuth,
+                skipConnectivityCheck: skipConnectivityCheck,
+                headers: headers,
+              )
+            : null,
       );
 
   @override

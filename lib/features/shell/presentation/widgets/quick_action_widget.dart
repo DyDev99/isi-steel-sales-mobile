@@ -123,15 +123,17 @@ class QuickActionsSection extends StatelessWidget {
                 ),
               ),
               SizedBox(width: 8.w),
-              // 4th action (Add customer) — no coach key, as before.
               Expanded(
                 child: FadeSlideIn(
                   delay: FadeSlideIn.staggerDelay(3),
-                  child: _QuickActionCard(
-                    icon: Icons.person_add_alt_1_outlined,
-                    accent: const Color(0xFF6554C0),
-                    label: 'Add customer',
-                    onTap: () => _addCustomerFromWon(context),
+                  child: CoachKeys.wrap(
+                    CoachKeys.addCustomer,
+                    child: _QuickActionCard(
+                      icon: Icons.person_add_alt_1_outlined,
+                      accent: const Color(0xFF6554C0),
+                      label: 'Add customer',
+                      onTap: () => _addCustomerFromWon(context),
+                    ),
                   ),
                 ),
               ),

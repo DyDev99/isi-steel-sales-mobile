@@ -112,6 +112,21 @@ class ConsoleAppLogger implements AppLogger {
           safeFields.entries.map((e) => '${e.key}=${e.value}').join(' '));
     }
 
+    // `developer.log` alone reaches DevTools and the `flutter run` console, but
+    // **not** `adb logcat` — nothing it writes appears as an `I/flutter` line.
+    // That made every structured log invisible to anyone debugging on-device
+    // from logcat: a `connectivity.probe_failed` record explaining exactly why
+    // the app was offline was being written to a channel the reader could not
+    // see. `debugPrint` is the only sink that reaches logcat, so debug builds
+    // emit to both. Release builds are unaffected — `_verbose` is false there,
+    // and `debug`/`info` never reach this line at all.
+    if (_verbose) {
+      debugPrint('[isi.${level.name}] ${buffer.toString()}');
+      if (error != null) {
+        debugPrint('  error: ${_redactor.redactValue('error', error)}');
+      }
+    }
+
     developer.log(
       buffer.toString(),
       name: 'isi.${level.name}',

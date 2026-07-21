@@ -46,9 +46,10 @@ class HttpReachabilityProbe implements ReachabilityProbe {
 
   @override
   Future<bool> isReachable() async {
+    final target = Env.sapBaseUrlPrimary;
     try {
       final response = await _dio.head<void>(
-        Env.sapBaseUrlPrimary,
+        target,
         options: Options(
           sendTimeout: _timeout,
           receiveTimeout: _timeout,
@@ -59,13 +60,35 @@ class HttpReachabilityProbe implements ReachabilityProbe {
           validateStatus: (_) => true,
         ),
       );
+      // Logged on success too: "the probe succeeded" was previously invisible,
+      // so an app stuck offline looked identical to one that had simply never
+      // probed. `status` is the response code, which §10 permits.
+      _logger.debug('connectivity.probe_ok',
+          fields: {'host': target, 'status': response.statusCode});
       return response.statusCode != null;
     } on DioException catch (e) {
-      // §10: log the failure type only — never the request or response body.
-      _logger
-          .debug('connectivity.probe_failed', fields: {'reason': e.type.name});
+      // §10: type names and the endpoint only — never a request or response
+      // body. `errorType` is the underlying exception's *class*, which is the
+      // single most useful field here: a `HandshakeException` means the
+      // certificate pin is missing or wrong (fix `SAP_CERT_SHA256`), whereas a
+      // `SocketException` means the host is unreachable from this network
+      // (wrong subnet, VPN down, or an IP allowlist refusing this client).
+      // Collapsing both into `connectionError` hid exactly that distinction.
+      _logger.debug('connectivity.probe_failed', fields: {
+        'host': target,
+        'reason': e.type.name,
+        'errorType': e.error?.runtimeType.toString(),
+      });
       return false;
-    } catch (_) {
+    } catch (e) {
+      // Previously `catch (_)` — a silent swallow, which
+      // `docs/ENGINEERING_STANDARD.md` §7 disallows. The type alone is enough
+      // to tell a config error from a transport one.
+      _logger.debug('connectivity.probe_failed', fields: {
+        'host': target,
+        'reason': 'unexpected',
+        'errorType': e.runtimeType.toString(),
+      });
       return false;
     }
   }
@@ -179,18 +202,58 @@ class ConnectivityServiceImpl implements ConnectivityService {
 
   @override
   Future<ConnectivityStatus> refresh() async {
-    if (_probing) return _status;
+    if (_probing) {
+      _logger.debug('connectivity.refresh_skipped',
+          fields: {'reason': 'probe_already_running'});
+      return _status;
+    }
     _probing = true;
     try {
-      final results = await _connectivity.checkConnectivity();
-      if (_isInterfaceDown(results)) {
+      final List<ConnectivityResult> results;
+      try {
+        results = await _connectivity.checkConnectivity();
+      } catch (e) {
+        // Previously unguarded: a plugin throw propagated out of `refresh()`,
+        // out of `start()`, and was swallowed by the bootstrap catch — leaving
+        // the app permanently offline with the reason recorded as a generic
+        // `bootstrap.failed`. Failing to *confirm* connectivity is not the same
+        // as being offline, but offline is the safe assumption; what matters is
+        // that it is no longer silent (ADR-005 §4).
+        _logger.warning('connectivity.interface_check_failed',
+            fields: {'errorType': e.runtimeType.toString()});
         _publish(ConnectivityStatus.offline);
         return _status;
       }
+
+      // The raw plugin verdict. This is the single most useful connectivity
+      // diagnostic and was previously invisible: when the interface reads as
+      // down, `refresh()` returns before probing, so `connectivity.probe_*`
+      // never fires — an app stuck offline produced no log line at all, which
+      // is indistinguishable from the probe failing.
+      _logger.debug('connectivity.interface_check', fields: {
+        'results': results.map((r) => r.name).toList().toString(),
+        'interfaceDown': _isInterfaceDown(results),
+      });
+
+      if (_isInterfaceDown(results)) {
+        _logger.warning('connectivity.offline_no_interface', fields: {
+          'results': results.map((r) => r.name).toList().toString(),
+          'note': 'probe skipped — OS reports no usable network interface',
+        });
+        _publish(ConnectivityStatus.offline);
+        return _status;
+      }
+
       final reachable = await _probe.isReachable();
       _publish(
         reachable ? ConnectivityStatus.online : ConnectivityStatus.offline,
       );
+      // Logged every time, not only on transition: `_publish` is deliberately
+      // edge-triggered so `changes` stays distinct, which means a refresh that
+      // confirms the *existing* state emits nothing. That is right for the
+      // stream and wrong for diagnostics.
+      _logger.debug('connectivity.refresh_result',
+          fields: {'reachable': reachable, 'status': _status.name});
       return _status;
     } finally {
       _probing = false;

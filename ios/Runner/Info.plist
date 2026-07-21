@@ -6,6 +6,15 @@
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<!-- Without this the App Store lists the app as English-only, even though it
+	     ships Khmer copy (assets/lang/kh.json) and Khmer typography. `km` is the
+	     ISO 639-1 language code for Khmer (the repo's asset file is named `kh`,
+	     which is the *country* code — the plist must use the language code). -->
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>km</string>
+	</array>
 	<key>CFBundleDisplayName</key>
 	<string>ISI Steel Sales</string>
 	<key>CFBundleExecutable</key>
@@ -26,6 +35,26 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<!--
+	  Export compliance. The app encrypts its local database (SQLCipher) and uses
+	  HTTPS, but both are standard, publicly-available cryptography rather than
+	  custom or proprietary encryption, which is exempt under BIS 740.17(b)(1).
+	  Declaring it here stops every TestFlight upload stalling on a manual
+	  compliance prompt.
+
+	  TODO(release-gate): have whoever owns export compliance confirm this
+	  exemption before the first App Store submission. If a CCATS/ERN is required
+	  instead, replace this with ITSEncryptionExportComplianceCode.
+	-->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<!--
+	  Injected from GOOGLE_MAPS_IOS_KEY via ios/Flutter/Env.xcconfig, which
+	  tool/generate_ios_env.dart writes from .env. Read by AppDelegate at launch.
+	  Never commit the literal key — docs/SECURITY.md §9.
+	-->
+	<key>GoogleMapsApiKey</key>
+	<string>$(GOOGLE_MAPS_API_KEY)</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Camera access is used to scan product barcodes and photograph products for visual search when adding items to an order.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
@@ -69,18 +98,22 @@
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
+	<!--
+	  Portrait only, matching the runtime lock in lib/main.dart
+	  (SystemChrome.setPreferredOrientations → portraitUp/portraitDown).
+	  Previously this advertised landscape while the app refused to rotate into
+	  it; App Store review checks declared orientations against actual behaviour,
+	  and iPad landscape was advertised on an iPhone-only build.
+	-->
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 	</array>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 </dict>
 </plist>

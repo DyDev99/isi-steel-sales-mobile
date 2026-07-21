@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/glass_card.dart';
-import 'package:isi_steel_sales_mobile/core/utils/shimmer.dart';
+import 'package:isi_steel_sales_mobile/core/animations/shimmer_loading.dart';
 
 class ProductCardSkeleton extends StatelessWidget {
   const ProductCardSkeleton({super.key});
@@ -35,28 +35,28 @@ class ProductCardSkeleton extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SkeletonBox(
+                        ShimmerBox(
                             width: 40, height: 10, radius: 4, color: baseColor),
                         const SizedBox(height: 4),
-                        SkeletonBox(
+                        ShimmerBox(
                             width: double.infinity,
                             height: 13,
                             radius: 4,
                             color: baseColor),
                         const SizedBox(height: 4),
-                        SkeletonBox(
+                        ShimmerBox(
                             width: 90, height: 11, radius: 4, color: baseColor),
                         const SizedBox(height: 3),
-                        SkeletonBox(
+                        ShimmerBox(
                             width: 70, height: 11, radius: 4, color: baseColor),
                       ],
                     ),
                     Row(
                       children: [
-                        SkeletonBox(
+                        ShimmerBox(
                             width: 46, height: 14, radius: 4, color: baseColor),
                         const Spacer(),
-                        SkeletonBox(
+                        ShimmerBox(
                             width: 28, height: 28, radius: 8, color: baseColor),
                       ],
                     ),

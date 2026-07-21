@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
-import 'package:isi_steel_sales_mobile/core/utils/shimmer.dart';
+import 'package:isi_steel_sales_mobile/core/animations/shimmer_loading.dart';
 
 /// Placeholder for one route tile — mirrors `RegionCard` / `_RouteTile`'s exact
 /// metrics so the swap from skeleton -> data doesn't shift layout.
@@ -21,20 +21,20 @@ class RouteCardSkeleton extends StatelessWidget {
         child: Shimmer(
           child: Row(
             children: [
-              SkeletonBox(width: 40.w, height: 40.w, radius: 12.r),
+              ShimmerBox(width: 40.w, height: 40.w, radius: 12.r),
               SizedBox(width: 12.w),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SkeletonBox(width: 140.w, height: 13.h, radius: 6.r),
+                    ShimmerBox(width: 140.w, height: 13.h, radius: 6.r),
                     SizedBox(height: 8.h),
-                    SkeletonBox(width: 180.w, height: 11.h, radius: 6.r),
+                    ShimmerBox(width: 180.w, height: 11.h, radius: 6.r),
                   ],
                 ),
               ),
               SizedBox(width: 12.w),
-              SkeletonBox(width: 20.w, height: 20.w, radius: 6.r),
+              ShimmerBox(width: 20.w, height: 20.w, radius: 6.r),
             ],
           ),
         ),
@@ -66,19 +66,19 @@ class RouteDashboardSkeleton extends StatelessWidget {
           child: Shimmer(
             child: Row(
               children: [
-                SkeletonBox(width: 40.w, height: 40.w, radius: 12.r),
+                ShimmerBox(width: 40.w, height: 40.w, radius: 12.r),
                 SizedBox(width: 12.w),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SkeletonBox(width: 160.w, height: 14.h, radius: 6.r),
+                      ShimmerBox(width: 160.w, height: 14.h, radius: 6.r),
                       SizedBox(height: 6.h),
-                      SkeletonBox(width: 100.w, height: 10.h, radius: 6.r),
+                      ShimmerBox(width: 100.w, height: 10.h, radius: 6.r),
                     ],
                   ),
                 ),
-                SkeletonBox(width: 20.w, height: 20.w, radius: 6.r),
+                ShimmerBox(width: 20.w, height: 20.w, radius: 6.r),
               ],
             ),
           ),
@@ -96,8 +96,8 @@ class RouteDashboardSkeleton extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                SkeletonBox(width: 130.w, height: 13.h, radius: 6.r),
-                SkeletonBox(width: 14.w, height: 14.w, radius: 4.r),
+                ShimmerBox(width: 130.w, height: 13.h, radius: 6.r),
+                ShimmerBox(width: 14.w, height: 14.w, radius: 4.r),
               ],
             ),
           ),
@@ -106,7 +106,7 @@ class RouteDashboardSkeleton extends StatelessWidget {
 
         // 3. Day header skeleton
         Shimmer(
-          child: SkeletonBox(width: 80.w, height: 14.h, radius: 6.r),
+          child: ShimmerBox(width: 80.w, height: 14.h, radius: 6.r),
         ),
         SizedBox(height: 10.h),
 
@@ -138,17 +138,17 @@ class InventoryLineSkeleton extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SkeletonBox(width: 120.w, height: 14.h, radius: 6.r),
+                  ShimmerBox(width: 120.w, height: 14.h, radius: 6.r),
                   SizedBox(height: 6.h),
-                  SkeletonBox(width: 60.w, height: 10.h, radius: 6.r),
+                  ShimmerBox(width: 60.w, height: 10.h, radius: 6.r),
                 ],
               ),
             ),
-            SkeletonBox(width: 48.w, height: 48.w, radius: 12.r),
+            ShimmerBox(width: 48.w, height: 48.w, radius: 12.r),
             SizedBox(width: 12.w),
-            SkeletonBox(width: 22.w, height: 18.h, radius: 6.r),
+            ShimmerBox(width: 22.w, height: 18.h, radius: 6.r),
             SizedBox(width: 12.w),
-            SkeletonBox(width: 48.w, height: 48.w, radius: 12.r),
+            ShimmerBox(width: 48.w, height: 48.w, radius: 12.r),
           ],
         ),
       ),

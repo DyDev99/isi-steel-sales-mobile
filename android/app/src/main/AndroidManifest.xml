@@ -1,5 +1,9 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- connectivity_plus adds this at merge time; declared explicitly so the
+         app's own permission surface is readable from this file alone. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-feature android:name="android.hardware.camera" android:required="false"/>
     <!-- Voice search (speech_to_text) -->
@@ -9,18 +13,58 @@
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+
+    <!--
+      TODO(release-gate): background location.
+      Used by GeolocatorTrackingService (allowBackgroundLocationUpdates) so route
+      and visit tracking survives the app being backgrounded mid-visit.
+
+      Google Play requires ALL of the following before this can ship:
+        1. A background-location declaration form in Play Console.
+        2. A demo video showing the in-app flow that needs it.
+        3. An in-app PROMINENT DISCLOSURE dialog shown BEFORE the permission
+           request. This does not exist yet. Shipping without it is a
+           near-certain review rejection.
+      If the tracking requirement is dropped, remove this permission plus
+      FOREGROUND_SERVICE_LOCATION and the iOS UIBackgroundModes location entry.
+    -->
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/>
-    
+
+    <!--
+      Pulled in transitively by image_picker / file_picker but never used: the
+      app only ever picks still images. Each one otherwise requires its own Play
+      Console data-safety declaration, so they are stripped at merge time.
+    -->
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"
+        tools:node="remove"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"
+        tools:node="remove"/>
+
+    <!--
+      TODO(release-gate): android:usesCleartextTraffic="true" below.
+      Enabled on feature/customers because the SAP façade is reached over a raw
+      IP (SAP_BASE_URL_PRIMARY) that cannot present a CA-valid certificate.
+      It disables Android's default HTTPS-only enforcement for the WHOLE app,
+      which docs/SECURITY.md §6 ("TLS 1.2+ only, no fallback") does not permit in
+      a shipping build. Before release, replace it with a network-security-config
+      that scopes the exemption to the SAP hosts only.
+    -->
     <application
         android:label="ISI Steel Sales"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon"
         android:usesCleartextTraffic="true">
+        <!--
+          Injected from GOOGLE_MAPS_ANDROID_KEY (.env locally, CI secret in the
+          pipeline) via a manifest placeholder in build.gradle.kts. Never commit
+          the literal key here — docs/SECURITY.md §9.
+        -->
+
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyA6PVoPL1x0W4QnRGdGFSpRaPtvNf13pNI" />
+            android:value="${GOOGLE_MAPS_API_KEY}" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

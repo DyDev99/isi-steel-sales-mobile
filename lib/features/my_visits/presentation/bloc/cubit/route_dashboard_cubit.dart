@@ -29,6 +29,23 @@ class RouteDashboardCubit extends Cubit<RouteDashboardState> {
   StreamSubscription<List<RoutePlan>>? _subscription;
 
   void _subscribe() {
+    // A subscription that is open but hasn't delivered its first snapshot yet
+    // is still perfectly good — let it finish. Tearing it down and starting
+    // over (what every `load()` used to do) discarded an in-flight database
+    // read, re-emitted RouteDashboardLoading — an extra full-screen skeleton
+    // flash — and began a second identical read. On this screen `load()` fires
+    // from the constructor, the sync-success listener and pull-to-refresh, so
+    // under repeated sync events the dashboard could churn in Loading and never
+    // settle.
+    //
+    // Note this deliberately does *not* skip when data is already on screen:
+    // sync writes go through RouteSyncRepositoryImpl, which never reaches this
+    // repository's broadcast controller, so a genuine re-read is the only way
+    // pull-to-refresh sees post-sync data.
+    final awaitingFirstSnapshot =
+        _subscription != null && state is! RouteDashboardLoaded;
+    if (awaitingFirstSnapshot) return;
+
     // Only flash skeletons when we don't already have data on screen.
     if (state is! RouteDashboardLoaded) emit(const RouteDashboardLoading());
     _subscription?.cancel();
@@ -95,6 +112,13 @@ class RouteDashboardCubit extends Cubit<RouteDashboardState> {
       }
     }
 
+    // Of the stops actually *attempted* (completed or missed), how many
+    // succeeded. Deliberately not the same as `progress`, which measures how
+    // far through the whole day's plan the rep is — early in the day progress
+    // is low while success rate can still be 100%. These previously returned
+    // the identical expression, which made the success-rate card meaningless.
+    final attempted = completed + missed;
+
     return RouteDashboardSummary(
       stopsToday: allStops.length,
       completed: completed,
@@ -102,12 +126,34 @@ class RouteDashboardCubit extends Cubit<RouteDashboardState> {
       missed: missed,
       progress: allStops.isEmpty ? 0 : completed / allStops.length,
       totalDistanceKm: distanceKm,
-      drivingTimeMinutes: 0,
+      drivingTimeMinutes: _estimateDrivingMinutes(distanceKm),
       visitTimeMinutes: visitMinutes,
+      // ── Not derivable here, and deliberately not faked ──────────────────
+      // Collections, order lines and their values live in `visit_collections`
+      // / `visit_order_lines`, keyed by stopId, and `VisitRepository` only
+      // exposes per-stop reads. Populating these from this cubit would mean
+      // one fetch per stop (six queries each) on every stream emission — the
+      // N+1 pattern AI_ENGINEERING_PLAYBOOK.md §9 forbids.
+      //
+      // Showing an invented revenue figure to a sales rep is worse than
+      // showing zero, so these stay zero until the aggregate exists.
+      // TODO(my-visits): add a batched `VisitRepository.fetchTotalsForStops(
+      // List<String> stopIds)` returning collection/order/value sums in one
+      // query, then feed it in here.
       totalCollections: 0,
       totalOrders: 0,
       totalSalesValue: 0,
-      successRate: allStops.isEmpty ? 0 : completed / allStops.length,
+      successRate: attempted == 0 ? 0 : completed / attempted,
     );
   }
+
+  /// Rough driving time from the straight-line distance between consecutive
+  /// stops. 25 km/h is a deliberately conservative blended city/provincial
+  /// average for a field route; it is an *estimate* shown as such, not a
+  /// tracked measurement. Replace with real telemetry once `location_samples`
+  /// is aggregated per route.
+  static const double _avgSpeedKmh = 25;
+
+  int _estimateDrivingMinutes(double distanceKm) =>
+      distanceKm <= 0 ? 0 : ((distanceKm / _avgSpeedKmh) * 60).round();
 }

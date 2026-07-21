@@ -77,6 +77,28 @@ class LoggingInterceptor extends Interceptor {
         '${_safePath(err.requestOptions)}'
         '${_durationSuffix(err.requestOptions)}',
       );
+
+      // The underlying transport exception. `DioExceptionType.unknown` is a
+      // catch-all that says nothing on its own, and the error mapper collapses
+      // it to a generic `NetworkException` — so without this the actual cause
+      // was being thrown away before anyone could read it.
+      //
+      // The class name alone is usually the whole diagnosis:
+      //   HandshakeException → TLS/certificate pin (SAP_CERT_SHA256)
+      //   SocketException    → unreachable host, refused or reset connection
+      //   FormatException    → the body did not parse as expected
+      //
+      // Safe under §10: these are transport-level errors describing sockets and
+      // certificates. They carry no request body, no credential and no customer
+      // data. Truncated anyway, so a pathological message cannot flood the log.
+      final cause = err.error;
+      if (cause != null) {
+        final text = cause.toString();
+        _log('  cause: ${cause.runtimeType}');
+        _log(
+          '  detail: ${text.length > 300 ? '${text.substring(0, 300)}…' : text}',
+        );
+      }
     }
     handler.next(err);
   }

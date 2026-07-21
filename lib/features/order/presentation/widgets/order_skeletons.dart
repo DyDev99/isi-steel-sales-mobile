@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/glass_card.dart';
-import 'package:isi_steel_sales_mobile/core/utils/shimmer.dart';
+import 'package:isi_steel_sales_mobile/core/animations/shimmer_loading.dart';
 
 /// Placeholder for one pending-order row — mirrors `_OrderTile` (items + date
 /// on the left, status pill + total on the right).
@@ -19,15 +19,15 @@ class OrderTileSkeleton extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SkeletonBox(width: 60, height: 13, radius: 4),
+                    ShimmerBox(width: 60, height: 13, radius: 4),
                     SizedBox(height: 6),
-                    SkeletonBox(width: 84, height: 11, radius: 4),
+                    ShimmerBox(width: 84, height: 11, radius: 4),
                   ],
                 ),
               ),
-              SkeletonBox(width: 74, height: 18, radius: 20),
+              ShimmerBox(width: 74, height: 18, radius: 20),
               SizedBox(width: 10),
-              SkeletonBox(width: 52, height: 14, radius: 4),
+              ShimmerBox(width: 52, height: 14, radius: 4),
             ],
           ),
         ),

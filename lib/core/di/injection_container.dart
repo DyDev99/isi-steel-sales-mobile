@@ -97,8 +97,17 @@ Future<void> initDependencies() async {
   // ── Connectivity (ADR-005: real reachability, not interface-up) ─────
   // One instance, app-wide: the UI status pill and the sync drain trigger must
   // never disagree. No UI/bloc/repository/DAO may touch connectivity_plus.
+  // The probe must carry the SAP client's TLS policy, not a bare `Dio()`. The
+  // SAP host is a raw IP with a self-signed certificate, so a default-trust
+  // client refuses the handshake every time — the probe then always reports
+  // unreachable and `ConnectivityInterceptor` rejects every SAP call before it
+  // is sent. `createProbeDio` applies the same pin and deliberately installs no
+  // interceptors, so the probe cannot gate itself behind its own result.
   sl.registerLazySingleton<ReachabilityProbe>(
-    () => HttpReachabilityProbe(dio: Dio(), logger: sl()),
+    () => HttpReachabilityProbe(
+      dio: DioFactory.createProbeDio(config: ApiConfig.sap),
+      logger: sl(),
+    ),
   );
   sl.registerLazySingleton<ConnectivityService>(
     () => ConnectivityServiceImpl(

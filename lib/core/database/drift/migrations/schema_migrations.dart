@@ -84,18 +84,37 @@ final Map<int, SchemaMigrationStep> _stepwiseMigrations =
     await m.createTable(db.visitNotes);
     await m.createTable(db.visitPhotos);
   },
-  // v9 (SAP customer integration): relax the six `customers` columns the SAP
-  // business-partner payload cannot populate.
+  // v9: SAP sales-area and commercial attributes on `customers`.
   //
-  // SQLite cannot drop a NOT NULL constraint in place, so `alterTable` recreates
-  // the table from the current Dart definition and copies every row across.
-  // This is a *widening* change — every existing value satisfies the new, looser
-  // constraint — so no row is lost and no value is rewritten. That property is
-  // what `schema_v9_migration_test.dart` asserts.
-  //
-  // No `columnTransformer` is supplied because no column changes type or
-  // meaning; only their nullability changes.
-  9: (m, db) async => m.alterTable(TableMigration(db.customers)),
+  // Purely additive — every column is nullable or defaulted, so existing rows
+  // upgrade without a rewrite and no data is touched. The two indexes back the
+  // Sales Organization / Division filters (DATABASE_GUIDE.md §3).
+  9: (m, db) async {
+    await m.addColumn(db.customers, db.customers.salesOrg);
+    await m.addColumn(db.customers, db.customers.division);
+    await m.addColumn(db.customers, db.customers.distributionChannel);
+    await m.addColumn(db.customers, db.customers.customerGroup);
+    await m.addColumn(db.customers, db.customers.priceGroup);
+    await m.addColumn(db.customers, db.customers.enName);
+    await m.addColumn(db.customers, db.customers.khName);
+    await m.addColumn(db.customers, db.customers.creditBalance);
+    await m.addColumn(db.customers, db.customers.currency);
+    await m.addColumn(db.customers, db.customers.taxNumber);
+    await m.addColumn(db.customers, db.customers.totalOrders);
+    await m.addColumn(db.customers, db.customers.createdAt);
+    await m.addColumn(db.customers, db.customers.syncState);
+
+    // `IF NOT EXISTS` keeps the step re-runnable after a crash mid-upgrade,
+    // which DATABASE_GUIDE.md §5 requires of every migration.
+    await db.customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_customers_sales_org '
+      'ON customers (sales_org);',
+    );
+    await db.customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_customers_division '
+      'ON customers (division);',
+    );
+  },
 };
 
 /// Builds the [MigrationStrategy] for [db]: creates the schema on first run,
