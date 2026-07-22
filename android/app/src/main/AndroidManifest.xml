@@ -42,10 +42,20 @@
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"
         tools:node="remove"/>
 
+    <!--
+      allowBackup MUST stay false (docs/SECURITY.md §3): Auto Backup restores
+      the SQLCipher database file onto fresh installs, but the Keystore-sealed
+      device key never survives an uninstall — the restored file can then never
+      be decrypted (SqliteException 26, "file is not a database") and every
+      screen fails. The local DB is a re-syncable cache; there is nothing worth
+      backing up that sync cannot rebuild.
+    -->
     <application
         android:label="ISI Steel Sales"
         android:name="${applicationName}"
-        android:icon="@mipmap/launcher_icon">
+        android:icon="@mipmap/launcher_icon"
+        android:allowBackup="false"
+        tools:replace="android:allowBackup">
         <!--
           Injected from GOOGLE_MAPS_ANDROID_KEY (.env locally, CI secret in the
           pipeline) via a manifest placeholder in build.gradle.kts. Never commit

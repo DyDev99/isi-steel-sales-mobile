@@ -1,6 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
 import 'package:isi_steel_sales_mobile/core/usecase/usecase.dart';
+import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/get_customer_last_synced_at.dart';
+import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/run_customer_initial_sync.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_sync_scope.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/get_route_last_synced_at.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/push_pending_visit_data.dart';
@@ -18,11 +20,15 @@ class RouteSyncCubit extends Cubit<RouteSyncState> {
     required RunRouteDeltaSync runDeltaSync,
     required GetRouteLastSyncedAt getLastSyncedAt,
     required PushPendingVisitData pushPendingVisitData,
+    required RunCustomerInitialSync runCustomerInitialSync,
+    required GetCustomerLastSyncedAt getCustomerLastSyncedAt,
     required SessionManager sessionManager,
   })  : _runInitialSync = runInitialSync,
         _runDeltaSync = runDeltaSync,
         _getLastSyncedAt = getLastSyncedAt,
         _pushPendingVisitData = pushPendingVisitData,
+        _runCustomerInitialSync = runCustomerInitialSync,
+        _getCustomerLastSyncedAt = getCustomerLastSyncedAt,
         _sessionManager = sessionManager,
         super(const RouteSyncIdle());
 
@@ -30,6 +36,8 @@ class RouteSyncCubit extends Cubit<RouteSyncState> {
   final RunRouteDeltaSync _runDeltaSync;
   final GetRouteLastSyncedAt _getLastSyncedAt;
   final PushPendingVisitData _pushPendingVisitData;
+  final RunCustomerInitialSync _runCustomerInitialSync;
+  final GetCustomerLastSyncedAt _getCustomerLastSyncedAt;
   final SessionManager _sessionManager;
 
   /// Pulls routes whenever the dashboard opens.
@@ -53,6 +61,32 @@ class RouteSyncCubit extends Cubit<RouteSyncState> {
 
   Future<void> _run({required bool isInitial}) async {
     emit(RouteSyncInProgress(isInitial: isInitial));
+
+    // Hard ordering dependency (ADR-001): `route_stops.customer_id` is a real
+    // FK into the SAP-owned customer directory, and route sync can never
+    // invent a customer — the directory must exist locally before any route
+    // pull. The shell kicks customer sync off asynchronously at startup, so on
+    // a fresh install (empty DB, no watermark) a rep can reach this screen
+    // before it lands — which surfaced as a FOREIGN KEY / "run Customer Sync
+    // first" failure on first launch. Awaiting the customer initial sync here
+    // closes that race on every entry point (first open, pull-to-refresh,
+    // retry). Skipped entirely once the customer watermark exists; at worst it
+    // races the shell's own sync into a double-run of an idempotent upsert.
+    final customerWatermark = await _getCustomerLastSyncedAt(const NoParams());
+    final customersNeedInitial = customerWatermark.when(
+        success: (at) => at == null, failure: (_) => true);
+    if (customersNeedInitial) {
+      final customerSync = await _runCustomerInitialSync(const NoParams());
+      final blocked = customerSync.when(
+        success: (_) => false,
+        failure: (f) {
+          emit(RouteSyncFailed(f.message));
+          return true;
+        },
+      );
+      if (blocked) return;
+    }
+
     final scope = RouteSyncScope.forCurrentUser(_sessionManager);
     final result =
         isInitial ? await _runInitialSync(scope) : await _runDeltaSync(scope);

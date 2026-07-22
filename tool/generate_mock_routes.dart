@@ -21,7 +21,13 @@ void main(List<String> args) {
     if (arg.startsWith('--seed=')) seed = int.parse(arg.substring(7));
   }
 
-  final data = MockRouteData.generate(seed: seed);
+  // T1.5 Update: Generate dummy IDs for the standalone asset generation.
+  // MockRouteRemoteDataSource will overwrite these at runtime with real IDs
+  // from the local database to satisfy SQLite FK constraints.
+  final dummyCustomerIds = List.generate(320, (i) => 'MOCK-CUST-${i + 1}');
+
+  final data = MockRouteData.generate(dummyCustomerIds, seed: seed);
+  
   final file = File('assets/mock/routes.json');
   file.parent.createSync(recursive: true);
   file.writeAsStringSync(jsonEncode(data));

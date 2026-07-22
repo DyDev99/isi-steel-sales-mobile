@@ -3,6 +3,7 @@ import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
 import 'package:isi_steel_sales_mobile/core/database/hive/hive_service.dart';
 import 'package:isi_steel_sales_mobile/core/network/network_info.dart';
 import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
+import 'package:isi_steel_sales_mobile/features/customers/data/local/customer_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/depot_selection_store.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/location_sample_drift_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/location_sample_local_data_source.dart';
@@ -79,8 +80,8 @@ Future<void> registerMyVisitsFeature(GetIt sl) async {
   sl.registerLazySingleton<RoutesDatabase>(() => routesDb);
 
   // ── Data sources ────────────────────────────────────────────────────
-  sl.registerLazySingleton<RouteRemoteDataSource>(
-      () => MockRouteRemoteDataSource());
+sl.registerLazySingleton<RouteRemoteDataSource>(
+      () => MockRouteRemoteDataSource(sl<CustomerLocalDataSource>()));
   sl.registerLazySingleton<RouteLocalDataSource>(
       () => RouteDriftLocalDataSource(sl<AppDatabase>().routeDao, sl()));
   sl.registerLazySingleton<VisitLocalDataSource>(
@@ -196,6 +197,11 @@ Future<void> registerMyVisitsFeature(GetIt sl) async {
         runInitialSync: sl(),
         runDeltaSync: sl(),
         getLastSyncedAt: sl(),
+        // Customer-directory guard (ADR-001 FK ordering): resolved lazily at
+        // cubit creation, so registration order vs. the customers feature
+        // doesn't matter.
+        runCustomerInitialSync: sl(),
+        getCustomerLastSyncedAt: sl(),
         sessionManager: sl<SessionManager>(),
       ));
 

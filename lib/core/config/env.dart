@@ -21,11 +21,11 @@ abstract class Env {
   /// literal in `AppConstants.baseUrl`, which silently pinned every build to
   /// production.
   @EnviedField(varName: 'API_BASE_URL', obfuscate: true)
-  static final String apiBaseUrl = _Env.apiBaseUrl;
+  static final String apiBaseUrl = _Env.isiApiUrl;
 
   /// SAP Core API gateway base URL — target of the ADR-005 reachability probe.
   @EnviedField(varName: 'SAP_API_URL', obfuscate: true)
-  static final String sapApiUrl = _Env.sapApiUrl;
+  static final String sapApiUrl = _Env.isiApiUrl;
 
   /// Salt mixed into the database-key derivation. Defense-in-depth only.
   @EnviedField(varName: 'DB_SALT', obfuscate: true)

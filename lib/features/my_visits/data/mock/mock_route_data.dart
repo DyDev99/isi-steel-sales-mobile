@@ -12,9 +12,21 @@ import 'dart:math';
 class MockRouteData {
   MockRouteData._();
 
-  static Map<String, dynamic> generate({int seed = 11}) {
+  /// Generates the mock route data.
+  /// 
+  /// Requires [realCustomerIds] populated from the local database (e.g., via 
+  /// `customerLocalDataSource.browse()`) so that `route_stops.customer_id` 
+  /// foreign key constraints resolve successfully during upsert.
+  static Map<String, dynamic> generate(List<String> realCustomerIds, {int seed = 11}) {
+    if (realCustomerIds.isEmpty) {
+      throw StateError(
+        'MockRouteData.generate needs at least one real customer ID synced '
+        'locally (found none) — run customer sync first, then try generating again.',
+      );
+    }
+
     final rand = Random(seed);
-    final customers = CustomerGenerator.build(rand);
+    final customers = CustomerGenerator.build(rand, realCustomerIds);
     final routes = RouteGenerator.build(rand, customers);
 
     return {
@@ -158,9 +170,11 @@ class CustomerGenerator {
     'Vibol',
   ];
 
-  static List<Map<String, dynamic>> build(Random rand) {
+  static List<Map<String, dynamic>> build(Random rand, List<String> realCustomerIds) {
     final customers = <Map<String, dynamic>>[];
     var seq = 1;
+    var idCursor = 0;
+    
     for (var i = 0; i < 320; i++) {
       final provinceEntry = TerritoryGenerator.territories.entries
           .elementAt(rand.nextInt(TerritoryGenerator.territories.length));
@@ -177,9 +191,12 @@ class CustomerGenerator {
       // ~0.01-0.09 degrees (~1-10km) jitter around the province center.
       final latJitter = (rand.nextDouble() - 0.5) * 0.18;
       final lngJitter = (rand.nextDouble() - 0.5) * 0.18;
+      
+      // Cycle through the available real IDs to ensure FKs resolve safely.
+      final realId = realCustomerIds[idCursor++ % realCustomerIds.length];
 
       customers.add({
-        'id': 'CUST-${seq.toString().padLeft(4, '0')}',
+        'id': realId,
         'name': name,
         'code': 'C${(10000 + seq)}',
         'contact': contact,
@@ -264,7 +281,7 @@ class RouteGenerator {
         final stop = <String, dynamic>{
           'id': '$routeId-STOP-${s + 1}',
           'routeId': routeId,
-          'customerId': customer['id'],
+          'customerId': customer['id'], // Now populated with a real, synced ID
           'sequence': s + 1,
           'plannedArrival': plannedArrival.toIso8601String(),
           'plannedDeparture': plannedDeparture.toIso8601String(),
