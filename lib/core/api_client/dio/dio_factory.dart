@@ -10,6 +10,8 @@ import 'package:isi_steel_sales_mobile/core/api_client/config/api_config.dart';
 import 'package:isi_steel_sales_mobile/core/api_client/dio/dio_client.dart';
 import 'package:isi_steel_sales_mobile/core/api_client/dio/dio_interceptors.dart';
 import 'package:isi_steel_sales_mobile/core/api_client/dio/dio_options.dart';
+import 'package:isi_steel_sales_mobile/core/api_client/dio/sap_native_adapter.dart';
+import 'package:isi_steel_sales_mobile/core/api_client/dio/sap_native_transport.dart';
 import 'package:isi_steel_sales_mobile/core/api_client/network/network_checker.dart';
 
 /// Builds a configured [DioClient] per backend.
@@ -30,6 +32,11 @@ abstract final class DioFactory {
         config: ApiConfig.sap,
         networkChecker: networkChecker,
         tokenManager: tokenManager,
+        // The SAP facade renegotiates TLS mid-connection, which Dart's BoringSSL
+        // aborts (`NO_RENEGOTIATION`). On Android the request goes through the
+        // platform stack (Conscrypt) instead, which tolerates it. See
+        // `SapNativeAdapter`.
+        useNativeTransport: true,
       );
 
   /// ISI Steel Sales backend.
@@ -56,9 +63,19 @@ abstract final class DioFactory {
     required ApiConfig config,
     required NetworkChecker networkChecker,
     TokenManager Function()? tokenManager,
+    bool useNativeTransport = false,
   }) {
     final dio = Dio(DioOptionsBuilder.base(config));
-    _applyTls(dio, config);
+    // The native adapter pins the certificate itself (Kotlin side), so it
+    // replaces `_applyTls` rather than layering on top of it. Off a supported
+    // platform we fall back to the Dart pinned path — correct for TLS 1.3 hosts
+    // and, against this renegotiating one, at least failing with the clear
+    // `NO_RENEGOTIATION` cause rather than a silent error.
+    if (useNativeTransport && SapNativeTransport.isSupported) {
+      dio.httpClientAdapter = const SapNativeAdapter();
+    } else {
+      _applyTls(dio, config);
+    }
 
     dio.interceptors.addAll(
       DioInterceptors.build(
@@ -111,7 +128,16 @@ abstract final class DioFactory {
   /// after a certificate renewal.
   static Dio createProbeDio({required ApiConfig config}) {
     final dio = Dio(DioOptionsBuilder.base(config));
-    _applyTls(dio, config);
+    // The probe must fail exactly when the real client fails and succeed exactly
+    // when it succeeds — otherwise it reports offline while requests would
+    // actually work, blocking every SAP call at the connectivity gate. So it
+    // uses the same native transport the real SAP client does. A pinned host
+    // (SAP) is the only one ever probed here.
+    if (config.requiresCertificatePin && SapNativeTransport.isSupported) {
+      dio.httpClientAdapter = const SapNativeAdapter();
+    } else {
+      _applyTls(dio, config);
+    }
     return dio;
   }
 

@@ -13,6 +13,7 @@ class MainActivity : FlutterActivity() {
     private companion object {
         /** Must match `SapNativeTransport.channelName` on the Dart side. */
         const val CHANNEL = "isi/sap_native_transport"
+        const val DEFAULT_TIMEOUT_MS = 20_000
     }
 
     private val scope = CoroutineScope(Dispatchers.Main)
@@ -23,38 +24,40 @@ class MainActivity : FlutterActivity() {
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL)
             .setMethodCallHandler { call, result ->
                 when (call.method) {
-                    "post" -> handlePost(call.argument("url"),
-                        call.argument("body"),
-                        call.argument("pin"),
-                        result)
+                    "send" -> handleSend(call, result)
                     else -> result.notImplemented()
                 }
             }
     }
 
-    private fun handlePost(
-        url: String?,
-        body: String?,
-        pin: String?,
+    private fun handleSend(
+        call: io.flutter.plugin.common.MethodCall,
         result: MethodChannel.Result,
     ) {
-        if (url.isNullOrBlank() || pin.isNullOrBlank()) {
-            result.error("ARGS", "url and pin are required", null)
+        val method = call.argument<String>("method")
+        val url = call.argument<String>("url")
+        val pin = call.argument<String>("pin")
+        val headers = call.argument<Map<String, String>>("headers") ?: emptyMap()
+        val body = call.argument<String>("body")
+        val timeout = call.argument<Int>("timeoutMs") ?: DEFAULT_TIMEOUT_MS
+
+        if (method.isNullOrBlank() || url.isNullOrBlank() || pin.isNullOrBlank()) {
+            result.error("ARGS", "method, url and pin are required", null)
             return
         }
 
-        // Network work must not run on the main thread — Android throws
-        // NetworkOnMainThreadException — so it is dispatched to IO and the
-        // result is posted back on Main, which is where the MethodChannel
-        // reply must be delivered from.
+        // Network work must leave the main thread (Android throws
+        // NetworkOnMainThreadException otherwise); the MethodChannel reply must
+        // then be delivered back on Main.
         scope.launch {
             val response = withContext(Dispatchers.IO) {
-                SapTlsProbe.post(url, body ?: "{}", pin)
+                SapNativeHttpClient.send(method, url, headers, body, pin, timeout)
             }
             result.success(
                 mapOf(
                     "statusCode" to response.statusCode,
                     "body" to response.body,
+                    "headers" to response.headers,
                     "error" to response.error,
                 )
             )

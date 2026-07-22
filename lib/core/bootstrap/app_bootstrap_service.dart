@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/migrations/legacy_route_source.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/migrations/legacy_routes_importer.dart';
@@ -5,6 +6,8 @@ import 'package:isi_steel_sales_mobile/core/database/hive/hive_service.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/logging/app_logger.dart';
 import 'package:isi_steel_sales_mobile/core/network/connectivity_service.dart';
+import 'package:isi_steel_sales_mobile/features/customers/data/local/customer_local_data_source.dart';
+import 'package:isi_steel_sales_mobile/features/customers/data/local/seed_demo_customers.dart';
 
 /// Prepares the application before any feature loads.
 ///
@@ -65,6 +68,14 @@ class AppBootstrapService {
       //    Local disk work only — no network, so ADR-002 §3 holds.
       await _importLegacyRoutes(logger);
 
+      // 5b. TODO(release-gate): DEBUG/DEMO ONLY — seed the demo customer
+      //     directory so the mock route sync's `route_stops.customer_id` FK
+      //     resolves (see `seed_demo_customers.dart`). Local-only, seeds just an
+      //     empty directory, and never runs in a release build.
+      if (kDebugMode) {
+        await _seedDemoCustomers(logger);
+      }
+
       // 6. Session restore: intentionally a no-op here. AuthBloc's
       //    AuthCheckRequested reads the cached user from secure storage in the
       //    background with zero network calls (OFFLINE_FIRST §2.1, §2.5).
@@ -86,6 +97,24 @@ class AppBootstrapService {
       logger.error('bootstrap.failed', error: error, stackTrace: stackTrace);
       return BootstrapResult.failure(error.runtimeType.toString());
     }
+  }
+}
+
+/// TODO(release-gate): DEBUG/DEMO ONLY. Seeds the demo customer directory from
+/// the My Visits route fixture so mock route sync can attach stops. No network,
+/// no-op on a non-empty directory, and never invoked outside `kDebugMode`. See
+/// `features/customers/data/local/seed_demo_customers.dart` for the full
+/// rationale (the demo route IDs a real SAP backend never returns).
+Future<void> _seedDemoCustomers(AppLogger logger) async {
+  try {
+    final count =
+        await seedDemoCustomersFromRoutesAsset(sl<CustomerLocalDataSource>());
+    if (count > 0) {
+      logger.warning('bootstrap.demo_customers_seeded', fields: {'count': count});
+    }
+  } catch (error, stackTrace) {
+    logger.error('bootstrap.demo_customers_seed_failed',
+        error: error, stackTrace: stackTrace);
   }
 }
 

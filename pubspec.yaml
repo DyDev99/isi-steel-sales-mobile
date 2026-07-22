@@ -50,6 +50,12 @@ dependencies:
   pdf: ^3.12.0
   printing: ^5.14.3
   open_filex: ^4.7.0
+  # TODO(transport): native_dio_adapter removed.
+  # It pulls cronet_http 141.x, whose cronet-api and cronet-shared AARs
+  # declare the same org.chromium.net namespace. AGP 8+ rejects that at
+  # :app:processDebugMainManifest. Re-add once upstream ships a fix, or
+  # once the SAP cert is CA-valid and the facade runs TLS 1.3 (at which
+  # point Dart's own stack suffices and this package is unnecessary).
 dev_dependencies:
   flutter_test:
     sdk: flutter

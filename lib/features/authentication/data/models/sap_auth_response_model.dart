@@ -3,11 +3,15 @@ import 'package:isi_steel_sales_mobile/features/authentication/domain/entities/u
 
 /// The SAP façade's `POST /api/Auth/Login` reply.
 ///
+/// The live server returns **PascalCase**:
 /// ```json
-/// { "token": "...", "expiresAt": "...", "username": "...", "role": "Admin" }
+/// { "Token": "...", "ExpiresAt": "...", "Username": "Mobile", "Role": "Operator" }
 /// ```
-///
-/// (`SapAPI_Technical_Document_v1_BP.docx` §3.2.)
+/// The technical document (`SapAPI_Technical_Document_v1_BP.docx` §3.2) shows
+/// camelCase (`token`/`expiresAt`/…), which is ASP.NET Core's default. The two
+/// disagree, so [fromJson] reads **case-insensitively** rather than betting on
+/// one casing — a `JsonSerializerOptions` change server-side must not silently
+/// break sign-in again.
 class SapAuthResponseModel {
   const SapAuthResponseModel({
     required this.token,
@@ -22,26 +26,24 @@ class SapAuthResponseModel {
   final String role;
 
   factory SapAuthResponseModel.fromJson(Map<String, dynamic> json) {
-    final token = json['token'];
+    // Read by lower-cased key so `Token` and `token` both resolve. Built once
+    // rather than lower-casing at each lookup. If two keys collide only in case
+    // (never seen from this façade), last-wins — acceptable for a flat DTO.
+    final ci = <String, dynamic>{
+      for (final entry in json.entries) entry.key.toLowerCase(): entry.value,
+    };
+
+    final token = ci['token'];
     if (token is! String || token.isEmpty) {
-      // The key *names* are named in the message, never the values. A response
-      // shape mismatch is the likeliest cause of this failure and is otherwise
-      // invisible: the façade is ASP.NET Core, which camelCases by default, but
-      // a `JsonSerializerOptions` change server-side would emit `Token` /
-      // `ExpiresAt` instead and every field would silently read as null.
-      // Listing the keys turns that into a one-glance diagnosis.
-      //
-      // Safe under `docs/SECURITY.md` §10: key names carry no PII, and the
-      // token value itself is never included.
+      // Key *names* only, never values (`docs/SECURITY.md` §10). If this ever
+      // fires again, the key list is the one-glance diagnosis.
       throw FormatException(
-        'SAP login response contained no "token" key. '
-        'Keys present: ${json.keys.toList()..sort()}. '
-        'If these are PascalCase, the façade\'s JSON casing has changed and '
-        'this mapper needs updating.',
+        'SAP login response contained no token. '
+        'Keys present: ${json.keys.toList()..sort()}.',
       );
     }
 
-    final rawExpiry = json['expiresAt'];
+    final rawExpiry = ci['expiresat'];
     return SapAuthResponseModel(
       token: token,
       // A missing or unparsable expiry is treated as *already expired* rather
@@ -51,8 +53,8 @@ class SapAuthResponseModel {
           ? (DateTime.tryParse(rawExpiry) ??
               DateTime.fromMillisecondsSinceEpoch(0))
           : DateTime.fromMillisecondsSinceEpoch(0),
-      username: json['username'] as String? ?? '',
-      role: json['role'] as String? ?? '',
+      username: ci['username'] as String? ?? '',
+      role: ci['role'] as String? ?? '',
     );
   }
 }

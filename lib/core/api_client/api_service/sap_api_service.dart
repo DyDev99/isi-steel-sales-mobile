@@ -16,6 +16,13 @@ import 'package:isi_steel_sales_mobile/core/api_client/api_service/api_service.d
 /// error mapping. Only the *configured instance* differs — the two backends
 /// have different hosts, different TLS posture and different credentials, and a
 /// single shared instance would attach the SAP bearer token to ISI requests.
+///
+/// The TLS decision deliberately lives one layer down, in `DioFactory`
+/// (`SapNativeAdapter` on Android, the Dart pinned path elsewhere), and not
+/// here. This class must stay a plain marker: the moment it knows which
+/// transport carries the connection, every datasource that depends on it
+/// inherits that knowledge too, and swapping transports stops being a
+/// one-line change.
 class SapApiService extends DioApiService {
   const SapApiService(super.client);
 }

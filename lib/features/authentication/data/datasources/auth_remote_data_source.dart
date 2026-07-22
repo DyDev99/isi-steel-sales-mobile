@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:isi_steel_sales_mobile/core/api_client/api_service/api_exception.dart';
 import 'package:isi_steel_sales_mobile/core/api_client/api_service/sap_api_service.dart';
+import 'package:isi_steel_sales_mobile/core/api_client/dio/sap_native_transport.dart';
 import 'package:isi_steel_sales_mobile/core/api_client/endpoints/sap_endpoints.dart';
 import 'package:isi_steel_sales_mobile/core/config/app_config.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/data/models/sap_auth_response_model.dart';
@@ -24,12 +25,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String password,
   }) async {
     // Mirrors the Thunder Client request that is known to work against this
-    // endpoint. `Content-Type` is already the SAP client default
-    // (`ApiConfig.defaultHeaders`) and Dio would set it anyway for a Map body,
-    // so it is restated here only to keep this call byte-comparable with the
-    // reference request. `Accept: */*` is the meaningful one: it overrides a
-    // narrower default so a non-JSON error page from the façade still reaches
-    // the error mapper instead of being rejected by content negotiation.
+    // endpoint. `Content-Type` is already the SAP client default and Dio would
+    // set it anyway for a Map body, so it is restated here only to keep this
+    // call byte-comparable with the reference request. `Accept: */*` is the
+    // meaningful one: it overrides a narrower default so a non-JSON error page
+    // from the façade still reaches the error mapper instead of being rejected
+    // by content negotiation.
     const headers = <String, dynamic>{
       'Content-Type': 'application/json',
       'Accept': '*/*',
@@ -96,6 +97,12 @@ void _traceRequest({
   final url = '${SapConfig.primaryBaseUrl}${SapEndpoints.login}';
   debugPrint('[AUTH] ┌─ REQUEST ────────────────────────────────');
   debugPrint('[AUTH] │ POST $url');
+  // Transport first: when the failure is a handshake, everything below this
+  // line is irrelevant and this line is the answer. Must reflect the transport
+  // actually used, or a green log hides a red connection.
+  debugPrint(
+    '[AUTH] │ transport: ${SapNativeTransport.isSupported ? 'native platform TLS (Conscrypt) — tolerates renegotiation' : 'dart BoringSSL — renegotiating server WILL fail'}',
+  );
   for (final entry in headers.entries) {
     debugPrint('[AUTH] │ ${entry.key}: ${entry.value}');
   }
@@ -145,7 +152,44 @@ void _traceFailure(ApiException e) {
     debugPrint('[AUTH] │ NOTE: rejected by ConnectivityInterceptor before send.');
     debugPrint('[AUTH] │ See the connectivity.probe_* lines above.');
   }
+  _traceTlsHint(message);
   debugPrint('[AUTH] └──────────────────────────────────────────');
+}
+
+/// Turns the three TLS failures that actually occur against this façade into a
+/// named cause and a next action.
+///
+/// Without this, all three arrive as an untyped `HandshakeException` wrapped in
+/// a `DioException` wrapped in an `ApiException`, and they are routinely
+/// misread as each other — the renegotiation abort in particular gets treated
+/// as a certificate-trust problem and answered with a `badCertificateCallback`
+/// that cannot possibly help.
+void _traceTlsHint(String message) {
+  final lower = message.toLowerCase();
+
+  if (lower.contains('no_renegotiation') || lower.contains('renegotiation')) {
+    debugPrint('[AUTH] │ CAUSE: server-initiated TLS renegotiation.');
+    debugPrint('[AUTH] │ Dart BoringSSL aborts this below any Dart callback,');
+    debugPrint('[AUTH] │ so badCertificateCallback cannot help.');
+    debugPrint('[AUTH] │ FIX: SAP_TRANSPORT=native, or =cleartext for dev.');
+    return;
+  }
+
+  if (lower.contains('certificate') ||
+      lower.contains('handshake') ||
+      lower.contains('cert_authority') ||
+      lower.contains('unknown_ca')) {
+    debugPrint('[AUTH] │ CAUSE: certificate rejected, not renegotiation.');
+    debugPrint('[AUTH] │ Cronet ignores network_security_config.xml, so a');
+    debugPrint('[AUTH] │ user-installed CA will not satisfy it. Use a');
+    debugPrint('[AUTH] │ system-level CA, or SAP_TRANSPORT=cleartext.');
+    return;
+  }
+
+  if (lower.contains('cleartext') || lower.contains('not permitted')) {
+    debugPrint('[AUTH] │ CAUSE: platform blocked an http:// request.');
+    debugPrint('[AUTH] │ FIX: usesCleartextTraffic (Android) / ATS (iOS).');
+  }
 }
 
 /// Masks the two §10-forbidden values; everything else prints verbatim.
