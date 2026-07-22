@@ -1,205 +1,222 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/datasource/remote/sap/dto/sap_business_partner.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/datasource/remote/sap/sap_customer_mapper.dart';
+import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer_status.dart';
 
-/// Covers the SAP business-partner DTO and its mapping onto `CustomerModel`.
-///
-/// The load-bearing assertions are the *negative* ones: that fields SAP does not
-/// supply arrive as null rather than as plausible-looking defaults. A regression
-/// there would put every customer at 0°,0° on the map or show a credit-hold
-/// account as active — failures that look like data rather than like bugs.
+/// Pinned to the **captured live** `GetPaging/Live110` response of 2026-07-22 —
+/// not to the technical document, which disagrees with the wire on casing
+/// (`Rows` vs `rows`), the Khmer-name key (`NameKh` vs `name3`), and the very
+/// existence of `Latitude`/`Longitude`.
 void main() {
-  group('SapBusinessPartner.fromJson', () {
-    test('parses the documented paging row shape', () {
-      final bp = SapBusinessPartner.fromJson(const {
-        'customer': '0001000123',
-        'nameEn': 'ABC Trading',
-        'name1': 'ABC Trading Co., Ltd',
-        'street': 'Street 271',
-        'city': 'Phnom Penh',
-        'country': 'KH',
-        'mobilePhone': '012345678',
-        'salesOrg': '1000',
-        'division': '10',
-        'creditLimit': 5000,
-        'salesEmployee': 'EMP-1',
+  /// A real row, abridged from the capture (depot with coordinates + block).
+  Map<String, dynamic> liveDepotRow() => {
+        'Customer': '6100000017',
+        'SalesOrg': '0001',
+        'SalesOrgName': 'Phnom Penh (ISI)',
+        'DistributionChannel': '70',
+        'DistributionChannelName': 'Distributor',
+        'Division': '10',
+        'DivisionName': 'ISI Steel',
+        'NameEn': 'PNP-DEPOT REAKSMEY SIEM REAP',
+        'NameKh': 'ដេប៉ូ​​​ រស្មី សៀមរាប',
+        'PriceGroup': '71',
+        'PriceGroupName': 'Distributor',
+        'PaymentTerms': 'T045',
+        'PaymentTermsName': '45 days due net',
+        'CreationDate': '20230312',
+        'CustomerGroup': '07',
+        'CustomerGroupName': 'Distributor',
+        'CoName': 'ISI KEY DEPOT',
+        'Latitude': '11.383211',
+        'Longitude': '104.863216',
+        'Country': 'KH',
+        'Region': 'R01',
+        'City': 'Kandal',
+        'Street': '',
+        'Telephone': '089506667',
+        'MobilePhone': '',
+        'OrderBlock': '',
+        'SearchTerm1': 'PHNOM PENH',
+        'SearchTerm2': 'IC00011731',
+        'SALESBLOCK': 'X',
+        'BLOCKFLAG': '',
+        'CreditLimit': 200000.00,
+        'SalesEmployee': '00103979',
+        'SalesEmployeeName': 'SON PHUONG',
+      };
+
+  group('SapCustomerPage.fromJson — live PascalCase envelope', () {
+    test('parses Page/Rows casing (the regression that hid every customer)',
+        () {
+      // The first integration read lowercase keys only; against the real
+      // server that produced an empty page and a sync that "succeeded" with
+      // nothing. This test pins the live casing forever.
+      final page = SapCustomerPage.fromJson({
+        'Page': 1,
+        'PageSize': 50,
+        'TotalCount': 6266,
+        'TotalPages': 126,
+        'Rows': [liveDepotRow()],
       });
 
-      expect(bp.customerNumber, '0001000123');
-      expect(bp.nameEn, 'ABC Trading');
-      expect(bp.displayName, 'ABC Trading', reason: 'English name preferred');
-      expect(bp.creditLimit, 5000);
-      expect(bp.formattedAddress, 'Street 271, Phnom Penh, KH');
-    });
-
-    test('accepts PascalCase keys', () {
-      // The document shows camelCase in examples but names fields in PascalCase
-      // in its tables, and the response casing is not pinned down. Both resolve.
-      final bp = SapBusinessPartner.fromJson(const {
-        'Customer': '0001000999',
-        'Name1': 'Pascal Co',
-      });
-
-      expect(bp.customerNumber, '0001000999');
-      expect(bp.name1, 'Pascal Co');
-    });
-
-    test('treats SAP whitespace padding as absent', () {
-      // SAP pads fixed-width character fields; "   " must read as unknown, not
-      // as a value that renders an unexplained gap in the UI.
-      final bp = SapBusinessPartner.fromJson(const {
-        'customer': '1',
-        'nameEn': '   ',
-        'city': '',
-      });
-
-      expect(bp.nameEn, isNull);
-      expect(bp.city, isNull);
-    });
-
-    test('parses a numeric credit limit sent as a string', () {
-      final bp = SapBusinessPartner.fromJson(const {
-        'customer': '1',
-        'creditLimit': '1234.50',
-      });
-
-      expect(bp.creditLimit, 1234.50);
-    });
-
-    test('counts parsed fields so an unrecognised payload is detectable', () {
-      final understood = SapBusinessPartner.fromJson(const {
-        'customer': '1',
-        'name1': 'X',
-        'city': 'PP',
-      });
-      final unrecognised = SapBusinessPartner.fromJson(const {
-        'customer': '1',
-        'totally_unexpected_key': 'X',
-      });
-
-      expect(understood.parsedFieldCount, greaterThan(0));
-      expect(
-        unrecognised.parsedFieldCount,
-        0,
-        reason: 'a payload whose keys match nothing must be visibly empty, '
-            'not silently read as a page of blank customers',
-      );
-    });
-  });
-
-  group('SapCustomerPage.fromJson', () {
-    test('parses the documented envelope and derives hasMore', () {
-      final page = SapCustomerPage.fromJson(const {
-        'page': 1,
-        'pageSize': 50,
-        'totalCount': 1240,
-        'totalPages': 25,
-        'rows': [
-          {'customer': '0001000123', 'nameEn': 'ABC Trading'},
-        ],
-      });
-
-      expect(page.totalCount, 1240);
+      expect(page.totalCount, 6266);
+      expect(page.totalPages, 126);
       expect(page.rows, hasLength(1));
-      expect(page.hasMore, isTrue, reason: 'page 1 of 25');
+      expect(page.hasMore, isTrue);
     });
 
-    test('hasMore is false on the last page', () {
-      final page = SapCustomerPage.fromJson(const {
-        'page': 25,
+    test('still accepts the documented camelCase envelope', () {
+      final page = SapCustomerPage.fromJson({
+        'page': 126,
         'pageSize': 50,
-        'totalCount': 1240,
-        'totalPages': 25,
+        'totalCount': 6266,
+        'totalPages': 126,
         'rows': <Map<String, dynamic>>[],
       });
 
-      expect(page.hasMore, isFalse);
+      expect(page.totalPages, 126);
+      expect(page.hasMore, isFalse, reason: 'last page');
     });
   });
 
-  group('toCustomerModel', () {
-    test('maps the fields SAP does provide', () {
-      final model = SapBusinessPartner.fromJson(const {
-        'customer': '0001000123',
-        'nameEn': 'ABC Trading',
-        'street': 'Street 271',
-        'city': 'Phnom Penh',
-        'mobilePhone': '012345678',
-        'creditLimit': 5000,
-        'salesEmployee': 'EMP-1',
-        'salesEmployeeName': 'Sok Dara',
-      }).toCustomerModel();
+  group('SapBusinessPartner.fromJson — live row', () {
+    test('reads the live keys', () {
+      final bp = SapBusinessPartner.fromJson(liveDepotRow());
 
-      expect(model.id, '0001000123');
-      expect(model.sapCustomerId, '0001000123');
-      expect(model.shopName, 'ABC Trading');
-      expect(model.phone, '012345678');
-      expect(model.creditLimit, 5000);
-      expect(model.assignedRepId, 'EMP-1');
-      expect(model.assignedRepName, 'Sok Dara');
+      expect(bp.customerNumber, '6100000017');
+      expect(bp.nameEn, 'PNP-DEPOT REAKSMEY SIEM REAP');
+      expect(bp.nameKh, isNotNull, reason: 'NameKh, not the document\'s name3');
+      expect(bp.salesOrgName, 'Phnom Penh (ISI)');
+      expect(bp.paymentTermsName, '45 days due net');
+      expect(bp.searchTerm2, 'IC00011731');
+      expect(bp.parsedFieldCount, greaterThan(10));
     });
 
-    test('leaves SAP-unavailable fields null rather than defaulting them', () {
-      final model = SapBusinessPartner.fromJson(const {
-        'customer': '0001000123',
-        'nameEn': 'ABC Trading',
+    test('string coordinates parse; blanks stay null, never 0.0', () {
+      final withCoords = SapBusinessPartner.fromJson(liveDepotRow());
+      expect(withCoords.latitude, 11.383211);
+      expect(withCoords.longitude, 104.863216);
+
+      final walkIn = SapBusinessPartner.fromJson(
+          {'Customer': '6100000000', 'Latitude': '', 'Longitude': ''});
+      expect(walkIn.latitude, isNull,
+          reason: '"" must not become 0.0 — that is a real place at sea');
+      expect(walkIn.longitude, isNull);
+    });
+
+    test('CreationDate yyyyMMdd parses; 00000000 means none', () {
+      expect(SapBusinessPartner.fromJson(liveDepotRow()).creationDate,
+          DateTime.utc(2023, 3, 12));
+      expect(
+        SapBusinessPartner.fromJson(
+                {'Customer': '1', 'CreationDate': '00000000'})
+            .creationDate,
+        isNull,
+      );
+    });
+
+    test('any non-empty block field marks the partner blocked', () {
+      expect(SapBusinessPartner.fromJson(liveDepotRow()).isBlocked, isTrue,
+          reason: 'SALESBLOCK = X');
+      expect(
+        SapBusinessPartner.fromJson({'Customer': '1', 'BLOCKFLAG': 'X'})
+            .isBlocked,
+        isTrue,
+      );
+      expect(
+        SapBusinessPartner.fromJson({'Customer': '1', 'OrderBlock': '01'})
+            .isBlocked,
+        isTrue,
+        reason: 'unknown block codes fail safe, not just the X flag',
+      );
+      expect(
+          SapBusinessPartner.fromJson({'Customer': '1'}).isBlocked, isFalse);
+    });
+  });
+
+  group('toCustomerModel — live semantics', () {
+    test('maps a live depot row end to end', () {
+      final model =
+          SapBusinessPartner.fromJson(liveDepotRow()).toCustomerModel();
+
+      expect(model.id, '6100000017');
+      expect(model.customerCode, 'IC00011731',
+          reason: 'the legacy code staff recognise, not the BP number');
+      expect(model.shopName, 'PNP-DEPOT REAKSMEY SIEM REAP');
+      expect(model.territory, 'Phnom Penh (ISI)',
+          reason: 'SalesOrgName is this app\'s territory concept');
+      expect(model.latitude, 11.383211);
+      expect(model.hasCoordinates, isTrue);
+      expect(model.paymentTerms, '45 days due net',
+          reason: 'display name preferred over the T045 code');
+      expect(model.customerGroup, 'Distributor');
+      expect(model.salesOrg, '0001', reason: 'codes kept for filters');
+      expect(model.phone, '089506667',
+          reason: 'Telephone when MobilePhone is blank');
+      expect(model.creditLimit, 200000.00);
+      expect(model.createdAt, DateTime.utc(2023, 3, 12));
+      expect(model.assignedRepName, 'SON PHUONG');
+    });
+
+    test('block flags map to creditHold; their absence to active', () {
+      // Not a guessed default: with the block fields on the wire, "no block
+      // set" is an explicit statement from the ERP.
+      expect(
+        SapBusinessPartner.fromJson(liveDepotRow()).toCustomerModel().status,
+        CustomerStatus.creditHold,
+      );
+      expect(
+        SapBusinessPartner.fromJson({'Customer': '1', 'NameEn': 'X'})
+            .toCustomerModel()
+            .status,
+        CustomerStatus.active,
+      );
+    });
+
+    test('walk-in row: absent fields stay honest, never sentinel', () {
+      final model = SapBusinessPartner.fromJson({
+        'Customer': '6100000000',
+        'NameEn': 'PNP-Walk In Customer',
+        'SearchTerm1': 'PHNOM PENH',
+        'Latitude': '',
+        'Longitude': '',
+        'City': '',
       }).toCustomerModel();
 
       expect(model.latitude, isNull);
-      expect(model.longitude, isNull);
-      expect(model.territory, isNull);
-      expect(model.status, isNull);
       expect(model.hasCoordinates, isFalse);
+      expect(model.province, 'PHNOM PENH',
+          reason: 'SearchTerm1 fallback when City is blank');
+      expect(model.phone, isEmpty);
+      expect(model.ownerName, isEmpty,
+          reason: 'no proprietor on the wire; CoName is a channel tag');
     });
 
-    test('uses the SAP customer number as the local id, not a new UUID', () {
-      // Regenerating an id per sync would make every pass insert duplicates
-      // instead of updating in place — the upsert is keyed on `id`.
-      const json = {'customer': '0001000123', 'nameEn': 'ABC'};
-      final first = SapBusinessPartner.fromJson(json).toCustomerModel();
-      final second = SapBusinessPartner.fromJson(json).toCustomerModel();
-
-      expect(first.id, second.id);
-      expect(first.id, '0001000123');
-    });
-
-    test('falls back to the customer number when no name is supplied', () {
-      final model = SapBusinessPartner.fromJson(const {'customer': '1'})
-          .toCustomerModel();
-
-      expect(model.shopName, '1');
-    });
-
-    test('prefers mobilePhone, falling back to telephone', () {
-      final mobile = SapBusinessPartner.fromJson(
-        const {'customer': '1', 'mobilePhone': '012', 'telephone': '023'},
-      ).toCustomerModel();
-      final landline = SapBusinessPartner.fromJson(
-        const {'customer': '1', 'telephone': '023'},
-      ).toCustomerModel();
-
-      expect(mobile.phone, '012');
-      expect(landline.phone, '023');
+    test('id stays the SAP number — stable across repeated syncs', () {
+      final a = SapBusinessPartner.fromJson(liveDepotRow()).toCustomerModel();
+      final b = SapBusinessPartner.fromJson(liveDepotRow()).toCustomerModel();
+      expect(a.id, b.id);
     });
   });
 
   group('toCustomerModels', () {
-    test('drops rows with no customer number', () {
-      // A keyless row cannot be upserted or later matched, so importing it would
-      // create an orphan that every subsequent sync duplicates.
-      final models = SapCustomerPage.fromJson(const {
-        'page': 1,
-        'pageSize': 50,
-        'totalCount': 2,
-        'totalPages': 1,
-        'rows': [
-          {'customer': '0001000123', 'nameEn': 'Real'},
-          {'nameEn': 'Keyless'},
+    test('drops keyless rows; keeps duplicate customer numbers (last wins '
+        'at upsert)', () {
+      final models = SapCustomerPage.fromJson({
+        'Page': 1,
+        'PageSize': 50,
+        'TotalCount': 3,
+        'TotalPages': 1,
+        'Rows': [
+          liveDepotRow(),
+          liveDepotRow(), // same customer, second sales area — real feed shape
+          {'NameEn': 'Keyless'},
         ],
       }).toCustomerModels();
 
-      expect(models, hasLength(1));
-      expect(models.single.sapCustomerId, '0001000123');
+      expect(models, hasLength(2),
+          reason: 'keyless dropped; duplicates pass through to the upsert');
+      expect(models[0].id, models[1].id);
     });
   });
 }

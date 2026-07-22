@@ -144,6 +144,7 @@ void main() {
         'distribution_channel',
         'customer_group',
         'price_group',
+        'payment_terms',
         'en_name',
         'kh_name',
         'credit_balance',

@@ -290,7 +290,17 @@ class _Loaded extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: Text(customer.ownerName,
+                    // The SAP business partner has no proprietor, so
+                    // `ownerName` is empty on every real record. The legal
+                    // English name is the genuine SAP field with the same
+                    // intent; the customer number is the last resort — real
+                    // data only, never a blank header line.
+                    child: Text(
+                        _firstNonEmpty([
+                          customer.ownerName,
+                          customer.enName ?? '',
+                          customer.customerCode,
+                        ]),
                         style: TextStyle(
                             color: colors.textPrimary,
                             fontSize: 14,
@@ -307,17 +317,29 @@ class _Loaded extends StatelessWidget {
               _InfoRow(
                   icon: Icons.call_outlined,
                   label: 'Phone',
-                  value: customer.phone),
-              if (customer.email != null)
+                  value: customer.phone.isEmpty ? '—' : customer.phone),
+              if (customer.email != null && customer.email!.isNotEmpty)
                 _InfoRow(
                     icon: Icons.email_outlined,
                     label: 'Email',
                     value: customer.email!),
+              // Only the Khmer legal name gets its own row — `enName` already
+              // serves as the header fallback above.
+              if ((customer.khName ?? '').isNotEmpty)
+                _InfoRow(
+                    icon: Icons.translate_rounded,
+                    label: 'Khmer Name',
+                    value: customer.khName!),
               _InfoRow(
                   icon: Icons.place_outlined,
                   label: 'Address',
-                  value:
-                      '${customer.address}, ${customer.district}, ${customer.province}'),
+                  // SAP supplies street/city/country only — district is not in
+                  // the payload. Joining blindly rendered ', , Phnom Penh'.
+                  value: _joinNonEmpty([
+                    customer.address,
+                    customer.district,
+                    customer.province,
+                  ])),
               _InfoRow(
                   icon: Icons.person_pin_circle_outlined,
                   label: 'Assigned Rep',
@@ -381,7 +403,17 @@ class _Loaded extends StatelessWidget {
               _InfoRow(
                   icon: Icons.payments_outlined,
                   label: 'Lifetime Value',
-                  value: '\$${customer.lifetimeValue.toStringAsFixed(0)}'),
+                  // '$0' looks like a statement about the account; the SAP BP
+                  // payload simply does not carry order history, so a zero here
+                  // means "not told", not "never bought anything".
+                  value: customer.lifetimeValue > 0
+                      ? '\$${customer.lifetimeValue.toStringAsFixed(0)}'
+                      : '—'),
+              if (customer.totalOrders > 0)
+                _InfoRow(
+                    icon: Icons.receipt_long_outlined,
+                    label: 'Total Orders',
+                    value: '${customer.totalOrders}'),
               _InfoRow(
                 icon: Icons.event_outlined,
                 label: 'Last Order',
@@ -415,10 +447,48 @@ class _Loaded extends StatelessWidget {
                   icon: Icons.fingerprint_rounded,
                   label: 'SAP Customer ID',
                   value: customer.sapCustomerId),
+              // ── Commercial block — real fields from the BP payload ────
+              // Every row below renders exactly what SAP sent, with an em dash
+              // where the ERP left the field blank. No value here is invented
+              // client-side.
+              _InfoRow(
+                  icon: Icons.account_tree_outlined,
+                  label: 'Sales Area',
+                  value: _joinNonEmpty([
+                    customer.salesOrg ?? '',
+                    customer.distributionChannel ?? '',
+                    customer.division ?? '',
+                  ], separator: ' / ')),
+              _InfoRow(
+                  icon: Icons.group_work_outlined,
+                  label: 'Customer Group',
+                  value: customer.customerGroup ?? '—'),
+              _InfoRow(
+                  icon: Icons.schedule_outlined,
+                  label: 'Payment Terms',
+                  value: customer.paymentTerms ?? '—'),
               _InfoRow(
                   icon: Icons.account_balance_wallet_outlined,
                   label: 'Credit Limit',
-                  value: '\$${customer.creditLimit.toStringAsFixed(0)}'),
+                  value:
+                      '${customer.currency} ${customer.creditLimit.toStringAsFixed(0)}'),
+              if (customer.creditBalance > 0) ...[
+                _InfoRow(
+                    icon: Icons.trending_down_rounded,
+                    label: 'Credit Used',
+                    value:
+                        '${customer.currency} ${customer.creditBalance.toStringAsFixed(0)}'),
+                _InfoRow(
+                    icon: Icons.savings_outlined,
+                    label: 'Available Credit',
+                    value:
+                        '${customer.currency} ${customer.availableCredit.toStringAsFixed(0)}'),
+              ],
+              if ((customer.taxNumber ?? '').isNotEmpty)
+                _InfoRow(
+                    icon: Icons.receipt_outlined,
+                    label: 'Tax Number',
+                    value: customer.taxNumber!),
               _InfoRow(
                   icon: Icons.update_rounded,
                   label: 'Last Synced',
@@ -591,7 +661,11 @@ class _SalesInsightsSection extends StatelessWidget {
                 child: _MetricTile(
                   icon: Icons.payments_outlined,
                   label: 'Lifetime Value',
-                  value: '\$${customer.lifetimeValue.toStringAsFixed(0)}',
+                  // Not supplied by the SAP BP payload — '—' rather than a
+                  // '$0' that reads as "this customer never bought anything".
+                  value: customer.lifetimeValue > 0
+                      ? '\$${customer.lifetimeValue.toStringAsFixed(0)}'
+                      : '—',
                 ),
               ),
               const SizedBox(width: 12),
@@ -774,6 +848,23 @@ class _SectionCard extends StatelessWidget {
       ),
     );
   }
+}
+
+/// First candidate that actually holds text — for slots that must never render
+/// blank but must never invent a value either.
+String _firstNonEmpty(List<String> candidates) {
+  for (final candidate in candidates) {
+    if (candidate.isNotEmpty) return candidate;
+  }
+  return '—';
+}
+
+/// Joins only the parts SAP populated. Interpolating blindly produced
+/// `', , Phnom Penh'`-style strings on real records, where the mock had always
+/// filled every part.
+String _joinNonEmpty(List<String> parts, {String separator = ', '}) {
+  final present = parts.where((p) => p.isNotEmpty).toList();
+  return present.isEmpty ? '—' : present.join(separator);
 }
 
 class _InfoRow extends StatelessWidget {

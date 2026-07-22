@@ -4,17 +4,18 @@ import 'package:isi_steel_sales_mobile/core/database/hive/hive_service.dart';
 import 'package:isi_steel_sales_mobile/core/database/hive/local_cache.dart';
 import 'package:isi_steel_sales_mobile/core/network/network_info.dart';
 import 'package:isi_steel_sales_mobile/core/api_client/api_service/api_service.dart';
+import 'package:isi_steel_sales_mobile/core/api_client/api_service/sap_api_service.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart'
     show sapBackend;
 import 'package:isi_steel_sales_mobile/features/customers/data/datasource/remote/sap/customer_sap_remote_datasource.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/datasource/remote/sap/customer_sap_remote_datasource_impl.dart';
+import 'package:isi_steel_sales_mobile/features/customers/data/datasource/remote/sap/sap_master_data_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/datasource/remote/customer_sync_source.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/datasource/remote/sap/sap_customer_sync_source.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/local/customer_drift_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/local/customer_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/local/master_data_cache.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/remote/master_data_remote_data_source.dart';
-import 'package:isi_steel_sales_mobile/features/customers/data/remote/mock_master_data_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/repositories/customer_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/repositories/customer_sync_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/repositories/master_data_repository_impl.dart';
@@ -65,8 +66,11 @@ Future<void> registerCustomerFeature(GetIt sl) async {
   // SAP Customer Helper master data (ADR-009). Cached in Hive rather than
   // Drift because these are regenerable lookups, not business records
   // (ARCHITECTURE.md §3, Layer 2) — so this needs no schema migration.
+  //
+  // Real `/api/CustHelper/*` implementation — the mock that reserved this seam
+  // is deleted, so dropdowns show whatever SAP returns and nothing else.
   sl.registerLazySingleton<MasterDataRemoteDataSource>(
-      () => const MockMasterDataRemoteDataSource());
+      () => SapMasterDataRemoteDataSource(sl<SapApiService>()));
   sl.registerLazySingleton<MasterDataCache>(
       () => MasterDataCache(LocalCache(HiveService.cacheBox)));
 

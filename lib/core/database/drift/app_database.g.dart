@@ -443,6 +443,12 @@ class $CustomersTable extends Customers
   late final GeneratedColumn<String> priceGroup = GeneratedColumn<String>(
       'price_group', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _paymentTermsMeta =
+      const VerificationMeta('paymentTerms');
+  @override
+  late final GeneratedColumn<String> paymentTerms = GeneratedColumn<String>(
+      'payment_terms', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _enNameMeta = const VerificationMeta('enName');
   @override
   late final GeneratedColumn<String> enName = GeneratedColumn<String>(
@@ -532,6 +538,7 @@ class $CustomersTable extends Customers
         distributionChannel,
         customerGroup,
         priceGroup,
+        paymentTerms,
         enName,
         khName,
         creditBalance,
@@ -736,6 +743,12 @@ class $CustomersTable extends Customers
           priceGroup.isAcceptableOrUnknown(
               data['price_group']!, _priceGroupMeta));
     }
+    if (data.containsKey('payment_terms')) {
+      context.handle(
+          _paymentTermsMeta,
+          paymentTerms.isAcceptableOrUnknown(
+              data['payment_terms']!, _paymentTermsMeta));
+    }
     if (data.containsKey('en_name')) {
       context.handle(_enNameMeta,
           enName.isAcceptableOrUnknown(data['en_name']!, _enNameMeta));
@@ -848,6 +861,8 @@ class $CustomersTable extends Customers
           .read(DriftSqlType.string, data['${effectivePrefix}customer_group']),
       priceGroup: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}price_group']),
+      paymentTerms: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}payment_terms']),
       enName: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}en_name']),
       khName: attachedDatabase.typeMapping
@@ -917,6 +932,11 @@ class Customer extends DataClass implements Insertable<Customer> {
   final String? customerGroup;
   final String? priceGroup;
 
+  /// SAP payment term key (`Z001`, …) — §4.1 `GetPaymentTerm` names it, and the
+  /// BP read carries it per §5.2. Nullable: blank for partners with no terms
+  /// negotiated yet.
+  final String? paymentTerms;
+
   /// Latin and Khmer legal names. `shopName` stays the display name; these are
   /// the SAP `name1` / `name3` equivalents used for search and documents.
   final String? enName;
@@ -977,6 +997,7 @@ class Customer extends DataClass implements Insertable<Customer> {
       this.distributionChannel,
       this.customerGroup,
       this.priceGroup,
+      this.paymentTerms,
       this.enName,
       this.khName,
       required this.creditBalance,
@@ -1057,6 +1078,9 @@ class Customer extends DataClass implements Insertable<Customer> {
     }
     if (!nullToAbsent || priceGroup != null) {
       map['price_group'] = Variable<String>(priceGroup);
+    }
+    if (!nullToAbsent || paymentTerms != null) {
+      map['payment_terms'] = Variable<String>(paymentTerms);
     }
     if (!nullToAbsent || enName != null) {
       map['en_name'] = Variable<String>(enName);
@@ -1146,6 +1170,9 @@ class Customer extends DataClass implements Insertable<Customer> {
       priceGroup: priceGroup == null && nullToAbsent
           ? const Value.absent()
           : Value(priceGroup),
+      paymentTerms: paymentTerms == null && nullToAbsent
+          ? const Value.absent()
+          : Value(paymentTerms),
       enName:
           enName == null && nullToAbsent ? const Value.absent() : Value(enName),
       khName:
@@ -1203,6 +1230,7 @@ class Customer extends DataClass implements Insertable<Customer> {
           serializer.fromJson<String?>(json['distributionChannel']),
       customerGroup: serializer.fromJson<String?>(json['customerGroup']),
       priceGroup: serializer.fromJson<String?>(json['priceGroup']),
+      paymentTerms: serializer.fromJson<String?>(json['paymentTerms']),
       enName: serializer.fromJson<String?>(json['enName']),
       khName: serializer.fromJson<String?>(json['khName']),
       creditBalance: serializer.fromJson<double>(json['creditBalance']),
@@ -1251,6 +1279,7 @@ class Customer extends DataClass implements Insertable<Customer> {
       'distributionChannel': serializer.toJson<String?>(distributionChannel),
       'customerGroup': serializer.toJson<String?>(customerGroup),
       'priceGroup': serializer.toJson<String?>(priceGroup),
+      'paymentTerms': serializer.toJson<String?>(paymentTerms),
       'enName': serializer.toJson<String?>(enName),
       'khName': serializer.toJson<String?>(khName),
       'creditBalance': serializer.toJson<double>(creditBalance),
@@ -1296,6 +1325,7 @@ class Customer extends DataClass implements Insertable<Customer> {
           Value<String?> distributionChannel = const Value.absent(),
           Value<String?> customerGroup = const Value.absent(),
           Value<String?> priceGroup = const Value.absent(),
+          Value<String?> paymentTerms = const Value.absent(),
           Value<String?> enName = const Value.absent(),
           Value<String?> khName = const Value.absent(),
           double? creditBalance,
@@ -1350,6 +1380,8 @@ class Customer extends DataClass implements Insertable<Customer> {
         customerGroup:
             customerGroup.present ? customerGroup.value : this.customerGroup,
         priceGroup: priceGroup.present ? priceGroup.value : this.priceGroup,
+        paymentTerms:
+            paymentTerms.present ? paymentTerms.value : this.paymentTerms,
         enName: enName.present ? enName.value : this.enName,
         khName: khName.present ? khName.value : this.khName,
         creditBalance: creditBalance ?? this.creditBalance,
@@ -1424,6 +1456,9 @@ class Customer extends DataClass implements Insertable<Customer> {
           : this.customerGroup,
       priceGroup:
           data.priceGroup.present ? data.priceGroup.value : this.priceGroup,
+      paymentTerms: data.paymentTerms.present
+          ? data.paymentTerms.value
+          : this.paymentTerms,
       enName: data.enName.present ? data.enName.value : this.enName,
       khName: data.khName.present ? data.khName.value : this.khName,
       creditBalance: data.creditBalance.present
@@ -1474,6 +1509,7 @@ class Customer extends DataClass implements Insertable<Customer> {
           ..write('distributionChannel: $distributionChannel, ')
           ..write('customerGroup: $customerGroup, ')
           ..write('priceGroup: $priceGroup, ')
+          ..write('paymentTerms: $paymentTerms, ')
           ..write('enName: $enName, ')
           ..write('khName: $khName, ')
           ..write('creditBalance: $creditBalance, ')
@@ -1521,6 +1557,7 @@ class Customer extends DataClass implements Insertable<Customer> {
         distributionChannel,
         customerGroup,
         priceGroup,
+        paymentTerms,
         enName,
         khName,
         creditBalance,
@@ -1567,6 +1604,7 @@ class Customer extends DataClass implements Insertable<Customer> {
           other.distributionChannel == this.distributionChannel &&
           other.customerGroup == this.customerGroup &&
           other.priceGroup == this.priceGroup &&
+          other.paymentTerms == this.paymentTerms &&
           other.enName == this.enName &&
           other.khName == this.khName &&
           other.creditBalance == this.creditBalance &&
@@ -1611,6 +1649,7 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
   final Value<String?> distributionChannel;
   final Value<String?> customerGroup;
   final Value<String?> priceGroup;
+  final Value<String?> paymentTerms;
   final Value<String?> enName;
   final Value<String?> khName;
   final Value<double> creditBalance;
@@ -1654,6 +1693,7 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
     this.distributionChannel = const Value.absent(),
     this.customerGroup = const Value.absent(),
     this.priceGroup = const Value.absent(),
+    this.paymentTerms = const Value.absent(),
     this.enName = const Value.absent(),
     this.khName = const Value.absent(),
     this.creditBalance = const Value.absent(),
@@ -1698,6 +1738,7 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
     this.distributionChannel = const Value.absent(),
     this.customerGroup = const Value.absent(),
     this.priceGroup = const Value.absent(),
+    this.paymentTerms = const Value.absent(),
     this.enName = const Value.absent(),
     this.khName = const Value.absent(),
     this.creditBalance = const Value.absent(),
@@ -1752,6 +1793,7 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
     Expression<String>? distributionChannel,
     Expression<String>? customerGroup,
     Expression<String>? priceGroup,
+    Expression<String>? paymentTerms,
     Expression<String>? enName,
     Expression<String>? khName,
     Expression<double>? creditBalance,
@@ -1799,6 +1841,7 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
         'distribution_channel': distributionChannel,
       if (customerGroup != null) 'customer_group': customerGroup,
       if (priceGroup != null) 'price_group': priceGroup,
+      if (paymentTerms != null) 'payment_terms': paymentTerms,
       if (enName != null) 'en_name': enName,
       if (khName != null) 'kh_name': khName,
       if (creditBalance != null) 'credit_balance': creditBalance,
@@ -1845,6 +1888,7 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
       Value<String?>? distributionChannel,
       Value<String?>? customerGroup,
       Value<String?>? priceGroup,
+      Value<String?>? paymentTerms,
       Value<String?>? enName,
       Value<String?>? khName,
       Value<double>? creditBalance,
@@ -1889,6 +1933,7 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
       distributionChannel: distributionChannel ?? this.distributionChannel,
       customerGroup: customerGroup ?? this.customerGroup,
       priceGroup: priceGroup ?? this.priceGroup,
+      paymentTerms: paymentTerms ?? this.paymentTerms,
       enName: enName ?? this.enName,
       khName: khName ?? this.khName,
       creditBalance: creditBalance ?? this.creditBalance,
@@ -2004,6 +2049,9 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
     if (priceGroup.present) {
       map['price_group'] = Variable<String>(priceGroup.value);
     }
+    if (paymentTerms.present) {
+      map['payment_terms'] = Variable<String>(paymentTerms.value);
+    }
     if (enName.present) {
       map['en_name'] = Variable<String>(enName.value);
     }
@@ -2070,6 +2118,7 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
           ..write('distributionChannel: $distributionChannel, ')
           ..write('customerGroup: $customerGroup, ')
           ..write('priceGroup: $priceGroup, ')
+          ..write('paymentTerms: $paymentTerms, ')
           ..write('enName: $enName, ')
           ..write('khName: $khName, ')
           ..write('creditBalance: $creditBalance, ')
@@ -15494,6 +15543,7 @@ typedef $$CustomersTableCreateCompanionBuilder = CustomersCompanion Function({
   Value<String?> distributionChannel,
   Value<String?> customerGroup,
   Value<String?> priceGroup,
+  Value<String?> paymentTerms,
   Value<String?> enName,
   Value<String?> khName,
   Value<double> creditBalance,
@@ -15538,6 +15588,7 @@ typedef $$CustomersTableUpdateCompanionBuilder = CustomersCompanion Function({
   Value<String?> distributionChannel,
   Value<String?> customerGroup,
   Value<String?> priceGroup,
+  Value<String?> paymentTerms,
   Value<String?> enName,
   Value<String?> khName,
   Value<double> creditBalance,
@@ -15762,6 +15813,9 @@ class $$CustomersTableFilterComposer
 
   ColumnFilters<String> get priceGroup => $composableBuilder(
       column: $table.priceGroup, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get paymentTerms => $composableBuilder(
+      column: $table.paymentTerms, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get enName => $composableBuilder(
       column: $table.enName, builder: (column) => ColumnFilters(column));
@@ -16036,6 +16090,10 @@ class $$CustomersTableOrderingComposer
   ColumnOrderings<String> get priceGroup => $composableBuilder(
       column: $table.priceGroup, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get paymentTerms => $composableBuilder(
+      column: $table.paymentTerms,
+      builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get enName => $composableBuilder(
       column: $table.enName, builder: (column) => ColumnOrderings(column));
 
@@ -16169,6 +16227,9 @@ class $$CustomersTableAnnotationComposer
 
   GeneratedColumn<String> get priceGroup => $composableBuilder(
       column: $table.priceGroup, builder: (column) => column);
+
+  GeneratedColumn<String> get paymentTerms => $composableBuilder(
+      column: $table.paymentTerms, builder: (column) => column);
 
   GeneratedColumn<String> get enName =>
       $composableBuilder(column: $table.enName, builder: (column) => column);
@@ -16385,6 +16446,7 @@ class $$CustomersTableTableManager extends RootTableManager<
             Value<String?> distributionChannel = const Value.absent(),
             Value<String?> customerGroup = const Value.absent(),
             Value<String?> priceGroup = const Value.absent(),
+            Value<String?> paymentTerms = const Value.absent(),
             Value<String?> enName = const Value.absent(),
             Value<String?> khName = const Value.absent(),
             Value<double> creditBalance = const Value.absent(),
@@ -16429,6 +16491,7 @@ class $$CustomersTableTableManager extends RootTableManager<
             distributionChannel: distributionChannel,
             customerGroup: customerGroup,
             priceGroup: priceGroup,
+            paymentTerms: paymentTerms,
             enName: enName,
             khName: khName,
             creditBalance: creditBalance,
@@ -16473,6 +16536,7 @@ class $$CustomersTableTableManager extends RootTableManager<
             Value<String?> distributionChannel = const Value.absent(),
             Value<String?> customerGroup = const Value.absent(),
             Value<String?> priceGroup = const Value.absent(),
+            Value<String?> paymentTerms = const Value.absent(),
             Value<String?> enName = const Value.absent(),
             Value<String?> khName = const Value.absent(),
             Value<double> creditBalance = const Value.absent(),
@@ -16517,6 +16581,7 @@ class $$CustomersTableTableManager extends RootTableManager<
             distributionChannel: distributionChannel,
             customerGroup: customerGroup,
             priceGroup: priceGroup,
+            paymentTerms: paymentTerms,
             enName: enName,
             khName: khName,
             creditBalance: creditBalance,

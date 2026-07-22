@@ -44,6 +44,7 @@ class Customer extends Equatable {
     this.distributionChannel,
     this.customerGroup,
     this.priceGroup,
+    this.paymentTerms,
     this.enName,
     this.khName,
     this.taxNumber,
@@ -115,6 +116,10 @@ class Customer extends Equatable {
   final String? customerGroup;
   final String? priceGroup;
 
+  /// SAP payment term key (`Z001`, …). Listed by §5.2 as part of the BP read,
+  /// so it rides the same sync. Null until SAP assigns one.
+  final String? paymentTerms;
+
   /// SAP `name1` / `name3`. [shopName] remains the display name; these are the
   /// legal names used for search and printed documents.
   final String? enName;
@@ -178,6 +183,7 @@ class Customer extends Equatable {
         distributionChannel,
         customerGroup,
         priceGroup,
+        paymentTerms,
         enName,
         khName,
         taxNumber,

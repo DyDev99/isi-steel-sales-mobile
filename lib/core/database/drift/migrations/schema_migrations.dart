@@ -95,6 +95,7 @@ final Map<int, SchemaMigrationStep> _stepwiseMigrations =
     await m.addColumn(db.customers, db.customers.distributionChannel);
     await m.addColumn(db.customers, db.customers.customerGroup);
     await m.addColumn(db.customers, db.customers.priceGroup);
+    await m.addColumn(db.customers, db.customers.paymentTerms);
     await m.addColumn(db.customers, db.customers.enName);
     await m.addColumn(db.customers, db.customers.khName);
     await m.addColumn(db.customers, db.customers.creditBalance);

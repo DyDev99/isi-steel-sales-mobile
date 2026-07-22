@@ -55,7 +55,13 @@ class CustomerCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${customer.customerCode} · ${customer.ownerName}',
+                  // Composed from whichever parts SAP actually sent. The BP
+                  // payload has no proprietor, so `ownerName` is usually empty
+                  // — interpolating it blindly rendered '0001000123 · ' with a
+                  // dangling separator on every real customer.
+                  [customer.customerCode, customer.ownerName]
+                      .where((s) => s.isNotEmpty)
+                      .join(' · '),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(color: colors.textSecondary, fontSize: 12),
@@ -63,13 +69,18 @@ class CustomerCard extends StatelessWidget {
                 const SizedBox(height: 6),
                 Row(
                   children: [
-                    Icon(Icons.call_outlined,
-                        size: 12, color: colors.textSecondary),
-                    const SizedBox(width: 4),
-                    Text(customer.phone,
-                        style: TextStyle(
-                            color: colors.textSecondary, fontSize: 11.5)),
-                    const SizedBox(width: 10),
+                    // Omitted entirely when SAP sent no phone: a phone icon
+                    // beside empty space reads as a rendering bug, not as
+                    // "unknown".
+                    if (customer.phone.isNotEmpty) ...[
+                      Icon(Icons.call_outlined,
+                          size: 12, color: colors.textSecondary),
+                      const SizedBox(width: 4),
+                      Text(customer.phone,
+                          style: TextStyle(
+                              color: colors.textSecondary, fontSize: 11.5)),
+                      const SizedBox(width: 10),
+                    ],
                     Icon(Icons.storefront_outlined,
                         size: 12, color: colors.textSecondary),
                     const SizedBox(width: 4),

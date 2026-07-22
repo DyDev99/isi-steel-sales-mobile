@@ -56,6 +56,7 @@ class Customers extends Table {
   TextColumn get assignedRepName => text().nullable()();
 
   RealColumn get creditLimit => real()();
+
   DateTimeColumn get updatedAt => dateTime()();
   TextColumn get originLeadId => text().nullable()();
   TextColumn get productsPurchased => text().withDefault(const Constant(''))();
@@ -102,6 +103,11 @@ class Customers extends Table {
   /// Commercial classification.
   TextColumn get customerGroup => text().nullable()();
   TextColumn get priceGroup => text().nullable()();
+
+  /// SAP payment term key (`Z001`, …) — §4.1 `GetPaymentTerm` names it, and the
+  /// BP read carries it per §5.2. Nullable: blank for partners with no terms
+  /// negotiated yet.
+  TextColumn get paymentTerms => text().nullable()();
 
   /// Latin and Khmer legal names. `shopName` stays the display name; these are
   /// the SAP `name1` / `name3` equivalents used for search and documents.
