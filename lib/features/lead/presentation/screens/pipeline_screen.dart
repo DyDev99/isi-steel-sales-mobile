@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
@@ -207,7 +208,7 @@ class _ErrorView extends StatelessWidget {
           const SizedBox(height: 12),
           TextButton(
             onPressed: onRetry,
-            child: Text('Try again',
+            child: Text('common.try_again'.tr,
                 style: TextStyle(
                     color: scheme.secondary, fontWeight: FontWeight.w700)),
           ),

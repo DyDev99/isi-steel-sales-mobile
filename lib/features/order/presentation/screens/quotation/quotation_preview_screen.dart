@@ -119,7 +119,9 @@ class _QuotationView extends StatelessWidget {
   void _download(BuildContext context) {
     context.read<PdfGenerationCubit>().generateQuotationPdf(
           quotationNumber: _resolvedQuotationNumber(),
-          customerName: shopName ?? 'Walk-in Customer',
+          // Khmer-safe: PDF values render through PdfShapedText, which shapes
+          // Khmer via Flutter's text engine.
+          customerName: shopName ?? 'orders.quotation_extra.walk_in'.tr,
           customerPhone: customerPhone,
           customerAddress: customerAddress,
           createdDate: createdDate ?? DateTime.now(),

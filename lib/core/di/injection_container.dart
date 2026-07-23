@@ -22,7 +22,7 @@ import 'package:isi_steel_sales_mobile/core/services/pdf/pdf_share_service.dart'
 import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/app_coach_injection.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/authentication_injection.dart';
-import 'package:isi_steel_sales_mobile/features/localization/presentation/bloc/language_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/localization/localization_injection.dart';
 import 'package:isi_steel_sales_mobile/features/customers/customers_injection.dart';
 import 'package:isi_steel_sales_mobile/features/home/presentation/bloc/home_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/home/home_injection.dart';
@@ -99,7 +99,7 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton<PdfFileService>(() => const PdfFileServiceImpl());
   sl.registerLazySingleton<PdfShareService>(() => const PdfShareServiceImpl());
 
-  sl.registerLazySingleton<LanguageCubit>(() => LanguageCubit(sl()));
+  registerLocalizationFeature(sl);
   sl.registerLazySingleton<ShellTabController>(() => ShellTabController());
   registerThemeFeature(sl);
 

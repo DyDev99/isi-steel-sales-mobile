@@ -1,28 +1,38 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/customer_params.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/get_customer_by_id.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/stock_level.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_stock_update.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/add_stock_update.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/state/depot_stock_count_state.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/browse_products.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/catalog_params.dart';
 
-/// Loads the inventory to count for a selected depot/shop and owns the live
-/// counts (counting is business state, so it lives here — never `setState`).
+/// Loads the inventory for a selected depot/shop and owns the per-SKU stock
+/// statuses (status selection is business state, so it lives here — never
+/// `setState`).
 ///
 /// Shop == customer (per the chosen data model): the shop is resolved via
-/// [GetCustomerById] for display/validation, and the SKUs to count come from
-/// the offline product catalog via [BrowseProducts]. A missing/invalid shop id
-/// resolves to a proper error state rather than a crash.
+/// [GetCustomerById] for display/validation, and the SKUs come from the
+/// offline product catalog via [BrowseProducts]. [submit] persists every
+/// selection through [AddStockUpdate] — local-first, `sync_state = 'dirty'`,
+/// so the depot count pushes with the next visit-data drain without any
+/// network dependency.
 class DepotStockCountCubit extends Cubit<DepotStockCountState> {
   DepotStockCountCubit({
     required GetCustomerById getCustomerById,
     required BrowseProducts browseProducts,
+    required AddStockUpdate addStockUpdate,
   })  : _getCustomerById = getCustomerById,
         _browseProducts = browseProducts,
+        _addStockUpdate = addStockUpdate,
         super(const DepotStockCountState());
 
   final GetCustomerById _getCustomerById;
   final BrowseProducts _browseProducts;
+  final AddStockUpdate _addStockUpdate;
 
   static const _pageSize = 40;
 
@@ -30,7 +40,7 @@ class DepotStockCountCubit extends Cubit<DepotStockCountState> {
     if (shopId == null || shopId.isEmpty) {
       emit(state.copyWith(
         status: DepotStockCountStatus.error,
-        message: 'No depot or shop was selected.',
+        message: 'my_visits.depot.none_selected'.tr,
       ));
       return;
     }
@@ -43,7 +53,7 @@ class DepotStockCountCubit extends Cubit<DepotStockCountState> {
     if (shopName == null) {
       emit(state.copyWith(
         status: DepotStockCountStatus.error,
-        message: 'Could not load the selected depot/shop.',
+        message: 'my_visits.depot.load_failed'.tr,
       ));
       return;
     }
@@ -70,22 +80,52 @@ class DepotStockCountCubit extends Cubit<DepotStockCountState> {
     );
   }
 
-  /// Adjusts a line's counted quantity, clamped to a sane range. [delta] is
-  /// typically ±1 (tap) or ±10 (long-press).
-  void step(String productId, int delta) {
+  /// Sets one SKU's three-tier stock status.
+  void selectStockLevel(String productId, StockLevel level) {
     final lines = [
       for (final line in state.lines)
-        if (line.productId == productId)
-          line.copyWith(count: (line.count + delta).clamp(0, 99999))
-        else
-          line,
+        if (line.productId == productId) line.copyWith(level: level) else line,
     ];
     emit(state.copyWith(lines: lines));
+  }
+
+  /// Persists every selected status for [shopId]. Refuses (and turns on row
+  /// validation highlighting) while any visible product is still unset.
+  Future<void> submit(String shopId) async {
+    if (state.status != DepotStockCountStatus.loaded) return;
+    if (!state.isComplete) {
+      emit(state.copyWith(showValidation: true));
+      return;
+    }
+
+    emit(state.copyWith(status: DepotStockCountStatus.saving));
+    final stamp = DateTime.now().microsecondsSinceEpoch;
+    for (final line in state.lines) {
+      final result = await _addStockUpdate(VisitStockUpdate(
+        id: '$stamp-${line.productId.hashCode}',
+        depotId: shopId,
+        productId: line.productId,
+        productName: line.name,
+        stockLevel: line.level!,
+        notes: '',
+      ));
+      final failure = result.when(success: (_) => null, failure: (f) => f);
+      if (failure != null) {
+        emit(state.copyWith(
+          status: DepotStockCountStatus.loaded,
+          message: failure.message,
+        ));
+        return;
+      }
+    }
+    emit(state.copyWith(status: DepotStockCountStatus.saved));
   }
 
   StockCountLine _lineOf(Product p) => StockCountLine(
         productId: p.id,
         name: p.name,
         subtitle: [p.brand, p.sku].where((s) => s.isNotEmpty).join(' · '),
+        imageUrl: p.imageUrl,
+        size: p.size,
       );
 }

@@ -12303,11 +12303,17 @@ class $VisitStockUpdatesTable extends VisitStockUpdates
   static const VerificationMeta _stopIdMeta = const VerificationMeta('stopId');
   @override
   late final GeneratedColumn<String> stopId = GeneratedColumn<String>(
-      'stop_id', aliasedName, false,
+      'stop_id', aliasedName, true,
       type: DriftSqlType.string,
-      requiredDuringInsert: true,
+      requiredDuringInsert: false,
       defaultConstraints: GeneratedColumn.constraintIsAlways(
           'REFERENCES route_stops (id) ON DELETE CASCADE'));
+  static const VerificationMeta _depotIdMeta =
+      const VerificationMeta('depotId');
+  @override
+  late final GeneratedColumn<String> depotId = GeneratedColumn<String>(
+      'depot_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _productIdMeta =
       const VerificationMeta('productId');
   @override
@@ -12320,12 +12326,12 @@ class $VisitStockUpdatesTable extends VisitStockUpdates
   late final GeneratedColumn<String> productName = GeneratedColumn<String>(
       'product_name', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _countedQuantityMeta =
-      const VerificationMeta('countedQuantity');
+  static const VerificationMeta _stockLevelMeta =
+      const VerificationMeta('stockLevel');
   @override
-  late final GeneratedColumn<double> countedQuantity = GeneratedColumn<double>(
-      'counted_quantity', aliasedName, false,
-      type: DriftSqlType.double, requiredDuringInsert: true);
+  late final GeneratedColumn<String> stockLevel = GeneratedColumn<String>(
+      'stock_level', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _notesMeta = const VerificationMeta('notes');
   @override
   late final GeneratedColumn<String> notes = GeneratedColumn<String>(
@@ -12342,9 +12348,10 @@ class $VisitStockUpdatesTable extends VisitStockUpdates
         serverRevision,
         dirty,
         stopId,
+        depotId,
         productId,
         productName,
-        countedQuantity,
+        stockLevel,
         notes
       ];
   @override
@@ -12388,8 +12395,10 @@ class $VisitStockUpdatesTable extends VisitStockUpdates
     if (data.containsKey('stop_id')) {
       context.handle(_stopIdMeta,
           stopId.isAcceptableOrUnknown(data['stop_id']!, _stopIdMeta));
-    } else if (isInserting) {
-      context.missing(_stopIdMeta);
+    }
+    if (data.containsKey('depot_id')) {
+      context.handle(_depotIdMeta,
+          depotId.isAcceptableOrUnknown(data['depot_id']!, _depotIdMeta));
     }
     if (data.containsKey('product_id')) {
       context.handle(_productIdMeta,
@@ -12405,13 +12414,13 @@ class $VisitStockUpdatesTable extends VisitStockUpdates
     } else if (isInserting) {
       context.missing(_productNameMeta);
     }
-    if (data.containsKey('counted_quantity')) {
+    if (data.containsKey('stock_level')) {
       context.handle(
-          _countedQuantityMeta,
-          countedQuantity.isAcceptableOrUnknown(
-              data['counted_quantity']!, _countedQuantityMeta));
+          _stockLevelMeta,
+          stockLevel.isAcceptableOrUnknown(
+              data['stock_level']!, _stockLevelMeta));
     } else if (isInserting) {
-      context.missing(_countedQuantityMeta);
+      context.missing(_stockLevelMeta);
     }
     if (data.containsKey('notes')) {
       context.handle(
@@ -12439,13 +12448,15 @@ class $VisitStockUpdatesTable extends VisitStockUpdates
       dirty: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}dirty'])!,
       stopId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}stop_id'])!,
+          .read(DriftSqlType.string, data['${effectivePrefix}stop_id']),
+      depotId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}depot_id']),
       productId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}product_id'])!,
       productName: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}product_name'])!,
-      countedQuantity: attachedDatabase.typeMapping.read(
-          DriftSqlType.double, data['${effectivePrefix}counted_quantity'])!,
+      stockLevel: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}stock_level'])!,
       notes: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}notes'])!,
     );
@@ -12475,10 +12486,14 @@ class VisitStockUpdateRow extends DataClass
   final String syncState;
   final String? serverRevision;
   final bool dirty;
-  final String stopId;
+  final String? stopId;
+
+  /// The depot/shop (customer id) a depot count was taken at. No FK: depot
+  /// counts may reference customers synced later than the capture.
+  final String? depotId;
   final String productId;
   final String productName;
-  final double countedQuantity;
+  final String stockLevel;
   final String notes;
   const VisitStockUpdateRow(
       {required this.id,
@@ -12487,10 +12502,11 @@ class VisitStockUpdateRow extends DataClass
       required this.syncState,
       this.serverRevision,
       required this.dirty,
-      required this.stopId,
+      this.stopId,
+      this.depotId,
       required this.productId,
       required this.productName,
-      required this.countedQuantity,
+      required this.stockLevel,
       required this.notes});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -12503,10 +12519,15 @@ class VisitStockUpdateRow extends DataClass
       map['server_revision'] = Variable<String>(serverRevision);
     }
     map['dirty'] = Variable<bool>(dirty);
-    map['stop_id'] = Variable<String>(stopId);
+    if (!nullToAbsent || stopId != null) {
+      map['stop_id'] = Variable<String>(stopId);
+    }
+    if (!nullToAbsent || depotId != null) {
+      map['depot_id'] = Variable<String>(depotId);
+    }
     map['product_id'] = Variable<String>(productId);
     map['product_name'] = Variable<String>(productName);
-    map['counted_quantity'] = Variable<double>(countedQuantity);
+    map['stock_level'] = Variable<String>(stockLevel);
     map['notes'] = Variable<String>(notes);
     return map;
   }
@@ -12521,10 +12542,14 @@ class VisitStockUpdateRow extends DataClass
           ? const Value.absent()
           : Value(serverRevision),
       dirty: Value(dirty),
-      stopId: Value(stopId),
+      stopId:
+          stopId == null && nullToAbsent ? const Value.absent() : Value(stopId),
+      depotId: depotId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(depotId),
       productId: Value(productId),
       productName: Value(productName),
-      countedQuantity: Value(countedQuantity),
+      stockLevel: Value(stockLevel),
       notes: Value(notes),
     );
   }
@@ -12539,10 +12564,11 @@ class VisitStockUpdateRow extends DataClass
       syncState: serializer.fromJson<String>(json['syncState']),
       serverRevision: serializer.fromJson<String?>(json['serverRevision']),
       dirty: serializer.fromJson<bool>(json['dirty']),
-      stopId: serializer.fromJson<String>(json['stopId']),
+      stopId: serializer.fromJson<String?>(json['stopId']),
+      depotId: serializer.fromJson<String?>(json['depotId']),
       productId: serializer.fromJson<String>(json['productId']),
       productName: serializer.fromJson<String>(json['productName']),
-      countedQuantity: serializer.fromJson<double>(json['countedQuantity']),
+      stockLevel: serializer.fromJson<String>(json['stockLevel']),
       notes: serializer.fromJson<String>(json['notes']),
     );
   }
@@ -12556,10 +12582,11 @@ class VisitStockUpdateRow extends DataClass
       'syncState': serializer.toJson<String>(syncState),
       'serverRevision': serializer.toJson<String?>(serverRevision),
       'dirty': serializer.toJson<bool>(dirty),
-      'stopId': serializer.toJson<String>(stopId),
+      'stopId': serializer.toJson<String?>(stopId),
+      'depotId': serializer.toJson<String?>(depotId),
       'productId': serializer.toJson<String>(productId),
       'productName': serializer.toJson<String>(productName),
-      'countedQuantity': serializer.toJson<double>(countedQuantity),
+      'stockLevel': serializer.toJson<String>(stockLevel),
       'notes': serializer.toJson<String>(notes),
     };
   }
@@ -12571,10 +12598,11 @@ class VisitStockUpdateRow extends DataClass
           String? syncState,
           Value<String?> serverRevision = const Value.absent(),
           bool? dirty,
-          String? stopId,
+          Value<String?> stopId = const Value.absent(),
+          Value<String?> depotId = const Value.absent(),
           String? productId,
           String? productName,
-          double? countedQuantity,
+          String? stockLevel,
           String? notes}) =>
       VisitStockUpdateRow(
         id: id ?? this.id,
@@ -12584,10 +12612,11 @@ class VisitStockUpdateRow extends DataClass
         serverRevision:
             serverRevision.present ? serverRevision.value : this.serverRevision,
         dirty: dirty ?? this.dirty,
-        stopId: stopId ?? this.stopId,
+        stopId: stopId.present ? stopId.value : this.stopId,
+        depotId: depotId.present ? depotId.value : this.depotId,
         productId: productId ?? this.productId,
         productName: productName ?? this.productName,
-        countedQuantity: countedQuantity ?? this.countedQuantity,
+        stockLevel: stockLevel ?? this.stockLevel,
         notes: notes ?? this.notes,
       );
   VisitStockUpdateRow copyWithCompanion(VisitStockUpdatesCompanion data) {
@@ -12601,12 +12630,12 @@ class VisitStockUpdateRow extends DataClass
           : this.serverRevision,
       dirty: data.dirty.present ? data.dirty.value : this.dirty,
       stopId: data.stopId.present ? data.stopId.value : this.stopId,
+      depotId: data.depotId.present ? data.depotId.value : this.depotId,
       productId: data.productId.present ? data.productId.value : this.productId,
       productName:
           data.productName.present ? data.productName.value : this.productName,
-      countedQuantity: data.countedQuantity.present
-          ? data.countedQuantity.value
-          : this.countedQuantity,
+      stockLevel:
+          data.stockLevel.present ? data.stockLevel.value : this.stockLevel,
       notes: data.notes.present ? data.notes.value : this.notes,
     );
   }
@@ -12621,9 +12650,10 @@ class VisitStockUpdateRow extends DataClass
           ..write('serverRevision: $serverRevision, ')
           ..write('dirty: $dirty, ')
           ..write('stopId: $stopId, ')
+          ..write('depotId: $depotId, ')
           ..write('productId: $productId, ')
           ..write('productName: $productName, ')
-          ..write('countedQuantity: $countedQuantity, ')
+          ..write('stockLevel: $stockLevel, ')
           ..write('notes: $notes')
           ..write(')'))
         .toString();
@@ -12638,9 +12668,10 @@ class VisitStockUpdateRow extends DataClass
       serverRevision,
       dirty,
       stopId,
+      depotId,
       productId,
       productName,
-      countedQuantity,
+      stockLevel,
       notes);
   @override
   bool operator ==(Object other) =>
@@ -12653,9 +12684,10 @@ class VisitStockUpdateRow extends DataClass
           other.serverRevision == this.serverRevision &&
           other.dirty == this.dirty &&
           other.stopId == this.stopId &&
+          other.depotId == this.depotId &&
           other.productId == this.productId &&
           other.productName == this.productName &&
-          other.countedQuantity == this.countedQuantity &&
+          other.stockLevel == this.stockLevel &&
           other.notes == this.notes);
 }
 
@@ -12666,10 +12698,11 @@ class VisitStockUpdatesCompanion extends UpdateCompanion<VisitStockUpdateRow> {
   final Value<String> syncState;
   final Value<String?> serverRevision;
   final Value<bool> dirty;
-  final Value<String> stopId;
+  final Value<String?> stopId;
+  final Value<String?> depotId;
   final Value<String> productId;
   final Value<String> productName;
-  final Value<double> countedQuantity;
+  final Value<String> stockLevel;
   final Value<String> notes;
   final Value<int> rowid;
   const VisitStockUpdatesCompanion({
@@ -12680,9 +12713,10 @@ class VisitStockUpdatesCompanion extends UpdateCompanion<VisitStockUpdateRow> {
     this.serverRevision = const Value.absent(),
     this.dirty = const Value.absent(),
     this.stopId = const Value.absent(),
+    this.depotId = const Value.absent(),
     this.productId = const Value.absent(),
     this.productName = const Value.absent(),
-    this.countedQuantity = const Value.absent(),
+    this.stockLevel = const Value.absent(),
     this.notes = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -12693,17 +12727,17 @@ class VisitStockUpdatesCompanion extends UpdateCompanion<VisitStockUpdateRow> {
     this.syncState = const Value.absent(),
     this.serverRevision = const Value.absent(),
     this.dirty = const Value.absent(),
-    required String stopId,
+    this.stopId = const Value.absent(),
+    this.depotId = const Value.absent(),
     required String productId,
     required String productName,
-    required double countedQuantity,
+    required String stockLevel,
     this.notes = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
-        stopId = Value(stopId),
         productId = Value(productId),
         productName = Value(productName),
-        countedQuantity = Value(countedQuantity);
+        stockLevel = Value(stockLevel);
   static Insertable<VisitStockUpdateRow> custom({
     Expression<String>? id,
     Expression<DateTime>? updatedAt,
@@ -12712,9 +12746,10 @@ class VisitStockUpdatesCompanion extends UpdateCompanion<VisitStockUpdateRow> {
     Expression<String>? serverRevision,
     Expression<bool>? dirty,
     Expression<String>? stopId,
+    Expression<String>? depotId,
     Expression<String>? productId,
     Expression<String>? productName,
-    Expression<double>? countedQuantity,
+    Expression<String>? stockLevel,
     Expression<String>? notes,
     Expression<int>? rowid,
   }) {
@@ -12726,9 +12761,10 @@ class VisitStockUpdatesCompanion extends UpdateCompanion<VisitStockUpdateRow> {
       if (serverRevision != null) 'server_revision': serverRevision,
       if (dirty != null) 'dirty': dirty,
       if (stopId != null) 'stop_id': stopId,
+      if (depotId != null) 'depot_id': depotId,
       if (productId != null) 'product_id': productId,
       if (productName != null) 'product_name': productName,
-      if (countedQuantity != null) 'counted_quantity': countedQuantity,
+      if (stockLevel != null) 'stock_level': stockLevel,
       if (notes != null) 'notes': notes,
       if (rowid != null) 'rowid': rowid,
     });
@@ -12741,10 +12777,11 @@ class VisitStockUpdatesCompanion extends UpdateCompanion<VisitStockUpdateRow> {
       Value<String>? syncState,
       Value<String?>? serverRevision,
       Value<bool>? dirty,
-      Value<String>? stopId,
+      Value<String?>? stopId,
+      Value<String?>? depotId,
       Value<String>? productId,
       Value<String>? productName,
-      Value<double>? countedQuantity,
+      Value<String>? stockLevel,
       Value<String>? notes,
       Value<int>? rowid}) {
     return VisitStockUpdatesCompanion(
@@ -12755,9 +12792,10 @@ class VisitStockUpdatesCompanion extends UpdateCompanion<VisitStockUpdateRow> {
       serverRevision: serverRevision ?? this.serverRevision,
       dirty: dirty ?? this.dirty,
       stopId: stopId ?? this.stopId,
+      depotId: depotId ?? this.depotId,
       productId: productId ?? this.productId,
       productName: productName ?? this.productName,
-      countedQuantity: countedQuantity ?? this.countedQuantity,
+      stockLevel: stockLevel ?? this.stockLevel,
       notes: notes ?? this.notes,
       rowid: rowid ?? this.rowid,
     );
@@ -12787,14 +12825,17 @@ class VisitStockUpdatesCompanion extends UpdateCompanion<VisitStockUpdateRow> {
     if (stopId.present) {
       map['stop_id'] = Variable<String>(stopId.value);
     }
+    if (depotId.present) {
+      map['depot_id'] = Variable<String>(depotId.value);
+    }
     if (productId.present) {
       map['product_id'] = Variable<String>(productId.value);
     }
     if (productName.present) {
       map['product_name'] = Variable<String>(productName.value);
     }
-    if (countedQuantity.present) {
-      map['counted_quantity'] = Variable<double>(countedQuantity.value);
+    if (stockLevel.present) {
+      map['stock_level'] = Variable<String>(stockLevel.value);
     }
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
@@ -12815,9 +12856,10 @@ class VisitStockUpdatesCompanion extends UpdateCompanion<VisitStockUpdateRow> {
           ..write('serverRevision: $serverRevision, ')
           ..write('dirty: $dirty, ')
           ..write('stopId: $stopId, ')
+          ..write('depotId: $depotId, ')
           ..write('productId: $productId, ')
           ..write('productName: $productName, ')
-          ..write('countedQuantity: $countedQuantity, ')
+          ..write('stockLevel: $stockLevel, ')
           ..write('notes: $notes, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -15132,6 +15174,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final Index idxVisitStockUpdatesStop = Index(
       'idx_visit_stock_updates_stop',
       'CREATE INDEX idx_visit_stock_updates_stop ON visit_stock_updates (stop_id)');
+  late final Index idxVisitStockUpdatesDepot = Index(
+      'idx_visit_stock_updates_depot',
+      'CREATE INDEX idx_visit_stock_updates_depot ON visit_stock_updates (depot_id)');
   late final Index idxVisitReturnsStop = Index('idx_visit_returns_stop',
       'CREATE INDEX idx_visit_returns_stop ON visit_returns (stop_id)');
   late final Index idxVisitCollectionsStop = Index('idx_visit_collections_stop',
@@ -15210,6 +15255,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         idxVisitCheckOutsStop,
         idxVisitOrderLinesStop,
         idxVisitStockUpdatesStop,
+        idxVisitStockUpdatesDepot,
         idxVisitReturnsStop,
         idxVisitCollectionsStop,
         idxVisitNotesStop,
@@ -24534,10 +24580,11 @@ typedef $$VisitStockUpdatesTableCreateCompanionBuilder
   Value<String> syncState,
   Value<String?> serverRevision,
   Value<bool> dirty,
-  required String stopId,
+  Value<String?> stopId,
+  Value<String?> depotId,
   required String productId,
   required String productName,
-  required double countedQuantity,
+  required String stockLevel,
   Value<String> notes,
   Value<int> rowid,
 });
@@ -24549,10 +24596,11 @@ typedef $$VisitStockUpdatesTableUpdateCompanionBuilder
   Value<String> syncState,
   Value<String?> serverRevision,
   Value<bool> dirty,
-  Value<String> stopId,
+  Value<String?> stopId,
+  Value<String?> depotId,
   Value<String> productId,
   Value<String> productName,
-  Value<double> countedQuantity,
+  Value<String> stockLevel,
   Value<String> notes,
   Value<int> rowid,
 });
@@ -24566,9 +24614,9 @@ final class $$VisitStockUpdatesTableReferences extends BaseReferences<
       db.routeStops.createAlias(
           $_aliasNameGenerator(db.visitStockUpdates.stopId, db.routeStops.id));
 
-  $$RouteStopsTableProcessedTableManager get stopId {
-    final $_column = $_itemColumn<String>('stop_id')!;
-
+  $$RouteStopsTableProcessedTableManager? get stopId {
+    final $_column = $_itemColumn<String>('stop_id');
+    if ($_column == null) return null;
     final manager = $$RouteStopsTableTableManager($_db, $_db.routeStops)
         .filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_stopIdTable($_db));
@@ -24606,15 +24654,17 @@ class $$VisitStockUpdatesTableFilterComposer
   ColumnFilters<bool> get dirty => $composableBuilder(
       column: $table.dirty, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<String> get depotId => $composableBuilder(
+      column: $table.depotId, builder: (column) => ColumnFilters(column));
+
   ColumnFilters<String> get productId => $composableBuilder(
       column: $table.productId, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get productName => $composableBuilder(
       column: $table.productName, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<double> get countedQuantity => $composableBuilder(
-      column: $table.countedQuantity,
-      builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get stockLevel => $composableBuilder(
+      column: $table.stockLevel, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get notes => $composableBuilder(
       column: $table.notes, builder: (column) => ColumnFilters(column));
@@ -24668,15 +24718,17 @@ class $$VisitStockUpdatesTableOrderingComposer
   ColumnOrderings<bool> get dirty => $composableBuilder(
       column: $table.dirty, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get depotId => $composableBuilder(
+      column: $table.depotId, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get productId => $composableBuilder(
       column: $table.productId, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get productName => $composableBuilder(
       column: $table.productName, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<double> get countedQuantity => $composableBuilder(
-      column: $table.countedQuantity,
-      builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get stockLevel => $composableBuilder(
+      column: $table.stockLevel, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get notes => $composableBuilder(
       column: $table.notes, builder: (column) => ColumnOrderings(column));
@@ -24729,14 +24781,17 @@ class $$VisitStockUpdatesTableAnnotationComposer
   GeneratedColumn<bool> get dirty =>
       $composableBuilder(column: $table.dirty, builder: (column) => column);
 
+  GeneratedColumn<String> get depotId =>
+      $composableBuilder(column: $table.depotId, builder: (column) => column);
+
   GeneratedColumn<String> get productId =>
       $composableBuilder(column: $table.productId, builder: (column) => column);
 
   GeneratedColumn<String> get productName => $composableBuilder(
       column: $table.productName, builder: (column) => column);
 
-  GeneratedColumn<double> get countedQuantity => $composableBuilder(
-      column: $table.countedQuantity, builder: (column) => column);
+  GeneratedColumn<String> get stockLevel => $composableBuilder(
+      column: $table.stockLevel, builder: (column) => column);
 
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
@@ -24793,10 +24848,11 @@ class $$VisitStockUpdatesTableTableManager extends RootTableManager<
             Value<String> syncState = const Value.absent(),
             Value<String?> serverRevision = const Value.absent(),
             Value<bool> dirty = const Value.absent(),
-            Value<String> stopId = const Value.absent(),
+            Value<String?> stopId = const Value.absent(),
+            Value<String?> depotId = const Value.absent(),
             Value<String> productId = const Value.absent(),
             Value<String> productName = const Value.absent(),
-            Value<double> countedQuantity = const Value.absent(),
+            Value<String> stockLevel = const Value.absent(),
             Value<String> notes = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -24808,9 +24864,10 @@ class $$VisitStockUpdatesTableTableManager extends RootTableManager<
             serverRevision: serverRevision,
             dirty: dirty,
             stopId: stopId,
+            depotId: depotId,
             productId: productId,
             productName: productName,
-            countedQuantity: countedQuantity,
+            stockLevel: stockLevel,
             notes: notes,
             rowid: rowid,
           ),
@@ -24821,10 +24878,11 @@ class $$VisitStockUpdatesTableTableManager extends RootTableManager<
             Value<String> syncState = const Value.absent(),
             Value<String?> serverRevision = const Value.absent(),
             Value<bool> dirty = const Value.absent(),
-            required String stopId,
+            Value<String?> stopId = const Value.absent(),
+            Value<String?> depotId = const Value.absent(),
             required String productId,
             required String productName,
-            required double countedQuantity,
+            required String stockLevel,
             Value<String> notes = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -24836,9 +24894,10 @@ class $$VisitStockUpdatesTableTableManager extends RootTableManager<
             serverRevision: serverRevision,
             dirty: dirty,
             stopId: stopId,
+            depotId: depotId,
             productId: productId,
             productName: productName,
-            countedQuantity: countedQuantity,
+            stockLevel: stockLevel,
             notes: notes,
             rowid: rowid,
           ),

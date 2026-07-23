@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/l10n/visit_labels.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
@@ -39,18 +40,6 @@ class RegionCard extends StatelessWidget {
         VisitStatus.missed => scheme.error,
       };
 
-  String _getOrdinal(int number) {
-    if (number % 100 >= 11 && number % 100 <= 13) {
-      return '${number}th';
-    }
-    return switch (number % 10) {
-      1 => '${number}st',
-      2 => '${number}nd',
-      3 => '${number}rd',
-      _ => '${number}th',
-    };
-  }
-
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
@@ -87,7 +76,7 @@ class RegionCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12.r),
                 ),
                 child: Text(
-                  _getOrdinal(stop.sequence),
+                  localizedOrdinal(stop.sequence),
                   style: TextStyle(
                     color: selected ? scheme.onPrimary : scheme.primary,
                     fontSize: 12.5.sp,
@@ -168,7 +157,7 @@ class RegionCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20.r),
                 ),
                 child: Text(
-                  stop.status.label,
+                  stop.status.localizedLabel,
                   style: TextStyle(
                     color: _statusTextColor(scheme, colors),
                     fontSize: 11.sp,

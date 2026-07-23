@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/activity_log_item.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/lead_document.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/usecases/add_lead_activity.dart';
@@ -61,7 +62,7 @@ class LeadDetailCubit extends Cubit<LeadDetailState> {
       item: ActivityLogItem(
         id: '$id-NOTE-${DateTime.now().microsecondsSinceEpoch}',
         kind: ActivityLogKind.note,
-        title: 'Note added',
+        title: 'leads.note_added'.tr,
         description: note.trim(),
         timestamp: DateTime.now(),
         actor: 'You',
@@ -88,7 +89,7 @@ class LeadDetailCubit extends Cubit<LeadDetailState> {
       item: ActivityLogItem(
         id: '$id-ACT-${DateTime.now().microsecondsSinceEpoch}',
         kind: ActivityLogKind.documentCollected,
-        title: 'Document uploaded',
+        title: 'leads.document_uploaded'.tr,
         description: name,
         timestamp: DateTime.now(),
         actor: 'You',

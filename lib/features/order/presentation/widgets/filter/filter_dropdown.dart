@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
 /// A dropdown-style filter field that opens a searchable bottom-sheet picker.
@@ -99,7 +100,9 @@ class FilterDropdown extends StatelessWidget {
                 ],
                 Expanded(
                   child: Text(
-                    value ?? hint ?? 'Select $label',
+                    value ??
+                        hint ??
+                        'orders.filter.select'.trParams({'label': label}),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -194,7 +197,7 @@ class _PickerSheetState extends State<_PickerSheet> {
                 children: [
                   Expanded(
                     child: Text(
-                      'Select ${widget.label}',
+                      'orders.filter.select'.trParams({'label': widget.label}),
                       style: const TextStyle(
                           fontSize: 16, fontWeight: FontWeight.w800),
                     ),
@@ -214,7 +217,7 @@ class _PickerSheetState extends State<_PickerSheet> {
                   controller: _searchCtrl,
                   onChanged: (v) => setState(() => _query = v),
                   decoration: InputDecoration(
-                    hintText: 'Search…',
+                    hintText: 'common.search'.tr,
                     prefixIcon: const Icon(Icons.search_rounded),
                     contentPadding: const EdgeInsets.symmetric(vertical: 10),
                     border: OutlineInputBorder(
@@ -279,7 +282,7 @@ class _EmptyOptions extends StatelessWidget {
                 color: theme.colorScheme.onSurface.withValues(alpha: 0.4)),
             const SizedBox(height: 8),
             Text(
-              'No matching options',
+              'orders.filter.no_matching_options'.tr,
               style: TextStyle(
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
                   fontSize: 13),

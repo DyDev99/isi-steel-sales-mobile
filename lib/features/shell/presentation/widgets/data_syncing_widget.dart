@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 
 class DataSyncIndicator extends StatefulWidget {
   const DataSyncIndicator({super.key});
@@ -72,7 +73,7 @@ class _DataSyncIndicatorState extends State<DataSyncIndicator> {
 
             // Dynamic Text Area
             Text(
-              _isSyncing ? 'Syncing data...' : 'Data sent!',
+              _isSyncing ? 'sync.syncing_data'.tr : 'sync.data_sent'.tr,
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,

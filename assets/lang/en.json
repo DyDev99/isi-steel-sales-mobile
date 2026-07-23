@@ -7,7 +7,7 @@
     "password": "Password",
     "forgot_password": "Forgot Password?",
     "email": "Email",
-    "phone_number":"Phone Number", 
+    "phone_number": "Phone Number",
     "send_reset_link": "Continue",
     "resend_code_in": "Resend code in {seconds}s",
     "resend_code": "Resend Code",
@@ -17,7 +17,6 @@
     "verify": "Verify",
     "invalid_code": "That code isn't right. Please try again.",
     "otp_incomplete": "Please enter the full 6-digit code",
-
     "forgot_password_title": "Reset Password",
     "forgot_password_subtitle": "Enter your email address or phone number to receive a verification code.",
     "check_your_inbox": "Check Your Inbox",
@@ -50,9 +49,11 @@
       "required": "This field is required",
       "invalid_cred": "Incorrect username or password. Please try again.",
       "session_expired": "Session expired. Please log in again."
-    }
+    },
+    "verifying": "Verifying…",
+    "youre_in": "You're in ✨"
   },
- "common": {
+  "common": {
     "back": "Back",
     "try_again": "Try again",
     "retry": "Retry",
@@ -63,9 +64,44 @@
     "offline": "You're offline — showing saved data",
     "generic_error": "Something went wrong. Please try again.",
     "no_connection": "No internet connection. Changes are saved on your device.",
-    "view_details": "View Details"
+    "view_details": "View Details",
+    "cancel": "Cancel",
+    "save": "Save",
+    "save_changes": "Save changes",
+    "delete": "Delete",
+    "continue": "Continue",
+    "ok": "OK",
+    "search": "Search…",
+    "clear_all": "Clear all",
+    "clear_search": "Clear search",
+    "see_all": "See All",
+    "not_specified": "Not specified",
+    "notes_optional": "Notes (optional)",
+    "something_went_wrong": "Something went wrong",
+    "no_activity_yet": "No activity yet",
+    "sort_by": "Sort by",
+    "filter_sort": "Filter & sort",
+    "login_required": "Login required",
+    "field_required": "Field required",
+    "pick_one": "Pick one…",
+    "add_note": "Add Note",
+    "just_now": "just now",
+    "min_ago": "{minutes} min ago",
+    "hours_ago": "{hours} h ago",
+    "days_ago": "{days} d ago",
+    "syncing_latest": "Syncing latest changes…",
+    "keep": "Keep",
+    "dismiss": "Dismiss",
+    "submit": "Submit",
+    "discard": "Discard",
+    "edit": "Edit",
+    "any": "Any",
+    "clear": "Clear",
+    "apply": "Apply",
+    "view": "View",
+    "reset": "Reset",
+    "search_button": "Search"
   },
-  
   "home": {
     "title": "Home Dashboard",
     "welcome": "Welcome Back",
@@ -84,7 +120,6 @@
       "routes": "Routes",
       "revenue": "Revenue",
       "add_customer": "Add Customer",
-      
       "total_pipeline": "Total Pipeline",
       "new": "New",
       "total_orders": "Total Orders",
@@ -97,7 +132,14 @@
     },
     "recent_activity": "Recent Activity",
     "total_customers": "Total Customers",
-    "new_customers": "New Customers"
+    "new_customers": "New Customers",
+    "todays_sales": "Today's Sales",
+    "orders_today": "Orders Today",
+    "check_ins": "Check-ins",
+    "view_all_sales": "View all sales >",
+    "low_stock": "Low Stock",
+    "todays_visits": "Today's Visits",
+    "products": "Products"
   },
   "orders": {
     "title": "Orders",
@@ -205,6 +247,80 @@
       "done": "Done",
       "new_order": "New Order",
       "sap_message": "Delivery and invoice continue through SAP."
+    },
+    "filter": {
+      "title": "Filter Products",
+      "search_hint": "Search name, SKU or barcode…",
+      "category": "Category: {name}",
+      "select": "Select {label}",
+      "no_matching_options": "No matching options",
+      "mesh_size": "Mesh Size",
+      "in_stock_only": "In stock only",
+      "sort_name_az": "Name A-Z",
+      "sort_price_low_high": "Price: Low to High",
+      "sort_price_high_low": "Price: High to Low",
+      "sort_stock_high_low": "Stock: High to Low",
+      "no_match_combo": "No products match this size/length/mesh size/quality combination",
+      "show_products": "Show {count} product(s)",
+      "match_count": "{count} match(es)",
+      "sort_relevance": "Relevance",
+      "size": "Size",
+      "length": "Length",
+      "quality": "Quality",
+      "diameter": "Diameter",
+      "thickness": "Thickness",
+      "material": "Material",
+      "brand": "Brand"
+    },
+    "voice": {
+      "title": "Voice Search",
+      "unavailable": "Voice search isn't available on this device.",
+      "start_failed": "Couldn't start voice search.",
+      "no_match_heard": "Didn't catch that. Tap the mic to try again.",
+      "error": "Voice search error. Tap the mic to try again.",
+      "listening": "Listening…",
+      "tap_to_start": "Tap the mic to start",
+      "example": "Say a product name, e.g. \"12mm rebar\"",
+      "tooltip": "Voice search"
+    },
+    "catalog_sync": {
+      "downloading": "Downloading product catalog…",
+      "updated": "{count} updated",
+      "removed": ", {count} removed"
+    },
+    "quotation_extra": {
+      "walk_in": "Walk-in Customer",
+      "save_failed": "Failed to save quotation",
+      "no_items": "No items yet",
+      "structural_item": "Structural Item",
+      "quote_disclaimer": "Quote only · prices held 7 days · not a final bill",
+      "outstanding_notes": "Outstanding Notes",
+      "enter_value": "Enter value",
+      "today": "today",
+      "enlarge": "Enlarge",
+      "subtotal": "Subtotal",
+      "discount": "Discount",
+      "tax": "Tax",
+      "total": "Total",
+      "unit": "Unit",
+      "quantity": "Quantity",
+      "category": "Category",
+      "results": "Results"
+    },
+    "tabs": {
+      "all": "All",
+      "quotations": "Quotations"
+    },
+    "sync_status": {
+      "draft": "Draft",
+      "ready_to_submit": "Ready to submit",
+      "pending_sync": "Pending sync",
+      "syncing": "Syncing…",
+      "submitted": "Submitted",
+      "accepted": "SAP accepted",
+      "rejected": "SAP rejected",
+      "failed": "Sync failed",
+      "conflict": "Conflict"
     }
   },
   "leads": {
@@ -218,7 +334,165 @@
     "view_leads": "View Leads >",
     "lead_details": "Lead Details",
     "hot_leads": "Hot Leads",
-    "follow_up": "Follow Up Required"
+    "follow_up": "Follow Up Required",
+    "delete_confirm_title": "Delete lead?",
+    "delete_confirm_body": "This removes {company} from the pipeline.",
+    "storefront_photo": "Storefront Photo",
+    "general_information": "General Information",
+    "assigned_rep": "Assigned rep",
+    "lead_source": "Lead source",
+    "business_information": "Business Information",
+    "business_registration": "Business registration #",
+    "tax_id": "Tax ID",
+    "expected_revenue": "Expected revenue",
+    "current_revenue": "Current revenue",
+    "no_contacts": "No contacts yet",
+    "address_gps": "Address & GPS Location",
+    "kyc_documents": "KYC Documents",
+    "credit_status": "Credit Status",
+    "credit_limit": "Credit limit",
+    "opportunity_information": "Opportunity Information",
+    "estimated_value": "Estimated value",
+    "tap_what_you_know": "Tap what you know. Nothing here is required.",
+    "talking_to_decision_maker": "Talking to decision maker",
+    "not_yet": "Not yet",
+    "add_products": "Add Products",
+    "sales_history": "Sales History",
+    "final_value": "Final value",
+    "delivery_timeline": "Delivery timeline",
+    "onboarding_status": "Onboarding status",
+    "shop_type": "Shop type",
+    "customer_code": "Customer code",
+    "sap_customer_id": "SAP customer ID",
+    "approved_credit_limit": "Approved credit limit",
+    "approval_date": "Approval date",
+    "contract_date": "Contract date",
+    "annual_revenue": "Annual revenue",
+    "products_purchased": "Products purchased",
+    "first_order_date": "First order date",
+    "account_manager": "Account manager",
+    "send_to_hq": "Send to HQ",
+    "activity_timeline": "Activity Timeline",
+    "note_added": "Note added",
+    "document_uploaded": "Document uploaded",
+    "couldnt_move": "Couldn't move {company}",
+    "no_documents": "No documents yet",
+    "upload_document": "Upload document",
+    "add_document_demo": "Add a document (demo)",
+    "due_today": "Due Today",
+    "due_count": "{value} Due",
+    "qualify": "Qualify {company}",
+    "qualify_subtitle": "Record what you now know about the deal — not questions for the customer.",
+    "deal_worth": "Roughly what is this deal worth?",
+    "move_to_opportunities": "Move to Opportunities",
+    "edit_lead": "Edit lead",
+    "new_lead": "New lead",
+    "form_hint": "That's enough to start — don't grill a cold lead.",
+    "company_name": "Company / Shop name",
+    "invalid_phone": "Invalid phone number",
+    "interested_products": "Interested products (optional)",
+    "add_more_details": "Add more details",
+    "owner_name": "Owner name",
+    "territory_province": "Territory / Province",
+    "assigned_sales_rep": "Assigned sales rep",
+    "expected_revenue_usd": "Expected revenue ($)",
+    "create_lead": "Create lead",
+    "filter_leads": "Filter leads",
+    "add_lead": "Add lead",
+    "sort_leads": "Sort leads",
+    "search_hint": "Search leads…",
+    "move_lead": "Move {company}",
+    "currently_in": "Currently in {stage}",
+    "no_notes": "No notes yet",
+    "add_note_hint": "Add a note…",
+    "no_stage_yet": "No {stage} yet",
+    "sales_rep": "Sales rep",
+    "board_summary": "{stage}, {count} leads, {total} total",
+    "sort": {
+      "newest": "Newest first",
+      "oldest": "Oldest first",
+      "highest_value": "Highest value"
+    },
+    "summary": {
+      "total_leads": "Total Leads",
+      "won_customers": "Won Customers",
+      "potential_revenue": "Potential Revenue",
+      "won_revenue": "Won Revenue",
+      "conversion_rate": "Conversion Rate"
+    },
+    "hq": {
+      "finish_onboarding": "Finish onboarding",
+      "confirm_ready": "You already did the hard part. Just confirm and send.",
+      "items_left": "You already did the hard part. {count} item(s) left.",
+      "already_confirmed": "Already confirmed",
+      "gps_location": "GPS location",
+      "won_value": "Won value",
+      "needed_to_send": "Needed to send",
+      "business_licence": "Business Licence",
+      "patent_tax_paper": "Patent / Tax Paper"
+    },
+    "won": {
+      "title": "{company} — Won!",
+      "subtitle": "Nice work. One more step gets this to SAP so HQ can set up billing.",
+      "final_value": "Final value ($)",
+      "delivery_timeline": "Delivery timeline (optional)",
+      "mark_as_won": "Mark as Won",
+      "this_month": "This month",
+      "next_month": "Next month",
+      "this_quarter": "This quarter"
+    },
+    "owner": "Owner",
+    "created": "Created",
+    "industry": "Industry",
+    "contacts": "Contacts",
+    "stage": "Stage",
+    "tonnage": "Tonnage",
+    "budget": "Budget",
+    "authority": "Authority",
+    "status": "Status",
+    "notes": "Notes",
+    "upcoming": "Upcoming",
+    "overdue": "Overdue",
+    "move": "Move",
+    "shop": "Shop",
+    "products": "Products",
+    "filter": {
+      "newest": "Newest",
+      "oldest": "Oldest",
+      "revenue": "Revenue",
+      "priority": "Priority",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "enums": {
+      "stage_leads": "Leads",
+      "stage_opportunities": "Opportunities",
+      "stage_won": "Won",
+      "source_field_visit": "Field Visit",
+      "source_referral": "Referral",
+      "source_cold_call": "Cold Call",
+      "source_website": "Website",
+      "source_trade_show": "Trade Show",
+      "source_walk_in": "Walk-in",
+      "onboarding_not_submitted": "Not sent to HQ",
+      "onboarding_pending_approval": "Pending HQ Approval",
+      "onboarding_approved": "Active Customer",
+      "credit_not_applicable": "Not applicable",
+      "credit_pending": "Pending",
+      "credit_approved": "Approved",
+      "credit_rejected": "Rejected",
+      "shop_retail": "Retail Shop",
+      "shop_wholesale_depot": "Wholesale Depot",
+      "shop_hardware_store": "Hardware Store",
+      "shop_construction_supplier": "Construction Supplier",
+      "shop_distributor": "Distributor",
+      "sub_qualifying": "Qualifying",
+      "sub_quote_sent": "Quote Sent",
+      "sub_negotiating": "Negotiating",
+      "budget_confirmed": "Confirmed",
+      "budget_likely": "Likely"
+    }
   },
   "customers": {
     "title": "Customers",
@@ -291,12 +565,20 @@
       "alphabetical": "Alphabetical",
       "nearest": "Nearest to me",
       "highest_value": "Highest value"
-    }
+    },
+    "sales_history_insights": "Sales History & Insights",
+    "active_product_mix": "Active Product Mix",
+    "no_active_product_lines": "No active product lines found.",
+    "cross_sell_gaps": "Cross-Sell Gaps (Tap to target)",
+    "creating_opportunity": "Creating opportunity for {product}…"
   },
   "notification": {
     "title": "Notifications",
     "mark_all_read": "Mark all as read",
-    "empty": "No new notifications"
+    "empty": "No new notifications",
+    "welcome_title": "Welcome!",
+    "welcome_body": "Please log in to view your notifications and get the full app experience.",
+    "login": "Log in"
   },
   "my_visits": {
     "title": "My Visits",
@@ -336,12 +618,11 @@
       "checkin_continue": "Check-in & Continue",
       "hint_move_inside": "Move inside the shop area to check in.",
       "hint_take_photo": "Take a shopfront photo to continue.",
-      "shelf_count_title": "Quick shelf count",
-      "shelf_count_subtitle": "Count what's on the shelf for each item.",
+      "shelf_count_title": "Quick shelf check",
+      "shelf_count_subtitle": "Set the stock status for each item on the shelf.",
       "market_intel": "Market Intelligence",
       "on_shelf": "on-shelf",
-      "out_of_stock": "out of stock",
-      "stock_insight": "This tells the office what the shop is low on — {names} out of stock, worth quoting.",
+      "stock_insight": "This tells the office what the shop is low on — {names} low on stock, worth quoting.",
       "done_build_quote": "Done · Build Quotation",
       "back": "Back",
       "no_stop": "No stop selected",
@@ -384,6 +665,102 @@
       "state_loaded": "Loaded",
       "state_empty": "Empty",
       "state_error": "Error"
+    },
+    "depot": {
+      "select_title": "Select depot / shop",
+      "search_hint": "Search depot or shop…",
+      "none_found": "No depots or shops found",
+      "try_different": "Try a different search.",
+      "select_cta": "Select a depot / shop",
+      "stock_title": "Depot Stock",
+      "count_hint": "Set the on-shelf stock status for each SKU — Low, Medium or High.",
+      "no_inventory": "No inventory to count",
+      "no_products": "There are no products available for this depot/shop yet.",
+      "none_selected": "No depot or shop was selected.",
+      "load_failed": "Could not load the selected depot/shop.",
+      "recorded": "Recorded stock status for {count} SKU(s){shop}",
+      "set_progress": "{done} of {total} SKU(s) set"
+    },
+    "stop": {
+      "shopfront_proof": "Shopfront proof",
+      "customer_signature": "Customer signature",
+      "visit_photo": "Visit photo",
+      "check_in": "Check In",
+      "get_closer": "Get closer to unlock ({distance}m away)",
+      "visit_timeline": "Visit Timeline",
+      "visit_completed": "Visit completed",
+      "check_out": "Check Out",
+      "next_stop": "Next Stop",
+      "capture": "Capture",
+      "order": "Order",
+      "stock": "Stock",
+      "return_label": "Return",
+      "collection": "Collection",
+      "note": "Note",
+      "photo": "Photo",
+      "signature": "Signature",
+      "low_stock_opportunity": "Low stock — quotation opportunity"
+    },
+    "geofence": {
+      "inside": "Inside geofence",
+      "move_closer": "{distance}m from customer — move closer"
+    },
+    "forms": {
+      "record_collection": "Record Collection",
+      "reference_optional": "Reference # (optional)",
+      "capture_order": "Capture Order",
+      "search_products": "Search products…",
+      "add_to_order": "Add to Order",
+      "capture_return": "Capture Return",
+      "product_name": "Product name",
+      "quantity_returned": "Quantity returned",
+      "update_stock": "Update Stock Status",
+      "stock_status": "Stock status"
+    },
+    "timeline": {
+      "order": "Order: {product}",
+      "stock_updated": "Stock updated: {product}",
+      "return": "Return: {product}",
+      "collection": "Collection: ${amount}",
+      "note_added": "Note added",
+      "signature_captured": "Signature captured",
+      "photo_added": "Photo added"
+    },
+    "dashboard": {
+      "no_local_data": "No local data found.",
+      "pull_to_sync": "Pull down to sync your route plan itinerary.",
+      "no_visits_for_date": "No customer visits for this date",
+      "other_dates": "You have {count} total route plan(s) available on other calendar dates. Check for days marked with dots above.",
+      "pending_sync": "Pending sync: {count} record(s)",
+      "pending_sync_loading": "Pending sync: …",
+      "activity_history": "ACTIVITY HISTORY"
+    },
+    "status": {
+      "pending": "Pending",
+      "en_route": "En Route",
+      "arrived": "Arrived",
+      "checked_in": "Checked In",
+      "completed": "Completed",
+      "missed": "Missed"
+    },
+    "territory": {
+      "urban": "Urban",
+      "suburban": "Suburban",
+      "industrial": "Industrial",
+      "rural": "Rural"
+    },
+    "ordinal": {
+      "template": "{n}{suffix}",
+      "st": "st",
+      "nd": "nd",
+      "rd": "rd",
+      "th": "th"
+    },
+    "stock_level": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "select_all": "Set a stock status for every product before finishing."
     }
   },
   "language": {
@@ -393,10 +770,27 @@
     "english_region": "United States",
     "language_change_anytime": "You can change the language anytime in your profile settings.",
     "khmer": "ភាសាខ្មែរ",
-    "khmer_region": "Cambodia"
+    "khmer_region": "Cambodia",
+    "confirm_title": "Change language?",
+    "confirm_body": "The app will reload to apply {language} everywhere.",
+    "reload_apply": "Reload & Apply"
   },
-  "calendar":{
-    "todays_routes":"Today Routes"
+  "calendar": {
+    "todays_routes": "Today Routes",
+    "months": {
+      "m1": "January",
+      "m2": "February",
+      "m3": "March",
+      "m4": "April",
+      "m5": "May",
+      "m6": "June",
+      "m7": "July",
+      "m8": "August",
+      "m9": "September",
+      "m10": "October",
+      "m11": "November",
+      "m12": "December"
+    }
   },
   "notifications": {
     "title": "Notifications",
@@ -409,8 +803,6 @@
       "followUpDue": "Follow-up Due Reminder"
     }
   },
-
-  
   "add_customer": {
     "steps": {
       "shop_details": "Shop Details",
@@ -447,7 +839,8 @@
     "send_to_hq": "Send to Headquarters",
     "success": "Customer added successfully!",
     "error": {
-      "required": "This field is required"
+      "required": "This field is required",
+      "invalid_phone": "Invalid phone number"
     }
   },
   "add_customer.shop_types": {
@@ -460,9 +853,7 @@
     "owner": "Owner",
     "manager": "Manager",
     "buyer": "Buyer"
-  }
-,
-  
+  },
   "profile": {
     "title": "Profile",
     "details": "Details",
@@ -494,7 +885,6 @@
     "password_success": "Password updated",
     "password_failure": "Could not update password"
   },
-
   "appearance": {
     "title": "Appearance",
     "theme": "Theme",
@@ -506,7 +896,6 @@
     "dark_hint": "Easier on the eyes in low light",
     "system_hint": "Match your device setting"
   },
-
   "revenue": {
     "title": "Revenue",
     "search_hint": "Search products by name or SKU…",
@@ -536,7 +925,6 @@
       "title": "Couldn't load revenue data"
     }
   },
-
   "coach": {
     "welcome": {
       "title": "Welcome to ISI Steel 👋",
@@ -562,12 +950,10 @@
       "title": "Add customer",
       "message": "Turn a won lead into a customer account here."
     },
-    "my_work":{
-      "title":"My Work Section",
-      "message":"Manage your daily tasks, leads, and customer details directly from this central hub."
+    "my_work": {
+      "title": "My Work Section",
+      "message": "Manage your daily tasks, leads, and customer details directly from this central hub."
     },
-
-    
     "my_leads": {
       "title": "My Leads",
       "message": "Tap “My Leads” to manage your pipeline."
@@ -617,6 +1003,94 @@
       "dismiss": "Dismiss"
     },
     "resume_hint": "Resume tour"
+  },
+  "app": {
+    "title": "ISI Steel Sales",
+    "not_found": "Not found",
+    "no_route": "No route: {name}"
+  },
+  "splash": {
+    "brand": "ISI STEEL",
+    "tagline": "Sales Mobile"
+  },
+  "settings": {
+    "language_title": "Language",
+    "language": "Display language"
+  },
+  "shell": {
+    "my_work": "MY WORK",
+    "quick_actions": "QUICK ACTIONS",
+    "my_leads": "My Leads",
+    "my_visits": "My Visits",
+    "my_customers": "My Customers",
+    "my_quotes_orders": "My Quotes & Orders",
+    "badge_due": "{count} due",
+    "badge_today": "{count} today",
+    "new_quote": "New quote",
+    "new_lead": "New lead",
+    "depot_stock": "Depot stock",
+    "add_customer": "Add customer",
+    "monthly_target": "{month} Target",
+    "continue_last_action": "CONTINUE LAST ACTION",
+    "stop_of": "Stop {current} of {total}",
+    "take_order": "Take order",
+    "login_required_label": "{feature}. Login required.",
+    "guest": {
+      "unlock_title": "Unlock the full experience",
+      "unlock_body": "Sign in to access personalized tools, dashboards, and exclusive features.",
+      "sales_dashboard": "Sales dashboard",
+      "sales_dashboard_desc": "Live targets, revenue and pipeline health",
+      "crm_leads": "CRM & leads",
+      "crm_leads_desc": "Manage customers and move deals to won",
+      "analytics": "Analytics & reports",
+      "analytics_desc": "Trends, forecasts and exportable reports"
+    },
+    "add_visit": {
+      "title": "Add My Visit",
+      "subtitle": "Add a stop to today's route",
+      "shop_name": "Shop Name",
+      "shop_name_hint": "Shop or customer name",
+      "address_hint": "Street, district, province",
+      "territory_type": "Territory Type",
+      "pick_territory": "Pick a territory type",
+      "visit_date": "Visit Date",
+      "planned_time": "Planned Time",
+      "notes_hint": "Purpose of visit, reminders…",
+      "add": "Add Visit",
+      "added": "Visit to {shop} added to today's route"
+    },
+    "select_won_lead": "Select Won Lead",
+    "target_progress": "{achieved} of {target}"
+  },
+  "sync": {
+    "center_title": "Sync Center",
+    "counts": "{pending} pending · {failed} failed · {conflict} conflict",
+    "syncing": "Syncing…",
+    "sync_now": "Sync Now",
+    "items": "{count} items",
+    "attempt": "attempt {count}",
+    "everything_synced": "Everything is synced",
+    "none_waiting": "No quotations waiting for SAP.",
+    "quotation_n": "Quotation #{id}",
+    "quotation_ref": "Quotation {id}",
+    "pending_badge": "Pending Sync ({count})",
+    "offline_banner": "You're offline — everything is saved on this device.",
+    "syncing_data": "Syncing data…",
+    "data_sent": "Data sent!",
+    "connected_waiting": "Internet connected · {count} quotation(s) waiting to sync",
+    "continue_previous": "Continue Previous Work",
+    "continue_working": "Continue Working ({count})",
+    "unfinished_drafts": "You have unfinished drafts",
+    "no_drafts_left": "No drafts left",
+    "draft_meta": "{who} · {count} products · {time}",
+    "queued_for_sap": "Quotation #{id} queued for SAP sync.",
+    "discard_draft_title": "Discard draft?",
+    "discard_draft_body": "Quotation #{id} will be permanently deleted.",
+    "dismiss_checkin_title": "Dismiss check-in?",
+    "dismiss_checkin_body": "You can still reopen \"{route}\" from the Visits tab later.",
+    "checkout_title": "Check out of this visit?",
+    "checkout_body": "This completes the visit and closes the current stop.",
+    "check_out": "Check out",
+    "checkin_progress": "Check-in in progress · {done} of {total} stops done"
   }
-
 }

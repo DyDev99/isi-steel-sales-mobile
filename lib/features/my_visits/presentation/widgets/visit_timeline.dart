@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_stop.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/fetch_visit_data.dart';
@@ -19,51 +20,57 @@ List<TimelineEntry> buildVisitTimeline(RouteStop stop, VisitData? data) {
   if (stop.actualArrival != null) {
     entries.add(TimelineEntry(
         time: stop.actualArrival!,
-        label: 'Checked in',
+        label: 'my_visits.history.checked_in'.tr,
         icon: Icons.login_rounded));
   }
   if (data != null) {
     for (final line in data.orderLines) {
       entries.add(TimelineEntry(
           time: stop.actualArrival ?? DateTime.now(),
-          label: 'Order: ${line.productName}',
+          label: 'my_visits.timeline.order'
+              .trParams({'product': line.productName}),
           icon: Icons.shopping_cart_rounded));
     }
     for (final s in data.stockUpdates) {
       entries.add(TimelineEntry(
           time: stop.actualArrival ?? DateTime.now(),
-          label: 'Stock updated: ${s.productName}',
+          label: 'my_visits.timeline.stock_updated'
+              .trParams({'product': s.productName}),
           icon: Icons.inventory_2_rounded));
     }
     for (final r in data.returns) {
       entries.add(TimelineEntry(
           time: stop.actualArrival ?? DateTime.now(),
-          label: 'Return: ${r.productName}',
+          label:
+              'my_visits.timeline.return'.trParams({'product': r.productName}),
           icon: Icons.undo_rounded));
     }
     for (final c in data.collections) {
       entries.add(TimelineEntry(
           time: stop.actualArrival ?? DateTime.now(),
-          label: 'Collection: \$${c.amount.toStringAsFixed(2)}',
+          label: 'my_visits.timeline.collection'
+              .trParams({'amount': c.amount.toStringAsFixed(2)}),
           icon: Icons.payments_rounded));
     }
     for (final n in data.notes) {
       entries.add(TimelineEntry(
           time: n.createdAt,
-          label: 'Note added',
+          label: 'my_visits.timeline.note_added'.tr,
           icon: Icons.note_alt_rounded));
     }
     for (final p in data.photos) {
       entries.add(TimelineEntry(
           time: p.takenAt,
-          label: p.isSignature ? 'Signature captured' : 'Photo added',
+          label: p.isSignature
+              ? 'my_visits.timeline.signature_captured'.tr
+              : 'my_visits.timeline.photo_added'.tr,
           icon: Icons.photo_camera_rounded));
     }
   }
   if (stop.actualDeparture != null) {
     entries.add(TimelineEntry(
         time: stop.actualDeparture!,
-        label: 'Checked out',
+        label: 'my_visits.history.checked_out'.tr,
         icon: Icons.logout_rounded));
   }
   entries.sort((a, b) => a.time.compareTo(b.time));
@@ -79,7 +86,7 @@ class VisitTimeline extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final colors = context.appColors;
     if (entries.isEmpty) {
-      return Text('No activity yet',
+      return Text('common.no_activity_yet'.tr,
           style: TextStyle(color: colors.textSecondary, fontSize: 12.5));
     }
     return Column(

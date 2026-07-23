@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
 class MonthlyTargetCard extends StatelessWidget {
@@ -48,7 +49,7 @@ class MonthlyTargetCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '$monthName Target',
+                'shell.monthly_target'.trParams({'month': monthName}),
                 style: TextStyle(
                   color: scheme.onSurface,
                   fontSize: 14.sp,
@@ -56,7 +57,10 @@ class MonthlyTargetCard extends StatelessWidget {
                 ),
               ),
               Text(
-                '\$${achievedAmount.toInt()} of \$${targetAmount.toInt()}',
+                'shell.target_progress'.trParams({
+                  'achieved': '\$${achievedAmount.toInt()}',
+                  'target': '\$${targetAmount.toInt()}',
+                }),
                 style: TextStyle(
                   color: scheme.onSurface,
                   fontSize: 15.sp,

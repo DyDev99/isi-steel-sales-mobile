@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/features/lead/presentation/l10n/lead_labels.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/pipeline_stage.dart';
 import 'package:isi_steel_sales_mobile/features/lead/presentation/widgets/lead_amount_widget.dart';
@@ -28,8 +30,11 @@ class LeadBoardHeader extends StatelessWidget {
 
     return Semantics(
       header: true,
-      label: '${stage.label}, $count leads, '
-          '${formatCurrency(totalValue)} total',
+      label: 'leads.board_summary'.trParams({
+        'stage': stage.localizedLabel,
+        'count': count,
+        'total': formatCurrency(totalValue),
+      }),
       excludeSemantics: true,
       child: Container(
         decoration: BoxDecoration(
@@ -50,7 +55,7 @@ class LeadBoardHeader extends StatelessWidget {
             // than pushing the total off-screen on a narrow phone.
             Flexible(
               child: Text(
-                stage.label,
+                stage.localizedLabel,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(

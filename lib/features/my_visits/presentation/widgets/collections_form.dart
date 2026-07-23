@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_collection.dart';
 
@@ -26,7 +27,7 @@ Future<VisitCollection?> showCollectionsSheet(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Record Collection',
+                Text('my_visits.forms.record_collection'.tr,
                     style: TextStyle(
                         color: context.appColors.textPrimary,
                         fontSize: 17,
@@ -54,13 +55,13 @@ Future<VisitCollection?> showCollectionsSheet(
                 const SizedBox(height: 10),
                 TextField(
                     controller: referenceController,
-                    decoration: const InputDecoration(
-                        hintText: 'Reference # (optional)')),
+                    decoration: InputDecoration(
+                        hintText: 'my_visits.forms.reference_optional'.tr)),
                 const SizedBox(height: 10),
                 TextField(
                     controller: notesController,
                     decoration:
-                        const InputDecoration(hintText: 'Notes (optional)')),
+                        InputDecoration(hintText: 'common.notes_optional'.tr)),
                 const SizedBox(height: 16),
                 SizedBox(
                   width: double.infinity,

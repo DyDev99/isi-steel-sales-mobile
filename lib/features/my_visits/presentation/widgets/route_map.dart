@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/l10n/visit_labels.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/location_sample.dart';
@@ -72,7 +73,7 @@ class _RouteMapState extends State<RouteMap> {
               _hueFor(widget.stops[i].status)),
           infoWindow: InfoWindow(
             title: '${i + 1}. ${widget.stops[i].customer.name}',
-            snippet: widget.stops[i].status.label,
+            snippet: widget.stops[i].status.localizedLabel,
           ),
         ),
     };

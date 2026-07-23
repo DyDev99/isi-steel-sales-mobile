@@ -203,7 +203,7 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildInputLabel('Select Won Lead', required: true),
+              _buildInputLabel('shell.select_won_lead'.tr, required: true),
               _buildLeadDropdownField(),
               if (_selectedLead != null) ...[
                 SizedBox(height: 6.h),

@@ -10,6 +10,7 @@ import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/core/utils/offline_banner.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/shop/shop_list_screen.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_stop.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/stock_level.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_stock_update.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_workflow.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/update_workflow_step.dart';
@@ -17,13 +18,15 @@ import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/acti
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/state/active_route_state.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/visit_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/route_dispatch_screen.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/stock_level_selector.dart';
 
-/// Step 4 of the guided field flow — Market Intelligence Inventory Count
-/// (សុេីបការ). A rapid, high-density on-shelf counter: one stepper row per SKU
-/// (tap ±1, long-press to fly by 10), an insight banner flagging anything
-/// that's out of stock as a quotation opportunity, and a dual-action
-/// "Done · Build Quotation" CTA that records the counts, checks the stop out,
-/// and hands off to the order catalog to quote what the shop is missing.
+/// Step 4 of the guided field flow — Market Intelligence Inventory Check
+/// (សុេីបការ). A rapid on-shelf status sweep: one Low / Medium / High
+/// selector per SKU (no counting, no steppers), an insight banner flagging
+/// anything low as a quotation opportunity, and a dual-action
+/// "Done · Build Quotation" CTA that records the statuses and hands off to
+/// the order catalog to quote what the shop is running out of. Completion is
+/// blocked until every SKU has exactly one status.
 class RouteStockCountScreen extends StatefulWidget {
   const RouteStockCountScreen({super.key});
 
@@ -38,41 +41,54 @@ class RouteStockCountScreen extends StatefulWidget {
 class _RouteStockCountScreenState extends State<RouteStockCountScreen> {
   // Standard market-survey template — the SKUs a rep sweeps every shop for.
   final List<_ShelfItem> _items = [
-    _ShelfItem('Rebar 12 mm', 42),
-    _ShelfItem('Channel 100', 0),
-    _ShelfItem('GI sheet 0.8', 120),
-    _ShelfItem('Rebar 16 mm', 18),
-    _ShelfItem('Angle Bar 50', 7),
+    _ShelfItem('Rebar 12 mm'),
+    _ShelfItem('Channel 100'),
+    _ShelfItem('GI sheet 0.8'),
+    _ShelfItem('Rebar 16 mm'),
+    _ShelfItem('Angle Bar 50'),
   ];
 
   bool _submitting = false;
+  bool _showValidation = false;
 
-  List<String> get _outOfStock => [
+  bool get _allSet => _items.every((i) => i.level != null);
+
+  List<String> get _lowStock => [
         for (final i in _items)
-          if (i.count == 0) i.name
+          if (i.level == StockLevel.low) i.name
       ];
 
-  void _step(_ShelfItem item, double delta) {
-    setState(() => item.count = (item.count + delta).clamp(0, 99999));
+  void _select(_ShelfItem item, StockLevel level) {
+    setState(() => item.level = level);
   }
 
   Future<void> _doneAndQuote(BuildContext context, RouteStop stop) async {
     if (_submitting) return;
+    if (!_allSet) {
+      // Refuse to complete while any SKU is unset; highlight the gaps.
+      setState(() => _showValidation = true);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          behavior: SnackBarBehavior.floating,
+          content: Text('my_visits.stock_level.select_all'.tr)));
+      return;
+    }
     setState(() => _submitting = true);
     HapticFeedback.mediumImpact();
 
     final navigator = Navigator.of(context);
     final visit = context.read<VisitCubit>();
 
-    // 1. Persist every shelf count as a stock update (offline-safe).
+    // 1. Persist every shelf status as a stock update (offline-safe).
     for (final item in _items) {
       visit.addStockUpdate(VisitStockUpdate(
         id: '${DateTime.now().microsecondsSinceEpoch}-${item.name.hashCode}',
         stopId: stop.id,
         productId: item.name,
         productName: item.name,
-        countedQuantity: item.count,
-        notes: item.count == 0 ? 'Out of stock — quotation opportunity' : '',
+        stockLevel: item.level!,
+        notes: item.level == StockLevel.low
+            ? 'my_visits.stop.low_stock_opportunity'.tr
+            : '',
       ));
     }
 
@@ -95,7 +111,7 @@ class _RouteStockCountScreenState extends State<RouteStockCountScreen> {
     // to this stop's territory (the one reliable join between my_visits'
     // and customers' mock datasets), skipping both Territory-picking and
     // the off-visit reason gate since the rep is provably on-visit already.
-    final seed = _outOfStock.isNotEmpty ? _outOfStock.first : null;
+    final seed = _lowStock.isNotEmpty ? _lowStock.first : null;
     navigator.popUntil((r) => r.settings.name == RouteDispatchScreen.routeName);
     navigator.push(MaterialPageRoute(
       settings: const RouteSettings(name: ShopListScreen.routeName),
@@ -132,7 +148,7 @@ class _RouteStockCountScreenState extends State<RouteStockCountScreen> {
                     style: TextStyle(color: colors.textSecondary)));
           }
           final stop = state.route.stops[state.currentStopIndex];
-          final outOfStock = _outOfStock;
+          final lowStock = _lowStock;
 
           return Column(
             children: [
@@ -151,14 +167,18 @@ class _RouteStockCountScreenState extends State<RouteStockCountScreen> {
                         style: TextStyle(
                             color: colors.textSecondary, fontSize: 12.5)),
                     const SizedBox(height: 14),
-                    if (outOfStock.isNotEmpty) ...[
-                      _InsightBanner(outOfStock: outOfStock),
+                    if (lowStock.isNotEmpty) ...[
+                      _InsightBanner(lowStock: lowStock),
                       const SizedBox(height: 14),
                     ],
                     for (final item in _items)
-                      _ShelfRow(
-                        item: item,
-                        onStep: (delta) => _step(item, delta),
+                      StockLevelRow(
+                        key: ValueKey(item.name),
+                        name: item.name,
+                        subtitle: 'my_visits.flow.on_shelf'.tr,
+                        level: item.level,
+                        showMissingHighlight: _showValidation,
+                        onLevelSelected: (level) => _select(item, level),
                       ),
                   ],
                 ),
@@ -177,19 +197,19 @@ class _RouteStockCountScreenState extends State<RouteStockCountScreen> {
 }
 
 class _ShelfItem {
-  _ShelfItem(this.name, this.count);
+  _ShelfItem(this.name);
   final String name;
-  double count;
+  StockLevel? level;
 }
 
 class _InsightBanner extends StatelessWidget {
-  const _InsightBanner({required this.outOfStock});
-  final List<String> outOfStock;
+  const _InsightBanner({required this.lowStock});
+  final List<String> lowStock;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    final names = outOfStock.join(', ');
+    final names = lowStock.join(', ');
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -213,124 +233,6 @@ class _InsightBanner extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _ShelfRow extends StatelessWidget {
-  const _ShelfRow({required this.item, required this.onStep});
-  final _ShelfItem item;
-  final void Function(double delta) onStep;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-    final isOut = item.count == 0;
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: colors.card,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-            color:
-                isOut ? colors.warning.withValues(alpha: 0.5) : colors.border),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(item.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                        color: colors.textPrimary,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800)),
-                const SizedBox(height: 2),
-                Text(
-                    isOut
-                        ? '${'my_visits.flow.on_shelf'.tr} · ${'my_visits.flow.out_of_stock'.tr}'
-                        : 'my_visits.flow.on_shelf'.tr,
-                    style: TextStyle(
-                        color: isOut ? colors.warning : colors.textSecondary,
-                        fontSize: 11)),
-              ],
-            ),
-          ),
-          _StepButton(icon: Icons.remove_rounded, sign: -1, onDelta: onStep),
-          Container(
-            width: 46,
-            alignment: Alignment.center,
-            child: Text(item.count.toStringAsFixed(0),
-                style: TextStyle(
-                    color: colors.textPrimary,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900)),
-          ),
-          _StepButton(icon: Icons.add_rounded, sign: 1, onDelta: onStep),
-        ],
-      ),
-    );
-  }
-}
-
-/// Large hit-target stepper button. Tap = ±1, long-press = repeat ±10 while held
-/// so a rep can rack up big counts without hundreds of taps.
-class _StepButton extends StatefulWidget {
-  const _StepButton(
-      {required this.icon, required this.sign, required this.onDelta});
-  final IconData icon;
-  final double sign;
-  final void Function(double delta) onDelta;
-
-  @override
-  State<_StepButton> createState() => _StepButtonState();
-}
-
-class _StepButtonState extends State<_StepButton> {
-  Timer? _timer;
-
-  void _startHold() {
-    HapticFeedback.selectionClick();
-    widget.onDelta(widget.sign * 10);
-    _timer = Timer.periodic(const Duration(milliseconds: 220), (_) {
-      HapticFeedback.selectionClick();
-      widget.onDelta(widget.sign * 10);
-    });
-  }
-
-  void _endHold() {
-    _timer?.cancel();
-    _timer = null;
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final primary = Theme.of(context).colorScheme.primary;
-    return GestureDetector(
-      onTap: () => widget.onDelta(widget.sign),
-      onLongPressStart: (_) => _startHold(),
-      onLongPressEnd: (_) => _endHold(),
-      onLongPressCancel: _endHold,
-      child: Container(
-        width: 48,
-        height: 48,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: primary.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Icon(widget.icon, color: primary, size: 24),
       ),
     );
   }

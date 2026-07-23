@@ -9,8 +9,10 @@ import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/core/utils/colors.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/presentation/services/coach_keys.dart';
 import 'package:isi_steel_sales_mobile/features/localization/presentation/bloc/language_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/localization/presentation/widgets/language_reload_dialog.dart';
 import 'package:isi_steel_sales_mobile/features/notification/domain/usecases/fetch_notifications.dart';
 import 'package:isi_steel_sales_mobile/features/notification/presentation/screen/notifications_sheet.dart';
+import 'package:isi_steel_sales_mobile/routes/app_routes.dart';
 
 class MainAppBar extends StatelessWidget {
   const MainAppBar({
@@ -57,9 +59,24 @@ class MainAppBar extends StatelessWidget {
                       Navigator.pop(sheetContext);
                       return;
                     }
+                    // Confirm first: applying a language reloads the whole
+                    // app so every screen re-renders in the new language.
+                    final target = languageCubit.supportedLanguages.firstWhere(
+                      (l) => l.code == code,
+                      orElse: () => languageCubit.supportedLanguages.first,
+                    );
+                    final confirmed =
+                        await showLanguageReloadConfirmDialog(context, target);
+                    if (!confirmed || !sheetContext.mounted) return;
                     setModalState(() => currentLang = code);
                     await languageCubit.changeLanguage(code);
-                    if (sheetContext.mounted) Navigator.pop(sheetContext);
+                    // The reload the dialog promised: the shared global
+                    // navigatorKey reparents the existing Navigator into the
+                    // recreated MaterialApp (stack intact), so reset the stack
+                    // explicitly — every screen reloads in the new language,
+                    // and this sheet is dismissed with it.
+                    navigatorKey.currentState?.pushNamedAndRemoveUntil(
+                        Static.main, (route) => false);
                   },
                   borderRadius: BorderRadius.circular(16.r),
                   child: AnimatedContainer(
@@ -173,18 +190,15 @@ class MainAppBar extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: 21.6.h),
-                    buildLangCard(
-                      label: 'language.english'.tr,
-                      subLabel: 'language.english_region'.tr,
-                      code: 'en',
-                      flag: '🇺🇸',
-                    ),
-                    buildLangCard(
-                      label: 'language.khmer'.tr,
-                      subLabel: 'language.khmer_region'.tr,
-                      code: 'kh',
-                      flag: '🇰🇭',
-                    ),
+                    // Catalog-driven: adding a language to LanguageModel
+                    // .supported surfaces it here with no UI change.
+                    for (final language in languageCubit.supportedLanguages)
+                      buildLangCard(
+                        label: language.nameKey.tr,
+                        subLabel: language.regionKey.tr,
+                        code: language.code,
+                        flag: language.flag,
+                      ),
                     SizedBox(height: 10.8.h),
                   ],
                 ),

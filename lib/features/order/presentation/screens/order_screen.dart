@@ -79,7 +79,7 @@ class _OrderScreenState extends State<OrderScreen> {
                         child: Row(
                           children: [
                             _FilterSegment(
-                              label: 'All',
+                              label: 'orders.tabs.all'.tr,
                               selected:
                                   _selectedFilter == _OrderStatusFilter.all,
                               onTap: () => setState(() =>
@@ -87,7 +87,7 @@ class _OrderScreenState extends State<OrderScreen> {
                             ),
                             const SizedBox(width: 8),
                             _FilterSegment(
-                              label: 'Sales Order',
+                              label: 'orders.sales_order.title'.tr,
                               selected: _selectedFilter ==
                                   _OrderStatusFilter.salesOrder,
                               onTap: () => setState(() => _selectedFilter =
@@ -95,7 +95,7 @@ class _OrderScreenState extends State<OrderScreen> {
                             ),
                             const SizedBox(width: 8),
                             _FilterSegment(
-                              label: 'Quotations',
+                              label: 'orders.tabs.quotations'.tr,
                               selected: _selectedFilter ==
                                   _OrderStatusFilter.quotations,
                               onTap: () => setState(() => _selectedFilter =
@@ -103,7 +103,7 @@ class _OrderScreenState extends State<OrderScreen> {
                             ),
                             const SizedBox(width: 8),
                             _FilterSegment(
-                              label: 'Pending Syncing',
+                              label: 'orders.pending_sync'.tr,
                               selected: _selectedFilter ==
                                   _OrderStatusFilter.pendingSyncing,
                               onTap: () => setState(() => _selectedFilter =
@@ -111,7 +111,7 @@ class _OrderScreenState extends State<OrderScreen> {
                             ),
                             const SizedBox(width: 8),
                             _FilterSegment(
-                              label: 'Completed',
+                              label: 'orders.status.completed'.tr,
                               selected: _selectedFilter ==
                                   _OrderStatusFilter.completed,
                               onTap: () => setState(() => _selectedFilter =

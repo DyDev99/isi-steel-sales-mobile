@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/lead_document.dart';
 
@@ -52,7 +53,7 @@ class DocumentsSection extends StatelessWidget {
         if (documents.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Text('No documents yet',
+            child: Text('leads.no_documents'.tr,
                 style: TextStyle(color: colors.textSecondary, fontSize: 12.5)),
           )
         else
@@ -106,7 +107,7 @@ class DocumentsSection extends StatelessWidget {
             onPressed: () => _showAddSheet(context),
             icon: Icon(Icons.upload_file_rounded,
                 size: 18, color: scheme.primary),
-            label: Text('Upload document',
+            label: Text('leads.upload_document'.tr,
                 style: TextStyle(color: scheme.primary)),
             style: OutlinedButton.styleFrom(
               side: BorderSide(color: scheme.primary),
@@ -135,7 +136,7 @@ class DocumentsSection extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Add a document (demo)',
+              Text('leads.add_document_demo'.tr,
                   style: TextStyle(
                       color: colors.textPrimary,
                       fontSize: 16,

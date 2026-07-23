@@ -16,6 +16,17 @@ import 'package:sqlite3/sqlite3.dart';
 /// keyed with the composite passphrase from [AppDatabaseKeyProvider]
 /// (`SHA256(dbSalt + deviceKey)`), and refuses to open at all if encryption is
 /// not active or the key is wrong.
+///
+/// ## One open path, self-healing
+///
+/// Earlier revisions probed the file with a throwaway connection and then let
+/// drift's `NativeDatabase(setup: …)` open it a second time. That left a gap:
+/// any divergence between the two opens (probe passes, real open throws
+/// `SQLITE_NOTADB`) surfaced as a permanent, per-query
+/// "file is not a database (code 26)" that the recovery logic never saw.
+/// Now there is exactly **one** open: the raw connection is opened, keyed, and
+/// verified here, then handed to drift via [NativeDatabase.opened] — so a
+/// wrong-key file is always detected at the same place it is healed.
 LazyDatabase openEncryptedDatabase(AppDatabaseKeyProvider keyProvider) {
   return LazyDatabase(() async {
     await _ensureSqlCipherLoaded();
@@ -24,71 +35,71 @@ LazyDatabase openEncryptedDatabase(AppDatabaseKeyProvider keyProvider) {
     final file = File(p.join(dir.path, AppConstants.encryptedDbFileName));
     final passphrase = await keyProvider.databasePassphrase();
 
-    _recoverIfUndecryptable(file, passphrase);
+    Database raw;
+    try {
+      raw = _openAndVerify(file, passphrase);
+    } on SqliteException catch (e) {
+      // `SQLITE_NOTADB` (26) means the file's header does not decrypt with the
+      // composite key we hold. The dominant real-world cause: a backup/restore
+      // or reinstall that kept the encrypted file but lost the Keystore-sealed
+      // device key (Keystore entries are never backed up), so a brand-new key
+      // meets an old file. That data is cryptographically unrecoverable — and
+      // the local DB is a re-syncable cache (ADR-002) — so the only correct
+      // move is to start clean and let sync repopulate. All sync watermarks
+      // live inside this same file, so deleting it also resets them
+      // consistently and the next sync is a full initial pull.
+      //
+      // Deliberately narrow: only result code 26 triggers deletion. Any other
+      // failure (wrong cipher build, I/O error, genuine corruption mid-session)
+      // still fails closed exactly as before.
+      if (e.resultCode != 26 && e.extendedResultCode != 26) rethrow;
+      _deleteDatabaseFiles(file);
+      // Fresh file — this open creates it and must succeed; if it throws,
+      // something other than a stale key is wrong and we fail closed.
+      raw = _openAndVerify(file, passphrase);
+    }
 
-    return NativeDatabase(
-      file,
-      setup: (rawDb) {
-        // Supply the passphrase as a raw key ("x'...'"): the value is already
-        // 256 bits of CSPRNG output, so SQLCipher's PBKDF2 derivation is
-        // skipped. Must run before any other statement touches the file.
-        rawDb.execute('PRAGMA key = "x\'$passphrase\'";');
-
-        // Fail closed #1: if plain sqlite3 (no cipher) somehow loaded, this
-        // pragma returns no rows — we must not silently write plaintext.
-        final cipher = rawDb.select('PRAGMA cipher_version;');
-        if (cipher.isEmpty || (cipher.first.values.first as String).isEmpty) {
-          throw StateError(
-            'SQLCipher is not active — refusing to open an unencrypted database.',
-          );
-        }
-
-        // Fail closed #2: touching sqlite_master forces SQLCipher to decrypt
-        // the header now, so a wrong/rotated key throws here at open time
-        // rather than on the first feature query.
-        rawDb.execute('SELECT count(*) FROM sqlite_master;');
-      },
-    );
+    return NativeDatabase.opened(raw);
   });
 }
 
-/// Deletes a database file that cannot be decrypted with the current key, so
-/// the app heals itself instead of failing on every query forever.
-///
-/// `SQLITE_NOTADB` (26) at open time means the file's header does not decrypt
-/// with the composite key we hold. The dominant real-world cause: Android
-/// Auto Backup restoring the encrypted file onto a fresh install whose
-/// Keystore-sealed device key did not survive the uninstall (Keystore entries
-/// are never backed up), so a brand-new key meets an old file. That data is
-/// cryptographically unrecoverable — and the local DB is a re-syncable cache
-/// (ADR-002) — so the only correct move is to start clean and let sync
-/// repopulate. All sync watermarks live inside this same file, so deleting it
-/// also resets them consistently and the next sync is a full initial pull.
-///
-/// Backup is now disabled in the manifest (`android:allowBackup="false"`);
-/// this probe is the second line of defense for devices that already restored
-/// a stale file, or that lose their Keystore any other way (OS restore,
-/// "clear credentials", vendor Keystore bugs).
-///
-/// Deliberately narrow: only result code 26 triggers deletion. Any other
-/// failure (wrong cipher build, I/O error, genuine corruption mid-session)
-/// still fails closed exactly as before.
-void _recoverIfUndecryptable(File file, String passphrase) {
-  if (!file.existsSync()) return;
+/// Opens [file], applies the SQLCipher key, and runs both fail-closed checks.
+/// Throws (closing the handle first) if encryption is not active or the key
+/// does not decrypt the file.
+Database _openAndVerify(File file, String passphrase) {
+  final db = sqlite3.open(file.path);
   try {
-    final probe = sqlite3.open(file.path);
-    try {
-      probe.execute('PRAGMA key = "x\'$passphrase\'";');
-      probe.select('SELECT count(*) FROM sqlite_master;');
-    } finally {
-      probe.dispose();
+    // Supply the passphrase as a raw key ("x'...'"): the value is already
+    // 256 bits of CSPRNG output, so SQLCipher's PBKDF2 derivation is skipped.
+    // Must run before any other statement touches the file.
+    db.execute('PRAGMA key = "x\'$passphrase\'";');
+
+    // Fail closed #1: if plain sqlite3 (no cipher) somehow loaded, this
+    // pragma returns no rows — we must not silently write plaintext.
+    final cipher = db.select('PRAGMA cipher_version;');
+    if (cipher.isEmpty || (cipher.first.values.first as String).isEmpty) {
+      throw StateError(
+        'SQLCipher is not active — refusing to open an unencrypted database.',
+      );
     }
-  } on SqliteException catch (e) {
-    if (e.resultCode != 26 && e.extendedResultCode != 26) rethrow;
-    for (final suffix in const ['', '-wal', '-shm', '-journal']) {
-      final sidecar = File('${file.path}$suffix');
-      if (sidecar.existsSync()) sidecar.deleteSync();
-    }
+
+    // Fail closed #2: touching sqlite_master forces SQLCipher to decrypt the
+    // header now, so a wrong/rotated key throws here at open time rather than
+    // on the first feature query.
+    db.select('SELECT count(*) FROM sqlite_master;');
+    return db;
+  } catch (_) {
+    db.dispose();
+    rethrow;
+  }
+}
+
+/// Removes the database file and every SQLite sidecar so the next open starts
+/// from a clean slate.
+void _deleteDatabaseFiles(File file) {
+  for (final suffix in const ['', '-wal', '-shm', '-journal']) {
+    final sidecar = File('${file.path}$suffix');
+    if (sidecar.existsSync()) sidecar.deleteSync();
   }
 }
 

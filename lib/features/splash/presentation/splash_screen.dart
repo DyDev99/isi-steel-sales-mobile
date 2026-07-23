@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/database/hive/app_preferences.dart';
 import 'package:isi_steel_sales_mobile/core/utils/version.dart';
@@ -94,9 +95,9 @@ class _SplashScreenState extends State<SplashScreen>
                     // 3. IMPORTANT: Update the text color here
                     // If Vibe.cta is a light-colored gradient, it won't show on white.
                     // Change the color/gradient to something dark (e.g., Colors.black)
-                    const Text(
-                      'ISI STEEL',
-                      style: TextStyle(
+                    Text(
+                      'splash.brand'.tr,
+                      style: const TextStyle(
                         fontSize: 26,
                         fontWeight: FontWeight.w900,
                         letterSpacing: 4,
@@ -104,9 +105,9 @@ class _SplashScreenState extends State<SplashScreen>
                       ),
                     ),
                     const SizedBox(height: 4),
-                    const Text(
-                      'Sales Mobile',
-                      style: TextStyle(
+                    Text(
+                      'splash.tagline'.tr,
+                      style: const TextStyle(
                         color: Colors.grey, // Changed from Vibe.muted
                         fontSize: 13,
                         letterSpacing: 1.5,

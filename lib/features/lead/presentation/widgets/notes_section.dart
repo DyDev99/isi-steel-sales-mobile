@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
 class NotesSection extends StatefulWidget {
@@ -36,7 +37,7 @@ class _NotesSectionState extends State<NotesSection> {
         if (widget.notes.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Text('No notes yet',
+            child: Text('leads.no_notes'.tr,
                 style: TextStyle(color: colors.textSecondary, fontSize: 12.5)),
           )
         else
@@ -63,7 +64,7 @@ class _NotesSectionState extends State<NotesSection> {
                 style: TextStyle(color: colors.textPrimary, fontSize: 13),
                 decoration: InputDecoration(
                   isDense: true,
-                  hintText: 'Add a note…',
+                  hintText: 'leads.add_note_hint'.tr,
                   hintStyle:
                       TextStyle(color: colors.textSecondary, fontSize: 13),
                   filled: true,

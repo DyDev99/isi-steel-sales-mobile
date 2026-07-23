@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_return.dart';
 
@@ -24,7 +25,7 @@ Future<VisitReturn?> showReturnsSheet(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Capture Return',
+              Text('my_visits.forms.capture_return'.tr,
                   style: TextStyle(
                       color: context.appColors.textPrimary,
                       fontSize: 17,
@@ -32,13 +33,14 @@ Future<VisitReturn?> showReturnsSheet(
               const SizedBox(height: 12),
               TextField(
                   controller: productController,
-                  decoration: const InputDecoration(hintText: 'Product name')),
+                  decoration: InputDecoration(
+                      hintText: 'my_visits.forms.product_name'.tr)),
               const SizedBox(height: 10),
               TextField(
                 controller: qtyController,
                 keyboardType: TextInputType.number,
-                decoration:
-                    const InputDecoration(hintText: 'Quantity returned'),
+                decoration: InputDecoration(
+                    hintText: 'my_visits.forms.quantity_returned'.tr),
               ),
               const SizedBox(height: 10),
               TextField(
@@ -62,7 +64,7 @@ Future<VisitReturn?> showReturnsSheet(
                         productName: productController.text.trim(),
                         quantity: qty,
                         reason: reasonController.text.trim().isEmpty
-                            ? 'Not specified'
+                            ? 'common.not_specified'.tr
                             : reasonController.text.trim(),
                       ),
                     );

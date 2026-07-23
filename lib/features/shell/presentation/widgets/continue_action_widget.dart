@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 
 class ContinueActionCard extends StatelessWidget {
   final String title;
@@ -30,7 +31,7 @@ class ContinueActionCard extends StatelessWidget {
           Padding(
             padding: EdgeInsets.only(left: 4.w, bottom: 6.h),
             child: Text(
-              'CONTINUE LAST ACTION',
+              'shell.continue_last_action'.tr,
               style: TextStyle(
                 fontSize: 14.sp, // Reduced from 11
                 fontWeight: FontWeight.bold,
@@ -102,7 +103,10 @@ class ContinueActionCard extends StatelessWidget {
                         Row(
                           children: [
                             Text(
-                              'Stop $currentStop of $totalStops',
+                              'shell.stop_of'.trParams({
+                                'current': currentStop,
+                                'total': totalStops
+                              }),
                               style: TextStyle(
                                 fontSize: 11.sp, // Shrunk from 13
                                 fontWeight: FontWeight.w500,
@@ -169,7 +173,7 @@ class ContinueActionCard extends StatelessWidget {
                           ),
                           SizedBox(height: 2.h),
                           Text(
-                            'Take order',
+                            'shell.take_order'.tr,
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 9.sp, // Shrunk from 11

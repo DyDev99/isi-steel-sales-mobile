@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
@@ -44,7 +45,7 @@ class _DepotSelectionView extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: theme.colorScheme.surface,
         iconTheme: IconThemeData(color: theme.colorScheme.onSurface),
-        title: Text('Select depot / shop',
+        title: Text('my_visits.depot.select_title'.tr,
             style: TextStyle(
                 color: theme.colorScheme.onSurface,
                 fontSize: 17,
@@ -64,7 +65,8 @@ class _DepotSelectionView extends StatelessWidget {
                   DepotSelectionStatus.loading =>
                     const _LoadingList(),
                   DepotSelectionStatus.error => _ErrorState(
-                      message: state.message ?? 'Something went wrong.',
+                      message:
+                          state.message ?? 'common.something_went_wrong'.tr,
                       onRetry: cubit.load,
                     ),
                   DepotSelectionStatus.empty =>
@@ -226,7 +228,7 @@ class _SearchField extends StatelessWidget {
               decoration: InputDecoration(
                 isDense: true,
                 border: InputBorder.none,
-                hintText: 'Search depot or shop…',
+                hintText: 'my_visits.depot.search_hint'.tr,
                 hintStyle:
                     TextStyle(color: colors.textSecondary, fontSize: 13.5),
               ),
@@ -277,12 +279,12 @@ class _EmptyState extends StatelessWidget {
                 Icon(Icons.storefront_outlined,
                     size: 44, color: colors.textSecondary),
                 const SizedBox(height: 12),
-                Text('No depots or shops found',
+                Text('my_visits.depot.none_found'.tr,
                     style: TextStyle(
                         color: colors.textPrimary,
                         fontWeight: FontWeight.w700)),
                 const SizedBox(height: 4),
-                Text('Try a different search.',
+                Text('my_visits.depot.try_different'.tr,
                     style:
                         TextStyle(color: colors.textSecondary, fontSize: 12.5)),
               ],
@@ -359,7 +361,7 @@ class _ContinueBar extends StatelessWidget {
                   borderRadius: BorderRadius.circular(14)),
             ),
             child: Text(
-              enabled ? 'Continue' : 'Select a depot / shop',
+              enabled ? 'Continue' : 'my_visits.depot.select_cta'.tr,
               style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
             ),
           ),

@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/animations/animated_card.dart';
 import 'package:isi_steel_sales_mobile/core/animations/app_animations.dart';
 import 'package:isi_steel_sales_mobile/core/animations/fade_slide_transition.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/domain/entities/coach_action.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/presentation/services/app_coach.dart';
@@ -71,7 +72,7 @@ class QuickActionsSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          const _SectionHeader('QUICK ACTIONS', letterSpacing: 1.2),
+          _SectionHeader('shell.quick_actions'.tr, letterSpacing: 1.2),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -83,7 +84,7 @@ class QuickActionsSection extends StatelessWidget {
                     child: _QuickActionCard(
                       icon: Icons.assignment_outlined,
                       accent: const Color(0xFF4C9AFF),
-                      label: 'New quote',
+                      label: 'shell.new_quote'.tr,
                       onTap: () => _startNewOrder(context),
                     ),
                   ),
@@ -98,7 +99,7 @@ class QuickActionsSection extends StatelessWidget {
                     child: _QuickActionCard(
                       icon: Icons.bar_chart_rounded,
                       accent: const Color(0xFF36B37E),
-                      label: 'New lead',
+                      label: 'shell.new_lead'.tr,
                       onTap: () {
                         AppCoach.notify(CoachAction.createLead);
                         _addLead(context);
@@ -116,7 +117,7 @@ class QuickActionsSection extends StatelessWidget {
                     child: _QuickActionCard(
                       icon: Icons.inventory_2_outlined,
                       accent: const Color(0xFFFFAB00),
-                      label: 'Depot stock',
+                      label: 'shell.depot_stock'.tr,
                       onTap: () => _openDepotStock(context),
                     ),
                   ),
@@ -131,7 +132,7 @@ class QuickActionsSection extends StatelessWidget {
                     child: _QuickActionCard(
                       icon: Icons.person_add_alt_1_outlined,
                       accent: const Color(0xFF6554C0),
-                      label: 'Add customer',
+                      label: 'shell.add_customer'.tr,
                       onTap: () => _addCustomerFromWon(context),
                     ),
                   ),

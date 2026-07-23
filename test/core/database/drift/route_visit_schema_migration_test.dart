@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
@@ -356,6 +357,126 @@ void main() {
           );
 
       expect(await db.select(db.routes).get(), hasLength(1));
+    });
+  });
+
+  group('v9 → v10 upgrade: counted_quantity becomes stock_level', () {
+    late Directory tempDir;
+    late File dbFile;
+
+    setUp(() async {
+      tempDir = await Directory.systemTemp.createTemp('isi_migration_v10');
+      dbFile = File(p.join(tempDir.path, 'app.db'));
+    });
+
+    tearDown(() async {
+      if (tempDir.existsSync()) await tempDir.delete(recursive: true);
+    });
+
+    /// Fabricates a v9 database on disk with legacy quantity-based stock rows.
+    ///
+    /// Like the v6 fixture above, v9 is reconstructed from the current schema
+    /// by removing exactly what v10 adds (depot_id, stock_level) and restoring
+    /// what it drops (counted_quantity), then rewinding `user_version` — the
+    /// base DDL stays Drift's own.
+    Future<void> createV9Fixture() async {
+      final setup = AppDatabase(NativeDatabase(dbFile));
+      await setup.customStatement('SELECT 1;'); // force open → onCreate (v10)
+      await setup.close();
+
+      final raw = sqlite.sqlite3.open(dbFile.path);
+      raw.execute('DROP INDEX IF EXISTS idx_visit_stock_updates_depot;');
+      raw.execute('ALTER TABLE visit_stock_updates DROP COLUMN depot_id;');
+      raw.execute('ALTER TABLE visit_stock_updates DROP COLUMN stock_level;');
+      raw.execute('ALTER TABLE visit_stock_updates '
+          'ADD COLUMN counted_quantity REAL NOT NULL DEFAULT 0;');
+
+      // Seed the FK chain a real device would have, then two legacy counts:
+      // one out-of-stock, one counted-in-stock.
+      raw.execute('''
+        INSERT INTO customers (
+          id, sap_customer_id, customer_code, shop_name, owner_name, phone,
+          address, province, district, territory, latitude, longitude,
+          credit_limit, status, assigned_rep_id, assigned_rep_name, updated_at
+        ) VALUES (
+          'cust-1', 'SAP-1', 'C-001', 'ISI Hardware', 'Sok Dara', '012345678',
+          'St 271', 'Phnom Penh', 'Toul Kork', 'T1', 11.55, 104.91,
+          5000.0, 'active', 'rep-1', 'Rep One', '2026-07-15T00:00:00.000Z'
+        );
+      ''');
+      const iso = '2026-07-15T00:00:00.000Z';
+      raw.execute('''
+        INSERT INTO routes (
+          id, updated_at, deleted, sync_state, dirty, name, rep_id, rep_name,
+          territory, visit_date, planned_start, planned_end, status
+        ) VALUES ('route-1', '$iso', 0, 'synced', 0, 'R1', 'rep-1', 'Rep',
+          'T1', '$iso', '$iso', '$iso', 'planned');
+      ''');
+      raw.execute('''
+        INSERT INTO route_stops (
+          id, updated_at, deleted, sync_state, dirty, route_id, customer_id,
+          sequence, planned_arrival, planned_departure, status
+        ) VALUES ('stop-1', '$iso', 0, 'synced', 0, 'route-1', 'cust-1', 1,
+          '$iso', '$iso', 'pending');
+      ''');
+      for (final (id, qty) in [('su-out', 0.0), ('su-counted', 42.0)]) {
+        raw.execute('''
+          INSERT INTO visit_stock_updates (
+            id, updated_at, deleted, sync_state, dirty, stop_id, product_id,
+            product_name, notes, counted_quantity
+          ) VALUES ('$id', '$iso', 0, 'dirty', 1, 'stop-1', 'p-1', 'Rebar',
+            'note-$id', $qty);
+        ''');
+      }
+      raw.execute('PRAGMA user_version = 9;');
+      raw.dispose();
+    }
+
+    test('legacy counts survive as conservative stock levels', () async {
+      await createV9Fixture();
+
+      final db = AppDatabase(NativeDatabase(dbFile));
+      addTearDown(db.close);
+
+      final rows = await db.select(db.visitStockUpdates).get();
+      final byId = {for (final r in rows) r.id: r};
+
+      // 0 on the shelf → low; a positive count → medium (a raw quantity
+      // carries no defensible medium/high boundary).
+      expect(byId['su-out']!.stockLevel, 'low');
+      expect(byId['su-counted']!.stockLevel, 'medium');
+
+      // Nothing else about the rows is lost — including sync bookkeeping, so
+      // a capture pending push before the upgrade still pushes after it.
+      expect(byId['su-out']!.notes, 'note-su-out');
+      expect(byId['su-out']!.syncState, 'dirty');
+      expect(byId['su-out']!.dirty, isTrue);
+      expect(byId['su-out']!.stopId, 'stop-1');
+      expect(byId['su-out']!.depotId, isNull);
+    });
+
+    test('the upgraded table accepts depot-scoped rows (no stop)', () async {
+      await createV9Fixture();
+
+      final db = AppDatabase(NativeDatabase(dbFile));
+      addTearDown(db.close);
+
+      await db.into(db.visitStockUpdates).insert(
+            VisitStockUpdatesCompanion.insert(
+              id: 'su-depot',
+              depotId: const Value('cust-1'),
+              productId: 'p-2',
+              productName: 'Channel 100',
+              stockLevel: 'high',
+            ),
+          );
+
+      final row = await (db.select(db.visitStockUpdates)
+            ..where((t) => t.id.equals('su-depot')))
+          .getSingle();
+      expect(row.stopId, isNull);
+      expect(row.depotId, 'cust-1');
+      expect(row.stockLevel, 'high');
     });
   });
 }

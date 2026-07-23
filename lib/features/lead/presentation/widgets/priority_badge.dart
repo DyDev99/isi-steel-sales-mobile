@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/features/lead/presentation/l10n/lead_labels.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/priority.dart';
 
@@ -22,7 +23,7 @@ class PriorityBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
-        priority.label,
+        priority.localizedLabel,
         style:
             TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w700),
       ),

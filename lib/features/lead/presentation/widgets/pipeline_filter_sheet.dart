@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/pipeline_filter.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/priority.dart';
@@ -62,7 +63,7 @@ class _PipelineFilterSheetState extends State<_PipelineFilterSheet> {
           Row(
             children: [
               Expanded(
-                child: Text('Filter & sort',
+                child: Text('common.filter_sort'.tr,
                     style: TextStyle(
                         color: colors.textPrimary,
                         fontSize: 17,
@@ -75,46 +76,49 @@ class _PipelineFilterSheetState extends State<_PipelineFilterSheet> {
                   _priority = null;
                   _sortBy = SortBy.newest;
                 }),
-                child: Text('Clear',
+                child: Text('common.clear'.tr,
                     style: TextStyle(color: colors.textSecondary)),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          const _Label('Sort by'),
+          _Label('common.sort_by'.tr),
           _ChipGroup<SortBy>(
-            options: const {
-              SortBy.newest: 'Newest',
-              SortBy.oldest: 'Oldest',
-              SortBy.revenue: 'Revenue',
-              SortBy.priority: 'Priority',
+            options: {
+              SortBy.newest: 'leads.filter.newest'.tr,
+              SortBy.oldest: 'leads.filter.oldest'.tr,
+              SortBy.revenue: 'leads.filter.revenue'.tr,
+              SortBy.priority: 'leads.filter.priority'.tr,
             },
             selected: _sortBy,
             onSelected: (v) => setState(() => _sortBy = v),
           ),
           const SizedBox(height: 16),
-          const _Label('Priority'),
+          _Label('leads.filter.priority'.tr),
           _ChipGroup<Priority?>(
-            options: const {
-              null: 'Any',
-              Priority.high: 'High',
-              Priority.medium: 'Medium',
-              Priority.low: 'Low'
+            options: {
+              null: 'common.any'.tr,
+              Priority.high: 'leads.filter.high'.tr,
+              Priority.medium: 'leads.filter.medium'.tr,
+              Priority.low: 'leads.filter.low'.tr,
             },
             selected: _priority,
             onSelected: (v) => setState(() => _priority = v),
           ),
           const SizedBox(height: 16),
-          const _Label('Territory'),
+          _Label('customers.territory'.tr),
           _ChipGroup<String?>(
-            options: {null: 'Any', for (final t in widget.territories) t: t},
+            options: {
+              null: 'common.any'.tr,
+              for (final t in widget.territories) t: t
+            },
             selected: _territory,
             onSelected: (v) => setState(() => _territory = v),
           ),
           const SizedBox(height: 16),
-          const _Label('Sales rep'),
+          _Label('leads.sales_rep'.tr),
           _ChipGroup<String?>(
-            options: {null: 'Any', for (final r in widget.reps) r: r},
+            options: {null: 'common.any'.tr, for (final r in widget.reps) r: r},
             selected: _rep,
             onSelected: (v) => setState(() => _rep = v),
           ),
@@ -137,8 +141,8 @@ class _PipelineFilterSheetState extends State<_PipelineFilterSheet> {
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14)),
               ),
-              child: const Text('Apply',
-                  style: TextStyle(fontWeight: FontWeight.w700)),
+              child: Text('common.apply'.tr,
+                  style: const TextStyle(fontWeight: FontWeight.w700)),
             ),
           ),
         ],

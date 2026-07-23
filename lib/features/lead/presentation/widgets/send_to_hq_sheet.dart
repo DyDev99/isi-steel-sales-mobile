@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/features/lead/presentation/l10n/lead_labels.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/lead.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/lead_document.dart';
@@ -70,7 +72,7 @@ class _SendToHqSheetState extends State<_SendToHqSheet> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Finish onboarding',
+                Text('leads.hq.finish_onboarding'.tr,
                     style: TextStyle(
                         color: colors.textPrimary,
                         fontSize: 17,
@@ -78,33 +80,34 @@ class _SendToHqSheetState extends State<_SendToHqSheet> {
                 const SizedBox(height: 4),
                 Text(
                   _canSubmit
-                      ? "You already did the hard part. Just confirm and send."
-                      : "You already did the hard part. $_missingCount item${_missingCount == 1 ? '' : 's'} left.",
+                      ? 'leads.hq.confirm_ready'.tr
+                      : 'leads.hq.items_left'
+                          .trParams({'count': _missingCount}),
                   style: TextStyle(color: colors.textSecondary, fontSize: 12.5),
                 ),
                 const SizedBox(height: 16),
-                Text('Already confirmed',
+                Text('leads.hq.already_confirmed'.tr,
                     style: TextStyle(
                         color: colors.textSecondary,
                         fontSize: 12,
                         fontWeight: FontWeight.w700)),
                 const SizedBox(height: 8),
-                _ConfirmedRow(label: 'Shop', value: lead.companyName),
-                _ConfirmedRow(label: 'Phone', value: lead.phone),
+                _ConfirmedRow(label: 'leads.shop'.tr, value: lead.companyName),
+                _ConfirmedRow(label: 'customers.phone'.tr, value: lead.phone),
                 _ConfirmedRow(
-                  label: 'GPS location',
+                  label: 'leads.hq.gps_location'.tr,
                   value:
                       '${lead.latitude.toStringAsFixed(4)}, ${lead.longitude.toStringAsFixed(4)}',
                 ),
                 _ConfirmedRow(
-                    label: 'Won value',
+                    label: 'leads.hq.won_value'.tr,
                     value: '\$${(won?.finalValue ?? 0).toStringAsFixed(0)}'),
                 if (won != null && won.productsPurchased.isNotEmpty)
                   _ConfirmedRow(
-                      label: 'Products',
+                      label: 'leads.products'.tr,
                       value: won.productsPurchased.join(', ')),
                 const SizedBox(height: 18),
-                Text('Needed to send',
+                Text('leads.hq.needed_to_send'.tr,
                     style: TextStyle(
                         color: colors.textSecondary,
                         fontSize: 12,
@@ -118,7 +121,7 @@ class _SendToHqSheetState extends State<_SendToHqSheet> {
                       onChanged: (_) => setState(() {}),
                       style: TextStyle(color: colors.textPrimary, fontSize: 14),
                       decoration: InputDecoration(
-                        labelText: 'Owner name',
+                        labelText: 'leads.owner_name'.tr,
                         labelStyle: TextStyle(
                             color: colors.textSecondary, fontSize: 13),
                         filled: true,
@@ -135,8 +138,8 @@ class _SendToHqSheetState extends State<_SendToHqSheet> {
                     ),
                   )
                 else
-                  _ConfirmedRow(label: 'Owner', value: lead.ownerName),
-                Text('Shop type',
+                  _ConfirmedRow(label: 'leads.owner'.tr, value: lead.ownerName),
+                Text('leads.shop_type'.tr,
                     style: TextStyle(
                         color: colors.textSecondary,
                         fontSize: 12,
@@ -147,7 +150,7 @@ class _SendToHqSheetState extends State<_SendToHqSheet> {
                   runSpacing: 8,
                   children: ShopType.values
                       .map((t) => ChoiceChip(
-                            label: Text(t.label),
+                            label: Text(t.localizedLabel),
                             selected: _shopType == t,
                             onSelected: (_) => setState(() => _shopType = t),
                             labelStyle: TextStyle(
@@ -167,12 +170,12 @@ class _SendToHqSheetState extends State<_SendToHqSheet> {
                 ),
                 const SizedBox(height: 14),
                 _DocRow(
-                  label: 'Business Licence',
+                  label: 'leads.hq.business_licence'.tr,
                   attached: _hasLicence,
                   onAttach: () => setState(() => _hasLicence = true),
                 ),
                 _DocRow(
-                  label: 'Patent / Tax Paper',
+                  label: 'leads.hq.patent_tax_paper'.tr,
                   attached: _hasTaxPaper,
                   onAttach: () => setState(() => _hasTaxPaper = true),
                 ),
@@ -222,8 +225,8 @@ class _SendToHqSheetState extends State<_SendToHqSheet> {
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14)),
                     ),
-                    child: const Text('Send to HQ',
-                        style: TextStyle(fontWeight: FontWeight.w700)),
+                    child: Text('leads.send_to_hq'.tr,
+                        style: const TextStyle(fontWeight: FontWeight.w700)),
                   ),
                 ),
               ],

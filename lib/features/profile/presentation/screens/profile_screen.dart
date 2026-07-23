@@ -10,6 +10,7 @@ import 'package:isi_steel_sales_mobile/features/profile/presentation/bloc/profil
 import 'package:isi_steel_sales_mobile/features/profile/presentation/widgets/edit_profile_sheet.dart';
 import 'package:isi_steel_sales_mobile/features/profile/presentation/widgets/profile_header.dart';
 import 'package:isi_steel_sales_mobile/features/profile/presentation/widgets/profile_info_section.dart';
+import 'package:isi_steel_sales_mobile/features/localization/presentation/widgets/language_section.dart';
 import 'package:isi_steel_sales_mobile/features/settings/theme/presentation/widgets/appearance_section.dart';
 import 'package:isi_steel_sales_mobile/routes/app_routes.dart';
 
@@ -40,8 +41,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               : 'profile.updated_failure'.tr)),
     );
   }
-
-
 
   Future<void> _confirmLogout(BuildContext context) async {
     final confirmed = await showDialog<bool>(
@@ -103,6 +102,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ProfileInfoSection(profile: state.profile),
                     const SizedBox(height: 16),
                     const AppearanceSection(),
+                    const SizedBox(height: 16),
+                    const LanguageSection(),
                     const SizedBox(height: 20),
                     SizedBox(
                       width: double.infinity,
@@ -117,8 +118,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton.icon(
-                        onPressed: () => Navigator.of(context).pushNamed(Static.forgotPassword),
-
+                        onPressed: () => Navigator.of(context)
+                            .pushNamed(Static.forgotPassword),
                         icon: const Icon(Icons.lock_reset_rounded, size: 18),
                         label: Text('profile.change_password'.tr),
                       ),
@@ -142,8 +143,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Text(message,
                       style:
                           TextStyle(color: context.appColors.textSecondary))),
-              _ => Center(
-                  child: CircularProgressIndicator(color: scheme.primary)),
+              _ =>
+                Center(child: CircularProgressIndicator(color: scheme.primary)),
             },
           ),
         );

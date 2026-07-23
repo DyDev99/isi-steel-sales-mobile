@@ -61,11 +61,11 @@ class CatalogSearchBar extends StatelessWidget {
                 ),
                 _InlineIcon(
                     icon: Icons.mic_none_rounded,
-                    tooltip: 'Voice search',
+                    tooltip: 'orders.voice.tooltip'.tr,
                     onTap: onVoiceTap),
                 _InlineIcon(
                     icon: Icons.photo_camera_back_outlined,
-                    tooltip: 'Search by photo',
+                    tooltip: 'orders.catalog.search_by_photo'.tr,
                     onTap: onImageTap),
               ],
             ),

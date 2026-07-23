@@ -1,4 +1,5 @@
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product_filter.dart';
 
 /// A single attribute filter dimension. Declared in the spec's canonical
@@ -17,13 +18,13 @@ enum FilterFacet {
 
 extension FilterFacetLabel on FilterFacet {
   String get label => switch (this) {
-        FilterFacet.size => 'Size',
-        FilterFacet.length => 'Length',
-        FilterFacet.meshSize => 'Mesh Size',
-        FilterFacet.quality => 'Quality',
-        FilterFacet.diameter => 'Diameter',
-        FilterFacet.thickness => 'Thickness',
-        FilterFacet.material => 'Material',
+        FilterFacet.size => 'orders.filter.size'.tr,
+        FilterFacet.length => 'orders.filter.length'.tr,
+        FilterFacet.meshSize => 'orders.filter.mesh_size'.tr,
+        FilterFacet.quality => 'orders.filter.quality'.tr,
+        FilterFacet.diameter => 'orders.filter.diameter'.tr,
+        FilterFacet.thickness => 'orders.filter.thickness'.tr,
+        FilterFacet.material => 'orders.filter.material'.tr,
       };
 }
 

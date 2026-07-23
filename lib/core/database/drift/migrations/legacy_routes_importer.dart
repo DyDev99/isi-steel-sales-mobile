@@ -424,13 +424,17 @@ class LegacyRoutesImporter {
     });
 
     await each(_Legacy.stockUpdates, (row, stopId) async {
+      // Legacy plaintext rows carried a raw `counted_quantity`; the encrypted
+      // schema (v10) stores a three-tier `stock_level`. Same conservative
+      // mapping as the v10 stepwise migration: 0 → low, positive → medium.
+      final countedQuantity = _toDouble(row['counted_quantity']) ?? 0;
       await _db.into(_db.visitStockUpdates).insertOnConflictUpdate(
             VisitStockUpdatesCompanion.insert(
               id: _str(row['id']),
-              stopId: stopId,
+              stopId: Value(stopId),
               productId: _str(row['product_id']),
               productName: _str(row['product_name']),
-              countedQuantity: _toDouble(row['counted_quantity']) ?? 0,
+              stockLevel: countedQuantity <= 0 ? 'low' : 'medium',
               notes: Value(_str(row['notes'])),
               syncState: _legacyState(row),
               dirty: _legacyDirty(row),

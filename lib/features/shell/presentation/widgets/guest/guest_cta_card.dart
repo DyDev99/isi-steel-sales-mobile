@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
 /// The dominant call-to-action: "Unlock the full experience", with primary
@@ -45,7 +46,7 @@ class GuestCtaCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Unlock the full experience',
+            'shell.guest.unlock_title'.tr,
             style: TextStyle(
               color: onGrad,
               fontSize: 20,
@@ -55,8 +56,7 @@ class GuestCtaCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Sign in to access personalized tools, dashboards, '
-            'and exclusive features.',
+            'shell.guest.unlock_body'.tr,
             style: TextStyle(
               color: onGrad.withValues(alpha: 0.9),
               fontSize: 13.5,
@@ -77,8 +77,8 @@ class GuestCtaCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(14)),
               ),
               icon: const Icon(Icons.login_rounded, size: 18),
-              label: const Text('Login',
-                  style: TextStyle(fontWeight: FontWeight.w700)),
+              label: Text('auth.login_btn'.tr,
+                  style: const TextStyle(fontWeight: FontWeight.w700)),
             ),
           ),
         ],

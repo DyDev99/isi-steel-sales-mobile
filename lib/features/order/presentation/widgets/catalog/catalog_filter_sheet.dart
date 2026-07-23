@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product_filter.dart';
 
@@ -55,7 +56,7 @@ class _CatalogFilterSheetState extends State<_CatalogFilterSheet> {
               Row(
                 children: [
                   Expanded(
-                    child: Text('Filter & sort',
+                    child: Text('common.filter_sort'.tr,
                         style: TextStyle(
                             color: scheme.onSurface,
                             fontSize: 17,
@@ -67,29 +68,35 @@ class _CatalogFilterSheetState extends State<_CatalogFilterSheet> {
                       _availableOnly = false;
                       _sortBy = ProductSortBy.relevance;
                     }),
-                    child: Text('Clear',
+                    child: Text('common.clear'.tr,
                         style: TextStyle(
                             color: scheme.onSurface.withValues(alpha: 0.5))),
                   ),
                 ],
               ),
               const SizedBox(height: 12),
-              const _Label('Sort by'),
+              _Label('common.sort_by'.tr),
               _ChipGroup<ProductSortBy>(
-                options: const {
-                  ProductSortBy.relevance: 'Relevance',
-                  ProductSortBy.nameAsc: 'Name A-Z',
-                  ProductSortBy.priceAsc: 'Price: Low to High',
-                  ProductSortBy.priceDesc: 'Price: High to Low',
-                  ProductSortBy.stockDesc: 'Stock: High to Low',
+                options: {
+                  ProductSortBy.relevance: 'orders.filter.sort_relevance'.tr,
+                  ProductSortBy.nameAsc: 'orders.filter.sort_name_az'.tr,
+                  ProductSortBy.priceAsc:
+                      'orders.filter.sort_price_low_high'.tr,
+                  ProductSortBy.priceDesc:
+                      'orders.filter.sort_price_high_low'.tr,
+                  ProductSortBy.stockDesc:
+                      'orders.filter.sort_stock_high_low'.tr,
                 },
                 selected: _sortBy,
                 onSelected: (v) => setState(() => _sortBy = v),
               ),
               const SizedBox(height: 16),
-              const _Label('Brand'),
+              _Label('orders.filter.brand'.tr),
               _ChipGroup<String?>(
-                options: {null: 'Any', for (final b in widget.brands) b: b},
+                options: {
+                  null: 'common.any'.tr,
+                  for (final b in widget.brands) b: b
+                },
                 selected: _brand,
                 onSelected: (v) => setState(() => _brand = v),
               ),
@@ -99,7 +106,7 @@ class _CatalogFilterSheetState extends State<_CatalogFilterSheet> {
                 value: _availableOnly,
                 onChanged: (v) => setState(() => _availableOnly = v),
                 activeThumbColor: scheme.primary,
-                title: Text('In stock only',
+                title: Text('orders.filter.in_stock_only'.tr,
                     style: TextStyle(
                         color: scheme.onSurface,
                         fontSize: 13,
@@ -124,8 +131,8 @@ class _CatalogFilterSheetState extends State<_CatalogFilterSheet> {
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14)),
                   ),
-                  child: const Text('Apply',
-                      style: TextStyle(fontWeight: FontWeight.w700)),
+                  child: Text('common.apply'.tr,
+                      style: const TextStyle(fontWeight: FontWeight.w700)),
                 ),
               ),
             ],

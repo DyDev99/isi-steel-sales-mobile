@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/pipeline_filter.dart';
 
@@ -69,7 +70,7 @@ class LeadPipelineHeader extends StatelessWidget
           ),
           _HeaderButton(
             icon: Icons.filter_alt_outlined,
-            tooltip: 'Filter leads',
+            tooltip: 'leads.filter_leads'.tr,
             onTap: onFilterTap,
             // The only signal that a filter is hiding rows — without it a rep
             // can't tell an empty board from a filtered one.
@@ -80,7 +81,7 @@ class LeadPipelineHeader extends StatelessWidget
           const SizedBox(width: 8),
           _HeaderButton(
             icon: Icons.add_rounded,
-            tooltip: 'Add lead',
+            tooltip: 'leads.add_lead'.tr,
             onTap: onAddLead,
             filled: true,
           ),
@@ -97,9 +98,9 @@ class _SortButton extends StatelessWidget {
   final ValueChanged<SortBy> onSortChanged;
 
   String _label(SortBy value) => switch (value) {
-        SortBy.newest => 'Newest first',
-        SortBy.oldest => 'Oldest first',
-        SortBy.revenue => 'Highest value',
+        SortBy.newest => 'leads.sort.newest'.tr,
+        SortBy.oldest => 'leads.sort.oldest'.tr,
+        SortBy.revenue => 'leads.sort.highest_value'.tr,
         SortBy.priority => 'Priority',
       };
 
@@ -110,7 +111,7 @@ class _SortButton extends StatelessWidget {
 
     return PopupMenuButton<SortBy>(
       onSelected: onSortChanged,
-      tooltip: 'Sort leads',
+      tooltip: 'leads.sort_leads'.tr,
       initialValue: sortBy,
       color: colors.surfaceSoft,
       itemBuilder: (_) => [

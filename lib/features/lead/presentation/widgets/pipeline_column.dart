@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/features/lead/presentation/l10n/lead_labels.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/lead.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/pipeline_stage.dart';
@@ -83,7 +85,7 @@ class PipelineColumn extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    title ?? stage.label,
+                    title ?? stage.localizedLabel,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -138,7 +140,10 @@ class PipelineColumn extends StatelessWidget {
                           child: Padding(
                             padding: const EdgeInsets.all(24),
                             child: Text(
-                                'No ${(title ?? stage.label).toLowerCase()} yet',
+                                'leads.no_stage_yet'.trParams({
+                                  'stage': (title ?? stage.localizedLabel)
+                                      .toLowerCase()
+                                }),
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                     color: colors.textSecondary, fontSize: 12)),

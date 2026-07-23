@@ -59,7 +59,7 @@ class CreditSummaryCard extends StatelessWidget {
           if (summary.notes.isNotEmpty) ...[
             Divider(color: colors.divider, height: 20),
             Text(
-              'Outstanding Notes',
+              'orders.quotation_extra.outstanding_notes'.tr,
               style: TextStyle(
                 color: colors.textPrimary,
                 fontSize: 11,

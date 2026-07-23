@@ -4,6 +4,7 @@ import 'package:pdf/widgets.dart' as pw;
 
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/services/pdf/pdf_document_builder.dart';
+import 'package:isi_steel_sales_mobile/core/services/pdf/pdf_shaped_text.dart';
 import 'package:isi_steel_sales_mobile/core/services/pdf/pdf_theme.dart';
 import 'package:isi_steel_sales_mobile/features/order/pdf/quotation_pdf_data.dart';
 
@@ -17,20 +18,53 @@ import 'package:isi_steel_sales_mobile/features/order/pdf/quotation_pdf_data.dar
 ///
 /// Uses [pw.MultiPage] so a 100+ line quotation paginates automatically, with
 /// the table header repeated and page numbers in the footer.
+///
+/// ## Khmer rendering
+///
+/// Every text site goes through [PdfShapedText]: Latin strings render as
+/// normal vector text; strings containing Khmer are shaped by Flutter's text
+/// engine and embedded as print-resolution images, so a Khmer session
+/// produces a **correctly written** Khmer document (proper subscript
+/// consonants and vowel order — the raw PDF engine cannot do this). The
+/// [build] method runs the layout twice: pass 1 collects every string that
+/// needs shaping, [PdfShapedText.warmPending] rasterizes them, pass 2 builds
+/// the real page from the warm cache.
 class QuotationPdfGenerator extends PdfDocumentBuilder {
   QuotationPdfGenerator(this.data);
 
   final QuotationPdfData data;
 
+  final PdfShapedText _shaped = PdfShapedText();
+
   @override
   String get documentName => 'ISI_Quotation';
 
-  // Labels resolve through the app's localization singleton, so a Khmer session
-  // produces a Khmer document (rendered via the Kantumruy font fallback).
+  // Labels resolve through the app's localization singleton, so a Khmer
+  // session produces a Khmer document (shaped via PdfShapedText).
   String _l(String key, String fallback) {
     final value = key.tr;
     return value == key ? fallback : value;
   }
+
+  /// Shaping-aware replacement for `pw.Text` — identical style surface.
+  pw.Widget _t(
+    String text, {
+    required double fontSize,
+    required PdfColor color,
+    bool bold = false,
+    double letterSpacing = 0,
+    double lineSpacing = 0,
+    double? maxWidth,
+  }) =>
+      _shaped.text(
+        text,
+        fontSize: fontSize,
+        color: color,
+        bold: bold,
+        letterSpacing: letterSpacing,
+        lineSpacing: lineSpacing,
+        maxWidth: maxWidth,
+      );
 
   @override
   Future<pw.Document> build(PdfBuildContext context) async {
@@ -47,6 +81,20 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
     );
     final dateFmt = DateFormat('dd MMM yyyy');
 
+    // Pass 1 — build and discard every section once so PdfShapedText records
+    // each string that needs Khmer shaping, then rasterize them all.
+    _header(theme, logo);
+    _continuationBanner(theme);
+    _partiesBlock(theme, dateFmt);
+    _lineItemsTable(theme, currency);
+    _totalsBlock(theme, currency);
+    _notesBlock(theme);
+    _signatureBlock(theme);
+    _footerBrand(theme);
+    _pageLabel(theme);
+    await _shaped.warmPending();
+
+    // Pass 2 — the real document; every shaped string now hits the cache.
     doc.addPage(
       pw.MultiPage(
         pageTheme: pw.PageTheme(
@@ -104,24 +152,25 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
                   ),
                 ),
               pw.SizedBox(height: theme.gapXs),
-              pw.Text(
+              _t(
                 _l('orders.quotation.pdf.company_tagline',
                     'Steel Solutions for Construction'),
-                style: pw.TextStyle(fontSize: 9, color: theme.muted),
+                fontSize: 9,
+                color: theme.muted,
+                maxWidth: 250,
               ),
             ],
           ),
           pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.end,
             children: [
-              pw.Text(
+              _t(
                 _l('orders.quotation.pdf.title', 'QUOTATION'),
-                style: pw.TextStyle(
-                  fontSize: 22,
-                  fontWeight: pw.FontWeight.bold,
-                  color: theme.brandNavy,
-                  letterSpacing: 1.5,
-                ),
+                fontSize: 22,
+                bold: true,
+                color: theme.brandNavy,
+                letterSpacing: 1.5,
+                maxWidth: 250,
               ),
               pw.SizedBox(height: theme.gapXs),
               pw.Text(
@@ -151,12 +200,13 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
       child: pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
-          pw.Text(
-              'ISI STEEL — ${_l('orders.quotation.pdf.title', 'QUOTATION')}',
-              style: pw.TextStyle(
-                  fontSize: 9,
-                  color: theme.muted,
-                  fontWeight: pw.FontWeight.bold)),
+          _t(
+            'ISI STEEL — ${_l('orders.quotation.pdf.title', 'QUOTATION')}',
+            fontSize: 9,
+            color: theme.muted,
+            bold: true,
+            maxWidth: 300,
+          ),
           pw.Text('# ${data.quotationNumber}',
               style: pw.TextStyle(fontSize: 9, color: theme.muted)),
         ],
@@ -229,28 +279,24 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          pw.Text(
+          _t(
             title,
-            style: pw.TextStyle(
-              fontSize: 8,
-              fontWeight: pw.FontWeight.bold,
-              color: theme.brandAccent,
-              letterSpacing: 0.6,
-            ),
+            fontSize: 8,
+            bold: true,
+            color: theme.brandAccent,
+            letterSpacing: 0.6,
+            maxWidth: 165,
           ),
           pw.SizedBox(height: theme.gapSm),
           for (final row in rows) ...[
             if (row.label != null)
-              pw.Text(row.label!,
-                  style: pw.TextStyle(fontSize: 7.5, color: theme.muted)),
-            pw.Text(
+              _t(row.label!, fontSize: 7.5, color: theme.muted, maxWidth: 165),
+            _t(
               row.value,
-              style: pw.TextStyle(
-                fontSize: row.emphasize ? 11 : 9,
-                fontWeight:
-                    row.emphasize ? pw.FontWeight.bold : pw.FontWeight.normal,
-                color: theme.ink,
-              ),
+              fontSize: row.emphasize ? 11 : 9,
+              bold: row.emphasize,
+              color: theme.ink,
+              maxWidth: 165,
             ),
             pw.SizedBox(height: theme.gapXs),
           ],
@@ -289,14 +335,13 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
       return pw.Container(
         alignment: align,
         padding: const pw.EdgeInsets.symmetric(vertical: 7, horizontal: 6),
-        child: pw.Text(
+        child: _t(
           text,
-          style: pw.TextStyle(
-            fontSize: 8,
-            fontWeight: pw.FontWeight.bold,
-            color: theme.onBrand,
-            letterSpacing: 0.4,
-          ),
+          fontSize: 8,
+          bold: true,
+          color: theme.onBrand,
+          letterSpacing: 0.4,
+          maxWidth: 190,
         ),
       );
     }
@@ -343,25 +388,23 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
           pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.Text(line.name,
-                  style: pw.TextStyle(
-                      fontSize: 9,
-                      color: theme.ink,
-                      fontWeight: pw.FontWeight.bold)),
+              _t(line.name,
+                  fontSize: 9, bold: true, color: theme.ink, maxWidth: 190),
               if (line.description.isNotEmpty)
-                pw.Text(line.description,
-                    style: pw.TextStyle(fontSize: 7.5, color: theme.muted)),
+                _t(line.description,
+                    fontSize: 7.5, color: theme.muted, maxWidth: 190),
               if (line.discountPercent > 0)
-                pw.Text(
+                _t(
                   '${_l('orders.quotation.pdf.line_discount', 'Line discount')}: '
                   '${line.discountPercent.toStringAsFixed(0)}%',
-                  style: pw.TextStyle(fontSize: 7, color: theme.success),
+                  fontSize: 7,
+                  color: theme.success,
+                  maxWidth: 190,
                 ),
             ],
           ),
         ),
-        cell(pw.Text(line.unit,
-            style: pw.TextStyle(fontSize: 8.5, color: theme.ink))),
+        cell(_t(line.unit, fontSize: 8.5, color: theme.ink, maxWidth: 55)),
         cell(pw.Text(qty, style: pw.TextStyle(fontSize: 8.5, color: theme.ink)),
             align: pw.Alignment.centerRight),
         cell(
@@ -388,12 +431,11 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
         child: pw.Row(
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
-            pw.Text(label,
-                style: pw.TextStyle(
-                    fontSize: grand ? 12 : 9.5,
-                    color: grand ? theme.brandNavy : theme.muted,
-                    fontWeight:
-                        grand ? pw.FontWeight.bold : pw.FontWeight.normal)),
+            _t(label,
+                fontSize: grand ? 12 : 9.5,
+                bold: grand,
+                color: grand ? theme.brandNavy : theme.muted,
+                maxWidth: 130),
             pw.Text(value,
                 style: pw.TextStyle(
                     fontSize: grand ? 13 : 9.5,
@@ -442,20 +484,22 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-        pw.Text(_l('orders.quotation.pdf.notes', 'NOTES'),
-            style: pw.TextStyle(
-                fontSize: 8,
-                fontWeight: pw.FontWeight.bold,
-                color: theme.brandAccent,
-                letterSpacing: 0.6)),
+        _t(_l('orders.quotation.pdf.notes', 'NOTES'),
+            fontSize: 8,
+            bold: true,
+            color: theme.brandAccent,
+            letterSpacing: 0.6,
+            maxWidth: 200),
         pw.SizedBox(height: theme.gapXs),
-        pw.Text(
+        _t(
           notes.isNotEmpty
               ? notes
               : _l('orders.quotation.pdf.notes_default',
                   'Prices are held for 7 days from the quotation date. This is a quotation only and not a final invoice. Delivery lead times are confirmed on order.'),
-          style:
-              pw.TextStyle(fontSize: 8.5, color: theme.muted, lineSpacing: 2),
+          fontSize: 8.5,
+          color: theme.muted,
+          lineSpacing: 2,
+          maxWidth: 525,
         ),
       ],
     );
@@ -476,8 +520,8 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
                 ),
               ),
               padding: pw.EdgeInsets.only(top: theme.gapXs),
-              child: pw.Text(label,
-                  style: pw.TextStyle(fontSize: 8.5, color: theme.muted)),
+              child:
+                  _t(label, fontSize: 8.5, color: theme.muted, maxWidth: 150),
             ),
           ],
         ),
@@ -498,6 +542,25 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
   }
 
   // ── Footer ─────────────────────────────────────────────────────────────
+  //
+  // Split so the localizable parts ([_footerBrand], [_pageLabel]) can be
+  // warmed in pass 1 without a real `pw.Context`; only the page numbers are
+  // per-page dynamic, and digits never need shaping.
+  pw.Widget _footerBrand(PdfTheme theme) => _t(
+        _l('orders.quotation.pdf.footer',
+            'ISI Steel · Generated by ISI Sales Mobile'),
+        fontSize: 7.5,
+        color: theme.muted,
+        maxWidth: 350,
+      );
+
+  pw.Widget _pageLabel(PdfTheme theme) => _t(
+        _l('orders.quotation.pdf.page', 'Page'),
+        fontSize: 7.5,
+        color: theme.muted,
+        maxWidth: 80,
+      );
+
   pw.Widget _footer(PdfTheme theme, pw.Context ctx) {
     return pw.Container(
       margin: pw.EdgeInsets.only(top: theme.gapSm),
@@ -509,16 +572,14 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
       child: pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
-          pw.Text(
-            _l('orders.quotation.pdf.footer',
-                'ISI Steel · Generated by ISI Sales Mobile'),
-            style: pw.TextStyle(fontSize: 7.5, color: theme.muted),
-          ),
-          pw.Text(
-            '${_l('orders.quotation.pdf.page', 'Page')} '
-            '${ctx.pageNumber} / ${ctx.pagesCount}',
-            style: pw.TextStyle(fontSize: 7.5, color: theme.muted),
-          ),
+          _footerBrand(theme),
+          pw.Row(children: [
+            _pageLabel(theme),
+            pw.Text(
+              ' ${ctx.pageNumber} / ${ctx.pagesCount}',
+              style: pw.TextStyle(fontSize: 7.5, color: theme.muted),
+            ),
+          ]),
         ],
       ),
     );

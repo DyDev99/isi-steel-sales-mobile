@@ -80,7 +80,7 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen> {
           id: '${DateTime.now().microsecondsSinceEpoch}',
           stopId: stop.id,
           url: result.filePath,
-          caption: 'Shopfront proof',
+          caption: 'my_visits.stop.shopfront_proof'.tr,
           takenAt: result.takenAt,
         ));
   }
@@ -531,7 +531,7 @@ class _DropzonePlaceholder extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           isLocked
-              ? 'my_visits.flow.transit_banner_lockedTemplate'.tr
+              ? 'my_visits.flow.transit_banner_locked'.tr
               : 'my_visits.flow.take_photo'.tr,
           style: TextStyle(
               color: isLocked ? colors.textSecondary : colors.textPrimary,

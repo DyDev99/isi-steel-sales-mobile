@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/features/lead/presentation/l10n/lead_labels.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/device/device_insets.dart';
 import 'package:phone_form_field/phone_form_field.dart'; // Upgraded phone field package
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
@@ -45,10 +47,10 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
       TextEditingController(text: widget.existing?.assignedRepName);
   late final _revenue = TextEditingController(
       text: widget.existing?.expectedRevenue.toStringAsFixed(0) ?? '');
-  
+
   // State for the upgraded PhoneFormField
   PhoneNumber? _phoneValue;
-  
+
   late LeadSource _source =
       widget.existing?.leadSource ?? LeadSource.fieldVisit;
   late Priority _priority = widget.existing?.priority ?? Priority.medium;
@@ -73,14 +75,7 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
 
   @override
   void dispose() {
-    for (final c in [
-      _company,
-      _owner,
-      _address,
-      _territory,
-      _rep,
-      _revenue
-    ]) {
+    for (final c in [_company, _owner, _address, _territory, _rep, _revenue]) {
       c.dispose();
     }
     super.dispose();
@@ -90,7 +85,7 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final colors = context.appColors;
-    
+
     return Padding(
       // Handled using your custom context device insets helper extension
       padding: EdgeInsets.only(bottom: context.deviceInsets.keyboard),
@@ -114,16 +109,20 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(_isEdit ? 'Edit lead' : 'New lead',
+                            Text(
+                                _isEdit
+                                    ? 'leads.edit_lead'.tr
+                                    : 'leads.new_lead'.tr,
                                 style: TextStyle(
                                     color: colors.textPrimary,
                                     fontSize: 17,
                                     fontWeight: FontWeight.w800)),
                             if (!_isEdit) ...[
                               const SizedBox(height: 4),
-                              Text("That's enough to start — don't grill a cold lead.",
+                              Text('leads.form_hint'.tr,
                                   style: TextStyle(
-                                      color: colors.textSecondary, fontSize: 12.5)),
+                                      color: colors.textSecondary,
+                                      fontSize: 12.5)),
                             ],
                           ],
                         ),
@@ -137,8 +136,8 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  _field('Company / Shop name', _company, required: true),
-                  
+                  _field('leads.company_name'.tr, _company, required: true),
+
                   // Upgraded PhoneFormField styled natively to match theme specs
                   Padding(
                     padding: const EdgeInsets.only(bottom: 12),
@@ -149,10 +148,10 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
                       // Always strictly required validation format execution rule
                       validator: (v) {
                         if (v == null || v.nsn.trim().isEmpty) {
-                          return 'Required';
+                          return 'profile.required'.tr;
                         }
                         if (!v.isValid()) {
-                          return 'Invalid phone number';
+                          return 'leads.invalid_phone'.tr;
                         }
                         return null;
                       },
@@ -168,7 +167,8 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
                             ],
                           ),
                         ),
-                        labelStyle: TextStyle(color: colors.textSecondary, fontSize: 13),
+                        labelStyle: TextStyle(
+                            color: colors.textSecondary, fontSize: 13),
                         filled: true,
                         fillColor: colors.card,
                         border: OutlineInputBorder(
@@ -182,9 +182,9 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
                       ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 4),
-                  Text('Interested products (optional)',
+                  Text('leads.interested_products'.tr,
                       style: TextStyle(
                           color: colors.textSecondary,
                           fontSize: 12,
@@ -221,21 +221,21 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
                       onPressed: () => setState(() => _showMore = true),
                       icon: Icon(Icons.add_rounded,
                           size: 16, color: scheme.primary),
-                      label: Text('Add more details',
+                      label: Text('leads.add_more_details'.tr,
                           style:
                               TextStyle(color: scheme.primary, fontSize: 13)),
                     ),
                   ],
                   if (_isEdit || _showMore) ...[
                     const SizedBox(height: 8),
-                    _field('Owner name', _owner),
-                    _field('Address', _address),
-                    _field('Territory / Province', _territory),
-                    _field('Assigned sales rep', _rep),
-                    _field('Expected revenue (\$)', _revenue,
+                    _field('leads.owner_name'.tr, _owner),
+                    _field('customers.address'.tr, _address),
+                    _field('leads.territory_province'.tr, _territory),
+                    _field('leads.assigned_sales_rep'.tr, _rep),
+                    _field('leads.expected_revenue_usd'.tr, _revenue,
                         keyboardType: TextInputType.number),
                     const SizedBox(height: 8),
-                    Text('Lead source',
+                    Text('leads.lead_source'.tr,
                         style: TextStyle(
                             color: colors.textSecondary,
                             fontSize: 12,
@@ -245,7 +245,7 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
                       spacing: 8,
                       children: LeadSource.values
                           .map((s) => ChoiceChip(
-                                label: Text(s.label),
+                                label: Text(s.localizedLabel),
                                 selected: _source == s,
                                 onSelected: (_) => setState(() => _source = s),
                                 labelStyle: TextStyle(
@@ -305,7 +305,10 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14)),
                       ),
-                      child: Text(_isEdit ? 'Save changes' : 'Create lead',
+                      child: Text(
+                          _isEdit
+                              ? 'common.save_changes'.tr
+                              : 'leads.create_lead'.tr,
                           style: const TextStyle(fontWeight: FontWeight.w700)),
                     ),
                   ),
@@ -364,7 +367,7 @@ class _LeadFormSheetState extends State<_LeadFormSheet> {
     if (!_formKey.currentState!.validate()) return;
     final revenue = double.tryParse(_revenue.text.trim()) ?? 0;
     final base = widget.existing;
-    
+
     // Extract format option string from PhoneNumber configuration model
     final phoneString = _phoneValue?.international ?? '';
 

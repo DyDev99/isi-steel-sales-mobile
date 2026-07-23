@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/active_workflow.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_plan.dart';
@@ -48,17 +49,17 @@ class _VisitCard extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Dismiss check-in?'),
-        content: Text(
-            'You can still reopen "${route.name}" from the Visits tab later.'),
+        title: Text('sync.dismiss_checkin_title'.tr),
+        content:
+            Text('sync.dismiss_checkin_body'.trParams({'route': route.name})),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Keep'),
+            child: Text('common.keep'.tr),
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text('Dismiss',
+            child: Text('common.dismiss'.tr,
                 style: TextStyle(
                     color: Theme.of(dialogContext).colorScheme.error)),
           ),
@@ -76,17 +77,16 @@ class _VisitCard extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Check out of this visit?'),
-        content:
-            const Text('This completes the visit and closes the current stop.'),
+        title: Text('sync.checkout_title'.tr),
+        content: Text('sync.checkout_body'.tr),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
+            child: Text('common.cancel'.tr),
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Check out'),
+            child: Text('sync.check_out'.tr),
           ),
         ],
       ),
@@ -116,7 +116,7 @@ class _VisitCard extends StatelessWidget {
               Icon(Icons.pin_drop_rounded, size: 18, color: colors.info),
               const SizedBox(width: 8),
               Expanded(
-                child: Text('Continue Previous Work',
+                child: Text('sync.continue_previous'.tr,
                     style: TextStyle(
                         fontSize: 13.5,
                         fontWeight: FontWeight.w800,
@@ -145,7 +145,7 @@ class _VisitCard extends StatelessWidget {
           ),
           const SizedBox(height: 2),
           Text(
-            'Check-in in progress · $done of $total stops done',
+            'sync.checkin_progress'.trParams({'done': done, 'total': total}),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(fontSize: 12, color: colors.textSecondary),
@@ -172,7 +172,7 @@ class _VisitCard extends StatelessWidget {
                     side: BorderSide(color: colors.info),
                     padding: const EdgeInsets.symmetric(vertical: 10),
                   ),
-                  child: const Text('Check out'),
+                  child: Text('sync.check_out'.tr),
                 ),
               ),
               const SizedBox(width: 10),
@@ -184,7 +184,7 @@ class _VisitCard extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 10),
                   ),
                   icon: const Icon(Icons.play_arrow_rounded, size: 18),
-                  label: const Text('Continue'),
+                  label: Text('common.continue'.tr),
                 ),
               ),
             ],

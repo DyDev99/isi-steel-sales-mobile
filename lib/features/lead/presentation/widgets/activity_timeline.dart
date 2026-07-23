@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/activity_log_item.dart';
 
@@ -62,7 +63,7 @@ class ActivityTimeline extends StatelessWidget {
     if (items.isEmpty) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Text('No activity yet',
+        child: Text('common.no_activity_yet'.tr,
             style: TextStyle(color: colors.textSecondary, fontSize: 12.5)),
       );
     }

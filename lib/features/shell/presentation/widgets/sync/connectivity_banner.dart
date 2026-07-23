@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/network/connectivity_cubit.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
@@ -22,14 +23,15 @@ class ConnectivityBanner extends StatelessWidget {
             borderRadius: BorderRadius.circular(14),
             boxShadow: colors.cardShadow,
           ),
-          child: const Row(
+          child: Row(
             children: [
-              Icon(Icons.cloud_off_rounded, color: Colors.white, size: 18),
-              SizedBox(width: 10),
+              const Icon(Icons.cloud_off_rounded,
+                  color: Colors.white, size: 18),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'You’re offline — everything is saved on this device.',
-                  style: TextStyle(
+                  'sync.offline_banner'.tr,
+                  style: const TextStyle(
                       color: Colors.white,
                       fontSize: 12.5,
                       fontWeight: FontWeight.w600),

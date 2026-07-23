@@ -1,5 +1,6 @@
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/domain/entities/user_role.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/lead.dart';
@@ -126,7 +127,8 @@ class PipelineBloc extends Bloc<PipelineEvent, PipelineState> {
     } catch (_) {
       // Roll back on failure.
       emit(current.copyWith(
-          blockedMoveMessage: () => "Couldn't move ${lead.companyName}"));
+          blockedMoveMessage: () =>
+              'leads.couldnt_move'.trParams({'company': lead.companyName})));
     }
   }
 

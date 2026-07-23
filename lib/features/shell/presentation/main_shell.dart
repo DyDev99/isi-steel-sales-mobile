@@ -244,10 +244,14 @@ class _MainShellState extends State<MainShell> {
                     padding: EdgeInsets.symmetric(horizontal: 16.w),
                     child: CoachKeys.wrap(
                       CoachKeys.monthlyTarget,
-                      child: const MonthlyTargetCard(
+                      child: MonthlyTargetCard(
                         targetAmount: 1000000,
                         achievedAmount: 750000,
-                        monthName: 'August',
+                        // Current month, localized via the bundle so it
+                        // follows the app language (needs no intl locale
+                        // data for Khmer).
+                        monthName:
+                            'calendar.months.m${DateTime.now().month}'.tr,
                       ),
                     ),
                   ),

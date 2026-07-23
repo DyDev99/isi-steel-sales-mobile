@@ -36,7 +36,8 @@ void main() {
   tearDown(() => db.close());
 
   test('upsert then fetch round-trips the DataMap contract', () async {
-    await source.upsertItem(_row('1', quantity: 3, discount: 10, customerId: 'C1'));
+    await source
+        .upsertItem(_row('1', quantity: 3, discount: 10, customerId: 'C1'));
     final rows = await source.fetchCartRows();
     expect(rows.length, 1);
     final r = rows.single;

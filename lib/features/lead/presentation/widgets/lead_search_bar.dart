@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
 /// The pipeline's single action row: search field · filter · add lead.
@@ -18,7 +19,7 @@ class LeadSearchBar extends StatefulWidget {
     required this.onAddLead,
     this.initialValue = '',
     this.hasActiveFilters = false,
-    this.hintText = 'Search leads...',
+    this.hintText,
   });
 
   final ValueChanged<String> onChanged;
@@ -29,7 +30,10 @@ class LeadSearchBar extends StatefulWidget {
   final VoidCallback onAddLead;
   final String initialValue;
   final bool hasActiveFilters;
-  final String hintText;
+
+  /// Custom hint; defaults to the localized "Search leads…" at build time
+  /// (cannot be a constructor default — `.tr` isn't const).
+  final String? hintText;
 
   @override
   State<LeadSearchBar> createState() => _LeadSearchBarState();
@@ -64,7 +68,7 @@ class _LeadSearchBarState extends State<LeadSearchBar> {
                 isDense: true,
                 filled: true,
                 fillColor: colors.card,
-                hintText: widget.hintText,
+                hintText: widget.hintText ?? 'leads.search_hint'.tr,
                 hintStyle: TextStyle(color: colors.textHint, fontSize: 14),
                 prefixIcon: Icon(Icons.search_rounded,
                     color: colors.textSecondary, size: 20),
@@ -75,7 +79,7 @@ class _LeadSearchBarState extends State<LeadSearchBar> {
                     : IconButton(
                         icon: Icon(Icons.close_rounded,
                             size: 18, color: colors.textSecondary),
-                        tooltip: 'Clear search',
+                        tooltip: 'common.clear_search'.tr,
                         onPressed: () {
                           _controller.clear();
                           widget.onChanged('');
@@ -101,7 +105,7 @@ class _LeadSearchBarState extends State<LeadSearchBar> {
           const SizedBox(width: 10),
           _SquareAction(
             icon: Icons.tune_rounded,
-            tooltip: 'Filter leads',
+            tooltip: 'leads.filter_leads'.tr,
             onTap: widget.onFilterTap,
             // The only signal that a filter is hiding rows — without it a rep
             // can't tell an empty board from a filtered one.
@@ -110,7 +114,7 @@ class _LeadSearchBarState extends State<LeadSearchBar> {
           const SizedBox(width: 10),
           _SquareAction(
             icon: Icons.add_rounded,
-            tooltip: 'Add lead',
+            tooltip: 'leads.add_lead'.tr,
             onTap: widget.onAddLead,
             filled: true,
           ),

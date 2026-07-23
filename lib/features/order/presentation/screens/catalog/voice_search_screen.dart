@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
@@ -34,13 +35,12 @@ class _VoiceSearchScreenState extends State<VoiceSearchScreen> {
       );
       if (!mounted) return;
       if (!available) {
-        setState(
-            () => _error = 'Voice search isn\'t available on this device.');
+        setState(() => _error = 'orders.voice.unavailable'.tr);
         return;
       }
       await _startListening();
     } catch (_) {
-      if (mounted) setState(() => _error = 'Couldn\'t start voice search.');
+      if (mounted) setState(() => _error = 'orders.voice.start_failed'.tr);
     }
   }
 
@@ -82,8 +82,8 @@ class _VoiceSearchScreenState extends State<VoiceSearchScreen> {
     setState(() {
       _listening = false;
       _error = message.contains('no match') || message.contains('timeout')
-          ? 'Didn\'t catch that. Tap the mic to try again.'
-          : 'Voice search error. Tap the mic to try again.';
+          ? 'orders.voice.no_match_heard'.tr
+          : 'orders.voice.error'.tr;
     });
   }
 
@@ -111,7 +111,7 @@ class _VoiceSearchScreenState extends State<VoiceSearchScreen> {
       appBar: AppBar(
         backgroundColor: colors.canvas,
         iconTheme: IconThemeData(color: colors.textPrimary),
-        title: Text('Voice Search',
+        title: Text('orders.voice.title'.tr,
             style: TextStyle(
                 color: colors.textPrimary,
                 fontSize: 17,
@@ -125,7 +125,9 @@ class _VoiceSearchScreenState extends State<VoiceSearchScreen> {
             children: [
               const Spacer(),
               Text(
-                _listening ? 'Listening…' : (_error ?? 'Tap the mic to start'),
+                _listening
+                    ? 'orders.voice.listening'.tr
+                    : (_error ?? 'orders.voice.tap_to_start'.tr),
                 textAlign: TextAlign.center,
                 style: TextStyle(color: colors.textSecondary, fontSize: 14),
               ),
@@ -158,9 +160,7 @@ class _VoiceSearchScreenState extends State<VoiceSearchScreen> {
               ),
               const SizedBox(height: 28),
               Text(
-                _words.isEmpty
-                    ? 'Say a product name, e.g. "12mm rebar"'
-                    : _words,
+                _words.isEmpty ? 'orders.voice.example'.tr : _words,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: _words.isEmpty
@@ -178,7 +178,7 @@ class _VoiceSearchScreenState extends State<VoiceSearchScreen> {
                   child: ElevatedButton.icon(
                     onPressed: _accept,
                     icon: const Icon(Icons.search_rounded),
-                    label: const Text('Search'),
+                    label: Text('common.search_button'.tr),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primaryColor,
                       foregroundColor: Theme.of(context).colorScheme.onPrimary,

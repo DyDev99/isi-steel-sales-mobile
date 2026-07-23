@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/glass_card.dart';
@@ -43,17 +44,17 @@ class _StopDetailScreenState extends State<StopDetailScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: context.appColors.surfaceSoft,
-        title: Text('Add Note',
+        title: Text('common.add_note'.tr,
             style: TextStyle(color: context.appColors.textPrimary)),
         content:
             TextField(controller: controller, autofocus: true, maxLines: 3),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel')),
+              child: Text('common.cancel'.tr)),
           TextButton(
               onPressed: () => Navigator.pop(context, controller.text.trim()),
-              child: const Text('Save')),
+              child: Text('common.save'.tr)),
         ],
       ),
     );
@@ -74,7 +75,9 @@ class _StopDetailScreenState extends State<StopDetailScreen> {
           stopId: stopId,
           url:
               'https://picsum.photos/seed/$stopId${DateTime.now().millisecondsSinceEpoch}/400/300',
-          caption: isSignature ? 'Customer signature' : 'Visit photo',
+          caption: isSignature
+              ? 'my_visits.stop.customer_signature'.tr
+              : 'my_visits.stop.visit_photo'.tr,
           takenAt: DateTime.now(),
           isSignature: isSignature,
         ));
@@ -89,7 +92,7 @@ class _StopDetailScreenState extends State<StopDetailScreen> {
       appBar: AppBar(
         backgroundColor: scheme.surface,
         iconTheme: IconThemeData(color: colors.textPrimary),
-        title: Text('Visit',
+        title: Text('customers.visit'.tr,
             style: TextStyle(
                 color: colors.textPrimary,
                 fontSize: 17,
@@ -99,7 +102,7 @@ class _StopDetailScreenState extends State<StopDetailScreen> {
         builder: (context, state) {
           if (state is! ActiveRouteReady || !state.hasCurrentStop) {
             return Center(
-                child: Text('No stop selected',
+                child: Text('my_visits.flow.no_stop'.tr,
                     style: TextStyle(color: colors.textSecondary)));
           }
           final stop = state.route.stops[state.currentStopIndex];
@@ -149,8 +152,11 @@ class _StopDetailScreenState extends State<StopDetailScreen> {
                         size: 20),
                     label: Text(
                       state.insideGeofence
-                          ? 'Check In'
-                          : 'Get closer to unlock (${state.distanceMeters.toStringAsFixed(0)}m away)',
+                          ? 'my_visits.stop.check_in'.tr
+                          : 'my_visits.stop.get_closer'.trParams({
+                              'distance':
+                                  state.distanceMeters.toStringAsFixed(0)
+                            }),
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: scheme.primary,
@@ -164,13 +170,13 @@ class _StopDetailScreenState extends State<StopDetailScreen> {
                 ),
               if (stop.status == VisitStatus.checkedIn) ...[
                 _Section(
-                  title: 'Capture',
+                  title: 'my_visits.stop.capture'.tr,
                   child: Wrap(
                     spacing: 8,
                     runSpacing: 8,
                     children: [
                       _ActionChip(
-                          label: 'Order',
+                          label: 'my_visits.stop.order'.tr,
                           icon: Icons.shopping_cart_rounded,
                           onTap: () async {
                             final line = await showOrderCaptureSheet(
@@ -180,7 +186,7 @@ class _StopDetailScreenState extends State<StopDetailScreen> {
                             }
                           }),
                       _ActionChip(
-                          label: 'Stock',
+                          label: 'my_visits.stop.stock'.tr,
                           icon: Icons.inventory_2_rounded,
                           onTap: () async {
                             final update = await showStockUpdateSheet(
@@ -190,7 +196,7 @@ class _StopDetailScreenState extends State<StopDetailScreen> {
                             }
                           }),
                       _ActionChip(
-                          label: 'Return',
+                          label: 'my_visits.stop.return_label'.tr,
                           icon: Icons.undo_rounded,
                           onTap: () async {
                             final ret = await showReturnsSheet(
@@ -200,7 +206,7 @@ class _StopDetailScreenState extends State<StopDetailScreen> {
                             }
                           }),
                       _ActionChip(
-                          label: 'Collection',
+                          label: 'my_visits.stop.collection'.tr,
                           icon: Icons.payments_rounded,
                           onTap: () async {
                             final collection = await showCollectionsSheet(
@@ -212,15 +218,15 @@ class _StopDetailScreenState extends State<StopDetailScreen> {
                             }
                           }),
                       _ActionChip(
-                          label: 'Note',
+                          label: 'my_visits.stop.note'.tr,
                           icon: Icons.note_alt_rounded,
                           onTap: () => _addNote(context, stop.id)),
                       _ActionChip(
-                          label: 'Photo',
+                          label: 'my_visits.stop.photo'.tr,
                           icon: Icons.photo_camera_rounded,
                           onTap: () => _addMockPhoto(context, stop.id)),
                       _ActionChip(
-                          label: 'Signature',
+                          label: 'my_visits.stop.signature'.tr,
                           icon: Icons.draw_rounded,
                           onTap: () => _addMockPhoto(context, stop.id,
                               isSignature: true)),
@@ -228,7 +234,7 @@ class _StopDetailScreenState extends State<StopDetailScreen> {
                   ),
                 ),
                 _Section(
-                  title: 'Visit Timeline',
+                  title: 'my_visits.stop.visit_timeline'.tr,
                   child: BlocBuilder<VisitCubit, VisitState>(
                     builder: (context, visitState) => VisitTimeline(
                       entries: buildVisitTimeline(stop,
@@ -239,16 +245,15 @@ class _StopDetailScreenState extends State<StopDetailScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton(
-                    onPressed: () => context
-                        .read<ActiveRouteBloc>()
-                        .add(const CheckOutRequested('Visit completed')),
-                    child: const Text('Check Out'),
+                    onPressed: () => context.read<ActiveRouteBloc>().add(
+                        CheckOutRequested('my_visits.stop.visit_completed'.tr)),
+                    child: Text('my_visits.stop.check_out'.tr),
                   ),
                 ),
               ],
               if (stop.status == VisitStatus.checkedOut) ...[
                 const SizedBox(height: 8),
-                Text('Visit completed',
+                Text('my_visits.stop.visit_completed'.tr,
                     style: TextStyle(
                         color: colors.success,
                         fontSize: 13,
@@ -269,7 +274,7 @@ class _StopDetailScreenState extends State<StopDetailScreen> {
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14)),
                     ),
-                    child: const Text('Next Stop'),
+                    child: Text('my_visits.stop.next_stop'.tr),
                   ),
                 ),
               ],

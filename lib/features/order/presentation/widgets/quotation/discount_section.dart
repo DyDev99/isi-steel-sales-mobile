@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:flutter/services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
@@ -81,7 +82,7 @@ class _DiscountSectionState extends State<DiscountSection> {
               decoration: InputDecoration(
                 contentPadding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                hintText: 'Enter value',
+                hintText: 'orders.quotation_extra.enter_value'.tr,
                 hintStyle: TextStyle(fontSize: 12, color: colors.textHint),
                 suffixText: '%',
                 suffixStyle: TextStyle(

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/l10n/order_labels.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/quotation_sync_status.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/sync_queue_item.dart';
@@ -47,7 +49,7 @@ class _SyncSheet extends StatelessWidget {
                   Row(
                     children: [
                       Expanded(
-                        child: Text('Sync Center',
+                        child: Text('sync.center_title'.tr,
                             style: TextStyle(
                                 fontSize: 17,
                                 fontWeight: FontWeight.w800,
@@ -59,7 +61,11 @@ class _SyncSheet extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${state.counts.pending} pending · ${state.counts.failed} failed · ${state.counts.conflict} conflict',
+                    'sync.counts'.trParams({
+                      'pending': state.counts.pending,
+                      'failed': state.counts.failed,
+                      'conflict': state.counts.conflict,
+                    }),
                     style: TextStyle(color: colors.textSecondary, fontSize: 12),
                   ),
                   const SizedBox(height: 12),
@@ -116,7 +122,7 @@ class _SyncNowButton extends StatelessWidget {
               child: CircularProgressIndicator(
                   strokeWidth: 2, color: Colors.white))
           : const Icon(Icons.sync_rounded, size: 16),
-      label: Text(isSyncing ? 'Syncing…' : 'Sync Now'),
+      label: Text(isSyncing ? 'sync.syncing'.tr : 'sync.sync_now'.tr),
     );
   }
 }
@@ -146,7 +152,7 @@ class _QueueTile extends StatelessWidget {
                 child: Text(
                   item.shopName?.isNotEmpty == true
                       ? item.shopName!
-                      : 'Quotation ${item.quotationId}',
+                      : 'sync.quotation_ref'.trParams({'id': item.quotationId}),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -161,9 +167,11 @@ class _QueueTile extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             [
-              if (item.itemCount != null) '${item.itemCount} items',
+              if (item.itemCount != null)
+                'sync.items'.trParams({'count': item.itemCount}),
               if (item.total != null) '\$${item.total!.toStringAsFixed(2)}',
-              if (item.attemptCount > 0) 'attempt ${item.attemptCount}',
+              if (item.attemptCount > 0)
+                'sync.attempt'.trParams({'count': item.attemptCount}),
             ].join(' · '),
             style: TextStyle(color: colors.textSecondary, fontSize: 11.5),
           ),
@@ -193,7 +201,7 @@ class _QueueTile extends StatelessWidget {
                   onPressed: () => context
                       .read<PendingSyncCubit>()
                       .discard(item.quotationId),
-                  child: Text('Discard',
+                  child: Text('common.discard'.tr,
                       style: TextStyle(color: colors.textSecondary)),
                 ),
                 const SizedBox(width: 4),
@@ -201,7 +209,7 @@ class _QueueTile extends StatelessWidget {
                   onPressed: () =>
                       context.read<PendingSyncCubit>().retry(item.quotationId),
                   icon: const Icon(Icons.refresh_rounded, size: 16),
-                  label: const Text('Retry'),
+                  label: Text('common.retry'.tr),
                 ),
               ],
             ),
@@ -242,7 +250,7 @@ class _StatusChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
-        status.label,
+        status.localizedLabel,
         style: TextStyle(
             color: color, fontSize: 10.5, fontWeight: FontWeight.w800),
       ),
@@ -288,11 +296,11 @@ class _EmptyQueue extends StatelessWidget {
           children: [
             Icon(Icons.cloud_done_rounded, size: 40, color: colors.success),
             const SizedBox(height: 10),
-            Text('Everything is synced',
+            Text('sync.everything_synced'.tr,
                 style: TextStyle(
                     color: scheme.onSurface, fontWeight: FontWeight.w700)),
             const SizedBox(height: 4),
-            Text('No quotations waiting for SAP.',
+            Text('sync.none_waiting'.tr,
                 style: TextStyle(color: colors.textSecondary, fontSize: 12)),
           ],
         ),

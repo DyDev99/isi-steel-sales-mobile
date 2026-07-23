@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.dart'
@@ -70,7 +71,7 @@ class _OrderCaptureSheetState extends State<_OrderCaptureSheet> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Capture Order',
+              Text('my_visits.forms.capture_order'.tr,
                   style: TextStyle(
                       color: colors.textPrimary,
                       fontSize: 17,
@@ -80,7 +81,7 @@ class _OrderCaptureSheetState extends State<_OrderCaptureSheet> {
                 controller: _searchController,
                 onChanged: _search,
                 decoration: InputDecoration(
-                  hintText: 'Search products…',
+                  hintText: 'my_visits.forms.search_products'.tr,
                   prefixIcon: const Icon(Icons.search_rounded),
                   filled: true,
                   fillColor: colors.card,
@@ -170,7 +171,7 @@ class _OrderCaptureSheetState extends State<_OrderCaptureSheet> {
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14)),
                   ),
-                  child: const Text('Add to Order'),
+                  child: Text('my_visits.forms.add_to_order'.tr),
                 ),
               ),
             ],

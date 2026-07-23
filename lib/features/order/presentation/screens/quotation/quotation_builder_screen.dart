@@ -233,7 +233,7 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
     if (!mounted) return;
     if (quotation == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to save quotation')));
+          SnackBar(content: Text('orders.quotation_extra.save_failed'.tr)));
       return;
     }
 
@@ -285,7 +285,7 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const _SectionLabel('Unit'),
+              _SectionLabel('orders.quotation_extra.unit'.tr),
               const SizedBox(height: 8),
               UnitSelector.standard(
                 selected: _selectedUnit,
@@ -298,7 +298,7 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const _SectionLabel('Quantity'),
+            _SectionLabel('orders.quotation_extra.quantity'.tr),
             const SizedBox(height: 8),
             QuantityStepper(
               value: _quantity,
@@ -316,7 +316,8 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
     if (filter.categoryId != null) {
       final name = _categoryName(categories, filter.categoryId);
       chips.add(FilterChipData(
-        label: 'Category: ${name ?? filter.categoryId}',
+        label: 'orders.filter.category'
+            .trParams({'name': name ?? filter.categoryId}),
         onClear: () => _selectCategory(null),
       ));
     }
@@ -422,7 +423,7 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                           onImageTap: _imageSearch,
                         ),
                         const SizedBox(height: 16),
-                        const _SectionLabel('Category'),
+                        _SectionLabel('orders.quotation_extra.category'.tr),
                         const SizedBox(height: 8),
                         FilterCategorySelector(
                           categories: categories,
@@ -444,7 +445,7 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                           onClearAll: _clearAllFilters,
                         ),
                         const SizedBox(height: 12),
-                        const _SectionLabel('Results'),
+                        _SectionLabel('orders.quotation_extra.results'.tr),
                         const SizedBox(height: 8),
                         SizedBox(
                           height: 320,
@@ -491,7 +492,7 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                             final String displayShopName =
                                 widget.customer?.shopName ??
                                     widget.leadDisplayName ??
-                                    'Walk-in Customer';
+                                    'orders.quotation_extra.walk_in'.tr;
 
                             return QuotationPreviewSection(
                               shopName: displayShopName,

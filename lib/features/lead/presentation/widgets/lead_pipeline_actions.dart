@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
@@ -84,10 +85,10 @@ class LeadPipelineActions {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: colors.surfaceSoft,
-        title:
-            Text('Delete lead?', style: TextStyle(color: colors.textPrimary)),
+        title: Text('leads.delete_confirm_title'.tr,
+            style: TextStyle(color: colors.textPrimary)),
         content: Text(
-          'This removes ${lead.companyName} from the pipeline.',
+          'leads.delete_confirm_body'.trParams({'company': lead.companyName}),
           style: TextStyle(color: colors.textSecondary),
         ),
         actions: [

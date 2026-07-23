@@ -7,6 +7,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/data/local/visit_drift
 import 'package:isi_steel_sales_mobile/features/my_visits/data/models/check_in_record_model.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/models/check_out_record_model.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/models/visit_capture_models.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/stock_level.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_collection.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_note.dart';
 
@@ -183,7 +184,7 @@ void main() {
         stopId: 's-1',
         productId: 'p-1',
         productName: 'Rebar',
-        countedQuantity: 42,
+        stockLevel: StockLevel.high,
         notes: 'back shelf',
       ));
       await dataSource.insertReturn(VisitReturnModel(
@@ -195,9 +196,30 @@ void main() {
         reason: 'damaged',
       ));
 
-      expect((await dataSource.fetchStockUpdates('s-1')).single.countedQuantity,
-          42);
+      expect((await dataSource.fetchStockUpdates('s-1')).single.stockLevel,
+          StockLevel.high);
       expect((await dataSource.fetchReturns('s-1')).single.reason, 'damaged');
+    });
+
+    test('a depot-scoped stock update (no stop) persists and is pending sync',
+        () async {
+      await dataSource.insertStockUpdate(VisitStockUpdateModel(
+        id: 'su-depot-1',
+        depotId: 'cust-1',
+        productId: 'p-1',
+        productName: 'Rebar',
+        stockLevel: StockLevel.low,
+        notes: '',
+      ));
+
+      // Not attached to any stop…
+      expect(await dataSource.fetchStockUpdates('s-1'), isEmpty);
+      // …but still part of the offline push batch.
+      final pending = await dataSource.fetchPendingStockUpdates();
+      final depotRow = pending.singleWhere((u) => u.id == 'su-depot-1');
+      expect(depotRow.depotId, 'cust-1');
+      expect(depotRow.stopId, isNull);
+      expect(depotRow.stockLevel, StockLevel.low);
     });
 
     test('an unknown stop returns empty rather than throwing', () async {

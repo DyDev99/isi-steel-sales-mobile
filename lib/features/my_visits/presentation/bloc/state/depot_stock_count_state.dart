@@ -1,32 +1,49 @@
 import 'package:equatable/equatable.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/stock_level.dart';
 
-enum DepotStockCountStatus { initial, loading, loaded, empty, error }
+enum DepotStockCountStatus {
+  initial,
+  loading,
+  loaded,
+  empty,
+  error,
+  saving,
+  saved,
+}
 
-/// One SKU being counted at the selected depot/shop.
+/// One SKU whose stock status is being set at the selected depot/shop.
 class StockCountLine extends Equatable {
   const StockCountLine({
     required this.productId,
     required this.name,
     required this.subtitle,
-    this.count = 0,
+    this.imageUrl = '',
+    this.size = '',
+    this.level,
   });
 
   final String productId;
   final String name;
   final String subtitle;
-  final int count;
+  final String imageUrl;
+  final String size;
 
-  bool get isOutOfStock => count == 0;
+  /// The selected three-tier status; `null` until the rep picks one.
+  final StockLevel? level;
 
-  StockCountLine copyWith({int? count}) => StockCountLine(
+  bool get isSet => level != null;
+
+  StockCountLine copyWith({StockLevel? level}) => StockCountLine(
         productId: productId,
         name: name,
         subtitle: subtitle,
-        count: count ?? this.count,
+        imageUrl: imageUrl,
+        size: size,
+        level: level ?? this.level,
       );
 
   @override
-  List<Object?> get props => [productId, name, subtitle, count];
+  List<Object?> get props => [productId, name, subtitle, imageUrl, size, level];
 }
 
 class DepotStockCountState extends Equatable {
@@ -35,6 +52,7 @@ class DepotStockCountState extends Equatable {
     this.shopName,
     this.lines = const [],
     this.message,
+    this.showValidation = false,
   });
 
   final DepotStockCountStatus status;
@@ -42,22 +60,29 @@ class DepotStockCountState extends Equatable {
   final List<StockCountLine> lines;
   final String? message;
 
-  int get countedSkus => lines.where((l) => l.count > 0).length;
+  /// True once the rep tried to finish with unset lines — rows without a
+  /// status highlight themselves until every product has one.
+  final bool showValidation;
+
+  int get setCount => lines.where((l) => l.isSet).length;
+  bool get isComplete => lines.isNotEmpty && lines.every((l) => l.isSet);
 
   DepotStockCountState copyWith({
     DepotStockCountStatus? status,
     String? shopName,
     List<StockCountLine>? lines,
     String? message,
+    bool? showValidation,
   }) {
     return DepotStockCountState(
       status: status ?? this.status,
       shopName: shopName ?? this.shopName,
       lines: lines ?? this.lines,
       message: message ?? this.message,
+      showValidation: showValidation ?? this.showValidation,
     );
   }
 
   @override
-  List<Object?> get props => [status, shopName, lines, message];
+  List<Object?> get props => [status, shopName, lines, message, showValidation];
 }

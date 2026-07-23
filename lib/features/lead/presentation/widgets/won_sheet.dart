@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/lead.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/won_info.dart';
 
-const _timelines = ['This month', 'Next month', 'This quarter'];
+List<String> get _timelines => [
+      'leads.won.this_month'.tr,
+      'leads.won.next_month'.tr,
+      'leads.won.this_quarter'.tr
+    ];
 
 /// Marking a deal Won only asks for the final value; delivery timeline is
 /// optional. This does not create the SAP customer — that's the separate
@@ -54,14 +59,15 @@ class _WonSheetState extends State<_WonSheet> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('${widget.lead.companyName} — Won!',
+              Text(
+                  'leads.won.title'
+                      .trParams({'company': widget.lead.companyName}),
                   style: TextStyle(
                       color: colors.textPrimary,
                       fontSize: 17,
                       fontWeight: FontWeight.w800)),
               const SizedBox(height: 4),
-              Text(
-                  "Nice work. One more step gets this to SAP so HQ can set up billing.",
+              Text('leads.won.subtitle'.tr,
                   style:
                       TextStyle(color: colors.textSecondary, fontSize: 12.5)),
               const SizedBox(height: 16),
@@ -70,7 +76,7 @@ class _WonSheetState extends State<_WonSheet> {
                 keyboardType: TextInputType.number,
                 style: TextStyle(color: colors.textPrimary, fontSize: 14),
                 decoration: InputDecoration(
-                  labelText: 'Final value (\$)',
+                  labelText: 'leads.won.final_value'.tr,
                   labelStyle:
                       TextStyle(color: colors.textSecondary, fontSize: 13),
                   filled: true,
@@ -86,7 +92,7 @@ class _WonSheetState extends State<_WonSheet> {
                 ),
               ),
               const SizedBox(height: 14),
-              Text('Delivery timeline (optional)',
+              Text('leads.won.delivery_timeline'.tr,
                   style: TextStyle(
                       color: colors.textSecondary,
                       fontSize: 12,
@@ -130,8 +136,8 @@ class _WonSheetState extends State<_WonSheet> {
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14)),
                   ),
-                  child: const Text('Mark as Won',
-                      style: TextStyle(fontWeight: FontWeight.w700)),
+                  child: Text('leads.won.mark_as_won'.tr,
+                      style: const TextStyle(fontWeight: FontWeight.w700)),
                 ),
               ),
             ],

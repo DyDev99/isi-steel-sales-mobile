@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
 /// Urgency tier for a [DueBadge]. Lets the same compact pill express
@@ -6,12 +7,15 @@ import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 /// without redesigning the card layout. Today the card passes no urgency, so
 /// the badge falls back to a neutral "N Due".
 enum DueUrgency {
-  upcoming('Upcoming'),
-  dueToday('Due Today'),
-  overdue('Overdue');
+  upcoming('leads.upcoming'),
+  dueToday('leads.due_today'),
+  overdue('leads.overdue');
 
-  const DueUrgency(this.label);
-  final String label;
+  const DueUrgency(this.labelKey);
+  final String labelKey;
+
+  /// Resolved at render time so the badge re-localizes on language change.
+  String get label => labelKey.tr;
 }
 
 /// Compact Material 3 pill that surfaces how many pending actions a record has
@@ -42,7 +46,9 @@ class DueBadge extends StatelessWidget {
     final value = count;
     if (value == null || value <= 0) return const SizedBox.shrink();
 
-    final label = urgency == null ? '$value Due' : '$value ${urgency!.label}';
+    final label = urgency == null
+        ? 'leads.due_count'.trParams({'value': value})
+        : '$value ${urgency!.label}';
     final color = _color(Theme.of(context).colorScheme, context.appColors);
 
     return Container(

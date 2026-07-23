@@ -25,8 +25,10 @@ void main() {
     setUp(() => db = AppDatabase(NativeDatabase.memory()));
     tearDown(() => db.close());
 
-    test('registry constant is 9', () {
-      expect(kCurrentSchemaVersion, 9);
+    test('registry constant covers the v9 SAP columns', () {
+      // v9 landed the SAP sales-area columns; later bumps (v10 stock levels)
+      // move the constant past it, so assert "at least", not equality.
+      expect(kCurrentSchemaVersion, greaterThanOrEqualTo(9));
     });
 
     test('customers carries every new SAP column', () async {
@@ -227,7 +229,7 @@ void main() {
 
       expect(
         await db.appMetadataDao.getValue(SchemaMetadataKeys.schemaVersion),
-        '9',
+        '$kCurrentSchemaVersion',
       );
       expect(
         await db.appMetadataDao.getValue(SchemaMetadataKeys.lastMigratedFrom),

@@ -6,7 +6,7 @@
     "password": "ពាក្យសម្ងាត់",
     "forgot_password": "ភ្លេចពាក្យសម្ងាត់?",
     "remember_me": "ចងចាំការចូលប្រើ",
-    "phone_number":"លេខទូរស័ព្ទ",
+    "phone_number": "លេខទូរស័ព្ទ",
     "email": "អ៊ីមែល",
     "verify_code_title": "ផ្ទៀងផ្ទាត់លេខកូដ",
     "verify_code_subtitle": "សូមបញ្ចូលលេខកូដផ្ទៀងផ្ទាត់ដែលយើងបានផ្ញើទៅកាន់ {target}។",
@@ -48,9 +48,12 @@
       "required": "សូមបំពេញព័ត៌មាននេះ",
       "invalid_cred": "ឈ្មោះអ្នកប្រើប្រាស់ ឬ ពាក្យសម្ងាត់មិនត្រឹមត្រូវឡើយ។ សូមព្យាយាមម្តងទៀត។",
       "session_expired": "វគ្គការងាររបស់អ្នកបានហួសកំណត់។ សូមចូលប្រើប្រាស់គណនីម្តងទៀត។"
-    }
+    },
+    "title": "ចូលគណនី",
+    "verifying": "កំពុងផ្ទៀងផ្ទាត់…",
+    "youre_in": "អ្នកបានចូលរួចរាល់ ✨"
   },
- "common": {
+  "common": {
     "back": "ថយក្រោយ",
     "try_again": "ព្យាយាមម្តងទៀត",
     "good_morning": "អរុណសួស្តី",
@@ -61,9 +64,44 @@
     "offline": "អ្នកគ្មានអ៊ីនធឺណិត — កំពុងបង្ហាញទិន្នន័យដែលបានរក្សាទុក",
     "generic_error": "មានបញ្ហាកើតឡើង។ សូមព្យាយាមម្តងទៀត។",
     "no_connection": "គ្មានការតភ្ជាប់អ៊ីនធឺណិត។ ការផ្លាស់ប្តូរត្រូវបានរក្សាទុកក្នុងឧបករណ៍។",
-    "view_details": "មើលព័ត៌មានលម្អិត"
+    "view_details": "មើលព័ត៌មានលម្អិត",
+    "add_note": "បន្ថែមកំណត់ចំណាំ",
+    "cancel": "បោះបង់",
+    "clear_all": "សម្អាតទាំងអស់",
+    "clear_search": "សម្អាតការស្វែងរក",
+    "continue": "បន្ត",
+    "days_ago": "{days} ថ្ងៃមុន",
+    "delete": "លុប",
+    "discard": "បោះចោល",
+    "dismiss": "បិទចោល",
+    "field_required": "ត្រូវការបំពេញ",
+    "filter_sort": "ត្រង និងតម្រៀប",
+    "hours_ago": "{hours} ម៉ោងមុន",
+    "just_now": "អម្បាញ់មិញ",
+    "keep": "ទុកដដែល",
+    "login_required": "ត្រូវការចូលគណនី",
+    "min_ago": "{minutes} នាទីមុន",
+    "no_activity_yet": "មិនទាន់មានសកម្មភាពនៅឡើយទេ",
+    "not_specified": "មិនបានបញ្ជាក់",
+    "notes_optional": "កំណត់ចំណាំ (ស្រេចចិត្ត)",
+    "ok": "យល់ព្រម",
+    "pick_one": "ជ្រើសរើសមួយ…",
+    "save": "រក្សាទុក",
+    "save_changes": "រក្សាទុកការផ្លាស់ប្ដូរ",
+    "search": "ស្វែងរក…",
+    "see_all": "មើលទាំងអស់",
+    "something_went_wrong": "មានបញ្ហាកើតឡើង",
+    "sort_by": "តម្រៀបតាម",
+    "submit": "ដាក់ស្នើ",
+    "syncing_latest": "កំពុងធ្វើសមកាលកម្មការផ្លាស់ប្ដូរចុងក្រោយ…",
+    "edit": "កែប្រែ",
+    "any": "ទាំងអស់",
+    "clear": "សម្អាត",
+    "apply": "អនុវត្ត",
+    "view": "មើល",
+    "reset": "កំណត់ឡើងវិញ",
+    "search_button": "ស្វែងរក"
   },
-  
   "home": {
     "achieved": "បានសម្រេច",
     "target": "គោលដៅ",
@@ -80,7 +118,6 @@
       "add_customer": "បន្ថែមអតិថិជន",
       "opportunities": "ឱកាសលក់",
       "won_deals": "ការលក់ជោគជ័យ",
-
       "total_pipeline": "ដំណើរការលក់សរុប",
       "new": "ថ្មី",
       "total_orders": "ការបញ្ជាទិញសរុប",
@@ -95,7 +132,14 @@
     "welcome": "សូមស្វាគមន៍ត្រឡប់មកវិញ",
     "recent_activity": "សកម្មភាពថ្មីៗ",
     "total_customers": "អតិថិជនសរុប",
-    "new_customers": "អតិថិជនថ្មី"
+    "new_customers": "អតិថិជនថ្មី",
+    "check_ins": "ការចុះវត្តមាន",
+    "low_stock": "ស្តុកតិច",
+    "orders_today": "ការបញ្ជាទិញថ្ងៃនេះ",
+    "todays_sales": "ការលក់ថ្ងៃនេះ",
+    "todays_visits": "ទស្សនកិច្ចថ្ងៃនេះ",
+    "view_all_sales": "មើលការលក់ទាំងអស់ >",
+    "products": "ផលិតផល"
   },
   "orders": {
     "title": "ការបញ្ជាទិញ",
@@ -203,6 +247,80 @@
       "done": "រួចរាល់",
       "new_order": "ការបញ្ជាទិញថ្មី",
       "sap_message": "ការដឹកជញ្ជូន និងវិក្កយបត្រនឹងបន្តតាមរយៈ SAP។"
+    },
+    "catalog_sync": {
+      "downloading": "កំពុងទាញយកកាតាឡុកផលិតផល…",
+      "removed": ", បានលុប {count}",
+      "updated": "បានធ្វើបច្ចុប្បន្នភាព {count}"
+    },
+    "filter": {
+      "category": "ប្រភេទ៖ {name}",
+      "in_stock_only": "មានស្តុកតែប៉ុណ្ណោះ",
+      "match_count": "ត្រូវគ្នា {count}",
+      "mesh_size": "ទំហំសំណាញ់",
+      "no_match_combo": "គ្មានផលិតផលត្រូវនឹងទំហំ/ប្រវែង/ទំហំសំណាញ់/គុណភាពនេះទេ",
+      "no_matching_options": "គ្មានជម្រើសត្រូវគ្នាទេ",
+      "search_hint": "ស្វែងរកឈ្មោះ SKU ឬបាកូដ…",
+      "select": "ជ្រើសរើស {label}",
+      "show_products": "បង្ហាញផលិតផល {count}",
+      "sort_name_az": "ឈ្មោះ A-Z",
+      "sort_price_high_low": "តម្លៃ៖ ខ្ពស់ទៅទាប",
+      "sort_price_low_high": "តម្លៃ៖ ទាបទៅខ្ពស់",
+      "sort_stock_high_low": "ស្តុក៖ ច្រើនទៅតិច",
+      "title": "ត្រងផលិតផល",
+      "sort_relevance": "ពាក់ព័ន្ធបំផុត",
+      "size": "ទំហំ",
+      "length": "ប្រវែង",
+      "quality": "គុណភាព",
+      "diameter": "អង្កត់ផ្ចិត",
+      "thickness": "កម្រាស់",
+      "material": "សម្ភារៈ",
+      "brand": "ម៉ាក"
+    },
+    "quotation_extra": {
+      "enter_value": "បញ្ចូលតម្លៃ",
+      "no_items": "មិនទាន់មានទំនិញទេ",
+      "outstanding_notes": "លិខិតឥណទាន/ឥណពន្ធនៅជំពាក់",
+      "quote_disclaimer": "សម្រង់តម្លៃប៉ុណ្ណោះ · តម្លៃរក្សា 7 ថ្ងៃ · មិនមែនវិក្កយបត្រចុងក្រោយទេ",
+      "save_failed": "រក្សាទុកសម្រង់តម្លៃមិនបានសម្រេច",
+      "structural_item": "ទំនិញរចនាសម្ព័ន្ធ",
+      "today": "ថ្ងៃនេះ",
+      "walk_in": "អតិថិជនចូលហាងផ្ទាល់",
+      "enlarge": "ពង្រីក",
+      "subtotal": "សរុបរង",
+      "discount": "បញ្ចុះតម្លៃ",
+      "tax": "ពន្ធ",
+      "total": "សរុប",
+      "unit": "ឯកតា",
+      "quantity": "បរិមាណ",
+      "category": "ប្រភេទ",
+      "results": "លទ្ធផល"
+    },
+    "voice": {
+      "error": "ការស្វែងរកតាមសំឡេងមានបញ្ហា។ ចុចមីក្រូហ្វូនដើម្បីសាកម្តងទៀត។",
+      "example": "និយាយឈ្មោះផលិតផល ឧ. \"ដែក 12មម\"",
+      "listening": "កំពុងស្តាប់…",
+      "no_match_heard": "ស្តាប់មិនច្បាស់ទេ។ ចុចមីក្រូហ្វូនដើម្បីសាកម្តងទៀត។",
+      "start_failed": "មិនអាចចាប់ផ្តើមការស្វែងរកតាមសំឡេងបានទេ។",
+      "tap_to_start": "ចុចមីក្រូហ្វូនដើម្បីចាប់ផ្តើម",
+      "title": "ស្វែងរកតាមសំឡេង",
+      "tooltip": "ស្វែងរកតាមសំឡេង",
+      "unavailable": "ការស្វែងរកតាមសំឡេងមិនអាចប្រើបាននៅលើឧបករណ៍នេះទេ។"
+    },
+    "tabs": {
+      "all": "ទាំងអស់",
+      "quotations": "សម្រង់តម្លៃ"
+    },
+    "sync_status": {
+      "draft": "សេចក្តីព្រាង",
+      "ready_to_submit": "រួចរាល់ដាក់ស្នើ",
+      "pending_sync": "រង់ចាំសមកាលកម្ម",
+      "syncing": "កំពុងធ្វើសមកាលកម្ម…",
+      "submitted": "បានដាក់ស្នើ",
+      "accepted": "SAP បានទទួលយក",
+      "rejected": "SAP បានបដិសេធ",
+      "failed": "សមកាលកម្មបរាជ័យ",
+      "conflict": "ជម្លោះ"
     }
   },
   "leads": {
@@ -216,7 +334,165 @@
     "lead_details": "ព័ត៌មានលម្អិតអតិថិជនគោលដៅ",
     "recent": "អតិថិជនគោលដៅថ្មីៗ",
     "no_leads": "មិនទាន់មានអតិថិជនគោលដៅទេ",
-    "view_leads": "មើលអតិថិជនគោលដៅ >"
+    "view_leads": "មើលអតិថិជនគោលដៅ >",
+    "account_manager": "អ្នកគ្រប់គ្រងគណនី",
+    "activity_timeline": "តារាងសកម្មភាព",
+    "add_document_demo": "បន្ថែមឯកសារ (សាកល្បង)",
+    "add_lead": "បន្ថែមអតិថិជនគោលដៅ",
+    "add_more_details": "បន្ថែមព័ត៌មានលម្អិត",
+    "add_note_hint": "បន្ថែមកំណត់ចំណាំ…",
+    "add_products": "បន្ថែមផលិតផល",
+    "address_gps": "អាសយដ្ឋាន និងទីតាំង GPS",
+    "annual_revenue": "ចំណូលប្រចាំឆ្នាំ",
+    "approval_date": "កាលបរិច្ឆេទអនុម័ត",
+    "approved_credit_limit": "ដែនកំណត់ឥណទានដែលបានអនុម័ត",
+    "assigned_rep": "អ្នកលក់ទទួលបន្ទុក",
+    "assigned_sales_rep": "អ្នកលក់ទទួលបន្ទុក",
+    "authority": "អំណាចសម្រេចចិត្ត",
+    "board_summary": "{stage}, អតិថិជនគោលដៅ {count}, សរុប {total}",
+    "budget": "ថវិកា",
+    "business_information": "ព័ត៌មានអាជីវកម្ម",
+    "business_registration": "លេខចុះបញ្ជីអាជីវកម្ម",
+    "company_name": "ឈ្មោះក្រុមហ៊ុន / ហាង",
+    "contacts": "ទំនាក់ទំនង",
+    "contract_date": "កាលបរិច្ឆេទកិច្ចសន្យា",
+    "couldnt_move": "មិនអាចផ្លាស់ទី {company} បានទេ",
+    "create_lead": "បង្កើតអតិថិជនគោលដៅ",
+    "created": "បានបង្កើត",
+    "credit_limit": "ដែនកំណត់ឥណទាន",
+    "credit_status": "ស្ថានភាពឥណទាន",
+    "current_revenue": "ចំណូលបច្ចុប្បន្ន",
+    "currently_in": "បច្ចុប្បន្នស្ថិតក្នុង {stage}",
+    "customer_code": "លេខកូដអតិថិជន",
+    "deal_worth": "តើការលក់នេះមានតម្លៃប្រហែលប៉ុន្មាន?",
+    "delete_confirm_body": "ការធ្វើបែបនេះនឹងលុប {company} ចេញពីដំណើរការលក់។",
+    "delete_confirm_title": "លុបអតិថិជនគោលដៅ?",
+    "delivery_timeline": "ពេលវេលាដឹកជញ្ជូន",
+    "document_uploaded": "បានបញ្ចូលឯកសារ",
+    "due_count": "{value} ដល់កំណត់",
+    "due_today": "ដល់កំណត់ថ្ងៃនេះ",
+    "edit_lead": "កែប្រែអតិថិជនគោលដៅ",
+    "estimated_value": "តម្លៃប៉ាន់ស្មាន",
+    "expected_revenue": "ចំណូលរំពឹងទុក",
+    "expected_revenue_usd": "ចំណូលរំពឹងទុក ($)",
+    "filter_leads": "ត្រងអតិថិជនគោលដៅ",
+    "final_value": "តម្លៃចុងក្រោយ",
+    "first_order_date": "កាលបរិច្ឆេទបញ្ជាទិញដំបូង",
+    "form_hint": "ព័ត៌មានប៉ុណ្ណឹងគ្រប់គ្រាន់ដើម្បីចាប់ផ្តើម — មិនចាំបាច់សួរច្រើនពេកទេ។",
+    "general_information": "ព័ត៌មានទូទៅ",
+    "hq": {
+      "already_confirmed": "បានបញ្ជាក់រួចរាល់",
+      "business_licence": "អាជ្ញាបណ្ណអាជីវកម្ម",
+      "confirm_ready": "អ្នកបានធ្វើផ្នែកសំខាន់រួចហើយ។ គ្រាន់តែបញ្ជាក់ ហើយផ្ញើ។",
+      "finish_onboarding": "បញ្ចប់ការចុះឈ្មោះ",
+      "gps_location": "ទីតាំង GPS",
+      "items_left": "អ្នកបានធ្វើផ្នែកសំខាន់រួចហើយ។ នៅសល់ {count} ចំណុច។",
+      "needed_to_send": "ត្រូវការមុនផ្ញើ",
+      "patent_tax_paper": "ប៉ាតង់ / ឯកសារពន្ធ",
+      "won_value": "តម្លៃលក់ជោគជ័យ"
+    },
+    "industry": "វិស័យ",
+    "interested_products": "ផលិតផលដែលចាប់អារម្មណ៍ (ស្រេចចិត្ត)",
+    "invalid_phone": "លេខទូរស័ព្ទមិនត្រឹមត្រូវ",
+    "kyc_documents": "ឯកសារ KYC",
+    "lead_source": "ប្រភពអតិថិជនគោលដៅ",
+    "move_lead": "ផ្លាស់ទី {company}",
+    "move_to_opportunities": "ផ្លាស់ទៅឱកាសលក់",
+    "new_lead": "អតិថិជនគោលដៅថ្មី",
+    "no_contacts": "មិនទាន់មានទំនាក់ទំនងទេ",
+    "no_documents": "មិនទាន់មានឯកសារទេ",
+    "no_notes": "មិនទាន់មានកំណត់ចំណាំទេ",
+    "no_stage_yet": "មិនទាន់មាន {stage} ទេ",
+    "not_yet": "មិនទាន់ទេ",
+    "note_added": "បានបន្ថែមកំណត់ចំណាំ",
+    "notes": "កំណត់ចំណាំ",
+    "onboarding_status": "ស្ថានភាពការចុះឈ្មោះ",
+    "opportunity_information": "ព័ត៌មានឱកាសលក់",
+    "owner": "ម្ចាស់",
+    "owner_name": "ឈ្មោះម្ចាស់",
+    "products_purchased": "ផលិតផលដែលបានទិញ",
+    "qualify": "វាយតម្លៃ {company}",
+    "qualify_subtitle": "កត់ត្រាអ្វីដែលអ្នកដឹងអំពីការលក់នេះ — មិនមែនសំណួរសម្រាប់អតិថិជនទេ។",
+    "sales_history": "ប្រវត្តិលក់",
+    "sales_rep": "អ្នកលក់",
+    "sap_customer_id": "លេខសម្គាល់អតិថិជន SAP",
+    "search_hint": "ស្វែងរកអតិថិជនគោលដៅ…",
+    "send_to_hq": "ផ្ញើទៅការិយាល័យកណ្តាល",
+    "shop_type": "ប្រភេទហាង",
+    "sort": {
+      "highest_value": "តម្លៃខ្ពស់បំផុត",
+      "newest": "ថ្មីបំផុតមុន",
+      "oldest": "ចាស់បំផុតមុន"
+    },
+    "sort_leads": "តម្រៀបអតិថិជនគោលដៅ",
+    "stage": "ដំណាក់កាល",
+    "status": "ស្ថានភាព",
+    "storefront_photo": "រូបថតមុខហាង",
+    "summary": {
+      "conversion_rate": "អត្រាបម្លែង",
+      "potential_revenue": "ចំណូលសក្តានុពល",
+      "total_leads": "អតិថិជនគោលដៅសរុប",
+      "won_customers": "អតិថិជនជោគជ័យ",
+      "won_revenue": "ចំណូលពីការលក់ជោគជ័យ"
+    },
+    "talking_to_decision_maker": "កំពុងនិយាយជាមួយអ្នកសម្រេចចិត្ត",
+    "tap_what_you_know": "ចុចអ្វីដែលអ្នកដឹង។ គ្មានចំណុចណាចាំបាច់ទេ។",
+    "tax_id": "លេខអត្តសញ្ញាណពន្ធ",
+    "territory_province": "តំបន់ / ខេត្ត",
+    "tonnage": "ចំនួនតោន",
+    "upload_document": "បញ្ចូលឯកសារ",
+    "won": {
+      "delivery_timeline": "ពេលវេលាដឹកជញ្ជូន (ស្រេចចិត្ត)",
+      "final_value": "តម្លៃចុងក្រោយ ($)",
+      "mark_as_won": "កំណត់ថាលក់ជោគជ័យ",
+      "next_month": "ខែក្រោយ",
+      "subtitle": "ល្អណាស់! នៅសល់មួយជំហានទៀតដើម្បីផ្ញើទៅ SAP ឱ្យការិយាល័យកណ្តាលរៀបចំវិក្កយបត្រ។",
+      "this_month": "ខែនេះ",
+      "this_quarter": "ត្រីមាសនេះ",
+      "title": "{company} — លក់ជោគជ័យ!"
+    },
+    "upcoming": "នឹងមកដល់",
+    "overdue": "ហួសកំណត់",
+    "move": "ផ្លាស់ទី",
+    "shop": "ហាង",
+    "products": "ផលិតផល",
+    "filter": {
+      "newest": "ថ្មីបំផុត",
+      "oldest": "ចាស់បំផុត",
+      "revenue": "ចំណូល",
+      "priority": "អាទិភាព",
+      "high": "ខ្ពស់",
+      "medium": "មធ្យម",
+      "low": "ទាប"
+    },
+    "enums": {
+      "stage_leads": "អតិថិជនគោលដៅ",
+      "stage_opportunities": "ឱកាសលក់",
+      "stage_won": "លក់ជោគជ័យ",
+      "source_field_visit": "ការចុះទស្សនកិច្ច",
+      "source_referral": "ការណែនាំបន្ត",
+      "source_cold_call": "ការហៅទូរស័ព្ទស្វែងរក",
+      "source_website": "គេហទំព័រ",
+      "source_trade_show": "ពិព័រណ៍ពាណិជ្ជកម្ម",
+      "source_walk_in": "ចូលហាងផ្ទាល់",
+      "onboarding_not_submitted": "មិនទាន់ផ្ញើទៅការិយាល័យកណ្តាល",
+      "onboarding_pending_approval": "រង់ចាំការអនុម័តពីការិយាល័យកណ្តាល",
+      "onboarding_approved": "អតិថិជនសកម្ម",
+      "credit_not_applicable": "មិនពាក់ព័ន្ធ",
+      "credit_pending": "កំពុងរង់ចាំ",
+      "credit_approved": "បានអនុម័ត",
+      "credit_rejected": "បានបដិសេធ",
+      "shop_retail": "ហាងលក់រាយ",
+      "shop_wholesale_depot": "ដេប៉ូលក់ដុំ",
+      "shop_hardware_store": "ហាងគ្រឿងសំណង់",
+      "shop_construction_supplier": "អ្នកផ្គត់ផ្គង់សំណង់",
+      "shop_distributor": "អ្នកចែកចាយ",
+      "sub_qualifying": "កំពុងវាយតម្លៃ",
+      "sub_quote_sent": "បានផ្ញើសម្រង់តម្លៃ",
+      "sub_negotiating": "កំពុងចរចា",
+      "budget_confirmed": "បានបញ្ជាក់",
+      "budget_likely": "ទំនងជាមាន"
+    }
   },
   "customers": {
     "title": "អតិថិជន",
@@ -289,7 +565,12 @@
       "alphabetical": "តាមអក្ខរក្រម",
       "nearest": "ជិតខ្ញុំបំផុត",
       "highest_value": "តម្លៃខ្ពស់បំផុត"
-    }
+    },
+    "active_product_mix": "ផលិតផលដែលកំពុងទិញ",
+    "creating_opportunity": "កំពុងបង្កើតឱកាសលក់សម្រាប់ {product}…",
+    "cross_sell_gaps": "ឱកាសលក់បន្ថែម (ចុចដើម្បីកំណត់គោលដៅ)",
+    "no_active_product_lines": "រកមិនឃើញផលិតផលដែលកំពុងទិញទេ។",
+    "sales_history_insights": "ប្រវត្តិលក់ និងការវិភាគ"
   },
   "my_visits": {
     "title": "ទស្សនកិច្ចរបស់ខ្ញុំ",
@@ -329,12 +610,11 @@
       "checkin_continue": "ចុះវត្តមាន និងបន្ត",
       "hint_move_inside": "សូមចូលទៅជិតទីតាំងហាង ដើម្បីធ្វើការចុះវត្តមាន។",
       "hint_take_photo": "សូមថតរូបភាពមុខហាង ដើម្បីបន្តដំណើរការ។",
-      "shelf_count_title": "ការរាប់ស្តុកទំនិញរហ័ស",
-      "shelf_count_subtitle": "រាប់ចំនួនទំនិញដែលមាននៅលើធ្នើតាមមុខទំនិញនីមួយៗ។",
+      "shelf_count_title": "ការត្រួតពិនិត្យស្តុករហ័ស",
+      "shelf_count_subtitle": "កំណត់ស្ថានភាពស្តុកសម្រាប់មុខទំនិញនីមួយៗនៅលើធ្នើ។",
       "market_intel": "ព័ត៌មានទីផ្សារ",
       "on_shelf": "នៅលើធ្នើ",
-      "out_of_stock": "អស់ពីស្តុក",
-      "stock_insight": "ព័ត៌មាននេះនឹងផ្ដល់ជូនការិយាល័យអំពីតម្រូវការរបស់ហាង — {names} គឺអស់ពីស្តុក ដែលគួរតែរៀបចំឯកសារសម្រង់តម្លៃ (Quotation)។",
+      "stock_insight": "ព័ត៌មាននេះនឹងផ្ដល់ជូនការិយាល័យអំពីតម្រូវការរបស់ហាង — {names} មានស្តុកទាប ដែលគួរតែរៀបចំឯកសារសម្រង់តម្លៃ (Quotation)។",
       "done_build_quote": "រួចរាល់ · បង្កើតឯកសារសម្រង់តម្លៃ",
       "back": "ត្រឡប់ក្រោយ",
       "no_stop": "មិនមានចំណតទស្សនកិច្ចដែលបានជ្រើសរើស",
@@ -377,9 +657,104 @@
       "state_loaded": "ផ្ទុករួច",
       "state_empty": "ទទេ",
       "state_error": "កំហុស"
+    },
+    "dashboard": {
+      "activity_history": "ប្រវត្តិសកម្មភាព",
+      "no_local_data": "រកមិនឃើញទិន្នន័យក្នុងឧបករណ៍ទេ។",
+      "no_visits_for_date": "គ្មានទស្សនកិច្ចអតិថិជនសម្រាប់កាលបរិច្ឆេទនេះទេ",
+      "other_dates": "អ្នកមានផែនការផ្លូវសរុប {count} នៅកាលបរិច្ឆេទផ្សេងទៀត។ សូមពិនិត្យថ្ងៃដែលមានចំណុចនៅខាងលើ។",
+      "pending_sync": "រង់ចាំសមកាលកម្ម៖ {count} កំណត់ត្រា",
+      "pending_sync_loading": "រង់ចាំសមកាលកម្ម៖ …",
+      "pull_to_sync": "អូសចុះក្រោមដើម្បីធ្វើសមកាលកម្មផែនការផ្លូវរបស់អ្នក។"
+    },
+    "depot": {
+      "count_hint": "កំណត់ស្ថានភាពស្តុកនៅលើធ្នើសម្រាប់ SKU នីមួយៗ — ទាប មធ្យម ឬខ្ពស់។",
+      "load_failed": "មិនអាចផ្ទុកដេប៉ូ/ហាងដែលបានជ្រើសរើសទេ។",
+      "no_inventory": "គ្មានស្តុកត្រូវរាប់ទេ",
+      "no_products": "មិនទាន់មានផលិតផលសម្រាប់ដេប៉ូ/ហាងនេះទេ។",
+      "none_found": "រកមិនឃើញដេប៉ូ ឬហាងទេ",
+      "none_selected": "មិនបានជ្រើសរើសដេប៉ូ ឬហាងទេ។",
+      "recorded": "បានកត់ត្រាស្ថានភាពស្តុក {count} SKU{shop}",
+      "search_hint": "ស្វែងរកដេប៉ូ ឬហាង…",
+      "select_cta": "ជ្រើសរើសដេប៉ូ / ហាង",
+      "select_title": "ជ្រើសរើសដេប៉ូ / ហាង",
+      "stock_title": "ស្តុកដេប៉ូ",
+      "try_different": "សាកល្បងស្វែងរកផ្សេងទៀត។",
+      "set_progress": "បានកំណត់ {done} នៃ {total} SKU"
+    },
+    "forms": {
+      "add_to_order": "បន្ថែមទៅការបញ្ជាទិញ",
+      "capture_order": "កត់ត្រាការបញ្ជាទិញ",
+      "capture_return": "កត់ត្រាការបង្វិលទំនិញ",
+      "product_name": "ឈ្មោះផលិតផល",
+      "quantity_returned": "ចំនួនបង្វិលវិញ",
+      "record_collection": "កត់ត្រាការប្រមូលប្រាក់",
+      "reference_optional": "លេខយោង (ស្រេចចិត្ត)",
+      "search_products": "ស្វែងរកផលិតផល…",
+      "update_stock": "ធ្វើបច្ចុប្បន្នភាពស្ថានភាពស្តុក",
+      "stock_status": "ស្ថានភាពស្តុក"
+    },
+    "geofence": {
+      "inside": "ស្ថិតក្នុងតំបន់ហាង",
+      "move_closer": "នៅចម្ងាយ {distance}ម ពីអតិថិជន — សូមទៅជិតជាងនេះ"
+    },
+    "stop": {
+      "check_in": "ចុះវត្តមាន",
+      "check_out": "ចេញពីទស្សនកិច្ច",
+      "customer_signature": "ហត្ថលេខាអតិថិជន",
+      "get_closer": "សូមទៅជិតជាងនេះដើម្បីដោះសោ (នៅចម្ងាយ {distance}ម)",
+      "next_stop": "ចំណតបន្ទាប់",
+      "shopfront_proof": "ភស្តុតាងមុខហាង",
+      "visit_completed": "ទស្សនកិច្ចបានបញ្ចប់",
+      "visit_photo": "រូបថតទស្សនកិច្ច",
+      "visit_timeline": "តារាងពេលវេលាទស្សនកិច្ច",
+      "capture": "កត់ត្រា",
+      "order": "ការបញ្ជាទិញ",
+      "stock": "ស្តុក",
+      "return_label": "ការបង្វិល",
+      "collection": "ការប្រមូលប្រាក់",
+      "note": "កំណត់ចំណាំ",
+      "photo": "រូបថត",
+      "signature": "ហត្ថលេខា",
+      "low_stock_opportunity": "ស្តុកទាប — ឱកាសធ្វើសម្រង់តម្លៃ"
+    },
+    "timeline": {
+      "collection": "ការប្រមូលប្រាក់៖ ${amount}",
+      "note_added": "បានបន្ថែមកំណត់ចំណាំ",
+      "order": "ការបញ្ជាទិញ៖ {product}",
+      "photo_added": "បានបន្ថែមរូបថត",
+      "return": "ការបង្វិល៖ {product}",
+      "signature_captured": "បានចុះហត្ថលេខា",
+      "stock_updated": "បានធ្វើបច្ចុប្បន្នភាពស្តុក៖ {product}"
+    },
+    "status": {
+      "pending": "កំពុងរង់ចាំ",
+      "en_route": "កំពុងធ្វើដំណើរ",
+      "arrived": "បានមកដល់",
+      "checked_in": "បានចុះវត្តមាន",
+      "completed": "បានបញ្ចប់",
+      "missed": "ខកខាន"
+    },
+    "territory": {
+      "urban": "ទីក្រុង",
+      "suburban": "ជាយក្រុង",
+      "industrial": "តំបន់ឧស្សាហកម្ម",
+      "rural": "ជនបទ"
+    },
+    "ordinal": {
+      "template": "ទី{n}",
+      "st": "",
+      "nd": "",
+      "rd": "",
+      "th": ""
+    },
+    "stock_level": {
+      "low": "ទាប",
+      "medium": "មធ្យម",
+      "high": "ខ្ពស់",
+      "select_all": "សូមកំណត់ស្ថានភាពស្តុកសម្រាប់ផលិតផលទាំងអស់ មុននឹងបញ្ចប់។"
     }
   },
-  
   "add_customer": {
     "steps": {
       "shop_details": "ព័ត៌មានហាង",
@@ -404,7 +779,8 @@
     "gps_verified": "បានផ្ទៀងផ្ទាត់ GPS",
     "gps_hint": "ចុចដើម្បីទទួលយកទីតាំង",
     "compliance": "ឯកសារអាជ្ញាប័ណ្ណ",
-    "prefilled_editable_hint": "បានបំពេញព័ត៌មានជាមុនពី Lead — ចុចលើប្រអប់ណាមួយដើម្បីកែសម្រួល",    "licence": "អាជ្ញាប័ណ្ណអាជីវកម្ម",
+    "prefilled_editable_hint": "បានបំពេញព័ត៌មានជាមុនពី Lead — ចុចលើប្រអប់ណាមួយដើម្បីកែសម្រួល",
+    "licence": "អាជ្ញាប័ណ្ណអាជីវកម្ម",
     "licence_hint": "ភ្ជាប់ឯកសារ",
     "licence_attached": "បានភ្ជាប់ឯកសារ",
     "tax_paper": "ប័ណ្ណពន្ធ",
@@ -415,7 +791,8 @@
     "send_to_hq": "បញ្ជូនទៅកាន់ទីស្នាក់ការ",
     "success": "បានបន្ថែមអតិថិជនដោយជោគជ័យ!",
     "error": {
-      "required": "ត្រូវការបំពេញ"
+      "required": "ត្រូវការបំពេញ",
+      "invalid_phone": "លេខទូរស័ព្ទមិនត្រឹមត្រូវ"
     }
   },
   "add_customer.shop_types": {
@@ -474,7 +851,10 @@
   "notification": {
     "title": "ការជូនដំណឹង",
     "mark_all_read": "សម្គាល់ថាបានអានទាំងអស់",
-    "empty": "មិនមានការជូនដំណឹងថ្មីឡើយ"
+    "empty": "មិនមានការជូនដំណឹងថ្មីឡើយ",
+    "login": "ចូលគណនី",
+    "welcome_body": "សូមចូលគណនីដើម្បីមើលការជូនដំណឹង និងទទួលបានបទពិសោធន៍ពេញលេញ។",
+    "welcome_title": "សូមស្វាគមន៍!"
   },
   "language": {
     "choose_title": "ជ្រើសរើសភាសា",
@@ -483,7 +863,10 @@
     "english_region": "United States",
     "language_change_anytime": "អ្នកអាចផ្លាស់ប្តូរភាសានៅពេលណាក៏បាន នៅក្នុងការកំណត់ប្រូហ្វាល់របស់អ្នក",
     "khmer": "ភាសាខ្មែរ",
-    "khmer_region": "កម្ពុជា"
+    "khmer_region": "កម្ពុជា",
+    "confirm_title": "ផ្លាស់ប្តូរភាសា?",
+    "confirm_body": "កម្មវិធីនឹងផ្ទុកឡើងវិញ ដើម្បីប្រើភាសា {language} នៅគ្រប់ទីកន្លែង។",
+    "reload_apply": "ផ្ទុកឡើងវិញ និងអនុវត្ត"
   },
   "notifications": {
     "title": "ការជូនដំណឹង",
@@ -496,7 +879,6 @@
       "followUpDue": "រំលឹកកាលបរិច្ឆេទតាមដាន"
     }
   },
-
   "revenue": {
     "title": "ចំណូល",
     "search_hint": "ស្វែងរកផលិតផលតាមឈ្មោះ ឬ SKU…",
@@ -526,7 +908,6 @@
       "title": "មិនអាចផ្ទុកទិន្នន័យចំណូលបានទេ"
     }
   },
-
   "coach": {
     "welcome": {
       "title": "សូមស្វាគមន៍មកកាន់ ISI Steel 👋",
@@ -605,6 +986,111 @@
       "dismiss": "បិទ"
     },
     "resume_hint": "បន្តដំណើរណែនាំ"
+  },
+  "app": {
+    "no_route": "រកមិនឃើញផ្លូវ៖ {name}",
+    "not_found": "រកមិនឃើញ",
+    "title": "ISI Steel Sales"
+  },
+  "calendar": {
+    "todays_routes": "ផ្លូវធ្វើដំណើរថ្ងៃនេះ",
+    "months": {
+      "m1": "មករា",
+      "m2": "កុម្ភៈ",
+      "m3": "មីនា",
+      "m4": "មេសា",
+      "m5": "ឧសភា",
+      "m6": "មិថុនា",
+      "m7": "កក្កដា",
+      "m8": "សីហា",
+      "m9": "កញ្ញា",
+      "m10": "តុលា",
+      "m11": "វិច្ឆិកា",
+      "m12": "ធ្នូ"
+    }
+  },
+  "settings": {
+    "language": "ភាសាបង្ហាញ",
+    "language_title": "ភាសា"
+  },
+  "shell": {
+    "add_customer": "បន្ថែមអតិថិជន",
+    "add_visit": {
+      "add": "បន្ថែមទស្សនកិច្ច",
+      "added": "បានបន្ថែមទស្សនកិច្ចទៅ {shop} ក្នុងផ្លូវថ្ងៃនេះ",
+      "address_hint": "ផ្លូវ ស្រុក/ខណ្ឌ ខេត្ត",
+      "notes_hint": "គោលបំណងទស្សនកិច្ច ការរំលឹក…",
+      "pick_territory": "ជ្រើសរើសប្រភេទតំបន់",
+      "planned_time": "ម៉ោងគ្រោងទុក",
+      "shop_name": "ឈ្មោះហាង",
+      "shop_name_hint": "ឈ្មោះហាង ឬអតិថិជន",
+      "subtitle": "បន្ថែមចំណតទៅផ្លូវថ្ងៃនេះ",
+      "territory_type": "ប្រភេទតំបន់",
+      "title": "បន្ថែមទស្សនកិច្ចរបស់ខ្ញុំ",
+      "visit_date": "កាលបរិច្ឆេទទស្សនកិច្ច"
+    },
+    "badge_due": "{count} ដល់កំណត់",
+    "badge_today": "{count} ថ្ងៃនេះ",
+    "continue_last_action": "បន្តសកម្មភាពចុងក្រោយ",
+    "depot_stock": "ស្តុកដេប៉ូ",
+    "guest": {
+      "analytics": "ការវិភាគ និងរបាយការណ៍",
+      "analytics_desc": "និន្នាការ ការព្យាករណ៍ និងរបាយការណ៍អាចនាំចេញ",
+      "crm_leads": "CRM និងអតិថិជនគោលដៅ",
+      "crm_leads_desc": "គ្រប់គ្រងអតិថិជន និងនាំការលក់ទៅជោគជ័យ",
+      "sales_dashboard": "ផ្ទាំងគ្រប់គ្រងការលក់",
+      "sales_dashboard_desc": "គោលដៅ ចំណូល និងស្ថានភាពការលក់ជាក់ស្តែង",
+      "unlock_body": "ចូលគណនីដើម្បីប្រើឧបករណ៍ផ្ទាល់ខ្លួន ផ្ទាំងគ្រប់គ្រង និងមុខងារពិសេស។",
+      "unlock_title": "ដោះសោបទពិសោធន៍ពេញលេញ"
+    },
+    "login_required_label": "{feature}។ ត្រូវការចូលគណនី។",
+    "monthly_target": "គោលដៅខែ {month}",
+    "my_customers": "អតិថិជនរបស់ខ្ញុំ",
+    "my_leads": "អតិថិជនគោលដៅរបស់ខ្ញុំ",
+    "my_quotes_orders": "សម្រង់តម្លៃ និងការបញ្ជាទិញរបស់ខ្ញុំ",
+    "my_visits": "ទស្សនកិច្ចរបស់ខ្ញុំ",
+    "my_work": "ការងាររបស់ខ្ញុំ",
+    "new_lead": "អតិថិជនគោលដៅថ្មី",
+    "new_quote": "សម្រង់តម្លៃថ្មី",
+    "quick_actions": "សកម្មភាពរហ័ស",
+    "select_won_lead": "ជ្រើសរើសអតិថិជនគោលដៅជោគជ័យ",
+    "stop_of": "ចំណតទី {current} នៃ {total}",
+    "take_order": "ទទួលការបញ្ជាទិញ",
+    "target_progress": "{achieved} នៃ {target}"
+  },
+  "splash": {
+    "brand": "ISI STEEL",
+    "tagline": "Sales Mobile"
+  },
+  "sync": {
+    "attempt": "ព្យាយាមលើកទី {count}",
+    "center_title": "មជ្ឈមណ្ឌលសមកាលកម្ម",
+    "check_out": "ចេញពីទស្សនកិច្ច",
+    "checkin_progress": "កំពុងធ្វើទស្សនកិច្ច · បានបញ្ចប់ {done} នៃ {total} ចំណត",
+    "checkout_body": "ការធ្វើបែបនេះនឹងបញ្ចប់ទស្សនកិច្ច និងបិទចំណតបច្ចុប្បន្ន។",
+    "checkout_title": "ចេញពីទស្សនកិច្ចនេះ?",
+    "connected_waiting": "អ៊ីនធឺណិតបានតភ្ជាប់ · សម្រង់តម្លៃ {count} កំពុងរង់ចាំសមកាលកម្ម",
+    "continue_previous": "បន្តការងារមុន",
+    "continue_working": "បន្តការងារ ({count})",
+    "counts": "{pending} រង់ចាំ · {failed} បរាជ័យ · {conflict} ជម្លោះ",
+    "data_sent": "ទិន្នន័យបានផ្ញើ!",
+    "discard_draft_body": "សម្រង់តម្លៃ #{id} នឹងត្រូវលុបជាអចិន្ត្រៃយ៍។",
+    "discard_draft_title": "បោះចោលសេចក្តីព្រាង?",
+    "dismiss_checkin_body": "អ្នកនៅតែអាចបើក \"{route}\" ឡើងវិញពីផ្ទាំងទស្សនកិច្ចនៅពេលក្រោយ។",
+    "dismiss_checkin_title": "បិទចោលការចុះវត្តមាន?",
+    "draft_meta": "{who} · ផលិតផល {count} · {time}",
+    "everything_synced": "អ្វីៗទាំងអស់បានធ្វើសមកាលកម្មរួចរាល់",
+    "items": "{count} មុខទំនិញ",
+    "no_drafts_left": "គ្មានសេចក្តីព្រាងនៅសល់ទេ",
+    "none_waiting": "គ្មានសម្រង់តម្លៃរង់ចាំ SAP ទេ។",
+    "offline_banner": "អ្នកគ្មានអ៊ីនធឺណិត — អ្វីៗទាំងអស់ត្រូវបានរក្សាទុកក្នុងឧបករណ៍នេះ។",
+    "pending_badge": "រង់ចាំសមកាលកម្ម ({count})",
+    "queued_for_sap": "សម្រង់តម្លៃ #{id} បានចូលជួររង់ចាំសមកាលកម្ម SAP។",
+    "quotation_n": "សម្រង់តម្លៃ #{id}",
+    "quotation_ref": "សម្រង់តម្លៃ {id}",
+    "sync_now": "ធ្វើសមកាលកម្មឥឡូវនេះ",
+    "syncing": "កំពុងធ្វើសមកាលកម្ម…",
+    "syncing_data": "កំពុងធ្វើសមកាលកម្មទិន្នន័យ…",
+    "unfinished_drafts": "អ្នកមានសេចក្តីព្រាងមិនទាន់បញ្ចប់"
   }
-
 }

@@ -228,11 +228,13 @@ class _TotalsCard extends StatelessWidget {
           border: Border.all(color: context.appColors.border)),
       child: Column(
         children: [
-          _Row('Subtotal', quotation.subtotal),
-          if (quotation.discount > 0) _Row('Discount', -quotation.discount),
-          _Row('Tax', quotation.tax),
+          _Row('orders.quotation_extra.subtotal'.tr, quotation.subtotal),
+          if (quotation.discount > 0)
+            _Row('orders.quotation_extra.discount'.tr, -quotation.discount),
+          _Row('orders.quotation_extra.tax'.tr, quotation.tax),
           Divider(color: context.appColors.divider, height: 20),
-          _Row('Total', quotation.total, emphasize: true),
+          _Row('orders.quotation_extra.total'.tr, quotation.total,
+              emphasize: true),
         ],
       ),
     );

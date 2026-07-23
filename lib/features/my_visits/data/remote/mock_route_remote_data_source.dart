@@ -17,10 +17,10 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_
 /// `assets/mock/routes.json` once (falling back to generating it in-memory if
 /// the asset is ever missing), then serves scoped/paged syncs from it.
 ///
-/// **T1.5 Architecture Update:** To satisfy `route_stops.customer_id` FK 
-/// constraints against the SAP-controlled `customers` table, this mock source 
-/// now requires [CustomerLocalDataSource]. Before serving data, it fetches real 
-/// synced customers and dynamically overwrites the mock IDs. Customer Sync MUST 
+/// **T1.5 Architecture Update:** To satisfy `route_stops.customer_id` FK
+/// constraints against the SAP-controlled `customers` table, this mock source
+/// now requires [CustomerLocalDataSource]. Before serving data, it fetches real
+/// synced customers and dynamically overwrites the mock IDs. Customer Sync MUST
 /// be run before Route Sync.
 class MockRouteRemoteDataSource implements RouteRemoteDataSource {
   MockRouteRemoteDataSource(this._customerLocal);
@@ -46,14 +46,16 @@ class MockRouteRemoteDataSource implements RouteRemoteDataSource {
     try {
       final raw = await rootBundle.loadString('assets/mock/routes.json');
       final decoded = jsonDecode(raw) as Map<String, dynamic>;
-      
-      final jsonCustomers = (decoded['customers'] as List).cast<Map<String, dynamic>>();
-      final jsonRoutes = (decoded['routes'] as List).cast<Map<String, dynamic>>();
+
+      final jsonCustomers =
+          (decoded['customers'] as List).cast<Map<String, dynamic>>();
+      final jsonRoutes =
+          (decoded['routes'] as List).cast<Map<String, dynamic>>();
 
       // 2. Patch the JSON payload dynamically to swap fake IDs with real synced IDs.
       final fakeToReal = <String, String>{};
       var cursor = 0;
-      
+
       for (final cust in jsonCustomers) {
         final fakeId = cust['id'] as String;
         final realId = realCustomerIds[cursor++ % realCustomerIds.length];
@@ -64,25 +66,24 @@ class MockRouteRemoteDataSource implements RouteRemoteDataSource {
       for (final route in jsonRoutes) {
         final stops = (route['stops'] as List).cast<Map<String, dynamic>>();
         for (final stop in stops) {
-           final fakeId = stop['customerId'] as String;
-           if (fakeToReal.containsKey(fakeId)) {
-             stop['customerId'] = fakeToReal[fakeId];
-           }
+          final fakeId = stop['customerId'] as String;
+          if (fakeToReal.containsKey(fakeId)) {
+            stop['customerId'] = fakeToReal[fakeId];
+          }
         }
       }
 
-      _customers = jsonCustomers
-          .map((e) => CustomerStopInfoModel.fromJson(e))
-          .toList();
+      _customers =
+          jsonCustomers.map((e) => CustomerStopInfoModel.fromJson(e)).toList();
       _routeJson = _rebaseToToday(jsonRoutes);
-      
+
       if (kDebugMode) {
         debugPrint('[MockRouteRemote] loaded assets/mock/routes.json: '
             '${_routeJson!.length} routes, ${_customers!.length} customers '
             '(dates re-based to today, UTC, FKs patched)');
       }
     } catch (e) {
-      // Asset missing/corrupt — generate an equivalent dataset in-memory. 
+      // Asset missing/corrupt — generate an equivalent dataset in-memory.
       // Pass the real IDs into the generator so it can fulfill FK constraints.
       final generated = MockRouteData.generate(realCustomerIds);
       _customers = (generated['customers'] as List)
@@ -90,7 +91,7 @@ class MockRouteRemoteDataSource implements RouteRemoteDataSource {
           .toList();
       _routeJson = _rebaseToToday(
           (generated['routes'] as List).cast<Map<String, dynamic>>());
-      
+
       if (kDebugMode) {
         debugPrint('[MockRouteRemote] routes.json unavailable ($e) — '
             'generated ${_routeJson!.length} routes in-memory (FKs patched)');
@@ -103,7 +104,7 @@ class MockRouteRemoteDataSource implements RouteRemoteDataSource {
   /// ago the asset was generated.
   List<Map<String, dynamic>> _rebaseToToday(List<Map<String, dynamic>> routes) {
     if (routes.isEmpty) return routes;
-    
+
     DateTime asUtc(String iso) {
       final d = DateTime.parse(iso);
       return DateTime.utc(

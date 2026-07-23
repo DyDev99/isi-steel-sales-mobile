@@ -218,7 +218,8 @@ class _NotificationsSheet extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Welcome!', // Optionally use .tr if you want to add this to your localization files
+              'notification.welcome_title'
+                  .tr, // Optionally use .tr if you want to add this to your localization files
               style: TextStyle(
                 color: colors.textPrimary,
                 fontSize: 18,
@@ -227,7 +228,7 @@ class _NotificationsSheet extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Please log in to view your notifications and get the full app experience.',
+              'notification.welcome_body'.tr,
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: colors.textSecondary,
@@ -248,11 +249,8 @@ class _NotificationsSheet extends StatelessWidget {
                     onLogin!.call();
                   },
                   icon: const Icon(Icons.login_rounded, size: 18),
-                  // Plain string to match the rest of this guest state; there's
-                  // no `common.login` key yet. Add one and switch to `.tr` when
-                  // the guest copy is localized.
-                  label: const Text('Log in',
-                      style: TextStyle(fontWeight: FontWeight.w700)),
+                  label: Text('notification.login'.tr,
+                      style: const TextStyle(fontWeight: FontWeight.w700)),
                   style: FilledButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(

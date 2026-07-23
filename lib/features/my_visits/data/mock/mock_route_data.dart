@@ -13,11 +13,12 @@ class MockRouteData {
   MockRouteData._();
 
   /// Generates the mock route data.
-  /// 
-  /// Requires [realCustomerIds] populated from the local database (e.g., via 
-  /// `customerLocalDataSource.browse()`) so that `route_stops.customer_id` 
+  ///
+  /// Requires [realCustomerIds] populated from the local database (e.g., via
+  /// `customerLocalDataSource.browse()`) so that `route_stops.customer_id`
   /// foreign key constraints resolve successfully during upsert.
-  static Map<String, dynamic> generate(List<String> realCustomerIds, {int seed = 11}) {
+  static Map<String, dynamic> generate(List<String> realCustomerIds,
+      {int seed = 11}) {
     if (realCustomerIds.isEmpty) {
       throw StateError(
         'MockRouteData.generate needs at least one real customer ID synced '
@@ -170,11 +171,12 @@ class CustomerGenerator {
     'Vibol',
   ];
 
-  static List<Map<String, dynamic>> build(Random rand, List<String> realCustomerIds) {
+  static List<Map<String, dynamic>> build(
+      Random rand, List<String> realCustomerIds) {
     final customers = <Map<String, dynamic>>[];
     var seq = 1;
     var idCursor = 0;
-    
+
     for (var i = 0; i < 320; i++) {
       final provinceEntry = TerritoryGenerator.territories.entries
           .elementAt(rand.nextInt(TerritoryGenerator.territories.length));
@@ -191,7 +193,7 @@ class CustomerGenerator {
       // ~0.01-0.09 degrees (~1-10km) jitter around the province center.
       final latJitter = (rand.nextDouble() - 0.5) * 0.18;
       final lngJitter = (rand.nextDouble() - 0.5) * 0.18;
-      
+
       // Cycle through the available real IDs to ensure FKs resolve safely.
       final realId = realCustomerIds[idCursor++ % realCustomerIds.length];
 

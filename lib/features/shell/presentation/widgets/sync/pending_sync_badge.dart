@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/sync/pending_sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/sync/pending_sync_state.dart';
@@ -47,7 +48,7 @@ class PendingSyncBadge extends StatelessWidget {
                   Icon(Icons.sync_rounded, size: 18, color: accent),
                 const SizedBox(width: 8),
                 Text(
-                  'Pending Sync ($outstanding)',
+                  'sync.pending_badge'.trParams({'count': outstanding}),
                   style: TextStyle(
                       color: accent, fontSize: 13, fontWeight: FontWeight.w800),
                 ),

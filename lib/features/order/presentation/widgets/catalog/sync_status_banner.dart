@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/sync_cubit.dart';
@@ -24,8 +25,8 @@ class SyncStatusBanner extends StatelessWidget {
                     strokeWidth: 2, color: scheme.primary),
               ),
               text: isInitial
-                  ? 'Downloading product catalog…'
-                  : 'Syncing latest changes…',
+                  ? 'orders.catalog_sync.downloading'.tr
+                  : 'common.syncing_latest'.tr,
             ),
           SyncFailed(:final message) => _Banner(
               color: scheme.error,
@@ -40,7 +41,11 @@ class SyncStatusBanner extends StatelessWidget {
               icon: Icon(Icons.check_circle_rounded,
                   size: 16, color: appColors.success),
               text:
-                  '$upserted updated${deleted > 0 ? ', $deleted removed' : ''}',
+                  'orders.catalog_sync.updated'.trParams({'count': upserted}) +
+                      (deleted > 0
+                          ? 'orders.catalog_sync.removed'
+                              .trParams({'count': deleted})
+                          : ''),
             ),
           _ => const SizedBox.shrink(),
         };

@@ -1,28 +1,41 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:isi_steel_sales_mobile/core/database/hive/app_preferences.dart';
-import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
+import 'package:isi_steel_sales_mobile/features/localization/domain/entities/language_entity.dart';
+import 'package:isi_steel_sales_mobile/features/localization/domain/usecases/change_language.dart';
+import 'package:isi_steel_sales_mobile/features/localization/domain/usecases/get_current_language.dart';
+import 'package:isi_steel_sales_mobile/features/localization/domain/usecases/get_supported_languages.dart';
+import 'package:isi_steel_sales_mobile/features/localization/domain/usecases/restore_saved_language.dart';
 
+/// Presentation face of the localization feature. State stays a plain [Locale]
+/// (what `MaterialApp` consumes in `app.dart`); everything else — catalog,
+/// persistence, live bundle reload — goes through domain usecases so this
+/// cubit never touches storage or the translation store directly.
 class LanguageCubit extends Cubit<Locale> {
-  final AppPreferences _prefs;
-
-  // Reads saved language code from Hive preferences, defaulting to English ('en')
-  LanguageCubit(this._prefs) : super(Locale(_prefs.savedLanguageCode ?? 'en')) {
-    // Sync the localization service configuration on boot
-    LocalizationService.instance.load(state.languageCode);
+  LanguageCubit({
+    required GetCurrentLanguage getCurrentLanguage,
+    required GetSupportedLanguages getSupportedLanguages,
+    required ChangeLanguage changeLanguage,
+    required RestoreSavedLanguage restoreSavedLanguage,
+  })  : _getSupportedLanguages = getSupportedLanguages,
+        _changeLanguage = changeLanguage,
+        super(Locale(getCurrentLanguage().code)) {
+    // Startup restoration: load the persisted bundle so `.tr` resolves before
+    // the first screen renders. Async by nature (asset I/O) — LocalizedBuilder
+    // repaints the moment it lands.
+    restoreSavedLanguage();
   }
 
-  /// Triggers a hot language switch across the entire app ecosystem.
-  ///
-  /// 1. Reloads strings — [LocalizationService.load] calls `notifyListeners()`,
-  ///    so every [LocalizedBuilder] in the live tree rebuilds instantly.
-  /// 2. Persists the choice to the Hive-backed [AppPreferences] so it survives
-  ///    restarts.
-  /// 3. Emits the new [Locale] so `MaterialApp` updates its own locale /
-  ///    directionality.
+  final GetSupportedLanguages _getSupportedLanguages;
+  final ChangeLanguage _changeLanguage;
+
+  /// Display-ordered catalog for selector UIs.
+  List<LanguageEntity> get supportedLanguages => _getSupportedLanguages();
+
+  /// Hot language switch: reloads strings (every [LocalizedBuilder] rebuilds
+  /// instantly), persists the choice, then emits the new [Locale] so
+  /// `MaterialApp` updates locale/font.
   Future<void> changeLanguage(String languageCode) async {
-    await LocalizationService.instance.load(languageCode);
-    await _prefs.setLanguageCode(languageCode);
+    await _changeLanguage(languageCode);
     emit(Locale(languageCode));
   }
 }

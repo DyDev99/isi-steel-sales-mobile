@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/depot_stock_count_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/state/depot_stock_count_state.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/stock_count_row.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/stock_level_selector.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/order_skeletons.dart';
 
-/// Depot Stock counting screen. Receives only the [shopId] (per the routing
+/// Depot stock-status screen. Receives only the [shopId] (per the routing
 /// convention — no large objects), then loads the shop + inventory through
-/// [DepotStockCountCubit]. A missing/invalid id renders an error state rather
-/// than crashing.
+/// [DepotStockCountCubit]. Each SKU takes exactly one Low / Medium / High
+/// status; finishing persists every selection offline-first (Drift +
+/// pending sync). A missing/invalid id renders an error state rather than
+/// crashing.
 class DepotStockCountScreen extends StatelessWidget {
   const DepotStockCountScreen({super.key, required this.shopId});
 
@@ -32,20 +35,6 @@ class _DepotStockCountView extends StatelessWidget {
 
   final String? shopId;
 
-  void _finish(BuildContext context, DepotStockCountState state) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        behavior: SnackBarBehavior.floating,
-        content: Text(
-          'Recorded ${state.countedSkus} counted SKU'
-          '${state.countedSkus == 1 ? '' : 's'}'
-          '${state.shopName != null ? ' at ${state.shopName}' : ''}.',
-        ),
-      ),
-    );
-    Navigator.of(context).popUntil((r) => r.isFirst);
-  }
-
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
@@ -55,39 +44,72 @@ class _DepotStockCountView extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: scheme.surface,
         iconTheme: IconThemeData(color: colors.textPrimary),
-        title: Text('Depot Stock',
+        title: Text('my_visits.depot.stock_title'.tr,
             style: TextStyle(
                 color: colors.textPrimary,
                 fontSize: 17,
                 fontWeight: FontWeight.w800)),
       ),
-      body: BlocBuilder<DepotStockCountCubit, DepotStockCountState>(
+      body: BlocConsumer<DepotStockCountCubit, DepotStockCountState>(
+        listenWhen: (a, b) => a.status != b.status || a.message != b.message,
+        listener: (context, state) {
+          if (state.status == DepotStockCountStatus.saved) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                behavior: SnackBarBehavior.floating,
+                content: Text(
+                  'my_visits.depot.recorded'.trParams({
+                    'count': state.lines.length,
+                    'shop':
+                        state.shopName != null ? ' · ${state.shopName}' : '',
+                  }),
+                ),
+              ),
+            );
+            Navigator.of(context).popUntil((r) => r.isFirst);
+          } else if (state.status == DepotStockCountStatus.loaded &&
+              state.message != null) {
+            // A submit that failed to persist locally — surface, keep edits.
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                behavior: SnackBarBehavior.floating,
+                content: Text(state.message!)));
+          }
+        },
         builder: (context, state) {
           return switch (state.status) {
             DepotStockCountStatus.initial ||
             DepotStockCountStatus.loading =>
               const _LoadingList(),
             DepotStockCountStatus.error => _ErrorState(
-                message: state.message ?? 'Something went wrong.',
+                message: state.message ?? 'common.something_went_wrong'.tr,
                 onRetry: () =>
                     context.read<DepotStockCountCubit>().load(shopId),
               ),
             DepotStockCountStatus.empty => const _EmptyState(),
-            DepotStockCountStatus.loaded => _LoadedList(state: state),
+            DepotStockCountStatus.loaded ||
+            DepotStockCountStatus.saving ||
+            DepotStockCountStatus.saved =>
+              _LoadedList(state: state),
           };
         },
       ),
       bottomNavigationBar:
           BlocBuilder<DepotStockCountCubit, DepotStockCountState>(
-        buildWhen: (a, b) =>
-            a.status != b.status || a.countedSkus != b.countedSkus,
+        buildWhen: (a, b) => a.status != b.status || a.setCount != b.setCount,
         builder: (context, state) {
-          if (state.status != DepotStockCountStatus.loaded) {
-            return const SizedBox.shrink();
-          }
+          final visible = state.status == DepotStockCountStatus.loaded ||
+              state.status == DepotStockCountStatus.saving;
+          if (!visible) return const SizedBox.shrink();
           return _DoneBar(
-            countedSkus: state.countedSkus,
-            onDone: () => _finish(context, state),
+            setCount: state.setCount,
+            totalCount: state.lines.length,
+            saving: state.status == DepotStockCountStatus.saving,
+            onDone: () {
+              final id = shopId;
+              if (id != null) {
+                context.read<DepotStockCountCubit>().submit(id);
+              }
+            },
           );
         },
       ),
@@ -116,18 +138,21 @@ class _LoadedList extends StatelessWidget {
           ),
         Padding(
           padding: const EdgeInsets.only(bottom: 14),
-          child: Text('Count the on-shelf quantity for each SKU.',
+          child: Text('my_visits.depot.count_hint'.tr,
               style: TextStyle(color: colors.textSecondary, fontSize: 12.5)),
         ),
         for (final line in state.lines)
-          StockCountRow(
+          StockLevelRow(
             key: ValueKey(line.productId),
             name: line.name,
             subtitle: line.subtitle,
-            count: line.count,
-            onStep: (delta) => context
+            imageUrl: line.imageUrl,
+            size: line.size,
+            level: line.level,
+            showMissingHighlight: state.showValidation,
+            onLevelSelected: (level) => context
                 .read<DepotStockCountCubit>()
-                .step(line.productId, delta),
+                .selectStockLevel(line.productId, level),
           ),
       ],
     );
@@ -167,11 +192,11 @@ class _EmptyState extends StatelessWidget {
             Icon(Icons.inventory_2_outlined,
                 size: 44, color: colors.textSecondary),
             const SizedBox(height: 12),
-            Text('No inventory to count',
+            Text('my_visits.depot.no_inventory'.tr,
                 style: TextStyle(
                     color: colors.textPrimary, fontWeight: FontWeight.w700)),
             const SizedBox(height: 4),
-            Text('There are no products available for this depot/shop yet.',
+            Text('my_visits.depot.no_products'.tr,
                 textAlign: TextAlign.center,
                 style: TextStyle(color: colors.textSecondary, fontSize: 12.5)),
           ],
@@ -216,8 +241,16 @@ class _ErrorState extends StatelessWidget {
 }
 
 class _DoneBar extends StatelessWidget {
-  const _DoneBar({required this.countedSkus, required this.onDone});
-  final int countedSkus;
+  const _DoneBar({
+    required this.setCount,
+    required this.totalCount,
+    required this.saving,
+    required this.onDone,
+  });
+
+  final int setCount;
+  final int totalCount;
+  final bool saving;
   final VoidCallback onDone;
 
   @override
@@ -236,7 +269,8 @@ class _DoneBar extends StatelessWidget {
           children: [
             Expanded(
               child: Text(
-                '$countedSkus SKU${countedSkus == 1 ? '' : 's'} counted',
+                'my_visits.depot.set_progress'
+                    .trParams({'done': setCount, 'total': totalCount}),
                 style: TextStyle(
                     color: colors.textSecondary,
                     fontSize: 13,
@@ -244,8 +278,14 @@ class _DoneBar extends StatelessWidget {
               ),
             ),
             ElevatedButton.icon(
-              onPressed: onDone,
-              icon: const Icon(Icons.check_rounded, size: 20),
+              onPressed: saving ? null : onDone,
+              icon: saving
+                  ? SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: scheme.onPrimary))
+                  : const Icon(Icons.check_rounded, size: 20),
               label: const Text('Done',
                   style:
                       TextStyle(fontSize: 14.5, fontWeight: FontWeight.w800)),

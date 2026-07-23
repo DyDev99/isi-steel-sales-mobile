@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/network/connectivity_cubit.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/sync/pending_sync_cubit.dart';
@@ -35,11 +36,11 @@ class ReconnectSyncListener extends StatelessWidget {
           duration: const Duration(seconds: 6),
           backgroundColor: context.appColors.slate,
           content: Text(
-            'Internet connected · $pending quotation${pending == 1 ? '' : 's'} waiting to sync',
+            'sync.connected_waiting'.trParams({'count': pending}),
             style: const TextStyle(color: Colors.white),
           ),
           action: SnackBarAction(
-            label: 'Sync Now',
+            label: 'sync.sync_now'.tr,
             textColor: Colors.white,
             onPressed: pendingCubit.syncNow,
           ),

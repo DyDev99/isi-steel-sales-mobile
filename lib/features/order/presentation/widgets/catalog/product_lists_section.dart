@@ -73,7 +73,8 @@ class ProductListSection extends StatelessWidget {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      '${items.length} match${items.length == 1 ? '' : 'es'}',
+                      'orders.filter.match_count'
+                          .trParams({'count': items.length}),
                       style: TextStyle(
                           color: scheme.primary,
                           fontSize: 11,
@@ -99,7 +100,7 @@ class ProductListSection extends StatelessWidget {
                               child: Center(
                                 child: Text(
                                   hasActiveAttributeFilter
-                                      ? 'No products match this size/length/mesh size/quality combination'
+                                      ? 'orders.filter.no_match_combo'.tr
                                       : 'orders.catalog.no_products'.tr,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(

@@ -5,6 +5,7 @@ import 'package:isi_steel_sales_mobile/core/database/hive/app_preferences.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/auth_vibe.dart';
 import 'package:isi_steel_sales_mobile/core/utils/version.dart';
+import 'package:isi_steel_sales_mobile/features/localization/domain/entities/language_entity.dart';
 import 'package:isi_steel_sales_mobile/features/localization/presentation/bloc/language_cubit.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/aurora_background.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/glass_card.dart';
@@ -26,26 +27,11 @@ class LanguageSelectionScreen extends StatefulWidget {
       _LanguageSelectionScreenState();
 }
 
-class _LanguageOption {
-  const _LanguageOption(this.code, this.nameKey, this.regionKey, this.flag);
-  final String code;
-  final String nameKey;
-  final String regionKey;
-  final String flag;
-
-  /// The language's own name, e.g. "English" or "ភាសាខ្មែរ" — always shown
-  /// in that language regardless of which locale is currently active, so
-  /// people can find their language even if the UI is showing the wrong one.
-  String get name => nameKey.tr;
-  String get region => regionKey.tr;
-}
-
 class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
-  static const _options = [
-    _LanguageOption(
-        'en', 'language.english', 'language.english_region', '🇺🇸'),
-    _LanguageOption('kh', 'language.khmer', 'language.khmer_region', '🇰🇭'),
-  ];
+  /// Catalog-driven: everything `assets/lang/` ships, in display order —
+  /// adding a language to the app surfaces it here with no UI change.
+  late final List<LanguageEntity> _options =
+      context.read<LanguageCubit>().supportedLanguages;
 
   late String _selected = 'en';
   bool _saving = false;
@@ -200,7 +186,7 @@ class _LanguageTile extends StatelessWidget {
     this.switching = false,
   });
 
-  final _LanguageOption option;
+  final LanguageEntity option;
   final bool selected;
   final bool switching;
   final VoidCallback onTap;
@@ -246,7 +232,7 @@ class _LanguageTile extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        option.name,
+                        option.nameKey.tr,
                         style: TextStyle(
                           color: Vibe.text,
                           fontSize: 16,
@@ -254,7 +240,7 @@ class _LanguageTile extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        option.region,
+                        option.regionKey.tr,
                         style: TextStyle(color: Vibe.muted, fontSize: 12),
                       ),
                     ],

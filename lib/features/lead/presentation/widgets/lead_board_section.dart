@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/lead.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/pipeline_stage.dart';
@@ -82,8 +83,8 @@ class LeadBoardList extends StatelessWidget {
   final bool isAdmin;
 
   static double cardWidthFor(double screenWidth) {
-    const outerPadding = 32.0; 
-    const innerPadding = 20.0; 
+    const outerPadding = 32.0;
+    const innerPadding = 20.0;
     const gap = 10.0;
     final usable = screenWidth - outerPadding - innerPadding;
     final twoUp = (usable - gap) / 2;
@@ -94,7 +95,7 @@ class LeadBoardList extends StatelessWidget {
   Widget build(BuildContext context) {
     final width = cardWidthFor(MediaQuery.sizeOf(context).width);
     final textScale = MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 2.0);
-    
+
     // Calculated height expanded to completely absorb maximum text scaling
     // variations alongside the floating capsule badges without vertical clipping.
     final calculatedHeight = 180.0 * textScale;
@@ -104,7 +105,7 @@ class LeadBoardList extends StatelessWidget {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         // CRUCIAL UPGRADE: Stops the horizontal viewport from cutting off the floating badge
-        clipBehavior: Clip.none, 
+        clipBehavior: Clip.none,
         // Generous top padding layout accommodation for the overflowing badge canvas
         padding: const EdgeInsets.fromLTRB(12, 16, 12, 14),
         itemCount: leads.length,
@@ -137,7 +138,7 @@ class _EmptyBoard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 24),
       child: Center(
         child: Text(
-          'No Leads',
+          'leads.no_leads'.tr,
           style: TextStyle(
             color: colors.textSecondary,
             fontSize: 13,

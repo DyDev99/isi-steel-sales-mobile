@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
 /// Quick-action row for guests. Every card is a locked affordance: tapping any
@@ -31,7 +32,7 @@ class GuestQuickActionsSection extends StatelessWidget {
           Padding(
             padding: EdgeInsets.only(left: 4.w, bottom: 10.h),
             child: Text(
-              'QUICK ACTIONS',
+              'shell.quick_actions'.tr,
               style: TextStyle(
                 fontSize: 14.sp,
                 fontWeight: FontWeight.w900,
@@ -48,7 +49,7 @@ class GuestQuickActionsSection extends StatelessWidget {
                 child: _ActionCard(
                   icon: Icons.assignment_outlined,
                   tint: theme.colorScheme.primary,
-                  label: 'New quote',
+                  label: 'shell.new_quote'.tr,
                   onTap: onRequireLogin,
                 ),
               ),
@@ -57,7 +58,7 @@ class GuestQuickActionsSection extends StatelessWidget {
                 child: _ActionCard(
                   icon: Icons.bar_chart_rounded,
                   tint: context.appColors.success,
-                  label: 'New lead',
+                  label: 'shell.new_lead'.tr,
                   onTap: onRequireLogin,
                 ),
               ),
@@ -66,7 +67,7 @@ class GuestQuickActionsSection extends StatelessWidget {
                 child: _ActionCard(
                   icon: Icons.inventory_2_outlined,
                   tint: context.appColors.warning,
-                  label: 'Depot stock',
+                  label: 'shell.depot_stock'.tr,
                   onTap: onRequireLogin,
                 ),
               ),
@@ -75,7 +76,7 @@ class GuestQuickActionsSection extends StatelessWidget {
                 child: _ActionCard(
                   icon: Icons.person_add_alt_1_outlined,
                   tint: context.appColors.accentPurple,
-                  label: 'Add customer',
+                  label: 'shell.add_customer'.tr,
                   onTap: onRequireLogin,
                 ),
               ),
@@ -109,7 +110,7 @@ class _ActionCard extends StatelessWidget {
 
     return Semantics(
       button: true,
-      label: '$label. Login required.',
+      label: 'shell.login_required_label'.trParams({'feature': label}),
       child: Material(
         color: scheme.surface,
         borderRadius: BorderRadius.circular(14.r),

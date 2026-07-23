@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/features/lead/presentation/l10n/lead_labels.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/lead.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/opportunity_info.dart';
@@ -58,13 +60,15 @@ Future<StageMoveResult?> showMoveStageSheet({
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Move ${lead.companyName}',
+            Text('leads.move_lead'.trParams({'company': lead.companyName}),
                 style: TextStyle(
                     color: colors.textPrimary,
                     fontSize: 17,
                     fontWeight: FontWeight.w800)),
             const SizedBox(height: 4),
-            Text('Currently in ${lead.stage.label}',
+            Text(
+                'leads.currently_in'
+                    .trParams({'stage': lead.stage.localizedLabel}),
                 style: TextStyle(color: colors.textSecondary, fontSize: 12.5)),
             const SizedBox(height: 16),
             ...targets.map(
@@ -86,7 +90,7 @@ Future<StageMoveResult?> showMoveStageSheet({
                         Icon(Icons.arrow_forward_rounded,
                             color: scheme.primary, size: 18),
                         const SizedBox(width: 10),
-                        Text(stage.label,
+                        Text(stage.localizedLabel,
                             style: TextStyle(
                                 color: colors.textPrimary,
                                 fontSize: 14,

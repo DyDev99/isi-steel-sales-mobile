@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
@@ -77,7 +78,7 @@ class QuotationPreviewSection extends StatelessWidget {
                       ),
                       SizedBox(height: 6.h),
                       Text(
-                        'QUOTATION',
+                        'orders.quotation.builder_title'.tr,
                         style: TextStyle(
                           fontSize: 14.sp,
                           fontWeight: FontWeight.w900,
@@ -87,7 +88,7 @@ class QuotationPreviewSection extends StatelessWidget {
                       ),
                       SizedBox(height: 2.h),
                       Text(
-                        '${shopName ?? "Walk-in Customer"} · today',
+                        '${shopName ?? 'orders.quotation_extra.walk_in'.tr} · ${'orders.quotation_extra.today'.tr}',
                         style: TextStyle(
                           fontSize: 12.sp,
                           fontWeight: FontWeight.w500,
@@ -122,7 +123,7 @@ class QuotationPreviewSection extends StatelessWidget {
                             ),
                             SizedBox(width: 4.w),
                             Text(
-                              'Enlarge',
+                              'orders.quotation_extra.enlarge'.tr,
                               style: TextStyle(
                                 fontSize: 11.sp,
                                 fontWeight: FontWeight.w700,
@@ -146,7 +147,7 @@ class QuotationPreviewSection extends StatelessWidget {
                 child: Padding(
                   padding: EdgeInsets.symmetric(vertical: 4.h),
                   child: Text(
-                    'No items yet',
+                    'orders.quotation_extra.no_items'.tr,
                     style: TextStyle(
                       fontSize: 14.sp,
                       fontWeight: FontWeight.w500,
@@ -186,7 +187,7 @@ class QuotationPreviewSection extends StatelessWidget {
                             Text(
                               product.name.isNotEmpty
                                   ? product.name
-                                  : 'Structural Item',
+                                  : 'orders.quotation_extra.structural_item'.tr,
                               style: TextStyle(
                                 fontSize: 13.sp,
                                 fontWeight: FontWeight.w500,
@@ -229,7 +230,7 @@ class QuotationPreviewSection extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Subtotal',
+                  'orders.quotation_extra.subtotal'.tr,
                   style: TextStyle(
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w500,
@@ -253,7 +254,7 @@ class QuotationPreviewSection extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Discount',
+                  'orders.quotation_extra.discount'.tr,
                   style: TextStyle(
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w500,
@@ -277,7 +278,7 @@ class QuotationPreviewSection extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Tax',
+                  'orders.quotation_extra.tax'.tr,
                   style: TextStyle(
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w500,
@@ -303,7 +304,7 @@ class QuotationPreviewSection extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Total',
+                  'orders.quotation_extra.total'.tr,
                   style: TextStyle(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.w900,
@@ -326,7 +327,7 @@ class QuotationPreviewSection extends StatelessWidget {
 
             // Bottom Disclaimer Footer Layout
             Text(
-              'Quote only · prices held 7 days · not a final bill',
+              'orders.quotation_extra.quote_disclaimer'.tr,
               style: TextStyle(
                 fontSize: 11.sp,
                 fontWeight: FontWeight.w500,

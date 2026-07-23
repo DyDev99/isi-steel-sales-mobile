@@ -35,7 +35,7 @@ class CartPreviewSection extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'orders.shop.cart_preview'.tr,
+                        'orders.quotation.cart_preview_title'.tr,
                         style: TextStyle(
                           color: colors.textPrimary,
                           fontSize: 14,

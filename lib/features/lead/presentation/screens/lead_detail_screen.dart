@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/features/lead/presentation/l10n/lead_labels.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
@@ -78,17 +80,18 @@ class LeadDetailScreen extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: context.appColors.surfaceSoft,
-        title: Text('Delete lead?',
+        title: Text('leads.delete_confirm_title'.tr,
             style: TextStyle(color: context.appColors.textPrimary)),
-        content: Text('This removes ${lead.companyName} from the pipeline.',
+        content: Text(
+            'leads.delete_confirm_body'.trParams({'company': lead.companyName}),
             style: TextStyle(color: context.appColors.textSecondary)),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel')),
+              child: Text('common.cancel'.tr)),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Delete',
+            child: Text('common.delete'.tr,
                 style: TextStyle(color: Theme.of(context).colorScheme.error)),
           ),
         ],
@@ -233,7 +236,7 @@ class _DetailBody extends StatelessWidget {
         ]),
         const SizedBox(height: 16),
         _Section(
-          title: 'Storefront Photo',
+          title: 'leads.storefront_photo'.tr,
           child: ClipRRect(
             borderRadius: BorderRadius.circular(14),
             child: SizedBox(
@@ -253,38 +256,39 @@ class _DetailBody extends StatelessWidget {
           ),
         ),
         _Section(
-          title: 'General Information',
+          title: 'leads.general_information'.tr,
           child: Column(
             children: [
-              _KeyValue('Owner', lead.ownerName),
-              _KeyValue('Phone', lead.phone),
-              _KeyValue('Email', lead.email.isEmpty ? '—' : lead.email),
-              _KeyValue('Assigned rep', lead.assignedRepName),
-              _KeyValue('Lead source', lead.leadSource.label),
-              _KeyValue('Created', _formatDate(lead.createdDate)),
-              _KeyValue('Industry', lead.industry),
+              _KeyValue('leads.owner'.tr, lead.ownerName),
+              _KeyValue('customers.phone'.tr, lead.phone),
+              _KeyValue(
+                  'customers.email'.tr, lead.email.isEmpty ? '—' : lead.email),
+              _KeyValue('leads.assigned_rep'.tr, lead.assignedRepName),
+              _KeyValue('leads.lead_source'.tr, lead.leadSource.localizedLabel),
+              _KeyValue('leads.created'.tr, _formatDate(lead.createdDate)),
+              _KeyValue('leads.industry'.tr, lead.industry),
             ],
           ),
         ),
         _Section(
-          title: 'Business Information',
+          title: 'leads.business_information'.tr,
           child: Column(
             children: [
-              _KeyValue(
-                  'Business registration #', lead.businessRegistrationNumber),
-              _KeyValue('Tax ID', lead.taxId),
-              _KeyValue('Expected revenue',
+              _KeyValue('leads.business_registration'.tr,
+                  lead.businessRegistrationNumber),
+              _KeyValue('leads.tax_id'.tr, lead.taxId),
+              _KeyValue('leads.expected_revenue'.tr,
                   '\$${lead.expectedRevenue.toStringAsFixed(0)}'),
               if (lead.stage == PipelineStage.won)
-                _KeyValue('Current revenue',
+                _KeyValue('leads.current_revenue'.tr,
                     '\$${lead.currentRevenue.toStringAsFixed(0)}'),
             ],
           ),
         ),
         _Section(
-          title: 'Contacts',
+          title: 'leads.contacts'.tr,
           child: lead.contacts.isEmpty
-              ? Text('No contacts yet',
+              ? Text('leads.no_contacts'.tr,
                   style: TextStyle(color: colors.textSecondary, fontSize: 12.5))
               : Column(
                   children: lead.contacts
@@ -331,7 +335,7 @@ class _DetailBody extends StatelessWidget {
                 ),
         ),
         _Section(
-          title: 'Address & GPS Location',
+          title: 'leads.address_gps'.tr,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -346,36 +350,36 @@ class _DetailBody extends StatelessWidget {
           ),
         ),
         _Section(
-          title: 'KYC Documents',
+          title: 'leads.kyc_documents'.tr,
           child: DocumentsSection(
             documents: lead.documents,
             onAddDocument: (type, name) => cubit.addMockDocument(type, name),
           ),
         ),
         _Section(
-          title: 'Credit Status',
+          title: 'leads.credit_status'.tr,
           child: Column(
             children: [
-              _KeyValue('Status', lead.creditStatus.label),
-              _KeyValue(
-                  'Credit limit', '\$${lead.creditLimit.toStringAsFixed(0)}'),
+              _KeyValue('leads.status'.tr, lead.creditStatus.localizedLabel),
+              _KeyValue('leads.credit_limit'.tr,
+                  '\$${lead.creditLimit.toStringAsFixed(0)}'),
             ],
           ),
         ),
         if (lead.opportunityInfo case final info?)
           _Section(
-            title: 'Opportunity Information',
+            title: 'leads.opportunity_information'.tr,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _KeyValue('Estimated value',
+                _KeyValue('leads.estimated_value'.tr,
                     '\$${info.estimatedValue.toStringAsFixed(0)}'),
                 const SizedBox(height: 4),
-                Text('Tap what you know. Nothing here is required.',
+                Text('leads.tap_what_you_know'.tr,
                     style:
                         TextStyle(color: colors.textSecondary, fontSize: 11.5)),
                 const SizedBox(height: 10),
-                Text('Stage',
+                Text('leads.stage'.tr,
                     style: TextStyle(
                         color: colors.textSecondary,
                         fontSize: 12,
@@ -386,7 +390,7 @@ class _DetailBody extends StatelessWidget {
                   runSpacing: 8,
                   children: OpportunitySubStage.values
                       .map((s) => ChoiceChip(
-                            label: Text(s.label),
+                            label: Text(s.localizedLabel),
                             selected: info.subStage == s,
                             onSelected: (_) => _updateOpportunity(
                                 context, (i) => i.copyWith(subStage: s)),
@@ -406,7 +410,7 @@ class _DetailBody extends StatelessWidget {
                       .toList(),
                 ),
                 const SizedBox(height: 12),
-                Text('Tonnage',
+                Text('leads.tonnage'.tr,
                     style: TextStyle(
                         color: colors.textSecondary,
                         fontSize: 12,
@@ -442,7 +446,7 @@ class _DetailBody extends StatelessWidget {
                       .toList(),
                 ),
                 const SizedBox(height: 12),
-                Text('Budget',
+                Text('leads.budget'.tr,
                     style: TextStyle(
                         color: colors.textSecondary,
                         fontSize: 12,
@@ -453,7 +457,7 @@ class _DetailBody extends StatelessWidget {
                   runSpacing: 8,
                   children: BudgetStatus.values
                       .map((b) => ChoiceChip(
-                            label: Text(b.label),
+                            label: Text(b.localizedLabel),
                             selected: info.budgetStatus == b,
                             onSelected: (_) => _updateOpportunity(
                                 context, (i) => i.copyWith(budgetStatus: b)),
@@ -473,7 +477,7 @@ class _DetailBody extends StatelessWidget {
                       .toList(),
                 ),
                 const SizedBox(height: 12),
-                Text('Authority',
+                Text('leads.authority'.tr,
                     style: TextStyle(
                         color: colors.textSecondary,
                         fontSize: 12,
@@ -484,7 +488,7 @@ class _DetailBody extends StatelessWidget {
                   runSpacing: 8,
                   children: [
                     ChoiceChip(
-                      label: const Text('Talking to decision maker'),
+                      label: Text('leads.talking_to_decision_maker'.tr),
                       selected: info.hasDecisionMakerAccess == true,
                       onSelected: (_) => _updateOpportunity(context,
                           (i) => i.copyWith(hasDecisionMakerAccess: true)),
@@ -501,7 +505,7 @@ class _DetailBody extends StatelessWidget {
                               : colors.border),
                     ),
                     ChoiceChip(
-                      label: const Text('Not yet'),
+                      label: Text('leads.not_yet'.tr),
                       selected: info.hasDecisionMakerAccess == false,
                       onSelected: (_) => _updateOpportunity(context,
                           (i) => i.copyWith(hasDecisionMakerAccess: false)),
@@ -526,7 +530,7 @@ class _DetailBody extends StatelessWidget {
                     onPressed: () =>
                         _openCatalog(context, lead.id, lead.companyName),
                     icon: const Icon(Icons.add_shopping_cart_rounded, size: 18),
-                    label: const Text('Add Products'),
+                    label: Text('leads.add_products'.tr),
                   ),
                 ),
               ],
@@ -534,38 +538,42 @@ class _DetailBody extends StatelessWidget {
           ),
         if (lead.wonInfo case final won?)
           _Section(
-            title: 'Sales History',
+            title: 'leads.sales_history'.tr,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                _KeyValue('leads.final_value'.tr,
+                    '\$${won.finalValue.toStringAsFixed(0)}'),
                 _KeyValue(
-                    'Final value', '\$${won.finalValue.toStringAsFixed(0)}'),
-                _KeyValue('Delivery timeline', won.deliveryTimeline ?? '—'),
-                _KeyValue('Onboarding status', won.onboardingStatus.label),
+                    'leads.delivery_timeline'.tr, won.deliveryTimeline ?? '—'),
+                _KeyValue('leads.onboarding_status'.tr,
+                    won.onboardingStatus.localizedLabel),
                 if (won.shopType != null)
-                  _KeyValue('Shop type', won.shopType!.label),
+                  _KeyValue('leads.shop_type'.tr, won.shopType!.localizedLabel),
                 if (won.customerCode != null)
-                  _KeyValue('Customer code', won.customerCode!),
+                  _KeyValue('leads.customer_code'.tr, won.customerCode!),
                 if (won.sapCustomerId != null)
-                  _KeyValue('SAP customer ID', won.sapCustomerId!),
+                  _KeyValue('leads.sap_customer_id'.tr, won.sapCustomerId!),
                 if (won.approvedCreditLimit != null)
-                  _KeyValue('Approved credit limit',
+                  _KeyValue('leads.approved_credit_limit'.tr,
                       '\$${won.approvedCreditLimit!.toStringAsFixed(0)}'),
                 if (won.approvalDate != null)
-                  _KeyValue('Approval date', _formatDate(won.approvalDate!)),
+                  _KeyValue(
+                      'leads.approval_date'.tr, _formatDate(won.approvalDate!)),
                 if (won.contractDate != null)
-                  _KeyValue('Contract date', _formatDate(won.contractDate!)),
+                  _KeyValue(
+                      'leads.contract_date'.tr, _formatDate(won.contractDate!)),
                 if (won.annualRevenue != null)
-                  _KeyValue('Annual revenue',
+                  _KeyValue('leads.annual_revenue'.tr,
                       '\$${won.annualRevenue!.toStringAsFixed(0)}'),
                 if (won.productsPurchased.isNotEmpty)
-                  _KeyValue(
-                      'Products purchased', won.productsPurchased.join(', ')),
+                  _KeyValue('leads.products_purchased'.tr,
+                      won.productsPurchased.join(', ')),
                 if (won.firstOrderDate != null)
-                  _KeyValue(
-                      'First order date', _formatDate(won.firstOrderDate!)),
+                  _KeyValue('leads.first_order_date'.tr,
+                      _formatDate(won.firstOrderDate!)),
                 if (won.accountManager != null)
-                  _KeyValue('Account manager', won.accountManager!),
+                  _KeyValue('leads.account_manager'.tr, won.accountManager!),
                 if (won.onboardingStatus == OnboardingStatus.notSubmitted) ...[
                   const SizedBox(height: 8),
                   SizedBox(
@@ -573,7 +581,7 @@ class _DetailBody extends StatelessWidget {
                     child: ElevatedButton.icon(
                       onPressed: onSendToHq,
                       icon: const Icon(Icons.send_rounded, size: 18),
-                      label: const Text('Send to HQ'),
+                      label: Text('leads.send_to_hq'.tr),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: scheme.primary,
                         padding: const EdgeInsets.symmetric(vertical: 12),
@@ -587,11 +595,11 @@ class _DetailBody extends StatelessWidget {
             ),
           ),
         _Section(
-          title: 'Activity Timeline',
+          title: 'leads.activity_timeline'.tr,
           child: ActivityTimeline(items: activity),
         ),
         _Section(
-          title: 'Notes',
+          title: 'leads.notes'.tr,
           child: NotesSection(notes: lead.notes, onAddNote: cubit.addNote),
         ),
       ],

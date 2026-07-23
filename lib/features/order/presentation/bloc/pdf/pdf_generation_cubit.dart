@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 
 import 'package:isi_steel_sales_mobile/core/logging/app_logger.dart';
 import 'package:isi_steel_sales_mobile/core/services/pdf/pdf_file_service.dart';
@@ -66,7 +67,7 @@ class PdfGenerationCubit extends Cubit<PdfGenerationState> {
         customerName: customerName,
         customerPhone: customerPhone,
         customerAddress: customerAddress,
-        salesRepName: user?.fullName ?? 'ISI Steel Sales',
+        salesRepName: user?.fullName ?? 'app.title'.tr,
         salesRepContact: user?.email,
         createdDate: createdDate,
         validUntil: validUntil,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
 /// Floating bottom action bar for the filter experience: a secondary "Reset"
@@ -54,8 +55,8 @@ class FilterActionBar extends StatelessWidget {
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14)),
               ),
-              child: const Text('Reset',
-                  style: TextStyle(fontWeight: FontWeight.w700)),
+              child: Text('common.reset'.tr,
+                  style: const TextStyle(fontWeight: FontWeight.w700)),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -92,8 +93,7 @@ class FilterActionBar extends StatelessWidget {
   }
 
   String get _applyLabel {
-    if (resultCount <= 0) return 'No products found';
-    if (resultCount == 1) return 'Show 1 product';
-    return 'Show $resultCount products';
+    if (resultCount <= 0) return 'orders.catalog.no_products'.tr;
+    return 'orders.filter.show_products'.trParams({'count': resultCount});
   }
 }

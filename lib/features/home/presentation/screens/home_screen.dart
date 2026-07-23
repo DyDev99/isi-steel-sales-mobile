@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
@@ -64,7 +65,7 @@ class HomeScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Good afternoon,',
+                  '${'common.good_afternoon'.tr},',
                   style: TextStyle(color: Colors.white70, fontSize: 12.sp),
                 ),
                 Text(
@@ -114,7 +115,7 @@ class HomeScreen extends StatelessWidget {
                 iconColor: colors.success,
                 iconBg: colors.success.withValues(alpha: 0.12),
                 value: 'R 0.00',
-                label: "Today's Sales",
+                label: 'home.todays_sales'.tr,
               ),
               _buildVerticalDivider(context),
               _buildSummaryItem(
@@ -123,7 +124,7 @@ class HomeScreen extends StatelessWidget {
                 iconColor: scheme.primary,
                 iconBg: scheme.primary.withValues(alpha: 0.12),
                 value: '3',
-                label: "Orders Today",
+                label: 'home.orders_today'.tr,
               ),
               _buildVerticalDivider(context),
               _buildSummaryItem(
@@ -132,14 +133,14 @@ class HomeScreen extends StatelessWidget {
                 iconColor: colors.accentPurple,
                 iconBg: colors.accentPurple.withValues(alpha: 0.12),
                 value: '0',
-                label: "Check-ins",
+                label: 'home.check_ins'.tr,
               ),
             ],
           ),
           SizedBox(height: 16.h),
           Center(
             child: Text(
-              'View all sales >',
+              'home.view_all_sales'.tr,
               style: TextStyle(
                 color: colors.textSecondary,
                 fontSize: 11.sp,
@@ -213,28 +214,28 @@ class HomeScreen extends StatelessWidget {
           icon: Icons.people_alt_rounded,
           accent: scheme.primary,
           value: '10',
-          label: 'Customers',
+          label: 'home.quick_access.customers'.tr,
         ),
         _buildGridCard(
           context,
           icon: Icons.inventory_2_rounded,
           accent: colors.success,
           value: '15',
-          label: 'Products',
+          label: 'home.products'.tr,
         ),
         _buildGridCard(
           context,
           icon: Icons.assignment_late_rounded,
           accent: colors.warning,
           value: '3',
-          label: 'Pending',
+          label: 'home.quick_access.pending'.tr,
         ),
         _buildGridCard(
           context,
           icon: Icons.warning_rounded,
           accent: scheme.error,
           value: '4',
-          label: 'Low Stock',
+          label: 'home.low_stock'.tr,
         ),
       ],
     );
@@ -295,7 +296,7 @@ class HomeScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              "Today's Visits",
+              'home.todays_visits'.tr,
               style: TextStyle(
                 color: scheme.onSurface,
                 fontSize: 16.sp,
@@ -303,7 +304,7 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
             Text(
-              "See All",
+              'common.see_all'.tr,
               style: TextStyle(
                 color: scheme.primary,
                 fontSize: 12.sp,

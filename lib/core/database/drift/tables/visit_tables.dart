@@ -75,18 +75,30 @@ class VisitOrderLines extends Table with SyncableTable {
   RealColumn get unitPrice => real()();
 }
 
-/// Shelf/stock counts taken at a stop.
+/// Shelf/stock statuses taken at a route stop or during a depot count.
+///
+/// v10 replaced the numeric `counted_quantity` capture with a three-tier
+/// `stock_level` (`'low'` / `'medium'` / `'high'` — the domain [StockLevel]
+/// enum's storage names). Exactly one of [stopId] / [depotId] is set per row:
+/// stop captures ride the visit flow, depot captures the depot flow; both push
+/// through the same pending-sync batch.
 @TableIndex(name: 'idx_visit_stock_updates_stop', columns: {#stopId})
+@TableIndex(name: 'idx_visit_stock_updates_depot', columns: {#depotId})
 @DataClassName('VisitStockUpdateRow')
 class VisitStockUpdates extends Table with SyncableTable {
   @override
   String get tableName => 'visit_stock_updates';
 
-  TextColumn get stopId =>
-      text().references(RouteStops, #id, onDelete: KeyAction.cascade)();
+  TextColumn get stopId => text()
+      .nullable()
+      .references(RouteStops, #id, onDelete: KeyAction.cascade)();
+
+  /// The depot/shop (customer id) a depot count was taken at. No FK: depot
+  /// counts may reference customers synced later than the capture.
+  TextColumn get depotId => text().nullable()();
   TextColumn get productId => text()();
   TextColumn get productName => text()();
-  RealColumn get countedQuantity => real()();
+  TextColumn get stockLevel => text()();
   TextColumn get notes => text().withDefault(const Constant(''))();
 }
 

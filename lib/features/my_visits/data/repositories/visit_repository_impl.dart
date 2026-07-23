@@ -66,9 +66,10 @@ class VisitRepositoryImpl implements VisitRepository {
       await _local.insertStockUpdate(VisitStockUpdateModel(
         id: update.id,
         stopId: update.stopId,
+        depotId: update.depotId,
         productId: update.productId,
         productName: update.productName,
-        countedQuantity: update.countedQuantity,
+        stockLevel: update.stockLevel,
         notes: update.notes,
       ));
       return const Success(null);

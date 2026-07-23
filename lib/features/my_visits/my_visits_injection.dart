@@ -80,7 +80,7 @@ Future<void> registerMyVisitsFeature(GetIt sl) async {
   sl.registerLazySingleton<RoutesDatabase>(() => routesDb);
 
   // ── Data sources ────────────────────────────────────────────────────
-sl.registerLazySingleton<RouteRemoteDataSource>(
+  sl.registerLazySingleton<RouteRemoteDataSource>(
       () => MockRouteRemoteDataSource(sl<CustomerLocalDataSource>()));
   sl.registerLazySingleton<RouteLocalDataSource>(
       () => RouteDriftLocalDataSource(sl<AppDatabase>().routeDao, sl()));
@@ -219,6 +219,6 @@ sl.registerLazySingleton<RouteRemoteDataSource>(
   sl.registerLazySingleton(() => DepotSelectionStore(HiveService.cacheBox));
   sl.registerFactory(
       () => DepotSelectionCubit(browseCustomers: sl(), store: sl()));
-  sl.registerFactory(
-      () => DepotStockCountCubit(getCustomerById: sl(), browseProducts: sl()));
+  sl.registerFactory(() => DepotStockCountCubit(
+      getCustomerById: sl(), browseProducts: sl(), addStockUpdate: sl()));
 }

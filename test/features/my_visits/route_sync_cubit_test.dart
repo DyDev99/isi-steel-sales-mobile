@@ -79,9 +79,8 @@ void main() {
       );
 
   // ── Stub helpers so each test reads as its scenario ─────────────────
-  void customersAlreadySynced() =>
-      when(() => getCustomerLastSyncedAt(any()))
-          .thenAnswer((_) async => Success(syncedAt));
+  void customersAlreadySynced() => when(() => getCustomerLastSyncedAt(any()))
+      .thenAnswer((_) async => Success(syncedAt));
 
   void customersNeverSynced() => when(() => getCustomerLastSyncedAt(any()))
       .thenAnswer((_) async => const Success<DateTime?>(null));

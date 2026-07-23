@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
 /// Surfaces exactly why check-in is (or isn't) allowed right now — blocked
@@ -31,8 +32,9 @@ class CheckinStatusBanner extends StatelessWidget {
               ? Icons.check_circle_rounded
               : Icons.location_searching_rounded,
           text: insideGeofence
-              ? 'Inside geofence'
-              : '${distanceMeters.toStringAsFixed(0)}m from customer — move closer',
+              ? 'my_visits.geofence.inside'.tr
+              : 'my_visits.geofence.move_closer'
+                  .trParams({'distance': distanceMeters.toStringAsFixed(0)}),
         ),
         if (blockedReason != null) ...[
           const SizedBox(height: 8),

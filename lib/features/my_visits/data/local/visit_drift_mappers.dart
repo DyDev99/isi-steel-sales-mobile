@@ -4,6 +4,7 @@ import 'package:isi_steel_sales_mobile/core/database/drift/daos/visit_dao.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/models/check_in_record_model.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/models/check_out_record_model.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/models/visit_capture_models.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/stock_level.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_collection.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_note.dart';
 
@@ -124,9 +125,10 @@ extension VisitStockUpdateRowMapper on VisitStockUpdateRow {
   VisitStockUpdateModel toModel() => VisitStockUpdateModel(
         id: id,
         stopId: stopId,
+        depotId: depotId,
         productId: productId,
         productName: productName,
-        countedQuantity: countedQuantity,
+        stockLevel: StockLevel.parse(stockLevel),
         notes: notes,
       );
 }
@@ -134,10 +136,11 @@ extension VisitStockUpdateRowMapper on VisitStockUpdateRow {
 extension VisitStockUpdateModelMapper on VisitStockUpdateModel {
   VisitStockUpdatesCompanion toCompanion() => VisitStockUpdatesCompanion.insert(
         id: id,
-        stopId: stopId,
+        stopId: Value(stopId),
+        depotId: Value(depotId),
         productId: productId,
         productName: productName,
-        countedQuantity: countedQuantity,
+        stockLevel: stockLevel.storageName,
         notes: Value(notes),
       );
 }

@@ -3,6 +3,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_note.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_order_line.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_photo.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/stock_level.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_return.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_stock_update.dart';
 
@@ -45,29 +46,50 @@ class VisitOrderLineModel extends VisitOrderLine {
 class VisitStockUpdateModel extends VisitStockUpdate {
   const VisitStockUpdateModel({
     required super.id,
-    required super.stopId,
+    super.stopId,
+    super.depotId,
     required super.productId,
     required super.productName,
-    required super.countedQuantity,
+    required super.stockLevel,
     required super.notes,
   });
 
   factory VisitStockUpdateModel.fromRow(DataMap row) => VisitStockUpdateModel(
         id: row['id'] as String,
-        stopId: row['stop_id'] as String,
+        stopId: row['stop_id'] as String?,
+        depotId: row['depot_id'] as String?,
         productId: row['product_id'] as String,
         productName: row['product_name'] as String,
-        countedQuantity: (row['counted_quantity'] as num).toDouble(),
+        stockLevel: StockLevel.parse(row['stock_level'] as String?),
         notes: row['notes'] as String,
       );
 
   DataMap toRow() => {
         'id': id,
         'stop_id': stopId,
+        'depot_id': depotId,
         'product_id': productId,
         'product_name': productName,
-        'counted_quantity': countedQuantity,
+        'stock_level': stockLevel.storageName,
         'notes': notes,
+      };
+}
+
+/// SAP payload codes for [StockLevel] — the *only* place the app knows how a
+/// three-tier status is spelled on the wire. UI and domain never see these;
+/// the sync repository applies them when building the push payload for
+/// `core/network/sap_client.dart` (mocked today).
+extension StockLevelSapMapping on StockLevel {
+  String get sapCode => switch (this) {
+        StockLevel.low => 'LOW',
+        StockLevel.medium => 'MED',
+        StockLevel.high => 'HIGH',
+      };
+
+  static StockLevel fromSapCode(String code) => switch (code.toUpperCase()) {
+        'MED' => StockLevel.medium,
+        'HIGH' => StockLevel.high,
+        _ => StockLevel.low,
       };
 }
 

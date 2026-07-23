@@ -5,6 +5,7 @@ import 'package:isi_steel_sales_mobile/core/animations/app_animations.dart';
 import 'package:isi_steel_sales_mobile/core/animations/fade_slide_transition.dart';
 import 'package:isi_steel_sales_mobile/core/animations/shimmer_loading.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/presentation/services/coach_keys.dart';
 import 'package:isi_steel_sales_mobile/features/home/presentation/bloc/home_cubit.dart';
@@ -23,7 +24,7 @@ class MyWorkGridSection extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            const _SectionHeader('MY WORK', letterSpacing: 1.6),
+            _SectionHeader('shell.my_work'.tr, letterSpacing: 1.6),
 
             // Row 1
             Row(
@@ -34,10 +35,10 @@ class MyWorkGridSection extends StatelessWidget {
                     child: CoachKeys.wrap(
                       CoachKeys.myLeads,
                       child: _MyWorkCard(
-                        label: 'My Leads',
+                        label: 'shell.my_leads'.tr,
                         icon: Icons.layers_outlined,
                         accent: const Color(0xFF4C9AFF),
-                        badgeText: '1 due',
+                        badgeText: 'shell.badge_due'.trParams({'count': 1}),
                         isActive: false,
                         onTap: () =>
                             sl<ShellTabController>().goTo(ShellTab.leads),
@@ -52,10 +53,10 @@ class MyWorkGridSection extends StatelessWidget {
                     child: CoachKeys.wrap(
                       CoachKeys.myVisits,
                       child: _MyWorkCard(
-                        label: 'My Visits',
+                        label: 'shell.my_visits'.tr,
                         icon: Icons.assignment_turned_in_outlined,
                         accent: const Color(0xFF36B37E),
-                        badgeText: '3 today',
+                        badgeText: 'shell.badge_today'.trParams({'count': 3}),
                         isActive: true,
                         onTap: () =>
                             sl<ShellTabController>().goTo(ShellTab.myVisits),
@@ -76,7 +77,7 @@ class MyWorkGridSection extends StatelessWidget {
                     child: CoachKeys.wrap(
                       CoachKeys.myCustomers,
                       child: _MyWorkCard(
-                        label: 'My Customers',
+                        label: 'shell.my_customers'.tr,
                         icon: Icons.people_alt_outlined,
                         accent: const Color(0xFFFF5C00),
                         isActive: false,
@@ -93,7 +94,7 @@ class MyWorkGridSection extends StatelessWidget {
                     child: CoachKeys.wrap(
                       CoachKeys.orders,
                       child: _MyWorkCard(
-                        label: 'My Quotes & Orders',
+                        label: 'shell.my_quotes_orders'.tr,
                         icon: Icons.description_outlined,
                         accent: const Color(0xFFFFAB00),
                         isActive: false,
@@ -300,7 +301,7 @@ class MyWorkGridSkeleton extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          const _SectionHeader('MY WORK', letterSpacing: 1.6),
+          _SectionHeader('shell.my_work'.tr, letterSpacing: 1.6),
           Row(children: [
             _skeletonCell(context),
             SizedBox(width: 12.w),

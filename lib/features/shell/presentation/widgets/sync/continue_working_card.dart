@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/resumable_visit_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/quotation.dart';
@@ -147,7 +148,7 @@ class _DraftCard extends StatelessWidget {
               Icon(Icons.history_rounded, size: 18, color: scheme.primary),
               const SizedBox(width: 8),
               Expanded(
-                child: Text('Continue Previous Work',
+                child: Text('sync.continue_previous'.tr,
                     style: TextStyle(
                         fontSize: 13.5,
                         fontWeight: FontWeight.w800,
@@ -158,7 +159,7 @@ class _DraftCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Quotation #${draft.id}',
+            'sync.quotation_n'.trParams({'id': draft.id}),
             style: TextStyle(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w700,
@@ -182,7 +183,7 @@ class _DraftCard extends StatelessWidget {
                     side: BorderSide(color: scheme.primary),
                     padding: const EdgeInsets.symmetric(vertical: 10),
                   ),
-                  child: const Text('Submit'),
+                  child: Text('common.submit'.tr),
                 ),
               ),
               const SizedBox(width: 10),
@@ -193,7 +194,7 @@ class _DraftCard extends StatelessWidget {
                     backgroundColor: scheme.primary,
                     padding: const EdgeInsets.symmetric(vertical: 10),
                   ),
-                  child: const Text('Continue'),
+                  child: Text('common.continue'.tr),
                 ),
               ),
             ],
@@ -225,13 +226,13 @@ class _MultiDraftCard extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Continue Working ($count)',
+                  Text('sync.continue_working'.trParams({'count': count}),
                       style: TextStyle(
                           fontSize: 13.5,
                           fontWeight: FontWeight.w800,
                           color: scheme.onSurface)),
                   const SizedBox(height: 2),
-                  Text('You have unfinished drafts',
+                  Text('sync.unfinished_drafts'.tr,
                       style:
                           TextStyle(fontSize: 12, color: colors.textSecondary)),
                 ],
@@ -287,16 +288,21 @@ class _CardShell extends StatelessWidget {
 String _subtitle(Quotation q) {
   final who = q.shopName?.isNotEmpty == true
       ? q.shopName!
-      : (q.leadDisplayName ?? 'Walk-in customer');
-  return '$who · ${q.lines.length} products · ${_timeAgo(q.updatedAt)}';
+      : (q.leadDisplayName ?? 'orders.quotation_extra.walk_in'.tr);
+  return 'sync.draft_meta'.trParams(
+      {'who': who, 'count': q.lines.length, 'time': _timeAgo(q.updatedAt)});
 }
 
 String _timeAgo(DateTime time) {
   final diff = DateTime.now().difference(time);
-  if (diff.inMinutes < 1) return 'just now';
-  if (diff.inMinutes < 60) return '${diff.inMinutes} min ago';
-  if (diff.inHours < 24) return '${diff.inHours} h ago';
-  return '${diff.inDays} d ago';
+  if (diff.inMinutes < 1) return 'common.just_now'.tr;
+  if (diff.inMinutes < 60) {
+    return 'common.min_ago'.trParams({'minutes': diff.inMinutes});
+  }
+  if (diff.inHours < 24) {
+    return 'common.hours_ago'.trParams({'hours': diff.inHours});
+  }
+  return 'common.days_ago'.trParams({'days': diff.inDays});
 }
 
 void _continue(BuildContext context, Quotation draft) {
@@ -310,7 +316,7 @@ void _submit(BuildContext context, Quotation draft) {
   context.read<PendingSyncCubit>().enqueue(draft.id);
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
-      content: Text('Quotation #${draft.id} queued for SAP sync.'),
+      content: Text('sync.queued_for_sap'.trParams({'id': draft.id})),
       behavior: SnackBarBehavior.floating,
     ),
   );
@@ -321,16 +327,16 @@ Future<void> _confirmDiscard(BuildContext context, Quotation draft) async {
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (dialogContext) => AlertDialog(
-      title: const Text('Discard draft?'),
-      content: Text('Quotation #${draft.id} will be permanently deleted.'),
+      title: Text('sync.discard_draft_title'.tr),
+      content: Text('sync.discard_draft_body'.trParams({'id': draft.id})),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(false),
-          child: const Text('Keep'),
+          child: Text('common.keep'.tr),
         ),
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(true),
-          child: Text('Discard',
+          child: Text('common.discard'.tr,
               style:
                   TextStyle(color: Theme.of(dialogContext).colorScheme.error)),
         ),
@@ -398,7 +404,9 @@ class _DraftsSheet extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Text('Continue Working (${state.drafts.length})',
+                    Text(
+                        'sync.continue_working'
+                            .trParams({'count': state.drafts.length}),
                         style: TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.w800,
@@ -408,7 +416,7 @@ class _DraftsSheet extends StatelessWidget {
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 30),
                         child: Center(
-                          child: Text('No drafts left',
+                          child: Text('sync.no_drafts_left'.tr,
                               style: TextStyle(color: colors.textSecondary)),
                         ),
                       )
@@ -506,7 +514,7 @@ class _DraftRow extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Quotation #${draft.id}',
+          Text('sync.quotation_n'.trParams({'id': draft.id}),
               style: TextStyle(
                   fontWeight: FontWeight.w800,
                   fontSize: 13,
@@ -522,7 +530,7 @@ class _DraftRow extends StatelessWidget {
             children: [
               TextButton(
                 onPressed: () => _confirmDiscard(context, draft),
-                child: Text('Discard',
+                child: Text('common.discard'.tr,
                     style: TextStyle(color: colors.textSecondary)),
               ),
               const SizedBox(width: 4),
@@ -530,7 +538,7 @@ class _DraftRow extends StatelessWidget {
                 onPressed: () => _submit(context, draft),
                 style:
                     OutlinedButton.styleFrom(foregroundColor: scheme.primary),
-                child: const Text('Submit'),
+                child: Text('common.submit'.tr),
               ),
               const SizedBox(width: 8),
               FilledButton(
@@ -539,7 +547,7 @@ class _DraftRow extends StatelessWidget {
                   _continue(context, draft);
                 },
                 style: FilledButton.styleFrom(backgroundColor: scheme.primary),
-                child: const Text('Continue'),
+                child: Text('common.continue'.tr),
               ),
             ],
           ),

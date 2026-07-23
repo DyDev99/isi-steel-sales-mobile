@@ -4,7 +4,7 @@ import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
 /// The single source of truth for the encrypted database's schema version.
 /// Bump this by exactly one whenever a schema change ships, and add the matching
 /// step to [_stepwiseMigrations].
-const int kCurrentSchemaVersion = 9;
+const int kCurrentSchemaVersion = 10;
 
 /// Keys under which the migrator records bookkeeping in `app_metadata`, so the
 /// on-device schema history is auditable and a failed/partial upgrade is
@@ -113,6 +113,57 @@ final Map<int, SchemaMigrationStep> _stepwiseMigrations =
     await db.customStatement(
       'CREATE INDEX IF NOT EXISTS idx_customers_division '
       'ON customers (division);',
+    );
+  },
+  // v10: three-tier stock status replaces numeric stock counting.
+  //
+  // `visit_stock_updates` is recreated (TableMigration) because two changes
+  // can't be done additively: `stop_id` becomes nullable (depot counts have no
+  // route stop) and `counted_quantity REAL` is dropped in favour of
+  // `stock_level TEXT`. Existing counts are preserved, not discarded, via the
+  // most conservative faithful mapping a raw count allows: 0 → 'low'
+  // (out of stock), anything positive → 'medium' (stock was present, but a
+  // unit count carries no defensible medium/high boundary). All other columns
+  // — including the SyncableTable sync bookkeeping — copy across unchanged, so
+  // a row captured offline before the upgrade still pushes after it.
+  10: (m, db) async {
+    // When the walk starts below v8, step 8's createTable already produced the
+    // *current* (stock_level) shape — transforming a column that never existed
+    // would fail, so the rebuild only runs for databases that really carry the
+    // legacy quantity column.
+    final columns = await db
+        .customSelect("PRAGMA table_info('visit_stock_updates');")
+        .get();
+    final hasLegacyQuantity =
+        columns.any((row) => row.data['name'] == 'counted_quantity');
+
+    if (hasLegacyQuantity) {
+      // TableMigration is drift's documented mechanism for column-shape
+      // changes; marked experimental upstream but covered by the v9→v10
+      // migration test.
+      await m.alterTable(
+        // ignore: experimental_member_use
+        TableMigration(
+          db.visitStockUpdates,
+          newColumns: [db.visitStockUpdates.depotId],
+          columnTransformer: {
+            db.visitStockUpdates.stockLevel: const CustomExpression<String>(
+              "CASE WHEN counted_quantity <= 0 THEN 'low' ELSE 'medium' END",
+            ),
+          },
+        ),
+      );
+    }
+    // TableMigration recreates the table; re-assert the stop index and add the
+    // depot one. IF NOT EXISTS keeps the step re-runnable after a crash
+    // mid-upgrade (DATABASE_GUIDE.md §5).
+    await db.customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_visit_stock_updates_stop '
+      'ON visit_stock_updates (stop_id);',
+    );
+    await db.customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_visit_stock_updates_depot '
+      'ON visit_stock_updates (depot_id);',
     );
   },
 };

@@ -297,7 +297,7 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
                   size: 36.w, color: context.appColors.textHint),
               SizedBox(height: 12.h),
               Text(
-                'No local data found.',
+                'my_visits.dashboard.no_local_data'.tr,
                 style: TextStyle(
                     color: context.appColors.textPrimary,
                     fontSize: 14.sp,
@@ -310,7 +310,7 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
                     // the seeders found no synced customers to borrow ids from.
                     ? 'Pull down to sync from remote. Debug fixtures seed '
                         'automatically once customers have synced.'
-                    : 'Pull down to sync your route plan itinerary.',
+                    : 'my_visits.dashboard.pull_to_sync'.tr,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     color: context.appColors.textSecondary, fontSize: 12.sp),
@@ -342,7 +342,7 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
                   size: 36.w, color: context.appColors.textHint),
               SizedBox(height: 12.h),
               Text(
-                'No customer visits for this date',
+                'my_visits.dashboard.no_visits_for_date'.tr,
                 style: TextStyle(
                     color: context.appColors.textPrimary,
                     fontSize: 14.sp,
@@ -350,7 +350,8 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
               ),
               SizedBox(height: 6.h),
               Text(
-                'You have ${routes.length} total route plan(s) available on other calendar dates. Check for days marked with dots above.',
+                'my_visits.dashboard.other_dates'
+                    .trParams({'count': routes.length}),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     color: context.appColors.textSecondary, fontSize: 12.sp),
@@ -365,7 +366,7 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
     for (final item in stopsWithPlan) {
       final region = item.stop.customer.territory.isNotEmpty
           ? item.stop.customer.territory
-          : 'Unassigned';
+          : 'customers.unassigned'.tr;
       grouped.putIfAbsent(region, () => []).add(item);
     }
     final regionNames = grouped.keys.toList()..sort();
@@ -456,8 +457,8 @@ class _PendingSyncDebugBadge extends StatelessWidget {
           ),
           child: Text(
             count == null
-                ? 'Pending sync: …'
-                : 'Pending sync: $count record(s)',
+                ? 'my_visits.dashboard.pending_sync_loading'.tr
+                : 'my_visits.dashboard.pending_sync'.trParams({'count': count}),
             style: TextStyle(color: colors.textSecondary, fontSize: 11.sp),
           ),
         );
@@ -559,10 +560,7 @@ class _ActivityHistoryRibbon extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'my_visits.history.view_historyTemplate'.tr.toUpperCase() !=
-                      'MY_VISITS.HISTORY.VIEW_HISTORYTEMPLATE'
-                  ? 'my_visits.history.view_historyTemplate'.tr.toUpperCase()
-                  : 'ACTIVITY HISTORY',
+              'my_visits.dashboard.activity_history'.tr,
               style: TextStyle(
                   color: colors.textPrimary,
                   fontSize: 13.sp,

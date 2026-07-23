@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/l10n/visit_labels.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/territory_type.dart';
 
@@ -71,7 +73,7 @@ class _AddVisitBottomSheetState extends State<AddVisitBottomSheet> {
     if (!_formKey.currentState!.validate() || _territoryType == null) {
       if (_territoryType == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Pick a territory type')),
+          SnackBar(content: Text('shell.add_visit.pick_territory'.tr)),
         );
       }
       return;
@@ -81,8 +83,8 @@ class _AddVisitBottomSheetState extends State<AddVisitBottomSheet> {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-          content:
-              Text('Visit to ${_shopNameCtrl.text} added to today\'s route')),
+          content: Text(
+              'shell.add_visit.added'.trParams({'shop': _shopNameCtrl.text}))),
     );
     Navigator.pop(context);
   }
@@ -114,12 +116,12 @@ class _AddVisitBottomSheetState extends State<AddVisitBottomSheet> {
             ),
           ),
           SizedBox(height: 20.h),
-          Text('Add My Visit',
+          Text('shell.add_visit.title'.tr,
               style: TextStyle(
                   color: Theme.of(context).colorScheme.onSurface,
                   fontSize: 20.sp,
                   fontWeight: FontWeight.w900)),
-          Text('Add a stop to today\'s route',
+          Text('shell.add_visit.subtitle'.tr,
               style: TextStyle(
                   color: Theme.of(context)
                       .colorScheme
@@ -139,13 +141,15 @@ class _AddVisitBottomSheetState extends State<AddVisitBottomSheet> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildInputLabel('Shop Name'),
-                  _buildTextField(_shopNameCtrl, 'Shop or customer name'),
+                  _buildInputLabel('shell.add_visit.shop_name'.tr),
+                  _buildTextField(
+                      _shopNameCtrl, 'shell.add_visit.shop_name_hint'.tr),
                   SizedBox(height: 14.h),
-                  _buildInputLabel('Address'),
-                  _buildTextField(_addressCtrl, 'Street, district, province'),
+                  _buildInputLabel('customers.address'.tr),
+                  _buildTextField(
+                      _addressCtrl, 'shell.add_visit.address_hint'.tr),
                   SizedBox(height: 14.h),
-                  _buildInputLabel('Territory Type'),
+                  _buildInputLabel('shell.add_visit.territory_type'.tr),
                   _buildDropdownField(),
                   SizedBox(height: 14.h),
                   Row(
@@ -154,7 +158,7 @@ class _AddVisitBottomSheetState extends State<AddVisitBottomSheet> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _buildInputLabel('Visit Date'),
+                            _buildInputLabel('shell.add_visit.visit_date'.tr),
                             _buildPickerTile(
                                 icon: Icons.calendar_today_rounded,
                                 label: _dateLabel,
@@ -167,7 +171,7 @@ class _AddVisitBottomSheetState extends State<AddVisitBottomSheet> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _buildInputLabel('Planned Time'),
+                            _buildInputLabel('shell.add_visit.planned_time'.tr),
                             _buildPickerTile(
                                 icon: Icons.schedule_rounded,
                                 label: _timeLabel,
@@ -178,8 +182,8 @@ class _AddVisitBottomSheetState extends State<AddVisitBottomSheet> {
                     ],
                   ),
                   SizedBox(height: 14.h),
-                  _buildInputLabel('Notes (optional)'),
-                  _buildTextField(_notesCtrl, 'Purpose of visit, reminders…',
+                  _buildInputLabel('common.notes_optional'.tr),
+                  _buildTextField(_notesCtrl, 'shell.add_visit.notes_hint'.tr,
                       required: false, maxLines: 3),
                 ],
               ),
@@ -196,7 +200,7 @@ class _AddVisitBottomSheetState extends State<AddVisitBottomSheet> {
                   elevation: 0,
                 ),
                 onPressed: _submit,
-                child: Text('Add Visit',
+                child: Text('shell.add_visit.add'.tr,
                     style: TextStyle(
                         color: Colors.white,
                         fontSize: 15.sp,
@@ -229,7 +233,9 @@ class _AddVisitBottomSheetState extends State<AddVisitBottomSheet> {
         maxLines: maxLines,
         style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
         validator: required
-            ? (v) => (v == null || v.trim().isEmpty) ? 'Field required' : null
+            ? (v) => (v == null || v.trim().isEmpty)
+                ? 'common.field_required'.tr
+                : null
             : null,
         decoration: InputDecoration(
           hintText: hint,
@@ -270,7 +276,7 @@ class _AddVisitBottomSheetState extends State<AddVisitBottomSheet> {
         child: DropdownButtonHideUnderline(
           child: DropdownButton<TerritoryType>(
             value: _territoryType,
-            hint: Text('Pick one…',
+            hint: Text('common.pick_one'.tr,
                 style: TextStyle(
                     color: Theme.of(context)
                         .colorScheme
@@ -284,7 +290,7 @@ class _AddVisitBottomSheetState extends State<AddVisitBottomSheet> {
             items: TerritoryType.values
                 .map((t) => DropdownMenuItem(
                     value: t,
-                    child: Text(t.label,
+                    child: Text(t.localizedLabel,
                         style: TextStyle(
                             color: Theme.of(context).colorScheme.onSurface))))
                 .toList(),

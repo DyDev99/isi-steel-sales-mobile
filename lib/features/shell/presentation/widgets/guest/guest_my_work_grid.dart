@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
 /// "My work" preview for guests — a 2×2 grid of the tools they unlock by signing
@@ -28,7 +29,7 @@ class GuestMyWorkGrid extends StatelessWidget {
           Padding(
             padding: EdgeInsets.only(left: 4.w, bottom: 12.h),
             child: Text(
-              'MY WORK',
+              'shell.my_work'.tr,
               style: TextStyle(
                 fontSize: 14.sp,
                 fontWeight: FontWeight.w900,
@@ -43,10 +44,10 @@ class GuestMyWorkGrid extends StatelessWidget {
             children: [
               Expanded(
                 child: _WorkCard(
-                  label: 'My Leads',
+                  label: 'shell.my_leads'.tr,
                   icon: Icons.layers_outlined,
                   tint: theme.colorScheme.primary,
-                  badgeText: '1 due',
+                  badgeText: 'shell.badge_due'.trParams({'count': 1}),
                   isActive: false,
                   onTap: onRequireLogin,
                 ),
@@ -54,10 +55,10 @@ class GuestMyWorkGrid extends StatelessWidget {
               SizedBox(width: 12.w),
               Expanded(
                 child: _WorkCard(
-                  label: 'My Visits',
+                  label: 'shell.my_visits'.tr,
                   icon: Icons.assignment_turned_in_outlined,
                   tint: context.appColors.success,
-                  badgeText: '3 today',
+                  badgeText: 'shell.badge_today'.trParams({'count': 3}),
                   isActive: true,
                   onTap: onRequireLogin,
                 ),
@@ -69,7 +70,7 @@ class GuestMyWorkGrid extends StatelessWidget {
             children: [
               Expanded(
                 child: _WorkCard(
-                  label: 'My Customers',
+                  label: 'shell.my_customers'.tr,
                   icon: Icons.people_alt_outlined,
                   tint: context.appColors.warningAlt,
                   isActive: false,
@@ -79,7 +80,7 @@ class GuestMyWorkGrid extends StatelessWidget {
               SizedBox(width: 12.w),
               Expanded(
                 child: _WorkCard(
-                  label: 'My Quotes & Orders',
+                  label: 'shell.my_quotes_orders'.tr,
                   icon: Icons.description_outlined,
                   tint: context.appColors.warning,
                   isActive: false,
@@ -118,7 +119,7 @@ class _WorkCard extends StatelessWidget {
 
     return Semantics(
       button: true,
-      label: '$label. Login required.',
+      label: 'shell.login_required_label'.trParams({'feature': label}),
       child: Material(
         color: scheme.surface,
         borderRadius: BorderRadius.circular(20.r),

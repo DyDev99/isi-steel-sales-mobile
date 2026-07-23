@@ -1,16 +1,19 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
 /// A locked, sign-in-gated feature shown to a guest as a teaser.
+/// Holds localization keys (resolved with `.tr` at render time) so the teaser
+/// list re-renders live on language change.
 class GuestLockedFeature {
   const GuestLockedFeature(
-      {required this.icon, required this.title, required this.blurb});
+      {required this.icon, required this.titleKey, required this.blurbKey});
 
   final IconData icon;
-  final String title;
-  final String blurb;
+  final String titleKey;
+  final String blurbKey;
 }
 
 /// "Feature preview" — a vertical list of the tools a guest unlocks by signing
@@ -28,16 +31,16 @@ class GuestFeaturePreview extends StatelessWidget {
   static const List<GuestLockedFeature> defaults = [
     GuestLockedFeature(
         icon: Icons.dashboard_rounded,
-        title: 'Sales dashboard',
-        blurb: 'Live targets, revenue and pipeline health'),
+        titleKey: 'shell.guest.sales_dashboard',
+        blurbKey: 'shell.guest.sales_dashboard_desc'),
     GuestLockedFeature(
         icon: Icons.people_alt_rounded,
-        title: 'CRM & leads',
-        blurb: 'Manage customers and move deals to won'),
+        titleKey: 'shell.guest.crm_leads',
+        blurbKey: 'shell.guest.crm_leads_desc'),
     GuestLockedFeature(
         icon: Icons.insights_rounded,
-        title: 'Analytics & reports',
-        blurb: 'Trends, forecasts and exportable reports'),
+        titleKey: 'shell.guest.analytics',
+        blurbKey: 'shell.guest.analytics_desc'),
   ];
 
   final List<GuestLockedFeature>? features;
@@ -70,7 +73,8 @@ class _LockedCard extends StatelessWidget {
 
     return Semantics(
       button: true,
-      label: '${feature.title}. Login required.',
+      label: 'shell.login_required_label'
+          .trParams({'feature': feature.titleKey.tr}),
       child: Material(
         color: colors.card,
         borderRadius: BorderRadius.circular(20),
@@ -104,14 +108,14 @@ class _LockedCard extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(feature.title,
+                            Text(feature.titleKey.tr,
                                 style: TextStyle(
                                   color: colors.textPrimary,
                                   fontSize: 15,
                                   fontWeight: FontWeight.w700,
                                 )),
                             const SizedBox(height: 3),
-                            Text(feature.blurb,
+                            Text(feature.blurbKey.tr,
                                 maxLines: 2,
                                 style: TextStyle(
                                     color: colors.textSecondary,
@@ -163,7 +167,7 @@ class _LockBadge extends StatelessWidget {
         children: [
           Icon(Icons.lock_rounded, size: 11, color: scheme.onPrimary),
           const SizedBox(width: 4),
-          Text('Login required',
+          Text('common.login_required'.tr,
               style: TextStyle(
                 color: scheme.onPrimary,
                 fontSize: 10,

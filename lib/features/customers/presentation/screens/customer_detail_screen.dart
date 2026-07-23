@@ -101,7 +101,8 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
 
     context.read<CustomerDetailCubit>().logActivity(
           CustomerActivityType.opportunityCreated,
-          'New opportunity opened (\$${estimatedValue.toStringAsFixed(0)})',
+          'customers.opportunity_opened'
+              .trParams({'value': estimatedValue.toStringAsFixed(0)}),
         );
 
     Navigator.of(context).push(MaterialPageRoute(
@@ -132,7 +133,7 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Add Note',
+              Text('common.add_note'.tr,
                   style: TextStyle(
                       color: colors.textPrimary,
                       fontSize: 16,
@@ -143,7 +144,7 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
                 maxLines: 4,
                 style: TextStyle(color: colors.textPrimary),
                 decoration: InputDecoration(
-                  hintText: 'Write a note about this customer…',
+                  hintText: 'customers.note_hint'.tr,
                   filled: true,
                   fillColor: colors.surfaceSoft,
                   border: OutlineInputBorder(
@@ -168,7 +169,7 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14)),
                   ),
-                  child: Text('Save Note',
+                  child: Text('customers.save_note'.tr,
                       style: TextStyle(
                           color: scheme.onPrimary,
                           fontWeight: FontWeight.w800)),
@@ -270,7 +271,8 @@ class _Loaded extends StatelessWidget {
             // This allows the rep to instantly convert a cross-sell insight into a workflow deal!
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                  content: Text('Creating opportunity for $productName...')),
+                  content: Text('customers.creating_opportunity'
+                      .trParams({'product': productName}))),
             );
           },
         ),
@@ -283,7 +285,7 @@ class _Loaded extends StatelessWidget {
         //  ),
         const SizedBox(height: 16),
         _SectionCard(
-          title: 'Overview',
+          title: 'customers.overview'.tr,
           locked: true,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -303,30 +305,30 @@ class _Loaded extends StatelessWidget {
               const SizedBox(height: 8),
               _InfoRow(
                   icon: Icons.badge_outlined,
-                  label: 'Customer Code',
+                  label: 'customers.customer_code'.tr,
                   value: customer.customerCode),
               _InfoRow(
                   icon: Icons.call_outlined,
-                  label: 'Phone',
+                  label: 'customers.phone'.tr,
                   value: customer.phone),
               if (customer.email != null)
                 _InfoRow(
                     icon: Icons.email_outlined,
-                    label: 'Email',
+                    label: 'customers.email'.tr,
                     value: customer.email!),
               _InfoRow(
                   icon: Icons.place_outlined,
-                  label: 'Address',
+                  label: 'customers.address'.tr,
                   value:
                       '${customer.address}, ${customer.district}, ${customer.province}'),
               _InfoRow(
                   icon: Icons.person_pin_circle_outlined,
-                  label: 'Assigned Rep',
+                  label: 'customers.assigned_rep'.tr,
                   value: customer.assignedRepName),
               if (customer.openOpportunityCount > 0)
                 _InfoRow(
                     icon: Icons.trending_up_rounded,
-                    label: 'Open Opportunities',
+                    label: 'customers.open_opportunities'.tr,
                     value: '${customer.openOpportunityCount}'),
             ],
           ),
@@ -334,7 +336,7 @@ class _Loaded extends StatelessWidget {
         const SizedBox(height: 12),
         if (customer.contacts.isNotEmpty)
           _SectionCard(
-            title: 'Contacts',
+            title: 'customers.contacts'.tr,
             child: Column(
               children: [
                 for (final contact in customer.contacts)
@@ -372,20 +374,20 @@ class _Loaded extends StatelessWidget {
           ),
         const SizedBox(height: 12),
         _SectionCard(
-          title: 'Sales History',
+          title: 'customers.sales_history'.tr,
           locked: true,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _InfoRow(
                   icon: Icons.payments_outlined,
-                  label: 'Lifetime Value',
+                  label: 'customers.lifetime_value'.tr,
                   value: '\$${customer.lifetimeValue.toStringAsFixed(0)}'),
               _InfoRow(
                 icon: Icons.event_outlined,
-                label: 'Last Order',
+                label: 'customers.last_order'.tr,
                 value: customer.lastOrderDate == null
-                    ? 'No orders yet'
+                    ? 'customers.no_orders'.tr
                     : _formatDate(customer.lastOrderDate!),
               ),
               if (customer.productsPurchased.isNotEmpty)
@@ -405,31 +407,31 @@ class _Loaded extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         _SectionCard(
-          title: 'SAP Information',
+          title: 'customers.sap_info'.tr,
           locked: true,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _InfoRow(
                   icon: Icons.fingerprint_rounded,
-                  label: 'SAP Customer ID',
+                  label: 'customers.sap_customer_id'.tr,
                   value: customer.sapCustomerId),
               _InfoRow(
                   icon: Icons.account_balance_wallet_outlined,
-                  label: 'Credit Limit',
+                  label: 'customers.credit_limit'.tr,
                   value: '\$${customer.creditLimit.toStringAsFixed(0)}'),
               _InfoRow(
                   icon: Icons.update_rounded,
-                  label: 'Last Synced',
+                  label: 'customers.last_synced'.tr,
                   value: _formatDate(customer.updatedAt)),
             ],
           ),
         ),
         const SizedBox(height: 12),
         _SectionCard(
-          title: 'Timeline',
+          title: 'customers.timeline'.tr,
           child: state.activities.isEmpty && state.notes.isEmpty
-              ? Text('No activity yet',
+              ? Text('customers.no_activity'.tr,
                   style: TextStyle(color: colors.textSecondary, fontSize: 12.5))
               : Column(
                   children: [
@@ -492,7 +494,9 @@ class _EstimatedValueSheetState extends State<_EstimatedValueSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('New Opportunity for ${widget.customer.shopName}',
+            Text(
+                'customers.new_opportunity'
+                    .trParams({'shop': widget.customer.shopName}),
                 style: TextStyle(
                     color: colors.textPrimary,
                     fontSize: 16,
@@ -503,7 +507,7 @@ class _EstimatedValueSheetState extends State<_EstimatedValueSheet> {
               keyboardType: TextInputType.number,
               style: TextStyle(color: colors.textPrimary),
               decoration: InputDecoration(
-                labelText: 'Estimated Value (\$)',
+                labelText: 'customers.estimated_value'.tr,
                 filled: true,
                 fillColor: colors.surfaceSoft,
                 border: OutlineInputBorder(
@@ -525,7 +529,7 @@ class _EstimatedValueSheetState extends State<_EstimatedValueSheet> {
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14)),
                 ),
-                child: Text('Create Opportunity',
+                child: Text('customers.create_opportunity'.tr,
                     style: TextStyle(
                         color: scheme.onPrimary, fontWeight: FontWeight.w800)),
               ),
@@ -565,7 +569,7 @@ class _SalesInsightsSection extends StatelessWidget {
           Row(
             children: [
               Text(
-                'Sales History & Insights',
+                'customers.sales_history_insights'.tr,
                 style: TextStyle(
                   color: colors.textPrimary,
                   fontSize: 14,
@@ -585,7 +589,7 @@ class _SalesInsightsSection extends StatelessWidget {
               Expanded(
                 child: _MetricTile(
                   icon: Icons.payments_outlined,
-                  label: 'Lifetime Value',
+                  label: 'customers.lifetime_value'.tr,
                   value: '\$${customer.lifetimeValue.toStringAsFixed(0)}',
                 ),
               ),
@@ -593,9 +597,9 @@ class _SalesInsightsSection extends StatelessWidget {
               Expanded(
                 child: _MetricTile(
                   icon: Icons.event_outlined,
-                  label: 'Last Order',
+                  label: 'customers.last_order'.tr,
                   value: customer.lastOrderDate == null
-                      ? 'No orders yet'
+                      ? 'customers.no_orders'.tr
                       : _formatDate(customer.lastOrderDate!),
                 ),
               ),
@@ -605,7 +609,7 @@ class _SalesInsightsSection extends StatelessWidget {
 
           // Row 2: Currently Purchased Lines
           Text(
-            'Active Product Mix',
+            'customers.active_product_mix'.tr,
             style: TextStyle(
               color: colors.textSecondary,
               fontSize: 11.5,
@@ -624,7 +628,7 @@ class _SalesInsightsSection extends StatelessWidget {
             )
           else
             Text(
-              'No active product lines found.',
+              'customers.no_active_product_lines'.tr,
               style: TextStyle(color: colors.textSecondary, fontSize: 12),
             ),
 
@@ -632,7 +636,7 @@ class _SalesInsightsSection extends StatelessWidget {
 
           // Row 3: Gap Analysis / White Spaces
           Text(
-            'Cross-Sell Gaps (Tap to target)',
+            'customers.cross_sell_gaps'.tr,
             style: TextStyle(
               color: colors.textSecondary,
               fontSize: 11.5,
