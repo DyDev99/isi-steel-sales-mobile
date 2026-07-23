@@ -1,5 +1,7 @@
 # Authentication Flow
 
+> **Full documentation package**: `docs/features/Authentication/` (Blueprint, Architecture, Workflow, API, Security, QA/UAT, and more — generated 2026-07-23). This file remains the concise flow narrative.
+
 Guest-first authentication for the ISI Steel Sales app. Users can explore the
 whole app without an account and are asked to sign in only when they reach a
 feature that genuinely needs one. Built on the existing Clean Architecture
@@ -133,7 +135,7 @@ notifications, saved items**, etc. It is already wired into **Profile** access i
 - Returns a `LoginPromptResult` (`login` / `dismissed`) for callers that care.
 
 All copy is localized (`auth.login_required_title`, `auth.login_required_desc`,
-`auth.login_now`, `auth.later`) in both `en.json` and `kh.json`.
+`auth.login_now`, `auth.later`) in both `assets/lang/en.json` and `assets/lang/km.json`.
 
 ---
 

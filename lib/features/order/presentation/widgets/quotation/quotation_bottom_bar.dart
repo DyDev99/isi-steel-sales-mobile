@@ -47,8 +47,8 @@ class QuotationBottomBar extends StatelessWidget {
                         borderRadius: BorderRadius.circular(14),
                       ),
                     ),
-                    child: const Text(
-                      'Back',
+                    child: Text(
+                      'common.back'.tr,
                       style: TextStyle(fontWeight: FontWeight.w700),
                     ),
                   ),
