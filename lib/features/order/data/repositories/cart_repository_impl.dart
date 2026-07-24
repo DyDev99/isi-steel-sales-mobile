@@ -6,6 +6,7 @@ import 'package:isi_steel_sales_mobile/features/order/data/local/cart_local_data
 import 'package:isi_steel_sales_mobile/features/order/data/local/product_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/repositories/cart_repository.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/services/product_customization_spec.dart';
 
 /// Composes [CartLocalDataSource] (`cart_items` table) with
 /// [ProductLocalDataSource] to rehydrate full [CartItem]s — product-joining
@@ -87,6 +88,7 @@ class CartRepositoryImpl implements CartRepository {
         'lead_id': item.leadId,
         'customer_id': item.customerId,
         'editing_quotation_id': editingQuotationId,
+        'customization_json': ProductCustomizationSpec.encode(item),
         'created_at': DateTime.now().toIso8601String(),
       };
 
@@ -95,7 +97,7 @@ class CartRepositoryImpl implements CartRepository {
     for (final row in rows) {
       final product = await _productLocal.getById(row['product_id'] as String);
       if (product == null) continue;
-      items.add(CartItem(
+      final base = CartItem(
         id: row['id'] as String,
         product: product,
         quantity: (row['quantity'] as num).toDouble(),
@@ -103,7 +105,9 @@ class CartRepositoryImpl implements CartRepository {
         discountPercent: (row['discount_percent'] as num).toDouble(),
         leadId: row['lead_id'] as String?,
         customerId: row['customer_id'] as String?,
-      ));
+      );
+      items.add(ProductCustomizationSpec.applyEncoded(
+          base, row['customization_json'] as String?));
     }
     return items;
   }

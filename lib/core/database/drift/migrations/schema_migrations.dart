@@ -4,7 +4,7 @@ import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
 /// The single source of truth for the encrypted database's schema version.
 /// Bump this by exactly one whenever a schema change ships, and add the matching
 /// step to [_stepwiseMigrations].
-const int kCurrentSchemaVersion = 10;
+const int kCurrentSchemaVersion = 11;
 
 /// Keys under which the migrator records bookkeeping in `app_metadata`, so the
 /// on-device schema history is auditable and a failed/partial upgrade is
@@ -166,6 +166,13 @@ final Map<int, SchemaMigrationStep> _stepwiseMigrations =
       'ON visit_stock_updates (depot_id);',
     );
   },
+  // v11: per-line product customization on the local cart.
+  //
+  // Purely additive — a single nullable TEXT column holding the customization
+  // JSON blob (measurements, appearance, drawing path, notes). `cart_items` is
+  // local-only and never synced, so no sync bookkeeping is involved; existing
+  // rows upgrade untouched (null = a plain catalog line).
+  11: (m, db) async => m.addColumn(db.cartItems, db.cartItems.customizationJson),
 };
 
 /// Builds the [MigrationStrategy] for [db]: creates the schema on first run,

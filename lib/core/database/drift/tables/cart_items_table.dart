@@ -16,6 +16,12 @@ class CartItems extends Table {
   TextColumn get leadId => text().nullable()();
   TextColumn get customerId => text().nullable()();
   TextColumn get editingQuotationId => text().nullable()();
+
+  /// JSON blob describing a customized line (measurements, appearance, drawing
+  /// path, notes), or null for a plain catalog line. Free-form so the
+  /// customization shape can evolve without a schema change — see
+  /// `ProductCustomizationSpec.encode`.
+  TextColumn get customizationJson => text().nullable()();
   TextColumn get createdAt => text()();
 
   @override

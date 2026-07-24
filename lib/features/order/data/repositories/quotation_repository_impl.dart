@@ -13,6 +13,7 @@ import 'package:isi_steel_sales_mobile/features/order/domain/entities/off_visit_
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/quotation.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/quotation_status.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/repositories/quotation_repository.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/services/product_customization_spec.dart';
 
 const _validityDays = 14;
 
@@ -255,6 +256,9 @@ class QuotationRepositoryImpl implements QuotationRepository {
             'quantity': i.quantity,
             'unit': i.unit,
             'discountPercent': i.discountPercent,
+            // Customization travels as a nested JSON string (null for plain
+            // lines) so quotations + their PDF keep the exact customized spec.
+            'customization': ProductCustomizationSpec.encode(i),
           })
       .toList());
 
@@ -265,7 +269,7 @@ class QuotationRepositoryImpl implements QuotationRepository {
     for (final raw in rawItems) {
       final product = await _productLocal.getById(raw['productId'] as String);
       if (product == null) continue;
-      items.add(CartItem(
+      final base = CartItem(
         id: '${raw['productId']}-${items.length}',
         product: product,
         quantity: (raw['quantity'] as num).toDouble(),
@@ -273,7 +277,9 @@ class QuotationRepositoryImpl implements QuotationRepository {
         discountPercent: (raw['discountPercent'] as num).toDouble(),
         leadId: leadId,
         customerId: customerId,
-      ));
+      );
+      items.add(ProductCustomizationSpec.applyEncoded(
+          base, raw['customization'] as String?));
     }
     return items;
   }

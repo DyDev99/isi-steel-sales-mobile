@@ -26,6 +26,7 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/catalog_event.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/catalog_state.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/sync_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/customized_product_form_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/quotation_detail_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/quotation_preview_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/catalog/catalog_filter_sheet.dart';
@@ -199,6 +200,24 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
 
   void _selectDiscount(int percent) {
     setState(() => _selectedDiscount = percent);
+  }
+
+  /// Opens the category-aware customization form, carrying the live [CartCubit]
+  /// so the customized line lands in this same cart.
+  void _openCustomize(Product product) {
+    final cartCubit = context.read<CartCubit>();
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => BlocProvider.value(
+          value: cartCubit,
+          child: CustomizedProductFormScreen(
+            baseProduct: product,
+            leadId: widget.leadId,
+            customerId: widget.customer?.id,
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _voiceSearch() async {
@@ -457,6 +476,7 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                             customerId: widget.customer?.id,
                             onToggleFavorite: _toggleFavorite,
                             onToggleExpanded: _toggleExpanded,
+                            onCustomize: _openCustomize,
                             height: 280,
                             hasActiveAttributeFilter:
                                 filter.hasActiveAttributes,

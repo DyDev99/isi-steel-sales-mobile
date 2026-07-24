@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -162,6 +164,20 @@ class QuotationPreviewSection extends StatelessWidget {
                 final int qty = item.quantity.toInt();
                 final double rowTotal = item.lineSubtotal;
 
+                final specParts = <String>[];
+                if (item.isCustomized) {
+                  final m = item.measurements;
+                  if (m != null && !m.isEmpty) {
+                    specParts.add(m.toSummaryString());
+                  }
+                  if (item.appearance != null &&
+                      item.appearance!.trim().isNotEmpty) {
+                    specParts.add(item.appearance!.trim());
+                  }
+                }
+                final hasDrawing = item.drawingImagePath != null &&
+                    File(item.drawingImagePath!).existsSync();
+
                 return Padding(
                   padding: EdgeInsets.only(bottom: 8.h),
                   child: Row(
@@ -179,22 +195,61 @@ class QuotationPreviewSection extends StatelessWidget {
                           ),
                         ),
                       ),
+                      // Drawing thumbnail (customized lines only)
+                      if (item.isCustomized) ...[
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(6.r),
+                          child: Container(
+                            width: 34.w,
+                            height: 34.w,
+                            color: colors.surfaceSoft,
+                            child: hasDrawing
+                                ? Image.file(File(item.drawingImagePath!),
+                                    fit: BoxFit.cover)
+                                : Icon(Icons.tune_rounded,
+                                    size: 16.w, color: colors.brandNavy),
+                          ),
+                        ),
+                        SizedBox(width: 8.w),
+                      ],
                       // Product Name & details
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              product.name.isNotEmpty
-                                  ? product.name
-                                  : 'orders.quotation_extra.structural_item'.tr,
-                              style: TextStyle(
-                                fontSize: 13.sp,
-                                fontWeight: FontWeight.w500,
-                                color: colors.textPrimary,
-                              ),
+                            Row(
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    product.name.isNotEmpty
+                                        ? product.name
+                                        : 'orders.quotation_extra.structural_item'
+                                            .tr,
+                                    style: TextStyle(
+                                      fontSize: 13.sp,
+                                      fontWeight: FontWeight.w500,
+                                      color: colors.textPrimary,
+                                    ),
+                                  ),
+                                ),
+                                if (item.isCustomized)
+                                  Padding(
+                                    padding: EdgeInsets.only(left: 4.w),
+                                    child: Text('✏️',
+                                        style: TextStyle(fontSize: 11.sp)),
+                                  ),
+                              ],
                             ),
-                            if (product.size.isNotEmpty ||
+                            if (item.isCustomized && specParts.isNotEmpty)
+                              Text(
+                                specParts.join(' · '),
+                                style: TextStyle(
+                                  fontSize: 11.sp,
+                                  color: colors.brandNavy,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              )
+                            else if (product.size.isNotEmpty ||
                                 product.grade.isNotEmpty)
                               Text(
                                 '${product.size} ${product.grade}'.trim(),

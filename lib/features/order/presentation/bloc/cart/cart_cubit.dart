@@ -3,6 +3,8 @@ import 'dart:math';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/usecase/usecase.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/entities/data_domain.dart'
+    show CustomizationMeasurement;
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/off_visit_reason.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/quotation.dart';
@@ -99,6 +101,38 @@ class CartCubit extends Cubit<CartState> {
       emit(CartLoaded(items: [..._items, newItem]));
       await _addToCart(newItem);
     }
+  }
+
+  /// Adds a customized line. Unlike [addProduct], a customized line is always
+  /// its own row — two customizations of the same product never merge, because
+  /// their measurements/appearance differ.
+  Future<void> addCustomProduct(
+    Product product, {
+    required double quantity,
+    required String unit,
+    CustomizationMeasurement? measurements,
+    String? appearance,
+    String? drawingImagePath,
+    String? customizationDescription,
+    String? leadId,
+    String? customerId,
+  }) async {
+    final newItem = CartItem(
+      id: _newId(),
+      product: product,
+      quantity: quantity,
+      unit: unit,
+      discountPercent: 0,
+      leadId: leadId,
+      customerId: customerId,
+      isCustomized: true,
+      measurements: measurements,
+      appearance: appearance,
+      drawingImagePath: drawingImagePath,
+      customizationDescription: customizationDescription,
+    );
+    emit(CartLoaded(items: [..._items, newItem]));
+    await _addToCart(newItem);
   }
 
   Future<void> updateQuantity(String cartItemId, double quantity) async {

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/glass_card.dart';
@@ -15,9 +17,27 @@ class CartItemTile extends StatelessWidget {
   final ValueChanged<double> onQuantityChanged;
   final VoidCallback onRemove;
 
+  bool get _hasDrawing =>
+      item.isCustomized &&
+      item.drawingImagePath != null &&
+      File(item.drawingImagePath!).existsSync();
+
+  /// Measurements + finish, joined for the review line (null for plain lines).
+  String? get _customSpecs {
+    if (!item.isCustomized) return null;
+    final parts = <String>[];
+    final m = item.measurements;
+    if (m != null && !m.isEmpty) parts.add(m.toSummaryString());
+    if (item.appearance != null && item.appearance!.trim().isNotEmpty) {
+      parts.add(item.appearance!.trim());
+    }
+    return parts.isEmpty ? null : parts.join(' · ');
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppThemeColors>()!;
+    final specs = _customSpecs;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
@@ -28,38 +48,70 @@ class CartItemTile extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
-              child: Image.network(
-                item.product.imageUrl,
-                width: 56,
-                height: 56,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
-                  width: 56,
-                  height: 56,
-                  color: colors.surfaceSoft,
-                  alignment: Alignment.center,
-                  child: Icon(
-                    Icons.inventory_2_outlined,
-                    color: colors.textHint,
-                    size: 22,
-                  ),
-                ),
-              ),
+              child: _hasDrawing
+                  ? Image.file(
+                      File(item.drawingImagePath!),
+                      width: 56,
+                      height: 56,
+                      fit: BoxFit.cover,
+                    )
+                  : Image.network(
+                      item.product.imageUrl,
+                      width: 56,
+                      height: 56,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        width: 56,
+                        height: 56,
+                        color: colors.surfaceSoft,
+                        alignment: Alignment.center,
+                        child: Icon(
+                          item.isCustomized
+                              ? Icons.tune_rounded
+                              : Icons.inventory_2_outlined,
+                          color: colors.textHint,
+                          size: 22,
+                        ),
+                      ),
+                    ),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    item.product.name,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: colors.textPrimary,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w800,
-                    ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          item.product.name,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: colors.textPrimary,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                      if (item.isCustomized) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: colors.accentPurple.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            '✏️',
+                            style: TextStyle(
+                                fontSize: 10, color: colors.accentPurple),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                   const SizedBox(height: 2),
                   Text(
@@ -69,6 +121,33 @@ class CartItemTile extends StatelessWidget {
                       fontSize: 11,
                     ),
                   ),
+                  if (specs != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      specs,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: colors.accentPurple,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                  if (item.customizationDescription != null &&
+                      item.customizationDescription!.trim().isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      'Note: ${item.customizationDescription!.trim()}',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: colors.textSecondary,
+                        fontSize: 10.5,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 8),
                   Row(
                     children: [

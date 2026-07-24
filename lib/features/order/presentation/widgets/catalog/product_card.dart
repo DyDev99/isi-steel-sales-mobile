@@ -12,6 +12,7 @@ class ProductCard extends StatelessWidget {
     required this.isFavorite,
     required this.onFavoriteToggle,
     required this.onAddToCart,
+    this.onCustomize,
   });
 
   final Product product;
@@ -19,6 +20,10 @@ class ProductCard extends StatelessWidget {
   final bool isFavorite;
   final VoidCallback onFavoriteToggle;
   final VoidCallback onAddToCart;
+
+  /// When set, shows a "customize" action that opens the category-aware
+  /// customization form instead of adding the plain product.
+  final VoidCallback? onCustomize;
 
   static const _imageSize = 58.0;
 
@@ -131,6 +136,23 @@ class ProductCard extends StatelessWidget {
                         ),
                       ),
                     ),
+                    if (onCustomize != null) ...[
+                      InkWell(
+                        onTap: onCustomize,
+                        borderRadius: BorderRadius.circular(8),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: scheme.primary.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(Icons.tune_rounded,
+                              size: 16, color: scheme.primary),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                    ],
                     InkWell(
                       onTap: onAddToCart,
                       borderRadius: BorderRadius.circular(8),

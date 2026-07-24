@@ -5,6 +5,7 @@ import 'package:isi_steel_sales_mobile/core/localization/localization_services.d
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/catalog_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/catalog_event.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/catalog_state.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/catalog/catalog_skeletons.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/catalog/product_card.dart';
@@ -19,6 +20,7 @@ class ProductListSection extends StatelessWidget {
     required this.customerId,
     required this.onToggleFavorite,
     required this.onToggleExpanded,
+    this.onCustomize,
     this.height,
     this.hasActiveAttributeFilter = false,
     this.quantity = 1,
@@ -32,6 +34,10 @@ class ProductListSection extends StatelessWidget {
   final String? customerId;
   final ValueChanged<String> onToggleFavorite;
   final ValueChanged<String> onToggleExpanded;
+
+  /// Opens the category-aware customization form for a product. When null, the
+  /// per-card customize action is hidden.
+  final ValueChanged<Product>? onCustomize;
   final double? height;
   final bool hasActiveAttributeFilter;
   final double quantity;
@@ -127,6 +133,9 @@ class ProductListSection extends StatelessWidget {
                                               leadId: leadId,
                                               customerId: customerId,
                                             ),
+                                    onCustomize: onCustomize == null
+                                        ? null
+                                        : () => onCustomize!(product),
                                   ),
                                 )),
                           if (hasMore)

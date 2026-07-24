@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
 
 /// One priced row on the quotation PDF. Deliberately a flat, Flutter-free value
@@ -13,6 +16,10 @@ class QuotationPdfLine {
     required this.unitPrice,
     required this.discountPercent,
     required this.lineTotal,
+    this.isCustomized = false,
+    this.specs,
+    this.appearance,
+    this.drawingImageBytes,
   });
 
   final String name;
@@ -22,6 +29,19 @@ class QuotationPdfLine {
   final double unitPrice;
   final double discountPercent;
   final double lineTotal;
+
+  // ── Customization (empty/false for a plain catalog line) ──────────────
+  final bool isCustomized;
+
+  /// Measurements summary, e.g. "L: 6000mm × Ø: 12mm".
+  final String? specs;
+
+  /// Surface finish / colour / coating.
+  final String? appearance;
+
+  /// Decoded bytes of the attached technical drawing, ready for the PDF's
+  /// `MemoryImage`. Null when there is no drawing (or it couldn't be read).
+  final Uint8List? drawingImageBytes;
 }
 
 /// The immutable input to [QuotationPdfGenerator].
@@ -88,6 +108,18 @@ class QuotationPdfData {
     final lines = items.map((item) {
       final product = item.product;
       final description = '${product.size} ${product.grade}'.trim();
+
+      String? specs;
+      String? appearance;
+      Uint8List? drawingBytes;
+      if (item.isCustomized) {
+        final m = item.measurements;
+        if (m != null && !m.isEmpty) specs = m.toSummaryString();
+        final finish = item.appearance?.trim();
+        if (finish != null && finish.isNotEmpty) appearance = finish;
+        drawingBytes = _readDrawing(item.drawingImagePath);
+      }
+
       return QuotationPdfLine(
         name: product.name.isNotEmpty ? product.name : 'Structural Item',
         description: description,
@@ -96,6 +128,10 @@ class QuotationPdfData {
         unitPrice: item.unitPrice,
         discountPercent: item.discountPercent,
         lineTotal: item.lineTotal,
+        isCustomized: item.isCustomized,
+        specs: specs,
+        appearance: appearance,
+        drawingImageBytes: drawingBytes,
       );
     }).toList(growable: false);
 
@@ -116,5 +152,18 @@ class QuotationPdfData {
       notes: notes,
       currencySymbol: currencySymbol,
     );
+  }
+
+  /// Reads the drawing file into bytes for the PDF, or null when the path is
+  /// empty/missing/unreadable — a missing drawing must never fail the export.
+  static Uint8List? _readDrawing(String? path) {
+    if (path == null || path.isEmpty) return null;
+    try {
+      final file = File(path);
+      if (!file.existsSync()) return null;
+      return file.readAsBytesSync();
+    } catch (_) {
+      return null;
+    }
   }
 }

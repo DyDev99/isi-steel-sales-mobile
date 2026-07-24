@@ -25,6 +25,7 @@ class CartDriftLocalDataSource implements CartLocalDataSource {
       leadId: Value(row['lead_id'] as String?),
       customerId: Value(row['customer_id'] as String?),
       editingQuotationId: Value(row['editing_quotation_id'] as String?),
+      customizationJson: Value(row['customization_json'] as String?),
       createdAt: row['created_at'] as String,
     );
   }

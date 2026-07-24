@@ -20,7 +20,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubi
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/state/route_dashboard_state.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/route_sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/state/route_sync_state.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/navigation/open_route_dispatch.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/depot_info_screen.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/my_visits_history_screen.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/calendar/calendar_widget_section.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/route_skeletons.dart';
@@ -72,10 +72,20 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
     if (kDebugMode) _autoSeedDebugFixtures();
   }
 
-  Future<void> _openRoute(BuildContext context, String routeId) async {
+  /// Route selection now lands on the depot briefing first (not straight into
+  /// check-in). "Start Route" there hands off to the guided dispatch flow.
+  Future<void> _openDepotInfo(
+      BuildContext context, RoutePlan route, List<RoutePlan> routes) async {
     final syncCubit = context.read<RouteSyncCubit>();
     final dashboardCubit = context.read<RouteDashboardCubit>();
-    await openRouteDispatch(context, routeId, syncCubit: syncCubit);
+    await Navigator.of(context).push(MaterialPageRoute(
+      settings: const RouteSettings(name: DepotInfoScreen.routeName),
+      builder: (_) => DepotInfoScreen(
+        route: route,
+        routes: routes,
+        syncCubit: syncCubit,
+      ),
+    ));
     if (!mounted) return;
     dashboardCubit.load();
   }
@@ -322,6 +332,7 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
     }
 
     final filteredRoutes = routesScheduledOn(_selectedDate, routes);
+    final routeById = {for (final r in filteredRoutes) r.id: r};
 
     final List<_RouteStopWithPlanId> stopsWithPlan = [];
     for (var route in filteredRoutes) {
@@ -413,7 +424,10 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
                         selected: _selectedStopId == item.stop.id,
                         onTap: () {
                           setState(() => _selectedStopId = item.stop.id);
-                          _openRoute(context, item.routeId);
+                          final route = routeById[item.routeId];
+                          if (route != null) {
+                            _openDepotInfo(context, route, filteredRoutes);
+                          }
                         },
                         onCartTap: () {
                           HapticFeedback.mediumImpact();

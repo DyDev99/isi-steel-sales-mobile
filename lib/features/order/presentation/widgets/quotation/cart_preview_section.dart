@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
@@ -55,12 +57,14 @@ class CartPreviewSection extends StatelessWidget {
                           final item = items[index];
                           return _CartPreviewRow(
                             item: item,
+                            // Address the line by its own id — customized lines
+                            // share a product id, so keying on product.id would
+                            // hit the wrong line.
                             onQuantityChanged: (qty) => context
                                 .read<CartCubit>()
-                                .updateQuantity(item.product.id, qty),
-                            onRemove: () => context
-                                .read<CartCubit>()
-                                .removeItem(item.product.id),
+                                .updateQuantity(item.id, qty),
+                            onRemove: () =>
+                                context.read<CartCubit>().removeItem(item.id),
                           );
                         },
                       ),
@@ -84,26 +88,82 @@ class _CartPreviewRow extends StatelessWidget {
   final ValueChanged<double> onQuantityChanged;
   final VoidCallback onRemove;
 
+  bool get _hasDrawing =>
+      item.drawingImagePath != null &&
+      File(item.drawingImagePath!).existsSync();
+
+  String? get _customSpecs {
+    if (!item.isCustomized) return null;
+    final parts = <String>[];
+    final m = item.measurements;
+    if (m != null && !m.isEmpty) parts.add(m.toSummaryString());
+    if (item.appearance != null && item.appearance!.trim().isNotEmpty) {
+      parts.add(item.appearance!.trim());
+    }
+    return parts.isEmpty ? null : parts.join(' · ');
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppThemeColors>()!;
+    final specs = _customSpecs;
 
     return Row(
       children: [
+        if (item.isCustomized) ...[
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              width: 40,
+              height: 40,
+              color: colors.surfaceSoft,
+              child: _hasDrawing
+                  ? Image.file(File(item.drawingImagePath!), fit: BoxFit.cover)
+                  : Icon(Icons.tune_rounded,
+                      size: 18, color: colors.accentPurple),
+            ),
+          ),
+          const SizedBox(width: 10),
+        ],
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                item.product.name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: colors.textPrimary,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                ),
+              Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      item.product.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: colors.textPrimary,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  if (item.isCustomized) ...[
+                    const SizedBox(width: 6),
+                    Text('✏️',
+                        style: TextStyle(
+                            fontSize: 11, color: colors.accentPurple)),
+                  ],
+                ],
               ),
+              if (specs != null) ...[
+                const SizedBox(height: 2),
+                Text(
+                  specs,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: colors.textSecondary,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
               const SizedBox(height: 2),
               Text(
                 '\$${item.lineTotal.toStringAsFixed(2)}',

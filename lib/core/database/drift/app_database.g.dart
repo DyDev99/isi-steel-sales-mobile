@@ -6989,6 +6989,12 @@ class $CartItemsTable extends CartItems
   late final GeneratedColumn<String> editingQuotationId =
       GeneratedColumn<String>('editing_quotation_id', aliasedName, true,
           type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _customizationJsonMeta =
+      const VerificationMeta('customizationJson');
+  @override
+  late final GeneratedColumn<String> customizationJson =
+      GeneratedColumn<String>('customization_json', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _createdAtMeta =
       const VerificationMeta('createdAt');
   @override
@@ -7005,6 +7011,7 @@ class $CartItemsTable extends CartItems
         leadId,
         customerId,
         editingQuotationId,
+        customizationJson,
         createdAt
       ];
   @override
@@ -7062,6 +7069,12 @@ class $CartItemsTable extends CartItems
           editingQuotationId.isAcceptableOrUnknown(
               data['editing_quotation_id']!, _editingQuotationIdMeta));
     }
+    if (data.containsKey('customization_json')) {
+      context.handle(
+          _customizationJsonMeta,
+          customizationJson.isAcceptableOrUnknown(
+              data['customization_json']!, _customizationJsonMeta));
+    }
     if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
@@ -7093,6 +7106,8 @@ class $CartItemsTable extends CartItems
           .read(DriftSqlType.string, data['${effectivePrefix}customer_id']),
       editingQuotationId: attachedDatabase.typeMapping.read(
           DriftSqlType.string, data['${effectivePrefix}editing_quotation_id']),
+      customizationJson: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}customization_json']),
       createdAt: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}created_at'])!,
     );
@@ -7113,6 +7128,12 @@ class CartItem extends DataClass implements Insertable<CartItem> {
   final String? leadId;
   final String? customerId;
   final String? editingQuotationId;
+
+  /// JSON blob describing a customized line (measurements, appearance, drawing
+  /// path, notes), or null for a plain catalog line. Free-form so the
+  /// customization shape can evolve without a schema change — see
+  /// `ProductCustomizationSpec.encode`.
+  final String? customizationJson;
   final String createdAt;
   const CartItem(
       {required this.id,
@@ -7123,6 +7144,7 @@ class CartItem extends DataClass implements Insertable<CartItem> {
       this.leadId,
       this.customerId,
       this.editingQuotationId,
+      this.customizationJson,
       required this.createdAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -7140,6 +7162,9 @@ class CartItem extends DataClass implements Insertable<CartItem> {
     }
     if (!nullToAbsent || editingQuotationId != null) {
       map['editing_quotation_id'] = Variable<String>(editingQuotationId);
+    }
+    if (!nullToAbsent || customizationJson != null) {
+      map['customization_json'] = Variable<String>(customizationJson);
     }
     map['created_at'] = Variable<String>(createdAt);
     return map;
@@ -7160,6 +7185,9 @@ class CartItem extends DataClass implements Insertable<CartItem> {
       editingQuotationId: editingQuotationId == null && nullToAbsent
           ? const Value.absent()
           : Value(editingQuotationId),
+      customizationJson: customizationJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(customizationJson),
       createdAt: Value(createdAt),
     );
   }
@@ -7177,6 +7205,8 @@ class CartItem extends DataClass implements Insertable<CartItem> {
       customerId: serializer.fromJson<String?>(json['customerId']),
       editingQuotationId:
           serializer.fromJson<String?>(json['editingQuotationId']),
+      customizationJson:
+          serializer.fromJson<String?>(json['customizationJson']),
       createdAt: serializer.fromJson<String>(json['createdAt']),
     );
   }
@@ -7192,6 +7222,7 @@ class CartItem extends DataClass implements Insertable<CartItem> {
       'leadId': serializer.toJson<String?>(leadId),
       'customerId': serializer.toJson<String?>(customerId),
       'editingQuotationId': serializer.toJson<String?>(editingQuotationId),
+      'customizationJson': serializer.toJson<String?>(customizationJson),
       'createdAt': serializer.toJson<String>(createdAt),
     };
   }
@@ -7205,6 +7236,7 @@ class CartItem extends DataClass implements Insertable<CartItem> {
           Value<String?> leadId = const Value.absent(),
           Value<String?> customerId = const Value.absent(),
           Value<String?> editingQuotationId = const Value.absent(),
+          Value<String?> customizationJson = const Value.absent(),
           String? createdAt}) =>
       CartItem(
         id: id ?? this.id,
@@ -7217,6 +7249,9 @@ class CartItem extends DataClass implements Insertable<CartItem> {
         editingQuotationId: editingQuotationId.present
             ? editingQuotationId.value
             : this.editingQuotationId,
+        customizationJson: customizationJson.present
+            ? customizationJson.value
+            : this.customizationJson,
         createdAt: createdAt ?? this.createdAt,
       );
   CartItem copyWithCompanion(CartItemsCompanion data) {
@@ -7234,6 +7269,9 @@ class CartItem extends DataClass implements Insertable<CartItem> {
       editingQuotationId: data.editingQuotationId.present
           ? data.editingQuotationId.value
           : this.editingQuotationId,
+      customizationJson: data.customizationJson.present
+          ? data.customizationJson.value
+          : this.customizationJson,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -7249,14 +7287,24 @@ class CartItem extends DataClass implements Insertable<CartItem> {
           ..write('leadId: $leadId, ')
           ..write('customerId: $customerId, ')
           ..write('editingQuotationId: $editingQuotationId, ')
+          ..write('customizationJson: $customizationJson, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, productId, quantity, unit,
-      discountPercent, leadId, customerId, editingQuotationId, createdAt);
+  int get hashCode => Object.hash(
+      id,
+      productId,
+      quantity,
+      unit,
+      discountPercent,
+      leadId,
+      customerId,
+      editingQuotationId,
+      customizationJson,
+      createdAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -7269,6 +7317,7 @@ class CartItem extends DataClass implements Insertable<CartItem> {
           other.leadId == this.leadId &&
           other.customerId == this.customerId &&
           other.editingQuotationId == this.editingQuotationId &&
+          other.customizationJson == this.customizationJson &&
           other.createdAt == this.createdAt);
 }
 
@@ -7281,6 +7330,7 @@ class CartItemsCompanion extends UpdateCompanion<CartItem> {
   final Value<String?> leadId;
   final Value<String?> customerId;
   final Value<String?> editingQuotationId;
+  final Value<String?> customizationJson;
   final Value<String> createdAt;
   final Value<int> rowid;
   const CartItemsCompanion({
@@ -7292,6 +7342,7 @@ class CartItemsCompanion extends UpdateCompanion<CartItem> {
     this.leadId = const Value.absent(),
     this.customerId = const Value.absent(),
     this.editingQuotationId = const Value.absent(),
+    this.customizationJson = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -7304,6 +7355,7 @@ class CartItemsCompanion extends UpdateCompanion<CartItem> {
     this.leadId = const Value.absent(),
     this.customerId = const Value.absent(),
     this.editingQuotationId = const Value.absent(),
+    this.customizationJson = const Value.absent(),
     required String createdAt,
     this.rowid = const Value.absent(),
   })  : id = Value(id),
@@ -7320,6 +7372,7 @@ class CartItemsCompanion extends UpdateCompanion<CartItem> {
     Expression<String>? leadId,
     Expression<String>? customerId,
     Expression<String>? editingQuotationId,
+    Expression<String>? customizationJson,
     Expression<String>? createdAt,
     Expression<int>? rowid,
   }) {
@@ -7333,6 +7386,7 @@ class CartItemsCompanion extends UpdateCompanion<CartItem> {
       if (customerId != null) 'customer_id': customerId,
       if (editingQuotationId != null)
         'editing_quotation_id': editingQuotationId,
+      if (customizationJson != null) 'customization_json': customizationJson,
       if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -7347,6 +7401,7 @@ class CartItemsCompanion extends UpdateCompanion<CartItem> {
       Value<String?>? leadId,
       Value<String?>? customerId,
       Value<String?>? editingQuotationId,
+      Value<String?>? customizationJson,
       Value<String>? createdAt,
       Value<int>? rowid}) {
     return CartItemsCompanion(
@@ -7358,6 +7413,7 @@ class CartItemsCompanion extends UpdateCompanion<CartItem> {
       leadId: leadId ?? this.leadId,
       customerId: customerId ?? this.customerId,
       editingQuotationId: editingQuotationId ?? this.editingQuotationId,
+      customizationJson: customizationJson ?? this.customizationJson,
       createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
     );
@@ -7390,6 +7446,9 @@ class CartItemsCompanion extends UpdateCompanion<CartItem> {
     if (editingQuotationId.present) {
       map['editing_quotation_id'] = Variable<String>(editingQuotationId.value);
     }
+    if (customizationJson.present) {
+      map['customization_json'] = Variable<String>(customizationJson.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<String>(createdAt.value);
     }
@@ -7410,6 +7469,7 @@ class CartItemsCompanion extends UpdateCompanion<CartItem> {
           ..write('leadId: $leadId, ')
           ..write('customerId: $customerId, ')
           ..write('editingQuotationId: $editingQuotationId, ')
+          ..write('customizationJson: $customizationJson, ')
           ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -20459,6 +20519,7 @@ typedef $$CartItemsTableCreateCompanionBuilder = CartItemsCompanion Function({
   Value<String?> leadId,
   Value<String?> customerId,
   Value<String?> editingQuotationId,
+  Value<String?> customizationJson,
   required String createdAt,
   Value<int> rowid,
 });
@@ -20471,6 +20532,7 @@ typedef $$CartItemsTableUpdateCompanionBuilder = CartItemsCompanion Function({
   Value<String?> leadId,
   Value<String?> customerId,
   Value<String?> editingQuotationId,
+  Value<String?> customizationJson,
   Value<String> createdAt,
   Value<int> rowid,
 });
@@ -20508,6 +20570,10 @@ class $$CartItemsTableFilterComposer
 
   ColumnFilters<String> get editingQuotationId => $composableBuilder(
       column: $table.editingQuotationId,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get customizationJson => $composableBuilder(
+      column: $table.customizationJson,
       builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get createdAt => $composableBuilder(
@@ -20549,6 +20615,10 @@ class $$CartItemsTableOrderingComposer
       column: $table.editingQuotationId,
       builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get customizationJson => $composableBuilder(
+      column: $table.customizationJson,
+      builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnOrderings(column));
 }
@@ -20586,6 +20656,9 @@ class $$CartItemsTableAnnotationComposer
   GeneratedColumn<String> get editingQuotationId => $composableBuilder(
       column: $table.editingQuotationId, builder: (column) => column);
 
+  GeneratedColumn<String> get customizationJson => $composableBuilder(
+      column: $table.customizationJson, builder: (column) => column);
+
   GeneratedColumn<String> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 }
@@ -20621,6 +20694,7 @@ class $$CartItemsTableTableManager extends RootTableManager<
             Value<String?> leadId = const Value.absent(),
             Value<String?> customerId = const Value.absent(),
             Value<String?> editingQuotationId = const Value.absent(),
+            Value<String?> customizationJson = const Value.absent(),
             Value<String> createdAt = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -20633,6 +20707,7 @@ class $$CartItemsTableTableManager extends RootTableManager<
             leadId: leadId,
             customerId: customerId,
             editingQuotationId: editingQuotationId,
+            customizationJson: customizationJson,
             createdAt: createdAt,
             rowid: rowid,
           ),
@@ -20645,6 +20720,7 @@ class $$CartItemsTableTableManager extends RootTableManager<
             Value<String?> leadId = const Value.absent(),
             Value<String?> customerId = const Value.absent(),
             Value<String?> editingQuotationId = const Value.absent(),
+            Value<String?> customizationJson = const Value.absent(),
             required String createdAt,
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -20657,6 +20733,7 @@ class $$CartItemsTableTableManager extends RootTableManager<
             leadId: leadId,
             customerId: customerId,
             editingQuotationId: editingQuotationId,
+            customizationJson: customizationJson,
             createdAt: createdAt,
             rowid: rowid,
           ),

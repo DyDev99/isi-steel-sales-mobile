@@ -1,4 +1,4 @@
-{
+{ 
   "auth": {
     "welcome_back": "Welcome Back!",
     "title": "Sign In",
@@ -221,6 +221,9 @@
         "col_unit_price": "UNIT PRICE",
         "col_total": "TOTAL",
         "line_discount": "Line discount",
+        "customized": "CUSTOMIZED",
+        "specs": "Specs",
+        "finish": "Finish",
         "subtotal": "Subtotal",
         "discount": "Discount",
         "tax": "Tax (VAT 10%)",
@@ -680,6 +683,43 @@
       "load_failed": "Could not load the selected depot/shop.",
       "recorded": "Recorded stock status for {count} SKU(s){shop}",
       "set_progress": "{done} of {total} SKU(s) set"
+    },
+    "depot_info": {
+      "title": "Depot Information",
+      "briefing": "Route Briefing",
+      "briefing_hint": "Review the depot details before you start the route.",
+      "route": "Route",
+      "territory": "Territory / Depot",
+      "rep": "Sales Rep",
+      "date": "Visit Date",
+      "window": "Planned Window",
+      "stops": "Stops",
+      "status": "Status",
+      "progress": "Progress",
+      "progress_value": "{done} of {total} stops done",
+      "planned_stops": "Planned Stops",
+      "no_stops": "This route has no planned stops.",
+      "start_route": "Start Route",
+      "resume_route": "Resume Route",
+      "resuming": "Resuming — {reason} · {date}",
+      "status_planned": "Planned",
+      "status_published": "Published",
+      "status_inprogress": "In Progress",
+      "status_completed": "Completed"
+    },
+    "resume": {
+      "title": "Resume Route",
+      "subtitle": "Confirm these details before you resume the route.",
+      "route_label": "Route",
+      "route_hint": "Select a route",
+      "reason_label": "Reason",
+      "reason_hint": "Why are you resuming this route?",
+      "date_label": "Date",
+      "date_hint": "Select a date",
+      "select_route": "Please select a route",
+      "enter_reason": "Please enter a reason",
+      "select_date": "Please select a date",
+      "submit": "Resume Route"
     },
     "stop": {
       "shopfront_proof": "Shopfront proof",

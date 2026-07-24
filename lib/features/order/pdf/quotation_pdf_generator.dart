@@ -388,11 +388,55 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
           pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              _t(line.name,
-                  fontSize: 9, bold: true, color: theme.ink, maxWidth: 190),
+              pw.Row(
+                crossAxisAlignment: pw.CrossAxisAlignment.center,
+                children: [
+                  pw.Flexible(
+                    child: _t(line.name,
+                        fontSize: 9,
+                        bold: true,
+                        color: theme.ink,
+                        maxWidth: 170),
+                  ),
+                  if (line.isCustomized)
+                    pw.Container(
+                      margin: const pw.EdgeInsets.only(left: 4),
+                      padding: const pw.EdgeInsets.symmetric(
+                          horizontal: 4, vertical: 1),
+                      decoration: pw.BoxDecoration(
+                        color: theme.panel,
+                        borderRadius: pw.BorderRadius.circular(3),
+                        border: pw.Border.all(color: theme.brandAccent, width: 0.5),
+                      ),
+                      child: _t(
+                        _l('orders.quotation.pdf.customized', 'CUSTOMIZED'),
+                        fontSize: 6,
+                        bold: true,
+                        color: theme.brandAccent,
+                        letterSpacing: 0.3,
+                        maxWidth: 60,
+                      ),
+                    ),
+                ],
+              ),
               if (line.description.isNotEmpty)
                 _t(line.description,
                     fontSize: 7.5, color: theme.muted, maxWidth: 190),
+              if (line.specs != null)
+                _t(
+                  '${_l('orders.quotation.pdf.specs', 'Specs')}: ${line.specs}',
+                  fontSize: 7.5,
+                  bold: true,
+                  color: theme.brandNavy,
+                  maxWidth: 190,
+                ),
+              if (line.appearance != null)
+                _t(
+                  '${_l('orders.quotation.pdf.finish', 'Finish')}: ${line.appearance}',
+                  fontSize: 7.5,
+                  color: theme.ink,
+                  maxWidth: 190,
+                ),
               if (line.discountPercent > 0)
                 _t(
                   '${_l('orders.quotation.pdf.line_discount', 'Line discount')}: '
@@ -401,6 +445,19 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
                   color: theme.success,
                   maxWidth: 190,
                 ),
+              if (line.drawingImageBytes != null) ...[
+                pw.SizedBox(height: 4),
+                pw.ClipRRect(
+                  horizontalRadius: 3,
+                  verticalRadius: 3,
+                  child: pw.Image(
+                    pw.MemoryImage(line.drawingImageBytes!),
+                    height: 54,
+                    width: 78,
+                    fit: pw.BoxFit.cover,
+                  ),
+                ),
+              ],
             ],
           ),
         ),
