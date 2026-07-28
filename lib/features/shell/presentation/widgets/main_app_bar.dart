@@ -2,12 +2,12 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:isi_steel_sales_mobile/features/lead/domain/usecases/lead_usecase.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/core/utils/colors.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/presentation/services/coach_keys.dart';
+import 'package:isi_steel_sales_mobile/features/lead/domain/usecases/lead_usecase.dart';
 import 'package:isi_steel_sales_mobile/features/localization/presentation/bloc/language_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/localization/presentation/widgets/language_reload_dialog.dart';
 import 'package:isi_steel_sales_mobile/features/notification/domain/usecases/fetch_notifications.dart';
@@ -21,7 +21,7 @@ class MainAppBar extends StatelessWidget {
     required this.onAvatarTap,
     required this.currentTabIndex,
     this.onBackToHomeTap,
-    this.onNotificationTap, // Added callback for the notification icon
+    this.onNotificationTap,
   });
 
   final String title;
@@ -29,186 +29,6 @@ class MainAppBar extends StatelessWidget {
   final int currentTabIndex;
   final VoidCallback? onBackToHomeTap;
   final VoidCallback? onNotificationTap;
-
-  void _showLanguageMenu(BuildContext context) {
-    final languageCubit = context.read<LanguageCubit>();
-    String currentLang = languageCubit.state.languageCode;
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (sheetContext) {
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setModalState) {
-            final scheme = Theme.of(context).colorScheme;
-            final colors = context.appColors;
-            Widget buildLangCard({
-              required String label,
-              required String subLabel,
-              required String code,
-              required String flag,
-            }) {
-              final isSelected = currentLang == code;
-
-              return Padding(
-                padding: EdgeInsets.only(bottom: 4.2.h),
-                child: InkWell(
-                  onTap: () async {
-                    if (code == currentLang) {
-                      Navigator.pop(sheetContext);
-                      return;
-                    }
-                    // Confirm first: applying a language reloads the whole
-                    // app so every screen re-renders in the new language.
-                    final target = languageCubit.supportedLanguages.firstWhere(
-                      (l) => l.code == code,
-                      orElse: () => languageCubit.supportedLanguages.first,
-                    );
-                    final confirmed =
-                        await showLanguageReloadConfirmDialog(context, target);
-                    if (!confirmed || !sheetContext.mounted) return;
-                    setModalState(() => currentLang = code);
-                    await languageCubit.changeLanguage(code);
-                    // The reload the dialog promised: the shared global
-                    // navigatorKey reparents the existing Navigator into the
-                    // recreated MaterialApp (stack intact), so reset the stack
-                    // explicitly — every screen reloads in the new language,
-                    // and this sheet is dismissed with it.
-                    navigatorKey.currentState?.pushNamedAndRemoveUntil(
-                        Static.main, (route) => false);
-                  },
-                  borderRadius: BorderRadius.circular(16.r),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    padding: EdgeInsets.all(16.w),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? scheme.surface
-                          : scheme.primary.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(16.r),
-                      border: Border.all(
-                        color: isSelected ? scheme.primary : colors.border,
-                        width: isSelected ? 2 : 1,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Text(flag, style: TextStyle(fontSize: 22.sp)),
-                        SizedBox(width: 14.w),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                label,
-                                style: TextStyle(
-                                  color: scheme.onSurface,
-                                  fontSize: 16.sp,
-                                  fontWeight: isSelected
-                                      ? FontWeight.w800
-                                      : FontWeight.w600,
-                                ),
-                              ),
-                              Text(
-                                subLabel,
-                                style: TextStyle(
-                                  color:
-                                      scheme.onSurface.withValues(alpha: 0.5),
-                                  fontSize: 12.sp,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Container(
-                          width: 20.w,
-                          height: 20.w,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color:
-                                  isSelected ? scheme.primary : colors.border,
-                              width: 2,
-                            ),
-                          ),
-                          padding: EdgeInsets.all(3.w),
-                          child: isSelected
-                              ? Container(
-                                  decoration: BoxDecoration(
-                                    color: scheme.primary,
-                                    shape: BoxShape.circle,
-                                  ),
-                                )
-                              : null,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            }
-
-            return Container(
-              decoration: BoxDecoration(
-                color: scheme.surface,
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(28)),
-              ),
-              padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 18.h),
-              child: SafeArea(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Center(
-                      child: Container(
-                        width: 40.w,
-                        height: 5.h,
-                        decoration: BoxDecoration(
-                          color: colors.border,
-                          borderRadius: BorderRadius.circular(10.r),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 21.6.h),
-                    Text(
-                      'language.choose_title'.tr,
-                      style: TextStyle(
-                        color: scheme.onSurface,
-                        fontSize: 22.sp,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                    SizedBox(height: 3.6.h),
-                    Text(
-                      'language.choose_subtitle'.tr,
-                      style: TextStyle(
-                        color: scheme.onSurface.withValues(alpha: 0.5),
-                        fontSize: 14.sp,
-                      ),
-                    ),
-                    SizedBox(height: 21.6.h),
-                    // Catalog-driven: adding a language to LanguageModel
-                    // .supported surfaces it here with no UI change.
-                    for (final language in languageCubit.supportedLanguages)
-                      buildLangCard(
-                        label: language.nameKey.tr,
-                        subLabel: language.regionKey.tr,
-                        code: language.code,
-                        flag: language.flag,
-                      ),
-                    SizedBox(height: 10.8.h),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -274,10 +94,16 @@ class MainAppBar extends StatelessWidget {
               ),
               SizedBox(width: 16.w),
 
-              // 3. Language Selector — coach anchor.
+              // 3. Language Selector Popup Menu — coach anchor.
               CoachKeys.wrap(
                 CoachKeys.language,
-                child: IconButton(
+                child: PopupMenuButton<String>(
+                  offset: const Offset(0, 36),
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14.r),
+                  ),
+                  color: scheme.surface,
                   icon: Icon(
                     Icons.language,
                     color: isHome ? Colors.white : scheme.onSurface,
@@ -288,7 +114,79 @@ class MainAppBar extends StatelessWidget {
                   style: const ButtonStyle(
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
-                  onPressed: () => _showLanguageMenu(context),
+                  onSelected: (code) async {
+                    final languageCubit = context.read<LanguageCubit>();
+                    final currentLang = languageCubit.state.languageCode;
+                    if (code == currentLang) return;
+
+                    final target = languageCubit.supportedLanguages.firstWhere(
+                      (l) => l.code == code,
+                      orElse: () => languageCubit.supportedLanguages.first,
+                    );
+
+                    final confirmed =
+                        await showLanguageReloadConfirmDialog(context, target);
+                    if (!confirmed || !context.mounted) return;
+
+                    await languageCubit.changeLanguage(code);
+                    navigatorKey.currentState?.pushNamedAndRemoveUntil(
+                      Static.main,
+                      (route) => false,
+                    );
+                  },
+                  itemBuilder: (menuContext) {
+                    final languageCubit = context.read<LanguageCubit>();
+                    final currentLang = languageCubit.state.languageCode;
+
+                    return languageCubit.supportedLanguages.map((language) {
+                      final isSelected = currentLang == language.code;
+                      return PopupMenuItem<String>(
+                        value: language.code,
+                        height: 42.h,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              language.flag,
+                              style: TextStyle(fontSize: 18.sp),
+                            ),
+                            SizedBox(width: 10.w),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  language.nameKey.tr,
+                                  style: TextStyle(
+                                    color: scheme.onSurface,
+                                    fontSize: 13.sp,
+                                    fontWeight: isSelected
+                                        ? FontWeight.w700
+                                        : FontWeight.w500,
+                                  ),
+                                ),
+                                Text(
+                                  language.regionKey.tr,
+                                  style: TextStyle(
+                                    color: scheme.onSurface
+                                        .withValues(alpha: 0.5),
+                                    fontSize: 10.sp,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(width: 16.w),
+                            if (isSelected)
+                              Icon(
+                                Icons.check_circle_rounded,
+                                size: 16.sp,
+                                color: scheme.primary,
+                              ),
+                          ],
+                        ),
+                      );
+                    }).toList();
+                  },
                 ),
               ),
               SizedBox(width: 16.w),
@@ -298,8 +196,7 @@ class MainAppBar extends StatelessWidget {
                 CoachKeys.notification,
                 child: _NotificationBell(
                   isInverseColor: isHome,
-                  onTapOverride:
-                      onNotificationTap, // Pass the override callback down
+                  onTapOverride: onNotificationTap,
                 ),
               ),
               SizedBox(width: 16.w),
@@ -344,16 +241,12 @@ class MainAppBar extends StatelessWidget {
 class _NotificationBell extends StatelessWidget {
   const _NotificationBell({this.isInverseColor = false, this.onTapOverride});
   final bool isInverseColor;
-
-  /// If provided, bypasses the notification fetch and triggers this callback instead (e.g. for guest login)
   final VoidCallback? onTapOverride;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
 
-    // If an override is provided (like a login prompt for guests), render a simple icon
-    // without triggering the FutureBuilder API call.
     if (onTapOverride != null) {
       return InkWell(
         onTap: onTapOverride,
@@ -369,7 +262,6 @@ class _NotificationBell extends StatelessWidget {
       );
     }
 
-    // Default behavior for authenticated users
     return FutureBuilder(
       future: sl<FetchNotifications>().call(const NoParams()),
       builder: (context, snapshot) {

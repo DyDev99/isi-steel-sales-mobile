@@ -63,6 +63,7 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
     on<CheckInRequested>(_onCheckIn, transformer: droppable());
     on<CheckOutRequested>(_onCheckOut, transformer: droppable());
     on<NextStopRequested>(_onNextStop, transformer: droppable());
+    on<SkipStopRequested>(_onSkipStop, transformer: droppable());
     on<EndDayRequested>(_onEndDay, transformer: droppable());
   }
 
@@ -347,6 +348,35 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
       insideGeofence: false,
       blockedCheckInReason: () => null,
       checkInWarnings: const [],
+    );
+    emit(next);
+    _persistWorkflow(next);
+  }
+
+  /// Skips [event.index], marking it [VisitStatus.missed] and keeping the
+  /// rep's reason in state. Works whether or not the day has started, and never
+  /// re-skips an already resolved (checked-out / missed) stop. Advancing the
+  /// "next" pointer is left to the derived `_nextIndex` the screen recomputes.
+  Future<void> _onSkipStop(
+      SkipStopRequested event, Emitter<ActiveRouteState> emit) async {
+    final current = state;
+    if (current is! ActiveRouteReady) return;
+    if (event.index < 0 || event.index >= current.route.stops.length) return;
+    final stop = current.route.stops[event.index];
+    if (stop.status == VisitStatus.checkedOut ||
+        stop.status == VisitStatus.missed) {
+      return;
+    }
+
+    await _updateStopStatus(
+        UpdateStopStatusParams(stopId: stop.id, status: VisitStatus.missed));
+
+    final next = current.copyWith(
+      route: current.route.copyWith(
+        stops: _replaceStop(current.route.stops, stop.id,
+            (s) => s.copyWith(status: VisitStatus.missed)),
+      ),
+      skipReasons: {...current.skipReasons, stop.id: event.reason},
     );
     emit(next);
     _persistWorkflow(next);

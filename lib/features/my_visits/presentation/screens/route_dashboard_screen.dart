@@ -14,22 +14,15 @@ import 'package:isi_steel_sales_mobile/features/my_visits/data/local/seed_isi_to
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/seed_mock_routes_for_dates.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/visit_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_plan.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_stop.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_status.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/route_dashboard_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/state/route_dashboard_state.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/route_sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/state/route_sync_state.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/depot_info_screen.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/navigation/open_route_information.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/my_visits_history_screen.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/calendar/calendar_widget_section.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/route_skeletons.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/region_card.dart';
-import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_cubit.dart';
-import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/catalog_bloc.dart';
-import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/catalog_event.dart';
-import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/sync_cubit.dart';
-import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/quotation_builder_screen.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/route_summary_card.dart';
 
 class MyVisitsDashboardScreen extends StatefulWidget {
   const MyVisitsDashboardScreen({super.key});
@@ -48,8 +41,6 @@ List<RoutePlan> routesScheduledOn(DateTime date, List<RoutePlan> routes) {
 class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
   DateTime _focusedMonth = DateTime.now();
   DateTime _selectedDate = DateTime.now();
-  String? _selectedStopId;
-  final Set<String> _collapsedRegions = {};
   int _pendingSyncBump = 0;
 
   /// Process-scoped latch for [_autoSeedDebugFixtures]. Static so navigating
@@ -72,41 +63,17 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
     if (kDebugMode) _autoSeedDebugFixtures();
   }
 
-  /// Route selection now lands on the depot briefing first (not straight into
-  /// check-in). "Start Route" there hands off to the guided dispatch flow.
-  Future<void> _openDepotInfo(
-      BuildContext context, RoutePlan route, List<RoutePlan> routes) async {
+  /// Tapping a route card opens the new premium Route Information screen (the
+  /// visit-prep step). Its "Start Visit" CTA hands off to the guided Check-In
+  /// flow; the shared `RouteSyncCubit` is forwarded so the pushed chain reuses
+  /// this tab's sync orchestrator. Reload on return so any status change made
+  /// downstream (check-ins, completions) is reflected on the dashboard.
+  Future<void> _openRouteInfo(BuildContext context, RoutePlan route) async {
     final syncCubit = context.read<RouteSyncCubit>();
     final dashboardCubit = context.read<RouteDashboardCubit>();
-    await Navigator.of(context).push(MaterialPageRoute(
-      settings: const RouteSettings(name: DepotInfoScreen.routeName),
-      builder: (_) => DepotInfoScreen(
-        route: route,
-        routes: routes,
-        syncCubit: syncCubit,
-      ),
-    ));
+    await openRouteInformation(context, route.id, syncCubit: syncCubit);
     if (!mounted) return;
     dashboardCubit.load();
-  }
-
-  void _openQuotationBuilder(BuildContext context, RouteStop stop) {
-    Navigator.of(context).push(MaterialPageRoute(
-      settings: const RouteSettings(name: QuotationBuilderScreen.routeName),
-      builder: (_) => MultiBlocProvider(
-        providers: [
-          BlocProvider(
-              create: (_) =>
-                  sl<CatalogBloc>()..add(const CatalogLoadRequested())),
-          BlocProvider(create: (_) => sl<CartCubit>()..load()),
-          BlocProvider(create: (_) => sl<SyncCubit>()),
-        ],
-        child: QuotationBuilderScreen(
-          leadId: stop.customer.id,
-          leadDisplayName: stop.customer.name,
-        ),
-      ),
-    ));
   }
 
   /// TODO(release-gate): debug-only fixture seeding — must never run in a
@@ -222,10 +189,7 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
                         },
                         onDateSelected: (date) {
                           HapticFeedback.lightImpact();
-                          setState(() {
-                            _selectedDate = date;
-                            _selectedStopId = null;
-                          });
+                          setState(() => _selectedDate = date);
                         },
                         routeCountForDate: (date) =>
                             routesScheduledOn(date, state.routes).length,
@@ -332,17 +296,9 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
     }
 
     final filteredRoutes = routesScheduledOn(_selectedDate, routes);
-    final routeById = {for (final r in filteredRoutes) r.id: r};
 
-    final List<_RouteStopWithPlanId> stopsWithPlan = [];
-    for (var route in filteredRoutes) {
-      for (var stop in route.stops) {
-        stopsWithPlan.add(_RouteStopWithPlanId(stop: stop, routeId: route.id));
-      }
-    }
-
-    // DIAGNOSTIC ISSUE FIX 2: Data exists in DB, but not on this selected calendar date
-    if (stopsWithPlan.isEmpty) {
+    // DIAGNOSTIC ISSUE FIX 2: Data exists in DB, but not on this selected date.
+    if (filteredRoutes.isEmpty) {
       return Padding(
         padding: EdgeInsets.symmetric(vertical: 40.h),
         child: Center(
@@ -373,83 +329,19 @@ class _MyVisitsDashboardScreenState extends State<MyVisitsDashboardScreen> {
       );
     }
 
-    final Map<String, List<_RouteStopWithPlanId>> grouped = {};
-    for (final item in stopsWithPlan) {
-      final region = item.stop.customer.territory.isNotEmpty
-          ? item.stop.customer.territory
-          : 'customers.unassigned'.tr;
-      grouped.putIfAbsent(region, () => []).add(item);
-    }
-    final regionNames = grouped.keys.toList()..sort();
-
+    // Route-centric summary cards (one per RoutePlan) — the dashboard answers
+    // "which route should I start?"; per-stop detail lives on Route Information.
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        for (final regionName in regionNames) ...[
-          Builder(builder: (context) {
-            final items = grouped[regionName]!;
-            final completed = items
-                .where((i) => i.stop.status == VisitStatus.checkedOut)
-                .length;
-            final expanded = !_collapsedRegions.contains(regionName);
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                RegionGroupHeader(
-                  regionName: regionName,
-                  totalStops: items.length,
-                  completedStops: completed,
-                  expanded: expanded,
-                  onTap: () {
-                    HapticFeedback.selectionClick();
-                    setState(() {
-                      if (expanded) {
-                        _collapsedRegions.add(regionName);
-                      } else {
-                        _collapsedRegions.remove(regionName);
-                      }
-                    });
-                  },
-                ),
-                if (expanded)
-                  ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: items.length,
-                    separatorBuilder: (context, index) => SizedBox(height: 0.h),
-                    itemBuilder: (context, index) {
-                      final item = items[index];
-                      return RegionCard(
-                        stop: item.stop,
-                        selected: _selectedStopId == item.stop.id,
-                        onTap: () {
-                          setState(() => _selectedStopId = item.stop.id);
-                          final route = routeById[item.routeId];
-                          if (route != null) {
-                            _openDepotInfo(context, route, filteredRoutes);
-                          }
-                        },
-                        onCartTap: () {
-                          HapticFeedback.mediumImpact();
-                          _openQuotationBuilder(context, item.stop);
-                        },
-                      );
-                    },
-                  ),
-                SizedBox(height: 14.h),
-              ],
-            );
-          }),
-        ],
+        for (final route in filteredRoutes)
+          RouteSummaryCard(
+            route: route,
+            onTap: () => _openRouteInfo(context, route),
+          ),
       ],
     );
   }
-}
-
-class _RouteStopWithPlanId {
-  final RouteStop stop;
-  final String routeId;
-  const _RouteStopWithPlanId({required this.stop, required this.routeId});
 }
 
 class _PendingSyncDebugBadge extends StatelessWidget {
@@ -477,74 +369,6 @@ class _PendingSyncDebugBadge extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-class RegionGroupHeader extends StatelessWidget {
-  const RegionGroupHeader({
-    super.key,
-    required this.regionName,
-    required this.totalStops,
-    required this.completedStops,
-    required this.expanded,
-    required this.onTap,
-  });
-
-  final String regionName;
-  final int totalStops;
-  final int completedStops;
-  final bool expanded;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8.r),
-      child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 4.w),
-        child: Row(
-          children: [
-            Text(
-              regionName.toUpperCase(),
-              style: TextStyle(
-                color: colors.textPrimary.withValues(alpha: 0.85),
-                fontSize: 12.sp,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 0.6,
-              ),
-            ),
-            SizedBox(width: 8.w),
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
-              decoration: BoxDecoration(
-                color: colors.surfaceSoft,
-                borderRadius: BorderRadius.circular(12.r),
-              ),
-              child: Text(
-                '$completedStops/$totalStops',
-                style: TextStyle(
-                  color: colors.textSecondary,
-                  fontSize: 10.sp,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            const Spacer(),
-            AnimatedRotation(
-              turns: expanded ? 0.0 : 0.5,
-              duration: const Duration(milliseconds: 200),
-              child: Icon(
-                Icons.keyboard_arrow_up_rounded,
-                color: colors.textPrimary.withValues(alpha: 0.6),
-                size: 20.w,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

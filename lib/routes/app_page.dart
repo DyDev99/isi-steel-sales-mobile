@@ -128,7 +128,6 @@ class AppPages {
           settings,
         );
       case Static.createNewPassword:
-        final args = settings.arguments as Map<String, String>? ?? {};
         return _page(
           Builder(
             builder: (context) => CreateNewPasswordScreen(

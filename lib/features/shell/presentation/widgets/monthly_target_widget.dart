@@ -9,13 +9,18 @@ class MonthlyTargetCard extends StatelessWidget {
     required this.targetAmount,
     required this.achievedAmount,
     required this.monthName,
+    this.onTap,
   });
 
   final double targetAmount;
   final String monthName;
   final double achievedAmount;
+  final VoidCallback? onTap;
 
-  double get _progress => (achievedAmount / targetAmount).clamp(0.0, 1.0);
+  double get _progress =>
+      targetAmount > 0 ? (achievedAmount / targetAmount).clamp(0.0, 1.0) : 0.0;
+
+  int get _percentage => (_progress * 100).round();
 
   @override
   Widget build(BuildContext context) {
@@ -23,86 +28,148 @@ class MonthlyTargetCard extends StatelessWidget {
     final scheme = theme.colorScheme;
     final appColors = context.appColors;
 
-    return Container(
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: scheme.surface,
-        borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(
-          color: appColors.border,
-          width: 1.w,
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: EdgeInsets.all(18.w),
+        decoration: BoxDecoration(
+          color: scheme.surface,
+          borderRadius: BorderRadius.circular(20.r),
+          border: Border.all(
+            color: appColors.border.withValues(alpha: 0.6),
+            width: 1.w,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(
+                alpha: theme.brightness == Brightness.dark ? 0.25 : 0.04,
+              ),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+          ],
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(
-                alpha: theme.brightness == Brightness.dark ? 0.2 : 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Header: Label left, Values right
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'shell.monthly_target'.trParams({'month': monthName}),
-                style: TextStyle(
-                  color: scheme.onSurface,
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.w600,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 1. Header: Month Icon + Title & Percentage Chip
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(8.w),
+                      decoration: BoxDecoration(
+                        color: scheme.primary.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(10.r),
+                      ),
+                      child: Icon(
+                        Icons.calendar_today_rounded,
+                        size: 16.sp,
+                        color: scheme.primary,
+                      ),
+                    ),
+                    SizedBox(width: 10.w),
+                    Text(
+                      'shell.monthly_target'.trParams({'month': monthName}),
+                      style: TextStyle(
+                        color: scheme.onSurface,
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              Text(
-                'shell.target_progress'.trParams({
-                  'achieved': '\$${achievedAmount.toInt()}',
-                  'target': '\$${targetAmount.toInt()}',
-                }),
-                style: TextStyle(
-                  color: scheme.onSurface,
-                  fontSize: 15.sp,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 10.h),
 
-          // Progress Bar
-          Stack(
-            children: [
-              Container(
-                height: 22.h,
-                decoration: BoxDecoration(
-                  color: appColors.surfaceSoft,
-                  borderRadius: BorderRadius.circular(20.r),
-                ),
-              ),
-              FractionallySizedBox(
-                widthFactor: _progress,
-                child: Container(
-                  height: 22.h,
-                  alignment: Alignment.center,
+                // Percentage Chip
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
                   decoration: BoxDecoration(
-                    color: appColors.success,
+                    color: appColors.success.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(20.r),
                   ),
                   child: Text(
-                    '${(_progress * 100).toInt()}%',
+                    '$_percentage%',
                     style: TextStyle(
-                      color: scheme.onPrimary,
+                      color: appColors.success,
                       fontSize: 12.sp,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+
+            SizedBox(height: 16.h),
+
+            // 2. Large Value Display
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text(
+                  '\$${achievedAmount.toInt()}',
+                  style: TextStyle(
+                    color: scheme.onSurface,
+                    fontSize: 22.sp,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                SizedBox(width: 6.w),
+                Text(
+                  '/ \$${targetAmount.toInt()}',
+                  style: TextStyle(
+                    color: scheme.onSurface.withValues(alpha: 0.45),
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+
+            SizedBox(height: 12.h),
+
+            // 3. Progress Track
+            Stack(
+              children: [
+                Container(
+                  height: 10.h,
+                  decoration: BoxDecoration(
+                    color: appColors.surfaceSoft,
+                    borderRadius: BorderRadius.circular(10.r),
+                  ),
+                ),
+                FractionallySizedBox(
+                  widthFactor: _progress,
+                  child: Container(
+                    height: 10.h,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          appColors.success.withValues(alpha: 0.8),
+                          appColors.success,
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(10.r),
+                      boxShadow: [
+                        BoxShadow(
+                          color: appColors.success.withValues(alpha: 0.25),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

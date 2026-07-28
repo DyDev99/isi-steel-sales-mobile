@@ -1,4 +1,4 @@
-{ 
+{
   "auth": {
     "welcome_back": "Welcome Back!",
     "title": "Sign In",
@@ -801,6 +801,58 @@
       "medium": "Medium",
       "high": "High",
       "select_all": "Set a stock status for every product before finishing."
+    },
+    "route_info": {
+      "stops_count": "{count} stops",
+      "remaining_count": "{count} left",
+      "distance_unknown": "-- km",
+      "distance_eta": "{distance} · ~{eta} min",
+      "priority_high": "High",
+      "priority_normal": "Normal",
+      "status_planned": "Planned",
+      "status_published": "Published",
+      "status_in_progress": "In progress",
+      "status_completed": "Completed",
+      "hero_progress": "Progress",
+      "hero_now": "Now",
+      "hero_finish": "Est. finish",
+      "weather_placeholder": "Weather",
+      "stat_total": "Total",
+      "stat_completed": "Done",
+      "stat_remaining": "Left",
+      "stat_distance": "Distance",
+      "stat_duration": "Duration",
+      "tap_to_start": "Tap to start this visit",
+      "expand_map": "Expand",
+      "route_map": "Route Map",
+      "obj_visit": "Visit",
+      "obj_stock": "Stock Count",
+      "obj_quotation": "Quotation",
+      "obj_collection": "Collection",
+      "obj_followup": "Follow-up",
+      "action_call": "Call",
+      "action_navigate": "Navigate",
+      "action_customer": "Customer",
+      "action_notes": "Notes",
+      "action_history": "History",
+      "action_coming_soon": "Coming soon",
+      "section_map": "Route Map",
+      "section_timeline": "Route Timeline",
+      "section_objectives": "Today's Objectives",
+      "section_actions": "Quick Actions",
+      "start_visit": "Start Visit",
+      "skip_stop": "Skip stop",
+      "skip_title": "Skip this stop?",
+      "skip_subtitle": "Tell us why you're skipping {name}. A reason is required.",
+      "skip_confirm": "Skip stop",
+      "skip_other_hint": "Describe the reason",
+      "skip_done": "Stop skipped",
+      "skipped_with_reason": "Skipped · {reason}",
+      "reason_shop_closed": "Shop closed",
+      "reason_customer_unavailable": "Customer unavailable",
+      "reason_no_access": "No access / road blocked",
+      "reason_rescheduled": "Rescheduled to later",
+      "reason_other": "Other"
     }
   },
   "language": {
@@ -1132,5 +1184,25 @@
     "checkout_body": "This completes the visit and closes the current stop.",
     "check_out": "Check out",
     "checkin_progress": "Check-in in progress · {done} of {total} stops done"
+  },
+
+  "kpi": {
+    "period_monthly": "Monthly",
+    "title": "Key Performance Indicators",
+    "period_quarterly": "Quarterly",
+    "period_yearly": "Yearly",
+    "category_breakdown": "Category Breakdown",
+    "pipeline_funnel": "Pipeline Funnel",
+    "total_orders":"Total Orders",
+  "conversion_rate": "Conversion Rate",
+  "avg_order_value": "Average Order Value",
+  "active_clients": "Active Clients",
+  "revenue_target": "Revenue Target",
+  "overview_heading": "Sales Performance Overview",
+    "stage_leads": "Leads",
+    "stage_contacted": "Contacted",
+    "stage_quotation": "Quotation",
+    "stage_won": "Won"
   }
+
 }

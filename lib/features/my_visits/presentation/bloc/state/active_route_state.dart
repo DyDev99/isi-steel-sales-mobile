@@ -22,6 +22,7 @@ final class ActiveRouteReady extends ActiveRouteState {
     this.isMocked = false,
     this.blockedCheckInReason,
     this.checkInWarnings = const [],
+    this.skipReasons = const {},
   });
 
   final RoutePlan route;
@@ -33,6 +34,10 @@ final class ActiveRouteReady extends ActiveRouteState {
   final bool isMocked;
   final String? blockedCheckInReason;
   final List<String> checkInWarnings;
+
+  /// Reasons the rep gave when skipping a stop, keyed by stop id. Session-scoped
+  /// display data (the skip itself persists as [VisitStatus.missed]).
+  final Map<String, String> skipReasons;
 
   bool get hasCurrentStop =>
       currentStopIndex >= 0 && currentStopIndex < route.stops.length;
@@ -47,6 +52,7 @@ final class ActiveRouteReady extends ActiveRouteState {
     bool? isMocked,
     String? Function()? blockedCheckInReason,
     List<String>? checkInWarnings,
+    Map<String, String>? skipReasons,
   }) {
     return ActiveRouteReady(
       route: route ?? this.route,
@@ -60,6 +66,7 @@ final class ActiveRouteReady extends ActiveRouteState {
           ? blockedCheckInReason()
           : this.blockedCheckInReason,
       checkInWarnings: checkInWarnings ?? this.checkInWarnings,
+      skipReasons: skipReasons ?? this.skipReasons,
     );
   }
 
@@ -73,6 +80,7 @@ final class ActiveRouteReady extends ActiveRouteState {
         isMocked,
         blockedCheckInReason,
         checkInWarnings,
+        skipReasons,
       ];
 }
 

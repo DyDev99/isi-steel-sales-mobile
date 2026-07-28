@@ -9,6 +9,7 @@ import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/domain/entities/coach_action.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/presentation/services/app_coach.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/presentation/services/coach_keys.dart';
+import 'package:isi_steel_sales_mobile/features/lead/domain/entities/lead.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/pipeline_stage.dart';
 import 'package:isi_steel_sales_mobile/features/lead/presentation/bloc/pipeline_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/lead/presentation/bloc/pipeline_event.dart';
@@ -21,7 +22,7 @@ import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/add_c
 class QuickActionsSection extends StatelessWidget {
   const QuickActionsSection({super.key});
 
-  // ---- Business logic (unchanged) ---------------------------------------
+  // ---- Business logic ----------------------------------------------------
 
   void _startNewOrder(BuildContext context) {
     Navigator.of(context).push(MaterialPageRoute(
@@ -38,21 +39,31 @@ class QuickActionsSection extends StatelessWidget {
   }
 
   void _addCustomerFromWon(BuildContext context) {
-    final state = context.read<PipelineBloc>().state;
-    if (state is PipelineLoaded) {
-      // Filters and extracts data exclusively from the 'Won' board column.
-      final wonLeads = state.columns[PipelineStage.won] ?? [];
+    final pipelineBloc = context.read<PipelineBloc>();
+    final state = pipelineBloc.state;
 
-      showModalBottomSheet(
-        context: context,
-        backgroundColor: context.appColors.surfaceSoft,
-        isScrollControlled: true,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
-        ),
-        builder: (_) => AddCustomerBottomSheet(wonLeads: wonLeads),
-      );
+    // Trigger pipeline loading if it hasn't started yet
+    if (state is PipelineInitial) {
+      pipelineBloc.add(const PipelineLoadRequested());
     }
+
+    // Explicitly type as List<Lead> so Dart doesn't infer List<dynamic>
+    final List<Lead> wonLeads = (state is PipelineLoaded)
+        ? (state.columns[PipelineStage.won] ?? <Lead>[])
+        : <Lead>[];
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: context.appColors.surfaceSoft,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+      ),
+      builder: (_) => BlocProvider.value(
+        value: pipelineBloc,
+        child: AddCustomerBottomSheet(wonLeads: wonLeads),
+      ),
+    );
   }
 
   void _openDepotStock(BuildContext context) {

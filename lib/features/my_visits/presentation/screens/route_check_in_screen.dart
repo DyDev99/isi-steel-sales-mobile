@@ -96,6 +96,20 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen> {
     return state.data.photos.where((p) => p.stopId == stopId).toList();
   }
 
+  /// Opens the transit map full-screen so the rep can pan/zoom the route and
+  /// their live position. Forwards the existing [LocationTrackingCubit] so the
+  /// expanded map stays live (a new Navigator entry does not inherit providers).
+  void _expandMap(BuildContext context, RouteStop stop) {
+    final locationCubit = context.read<LocationTrackingCubit>();
+    Navigator.of(context).push(MaterialPageRoute(
+      fullscreenDialog: true,
+      builder: (_) => BlocProvider.value(
+        value: locationCubit,
+        child: _FullScreenTransitMap(stop: stop),
+      ),
+    ));
+  }
+
   void _goToVisit(BuildContext context) {
     final bloc = context.read<ActiveRouteBloc>();
     final visitCubit = context.read<VisitCubit>();
@@ -183,9 +197,21 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen> {
                       flex: 4,
                       child: BlocBuilder<LocationTrackingCubit,
                           LocationTrackingState>(
-                        builder: (context, locationState) => TransitMap(
-                          target: stop,
-                          currentPosition: locationState.current,
+                        builder: (context, locationState) => Stack(
+                          children: [
+                            Positioned.fill(
+                              child: TransitMap(
+                                target: stop,
+                                currentPosition: locationState.current,
+                              ),
+                            ),
+                            Positioned(
+                              right: 12,
+                              top: 12,
+                              child: _MapExpandButton(
+                                  onTap: () => _expandMap(context, stop)),
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -707,6 +733,75 @@ class _PulseIndicatorState extends State<_PulseIndicator>
             fontSize: 9,
             fontWeight: FontWeight.w900,
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Small pill button overlaid on the embedded map that opens the full-screen
+/// map. Matches the Route Information map preview's "Expand" affordance.
+class _MapExpandButton extends StatelessWidget {
+  const _MapExpandButton({required this.onTap});
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    return Material(
+      color: colors.card,
+      borderRadius: BorderRadius.circular(20),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.open_in_full_rounded,
+                  size: 13, color: colors.textPrimary),
+              const SizedBox(width: 5),
+              Text(
+                'my_visits.route_info.expand_map'.tr,
+                style: TextStyle(
+                    color: colors.textPrimary,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Full-screen transit map — same [TransitMap] as the embedded viewport, kept
+/// live off the forwarded [LocationTrackingCubit].
+class _FullScreenTransitMap extends StatelessWidget {
+  const _FullScreenTransitMap({required this.stop});
+  final RouteStop stop;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: colors.card,
+        iconTheme: IconThemeData(color: colors.textPrimary),
+        title: Text(
+          'my_visits.route_info.route_map'.tr,
+          style: TextStyle(
+              color: colors.textPrimary,
+              fontSize: 16,
+              fontWeight: FontWeight.w800),
+        ),
+      ),
+      body: BlocBuilder<LocationTrackingCubit, LocationTrackingState>(
+        builder: (context, locationState) => TransitMap(
+          target: stop,
+          currentPosition: locationState.current,
         ),
       ),
     );

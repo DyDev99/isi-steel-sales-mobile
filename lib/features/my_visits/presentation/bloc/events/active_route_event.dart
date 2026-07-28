@@ -71,6 +71,17 @@ final class NextStopRequested extends ActiveRouteEvent {
   const NextStopRequested();
 }
 
+/// Skip a specific stop [index] (before or during the route), recording the
+/// rep's [reason]. The stop is marked [VisitStatus.missed]; the reason is kept
+/// in state so the timeline can show why it was skipped.
+final class SkipStopRequested extends ActiveRouteEvent {
+  const SkipStopRequested({required this.index, required this.reason});
+  final int index;
+  final String reason;
+  @override
+  List<Object?> get props => [index, reason];
+}
+
 final class EndDayRequested extends ActiveRouteEvent {
   const EndDayRequested();
 }
