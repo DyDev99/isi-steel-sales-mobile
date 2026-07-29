@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:isi_steel_sales_mobile/core/platform/local_files.dart';
 
 import 'package:flutter/material.dart';
@@ -59,34 +60,54 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen> {
 
   Future<void> _capture(RouteStop stop) async {
     if (_capturing) return;
-    HapticFeedback.lightImpact();
+    
+    // Web-safe haptic feedback wrapper
+    try {
+      HapticFeedback.lightImpact();
+    } catch (_) {}
+
     final pos = context.read<LocationTrackingCubit>().state.current;
 
     setState(() => _capturing = true);
 
-    final result = await sl<ProofPhotoService>().captureStamped(
-      latitude: pos?.latitude ?? stop.customer.latitude,
-      longitude: pos?.longitude ?? stop.customer.longitude,
-    );
+    try {
+      final result = await sl<ProofPhotoService>().captureStamped(
+        latitude: pos?.latitude ?? stop.customer.latitude,
+        longitude: pos?.longitude ?? stop.customer.longitude,
+      );
 
-    if (!mounted) return;
-    setState(() => _capturing = false);
+      if (!mounted) return;
 
-    if (result == null) return;
-    // Persisted to the Drift-backed VisitCubit/VisitRepository immediately so
-    // the photo survives rebuilds, navigation, and app restarts instead of
-    // living only in this screen's ephemeral State.
-    context.read<VisitCubit>().addPhoto(VisitPhoto(
-          id: '${DateTime.now().microsecondsSinceEpoch}',
-          stopId: stop.id,
-          url: result.filePath,
-          caption: 'my_visits.stop.shopfront_proof'.tr,
-          takenAt: result.takenAt,
-        ));
+      if (result != null) {
+        context.read<VisitCubit>().addPhoto(VisitPhoto(
+              id: '${DateTime.now().microsecondsSinceEpoch}',
+              stopId: stop.id,
+              url: result.filePath,
+              caption: 'my_visits.stop.shopfront_proof'.tr,
+              takenAt: result.takenAt,
+            ));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to capture photo: ${e.toString()}'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    } finally {
+      // Guaranteed reset of capturing state on Web or Native
+      if (mounted) {
+        setState(() => _capturing = false);
+      }
+    }
   }
 
   void _submit(RouteStop stop) {
-    HapticFeedback.mediumImpact();
+    try {
+      HapticFeedback.mediumImpact();
+    } catch (_) {}
     setState(() => _submitting = true);
     context.read<ActiveRouteBloc>().add(const CheckInRequested());
   }
@@ -96,9 +117,6 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen> {
     return state.data.photos.where((p) => p.stopId == stopId).toList();
   }
 
-  /// Opens the transit map full-screen so the rep can pan/zoom the route and
-  /// their live position. Forwards the existing [LocationTrackingCubit] so the
-  /// expanded map stays live (a new Navigator entry does not inherit providers).
   void _expandMap(BuildContext context, RouteStop stop) {
     final locationCubit = context.read<LocationTrackingCubit>();
     Navigator.of(context).push(MaterialPageRoute(
@@ -509,7 +527,7 @@ class _CameraDropzone extends StatelessWidget {
         child: CustomPaint(
           painter: _DashedBorderPainter(color: borderColor, radius: 12),
           child: Container(
-            height: 180, // Optimized tracking screen height limit bounds
+            height: 180,
             width: double.infinity,
             decoration: BoxDecoration(
               color: isLocked ? colors.surfaceSoft : Colors.transparent,
@@ -592,7 +610,7 @@ class _ProofGallery extends StatelessWidget {
             borderRadius: BorderRadius.circular(11),
             child: AspectRatio(
               aspectRatio: 1,
-              child: localFileImage((photos[index].url), fit: BoxFit.cover),
+              child: localFileImage(photos[index].url, fit: BoxFit.cover),
             ),
           ),
         ),
@@ -739,8 +757,6 @@ class _PulseIndicatorState extends State<_PulseIndicator>
   }
 }
 
-/// Small pill button overlaid on the embedded map that opens the full-screen
-/// map. Matches the Route Information map preview's "Expand" affordance.
 class _MapExpandButton extends StatelessWidget {
   const _MapExpandButton({required this.onTap});
   final VoidCallback onTap;
@@ -777,8 +793,6 @@ class _MapExpandButton extends StatelessWidget {
   }
 }
 
-/// Full-screen transit map — same [TransitMap] as the embedded viewport, kept
-/// live off the forwarded [LocationTrackingCubit].
 class _FullScreenTransitMap extends StatelessWidget {
   const _FullScreenTransitMap({required this.stop});
   final RouteStop stop;
