@@ -12,7 +12,8 @@
 |---|---|
 | `flutter build web --release` | ✅ Passes |
 | `flutter analyze` | ✅ 0 errors (15 pre-existing warnings/infos, none web-related) |
-| `flutter test` | ⚠️ **220 pass, 7 fail** — all 7 are foreign-key tests failing from a pre-existing toolchain defect unrelated to web. **See §8 — read this before doing anything else.** |
+| `flutter test` | ✅ **230 pass, 0 fail** |
+| Foreign keys in the live schema | ✅ 22/22 — see §8; asserted by a dedicated test, so CI blocks on regression |
 | Android / iOS | ✅ Unchanged. No mobile behaviour was altered. |
 
 ---
@@ -231,63 +232,112 @@ This is a real, accepted weakening of an anti-fraud control, tagged `// TODO(rel
 **Decide before any web release:** is that acceptable for what web exposes, or must location-sensitive actions (geofenced check-in, visit capture) stay mobile-only?
 
 ---
+## 8. ✅ Resolved — drift_dev silently dropped every foreign key
 
-## 8. ⚠️ Open blocker — drift_dev emits no foreign keys
+**Fixed.** All 22 foreign keys are back, all 227 tests pass, and CI now guards
+against a recurrence. This section is kept because the defect is still live in
+the toolchain and will bite again on upgrade.
 
-**7 tests fail. They are the canary for a real data-integrity defect, and it is not caused by the web work.**
+### What was happening
 
-### What happens
+Running `dart run build_runner build` with the locked toolchain
+(`drift_dev 2.31.0`, `analyzer 10.2.0`) produced a schema with **zero**
+foreign-key constraints. The committed `app_database.g.dart` contained 22;
+regenerating dropped all of them — silently, with no warning or error.
 
-Running `dart run build_runner build` with the currently-locked toolchain (`drift_dev 2.31.0`, `analyzer 10.2.0`) produces a schema with **zero foreign-key constraints**. The committed `app_database.g.dart` at `HEAD` contains 22 of them; regenerating drops all 22 — silently, with no warning or error.
+Lost constraints included `route_stops.customer_id → customers(id)` and the nine
+`ON DELETE CASCADE` links from visit captures to `route_stops` — precisely the
+referential integrity ADR-001 was adopted to gain.
 
-Lost constraints include `route_stops.customer_id → customers(id)` and the nine `ON DELETE CASCADE` links from visit captures to `route_stops` — precisely the referential integrity ADR-001 was adopted to gain.
+### Why it was not caused by the web work
 
-### Evidence it is pre-existing and unrelated to web
+- The FK-bearing table sources were **untouched** by the web change set.
+- `drift`, `drift_dev`, `analyzer`, `sqlite3` and `build_runner` versions were
+  **identical** between `HEAD` and the working tree. The committed generated
+  file was simply **stale** — it predated the locked toolchain. Regenerating at
+  `HEAD` would have dropped the FKs too.
+- Reproduced minimally: a fresh two-table database with a textbook
+  `text().references(Parents, #id)` also generated **0** constraints.
 
-- `route_tables.dart`, `visit_tables.dart`, `customers_table.dart` and the other FK-bearing sources are **untouched** by this change set (`git status` confirms).
-- `drift`, `drift_dev`, `analyzer`, `sqlite3` and `build_runner` versions are **identical** between `HEAD` and the working tree. The committed generated file is simply **stale** — it predates the locked toolchain. Regenerating at `HEAD` would drop the FKs too.
-- Reproduced minimally: a fresh two-table database with a textbook `text().references(Parents, #id)` also generates **0** constraints.
-- Root cause located: in `drift_dev`'s `resolveDartReference`, the reference resolves to neither `ReferencesItself` nor `ResolvedReferenceFound`, so the constraint is dropped through a silent `else` with no diagnostic. Consistent with analyzer 10's element-model change (`drift_dev 2.31.0` allows `analyzer >=8.1.0 <11.0.0`).
+The web work merely **forced the regeneration** that surfaced it. Anyone running
+codegen for any reason would have hit it.
 
-The web work merely **forced the regeneration** that surfaced it.
+### Root cause
 
-### Why it is not fixed here
+In `drift_dev`'s `resolveDartReference`, the reference resolves to neither
+`ReferencesItself` nor `ResolvedReferenceFound`, so the constraint is dropped
+through a silent `else` with no diagnostic. Consistent with analyzer 10's
+element-model change (`drift_dev 2.31.0` allows `analyzer >=8.1.0 <11.0.0`).
 
-- Downgrading `drift`/`drift_dev` to 2.20.3 does not resolve against the current dependency set.
-- Pinning `analyzer: ^9.0.0` via `dependency_overrides` breaks `dart_style` (`PrimaryConstructorBody` isn't a type), so codegen cannot run at all.
-- The remaining option — restoring all 22 constraints by hand via table-level `customConstraints` — edits six data-layer files outside this change's scope, cannot be verified against a working generator, and masks a toolchain bug rather than fixing it. That is a decision for the data-layer owner.
+Two upgrade paths were tried and rejected:
 
-### ⏳ The web deploy's test gate is currently non-blocking because of this
+- Downgrading `drift`/`drift_dev` to 2.20.3 does not resolve against the current
+  dependency set.
+- Pinning `analyzer: ^9.0.0` via `dependency_overrides` breaks `dart_style`
+  (`PrimaryConstructorBody` isn't a type), so codegen cannot run at all.
 
-`deploy-web.yml`'s `Test` step carries `continue-on-error: true`, so the web
-deploy is not blocked by a defect it did not cause and cannot fix. The failures
-remain fully visible in the Actions log — the gate is suppressed, the signal is
-not.
+### The fix
 
-**This must be reverted when the defect is fixed.** The condition is exact:
+Each affected table declares its constraints explicitly via drift's
+`customConstraints`, which the generator **does** honour:
 
-```bash
-grep -c 'REFERENCES' lib/core/database/drift/app_database.g.dart   # >= 22
+```dart
+class RouteStops extends Table with SyncableTable {
+  @override
+  String get tableName => 'route_stops';
+
+  @override
+  List<String> get customConstraints => [
+        'FOREIGN KEY (route_id) REFERENCES routes (id) ON DELETE CASCADE',
+        'FOREIGN KEY (customer_id) REFERENCES customers (id)',
+      ];
+
+  TextColumn get routeId =>
+      text().references(Routes, #id, onDelete: KeyAction.cascade)();
+  ...
+}
 ```
 
-When that holds, the 7 tests pass with no change to their source and
-`continue-on-error` must be removed from the step.
+Applied to 18 table classes across four files —
+`catalog_tables.dart` (4), `customer_related_tables.dart` (5),
+`route_tables.dart` (5), `visit_tables.dart` (8) — restoring all 22 constraints.
 
-The mobile release gate is unaffected — it runs from its own pipeline. `Analyze`
-still hard-fails in the web workflow, so genuine breakage there is still caught.
+Notes on the shape of the fix:
 
-### Recommended next steps
+- **`references()` is deliberately kept.** It still drives drift's Dart-side
+  relation API and manager queries; only the *SQL emission* was broken. Deleting
+  it would turn a generator bug into a permanent source change.
+- **`customConstraints` is additive** — drift documents it as "custom table
+  constraints that should be added", and `PRIMARY KEY` / `CHECK` output is
+  unaffected. Verified by inspecting the live `sqlite_master` SQL, not inferred.
+- **This is a workaround, not a repair.** When the generator is fixed, these
+  overrides should be removed and the FK tests re-run to confirm `references()`
+  is emitting again.
 
-1. **Do not ship a *mobile* release built from regenerated code until this is resolved** — the app would run without referential integrity. (The web build is unaffected in practice: per ADR-010 its database is in-memory and discarded each session, so a missing FK cannot corrupt anything durable. That is why unblocking the web deploy is defensible while this is open, and why the mobile gate stays strict.)
-2. Pin a `drift_dev` / `analyzer` combination that emits FKs, and commit the resulting `pubspec.lock` and generated files together.
-3. File upstream against `drift_dev` with the two-table reproduction.
-4. Add a CI guard so this cannot regress silently again, e.g.:
-   ```bash
-   test "$(grep -c 'REFERENCES' lib/core/database/drift/app_database.g.dart)" -ge 22
-   ```
-5. Once fixed, the 7 tests pass with no change to their source — they already assert exactly the right thing.
+### The guard
 
----
+Because the failure mode was *silent*, the fix ships with a dedicated test:
+[`test/core/database/drift/foreign_key_schema_test.dart`](../test/core/database/drift/foreign_key_schema_test.dart).
+It asserts the count is 22, spot-checks the specific relationships ADR-001
+depends on, and confirms `PRAGMA foreign_keys` is actually on — a constraint
+that exists but is not enforced is decorative.
+
+It queries the **live `sqlite_master` schema**, and that choice matters:
+
+- **Not the table sources** — they were correct the whole time; codegen dropped
+  the constraints.
+- **Not `app_database.g.dart`** — `customConstraints` is an override on the
+  *source* table class, so the generated `$…Table` subclass inherits it and the
+  string never appears in generated output. A grep there returns 0 even when the
+  schema is perfect. (This was tried first and would have failed every build.)
+
+`sqlite_master` is the only place the truth is visible.
+
+### If you upgrade drift
+
+Re-run codegen and check the count **before** committing. If it drops again, the
+generator has regressed further (or the overrides were removed prematurely). Do
+not "fix" a failing FK test by weakening the test.
 
 ## 9. Troubleshooting
 

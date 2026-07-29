@@ -15,6 +15,16 @@ class CustomerContacts extends Table {
   @override
   String get tableName => 'customer_contacts';
 
+  // Restored explicitly: drift_dev 2.31.0 + analyzer 10.2.0 silently emit no
+  // foreign keys from `references()` above (docs/flutter-web.md section 8).
+  // The `references()` calls are kept — they still drive drift's Dart-side
+  // relation API — but the SQL constraint now comes from here. Remove this
+  // override once the generator is fixed, and verify with the FK tests.
+  @override
+  List<String> get customConstraints => [
+        'FOREIGN KEY (customer_id) REFERENCES customers (id)',
+      ];
+
   TextColumn get id => text()();
   TextColumn get customerId => text().references(Customers, #id)();
   TextColumn get name => text()();
@@ -31,6 +41,16 @@ class CustomerNotes extends Table {
   @override
   String get tableName => 'customer_notes';
 
+  // Restored explicitly: drift_dev 2.31.0 + analyzer 10.2.0 silently emit no
+  // foreign keys from `references()` above (docs/flutter-web.md section 8).
+  // The `references()` calls are kept — they still drive drift's Dart-side
+  // relation API — but the SQL constraint now comes from here. Remove this
+  // override once the generator is fixed, and verify with the FK tests.
+  @override
+  List<String> get customConstraints => [
+        'FOREIGN KEY (customer_id) REFERENCES customers (id)',
+      ];
+
   TextColumn get id => text()();
   TextColumn get customerId => text().references(Customers, #id)();
   TextColumn get body => text()();
@@ -45,6 +65,16 @@ class CustomerNotes extends Table {
 class CustomerActivities extends Table {
   @override
   String get tableName => 'customer_activities';
+
+  // Restored explicitly: drift_dev 2.31.0 + analyzer 10.2.0 silently emit no
+  // foreign keys from `references()` above (docs/flutter-web.md section 8).
+  // The `references()` calls are kept — they still drive drift's Dart-side
+  // relation API — but the SQL constraint now comes from here. Remove this
+  // override once the generator is fixed, and verify with the FK tests.
+  @override
+  List<String> get customConstraints => [
+        'FOREIGN KEY (customer_id) REFERENCES customers (id)',
+      ];
 
   TextColumn get id => text()();
   TextColumn get customerId => text().references(Customers, #id)();
@@ -61,6 +91,16 @@ class CustomerFavorites extends Table {
   @override
   String get tableName => 'customer_favorites';
 
+  // Restored explicitly: drift_dev 2.31.0 + analyzer 10.2.0 silently emit no
+  // foreign keys from `references()` above (docs/flutter-web.md section 8).
+  // The `references()` calls are kept — they still drive drift's Dart-side
+  // relation API — but the SQL constraint now comes from here. Remove this
+  // override once the generator is fixed, and verify with the FK tests.
+  @override
+  List<String> get customConstraints => [
+        'FOREIGN KEY (customer_id) REFERENCES customers (id)',
+      ];
+
   TextColumn get customerId => text().references(Customers, #id)();
   DateTimeColumn get createdAt => dateTime()();
 
@@ -71,6 +111,16 @@ class CustomerFavorites extends Table {
 class CustomerRecent extends Table {
   @override
   String get tableName => 'customer_recent';
+
+  // Restored explicitly: drift_dev 2.31.0 + analyzer 10.2.0 silently emit no
+  // foreign keys from `references()` above (docs/flutter-web.md section 8).
+  // The `references()` calls are kept — they still drive drift's Dart-side
+  // relation API — but the SQL constraint now comes from here. Remove this
+  // override once the generator is fixed, and verify with the FK tests.
+  @override
+  List<String> get customConstraints => [
+        'FOREIGN KEY (customer_id) REFERENCES customers (id)',
+      ];
 
   TextColumn get customerId => text().references(Customers, #id)();
   DateTimeColumn get viewedAt => dateTime()();

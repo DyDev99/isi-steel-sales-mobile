@@ -22,6 +22,16 @@ class VisitCheckIns extends Table with SyncableTable {
   @override
   String get tableName => 'visit_check_ins';
 
+  // Restored explicitly: drift_dev 2.31.0 + analyzer 10.2.0 silently emit no
+  // foreign keys from `references()` above (docs/flutter-web.md section 8).
+  // The `references()` calls are kept — they still drive drift's Dart-side
+  // relation API — but the SQL constraint now comes from here. Remove this
+  // override once the generator is fixed, and verify with the FK tests.
+  @override
+  List<String> get customConstraints => [
+        'FOREIGN KEY (stop_id) REFERENCES route_stops (id) ON DELETE CASCADE',
+      ];
+
   TextColumn get stopId =>
       text().references(RouteStops, #id, onDelete: KeyAction.cascade)();
   DateTimeColumn get timestamp => dateTime()();
@@ -41,6 +51,16 @@ class VisitCheckIns extends Table with SyncableTable {
 class VisitCheckOuts extends Table with SyncableTable {
   @override
   String get tableName => 'visit_check_outs';
+
+  // Restored explicitly: drift_dev 2.31.0 + analyzer 10.2.0 silently emit no
+  // foreign keys from `references()` above (docs/flutter-web.md section 8).
+  // The `references()` calls are kept — they still drive drift's Dart-side
+  // relation API — but the SQL constraint now comes from here. Remove this
+  // override once the generator is fixed, and verify with the FK tests.
+  @override
+  List<String> get customConstraints => [
+        'FOREIGN KEY (stop_id) REFERENCES route_stops (id) ON DELETE CASCADE',
+      ];
 
   TextColumn get stopId =>
       text().references(RouteStops, #id, onDelete: KeyAction.cascade)();
@@ -62,6 +82,16 @@ class VisitCheckOuts extends Table with SyncableTable {
 class VisitOrderLines extends Table with SyncableTable {
   @override
   String get tableName => 'visit_order_lines';
+
+  // Restored explicitly: drift_dev 2.31.0 + analyzer 10.2.0 silently emit no
+  // foreign keys from `references()` above (docs/flutter-web.md section 8).
+  // The `references()` calls are kept — they still drive drift's Dart-side
+  // relation API — but the SQL constraint now comes from here. Remove this
+  // override once the generator is fixed, and verify with the FK tests.
+  @override
+  List<String> get customConstraints => [
+        'FOREIGN KEY (stop_id) REFERENCES route_stops (id) ON DELETE CASCADE',
+      ];
 
   TextColumn get stopId =>
       text().references(RouteStops, #id, onDelete: KeyAction.cascade)();
@@ -89,6 +119,16 @@ class VisitStockUpdates extends Table with SyncableTable {
   @override
   String get tableName => 'visit_stock_updates';
 
+  // Restored explicitly: drift_dev 2.31.0 + analyzer 10.2.0 silently emit no
+  // foreign keys from `references()` above (docs/flutter-web.md section 8).
+  // The `references()` calls are kept — they still drive drift's Dart-side
+  // relation API — but the SQL constraint now comes from here. Remove this
+  // override once the generator is fixed, and verify with the FK tests.
+  @override
+  List<String> get customConstraints => [
+        'FOREIGN KEY (stop_id) REFERENCES route_stops (id) ON DELETE CASCADE',
+      ];
+
   TextColumn get stopId => text()
       .nullable()
       .references(RouteStops, #id, onDelete: KeyAction.cascade)();
@@ -109,6 +149,16 @@ class VisitReturns extends Table with SyncableTable {
   @override
   String get tableName => 'visit_returns';
 
+  // Restored explicitly: drift_dev 2.31.0 + analyzer 10.2.0 silently emit no
+  // foreign keys from `references()` above (docs/flutter-web.md section 8).
+  // The `references()` calls are kept — they still drive drift's Dart-side
+  // relation API — but the SQL constraint now comes from here. Remove this
+  // override once the generator is fixed, and verify with the FK tests.
+  @override
+  List<String> get customConstraints => [
+        'FOREIGN KEY (stop_id) REFERENCES route_stops (id) ON DELETE CASCADE',
+      ];
+
   TextColumn get stopId =>
       text().references(RouteStops, #id, onDelete: KeyAction.cascade)();
   TextColumn get productId => text()();
@@ -125,6 +175,16 @@ class VisitCollections extends Table with SyncableTable {
   @override
   String get tableName => 'visit_collections';
 
+  // Restored explicitly: drift_dev 2.31.0 + analyzer 10.2.0 silently emit no
+  // foreign keys from `references()` above (docs/flutter-web.md section 8).
+  // The `references()` calls are kept — they still drive drift's Dart-side
+  // relation API — but the SQL constraint now comes from here. Remove this
+  // override once the generator is fixed, and verify with the FK tests.
+  @override
+  List<String> get customConstraints => [
+        'FOREIGN KEY (stop_id) REFERENCES route_stops (id) ON DELETE CASCADE',
+      ];
+
   TextColumn get stopId =>
       text().references(RouteStops, #id, onDelete: KeyAction.cascade)();
   RealColumn get amount => real()();
@@ -139,6 +199,16 @@ class VisitCollections extends Table with SyncableTable {
 class VisitNotes extends Table with SyncableTable {
   @override
   String get tableName => 'visit_notes';
+
+  // Restored explicitly: drift_dev 2.31.0 + analyzer 10.2.0 silently emit no
+  // foreign keys from `references()` above (docs/flutter-web.md section 8).
+  // The `references()` calls are kept — they still drive drift's Dart-side
+  // relation API — but the SQL constraint now comes from here. Remove this
+  // override once the generator is fixed, and verify with the FK tests.
+  @override
+  List<String> get customConstraints => [
+        'FOREIGN KEY (stop_id) REFERENCES route_stops (id) ON DELETE CASCADE',
+      ];
 
   TextColumn get stopId =>
       text().references(RouteStops, #id, onDelete: KeyAction.cascade)();
@@ -163,6 +233,16 @@ class VisitNotes extends Table with SyncableTable {
 class VisitPhotos extends Table with SyncableTable {
   @override
   String get tableName => 'visit_photos';
+
+  // Restored explicitly: drift_dev 2.31.0 + analyzer 10.2.0 silently emit no
+  // foreign keys from `references()` above (docs/flutter-web.md section 8).
+  // The `references()` calls are kept — they still drive drift's Dart-side
+  // relation API — but the SQL constraint now comes from here. Remove this
+  // override once the generator is fixed, and verify with the FK tests.
+  @override
+  List<String> get customConstraints => [
+        'FOREIGN KEY (stop_id) REFERENCES route_stops (id) ON DELETE CASCADE',
+      ];
 
   TextColumn get stopId =>
       text().references(RouteStops, #id, onDelete: KeyAction.cascade)();
