@@ -126,11 +126,16 @@ Phones navigate between the five shell sections via the app bar and the home "My
 ## 6. GitHub Pages deployment
 
 **Live URL:** `https://dydev99.github.io/isi-steel-sales-mobile/`
-**Workflow:** [`.github/workflows/deploy-web.yml`](../.github/workflows/deploy-web.yml) — triggers on push to `main`, plus manual dispatch.
+**Source branch:** `web`
+**Workflow:** [`.github/workflows/deploy-web.yml`](../.github/workflows/deploy-web.yml) — triggers on push to `web`, plus manual dispatch.
 
-### One-time repository setup
+### Required one-time repository setup
 
-**Settings → Pages → Build and deployment → Source: `GitHub Actions`.** (Not "Deploy from a branch" — the workflow uploads an artifact.)
+**Settings → Pages → Build and deployment → Source: `GitHub Actions`.**
+
+This cannot be set from a workflow file, and **until it is set, nothing this workflow produces reaches the site.**
+
+While the Source is left at its default, "Deploy from a branch", Pages ignores the workflow completely and serves the branch's raw contents through Jekyll. Jekyll renders `README.md` as the home page — so the site shows the README's *"A new Flutter project"* boilerplate rather than the app. If you are seeing that text, this setting is the reason; it is not a build failure, and rebuilding will not change it.
 
 ### Why refresh and deep links work
 

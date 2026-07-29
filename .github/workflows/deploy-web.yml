@@ -3,16 +3,25 @@ name: Deploy Web to GitHub Pages
 # Builds the Flutter Web target and publishes it to GitHub Pages.
 #
 # Repository: DyDev99/isi-steel-sales-mobile
-# Published:  https://dydev99.github.io/isi-steel-sales-mobile/
+# Source branch: `web`
+# Published:     https://dydev99.github.io/isi-steel-sales-mobile/
 #
-# ── One-time setup in the GitHub UI ─────────────────────────────────────────
-# Settings → Pages → Build and deployment → Source: **GitHub Actions**
-# (not "Deploy from a branch" — this workflow uploads an artifact directly).
+# ── REQUIRED one-time setup in the GitHub UI ────────────────────────────────
+#
+#   Settings → Pages → Build and deployment → Source: **GitHub Actions**
+#
+# This cannot be configured from a workflow file, and until it is done nothing
+# here reaches the site. While the Source is left as "Deploy from a branch",
+# Pages ignores this workflow entirely and instead serves the branch's raw
+# contents through Jekyll — which renders `README.md` as the home page. That is
+# the cause if the deployed site shows the README's "A new Flutter project"
+# text instead of the app.
 
 on:
   push:
-    branches: [main]
-  # Lets a maintainer redeploy the current main without an empty commit.
+    # The web target is developed and released from `web`, not `main`.
+    branches: [web]
+  # Lets a maintainer redeploy the current `web` without an empty commit.
   workflow_dispatch:
 
 # The repo-name segment the site is served under. Changing the repository name
