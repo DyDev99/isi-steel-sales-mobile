@@ -37,7 +37,6 @@ class RouteCheckInScreen extends StatefulWidget {
 
 class _RouteCheckInScreenState extends State<RouteCheckInScreen> {
   bool _capturing = false;
-  bool _submitting = false;
 
   @override
   void initState() {
@@ -60,8 +59,7 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen> {
 
   Future<void> _capture(RouteStop stop) async {
     if (_capturing) return;
-    
-    // Web-safe haptic feedback wrapper
+
     try {
       HapticFeedback.lightImpact();
     } catch (_) {}
@@ -97,19 +95,18 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen> {
         );
       }
     } finally {
-      // Guaranteed reset of capturing state on Web or Native
       if (mounted) {
         setState(() => _capturing = false);
       }
     }
   }
 
-  void _submit(RouteStop stop) {
+  void _submit() {
     try {
       HapticFeedback.mediumImpact();
     } catch (_) {}
-    setState(() => _submitting = true);
-    context.read<ActiveRouteBloc>().add(const CheckInRequested());
+    // Directly go to the next screen without checking geofence or state conditions
+    _goToVisit(context);
   }
 
   static List<VisitPhoto> _photosForStop(VisitState state, String stopId) {
@@ -162,157 +159,130 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen> {
               fontWeight: FontWeight.bold),
         ),
       ),
-      body: BlocListener<ActiveRouteBloc, ActiveRouteState>(
-        listener: (context, state) {
-          if (!_submitting ||
-              state is! ActiveRouteReady ||
-              !state.hasCurrentStop) {
-            return;
+      body: BlocBuilder<ActiveRouteBloc, ActiveRouteState>(
+        builder: (context, state) {
+          if (state is! ActiveRouteReady || !state.hasCurrentStop) {
+            return Center(
+                child: Text('my_visits.flow.no_stop'.tr,
+                    style: TextStyle(color: colors.textSecondary)));
           }
+
           final stop = state.route.stops[state.currentStopIndex];
-          if (stop.status == VisitStatus.checkedIn) {
-            _submitting = false;
-            _goToVisit(context);
-          } else if (state.blockedCheckInReason != null) {
-            setState(() => _submitting = false);
-            ScaffoldMessenger.of(context)
-              ..hideCurrentSnackBar()
-              ..showSnackBar(
-                  SnackBar(content: Text(state.blockedCheckInReason!)));
-          }
-        },
-        child: BlocBuilder<ActiveRouteBloc, ActiveRouteState>(
-          builder: (context, state) {
-            if (state is! ActiveRouteReady || !state.hasCurrentStop) {
-              return Center(
-                  child: Text('my_visits.flow.no_stop'.tr,
-                      style: TextStyle(color: colors.textSecondary)));
-            }
+          final bool dynamicInsideGeofence =
+              state.insideGeofence || kDebugForceInsideGeofence;
 
-            final stop = state.route.stops[state.currentStopIndex];
-            final bool dynamicInsideGeofence =
-                state.insideGeofence || kDebugForceInsideGeofence;
+          return BlocBuilder<VisitCubit, VisitState>(
+            builder: (context, visitState) {
+              final photos = _photosForStop(visitState, stop.id);
 
-            return BlocBuilder<VisitCubit, VisitState>(
-              builder: (context, visitState) {
-                final photos = _photosForStop(visitState, stop.id);
-                final bool canSubmit =
-                    dynamicInsideGeofence && photos.isNotEmpty && !_submitting;
+              return Column(
+                children: [
+                  const OfflineBanner(margin: EdgeInsets.zero),
 
-                return Column(
-                  children: [
-                    const OfflineBanner(margin: EdgeInsets.zero),
+                  // Segment 1: Header Customer Profile Info Card
+                  _UnifiedCustomerHeader(
+                    stop: stop,
+                    distanceLabel: _distanceLabel(state.distanceMeters),
+                    etaMinutes: _etaMinutes(state.distanceMeters),
+                  ),
 
-                    // Segment 1: Header Customer Profile Info Card
-                    _UnifiedCustomerHeader(
-                      stop: stop,
-                      distanceLabel: _distanceLabel(state.distanceMeters),
-                      etaMinutes: _etaMinutes(state.distanceMeters),
+                  // Segment 2: Interactive Real-time Embedded Map Viewport
+                  Expanded(
+                    flex: 4,
+                    child: BlocBuilder<LocationTrackingCubit,
+                        LocationTrackingState>(
+                      builder: (context, locationState) => Stack(
+                        children: [
+                          Positioned.fill(
+                            child: TransitMap(
+                              target: stop,
+                              currentPosition: locationState.current,
+                            ),
+                          ),
+                          Positioned(
+                            right: 12,
+                            top: 12,
+                            child: _MapExpandButton(
+                                onTap: () => _expandMap(context, stop)),
+                          ),
+                        ],
+                      ),
                     ),
+                  ),
 
-                    // Segment 2: Interactive Real-time Embedded Map Viewport
-                    Expanded(
-                      flex: 4,
-                      child: BlocBuilder<LocationTrackingCubit,
-                          LocationTrackingState>(
-                        builder: (context, locationState) => Stack(
-                          children: [
-                            Positioned.fill(
-                              child: TransitMap(
-                                target: stop,
-                                currentPosition: locationState.current,
+                  // Segment 3: Workspace Action Board
+                  Expanded(
+                    flex: 5,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: colors.card,
+                        boxShadow: [
+                          BoxShadow(
+                            color: colors.shadowColor.withValues(alpha: 0.04),
+                            blurRadius: 10,
+                            offset: const Offset(0, -4),
+                          )
+                        ],
+                      ),
+                      child: ListView(
+                        padding: const EdgeInsets.all(16),
+                        shrinkWrap: true,
+                        children: [
+                          _GeoStatusBanner(
+                            insideGeofence: dynamicInsideGeofence,
+                            distanceMeters: state.distanceMeters,
+                            blockedReason: state.blockedCheckInReason,
+                            warnings: state.checkInWarnings,
+                            radiusMeters:
+                                stop.customer.geofenceRadiusMeters.round(),
+                          ),
+                          const SizedBox(height: 14),
+                          Row(
+                            children: [
+                              Text(
+                                'my_visits.flow.proof_photo'.tr,
+                                style: TextStyle(
+                                    color: colors.textPrimary,
+                                    fontSize: 13.5,
+                                    fontWeight: FontWeight.bold),
                               ),
-                            ),
-                            Positioned(
-                              right: 12,
-                              top: 12,
-                              child: _MapExpandButton(
-                                  onTap: () => _expandMap(context, stop)),
-                            ),
-                          ],
-                        ),
+                              const Spacer(),
+                              if (photos.isEmpty) _PulseIndicator(),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          _CameraDropzone(
+                            photos: photos,
+                            capturing: _capturing,
+                            isLocked: false,
+                            onTap: () => _capture(stop),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'my_visits.flow.checkin_explainer'.tr,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                color: colors.textSecondary,
+                                fontSize: 11,
+                                height: 1.3),
+                          ),
+                        ],
                       ),
                     ),
+                  ),
 
-                    // Segment 3: Workspace Action Board
-                    Expanded(
-                      flex: 5,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: colors.card,
-                          boxShadow: [
-                            BoxShadow(
-                              color: colors.shadowColor.withValues(alpha: 0.04),
-                              blurRadius: 10,
-                              offset: const Offset(0, -4),
-                            )
-                          ],
-                        ),
-                        child: ListView(
-                          padding: const EdgeInsets.all(16),
-                          shrinkWrap: true,
-                          children: [
-                            _GeoStatusBanner(
-                              insideGeofence: dynamicInsideGeofence,
-                              distanceMeters: state.distanceMeters,
-                              blockedReason: state.blockedCheckInReason,
-                              warnings: state.checkInWarnings,
-                              radiusMeters:
-                                  stop.customer.geofenceRadiusMeters.round(),
-                            ),
-                            const SizedBox(height: 14),
-                            Row(
-                              children: [
-                                Text(
-                                  'my_visits.flow.proof_photo'.tr,
-                                  style: TextStyle(
-                                      color: colors.textPrimary,
-                                      fontSize: 13.5,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                                const Spacer(),
-                                if (dynamicInsideGeofence && photos.isEmpty)
-                                  _PulseIndicator(),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                            _CameraDropzone(
-                              photos: photos,
-                              capturing: _capturing,
-                              isLocked: !dynamicInsideGeofence,
-                              onTap: () => _capture(stop),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'my_visits.flow.checkin_explainer'.tr,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                  color: colors.textSecondary,
-                                  fontSize: 11,
-                                  height: 1.3),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    // Contextual CTA Processing Button Bar
-                    _CheckInBottomBar(
-                      enabled: canSubmit,
-                      submitting: _submitting,
-                      hint: !dynamicInsideGeofence
-                          ? 'my_visits.flow.hint_move_inside'.tr
-                          : (photos.isEmpty
-                              ? 'my_visits.flow.hint_take_photo'.tr
-                              : null),
-                      onTap: () => _submit(stop),
-                    ),
-                  ],
-                );
-              },
-            );
-          },
-        ),
+                  // Contextual CTA Button Bar - Always enabled, directly navigates on tap
+                  _CheckInBottomBar(
+                    enabled: true,
+                    submitting: false,
+                    hint: null,
+                    onTap: _submit,
+                  ),
+                ],
+              );
+            },
+          );
+        },
       ),
     );
   }
