@@ -220,5 +220,10 @@ Future<void> registerMyVisitsFeature(GetIt sl) async {
   sl.registerFactory(
       () => DepotSelectionCubit(browseCustomers: sl(), store: sl()));
   sl.registerFactory(() => DepotStockCountCubit(
-      getCustomerById: sl(), browseProducts: sl(), addStockUpdate: sl()));
+        getCustomerById: sl(),
+        browseProducts: sl(),
+        addStockUpdate: sl(),
+        runInitialSync: sl(),
+        sessionManager: sl<SessionManager>(),
+      ));
 }

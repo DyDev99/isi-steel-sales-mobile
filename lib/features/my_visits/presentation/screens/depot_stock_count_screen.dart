@@ -80,12 +80,18 @@ class _DepotStockCountView extends StatelessWidget {
             DepotStockCountStatus.initial ||
             DepotStockCountStatus.loading =>
               const _LoadingList(),
+            DepotStockCountStatus.syncing =>
+              _LoadingList(caption: 'my_visits.depot.syncing_catalog'.tr),
             DepotStockCountStatus.error => _ErrorState(
                 message: state.message ?? 'common.something_went_wrong'.tr,
                 onRetry: () =>
                     context.read<DepotStockCountCubit>().load(shopId),
               ),
-            DepotStockCountStatus.empty => const _EmptyState(),
+            DepotStockCountStatus.empty => _EmptyState(
+                message: state.message,
+                onRetry: () =>
+                    context.read<DepotStockCountCubit>().load(shopId),
+              ),
             DepotStockCountStatus.loaded ||
             DepotStockCountStatus.saving ||
             DepotStockCountStatus.saved =>
@@ -160,25 +166,56 @@ class _LoadedList extends StatelessWidget {
 }
 
 class _LoadingList extends StatelessWidget {
-  const _LoadingList();
+  const _LoadingList({this.caption});
+
+  /// Optional line shown above the skeletons (e.g. "Downloading catalog…"
+  /// while a first-open sync fills an empty local catalog).
+  final String? caption;
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
       physics: const NeverScrollableScrollPhysics(),
-      children: const [
-        OrderTileSkeleton(),
-        OrderTileSkeleton(),
-        OrderTileSkeleton(),
-        OrderTileSkeleton(),
+      children: [
+        if (caption != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 14,
+                  height: 14,
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Theme.of(context).colorScheme.primary),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(caption!,
+                      style: TextStyle(
+                          color: colors.textSecondary, fontSize: 12.5)),
+                ),
+              ],
+            ),
+          ),
+        const OrderTileSkeleton(),
+        const OrderTileSkeleton(),
+        const OrderTileSkeleton(),
+        const OrderTileSkeleton(),
       ],
     );
   }
 }
 
 class _EmptyState extends StatelessWidget {
-  const _EmptyState();
+  const _EmptyState({this.message, required this.onRetry});
+
+  /// Optional actionable reason (e.g. offline → "connect to download").
+  /// Null means a genuinely empty catalog after a successful pull.
+  final String? message;
+  final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -196,9 +233,15 @@ class _EmptyState extends StatelessWidget {
                 style: TextStyle(
                     color: colors.textPrimary, fontWeight: FontWeight.w700)),
             const SizedBox(height: 4),
-            Text('my_visits.depot.no_products'.tr,
+            Text(message ?? 'my_visits.depot.no_products'.tr,
                 textAlign: TextAlign.center,
                 style: TextStyle(color: colors.textSecondary, fontSize: 12.5)),
+            const SizedBox(height: 16),
+            OutlinedButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh_rounded, size: 18),
+              label: Text('common.retry'.tr),
+            ),
           ],
         ),
       ),
@@ -231,7 +274,7 @@ class _ErrorState extends StatelessWidget {
             OutlinedButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh_rounded, size: 18),
-              label: const Text('Retry'),
+              label: Text('common.retry'.tr),
             ),
           ],
         ),
@@ -286,9 +329,9 @@ class _DoneBar extends StatelessWidget {
                       child: CircularProgressIndicator(
                           strokeWidth: 2, color: scheme.onPrimary))
                   : const Icon(Icons.check_rounded, size: 20),
-              label: const Text('Done',
-                  style:
-                      TextStyle(fontSize: 14.5, fontWeight: FontWeight.w800)),
+              label: Text('common.done'.tr,
+                  style: const TextStyle(
+                      fontSize: 14.5, fontWeight: FontWeight.w800)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: scheme.primary,
                 foregroundColor: scheme.onPrimary,

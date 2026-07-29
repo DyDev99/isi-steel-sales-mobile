@@ -4,8 +4,10 @@ import 'package:isi_steel_sales_mobile/features/customers/presentation/screens/c
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/active_workflow.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_plan.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_workflow.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/navigation/open_quotation.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/navigation/open_route_dispatch.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/route_stock_count_screen.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/quotation_builder_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/shop/shop_list_screen.dart';
 
 /// Rebuilds a live screen from the args the workflow recorded. Returns `null`
@@ -25,7 +27,19 @@ final Map<String, ResumeBuilder> _navigationRegistry = {
   RouteStockCountScreen.routeName: (context, route, w) =>
       openRouteDispatch(context, route.id, resumeStopId: w.currentStopId),
 
-  // Order handoff — re-enter the shop list for the visit's territory.
+  // Quotation task — resume straight into the Quotation Builder for the
+  // checked-in customer (the current guided flow after Stock Count).
+  QuotationBuilderScreen.routeName: (context, route, w) {
+    final customerId = w.navigationArguments?['customerId'] as String?;
+    if (customerId == null) return null;
+    final customerName =
+        w.navigationArguments?['customerName'] as String? ?? w.shopName ?? '';
+    return openQuotationForCustomer(context,
+        customerId: customerId, customerName: customerName);
+  },
+
+  // Legacy order handoff — re-enter the shop list for the visit's territory.
+  // Retained so workflows persisted by older builds still resume correctly.
   ShopListScreen.routeName: (context, route, w) {
     final territory = w.navigationArguments?['territory'] as String?;
     if (territory == null) return null;

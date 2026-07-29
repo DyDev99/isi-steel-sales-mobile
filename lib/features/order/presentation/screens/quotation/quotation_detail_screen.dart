@@ -170,6 +170,19 @@ class QuotationDetailScreen extends StatelessWidget {
               child: Text('orders.quotation.edit_quotation'.tr),
             ),
           ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: TextButton.icon(
+              // Clears the visit/order sub-stack back to the shell — the rep is
+              // done with this quotation and wants to start fresh from Home.
+              onPressed: () =>
+                  Navigator.of(context).popUntil((route) => route.isFirst),
+              icon: const Icon(Icons.home_rounded, size: 18),
+              label: Text('common.back_to_home'.tr,
+                  style: const TextStyle(fontWeight: FontWeight.w700)),
+            ),
+          ),
         ],
       ),
     );

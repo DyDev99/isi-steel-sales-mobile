@@ -8,7 +8,7 @@ import 'package:isi_steel_sales_mobile/core/localization/localization_services.d
 import 'package:isi_steel_sales_mobile/core/localization/localized_builder.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/core/utils/offline_banner.dart';
-import 'package:isi_steel_sales_mobile/features/order/presentation/screens/shop/shop_list_screen.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/quotation_builder_screen.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_stop.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/stock_level.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_stock_update.dart';
@@ -17,7 +17,9 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/update
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/active_route_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/state/active_route_state.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/visit_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/navigation/open_quotation.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/route_dispatch_screen.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/route_information/route_information_screen.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/stock_level_selector.dart';
 
 /// Step 4 of the guided field flow — Market Intelligence Inventory Check
@@ -93,34 +95,33 @@ class _RouteStockCountScreenState extends State<RouteStockCountScreen> {
     }
 
     // 2. Advance the *navigation state* to the Quotation task WITHOUT checking
-    // out. Check-out is now deferred until the rep is done (explicit "Check out"
-    // on the Continue-Working card / CompleteVisitCheckOut), so the stop stays
-    // "Checked In" and "Continue Working" resumes straight into the order flow
-    // for this shop — the exact screen the rep stopped on. The recorded
-    // navigation args let the resume dispatcher rebuild the Shop list.
+    // out. Check-out is deferred until the rep is done (explicit "Check out" on
+    // the Continue-Working card / CompleteVisitCheckOut), so the stop stays
+    // "Checked In" and "Continue Working" resumes straight into the quotation
+    // for THIS shop — the rep already chose it by checking in, so we never send
+    // them back to a shop picker. The recorded args let the resume dispatcher
+    // rebuild the Quotation Builder for this customer.
     unawaited(sl<UpdateWorkflowStep>()(UpdateWorkflowStepParams(
       VisitWorkflow.quotation,
-      screen: ShopListScreen.routeName,
+      screen: QuotationBuilderScreen.routeName,
       navigationArguments: {
-        'territory': stop.customer.territory,
         'customerId': stop.customer.id,
+        'customerName': stop.customer.name,
       },
     )));
 
-    // 3. Return to Dispatch, then hand off to the Shop list — pre-filtered
-    // to this stop's territory (the one reliable join between my_visits'
-    // and customers' mock datasets), skipping both Territory-picking and
-    // the off-visit reason gate since the rep is provably on-visit already.
-    final seed = _lowStock.isNotEmpty ? _lowStock.first : null;
-    navigator.popUntil((r) => r.settings.name == RouteDispatchScreen.routeName);
-    navigator.push(MaterialPageRoute(
-      settings: const RouteSettings(name: ShopListScreen.routeName),
-      builder: (_) => ShopListScreen(
-        territory: stop.customer.territory,
-        skipOffVisitCheck: true,
-        seedSearchTerm: seed,
-      ),
-    ));
+    // 3. Pop the visit sub-stack back to the route base (Route Information in
+    // the guided flow, Dispatch in the legacy one), then open the Quotation
+    // Builder directly for the checked-in customer — no shop re-selection,
+    // no off-visit gate (the rep is provably on-visit).
+    navigator.popUntil((r) =>
+        r.settings.name == RouteInformationScreen.routeName ||
+        r.settings.name == RouteDispatchScreen.routeName);
+    await openQuotationForCustomer(
+      navigator.context,
+      customerId: stop.customer.id,
+      customerName: stop.customer.name,
+    );
   }
 
   @override

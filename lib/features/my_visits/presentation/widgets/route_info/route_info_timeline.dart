@@ -23,6 +23,7 @@ class RouteInfoTimeline extends StatefulWidget {
     required this.nextIndex,
     required this.onStartStop,
     this.onSkipStop,
+    this.onCreateForStop,
     this.skipReasons = const {},
     this.currentPosition,
   });
@@ -34,6 +35,11 @@ class RouteInfoTimeline extends StatefulWidget {
   /// Invoked with a stop index when the rep chooses to skip it. When null, the
   /// per-stop skip affordance is hidden.
   final ValueChanged<int>? onSkipStop;
+
+  /// Invoked for a **completed** stop when the rep wants to create commerce for
+  /// its customer: `asOrder == false` → quotation, `true` → sales order. When
+  /// null, the basket affordance is hidden.
+  final void Function(int index, bool asOrder)? onCreateForStop;
 
   /// Reason text keyed by stop id, shown under skipped (missed) stops.
   final Map<String, String> skipReasons;
@@ -68,6 +74,8 @@ class _RouteInfoTimelineState extends State<RouteInfoTimeline>
       stop.status != VisitStatus.checkedOut &&
       stop.status != VisitStatus.missed;
 
+  bool _isDone(RouteStop stop) => stop.status == VisitStatus.checkedOut;
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -89,6 +97,14 @@ class _RouteInfoTimelineState extends State<RouteInfoTimeline>
                   ? () => widget.onSkipStop!(i)
                   : null,
               skipReason: widget.skipReasons[widget.stops[i].id],
+              onQuotation:
+                  (widget.onCreateForStop != null && _isDone(widget.stops[i]))
+                      ? () => widget.onCreateForStop!(i, false)
+                      : null,
+              onOrder:
+                  (widget.onCreateForStop != null && _isDone(widget.stops[i]))
+                      ? () => widget.onCreateForStop!(i, true)
+                      : null,
             ),
           ),
       ],
@@ -141,6 +157,8 @@ class _TimelineRow extends StatelessWidget {
     required this.onTap,
     required this.onSkip,
     required this.skipReason,
+    required this.onQuotation,
+    required this.onOrder,
   });
 
   final RouteStop stop;
@@ -151,6 +169,8 @@ class _TimelineRow extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onSkip;
   final String? skipReason;
+  final VoidCallback? onQuotation;
+  final VoidCallback? onOrder;
 
   bool get _isDone => stop.status == VisitStatus.checkedOut;
   bool get _isMissed => stop.status == VisitStatus.missed;
@@ -264,6 +284,11 @@ class _TimelineRow extends StatelessWidget {
                                       fontSize: 10.5.sp,
                                       fontWeight: FontWeight.w700),
                                 ),
+                              if (onOrder != null || onQuotation != null) ...[
+                                SizedBox(width: 8.w),
+                                _BasketButton(
+                                    onTap: onQuotation,),
+                              ],
                             ],
                           ),
                           SizedBox(height: 3.h),
@@ -351,6 +376,40 @@ class _NextBadge extends StatelessWidget {
   }
 }
 
+/// Basket pop-up shown on completed stops — a quick jump to create a quotation
+/// or a sales order for that stop's customer. `false` = quotation, `true` =
+/// order (matches [RouteInfoTimeline.onCreateForStop]).
+/// Simple basket icon button that directly triggers quotation creation on tap.
+class _BasketButton extends StatelessWidget {
+  const _BasketButton({required this.onTap});
+
+  // 1. Add the '?' to make it nullable
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap, // 2. InkWell natively handles null
+        borderRadius: BorderRadius.circular(20.r),
+        child: Ink(
+          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+          decoration: BoxDecoration(
+            color: scheme.primary.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(20.r),
+          ),
+          child: Icon(
+            Icons.shopping_basket_rounded,
+            size: 16.w,
+            color: scheme.primary,
+          ),
+        ),
+      ),
+    );
+  }
+}
 /// Low-emphasis "Skip stop" affordance shown on stops not yet resolved.
 class _SkipButton extends StatelessWidget {
   const _SkipButton({required this.onTap});

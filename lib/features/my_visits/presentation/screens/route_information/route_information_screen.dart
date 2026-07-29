@@ -8,7 +8,9 @@ import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/core/utils/offline_banner.dart';
 import 'package:isi_steel_sales_mobile/core/utils/page_transitions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_plan.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_stop.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_status.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/navigation/open_quotation.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/geofence_service.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/active_route_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/events/active_route_event.dart';
@@ -16,7 +18,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/stat
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/location_tracking_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/state/location_tracking_state.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/visit_cubit.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/route_check_in_screen.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/stop_information/stop_information_screen.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/route_info/route_info_hero_header.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/route_info/route_info_map_preview.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/route_info/route_info_objectives.dart';
@@ -27,15 +29,6 @@ import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/r
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/route_map.dart';
 
 /// Route Information — the visit preparation screen (new "Before Check-In" step).
-///
-/// Replaces the old "choose stop" Dispatch step in the primary flow: it shows
-/// everything about the selected route (hero, stats, timeline, map, objectives,
-/// quick actions) and hands off to Check-In via a single "Start Visit" CTA.
-///
-/// Business logic is unchanged — it drives the same `ActiveRouteBloc`
-/// (`StartDayRequested`/`StopSelected`), keeps the geofence listener live
-/// underneath Check-In, and forwards the same bloc/cubit instances forward
-/// (mirrors `RouteDispatchScreen._startWithStop`).
 class RouteInformationScreen extends StatefulWidget {
   const RouteInformationScreen({super.key});
 
@@ -57,9 +50,6 @@ class _RouteInformationScreenState extends State<RouteInformationScreen> {
   int _nextIndex(RoutePlan route) => route.stops.indexWhere((s) =>
       s.status != VisitStatus.checkedOut && s.status != VisitStatus.missed);
 
-  /// Straight-line inter-stop distance + a coarse duration estimate — a display
-  /// figure shown as an estimate, mirroring `RouteDashboardCubit`'s approach
-  /// (25 km/h blended field average, ~15 min per stop). Pure, no side effects.
   ({double distanceKm, int durationMin}) _estimate(RoutePlan route) {
     var meters = 0.0;
     for (var i = 1; i < route.stops.length; i++) {
@@ -91,10 +81,14 @@ class _RouteInformationScreenState extends State<RouteInformationScreen> {
     final state = bloc.state;
     if (state is! ActiveRouteReady) return;
     if (!state.dayStarted) bloc.add(const StartDayRequested());
+    // Persist the selected stop to the workflow before the review step.
     bloc.add(StopSelected(index));
 
+    final stop = route.stops[index];
     final visitCubit = context.read<VisitCubit>();
     final locationCubit = context.read<LocationTrackingCubit>();
+    // Route Info → Stop Information (review) → Check-In. The same blocs are
+    // forwarded by value so check-in behaves exactly as before.
     await Navigator.of(context).push(slideLeftRoute(
       MultiBlocProvider(
         providers: [
@@ -102,14 +96,15 @@ class _RouteInformationScreenState extends State<RouteInformationScreen> {
           BlocProvider.value(value: visitCubit),
           BlocProvider.value(value: locationCubit),
         ],
-        child: const RouteCheckInScreen(),
+        child: StopInformationScreen(
+          stop: stop,
+          index: index,
+          totalStops: route.stops.length,
+        ),
       ),
     ));
   }
 
-  /// Skipping a stop always goes through a required-reason dialog first
-  /// ([SkipStopReasonDialog]); only a real reason dispatches the skip, which
-  /// marks the stop missed and records the reason.
   Future<void> _skip(BuildContext context, RoutePlan route, int index) async {
     if (index < 0 || index >= route.stops.length) return;
     final stop = route.stops[index];
@@ -129,10 +124,23 @@ class _RouteInformationScreenState extends State<RouteInformationScreen> {
       ));
   }
 
+  /// Basket action on a completed stop: jump directly to creating a quotation.
+  void _createForStop(BuildContext context, RoutePlan route, int index) {
+    if (index < 0 || index >= route.stops.length) return;
+    final stop = route.stops[index];
+    HapticFeedback.selectionClick();
+    _openQuotation(context, stop);
+  }
+
+  void _openQuotation(BuildContext context, RouteStop stop) {
+    openQuotationForCustomer(
+      context,
+      customerId: stop.customer.id,
+      customerName: stop.customer.name,
+    );
+  }
+
   void _onQuickAction(BuildContext context, RouteInfoAction action) {
-    // Phase 1: Call/Navigate/Customer/Notes/History are surfaced as premium
-    // affordances but not yet wired (needs url_launcher + customer-detail
-    // route). Honest placeholder rather than a dead tap.
     HapticFeedback.selectionClick();
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
@@ -149,8 +157,6 @@ class _RouteInformationScreenState extends State<RouteInformationScreen> {
     final colors = context.appColors;
     return Scaffold(
       backgroundColor: colors.canvas,
-      // Full-bleed hero has no AppBar, so a floating back button is overlaid to
-      // return to the dashboard route list.
       body: Stack(
         children: [
           _buildContent(context, colors),
@@ -170,68 +176,64 @@ class _RouteInformationScreenState extends State<RouteInformationScreen> {
   }
 
   Widget _buildContent(BuildContext context, AppThemeColors colors) {
-    // Keep the geofence status live for the selected stop while Check-In sits
-    // on top — this listener stays mounted (moved here from Dispatch).
     return BlocListener<LocationTrackingCubit, LocationTrackingState>(
-        listener: (context, locationState) {
-          final position = locationState.current;
-          final activeState = context.read<ActiveRouteBloc>().state;
-          if (position == null || activeState is! ActiveRouteReady) return;
-          final geofence = evaluateStopGeofence(
-            stops: activeState.route.stops,
-            currentStopIndex: activeState.currentStopIndex,
-            latitude: position.latitude,
-            longitude: position.longitude,
-          );
-          if (geofence == null) return;
-          context.read<ActiveRouteBloc>().add(GeofenceStatusChanged(
-                insideGeofence: geofence.insideGeofence,
-                distanceMeters: geofence.distanceMeters,
-                accuracyMeters: position.accuracyMeters,
-                isMocked: position.isMocked,
-                latitude: position.latitude,
-                longitude: position.longitude,
-              ));
-        },
-        child: BlocBuilder<ActiveRouteBloc, ActiveRouteState>(
-          builder: (context, state) {
-            final route = switch (state) {
-              ActiveRouteReady(:final route) => route,
-              ActiveRouteCompleted(:final route) => route,
-              _ => null,
-            };
-            if (route == null) {
-              if (state is ActiveRouteError) {
-                return Center(
-                    child: Text(state.message,
-                        style: TextStyle(color: colors.textSecondary)));
-              }
-              return const Center(child: CircularProgressIndicator());
+      listener: (context, locationState) {
+        final position = locationState.current;
+        final activeState = context.read<ActiveRouteBloc>().state;
+        if (position == null || activeState is! ActiveRouteReady) return;
+        final geofence = evaluateStopGeofence(
+          stops: activeState.route.stops,
+          currentStopIndex: activeState.currentStopIndex,
+          latitude: position.latitude,
+          longitude: position.longitude,
+        );
+        if (geofence == null) return;
+        context.read<ActiveRouteBloc>().add(GeofenceStatusChanged(
+              insideGeofence: geofence.insideGeofence,
+              distanceMeters: geofence.distanceMeters,
+              accuracyMeters: position.accuracyMeters,
+              isMocked: position.isMocked,
+              latitude: position.latitude,
+              longitude: position.longitude,
+            ));
+      },
+      child: BlocBuilder<ActiveRouteBloc, ActiveRouteState>(
+        builder: (context, state) {
+          final route = switch (state) {
+            ActiveRouteReady(:final route) => route,
+            ActiveRouteCompleted(:final route) => route,
+            _ => null,
+          };
+          if (route == null) {
+            if (state is ActiveRouteError) {
+              return Center(
+                  child: Text(state.message,
+                      style: TextStyle(color: colors.textSecondary)));
             }
+            return const Center(child: CircularProgressIndicator());
+          }
 
-            WidgetsBinding.instance
-                .addPostFrameCallback((_) => _ensureTracking(route));
-            final skipReasons = state is ActiveRouteReady
-                ? state.skipReasons
-                : const <String, String>{};
-            return _RouteInfoBody(
-              route: route,
-              nextIndex: _nextIndex(route),
-              estimate: _estimate(route),
-              onStartStop: (i) => _start(context, route, i),
-              onSkipStop: (i) => _skip(context, route, i),
-              skipReasons: skipReasons,
-              onQuickAction: (a) => _onQuickAction(context, a),
-            );
-          },
-        ),
+          WidgetsBinding.instance
+              .addPostFrameCallback((_) => _ensureTracking(route));
+          final skipReasons = state is ActiveRouteReady
+              ? state.skipReasons
+              : const <String, String>{};
+          return _RouteInfoBody(
+            route: route,
+            nextIndex: _nextIndex(route),
+            estimate: _estimate(route),
+            onStartStop: (i) => _start(context, route, i),
+            onSkipStop: (i) => _skip(context, route, i),
+            onCreateForStop: (i) => _createForStop(context, route, i),
+            skipReasons: skipReasons,
+            onQuickAction: (a) => _onQuickAction(context, a),
+          );
+        },
+      ),
     );
   }
 }
 
-/// Frosted circular back button overlaid on the hero — returns to the dashboard
-/// route list. Themed so it reads on both the navy hero and the canvas
-/// loading/error states.
 class _RouteInfoBackButton extends StatelessWidget {
   const _RouteInfoBackButton();
 
@@ -262,6 +264,7 @@ class _RouteInfoBody extends StatelessWidget {
     required this.estimate,
     required this.onStartStop,
     required this.onSkipStop,
+    required this.onCreateForStop,
     required this.skipReasons,
     required this.onQuickAction,
   });
@@ -271,6 +274,7 @@ class _RouteInfoBody extends StatelessWidget {
   final ({double distanceKm, int durationMin}) estimate;
   final ValueChanged<int> onStartStop;
   final ValueChanged<int> onSkipStop;
+  final ValueChanged<int> onCreateForStop;
   final Map<String, String> skipReasons;
   final ValueChanged<RouteInfoAction> onQuickAction;
 
@@ -317,6 +321,7 @@ class _RouteInfoBody extends StatelessWidget {
                       currentPosition: position,
                       onStartStop: onStartStop,
                       onSkipStop: onSkipStop,
+                      onCreateForStop: (index, _) => onCreateForStop(index),
                       skipReasons: skipReasons,
                     ),
                   ),
@@ -392,9 +397,7 @@ class _StartVisitCta extends StatelessWidget {
           child: ElevatedButton.icon(
             onPressed: onTap,
             icon: Icon(
-                enabled
-                    ? Icons.play_arrow_rounded
-                    : Icons.check_circle_rounded,
+                enabled ? Icons.play_arrow_rounded : Icons.check_circle_rounded,
                 size: 20.w),
             label: Text(label,
                 style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w800)),
@@ -404,8 +407,8 @@ class _StartVisitCta extends StatelessWidget {
               disabledBackgroundColor: colors.success.withValues(alpha: 0.6),
               disabledForegroundColor: scheme.onPrimary,
               padding: EdgeInsets.symmetric(vertical: 15.h),
-              shape:
-                  RoundedRectangleBorder(borderRadius: BorderRadius.circular(14.r)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14.r)),
             ),
           ),
         ),

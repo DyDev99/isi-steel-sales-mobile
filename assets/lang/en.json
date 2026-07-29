@@ -100,7 +100,9 @@
     "apply": "Apply",
     "view": "View",
     "reset": "Reset",
-    "search_button": "Search"
+    "search_button": "Search",
+    "done": "Done",
+    "back_to_home": "Back to Home"
   },
   "home": {
     "title": "Home Dashboard",
@@ -682,7 +684,9 @@
       "none_selected": "No depot or shop was selected.",
       "load_failed": "Could not load the selected depot/shop.",
       "recorded": "Recorded stock status for {count} SKU(s){shop}",
-      "set_progress": "{done} of {total} SKU(s) set"
+      "set_progress": "{done} of {total} SKU(s) set",
+      "syncing_catalog": "Downloading product catalog…",
+      "catalog_offline": "Connect to the internet once to download the product catalog, then try again."
     },
     "depot_info": {
       "title": "Depot Information",
@@ -852,7 +856,23 @@
       "reason_customer_unavailable": "Customer unavailable",
       "reason_no_access": "No access / road blocked",
       "reason_rescheduled": "Rescheduled to later",
-      "reason_other": "Other"
+      "reason_other": "Other",
+      "create_title": "Create for this stop",
+      "create_quotation": "Create Quotation",
+      "create_order": "Create Order"
+    },
+    "stop_info": {
+      "title": "Stop Information",
+      "stop_of": "Stop {current} of {total}",
+      "contact_person": "Contact Person",
+      "gps_location": "GPS Location",
+      "distance": "Distance",
+      "start_visit": "Start Visit",
+      "action_profile": "Customer Profile",
+      "action_call": "Call",
+      "action_maps": "Open Maps",
+      "action_orders": "Previous Orders",
+      "action_history": "Visit History"
     }
   },
   "language": {
@@ -1185,7 +1205,6 @@
     "check_out": "Check out",
     "checkin_progress": "Check-in in progress · {done} of {total} stops done"
   },
-
   "kpi": {
     "period_monthly": "Monthly",
     "title": "Key Performance Indicators",
@@ -1193,16 +1212,15 @@
     "period_yearly": "Yearly",
     "category_breakdown": "Category Breakdown",
     "pipeline_funnel": "Pipeline Funnel",
-    "total_orders":"Total Orders",
-  "conversion_rate": "Conversion Rate",
-  "avg_order_value": "Average Order Value",
-  "active_clients": "Active Clients",
-  "revenue_target": "Revenue Target",
-  "overview_heading": "Sales Performance Overview",
+    "total_orders": "Total Orders",
+    "conversion_rate": "Conversion Rate",
+    "avg_order_value": "Average Order Value",
+    "active_clients": "Active Clients",
+    "revenue_target": "Revenue Target",
+    "overview_heading": "Sales Performance Overview",
     "stage_leads": "Leads",
     "stage_contacted": "Contacted",
     "stage_quotation": "Quotation",
     "stage_won": "Won"
   }
-
 }

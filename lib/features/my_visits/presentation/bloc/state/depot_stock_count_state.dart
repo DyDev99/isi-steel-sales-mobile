@@ -4,6 +4,10 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/stock_
 enum DepotStockCountStatus {
   initial,
   loading,
+
+  /// Local catalog was empty on open, so we're pulling it once from sync
+  /// before showing products. Rendered as a loading state (never blank).
+  syncing,
   loaded,
   empty,
   error,

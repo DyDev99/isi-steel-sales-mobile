@@ -100,7 +100,9 @@
     "apply": "អនុវត្ត",
     "view": "មើល",
     "reset": "កំណត់ឡើងវិញ",
-    "search_button": "ស្វែងរក"
+    "search_button": "ស្វែងរក",
+    "done": "រួចរាល់",
+    "back_to_home": "ត្រឡប់ទៅទំព័រដើម"
   },
   "home": {
     "achieved": "បានសម្រេច",
@@ -683,7 +685,9 @@
       "select_title": "ជ្រើសរើសដេប៉ូ / ហាង",
       "stock_title": "ស្តុកដេប៉ូ",
       "try_different": "សាកល្បងស្វែងរកផ្សេងទៀត។",
-      "set_progress": "បានកំណត់ {done} នៃ {total} SKU"
+      "set_progress": "បានកំណត់ {done} នៃ {total} SKU",
+      "syncing_catalog": "កំពុងទាញយកកាតាឡុកផលិតផល…",
+      "catalog_offline": "សូមភ្ជាប់អ៊ីនធឺណិតម្តង ដើម្បីទាញយកកាតាឡុកផលិតផល រួចសាកល្បងម្តងទៀត។"
     },
     "depot_info": {
       "title": "ព័ត៌មានឃ្លាំង",
@@ -844,7 +848,23 @@
       "reason_customer_unavailable": "អតិថិជនមិននៅ",
       "reason_no_access": "គ្មានផ្លូវចូល / ផ្លូវរាំងស្ទះ",
       "reason_rescheduled": "កំណត់ពេលឡើងវិញ",
-      "reason_other": "ផ្សេងទៀត"
+      "reason_other": "ផ្សេងទៀត",
+      "create_title": "បង្កើតសម្រាប់ចំណតនេះ",
+      "create_quotation": "បង្កើតសម្រង់តម្លៃ",
+      "create_order": "បង្កើតការបញ្ជាទិញ"
+    },
+    "stop_info": {
+      "title": "ព័ត៌មានចំណត",
+      "stop_of": "ចំណតទី {current} នៃ {total}",
+      "contact_person": "អ្នកទំនាក់ទំនង",
+      "gps_location": "ទីតាំង GPS",
+      "distance": "ចម្ងាយ",
+      "start_visit": "ចាប់ផ្តើមទស្សនកិច្ច",
+      "action_profile": "ប្រវត្តិរូបអតិថិជន",
+      "action_call": "ហៅទូរស័ព្ទ",
+      "action_maps": "បើកផែនទី",
+      "action_orders": "ការបញ្ជាទិញមុន",
+      "action_history": "ប្រវត្តិទស្សនកិច្ច"
     }
   },
   "add_customer": {
@@ -1185,7 +1205,7 @@
     "syncing_data": "កំពុងធ្វើសមកាលកម្មទិន្នន័យ…",
     "unfinished_drafts": "អ្នកមានសេចក្តីព្រាងមិនទាន់បញ្ចប់"
   },
-    "kpi": {
+  "kpi": {
     "period_monthly": "ប្រចាំខែ",
     "title": "សូចនាករសមិទ្ធផលសំខាន់ៗ",
     "period_quarterly": "ប្រចាំត្រីមាស",
@@ -1193,7 +1213,7 @@
     "category_breakdown": "ការវិភាគតាមប្រភេទ",
     "pipeline_funnel": "បំពង់លំហូរអតិថិជនសក្តានុពល",
     "stage_leads": "អតិថិជនសក្តានុពល",
-    "total_orders":"ការបញ្ជាទិញសរុប",
+    "total_orders": "ការបញ្ជាទិញសរុប",
     "stage_contacted": "បានទំនាក់ទំនង",
     "conversion_rate": "អត្រាបម្លែងការលក់",
     "avg_order_value": "តម្លៃបញ្ជាទិញជាមធ្យម",
