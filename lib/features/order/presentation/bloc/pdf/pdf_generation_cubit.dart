@@ -81,13 +81,13 @@ class PdfGenerationCubit extends Cubit<PdfGenerationState> {
 
       final generator = QuotationPdfGenerator(data);
       final bytes = await _pdfService.generate(generator);
-      final file = await _fileService.save(bytes,
+      final document = await _fileService.save(bytes,
           fileNamePrefix: generator.documentName);
 
       if (isClosed) return;
       // Surface success immediately so the UI can confirm; the preview sheet is
       // an interactive follow-up, not part of the success signal.
-      emit(PdfGenerated(file));
+      emit(PdfGenerated(document));
 
       await _shareService.previewAndPrint(
         bytes,
@@ -107,11 +107,12 @@ class PdfGenerationCubit extends Cubit<PdfGenerationState> {
     }
   }
 
-  /// Re-opens the last saved document in the platform viewer.
+  /// Re-presents the last generated document — the platform viewer on mobile,
+  /// a download on web.
   Future<void> openSaved() async {
     final current = state;
     if (current is PdfGenerated) {
-      await _shareService.openFile(current.file);
+      await _shareService.openSaved(current.document);
     }
   }
 }

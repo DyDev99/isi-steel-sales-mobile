@@ -1,9 +1,6 @@
+import 'package:isi_steel_sales_mobile/core/database/drift/daos/workflow_state_dao.dart';
 import 'package:isi_steel_sales_mobile/core/error/exceptions.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/data/local/routes_database.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/models/active_workflow_model.dart';
-import 'package:sqflite/sqflite.dart';
-
-const _kActiveWorkflowId = 'active';
 
 abstract interface class WorkflowStateLocalDataSource {
   Future<ActiveWorkflowModel?> getActiveWorkflow();
@@ -11,18 +8,21 @@ abstract interface class WorkflowStateLocalDataSource {
   Future<void> clearActiveWorkflow();
 }
 
+/// Drift-backed resume pointer (**T1.5b**), replacing the plaintext `routes.db`
+/// implementation. With this cutover the legacy file has no readers left.
+///
+/// `ActiveWorkflowModel.fromRow`/`toRow` still own the mapping in both
+/// directions, unchanged — see the note on the `WorkflowState` table about why
+/// this is a move rather than ADR-007's generalization.
 class WorkflowStateLocalDataSourceImpl implements WorkflowStateLocalDataSource {
-  const WorkflowStateLocalDataSourceImpl(this._routesDb);
-  final RoutesDatabase _routesDb;
-  Database get _db => _routesDb.db;
+  const WorkflowStateLocalDataSourceImpl(this._dao);
+  final WorkflowStateDao _dao;
 
   @override
   Future<ActiveWorkflowModel?> getActiveWorkflow() async {
     try {
-      final rows = await _db.query('workflow_state',
-          where: 'id = ?', whereArgs: [_kActiveWorkflowId]);
-      if (rows.isEmpty) return null;
-      return ActiveWorkflowModel.fromRow(rows.first);
+      final row = await _dao.getActive();
+      return row == null ? null : ActiveWorkflowModel.fromRow(row);
     } catch (e) {
       throw CacheException(message: 'Failed to load active workflow: $e');
     }
@@ -31,8 +31,7 @@ class WorkflowStateLocalDataSourceImpl implements WorkflowStateLocalDataSource {
   @override
   Future<void> saveActiveWorkflow(ActiveWorkflowModel workflow) async {
     try {
-      await _db.insert('workflow_state', workflow.toRow(),
-          conflictAlgorithm: ConflictAlgorithm.replace);
+      await _dao.saveActive(workflow.toRow());
     } catch (e) {
       throw CacheException(message: 'Failed to save active workflow: $e');
     }
@@ -41,8 +40,7 @@ class WorkflowStateLocalDataSourceImpl implements WorkflowStateLocalDataSource {
   @override
   Future<void> clearActiveWorkflow() async {
     try {
-      await _db.delete('workflow_state',
-          where: 'id = ?', whereArgs: [_kActiveWorkflowId]);
+      await _dao.clearActive();
     } catch (e) {
       throw CacheException(message: 'Failed to clear active workflow: $e');
     }

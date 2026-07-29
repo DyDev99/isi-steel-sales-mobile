@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:isi_steel_sales_mobile/core/platform/local_files.dart';
 import 'dart:typed_data';
 
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
@@ -159,9 +159,10 @@ class QuotationPdfData {
   static Uint8List? _readDrawing(String? path) {
     if (path == null || path.isEmpty) return null;
     try {
-      final file = File(path);
-      if (!file.existsSync()) return null;
-      return file.readAsBytesSync();
+      // Always null on web — there is no local drawing file to read there. That
+      // takes the same "missing drawing" branch this method already had, so the
+      // export still succeeds without the image (see `local_files_web.dart`).
+      return readLocalFileSync(path);
     } catch (_) {
       return null;
     }

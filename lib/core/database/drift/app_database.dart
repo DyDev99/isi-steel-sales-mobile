@@ -1,20 +1,24 @@
 import 'package:drift/drift.dart';
-import 'package:isi_steel_sales_mobile/core/database/drift/connection/encrypted_database.dart';
+import 'package:isi_steel_sales_mobile/core/database/drift/connection/database_connection.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/daos/app_metadata_dao.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/daos/cart_dao.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/daos/catalog_dao.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/daos/customer_dao.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/daos/route_dao.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/daos/route_telemetry_dao.dart';
+import 'package:isi_steel_sales_mobile/core/database/drift/daos/order_dao.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/daos/visit_dao.dart';
+import 'package:isi_steel_sales_mobile/core/database/drift/daos/workflow_state_dao.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/migrations/schema_migrations.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/tables/app_metadata_table.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/tables/cart_items_table.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/tables/catalog_tables.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/tables/customer_related_tables.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/tables/customers_table.dart';
+import 'package:isi_steel_sales_mobile/core/database/drift/tables/order_tables.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/tables/route_tables.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/tables/visit_tables.dart';
+import 'package:isi_steel_sales_mobile/core/database/drift/tables/workflow_state_table.dart';
 import 'package:isi_steel_sales_mobile/core/database/secure/app_database_key_provider.dart';
 
 part 'app_database.g.dart';
@@ -61,6 +65,12 @@ part 'app_database.g.dart';
     VisitCollections,
     VisitNotes,
     VisitPhotos,
+    // Orders domain (T1.5b, v12) — ported from the plaintext `catalog.db`.
+    Quotations,
+    SalesOrders,
+    SyncQueue,
+    // Resume pointer (T1.5b, v13) — the last table in the plaintext `routes.db`.
+    WorkflowState,
   ],
   daos: [
     AppMetadataDao,
@@ -71,15 +81,30 @@ part 'app_database.g.dart';
     RouteDao,
     RouteTelemetryDao,
     VisitDao,
+    // Orders domain + resume pointer (T1.5b).
+    QuotationDao,
+    SalesOrderDao,
+    SyncQueueDao,
+    WorkflowStateDao,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.executor);
 
-  /// Opens the production database backed by SQLCipher, keyed by the composite
-  /// passphrase resolved through [keyProvider].
+  /// Opens the production database for the current platform.
+  ///
+  /// **On Android/iOS** this is what the name says: SQLCipher, keyed by the
+  /// composite passphrase resolved through [keyProvider], refusing to open at
+  /// all if encryption is not active (ADR-008).
+  ///
+  /// **On web** there is no SQLCipher and no persistence — the executor is an
+  /// in-memory `sqlite3.wasm` database and [keyProvider] is ignored (ADR-010).
+  /// The name is kept because renaming it would churn every call site to
+  /// describe a platform difference that this class deliberately does not have;
+  /// the platform split lives entirely in `connection/database_connection.dart`,
+  /// which is the one file to read for the real guarantees.
   factory AppDatabase.encrypted(AppDatabaseKeyProvider keyProvider) =>
-      AppDatabase(openEncryptedDatabase(keyProvider));
+      AppDatabase(openAppDatabaseConnection(keyProvider));
 
   /// Single source of truth in [kCurrentSchemaVersion]; bumped per schema change.
   @override

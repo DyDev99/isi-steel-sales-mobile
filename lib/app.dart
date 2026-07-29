@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get_it/get_it.dart';
 import 'package:isi_steel_sales_mobile/core/database/hive/app_preferences.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/breakpoints.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_event.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_state.dart';
@@ -53,46 +54,68 @@ class ISISteelSalesApp extends StatelessWidget {
       // form advances on success, and logout returns to the shell as a guest —
       // which keeps guests from being yanked around and avoids duplicate
       // redirects. This root only decides the *initial* route on (re)build.
-      child: ScreenUtilInit(
-        designSize: const Size(390, 844),
-        // Full "restart" on language change: the ValueKey below is rebuilt
-        // with the new language code, which tears down and recreates the
-        // entire MaterialApp/Navigator so every screen — and all the data it
-        // loads — comes back up in the freshly selected language. Signed-in
-        // users and guests land straight back on the shell (not the splash)
-        // via the auth-aware initial route.
-        builder: (context, child) => BlocBuilder<LanguageCubit, Locale>(
-          builder: (context, locale) {
-            final authState = context.read<AuthBloc>().state;
-            final initialRoute = _resolveInitialRoute(authState);
-            final fontFamily = AppTypography.fontFamilyForLocale(locale);
-            // Only the theme *mode* drives this rebuild — the two ThemeData
-            // objects themselves are cached in AppTheme, so switching light
-            // ⇄ dark never re-derives a theme and the whole app restyles in
-            // one frame with no restart.
-            return BlocSelector<ThemeCubit, ThemeState, AppThemeMode>(
-              selector: (state) => state.mode,
-              builder: (context, themeMode) {
-                return MaterialApp(
-                  key: ValueKey('lang_${locale.languageCode}'),
-                  navigatorKey: navigatorKey, // Assign the key here
-                  onGenerateTitle: (_) => 'app.title'.tr,
-                  debugShowCheckedModeBanner: false,
-                  scrollBehavior: _AppScrollBehavior(),
-                  theme: AppTheme.light(fontFamily),
-                  darkTheme: AppTheme.dark(fontFamily),
-                  themeMode: _materialThemeMode(themeMode),
-                  locale: locale,
-                  initialRoute: initialRoute,
-                  // Build the initial route as a single page (avoids Flutter's
-                  // default '/'-splitting pulling in a not-found parent route).
-                  onGenerateInitialRoutes: (name) =>
-                      [AppPages.onGenerateRoute(RouteSettings(name: name))],
-                  onGenerateRoute: AppPages.onGenerateRoute,
-                );
-              },
-            );
-          },
+      // ── Responsive scaling ────────────────────────────────────────────────
+      //
+      // `flutter_screenutil` scales every `.w`/`.h`/`.sp` in the app by
+      // `screenWidth / designSize.width`. Against the 390pt phone design that
+      // is exactly right on a phone and catastrophic in a browser: a 1920px
+      // window multiplies every padding, radius, and font size by ~4.9.
+      //
+      // Rather than edit the ~43 files that use those extensions, the design
+      // size itself becomes responsive:
+      //
+      //   • compact (< 600) → 390×844, the untouched mobile baseline. Scaling
+      //     behaves exactly as before, so phone rendering is bit-identical.
+      //   • wider          → the real viewport, which makes the scale factor
+      //     1.0. `16.w` then means 16 logical pixels, and the layout is driven
+      //     by breakpoints and constraints instead of a multiplier.
+      //
+      // This is the whole reason the desktop layout is readable, and it is one
+      // place rather than several hundred call sites.
+      child: LayoutBuilder(
+        builder: (context, constraints) => ScreenUtilInit(
+          designSize: Breakpoints.fromWidth(constraints.maxWidth).isCompact
+              ? const Size(390, 844)
+              : Size(constraints.maxWidth, constraints.maxHeight),
+          // Full "restart" on language change: the ValueKey below is rebuilt
+          // with the new language code, which tears down and recreates the
+          // entire MaterialApp/Navigator so every screen — and all the data it
+          // loads — comes back up in the freshly selected language. Signed-in
+          // users and guests land straight back on the shell (not the splash)
+          // via the auth-aware initial route.
+          builder: (context, child) => BlocBuilder<LanguageCubit, Locale>(
+            builder: (context, locale) {
+              final authState = context.read<AuthBloc>().state;
+              final initialRoute = _resolveInitialRoute(authState);
+              final fontFamily = AppTypography.fontFamilyForLocale(locale);
+              // Only the theme *mode* drives this rebuild — the two ThemeData
+              // objects themselves are cached in AppTheme, so switching light
+              // ⇄ dark never re-derives a theme and the whole app restyles in
+              // one frame with no restart.
+              return BlocSelector<ThemeCubit, ThemeState, AppThemeMode>(
+                selector: (state) => state.mode,
+                builder: (context, themeMode) {
+                  return MaterialApp(
+                    key: ValueKey('lang_${locale.languageCode}'),
+                    navigatorKey: navigatorKey, // Assign the key here
+                    onGenerateTitle: (_) => 'app.title'.tr,
+                    debugShowCheckedModeBanner: false,
+                    scrollBehavior: _AppScrollBehavior(),
+                    theme: AppTheme.light(fontFamily),
+                    darkTheme: AppTheme.dark(fontFamily),
+                    themeMode: _materialThemeMode(themeMode),
+                    locale: locale,
+                    initialRoute: initialRoute,
+                    // Build the initial route as a single page (avoids Flutter's
+                    // default '/'-splitting pulling in a not-found parent route).
+                    onGenerateInitialRoutes: (name) =>
+                        [AppPages.onGenerateRoute(RouteSettings(name: name))],
+                    onGenerateRoute: AppPages.onGenerateRoute,
+                  );
+                },
+              );
+            },
+          ),
         ),
       ),
     );

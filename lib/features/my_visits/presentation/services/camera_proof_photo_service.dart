@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:isi_steel_sales_mobile/core/platform/captured_media_store.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:image/image.dart' as img;
@@ -36,10 +36,15 @@ class CameraProofPhotoService implements ProofPhotoService {
       ),
     );
 
-    // Persist alongside the picker's own file (a writable app cache dir).
-    final dir = File(shot.path).parent.path;
-    final outPath = '$dir/proof_${takenAt.microsecondsSinceEpoch}.jpg';
-    await File(outPath).writeAsBytes(stamped, flush: true);
+    // Mobile: persist alongside the picker's own file (a writable app cache
+    // dir). Web: wrapped in a session-lifetime blob URL, since there is nowhere
+    // to write — the stamp is still applied either way, because the stamping
+    // above is pure Dart and runs on both platforms.
+    final outPath = await persistCapturedBytes(
+      stamped,
+      sourcePath: shot.path,
+      fileName: 'proof_${takenAt.microsecondsSinceEpoch}.jpg',
+    );
 
     return ProofPhotoResult(filePath: outPath, takenAt: takenAt);
   }

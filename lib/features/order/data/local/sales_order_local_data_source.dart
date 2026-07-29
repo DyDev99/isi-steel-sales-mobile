@@ -1,8 +1,7 @@
+import 'package:isi_steel_sales_mobile/core/database/drift/daos/order_dao.dart';
 import 'package:isi_steel_sales_mobile/core/error/exceptions.dart';
 import 'package:isi_steel_sales_mobile/core/utils/mock_latency.dart';
 import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
-import 'package:isi_steel_sales_mobile/features/order/data/local/catalog_database.dart';
-import 'package:sqflite/sqflite.dart';
 
 abstract interface class SalesOrderLocalDataSource {
   Future<void> insertSalesOrder(DataMap row);
@@ -10,16 +9,16 @@ abstract interface class SalesOrderLocalDataSource {
   Future<List<DataMap>> fetchAll();
 }
 
+/// Drift-backed sales-order store (**T1.5b**), replacing the plaintext
+/// `catalog.db` implementation. Interface and row shape unchanged.
 class SalesOrderLocalDataSourceImpl implements SalesOrderLocalDataSource {
-  const SalesOrderLocalDataSourceImpl(this._catalogDb);
-  final CatalogDatabase _catalogDb;
-  Database get _db => _catalogDb.db;
+  const SalesOrderLocalDataSourceImpl(this._dao);
+  final SalesOrderDao _dao;
 
   @override
   Future<void> insertSalesOrder(DataMap row) async {
     try {
-      await _db.insert('sales_orders', row,
-          conflictAlgorithm: ConflictAlgorithm.replace);
+      await _dao.upsert(row);
     } catch (e) {
       throw CacheException(message: 'Failed to save sales order: $e');
     }
@@ -28,9 +27,7 @@ class SalesOrderLocalDataSourceImpl implements SalesOrderLocalDataSource {
   @override
   Future<DataMap?> getById(String id) async {
     try {
-      final rows = await _db.query('sales_orders',
-          where: 'id = ?', whereArgs: [id], limit: 1);
-      return rows.isEmpty ? null : rows.first;
+      return await _dao.getById(id);
     } catch (e) {
       throw CacheException(message: 'Failed to load sales order $id: $e');
     }
@@ -40,7 +37,7 @@ class SalesOrderLocalDataSourceImpl implements SalesOrderLocalDataSource {
   Future<List<DataMap>> fetchAll() async {
     try {
       await MockLatency.tick(); // simulate a slow sales-orders API
-      return _db.query('sales_orders', orderBy: 'created_at DESC');
+      return await _dao.fetchAll();
     } catch (e) {
       throw CacheException(message: 'Failed to load sales orders: $e');
     }

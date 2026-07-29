@@ -1,46 +1,100 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
+    Serving under a sub-path (GitHub Pages).
 
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
+    `$FLUTTER_BASE_HREF` is substituted by `flutter build web --base-href`. For
+    GitHub Pages the app lives at https://<user>.github.io/<repo>/, so CI builds
+    with `--base-href "/isi-steel-sales-mobile/"`.
 
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
+    Every other URL in this file and in the app is deliberately RELATIVE so it
+    resolves against this base. That includes `sqlite3.wasm`, which the Drift
+    web connection loads at runtime — see
+    `lib/core/database/drift/connection/web_database.dart`. A single leading
+    slash anywhere here is the classic way to break the sub-path deployment
+    while still working perfectly on localhost.
   -->
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  <meta name="description" content="ISI Steel Sales — offline-first field sales CRM for KIC Group.">
+
+  <!--
+    Content Security Policy is deliberately NOT declared here.
+
+    It is injected into `build/web/index.html` by the deploy workflow instead
+    (`.github/workflows/deploy-web.yml`, "Inject Content Security Policy").
+
+    Why not in this file: `flutter run -d chrome` serves this exact document,
+    and the debug bootstrap (DDC module loader, the hot-reload client) executes
+    inline scripts. A policy strict enough to be worth having blocks all of
+    them, so shipping it here would trade a real security control against every
+    developer's ability to run the app. Injecting at deploy time gives the
+    production build the strict policy and leaves debug alone.
+
+    See `docs/flutter-web.md` §6 for the policy itself and for the one control
+    that cannot be delivered this way at all (`frame-ancestors`).
+  -->
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="isi_steel_sales_mobile">
-  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <meta name="apple-mobile-web-app-title" content="ISI Steel Sales">
+  <link rel="apple-touch-icon" href="icons/isi_app_logo.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>isi_steel_sales_mobile</title>
+  <title>ISI Steel Sales</title>
   <link rel="manifest" href="manifest.json">
+
+  <style>
+    /*
+      First-paint loader. A Flutter web app shows nothing until the engine and
+      the main bundle are parsed, which on a slow Cambodian mobile connection is
+      several seconds of blank white page — indistinguishable from a broken
+      link. This gives that wait a visible, branded state.
+
+      It is plain CSS in the document head on purpose: it must render before any
+      Dart or engine code exists.
+    */
+    html, body { height: 100%; margin: 0; background: #0F172A; }
+    #boot {
+      position: fixed; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: #E2E8F0; transition: opacity .35s ease;
+    }
+    #boot.hidden { opacity: 0; pointer-events: none; }
+    #boot .ring {
+      width: 42px; height: 42px; border-radius: 50%;
+      border: 3px solid rgba(226, 232, 240, .18);
+      border-top-color: #E2E8F0;
+      animation: spin 900ms linear infinite;
+    }
+    #boot .label { font-size: 14px; letter-spacing: .04em; opacity: .75; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) {
+      #boot .ring { animation-duration: 2.4s; }
+    }
+  </style>
 </head>
 <body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
+  <div id="boot" role="status" aria-live="polite">
+    <div class="ring"></div>
+    <div class="label">Loading ISI Steel Sales…</div>
+  </div>
 
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
+  <!--
+    External rather than inline so the deployed CSP can keep `script-src 'self'`
+    without an `'unsafe-inline'` escape hatch or a per-build hash.
+    Relative src, so it resolves under the GitHub Pages sub-path.
   -->
+  <script src="boot.js" defer></script>
+
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

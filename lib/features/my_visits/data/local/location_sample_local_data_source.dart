@@ -1,8 +1,5 @@
-import 'package:isi_steel_sales_mobile/core/error/exceptions.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/data/local/routes_database.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/models/fraud_flag_model.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/models/location_sample_model.dart';
-import 'package:sqflite/sqflite.dart';
 
 abstract interface class LocationSampleLocalDataSource {
   Future<void> insertSample(LocationSampleModel sample);
@@ -11,57 +8,15 @@ abstract interface class LocationSampleLocalDataSource {
   Future<List<FraudFlagModel>> fetchFraudFlags(String routeId);
 }
 
-class LocationSampleLocalDataSourceImpl
-    implements LocationSampleLocalDataSource {
-  const LocationSampleLocalDataSourceImpl(this._routesDb);
-  final RoutesDatabase _routesDb;
-  Database get _db => _routesDb.db;
-
-  @override
-  Future<void> insertSample(LocationSampleModel sample) async {
-    try {
-      await _db.insert('location_samples', sample.toRow());
-    } catch (e) {
-      throw CacheException(message: 'Failed to save GPS sample: $e');
-    }
-  }
-
-  @override
-  Future<List<LocationSampleModel>> fetchSamples(String routeId) async {
-    try {
-      final rows = await _db.query(
-        'location_samples',
-        where: 'route_id = ?',
-        whereArgs: [routeId],
-        orderBy: 'timestamp ASC',
-      );
-      return rows.map(LocationSampleModel.fromRow).toList();
-    } catch (e) {
-      throw CacheException(message: 'Failed to load GPS trail: $e');
-    }
-  }
-
-  @override
-  Future<void> insertFraudFlag(FraudFlagModel flag) async {
-    try {
-      await _db.insert('fraud_flags', flag.toRow());
-    } catch (e) {
-      throw CacheException(message: 'Failed to save fraud flag: $e');
-    }
-  }
-
-  @override
-  Future<List<FraudFlagModel>> fetchFraudFlags(String routeId) async {
-    try {
-      final rows = await _db.query(
-        'fraud_flags',
-        where: 'route_id = ?',
-        whereArgs: [routeId],
-        orderBy: 'timestamp DESC',
-      );
-      return rows.map(FraudFlagModel.fromRow).toList();
-    } catch (e) {
-      throw CacheException(message: 'Failed to load fraud flags: $e');
-    }
-  }
-}
+// ─────────────────────────────────────────────────────────────────────────────
+// The legacy sqflite `LocationSampleLocalDataSourceImpl` was removed by T1.5b.
+//
+// It had been retained-but-unregistered as a rollback path after the T1.5 Drift
+// cutover. T1.5b removes the last reader of the plaintext `routes.db`, so the
+// rollback target no longer exists — and because it imported `sqflite`, which
+// has no web implementation, keeping dead code here would have blocked the web
+// target permanently (`docs/flutter-web.md`).
+//
+// The live implementation is `LocationSampleDriftLocalDataSource`, registered in
+// `my_visits_injection.dart`. The deleted class remains in git history.
+// ─────────────────────────────────────────────────────────────────────────────

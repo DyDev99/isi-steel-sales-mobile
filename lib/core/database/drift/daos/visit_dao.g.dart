@@ -4,9 +4,6 @@ part of 'visit_dao.dart';
 
 // ignore_for_file: type=lint
 mixin _$VisitDaoMixin on DatabaseAccessor<AppDatabase> {
-  $RoutesTable get routes => attachedDatabase.routes;
-  $CustomersTable get customers => attachedDatabase.customers;
-  $RouteStopsTable get routeStops => attachedDatabase.routeStops;
   $VisitCheckInsTable get visitCheckIns => attachedDatabase.visitCheckIns;
   $VisitCheckOutsTable get visitCheckOuts => attachedDatabase.visitCheckOuts;
   $VisitOrderLinesTable get visitOrderLines => attachedDatabase.visitOrderLines;
@@ -23,12 +20,6 @@ mixin _$VisitDaoMixin on DatabaseAccessor<AppDatabase> {
 class VisitDaoManager {
   final _$VisitDaoMixin _db;
   VisitDaoManager(this._db);
-  $$RoutesTableTableManager get routes =>
-      $$RoutesTableTableManager(_db.attachedDatabase, _db.routes);
-  $$CustomersTableTableManager get customers =>
-      $$CustomersTableTableManager(_db.attachedDatabase, _db.customers);
-  $$RouteStopsTableTableManager get routeStops =>
-      $$RouteStopsTableTableManager(_db.attachedDatabase, _db.routeStops);
   $$VisitCheckInsTableTableManager get visitCheckIns =>
       $$VisitCheckInsTableTableManager(_db.attachedDatabase, _db.visitCheckIns);
   $$VisitCheckOutsTableTableManager get visitCheckOuts =>

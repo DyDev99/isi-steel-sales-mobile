@@ -1,5 +1,6 @@
 import 'dart:async';
-import 'dart:io';
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, kIsWeb, TargetPlatform;
 import 'dart:math';
 
 import 'package:geolocator/geolocator.dart';
@@ -47,8 +48,17 @@ class GeolocatorTrackingService implements LocationTrackingService {
     return _controller!.stream;
   }
 
+  /// Platform-tuned settings.
+  ///
+  /// Uses [defaultTargetPlatform] rather than `dart:io`'s `Platform.isAndroid`
+  /// because `dart:io` does not exist on web. The check is equivalent on mobile
+  /// and, on web, simply falls through to the plain [LocationSettings] default
+  /// below — which is correct: the Android/iOS branches configure *background*
+  /// tracking (foreground notifications, background location indicators), and a
+  /// browser cannot track location in the background at all. Web tracking is
+  /// foreground-only for as long as the tab is open.
   LocationSettings _settings() {
-    if (Platform.isAndroid) {
+    if (defaultTargetPlatform == TargetPlatform.android && !kIsWeb) {
       return AndroidSettings(
         accuracy: LocationAccuracy.high,
         distanceFilter: 10,
@@ -59,7 +69,7 @@ class GeolocatorTrackingService implements LocationTrackingService {
         ),
       );
     }
-    if (Platform.isIOS) {
+    if (defaultTargetPlatform == TargetPlatform.iOS && !kIsWeb) {
       return AppleSettings(
         accuracy: LocationAccuracy.high,
         activityType: ActivityType.automotiveNavigation,

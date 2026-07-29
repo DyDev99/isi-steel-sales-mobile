@@ -1,21 +1,27 @@
-import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:path_provider/path_provider.dart';
+import 'package:isi_steel_sales_mobile/core/services/pdf/pdf_file_store.dart';
+import 'package:isi_steel_sales_mobile/core/services/pdf/saved_document.dart';
 
-/// Persists generated PDF bytes to disk.
+/// Persists generated PDF bytes using whatever storage the platform allows.
 ///
-/// Security (SECURITY.md §3 / §10): documents contain customer data and
-/// pricing, so they are written **only** inside the app sandbox
-/// ([getApplicationDocumentsDirectory] — not a public/cache/Downloads folder),
-/// under a dedicated `pdf/` subfolder. Filenames are sanitized and stamped to
-/// the second, which both prevents path-injection via a caller-supplied prefix
-/// and guarantees a new file per export (no silent overwrite of a prior
-/// quotation).
+/// Where the bytes actually go is the platform store's decision
+/// (`pdf_file_store.dart`): the app sandbox on Android/iOS, nowhere at all on
+/// web. What this class owns is the part that must be identical everywhere —
+/// filename construction.
+///
+/// Filenames are sanitized and stamped to the second, which both prevents
+/// path-injection via a caller-supplied prefix and guarantees a new file per
+/// export (no silent overwrite of a prior quotation). The sanitizing matters on
+/// web too, even without a filesystem: the name becomes the browser's suggested
+/// download filename.
 abstract class PdfFileService {
-  /// Saves [bytes] and returns the written [File]. [fileNamePrefix] is
-  /// sanitized; a `_YYYYMMDD_HHmmss.pdf` suffix is always appended.
-  Future<File> save(Uint8List bytes, {required String fileNamePrefix});
+  /// Saves [bytes] and returns the resulting [SavedDocument]. [fileNamePrefix]
+  /// is sanitized; a `_YYYYMMDD_HHmmss.pdf` suffix is always appended.
+  ///
+  /// Check [SavedDocument.isOnDisk] before telling the user the document was
+  /// saved — on web nothing is written until they accept a download.
+  Future<SavedDocument> save(Uint8List bytes, {required String fileNamePrefix});
 }
 
 class PdfFileServiceImpl implements PdfFileService {
@@ -24,17 +30,11 @@ class PdfFileServiceImpl implements PdfFileService {
   static final RegExp _unsafe = RegExp(r'[^A-Za-z0-9_-]');
 
   @override
-  Future<File> save(Uint8List bytes, {required String fileNamePrefix}) async {
-    final docsDir = await getApplicationDocumentsDirectory();
-    final pdfDir = Directory('${docsDir.path}${Platform.pathSeparator}pdf');
-    if (!await pdfDir.exists()) {
-      await pdfDir.create(recursive: true);
-    }
-
-    final fileName = _buildFileName(fileNamePrefix);
-    final file = File('${pdfDir.path}${Platform.pathSeparator}$fileName');
-    await file.writeAsBytes(bytes, flush: true);
-    return file;
+  Future<SavedDocument> save(
+    Uint8List bytes, {
+    required String fileNamePrefix,
+  }) {
+    return storePdfBytes(bytes, _buildFileName(fileNamePrefix));
   }
 
   String _buildFileName(String prefix) {

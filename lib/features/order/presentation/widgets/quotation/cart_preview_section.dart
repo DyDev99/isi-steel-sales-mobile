@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:isi_steel_sales_mobile/core/platform/local_files.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -89,8 +89,7 @@ class _CartPreviewRow extends StatelessWidget {
   final VoidCallback onRemove;
 
   bool get _hasDrawing =>
-      item.drawingImagePath != null &&
-      File(item.drawingImagePath!).existsSync();
+      item.drawingImagePath != null && localFileExists(item.drawingImagePath!);
 
   String? get _customSpecs {
     if (!item.isCustomized) return null;
@@ -118,7 +117,7 @@ class _CartPreviewRow extends StatelessWidget {
               height: 40,
               color: colors.surfaceSoft,
               child: _hasDrawing
-                  ? Image.file(File(item.drawingImagePath!), fit: BoxFit.cover)
+                  ? localFileImage((item.drawingImagePath!), fit: BoxFit.cover)
                   : Icon(Icons.tune_rounded,
                       size: 18, color: colors.accentPurple),
             ),

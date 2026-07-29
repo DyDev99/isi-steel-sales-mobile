@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:isi_steel_sales_mobile/core/platform/local_files.dart';
 import 'package:flutter/material.dart';
 
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
@@ -19,7 +19,7 @@ class QuotationItemCard extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     final hasDrawing = item.drawingImagePath != null &&
-        File(item.drawingImagePath!).existsSync();
+        localFileExists(item.drawingImagePath!);
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 6),
@@ -49,8 +49,8 @@ class QuotationItemCard extends StatelessWidget {
                     height: 60,
                     color: colorScheme.surfaceContainerHigh,
                     child: hasDrawing
-                        ? Image.file(
-                            File(item.drawingImagePath!),
+                        ? localFileImage(
+                            (item.drawingImagePath!),
                             fit: BoxFit.cover,
                           )
                         : Icon(

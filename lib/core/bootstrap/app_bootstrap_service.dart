@@ -1,5 +1,6 @@
 import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
-import 'package:isi_steel_sales_mobile/core/database/drift/migrations/legacy_route_source.dart';
+import 'package:isi_steel_sales_mobile/core/database/drift/migrations/legacy_orders_importer.dart';
+import 'package:isi_steel_sales_mobile/core/database/drift/migrations/legacy_source_factory.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/migrations/legacy_routes_importer.dart';
 import 'package:isi_steel_sales_mobile/core/database/hive/hive_service.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
@@ -60,10 +61,14 @@ class AppBootstrapService {
       await initDependencies();
       logger.info('bootstrap.di_ready');
 
-      // 5. Legacy plaintext → encrypted import (T1.5). Runs at most once, before
-      //    any feature reads, so no screen can observe a half-migrated store.
-      //    Local disk work only — no network, so ADR-002 §3 holds.
+      // 5. Legacy plaintext → encrypted imports (T1.5 routes, T1.5b orders).
+      //    Run at most once each, before any feature reads, so no screen can
+      //    observe a half-migrated store. Local disk work only — no network, so
+      //    ADR-002 §3 holds. On web both are no-ops: `AbsentLegacySource`
+      //    reports no legacy file, because a browser never ran the sqflite
+      //    build that would have created one.
       await _importLegacyRoutes(logger);
+      await _importLegacyOrders(logger);
 
       // 6. Session restore: intentionally a no-op here. AuthBloc's
       //    AuthCheckRequested reads the cached user from secure storage in the
@@ -107,7 +112,7 @@ class AppBootstrapService {
 Future<void> _importLegacyRoutes(AppLogger logger) async {
   final importer = LegacyRoutesImporter(
     db: sl<AppDatabase>(),
-    source: SqfliteLegacyRouteSource(),
+    source: createLegacySqliteSource('routes.db'),
     logger: logger,
   );
 
@@ -134,6 +139,44 @@ Future<void> _importLegacyRoutes(AppLogger logger) async {
     }
   } catch (error, stackTrace) {
     logger.error('bootstrap.legacy_import_failed',
+        error: error, stackTrace: stackTrace);
+  }
+}
+
+/// Runs the T1.5b legacy Orders import, then purges the plaintext source
+/// **only** if the import was verifiably complete.
+///
+/// Same two rules as [_importLegacyRoutes], and the same reasoning — see that
+/// function. The stakes differ slightly in shape: this file holds a rep's saved
+/// quotations and, critically, the **sync queue**, whose rows are by definition
+/// work the server has never seen. Losing those is unrecoverable, which is why
+/// this runs before any feature can read and why a failure leaves the plaintext
+/// source untouched for the next launch to retry.
+Future<void> _importLegacyOrders(AppLogger logger) async {
+  final importer = LegacyOrdersImporter(
+    db: sl<AppDatabase>(),
+    source: createLegacySqliteSource('catalog.db'),
+    logger: logger,
+  );
+
+  try {
+    final result = await importer.import();
+    if (result.alreadyDone || result.sourceMissing) return;
+
+    logger.info('bootstrap.legacy_orders_import', fields: {
+      'imported': result.totalImported,
+    });
+
+    if (result.safeToPurge) {
+      await importer.purgeLegacyData();
+      logger.warning('bootstrap.legacy_orders_plaintext_purged');
+    } else {
+      logger.error('bootstrap.legacy_orders_purge_withheld', fields: {
+        'skipped': result.totalSkipped,
+      });
+    }
+  } catch (error, stackTrace) {
+    logger.error('bootstrap.legacy_orders_import_failed',
         error: error, stackTrace: stackTrace);
   }
 }

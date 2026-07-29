@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:isi_steel_sales_mobile/core/platform/local_files.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
@@ -42,8 +42,7 @@ class QuotationPdfService {
           children: [
             pw.Text(
               'ISI STEEL SALES QUOTATION',
-              style: pw.TextStyle(
-                  fontSize: 18, fontWeight: pw.FontWeight.bold),
+              style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
             ),
             pw.Text('Customer: $customerName'),
           ],
@@ -87,10 +86,9 @@ class QuotationPdfService {
         pw.Widget imageCell;
         if (item.isCustomized &&
             item.drawingImagePath != null &&
-            File(item.drawingImagePath!).existsSync()) {
+            localFileExists(item.drawingImagePath!)) {
           try {
-            final imageBytes =
-                File(item.drawingImagePath!).readAsBytesSync();
+            final imageBytes = readLocalFileSync(item.drawingImagePath!)!;
             imageCell = pw.Container(
               height: 45,
               width: 70,
@@ -112,7 +110,8 @@ class QuotationPdfService {
         if (item.isCustomized) {
           detailText.write('\n(Customized Request)');
           if (item.measurements != null) {
-            detailText.write('\nSpecs: ${item.measurements!.toSummaryString()}');
+            detailText
+                .write('\nSpecs: ${item.measurements!.toSummaryString()}');
           }
           if (item.appearance != null && item.appearance!.isNotEmpty) {
             detailText.write('\nFinish: ${item.appearance}');
@@ -125,7 +124,8 @@ class QuotationPdfService {
 
         return [
           imageCell,
-          pw.Text(detailText.toString(), style: const pw.TextStyle(fontSize: 9)),
+          pw.Text(detailText.toString(),
+              style: const pw.TextStyle(fontSize: 9)),
           pw.Text('${item.quantity.toStringAsFixed(0)} ${item.unit}',
               style: const pw.TextStyle(fontSize: 9)),
           pw.Text('\$${item.unitPrice.toStringAsFixed(2)}',

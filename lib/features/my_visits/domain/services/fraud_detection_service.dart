@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:isi_steel_sales_mobile/core/platform/vpn_probe.dart';
 
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/fraud_policy.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/location_sample.dart';
@@ -74,19 +74,17 @@ class FraudDetectionService {
     return kmh > policy.maxSpeedKmh;
   }
 
-  /// Best-effort, dependency-free VPN heuristic: scans active network
-  /// interfaces for common VPN tunnel naming patterns (`tun`, `ppp`, `utun`
-  /// on iOS). Not authoritative — swappable for a dedicated detection
+  /// Best-effort, dependency-free VPN heuristic: on mobile, scans active
+  /// network interfaces for common VPN tunnel naming patterns (`tun`, `ppp`,
+  /// `utun` on iOS). Not authoritative — swappable for a dedicated detection
   /// plugin later without changing any call site.
+  ///
+  /// **Always false on web**: browsers cannot enumerate network interfaces, so
+  /// this control does not exist there. See `core/platform/vpn_probe_web.dart`
+  /// — it carries a `TODO(release-gate)` for exactly this weakening.
   Future<bool> detectVpnHeuristic() async {
     try {
-      final interfaces = await NetworkInterface.list();
-      return interfaces.any((i) {
-        final name = i.name.toLowerCase();
-        return name.startsWith('tun') ||
-            name.startsWith('ppp') ||
-            name.startsWith('utun');
-      });
+      return await probeVpnInterfaces();
     } catch (_) {
       return false;
     }

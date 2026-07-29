@@ -9,7 +9,6 @@ import 'package:isi_steel_sales_mobile/features/my_visits/data/local/location_sa
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/location_sample_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/route_drift_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/route_local_data_source.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/data/local/routes_database.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/visit_drift_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/visit_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/workflow_state_local_data_source.dart';
@@ -72,13 +71,11 @@ import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubi
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/visit_cubit.dart';
 
 /// Registers the route-management feature: GPS tracking, geofence
-/// check-in/out, offline visit capture, and the route sync engine. Async
-/// because it opens the sqflite `routes.db` once before anything else can
-/// be registered against it — mirrors `registerOrderFeature`.
+/// check-in/out, offline visit capture, and the route sync engine.
+///
+/// Still `Future`-returning after the T1.5b cutover even though nothing is
+/// awaited here any more — see the matching note on `registerOrderFeature`.
 Future<void> registerMyVisitsFeature(GetIt sl) async {
-  final routesDb = await RoutesDatabase.open();
-  sl.registerLazySingleton<RoutesDatabase>(() => routesDb);
-
   // ── Data sources ────────────────────────────────────────────────────
   sl.registerLazySingleton<RouteRemoteDataSource>(
       () => MockRouteRemoteDataSource(sl<CustomerLocalDataSource>()));
@@ -94,8 +91,8 @@ Future<void> registerMyVisitsFeature(GetIt sl) async {
   // (`docs/AI_ENGINEERING_PLAYBOOK.md` §8: parity first).
   sl.registerLazySingleton<LocationSampleLocalDataSource>(() =>
       LocationSampleDriftLocalDataSource(sl<AppDatabase>().routeTelemetryDao));
-  sl.registerLazySingleton<WorkflowStateLocalDataSource>(
-      () => WorkflowStateLocalDataSourceImpl(sl()));
+  sl.registerLazySingleton<WorkflowStateLocalDataSource>(() =>
+      WorkflowStateLocalDataSourceImpl(sl<AppDatabase>().workflowStateDao));
   sl.registerLazySingleton<VisitSyncRemoteDataSource>(
       () => const MockVisitSyncRemoteDataSource());
 

@@ -1,8 +1,7 @@
+import 'package:isi_steel_sales_mobile/core/database/drift/daos/order_dao.dart';
 import 'package:isi_steel_sales_mobile/core/error/exceptions.dart';
 import 'package:isi_steel_sales_mobile/core/utils/mock_latency.dart';
 import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
-import 'package:isi_steel_sales_mobile/features/order/data/local/catalog_database.dart';
-import 'package:sqflite/sqflite.dart';
 
 abstract interface class QuotationLocalDataSource {
   Future<void> insertQuotation(DataMap row);
@@ -12,16 +11,20 @@ abstract interface class QuotationLocalDataSource {
   Future<List<DataMap>> fetchAll();
 }
 
+/// Drift-backed quotations store (**T1.5b**), replacing the plaintext
+/// `catalog.db` implementation.
+///
+/// The interface, the `DataMap` row shape, and every [CacheException] message
+/// are unchanged — the repository above this class cannot tell that the store
+/// moved. That is the whole acceptance criterion for the cutover.
 class QuotationLocalDataSourceImpl implements QuotationLocalDataSource {
-  const QuotationLocalDataSourceImpl(this._catalogDb);
-  final CatalogDatabase _catalogDb;
-  Database get _db => _catalogDb.db;
+  const QuotationLocalDataSourceImpl(this._dao);
+  final QuotationDao _dao;
 
   @override
   Future<void> insertQuotation(DataMap row) async {
     try {
-      await _db.insert('quotations', row,
-          conflictAlgorithm: ConflictAlgorithm.replace);
+      await _dao.upsert(row);
     } catch (e) {
       throw CacheException(message: 'Failed to save quotation: $e');
     }
@@ -30,8 +33,7 @@ class QuotationLocalDataSourceImpl implements QuotationLocalDataSource {
   @override
   Future<void> updateQuotation(DataMap row) async {
     try {
-      await _db
-          .update('quotations', row, where: 'id = ?', whereArgs: [row['id']]);
+      await _dao.updateRow(row);
     } catch (e) {
       throw CacheException(message: 'Failed to update quotation: $e');
     }
@@ -40,7 +42,7 @@ class QuotationLocalDataSourceImpl implements QuotationLocalDataSource {
   @override
   Future<void> deleteQuotation(String id) async {
     try {
-      await _db.delete('quotations', where: 'id = ?', whereArgs: [id]);
+      await _dao.deleteById(id);
     } catch (e) {
       throw CacheException(message: 'Failed to delete quotation $id: $e');
     }
@@ -49,9 +51,7 @@ class QuotationLocalDataSourceImpl implements QuotationLocalDataSource {
   @override
   Future<DataMap?> getById(String id) async {
     try {
-      final rows = await _db.query('quotations',
-          where: 'id = ?', whereArgs: [id], limit: 1);
-      return rows.isEmpty ? null : rows.first;
+      return await _dao.getById(id);
     } catch (e) {
       throw CacheException(message: 'Failed to load quotation $id: $e');
     }
@@ -61,7 +61,7 @@ class QuotationLocalDataSourceImpl implements QuotationLocalDataSource {
   Future<List<DataMap>> fetchAll() async {
     try {
       await MockLatency.tick(); // simulate a slow quotations API
-      return _db.query('quotations', orderBy: 'created_at DESC');
+      return await _dao.fetchAll();
     } catch (e) {
       throw CacheException(message: 'Failed to load quotations: $e');
     }

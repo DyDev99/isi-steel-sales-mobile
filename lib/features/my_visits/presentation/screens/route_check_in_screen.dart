@@ -1,5 +1,5 @@
-import 'dart:io';
 import 'dart:math';
+import 'package:isi_steel_sales_mobile/core/platform/local_files.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -592,7 +592,7 @@ class _ProofGallery extends StatelessWidget {
             borderRadius: BorderRadius.circular(11),
             child: AspectRatio(
               aspectRatio: 1,
-              child: Image.file(File(photos[index].url), fit: BoxFit.cover),
+              child: localFileImage((photos[index].url), fit: BoxFit.cover),
             ),
           ),
         ),

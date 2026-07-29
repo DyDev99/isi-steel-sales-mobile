@@ -4,7 +4,7 @@ import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
 /// The single source of truth for the encrypted database's schema version.
 /// Bump this by exactly one whenever a schema change ships, and add the matching
 /// step to [_stepwiseMigrations].
-const int kCurrentSchemaVersion = 11;
+const int kCurrentSchemaVersion = 13;
 
 /// Keys under which the migrator records bookkeeping in `app_metadata`, so the
 /// on-device schema history is auditable and a failed/partial upgrade is
@@ -172,7 +172,52 @@ final Map<int, SchemaMigrationStep> _stepwiseMigrations =
   // JSON blob (measurements, appearance, drawing path, notes). `cart_items` is
   // local-only and never synced, so no sync bookkeeping is involved; existing
   // rows upgrade untouched (null = a plain catalog line).
-  11: (m, db) async => m.addColumn(db.cartItems, db.cartItems.customizationJson),
+  //
+  // The existence guard is required, not defensive padding. `m.createTable` in
+  // step 6 builds `cart_items` from the *current* table definition, which
+  // already includes this column — so a device walking from below v6 arrives
+  // here with the column present and `ALTER TABLE ... ADD COLUMN` fails with
+  // "duplicate column name". Step 10 guards the same hazard the same way.
+  //
+  // (Latent until schema v12 shipped: before then no migration walk reached
+  // step 11 from below v6 in the covered paths, so the bug never fired.)
+  11: (m, db) async {
+    final columns =
+        await db.customSelect("PRAGMA table_info('cart_items');").get();
+    final alreadyPresent =
+        columns.any((row) => row.data['name'] == 'customization_json');
+    if (alreadyPresent) return;
+    await m.addColumn(db.cartItems, db.cartItems.customizationJson);
+  },
+  // v12 (T1.5b): Orders domain, ported off the plaintext `catalog.db`.
+  //
+  // Creates the tables only — no data is copied here. The import from the
+  // legacy file is a one-shot bootstrap step (`LegacyOrdersImporter`), not a
+  // migration, for the same reason v7/v8 did it that way: a migration runs
+  // inside drift's schema transaction and must stay deterministic, while the
+  // import has to reconcile rows and decide whether purging the plaintext
+  // source is safe.
+  //
+  // The two indexes are the ones `catalog.db` carried; they back the queue's
+  // status filter and its per-quotation lookup.
+  12: (m, db) async {
+    await m.createTable(db.quotations);
+    await m.createTable(db.salesOrders);
+    await m.createTable(db.syncQueue);
+    await db.customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_sync_queue_status '
+      'ON sync_queue (status);',
+    );
+    await db.customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_sync_queue_quotation '
+      'ON sync_queue (quotation_id);',
+    );
+  },
+  // v13 (T1.5b): the resume pointer — the last live table in `routes.db`.
+  //
+  // Separate from v12 so a failure here leaves a coherent Orders schema rather
+  // than a half-built cutover, matching the v7/v8 split.
+  13: (m, db) async => m.createTable(db.workflowState),
 };
 
 /// Builds the [MigrationStrategy] for [db]: creates the schema on first run,

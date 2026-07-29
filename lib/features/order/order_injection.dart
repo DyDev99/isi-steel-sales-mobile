@@ -10,7 +10,6 @@ import 'package:isi_steel_sales_mobile/core/network/network_info.dart';
 import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/local/cart_drift_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/local/cart_local_data_source.dart';
-import 'package:isi_steel_sales_mobile/features/order/data/local/catalog_database.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/local/catalog_filter_store.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/local/product_drift_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/local/product_local_data_source.dart';
@@ -89,31 +88,33 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/services/imag
 import 'package:isi_steel_sales_mobile/features/order/presentation/services/speech_voice_search_service.dart';
 
 /// Registers the product catalog + quotation/sales-order + sync engine that
-/// live inside the Orders feature. Async because it opens the sqflite
-/// database once before anything else can be registered against it —
-/// `main()` already awaits `initDependencies()`, so this just extends that
-/// same await chain.
+/// live inside the Orders feature.
+///
+/// Still `Future`-returning after the T1.5b cutover even though nothing is
+/// awaited here any more: `AppDatabase` opens lazily on first use, so there is
+/// no database to open up front. The signature is kept because
+/// `initDependencies()` awaits every feature registrar uniformly, and churning
+/// that contract for one feature buys nothing.
 Future<void> registerOrderFeature(GetIt sl) async {
-  final catalogDb = await CatalogDatabase.open();
-  sl.registerLazySingleton<CatalogDatabase>(() => catalogDb);
-
   // ── Data sources ────────────────────────────────────────────────────
-  // Products/prices/stock live in the single encrypted Drift DB (T4 cutover);
-  // cart/quotation/sales-order/sync-queue still use `catalogDb` (own slice).
+  // T1.5b: quotations, sales orders and the sync queue moved off the plaintext
+  // `catalog.db` into the single encrypted Drift database, joining
+  // products/prices/stock and the cart. The Orders feature now holds no private
+  // database handle at all (ADR-004).
   sl.registerLazySingleton<ProductLocalDataSource>(
       () => ProductDriftLocalDataSource(sl<AppDatabase>().catalogDao));
   sl.registerLazySingleton<CartLocalDataSource>(
       () => CartDriftLocalDataSource(sl<AppDatabase>().cartDao));
   sl.registerLazySingleton<QuotationLocalDataSource>(
-      () => QuotationLocalDataSourceImpl(sl()));
+      () => QuotationLocalDataSourceImpl(sl<AppDatabase>().quotationDao));
   sl.registerLazySingleton<SalesOrderLocalDataSource>(
-      () => SalesOrderLocalDataSourceImpl(sl()));
+      () => SalesOrderLocalDataSourceImpl(sl<AppDatabase>().salesOrderDao));
   sl.registerLazySingleton<ProductRemoteDataSource>(
       () => MockProductRemoteDataSource());
   sl.registerLazySingleton<CatalogFilterStore>(
       () => CatalogFilterStore(HiveService.cacheBox));
   sl.registerLazySingleton<SyncQueueLocalDataSource>(
-      () => SyncQueueLocalDataSourceImpl(sl()));
+      () => SyncQueueLocalDataSourceImpl(sl<AppDatabase>().syncQueueDao));
 
   // ── Services ────────────────────────────────────────────────────────
 

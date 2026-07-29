@@ -27,6 +27,17 @@ import 'package:sqlite3/sqlite3.dart';
 /// Now there is exactly **one** open: the raw connection is opened, keyed, and
 /// verified here, then handed to drift via [NativeDatabase.opened] — so a
 /// wrong-key file is always detected at the same place it is healed.
+/// Native half of the `database_connection.dart` seam. The web half
+/// (`web_database.dart`) exposes this same symbol, which is what lets
+/// `AppDatabase` stay platform-agnostic.
+///
+/// Kept as a thin alias over [openEncryptedDatabase] rather than a rename: the
+/// original name states the security guarantee this file provides (ADR-008),
+/// and that guarantee is the reason the file exists. `openAppDatabaseConnection`
+/// is the *seam's* name; `openEncryptedDatabase` is the *behaviour's* name.
+LazyDatabase openAppDatabaseConnection(AppDatabaseKeyProvider keyProvider) =>
+    openEncryptedDatabase(keyProvider);
+
 LazyDatabase openEncryptedDatabase(AppDatabaseKeyProvider keyProvider) {
   return LazyDatabase(() async {
     await _ensureSqlCipherLoaded();

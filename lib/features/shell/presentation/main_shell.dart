@@ -8,6 +8,7 @@ import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localized_builder.dart';
 import 'package:isi_steel_sales_mobile/core/network/connectivity_cubit.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/breakpoints.dart';
 import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/presentation/services/coach_anchor_registry.dart';
@@ -204,8 +205,7 @@ class _MainShellState extends State<MainShell> {
         ),
         BlocProvider(create: (_) => sl<AddCustomerBloc>()),
         BlocProvider(
-          create: (_) =>
-              sl<PipelineBloc>()..add(const PipelineLoadRequested()),
+          create: (_) => sl<PipelineBloc>()..add(const PipelineLoadRequested()),
         ),
       ],
       child: SizedBox.expand(
@@ -344,6 +344,38 @@ class _MainShellState extends State<MainShell> {
     }
   }
 
+  /// Persistent side navigation for tablet/desktop windows.
+  ///
+  /// On phones this app navigates between the five shell tabs through the app
+  /// bar and the home "My Work" grid — there is no bottom bar to replace. On a
+  /// wide window that leaves the primary sections with no always-visible
+  /// affordance at all, which reads as missing rather than minimal, so the rail
+  /// is added rather than swapped in.
+  ///
+  /// It drives the same [ShellTabController] as every other entry point, so
+  /// deep links, the home grid, and `sl<ShellTabController>().goTo(...)` calls
+  /// from anywhere all stay in sync with it for free.
+  Widget _buildNavigationRail(BuildContext context, WindowSize size) {
+    return NavigationRail(
+      selectedIndex: _index,
+      onDestinationSelected: _tabController.goTo,
+      // Labels are hidden on medium (where horizontal space is contested) and
+      // shown on expanded, matching Material 3's rail guidance.
+      extended: false,
+      labelType: size.isExpanded
+          ? NavigationRailLabelType.all
+          : NavigationRailLabelType.selected,
+      backgroundColor: context.appColors.canvas,
+      destinations: [
+        for (final tab in _tabs)
+          NavigationRailDestination(
+            icon: Icon(tab.icon),
+            label: Text(tab.label),
+          ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_index >= _tabs.length) _index = 0;
@@ -378,96 +410,116 @@ class _MainShellState extends State<MainShell> {
             },
             child: Scaffold(
               backgroundColor: context.appColors.canvas,
-              body: Stack(
-                children: [
-                  Positioned(
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: MediaQuery.of(context).size.height * 0.26,
-                    child: AnimatedOpacity(
-                      duration: const Duration(milliseconds: 350),
-                      opacity: _index == 0 ? 1.0 : 0.0,
-                      curve: Curves.easeInOut,
-                      child: IgnorePointer(
-                        ignoring: _index != 0,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.only(
-                            bottomLeft: Radius.circular(32.r),
-                            bottomRight: Radius.circular(32.r),
-                          ),
-                          child: Stack(
-                            children: [
-                              Positioned.fill(
-                                child: Image.asset(
-                                  'assets/images/isi_main_app_bar_bg.png',
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                              Positioned.fill(
-                                child: DecoratedBox(
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      begin: Alignment.bottomCenter,
-                                      end: Alignment.topCenter,
-                                      colors: [
-                                        Colors.black.withValues(alpha: 0.75),
-                                        Colors.black.withValues(alpha: 0.25),
-                                        Colors.transparent,
-                                      ],
-                                      stops: const [0.0, 0.5, 1.0],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Theme(
-                    data: Theme.of(context).copyWith(
-                      scaffoldBackgroundColor: Colors.transparent,
-                    ),
-                    child: Positioned.fill(
-                      child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 350),
-                        switchInCurve: Curves.easeOutQuad,
-                        switchOutCurve: Curves.easeInQuad,
-                        child: IndexedStack(
-                          index: _index,
-                          children: List.generate(
-                            _tabs.length,
-                            (i) => _builtTabs.contains(i)
-                                ? _buildTab(i)
-                                : const SizedBox.shrink(),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    child: MainAppBar(
-                      title: _titles[_index],
-                      currentTabIndex: _index,
-                      onBackToHomeTap: () => _tabController.goTo(0),
-                      onAvatarTap: () => _openProfile(context),
-                      onNotificationTap: _session.isAuthenticated
-                          ? null
-                          : () => _openGuestNotifications(context),
-                    ),
-                  ),
-                  const AppCoachHost(),
-                ],
-              ),
+              // The rail sits *outside* the Stack rather than inside it, so the
+              // hero image, the app bar, and the tab content all lay out within
+              // the remaining width instead of sliding underneath the rail.
+              //
+              // On compact this Row is not built at all — `_buildBody` returns
+              // the identical Stack the phone layout has always used, so there
+              // is no extra widget in the mobile tree and no behaviour to
+              // regress.
+              body: context.windowSize.hasSideNavigation
+                  ? Row(
+                      children: [
+                        _buildNavigationRail(context, context.windowSize),
+                        const VerticalDivider(width: 1, thickness: 1),
+                        Expanded(child: _buildBody(context)),
+                      ],
+                    )
+                  : _buildBody(context),
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildBody(BuildContext context) {
+    return Stack(
+      children: [
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          height: MediaQuery.of(context).size.height * 0.26,
+          child: AnimatedOpacity(
+            duration: const Duration(milliseconds: 350),
+            opacity: _index == 0 ? 1.0 : 0.0,
+            curve: Curves.easeInOut,
+            child: IgnorePointer(
+              ignoring: _index != 0,
+              child: ClipRRect(
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(32.r),
+                  bottomRight: Radius.circular(32.r),
+                ),
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: Image.asset(
+                        'assets/images/isi_main_app_bar_bg.png',
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    Positioned.fill(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.bottomCenter,
+                            end: Alignment.topCenter,
+                            colors: [
+                              Colors.black.withValues(alpha: 0.75),
+                              Colors.black.withValues(alpha: 0.25),
+                              Colors.transparent,
+                            ],
+                            stops: const [0.0, 0.5, 1.0],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+        Theme(
+          data: Theme.of(context).copyWith(
+            scaffoldBackgroundColor: Colors.transparent,
+          ),
+          child: Positioned.fill(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 350),
+              switchInCurve: Curves.easeOutQuad,
+              switchOutCurve: Curves.easeInQuad,
+              child: IndexedStack(
+                index: _index,
+                children: List.generate(
+                  _tabs.length,
+                  (i) => _builtTabs.contains(i)
+                      ? _buildTab(i)
+                      : const SizedBox.shrink(),
+                ),
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          child: MainAppBar(
+            title: _titles[_index],
+            currentTabIndex: _index,
+            onBackToHomeTap: () => _tabController.goTo(0),
+            onAvatarTap: () => _openProfile(context),
+            onNotificationTap: _session.isAuthenticated
+                ? null
+                : () => _openGuestNotifications(context),
+          ),
+        ),
+        const AppCoachHost(),
+      ],
     );
   }
 }

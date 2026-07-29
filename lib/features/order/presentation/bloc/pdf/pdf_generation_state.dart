@@ -1,6 +1,5 @@
-import 'dart:io';
-
 import 'package:equatable/equatable.dart';
+import 'package:isi_steel_sales_mobile/core/services/pdf/saved_document.dart';
 
 /// State of a single PDF export attempt. Owned by [PdfGenerationCubit];
 /// document-type agnostic so the same states drive quotation, invoice, and
@@ -22,15 +21,18 @@ class PdfGenerating extends PdfGenerationState {
   const PdfGenerating();
 }
 
-/// The document was written to the app sandbox and the preview/share sheet was
-/// offered. [file] points at the saved PDF inside app documents.
+/// The document was generated and the preview/share sheet was offered.
+///
+/// [document] holds the PDF bytes and, on mobile, the sandbox path it was
+/// written to. On web nothing is on disk — check [SavedDocument.isOnDisk]
+/// before telling the user the file was saved.
 class PdfGenerated extends PdfGenerationState {
-  const PdfGenerated(this.file);
+  const PdfGenerated(this.document);
 
-  final File file;
+  final SavedDocument document;
 
   @override
-  List<Object?> get props => [file.path];
+  List<Object?> get props => [document];
 }
 
 /// Generation failed. [messageKey] is a localization key (already resolvable

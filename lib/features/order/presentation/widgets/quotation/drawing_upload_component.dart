@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:isi_steel_sales_mobile/core/platform/local_files.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -19,7 +19,7 @@ class DrawingUploadComponent extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    if (imagePath != null && File(imagePath!).existsSync()) {
+    if (imagePath != null && localFileExists(imagePath!)) {
       return Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
@@ -31,8 +31,8 @@ class DrawingUploadComponent extends StatelessWidget {
           children: [
             Stack(
               children: [
-                Image.file(
-                  File(imagePath!),
+                localFileImage(
+                  (imagePath!),
                   height: 220,
                   width: double.infinity,
                   fit: BoxFit.cover,
@@ -43,7 +43,8 @@ class DrawingUploadComponent extends StatelessWidget {
                   child: CircleAvatar(
                     backgroundColor: Colors.black.withOpacity(0.6),
                     child: IconButton(
-                      icon: const Icon(Icons.delete_outline, color: Colors.white),
+                      icon:
+                          const Icon(Icons.delete_outline, color: Colors.white),
                       onPressed: onRemoveImage,
                       tooltip: 'Remove Drawing',
                     ),
@@ -56,7 +57,8 @@ class DrawingUploadComponent extends StatelessWidget {
               color: colorScheme.surface,
               child: Row(
                 children: [
-                  Icon(Icons.check_circle_rounded, color: colorScheme.primary, size: 20),
+                  Icon(Icons.check_circle_rounded,
+                      color: colorScheme.primary, size: 20),
                   const SizedBox(width: 8),
                   Text(
                     'Custom Drawing Attached',

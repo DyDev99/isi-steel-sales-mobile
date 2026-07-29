@@ -1,6 +1,5 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/platform/local_files.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
@@ -176,7 +175,7 @@ class QuotationPreviewSection extends StatelessWidget {
                   }
                 }
                 final hasDrawing = item.drawingImagePath != null &&
-                    File(item.drawingImagePath!).existsSync();
+                    localFileExists(item.drawingImagePath!);
 
                 return Padding(
                   padding: EdgeInsets.only(bottom: 8.h),
@@ -204,7 +203,7 @@ class QuotationPreviewSection extends StatelessWidget {
                             height: 34.w,
                             color: colors.surfaceSoft,
                             child: hasDrawing
-                                ? Image.file(File(item.drawingImagePath!),
+                                ? localFileImage((item.drawingImagePath!),
                                     fit: BoxFit.cover)
                                 : Icon(Icons.tune_rounded,
                                     size: 16.w, color: colors.brandNavy),

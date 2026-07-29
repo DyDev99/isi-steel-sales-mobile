@@ -1,8 +1,6 @@
-import 'dart:io';
+import 'package:isi_steel_sales_mobile/core/platform/captured_media_store.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/data_domain.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/customization/customization_state.dart';
@@ -14,8 +12,9 @@ class CustomizationCubit extends Cubit<CustomizationState> {
       : _picker = picker ?? ImagePicker(),
         super(const CustomizationDataState());
 
-  CustomizationDataState get _currentState =>
-      state is CustomizationDataState ? (state as CustomizationDataState) : const CustomizationDataState();
+  CustomizationDataState get _currentState => state is CustomizationDataState
+      ? (state as CustomizationDataState)
+      : const CustomizationDataState();
 
   Future<void> captureOrPickDrawing(ImageSource source) async {
     final previous = _currentState;
@@ -48,14 +47,8 @@ class CustomizationCubit extends Cubit<CustomizationState> {
   }
 
   void removeDrawing() {
-    if (_currentState.drawingImagePath != null) {
-      final file = File(_currentState.drawingImagePath!);
-      if (file.existsSync()) {
-        try {
-          file.deleteSync();
-        } catch (_) {}
-      }
-    }
+    final path = _currentState.drawingImagePath;
+    if (path != null) deleteCapturedFile(path);
     emit(_currentState.copyWith(drawingImagePath: null));
   }
 
@@ -103,17 +96,19 @@ class CustomizationCubit extends Cubit<CustomizationState> {
   /// `drawing_cache` directory so it survives the temp file being reclaimed.
   Future<String?> _storeDrawing(String rawPath) async {
     try {
-      final appDir = await getApplicationDocumentsDirectory();
-      final targetFolder = Directory(p.join(appDir.path, 'drawing_cache'));
-      if (!targetFolder.existsSync()) {
-        targetFolder.createSync(recursive: true);
-      }
+      final targetFolder = await appMediaDirectory('drawing_cache');
 
-      final fileName = 'drawing_${DateTime.now().millisecondsSinceEpoch}.jpg';
-      final targetPath = p.join(targetFolder.path, fileName);
+      // Web: no app-private directory to copy into. `rawPath` is already a
+      // blob URL that stays valid for the tab's lifetime, which is the right
+      // scope under ADR-010 — returning it keeps the drawing usable for this
+      // session without persisting customer artwork into browser storage.
+      if (targetFolder == null) return rawPath;
 
-      await File(rawPath).copy(targetPath);
-      return targetPath;
+      return await copyCapturedFile(
+        rawPath,
+        targetDirectory: targetFolder,
+        fileName: 'drawing_${DateTime.now().millisecondsSinceEpoch}.jpg',
+      );
     } catch (_) {
       return null;
     }

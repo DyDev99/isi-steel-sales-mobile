@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:isi_steel_sales_mobile/core/platform/local_files.dart';
 
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
@@ -20,7 +20,7 @@ class CartItemTile extends StatelessWidget {
   bool get _hasDrawing =>
       item.isCustomized &&
       item.drawingImagePath != null &&
-      File(item.drawingImagePath!).existsSync();
+      localFileExists(item.drawingImagePath!);
 
   /// Measurements + finish, joined for the review line (null for plain lines).
   String? get _customSpecs {
@@ -49,8 +49,8 @@ class CartItemTile extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: _hasDrawing
-                  ? Image.file(
-                      File(item.drawingImagePath!),
+                  ? localFileImage(
+                      (item.drawingImagePath!),
                       width: 56,
                       height: 56,
                       fit: BoxFit.cover,
