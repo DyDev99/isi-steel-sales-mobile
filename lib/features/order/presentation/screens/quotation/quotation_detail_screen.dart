@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localized_builder.dart';
@@ -9,10 +10,10 @@ import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/custom
 import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/get_customer_by_id.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/quotation.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_cubit.dart';
-import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/catalog_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/quotation_builder_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/sales_order/sales_order_screen.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/back_to_home.dart';
 
 class QuotationDetailScreen extends StatelessWidget {
   const QuotationDetailScreen({super.key, required this.quotation});
@@ -34,7 +35,6 @@ class QuotationDetailScreen extends StatelessWidget {
       settings: const RouteSettings(name: QuotationBuilderScreen.routeName),
       builder: (_) => MultiBlocProvider(
         providers: [
-          BlocProvider(create: (_) => sl<CatalogBloc>()),
           BlocProvider(
               create: (_) => sl<CartCubit>()..loadFromQuotation(quotation)),
           BlocProvider(create: (_) => sl<SyncCubit>()),
@@ -76,12 +76,40 @@ class QuotationDetailScreen extends StatelessWidget {
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: theme.scaffoldBackgroundColor,
-        iconTheme: IconThemeData(color: colors.textPrimary),
-        title: Text('orders.quotation.details_title'.tr,
-            style: TextStyle(
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        titleSpacing: 0,
+        // Left side: Chevron Back + Details Title
+        title: Row(
+          children: [
+            IconButton(
+              icon: Icon(
+                Icons.chevron_left_rounded,
                 color: colors.textPrimary,
-                fontSize: 17,
-                fontWeight: FontWeight.w800)),
+                size: 28.sp,
+              ),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            Expanded(
+              child: Text(
+                'orders.quotation.details_title'.tr,
+                style: TextStyle(
+                  color: colors.textPrimary,
+                  fontSize: 17.sp,
+                  fontWeight: FontWeight.w800,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+        // Right side: Back to Home button
+        actions: [
+          Padding(
+            padding: EdgeInsets.only(right: 16.w),
+            child: const BackToHomeButton(),
+          ),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
@@ -170,19 +198,7 @@ class QuotationDetailScreen extends StatelessWidget {
               child: Text('orders.quotation.edit_quotation'.tr),
             ),
           ),
-          const SizedBox(height: 10),
-          SizedBox(
-            width: double.infinity,
-            child: TextButton.icon(
-              // Clears the visit/order sub-stack back to the shell — the rep is
-              // done with this quotation and wants to start fresh from Home.
-              onPressed: () =>
-                  Navigator.of(context).popUntil((route) => route.isFirst),
-              icon: const Icon(Icons.home_rounded, size: 18),
-              label: Text('common.back_to_home'.tr,
-                  style: const TextStyle(fontWeight: FontWeight.w700)),
-            ),
-          ),
+          const SizedBox(height: 20),
         ],
       ),
     );

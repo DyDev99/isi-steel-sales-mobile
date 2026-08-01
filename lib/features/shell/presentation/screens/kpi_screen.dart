@@ -37,11 +37,13 @@ class _KpiScreenState extends State<KpiScreen> {
         backgroundColor: scheme.surface,
         actions: [
           IconButton(
-            icon: Icon(Icons.share_outlined, color: scheme.onSurface, size: 20.sp),
+            icon: Icon(Icons.share_outlined,
+                color: scheme.onSurface, size: 20.sp),
             onPressed: () {},
           ),
           IconButton(
-            icon: Icon(Icons.filter_list_rounded, color: scheme.onSurface, size: 20.sp),
+            icon: Icon(Icons.filter_list_rounded,
+                color: scheme.onSurface, size: 20.sp),
             onPressed: () {},
           ),
           SizedBox(width: 8.w),
@@ -157,7 +159,8 @@ class _KpiScreenState extends State<KpiScreen> {
   // ---------------------------------------------------------------------------
   // 2. Primary Target Hero Card
   // ---------------------------------------------------------------------------
-  Widget _buildPrimaryTargetCard(ColorScheme scheme, dynamic appColors, ThemeData theme) {
+  Widget _buildPrimaryTargetCard(
+      ColorScheme scheme, dynamic appColors, ThemeData theme) {
     const double target = 150000;
     const double achieved = 122400;
     final progress = (achieved / target).clamp(0.0, 1.0);
@@ -193,7 +196,8 @@ class _KpiScreenState extends State<KpiScreen> {
                       color: scheme.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10.r),
                     ),
-                    child: Icon(Icons.stars_rounded, size: 18.sp, color: scheme.primary),
+                    child: Icon(Icons.stars_rounded,
+                        size: 18.sp, color: scheme.primary),
                   ),
                   SizedBox(width: 10.w),
                   Text(
@@ -283,7 +287,8 @@ class _KpiScreenState extends State<KpiScreen> {
   // ---------------------------------------------------------------------------
   // 3. 2x2 Key Metric Grid
   // ---------------------------------------------------------------------------
-  Widget _buildMetricsGrid(ColorScheme scheme, dynamic appColors, ThemeData theme) {
+  Widget _buildMetricsGrid(
+      ColorScheme scheme, dynamic appColors, ThemeData theme) {
     return GridView.count(
       crossAxisCount: 2,
       crossAxisSpacing: 12.w,
@@ -327,7 +332,8 @@ class _KpiScreenState extends State<KpiScreen> {
   // ---------------------------------------------------------------------------
   // 4. Product Category Breakdown
   // ---------------------------------------------------------------------------
-  Widget _buildCategoryBreakdown(ColorScheme scheme, dynamic appColors, ThemeData theme) {
+  Widget _buildCategoryBreakdown(
+      ColorScheme scheme, dynamic appColors, ThemeData theme) {
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
@@ -375,7 +381,8 @@ class _KpiScreenState extends State<KpiScreen> {
   // ---------------------------------------------------------------------------
   // 5. Sales Pipeline Conversion Funnel
   // ---------------------------------------------------------------------------
-  Widget _buildPipelineFunnel(ColorScheme scheme, dynamic appColors, ThemeData theme) {
+  Widget _buildPipelineFunnel(
+      ColorScheme scheme, dynamic appColors, ThemeData theme) {
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
@@ -408,10 +415,17 @@ class _KpiScreenState extends State<KpiScreen> {
             ],
           ),
           SizedBox(height: 16.h),
-          _PipelineStepRow(stage: 'kpi.stage_leads'.tr, count: '184', percent: '100%'),
-          _PipelineStepRow(stage: 'kpi.stage_contacted'.tr, count: '112', percent: '60%'),
-          _PipelineStepRow(stage: 'kpi.stage_quotation'.tr, count: '64', percent: '34%'),
-          _PipelineStepRow(stage: 'kpi.stage_won'.tr, count: '42', percent: '22%', isLast: true),
+          _PipelineStepRow(
+              stage: 'kpi.stage_leads'.tr, count: '184', percent: '100%'),
+          _PipelineStepRow(
+              stage: 'kpi.stage_contacted'.tr, count: '112', percent: '60%'),
+          _PipelineStepRow(
+              stage: 'kpi.stage_quotation'.tr, count: '64', percent: '34%'),
+          _PipelineStepRow(
+              stage: 'kpi.stage_won'.tr,
+              count: '42',
+              percent: '22%',
+              isLast: true),
         ],
       ),
     );
@@ -457,7 +471,8 @@ class _MetricTile extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Icon(icon, size: 18.sp, color: scheme.onSurface.withValues(alpha: 0.6)),
+              Icon(icon,
+                  size: 18.sp, color: scheme.onSurface.withValues(alpha: 0.6)),
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
                 decoration: BoxDecoration(
@@ -468,7 +483,9 @@ class _MetricTile extends StatelessWidget {
                 child: Row(
                   children: [
                     Icon(
-                      isPositive ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded,
+                      isPositive
+                          ? Icons.arrow_upward_rounded
+                          : Icons.arrow_downward_rounded,
                       size: 10.sp,
                       color: isPositive ? appColors.success : scheme.error,
                     ),

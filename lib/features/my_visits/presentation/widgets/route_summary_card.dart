@@ -37,7 +37,8 @@ class RouteSummaryCard extends StatelessWidget {
   /// First stop not yet visited — the route's live "next" target.
   RouteStop? get _nextStop {
     for (final s in route.stops) {
-      if (s.status != VisitStatus.checkedOut && s.status != VisitStatus.missed) {
+      if (s.status != VisitStatus.checkedOut &&
+          s.status != VisitStatus.missed) {
         return s;
       }
     }
@@ -115,7 +116,8 @@ class RouteSummaryCard extends StatelessWidget {
                   '${route.territory} · ${DateFormat('EEE, MMM d').format(route.visitDate)}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: colors.textSecondary, fontSize: 12.sp),
+                  style:
+                      TextStyle(color: colors.textSecondary, fontSize: 12.sp),
                 ),
                 SizedBox(height: 12.h),
 

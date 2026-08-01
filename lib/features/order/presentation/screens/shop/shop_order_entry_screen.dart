@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localized_builder.dart';
@@ -11,19 +12,21 @@ import 'package:isi_steel_sales_mobile/features/order/domain/usecases/capture_lo
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/catalog_params.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_credit_summary.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_cubit.dart';
-import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/catalog_bloc.dart';
-import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/catalog_event.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/quotation_builder_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/credit_summary_card.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/off_visit_reason_sheet.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/back_to_home.dart';
+// Import your BackToHomeButton path here
+// import 'path_to/back_to_home_button.dart';
 
 class ShopOrderEntryScreen extends StatefulWidget {
-  const ShopOrderEntryScreen(
-      {super.key,
-      required this.customer,
-      this.skipOffVisitCheck = false,
-      this.seedSearchTerm});
+  const ShopOrderEntryScreen({
+    super.key,
+    required this.customer,
+    this.skipOffVisitCheck = false,
+    this.seedSearchTerm,
+  });
 
   static const routeName = 'order-shop-entry';
 
@@ -72,13 +75,14 @@ class _ShopOrderEntryScreenState extends State<ShopOrderEntryScreen> {
       settings: const RouteSettings(name: QuotationBuilderScreen.routeName),
       builder: (_) => MultiBlocProvider(
         providers: [
-          BlocProvider(create: (_) {
-            final bloc = sl<CatalogBloc>();
-            if (widget.seedSearchTerm != null) {
-              bloc.add(CatalogSearchChanged(widget.seedSearchTerm!));
-            }
-            return bloc;
-          }),
+          // No catalog pre-load: the builder opens on the guided product
+          // configurator, which fetches categories only.
+          //
+          // TODO(order): `seedSearchTerm` (the out-of-stock item handed over
+          // from Route Stock Count) no longer pre-seeds a catalog search — the
+          // guided flow has no catalog-wide search to seed. Re-express it as a
+          // pre-selected category once the SAP schema exposes a product →
+          // category resolve endpoint.
           BlocProvider(create: (_) => sl<CartCubit>()..load()),
           BlocProvider(create: (_) => sl<SyncCubit>()),
         ],
@@ -105,12 +109,40 @@ class _ShopOrderEntryScreenState extends State<ShopOrderEntryScreen> {
       backgroundColor: colors.canvas,
       appBar: AppBar(
         backgroundColor: colors.canvas,
-        iconTheme: IconThemeData(color: colors.textPrimary),
-        title: Text(customer.shopName,
-            style: TextStyle(
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        titleSpacing: 0,
+        // Left Side: Chevron Icon + Title
+        title: Row(
+          children: [
+            IconButton(
+              icon: Icon(
+                Icons.chevron_left_rounded,
                 color: colors.textPrimary,
-                fontSize: 17,
-                fontWeight: FontWeight.w800)),
+                size: 28.sp,
+              ),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            Expanded(
+              child: Text(
+                customer.shopName,
+                style: TextStyle(
+                  color: colors.textPrimary,
+                  fontSize: 17.sp,
+                  fontWeight: FontWeight.w800,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+        // Right Side: Back to home button
+        actions: [
+          Padding(
+            padding: EdgeInsets.only(right: 16.w),
+            child: const BackToHomeButton(label: 'Back to home'),
+          ),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),

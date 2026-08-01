@@ -15,7 +15,6 @@ import 'package:isi_steel_sales_mobile/features/lead/presentation/bloc/pipeline_
 import 'package:isi_steel_sales_mobile/features/lead/presentation/bloc/pipeline_event.dart';
 import 'package:isi_steel_sales_mobile/features/lead/presentation/bloc/pipeline_state.dart';
 import 'package:isi_steel_sales_mobile/features/lead/presentation/widgets/lead_form_sheet.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/depot_selection_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/territory/territory_screen.dart';
 import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/add_customer_bottom_sheet.dart';
 
@@ -66,13 +65,6 @@ class QuickActionsSection extends StatelessWidget {
     );
   }
 
-  void _openDepotStock(BuildContext context) {
-    Navigator.of(context).push(MaterialPageRoute(
-      settings: const RouteSettings(name: DepotSelectionScreen.routeName),
-      builder: (_) => const DepotSelectionScreen(),
-    ));
-  }
-
   // ---- UI ----------------------------------------------------------------
 
   @override
@@ -120,20 +112,6 @@ class QuickActionsSection extends StatelessWidget {
                 ),
               ),
               SizedBox(width: 8.w),
-              Expanded(
-                child: FadeSlideIn(
-                  delay: FadeSlideIn.staggerDelay(2),
-                  child: CoachKeys.wrap(
-                    CoachKeys.depotStock,
-                    child: _QuickActionCard(
-                      icon: Icons.inventory_2_outlined,
-                      accent: const Color(0xFFFFAB00),
-                      label: 'shell.depot_stock'.tr,
-                      onTap: () => _openDepotStock(context),
-                    ),
-                  ),
-                ),
-              ),
               SizedBox(width: 8.w),
               Expanded(
                 child: FadeSlideIn(

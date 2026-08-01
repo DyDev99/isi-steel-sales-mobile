@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/resumable_visit_cubit.dart';
@@ -9,9 +10,8 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/sync/pen
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/quotation_detail_screen.dart';
 import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/sync/continue_work_resolver.dart';
 
-/// The floating "Continue Previous Work" card. Surfaces the most recent draft
-/// (or a "Continue Working (N)" opener for several). **Never auto-navigates** —
-/// resuming, submitting or discarding is always an explicit tap.
+/// Floating card featuring gold accent framing, dual-bordered icon badge,
+/// subtle corner watermarks, and tactile 3D action controls.
 class ContinueWorkingCard extends StatelessWidget {
   const ContinueWorkingCard({super.key});
 
@@ -44,7 +44,7 @@ class _ContinueWorkingCardSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final skeletonColor = scheme.onSurface.withOpacity(0.12);
+    final skeletonColor = scheme.onSurface.withValues(alpha: 0.12);
 
     return _CardShell(
       child: Column(
@@ -54,27 +54,27 @@ class _ContinueWorkingCardSkeleton extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 18,
-                height: 18,
+                width: 20.r,
+                height: 20.r,
                 decoration: BoxDecoration(
                   color: skeletonColor,
                   shape: BoxShape.circle,
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8.w),
               Expanded(
                 child: Container(
-                  height: 14,
+                  height: 14.h,
                   decoration: BoxDecoration(
                     color: skeletonColor,
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(4.r),
                   ),
                 ),
               ),
-              const SizedBox(width: 32),
+              SizedBox(width: 32.w),
               Container(
-                width: 18,
-                height: 18,
+                width: 20.r,
+                height: 20.r,
                 decoration: BoxDecoration(
                   color: skeletonColor,
                   shape: BoxShape.circle,
@@ -82,43 +82,43 @@ class _ContinueWorkingCardSkeleton extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
           Container(
-            width: 110,
-            height: 12,
+            width: 120.w,
+            height: 12.h,
             decoration: BoxDecoration(
               color: skeletonColor,
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(4.r),
             ),
           ),
-          const SizedBox(height: 6),
+          SizedBox(height: 6.h),
           Container(
-            width: 180,
-            height: 12,
+            width: 190.w,
+            height: 12.h,
             decoration: BoxDecoration(
               color: skeletonColor,
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(4.r),
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
           Row(
             children: [
               Expanded(
                 child: Container(
-                  height: 38,
+                  height: 40.h,
                   decoration: BoxDecoration(
                     color: skeletonColor,
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(10.r),
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
+              SizedBox(width: 10.w),
               Expanded(
                 child: Container(
-                  height: 38,
+                  height: 40.h,
                   decoration: BoxDecoration(
                     color: skeletonColor,
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(10.r),
                   ),
                 ),
               ),
@@ -134,6 +134,8 @@ class _DraftCard extends StatelessWidget {
   const _DraftCard({required this.draft});
   final Quotation draft;
 
+  static const Color _goldBorderColor = Color(0xFFCBA135);
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
@@ -145,56 +147,95 @@ class _DraftCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.history_rounded, size: 18, color: scheme.primary),
-              const SizedBox(width: 8),
+              // Dual-Bordered Icon Avatar Badge
+              Container(
+                padding: EdgeInsets.all(6.r),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: scheme.primary.withValues(alpha: 0.1),
+                  border: Border.all(
+                    color: _goldBorderColor.withValues(alpha: 0.8),
+                    width: 1.2,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 4.r,
+                      offset: Offset(0, 2.h),
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  Icons.history_rounded,
+                  size: 18.sp,
+                  color: scheme.primary,
+                ),
+              ),
+              SizedBox(width: 10.w),
               Expanded(
-                child: Text('sync.continue_previous'.tr,
-                    style: TextStyle(
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w800,
-                        color: scheme.onSurface)),
+                child: Text(
+                  'sync.continue_previous'.tr,
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.2,
+                    color: scheme.onSurface,
+                  ),
+                ),
               ),
               _DiscardButton(draft: draft),
             ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            'sync.quotation_n'.trParams({'id': draft.id}),
-            style: TextStyle(
-                fontSize: 12.5,
-                fontWeight: FontWeight.w700,
-                color: scheme.primary),
+          SizedBox(height: 10.h),
+          // Traditional framed sub-container
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
+            decoration: BoxDecoration(
+              color: scheme.surface,
+              borderRadius: BorderRadius.circular(8.r),
+              border: Border.all(
+                color: scheme.primary.withValues(alpha: 0.15),
+                width: 1,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'sync.quotation_n'.trParams({'id': draft.id}),
+                  style: TextStyle(
+                    fontSize: 13.sp,
+                    fontWeight: FontWeight.w800,
+                    color: scheme.primary,
+                  ),
+                ),
+                SizedBox(height: 3.h),
+                Text(
+                  _subtitle(draft),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    color: colors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 2),
-          Text(
-            _subtitle(draft),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 12, color: colors.textSecondary),
-          ),
-          const SizedBox(height: 12),
+          SizedBox(height: 14.h),
           Row(
             children: [
               Expanded(
-                child: OutlinedButton(
+                child: _ThreeDOutlinedButton(
+                  label: 'common.submit'.tr,
                   onPressed: () => _submit(context, draft),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: scheme.primary,
-                    side: BorderSide(color: scheme.primary),
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                  ),
-                  child: Text('common.submit'.tr),
                 ),
               ),
-              const SizedBox(width: 10),
+              SizedBox(width: 10.w),
               Expanded(
-                child: FilledButton(
+                child: _ThreeDFilledButton(
+                  label: 'common.continue'.tr,
                   onPressed: () => _continue(context, draft),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: scheme.primary,
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                  ),
-                  child: Text('common.continue'.tr),
                 ),
               ),
             ],
@@ -209,6 +250,8 @@ class _MultiDraftCard extends StatelessWidget {
   const _MultiDraftCard({required this.count});
   final int count;
 
+  static const Color _goldBorderColor = Color(0xFFCBA135);
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
@@ -216,30 +259,240 @@ class _MultiDraftCard extends StatelessWidget {
     return _CardShell(
       child: InkWell(
         onTap: () => _openDraftsSheet(context),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         child: Row(
           children: [
-            Icon(Icons.history_rounded, size: 20, color: scheme.primary),
-            const SizedBox(width: 10),
+            // Dual-Bordered Icon Avatar Badge
+            Container(
+              padding: EdgeInsets.all(8.r),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: scheme.primary.withValues(alpha: 0.1),
+                border: Border.all(
+                  color: _goldBorderColor.withValues(alpha: 0.8),
+                  width: 1.2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.04),
+                    blurRadius: 4.r,
+                    offset: Offset(0, 2.h),
+                  ),
+                ],
+              ),
+              child: Icon(
+                Icons.history_rounded,
+                size: 20.sp,
+                color: scheme.primary,
+              ),
+            ),
+            SizedBox(width: 12.w),
             Expanded(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('sync.continue_working'.trParams({'count': count}),
-                      style: TextStyle(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w800,
-                          color: scheme.onSurface)),
-                  const SizedBox(height: 2),
-                  Text('sync.unfinished_drafts'.tr,
-                      style:
-                          TextStyle(fontSize: 12, color: colors.textSecondary)),
+                  Text(
+                    'sync.continue_working'.trParams({'count': count}),
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w800,
+                      color: scheme.onSurface,
+                    ),
+                  ),
+                  SizedBox(height: 2.h),
+                  Text(
+                    'sync.unfinished_drafts'.tr,
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      color: colors.textSecondary,
+                    ),
+                  ),
                 ],
               ),
             ),
-            Icon(Icons.chevron_right_rounded, color: colors.textSecondary),
+            Icon(
+              Icons.chevron_right_rounded,
+              size: 22.sp,
+              color: colors.textSecondary,
+            ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Gold Framed Tactile Card Shell with Corner Watermarks
+class _CardShell extends StatelessWidget {
+  const _CardShell({required this.child});
+  final Widget child;
+
+  static const Color _goldBorderColor = Color(0xFFCBA135);
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        borderRadius: BorderRadius.circular(18.r),
+        border: Border.all(
+          color: _goldBorderColor,
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 12.r,
+            offset: Offset(0, 6.h),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(17.r),
+        child: Stack(
+          children: [
+            // Top-Left Corner Decorative Circle Watermark
+            Positioned(
+              top: -22.r,
+              left: -22.r,
+              child: Container(
+                width: 55.r,
+                height: 55.r,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: scheme.primary.withValues(alpha: 0.15),
+                    width: 1.5,
+                  ),
+                ),
+              ),
+            ),
+            // Bottom-Right Corner Decorative Circle Watermark
+            Positioned(
+              bottom: -22.r,
+              right: -22.r,
+              child: Container(
+                width: 55.r,
+                height: 55.r,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: scheme.primary.withValues(alpha: 0.15),
+                    width: 1.5,
+                  ),
+                ),
+              ),
+            ),
+            // Card Content
+            Padding(
+              padding: EdgeInsets.all(14.r),
+              child: child,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Tactile 3D Filled Action Button
+class _ThreeDFilledButton extends StatelessWidget {
+  const _ThreeDFilledButton({
+    required this.label,
+    required this.onPressed,
+    this.color,
+  });
+  final String label;
+  final VoidCallback onPressed;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    final themeColor = color ?? Theme.of(context).colorScheme.primary;
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10.r),
+        boxShadow: [
+          BoxShadow(
+            color: themeColor.withValues(alpha: 0.35),
+            blurRadius: 6.r,
+            offset: Offset(0, 3.h),
+          ),
+        ],
+      ),
+      child: FilledButton(
+        onPressed: onPressed,
+        style: FilledButton.styleFrom(
+          backgroundColor: themeColor,
+          padding: EdgeInsets.symmetric(vertical: 10.h),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.r),
+            side: BorderSide(
+              color: Colors.white.withValues(alpha: 0.25),
+              width: 1,
+            ),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12.5.sp,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Tactile 3D Outlined Action Button
+class _ThreeDOutlinedButton extends StatelessWidget {
+  const _ThreeDOutlinedButton({
+    required this.label,
+    required this.onPressed,
+    this.color,
+  });
+  final String label;
+  final VoidCallback onPressed;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    final themeColor = color ?? Theme.of(context).colorScheme.primary;
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 4.r,
+            offset: Offset(0, 2.h),
+          ),
+        ],
+      ),
+      child: OutlinedButton(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          foregroundColor: themeColor,
+          backgroundColor: scheme.surface,
+          side: BorderSide(
+            color: themeColor.withValues(alpha: 0.8),
+            width: 1.2,
+          ),
+          padding: EdgeInsets.symmetric(vertical: 10.h),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.r),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12.5.sp,
+            fontWeight: FontWeight.w700,
+          ),
         ),
       ),
     );
@@ -254,33 +507,19 @@ class _DiscardButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () => _confirmDiscard(context, draft),
-      borderRadius: BorderRadius.circular(20),
-      child: Padding(
-        padding: const EdgeInsets.all(2),
-        child: Icon(Icons.close_rounded,
-            size: 18, color: context.appColors.textSecondary),
+      borderRadius: BorderRadius.circular(20.r),
+      child: Container(
+        padding: EdgeInsets.all(4.r),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: context.appColors.textSecondary.withValues(alpha: 0.08),
+        ),
+        child: Icon(
+          Icons.close_rounded,
+          size: 16.sp,
+          color: context.appColors.textSecondary,
+        ),
       ),
-    );
-  }
-}
-
-class _CardShell extends StatelessWidget {
-  const _CardShell({required this.child});
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final colors = context.appColors;
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: scheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: scheme.primary.withOpacity(0.25)),
-        boxShadow: colors.cardShadow,
-      ),
-      child: child,
     );
   }
 }
@@ -336,9 +575,12 @@ Future<void> _confirmDiscard(BuildContext context, Quotation draft) async {
         ),
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(true),
-          child: Text('common.discard'.tr,
-              style:
-                  TextStyle(color: Theme.of(dialogContext).colorScheme.error)),
+          child: Text(
+            'common.discard'.tr,
+            style: TextStyle(
+              color: Theme.of(dialogContext).colorScheme.error,
+            ),
+          ),
         ),
       ],
     ),
@@ -375,7 +617,14 @@ class _DraftsSheet extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: scheme.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.15),
+              blurRadius: 20.r,
+              offset: Offset(0, -4.h),
+            ),
+          ],
         ),
         child: ConstrainedBox(
           constraints: BoxConstraints(
@@ -388,36 +637,40 @@ class _DraftsSheet extends StatelessWidget {
               }
 
               return Padding(
-                padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+                padding: EdgeInsets.fromLTRB(16.w, 14.h, 16.w, 16.h),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Center(
                       child: Container(
-                        width: 40,
-                        height: 4,
+                        width: 44.w,
+                        height: 5.h,
                         decoration: BoxDecoration(
                           color: colors.border,
-                          borderRadius: BorderRadius.circular(2),
+                          borderRadius: BorderRadius.circular(2.5.r),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 14.h),
                     Text(
-                        'sync.continue_working'
-                            .trParams({'count': state.drafts.length}),
-                        style: TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w800,
-                            color: scheme.onSurface)),
-                    const SizedBox(height: 12),
+                      'sync.continue_working'
+                          .trParams({'count': state.drafts.length}),
+                      style: TextStyle(
+                        fontSize: 17.sp,
+                        fontWeight: FontWeight.w800,
+                        color: scheme.onSurface,
+                      ),
+                    ),
+                    SizedBox(height: 12.h),
                     if (state.drafts.isEmpty)
                       Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 30),
+                        padding: EdgeInsets.symmetric(vertical: 30.h),
                         child: Center(
-                          child: Text('sync.no_drafts_left'.tr,
-                              style: TextStyle(color: colors.textSecondary)),
+                          child: Text(
+                            'sync.no_drafts_left'.tr,
+                            style: TextStyle(color: colors.textSecondary),
+                          ),
                         ),
                       )
                     else
@@ -426,8 +679,7 @@ class _DraftsSheet extends StatelessWidget {
                           shrinkWrap: true,
                           physics: const BouncingScrollPhysics(),
                           itemCount: state.drafts.length,
-                          separatorBuilder: (_, __) =>
-                              const SizedBox(height: 10),
+                          separatorBuilder: (_, __) => SizedBox(height: 10.h),
                           itemBuilder: (context, i) =>
                               _DraftRow(draft: state.drafts[i]),
                         ),
@@ -450,42 +702,42 @@ class _DraftsSheetSkeleton extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final colors = context.appColors;
-    final skeletonColor = scheme.onSurface.withOpacity(0.12);
+    final skeletonColor = scheme.onSurface.withValues(alpha: 0.12);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
+      padding: EdgeInsets.fromLTRB(16.w, 14.h, 16.w, 24.h),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Center(
             child: Container(
-              width: 40,
-              height: 4,
+              width: 44.w,
+              height: 5.h,
               decoration: BoxDecoration(
                 color: colors.border,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(2.5.r),
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
           Container(
-            width: 160,
-            height: 18,
+            width: 160.w,
+            height: 18.h,
             decoration: BoxDecoration(
               color: skeletonColor,
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(4.r),
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
           ...List.generate(
             2,
             (index) => Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              height: 70,
+              margin: EdgeInsets.only(bottom: 10.h),
+              height: 70.h,
               decoration: BoxDecoration(
                 color: skeletonColor,
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(14.r),
               ),
             ),
           ),
@@ -499,55 +751,71 @@ class _DraftRow extends StatelessWidget {
   const _DraftRow({required this.draft});
   final Quotation draft;
 
+  static const Color _goldBorderColor = Color(0xFFCBA135);
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final colors = context.appColors;
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(12.r),
       decoration: BoxDecoration(
         color: scheme.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: colors.border),
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: _goldBorderColor.withValues(alpha: 0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 6.r,
+            offset: Offset(0, 3.h),
+          ),
+        ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('sync.quotation_n'.trParams({'id': draft.id}),
-              style: TextStyle(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 13,
-                  color: scheme.primary)),
-          const SizedBox(height: 2),
-          Text(_subtitle(draft),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 11.5, color: colors.textSecondary)),
-          const SizedBox(height: 10),
+          Text(
+            'sync.quotation_n'.trParams({'id': draft.id}),
+            style: TextStyle(
+              fontWeight: FontWeight.w800,
+              fontSize: 13.5.sp,
+              color: scheme.primary,
+            ),
+          ),
+          SizedBox(height: 2.h),
+          Text(
+            _subtitle(draft),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 11.5.sp, color: colors.textSecondary),
+          ),
+          SizedBox(height: 10.h),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               TextButton(
                 onPressed: () => _confirmDiscard(context, draft),
-                child: Text('common.discard'.tr,
-                    style: TextStyle(color: colors.textSecondary)),
+                child: Text(
+                  'common.discard'.tr,
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    color: colors.textSecondary,
+                  ),
+                ),
               ),
-              const SizedBox(width: 4),
-              OutlinedButton(
+              SizedBox(width: 4.w),
+              _ThreeDOutlinedButton(
+                label: 'common.submit'.tr,
                 onPressed: () => _submit(context, draft),
-                style:
-                    OutlinedButton.styleFrom(foregroundColor: scheme.primary),
-                child: Text('common.submit'.tr),
               ),
-              const SizedBox(width: 8),
-              FilledButton(
+              SizedBox(width: 8.w),
+              _ThreeDFilledButton(
+                label: 'common.continue'.tr,
                 onPressed: () {
                   Navigator.of(context).pop();
                   _continue(context, draft);
                 },
-                style: FilledButton.styleFrom(backgroundColor: scheme.primary),
-                child: Text('common.continue'.tr),
               ),
             ],
           ),

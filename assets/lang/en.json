@@ -326,6 +326,34 @@
       "rejected": "SAP rejected",
       "failed": "Sync failed",
       "conflict": "Conflict"
+    },
+    "guided_filter": {
+      "choose_category": "Choose Product Category",
+      "choose_category_hint": "Pick a product line to start building this quotation.",
+      "no_categories_title": "No product categories available",
+      "no_categories_message": "Sync the catalog to load product categories for your territory.",
+      "select_label": "Select {label}",
+      "step_progress": "Step {current} of {total}",
+      "no_options_title": "No {label} available",
+      "no_options_message": "Nothing matches the selections above. Remove a filter and try again.",
+      "items_count": "{count} items",
+      "results": "Products",
+      "results_count": "{count} product(s) match your filters",
+      "no_results_title": "No products match",
+      "no_results_message": "Nothing in stock matches this exact combination. Change a filter to widen the search.",
+      "change_filters": "Change filters",
+      "search_hint": "Search name, code, material code…",
+      "in_stock": "{count} in stock",
+      "error_title": "Could not load filters",
+      "filters": "Filters",
+      "sort_by": "Sort by",
+      "availability": "Availability",
+      "active_filters": "Active filters",
+      "apply": "Apply",
+      "clear_dependents_note": "Clearing a filter also clears the ones that depend on it.",
+      "find_new_product": "Find new product",
+      "cart_lines": "{count} line(s) in quotation",
+      "cart_units": "{count} unit(s) total"
     }
   },
   "leads": {
@@ -783,6 +811,7 @@
       "pending": "Pending",
       "en_route": "En Route",
       "arrived": "Arrived",
+      "in_progress": "In Progress",
       "checked_in": "Checked In",
       "completed": "Completed",
       "missed": "Missed"
@@ -873,6 +902,26 @@
       "action_maps": "Open Maps",
       "action_orders": "Previous Orders",
       "action_history": "Visit History"
+    },
+    "stop_dashboard": {
+      "search_hint": "Search shop, code, route, address",
+      "filter_all": "All",
+      "filter_pending": "Pending",
+      "filter_checked_in": "Checked In",
+      "filter_completed": "Completed",
+      "filter_skipped": "Skipped",
+      "stat_stops": "Stops",
+      "stat_completed": "Done",
+      "stat_remaining": "Left",
+      "stat_nearest": "Nearest",
+      "stat_distance": "Total dist.",
+      "stat_travel": "Travel",
+      "locating": "Finding your location…",
+      "location_denied": "Location off — stops aren't sorted by distance.",
+      "no_matches": "No stops match",
+      "no_matches_hint": "Try a different search or filter.",
+      "no_stops_today": "No stops for today",
+      "pull_to_sync": "Pull down to sync today's stops."
     }
   },
   "language": {
@@ -888,7 +937,7 @@
     "reload_apply": "Reload & Apply"
   },
   "calendar": {
-    "todays_routes": "Today Routes",
+    "todays_stops": "Today Routes",
     "months": {
       "m1": "January",
       "m2": "February",

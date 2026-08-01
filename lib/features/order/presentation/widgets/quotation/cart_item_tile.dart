@@ -46,36 +46,23 @@ class CartItemTile extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: _hasDrawing
-                  ? localFileImage(
-                      (item.drawingImagePath!),
-                      width: 56,
-                      height: 56,
-                      fit: BoxFit.cover,
-                    )
-                  : Image.network(
-                      item.product.imageUrl,
-                      width: 56,
-                      height: 56,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        width: 56,
-                        height: 56,
-                        color: colors.surfaceSoft,
-                        alignment: Alignment.center,
-                        child: Icon(
-                          item.isCustomized
-                              ? Icons.tune_rounded
-                              : Icons.inventory_2_outlined,
-                          color: colors.textHint,
-                          size: 22,
-                        ),
-                      ),
-                    ),
-            ),
-            const SizedBox(width: 10),
+            // Only a customization drawing earns a thumbnail here: it's the
+            // rep's own sketch and the one thing on the line that text can't
+            // convey. Catalog stock photos are omitted — a cart line is read
+            // for its code, specs and price, and the photo only pushed those
+            // sideways (and cost a network fetch per row).
+            if (_hasDrawing) ...[
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: localFileImage(
+                  (item.drawingImagePath!),
+                  width: 56,
+                  height: 56,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              const SizedBox(width: 10),
+            ],
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

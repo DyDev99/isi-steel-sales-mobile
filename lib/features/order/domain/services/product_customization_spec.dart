@@ -30,9 +30,8 @@ class ProductCustomizationSpec {
   /// The customization fields for [product], in a stable display order
   /// (numeric dimensions first, `appearance` last).
   static List<CustomizationField> fieldsFor(Product product) {
-    final name =
-        '${product.subCategory} ${product.familyName} ${product.name}'
-            .toLowerCase();
+    final name = '${product.subCategory} ${product.familyName} ${product.name}'
+        .toLowerCase();
 
     final Set<CustomizationField> selected;
     if (name.contains('pipe') || name.contains('tube')) {
@@ -41,7 +40,8 @@ class ProductCustomizationSpec {
         CustomizationField.thickness,
         CustomizationField.length,
       };
-    } else if (name.contains('flat') || name.contains('sheet') ||
+    } else if (name.contains('flat') ||
+        name.contains('sheet') ||
         name.contains('plate')) {
       selected = {
         CustomizationField.thickness,

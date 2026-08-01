@@ -160,6 +160,18 @@ class ProductDriftLocalDataSource implements ProductLocalDataSource {
   }
 
   @override
+  Future<void> pruneCategoriesNotIn(List<String> keepIds) async {
+    // Guard here as well as in the DAO: this is the call that can empty the
+    // category table, and it is reached from a network-fed list.
+    if (keepIds.isEmpty) return;
+    try {
+      await _dao.pruneCategoriesNotIn(keepIds);
+    } catch (e) {
+      throw CacheException(message: 'Failed to prune stale categories: $e');
+    }
+  }
+
+  @override
   Future<void> upsertProducts(List<ProductModel> products) async {
     try {
       await _dao.upsertCatalog(

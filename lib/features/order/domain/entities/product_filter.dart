@@ -5,6 +5,7 @@ enum ProductSortBy { relevance, nameAsc, priceAsc, priceDesc, stockDesc }
 class ProductFilter extends Equatable {
   const ProductFilter({
     this.categoryId,
+    this.familyId,
     this.subCategory,
     this.brand,
     this.warehouseCode,
@@ -21,6 +22,11 @@ class ProductFilter extends Equatable {
   });
 
   final String? categoryId;
+
+  /// Narrows to one product family (e.g. "Palm 70") — the level between a
+  /// category and a sellable SKU. Used by the guided filter flow; null on the
+  /// legacy browse path, where it is simply not part of the WHERE clause.
+  final String? familyId;
   final String? subCategory;
   final String? brand;
   final String? warehouseCode;
@@ -72,6 +78,7 @@ class ProductFilter extends Equatable {
 
   bool get isEmpty =>
       categoryId == null &&
+      familyId == null &&
       subCategory == null &&
       brand == null &&
       warehouseCode == null &&
@@ -85,6 +92,7 @@ class ProductFilter extends Equatable {
   /// old size/grade/etc. rarely apply to the new category.
   ProductFilter clearAttributes() => ProductFilter(
         categoryId: categoryId,
+        familyId: familyId,
         subCategory: subCategory,
         brand: brand,
         warehouseCode: warehouseCode,
@@ -94,6 +102,7 @@ class ProductFilter extends Equatable {
 
   ProductFilter copyWith({
     String? Function()? categoryId,
+    String? Function()? familyId,
     String? Function()? subCategory,
     String? Function()? brand,
     String? Function()? warehouseCode,
@@ -110,6 +119,7 @@ class ProductFilter extends Equatable {
   }) {
     return ProductFilter(
       categoryId: categoryId != null ? categoryId() : this.categoryId,
+      familyId: familyId != null ? familyId() : this.familyId,
       subCategory: subCategory != null ? subCategory() : this.subCategory,
       brand: brand != null ? brand() : this.brand,
       warehouseCode:
@@ -130,6 +140,7 @@ class ProductFilter extends Equatable {
   @override
   List<Object?> get props => [
         categoryId,
+        familyId,
         subCategory,
         brand,
         warehouseCode,

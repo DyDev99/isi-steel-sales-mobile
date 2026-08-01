@@ -51,8 +51,8 @@ class SuccessScreen extends StatelessWidget {
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 24, vertical: 16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 420),
                   child: Column(
@@ -78,8 +78,9 @@ class SuccessScreen extends StatelessWidget {
                             Text(
                               subtitle!,
                               textAlign: TextAlign.center,
-                              style:
-                                  TextStyle(color: context.appColors.textSecondary, fontSize: 15),
+                              style: TextStyle(
+                                  color: context.appColors.textSecondary,
+                                  fontSize: 15),
                             ),
                           ],
                         ],
@@ -138,9 +139,13 @@ class _SuccessBadge extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.12),
-        border: Border.all(color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.35), width: 1.5),
+        border: Border.all(
+            color:
+                Theme.of(context).colorScheme.secondary.withValues(alpha: 0.35),
+            width: 1.5),
       ),
-      child: Icon(icon, size: 42, color: Theme.of(context).colorScheme.secondary),
+      child:
+          Icon(icon, size: 42, color: Theme.of(context).colorScheme.secondary),
     );
   }
 }

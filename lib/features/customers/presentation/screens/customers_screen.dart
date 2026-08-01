@@ -4,7 +4,6 @@ import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localized_builder.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
-import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/add_customer_bottom_sheet.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customer_sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customers_bloc.dart';
@@ -19,17 +18,9 @@ import 'package:isi_steel_sales_mobile/features/lead/domain/entities/pipeline_st
 import 'package:isi_steel_sales_mobile/features/lead/presentation/bloc/pipeline_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/lead/presentation/bloc/pipeline_event.dart';
 import 'package:isi_steel_sales_mobile/features/lead/presentation/bloc/pipeline_state.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/navigation/open_quotation.dart';
+import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/add_customer_bottom_sheet.dart';
 
-/// How the directory is presented.
-///
-/// The first four are SAP-shaped views of the same result set: they group the
-/// list rather than narrowing it, so a rep can scan the directory by account
-/// code or by sales area without losing rows. Actual narrowing stays in the
-/// filter sheet, which is why selecting a view never hides a customer.
-///
-/// `recent` / `favorites` are retained alongside them — both are backed by real
-/// DAO tables and usecases, and dropping the chips would have orphaned working
-/// features (and the `favorite` / `lastVisit` fields).
 enum _QuickAccess {
   all,
   customer,
@@ -38,7 +29,6 @@ enum _QuickAccess {
   recent,
   favorites;
 
-  /// Views that group into sections instead of rendering one flat list.
   bool get isGrouped =>
       this == _QuickAccess.customer ||
       this == _QuickAccess.salesOrg ||
@@ -54,7 +44,6 @@ enum _QuickAccess {
       };
 }
 
-/// One rendered row: either a section header or a customer.
 sealed class _Row {
   const _Row();
 }
@@ -70,9 +59,6 @@ class _CustomerRow extends _Row {
   final Customer customer;
 }
 
-/// Directory of approved SAP customers — deliberately not another pipeline
-/// board. Every row here already passed Won -> Submitted -> HQ Approved ->
-/// SAP-created; there is no create/edit affordance on this screen.
 class CustomersScreen extends StatelessWidget {
   const CustomersScreen({super.key});
 
@@ -84,7 +70,6 @@ class CustomersScreen extends StatelessWidget {
             create: (_) =>
                 sl<CustomersBloc>()..add(const CustomersLoadRequested())),
         BlocProvider(create: (_) => sl<CustomerSyncCubit>()..syncIfNeeded()),
-        // Added PipelineBloc provider to retrieve won leads similarly to the Home view
         BlocProvider(
           create: (_) => sl<PipelineBloc>()..add(const PipelineLoadRequested()),
         ),
@@ -186,19 +171,12 @@ class _Loaded extends StatelessWidget {
           state.items.where((c) => state.favoriteIds.contains(c.id)).toList(),
       };
 
-  /// Flattens the visible customers into headers + rows for the current view.
-  ///
-  /// Grouping is done here rather than in the bloc because it is a pure
-  /// presentation concern — the same result set, re-sectioned. Keeping it out
-  /// of the bloc means switching views costs no query and no state emission.
   List<_Row> _buildRows(List<Customer> customers) {
     if (!quickAccess.isGrouped) {
       return customers.map<_Row>(_CustomerRow.new).toList(growable: false);
     }
 
     String keyFor(Customer c) => switch (quickAccess) {
-          // Group by the account-code prefix so a directory of thousands
-          // collapses into scannable buckets rather than one header per row.
           _QuickAccess.customer => c.customerCode.isEmpty
               ? 'customers.unassigned'.tr
               : c.customerCode[0].toUpperCase(),
@@ -214,9 +192,6 @@ class _Loaded extends StatelessWidget {
       grouped.putIfAbsent(keyFor(c), () => <Customer>[]).add(c);
     }
 
-    // Sort keys alphabetically, but always sink the "unassigned" bucket to the
-    // bottom — an unassigned sales area is noise, not a heading a rep wants
-    // first.
     final keys = grouped.keys.toList()
       ..sort((a, b) {
         if (a == '—') return 1;
@@ -241,11 +216,7 @@ class _Loaded extends StatelessWidget {
     final colors = context.appColors;
     final items = _visibleItems;
     final rows = _buildRows(items);
-    // Both option lists are derived from the loaded rows, so the sheet needs no
-    // network call. Caveat: `state.items` is the currently-paged slice, so a
-    // territory or category that exists only on an unloaded page won't appear
-    // until it is scrolled in — see the note in the customer-filter section of
-    // ADR-009's open questions.
+
     final territories = state.items.map((c) => c.territory).toSet().toList()
       ..sort();
     final productCategories =
@@ -286,7 +257,6 @@ class _Loaded extends StatelessWidget {
                           .add(CustomersFilterChanged(f)),
                     ),
                     onAddTap: () {
-                      // Obtains the PipelineBloc state exactly like QuickActionsSection
                       final pipelineState = context.read<PipelineBloc>().state;
                       if (pipelineState is PipelineLoaded) {
                         final wonLeads =
@@ -334,8 +304,6 @@ class _Loaded extends StatelessWidget {
                   final row = rows[index];
                   return switch (row) {
                     _HeaderRow(:final title, :final count) => _GroupHeader(
-                        // Keyed so a view switch animates headers in/out
-                        // instead of recycling one into another's text.
                         key: ValueKey('hdr_$title'),
                         title: title,
                         count: count,
@@ -348,6 +316,11 @@ class _Loaded extends StatelessWidget {
                         onFavoriteToggle: () => context
                             .read<CustomersBloc>()
                             .add(CustomersFavoriteToggled(customer.id)),
+                        onCreateQuotationTap: () => openQuotationForCustomer(
+                          context,
+                          customerId: customer.id,
+                          customerName: customer.shopName,
+                        ),
                       ),
                   };
                 },
@@ -374,8 +347,6 @@ class _QuickAccessRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Six chips no longer fit a phone width, so the row scrolls horizontally
-    // rather than overflowing or shrinking the labels to unreadable sizes.
     return SizedBox(
       height: 36,
       child: ListView.separated(
@@ -396,7 +367,6 @@ class _QuickAccessRow extends StatelessWidget {
   }
 }
 
-/// Section heading for the grouped views (Customer / Sales Org / Division).
 class _GroupHeader extends StatelessWidget {
   const _GroupHeader({super.key, required this.title, required this.count});
 

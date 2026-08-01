@@ -24,6 +24,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/save_a
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/update_route_status.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/update_stop_status.dart';
 import 'package:isi_steel_sales_mobile/core/usecase/usecase.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/quotation_builder_screen.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/events/active_route_event.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/state/active_route_state.dart';
 
@@ -101,13 +102,17 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
     final isActive = stop != null && stop.status == VisitStatus.checkedIn;
     final now = DateTime.now();
 
-    // Baseline for a live visit: the guided Stock Count step.
-    var workflow = isActive ? VisitWorkflow.stockCount : null;
-    String? screen;
+    // Baseline for a live visit: the Quotation task. The guided Stock Count
+    // step was removed from the visit flow (check-in now advances straight to
+    // the Quotation Builder), so the resume pointer written at check-in must
+    // target Quotation, not the retired stock-count screen.
+    var workflow = isActive ? VisitWorkflow.quotation : null;
+    String? screen = isActive ? QuotationBuilderScreen.routeName : null;
     Map<String, dynamic>? args = isActive
         ? {
             'stopId': stop.id,
             'customerId': stop.customer.id,
+            'customerName': stop.customer.name,
             'territory': stop.customer.territory,
           }
         : null;

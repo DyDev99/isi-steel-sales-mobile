@@ -64,10 +64,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (confirmed != true || !context.mounted) return;
     final ok = await context.read<ProfileCubit>().logout();
     if (!ok || !context.mounted) return;
-    // Drop the token/session (AuthBloc returns the user to guest browsing) and
-    // pop back to the shell — the app stays open, guest-first.
+
+    // Dispatch logout event to reset auth state
     context.read<AuthBloc>().add(const LogoutRequested());
-    Navigator.of(context).popUntil((route) => route.isFirst);
+
+    // Restart/reload the app navigation flow back to initial/root screen
+    // and wipe all existing screen history.
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      '/', // or AppRoutes.initial / splash / login route
+      (route) => false,
+    );
   }
 
   @override

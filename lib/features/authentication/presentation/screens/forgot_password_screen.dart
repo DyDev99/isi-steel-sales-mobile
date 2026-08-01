@@ -118,7 +118,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                       ? Icons.mark_email_read_outlined
                                       : Icons.lock_reset_outlined,
                                   size: 40,
-                                  color: Theme.of(context).colorScheme.secondary,
+                                  color:
+                                      Theme.of(context).colorScheme.secondary,
                                 ),
                                 const SizedBox(height: 18),
                                 Text(
@@ -127,7 +128,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                       : 'auth.forgot_password_title'.tr,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
-                                    color: Theme.of(context).colorScheme.onSurface,
+                                    color:
+                                        Theme.of(context).colorScheme.onSurface,
                                     fontSize: 26,
                                     fontWeight: FontWeight.w900,
                                     height: 1.15,
@@ -141,7 +143,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                       : 'auth.forgot_password_subtitle'.tr,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
-                                      color: context.appColors.textSecondary, fontSize: 15),
+                                      color: context.appColors.textSecondary,
+                                      fontSize: 15),
                                 ),
                               ],
                             ),
@@ -218,7 +221,8 @@ class _SuccessActions extends StatelessWidget {
             onPressed: onResend,
             child: Text(
               'auth.resend_or_try_different'.tr,
-              style: TextStyle(color: context.appColors.info, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                  color: context.appColors.info, fontWeight: FontWeight.w600),
             ),
           ),
         ),

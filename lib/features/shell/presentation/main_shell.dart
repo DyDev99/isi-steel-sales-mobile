@@ -24,9 +24,9 @@ import 'package:isi_steel_sales_mobile/features/lead/presentation/bloc/pipeline_
 import 'package:isi_steel_sales_mobile/features/lead/presentation/bloc/pipeline_event.dart';
 import 'package:isi_steel_sales_mobile/features/lead/presentation/screens/pipeline_screen.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/resumable_visit_cubit.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/route_dashboard_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/route_sync_cubit.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/route_dashboard_screen.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/stop_dashboard_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/stop_dashboard/stop_dashboard_screen.dart';
 import 'package:isi_steel_sales_mobile/features/notification/domain/usecases/fetch_notifications.dart';
 import 'package:isi_steel_sales_mobile/features/notification/presentation/screen/notifications_sheet.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/sync/continue_work_cubit.dart';
@@ -39,7 +39,6 @@ import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/guest
 import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/main_app_bar.dart';
 import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/monthly_target_widget.dart';
 import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/my_work_grid_section.dart';
-import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/quick_action_widget.dart';
 import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/sync/connectivity_banner.dart';
 import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/sync/continue_visit_card.dart';
 import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/sync/continue_working_card.dart';
@@ -64,15 +63,15 @@ class _MainShellState extends State<MainShell> {
   final ShellTabController _tabController = sl<ShellTabController>();
   final SessionManager _session = sl<SessionManager>();
 
-  /// Owned per shell instance (not static): each MainShell publishes its coach
-  /// anchors into its *own* registry, so two shells coexisting during the login
-  /// transition can never collide the way the old static GlobalKeys did.
   final CoachAnchorRegistry _coachAnchors = CoachAnchorRegistry();
 
   int _index = 0;
-
-  /// Tabs the user has actually opened.
   final Set<int> _builtTabs = <int>{0};
+
+  // Traditional Gold Accent Color Palette
+  static const Color _goldLight = Color(0xFFF3E5AB);
+  static const Color _goldPrimary = Color(0xFFD4AF37);
+  static const Color _goldDark = Color(0xFF996515);
 
   @override
   void initState() {
@@ -154,31 +153,65 @@ class _MainShellState extends State<MainShell> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
+            child: Row(
               children: [
-                Text(
-                  greetingKey.tr,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 13.sp,
-                    fontWeight: FontWeight.w500,
+                // Traditional Gold Pillar Accent Line
+                Container(
+                  width: 3.5.w,
+                  height: 32.h,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(2.r),
+                    gradient: const LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [_goldLight, _goldPrimary, _goldDark],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: _goldPrimary.withValues(alpha: 0.5),
+                        blurRadius: 6,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
-                SizedBox(height: 1.h),
-                Text(
-                  'Sokha Novel',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 19.sp,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.5,
+                SizedBox(width: 10.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        greetingKey.tr,
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.9),
+                          fontSize: 13.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      SizedBox(height: 1.h),
+                      Text(
+                        'Sokha Novel',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 19.sp,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -0.5,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black.withValues(alpha: 0.5),
+                              offset: const Offset(0, 2),
+                              blurRadius: 4,
+                            ),
+                          ],
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -263,10 +296,6 @@ class _MainShellState extends State<MainShell> {
                     child: const ContinueWorkingCard(),
                   ),
                   SizedBox(height: 8.h),
-                  CoachKeys.wrap(
-                    CoachKeys.quickActions,
-                    child: const QuickActionsSection(),
-                  ),
                   const MyWorkGridSection(),
                 ],
               ),
@@ -328,10 +357,10 @@ class _MainShellState extends State<MainShell> {
       case 2:
         return MultiBlocProvider(
           providers: [
-            BlocProvider(create: (_) => sl<RouteDashboardCubit>()),
+            BlocProvider(create: (_) => sl<StopDashboardCubit>()),
             BlocProvider(create: (_) => sl<RouteSyncCubit>()),
           ],
-          child: wrapWithTopSpacing(const MyVisitsDashboardScreen()),
+          child: wrapWithTopSpacing(const StopDashboardScreen()),
         );
       case 3:
         return wrapWithTopSpacing(
@@ -344,23 +373,10 @@ class _MainShellState extends State<MainShell> {
     }
   }
 
-  /// Persistent side navigation for tablet/desktop windows.
-  ///
-  /// On phones this app navigates between the five shell tabs through the app
-  /// bar and the home "My Work" grid — there is no bottom bar to replace. On a
-  /// wide window that leaves the primary sections with no always-visible
-  /// affordance at all, which reads as missing rather than minimal, so the rail
-  /// is added rather than swapped in.
-  ///
-  /// It drives the same [ShellTabController] as every other entry point, so
-  /// deep links, the home grid, and `sl<ShellTabController>().goTo(...)` calls
-  /// from anywhere all stay in sync with it for free.
   Widget _buildNavigationRail(BuildContext context, WindowSize size) {
     return NavigationRail(
       selectedIndex: _index,
       onDestinationSelected: _tabController.goTo,
-      // Labels are hidden on medium (where horizontal space is contested) and
-      // shown on expanded, matching Material 3's rail guidance.
       extended: false,
       labelType: size.isExpanded
           ? NavigationRailLabelType.all
@@ -410,14 +426,6 @@ class _MainShellState extends State<MainShell> {
             },
             child: Scaffold(
               backgroundColor: context.appColors.canvas,
-              // The rail sits *outside* the Stack rather than inside it, so the
-              // hero image, the app bar, and the tab content all lay out within
-              // the remaining width instead of sliding underneath the rail.
-              //
-              // On compact this Row is not built at all — `_buildBody` returns
-              // the identical Stack the phone layout has always used, so there
-              // is no extra widget in the mobile tree and no behaviour to
-              // regress.
               body: context.windowSize.hasSideNavigation
                   ? Row(
                       children: [
@@ -437,6 +445,7 @@ class _MainShellState extends State<MainShell> {
   Widget _buildBody(BuildContext context) {
     return Stack(
       children: [
+        // Top Hero Container with Traditional Gold Border Trim & 3D Depth
         Positioned(
           top: 0,
           left: 0,
@@ -448,36 +457,58 @@ class _MainShellState extends State<MainShell> {
             curve: Curves.easeInOut,
             child: IgnorePointer(
               ignoring: _index != 0,
-              child: ClipRRect(
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(32.r),
-                  bottomRight: Radius.circular(32.r),
-                ),
-                child: Stack(
-                  children: [
-                    Positioned.fill(
-                      child: Image.asset(
-                        'assets/images/isi_main_app_bar_bg.png',
-                        fit: BoxFit.cover,
-                      ),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(32.r),
+                    bottomRight: Radius.circular(32.r),
+                  ),
+                  // Outer Traditional Gold Trim & Elevation Shadow
+                  gradient: const LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [_goldLight, _goldPrimary, _goldDark],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.35),
+                      offset: const Offset(0, 6),
+                      blurRadius: 12,
                     ),
-                    Positioned.fill(
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.bottomCenter,
-                            end: Alignment.topCenter,
-                            colors: [
-                              Colors.black.withValues(alpha: 0.75),
-                              Colors.black.withValues(alpha: 0.25),
-                              Colors.transparent,
-                            ],
-                            stops: const [0.0, 0.5, 1.0],
+                  ],
+                ),
+                padding: EdgeInsets.only(bottom: 2.5.h), // Gold Bottom Frame
+                child: ClipRRect(
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(30.r),
+                    bottomRight: Radius.circular(30.r),
+                  ),
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: Image.asset(
+                          'assets/images/isi_main_app_bar_bg.png',
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      Positioned.fill(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.bottomCenter,
+                              end: Alignment.topCenter,
+                              colors: [
+                                Colors.black.withValues(alpha: 0.82),
+                                Colors.black.withValues(alpha: 0.30),
+                                Colors.transparent,
+                              ],
+                              stops: const [0.0, 0.55, 1.0],
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

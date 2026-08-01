@@ -45,7 +45,7 @@ order/
 | 1 | `TerritoryScreen` | Lists territories grouped from `BrowseCustomers`, with shop counts | Tap territory → Step 2 |
 | 2 | `ShopListScreen` | Lists shops in the territory, each with a lazily-loaded credit badge | Tap shop → Step 3 |
 | 3 | `ShopOrderEntryScreen` | Shows shop info, credit summary, captures GPS once. If not skipped, blocks progress until an `OffVisitReason` is picked via a bottom sheet | "Start Quotation" → Step 4 |
-| 4 | `QuotationBuilderScreen` | Catalog browse/search (text/voice/image), category & size/quality filters, add-to-cart, inline product detail, discounts, cart preview. Sync runs on init | "Save" → Step 5 |
+| 4 | `QuotationBuilderScreen` | **Guided product configurator** (see §11) — category → SAP-defined filter hierarchy → products → add-to-cart. Then discounts, cart preview. Sync runs on init | "Save" → Step 5 |
 | 5 | `QuotationDetailScreen` | Read-only summary of the saved quotation (lines, totals, status). "Convert to Sales Order" is disabled for lead-scoped quotations | "Convert" → Step 6, or "Edit Quotation" → back to Step 4 (edit mode) |
 | 6 | `SalesOrderScreen` | Editable line list seeded from the quotation (qty change/remove), "Create Sales Order in SAP" (mocked — freezes totals, no repricing) | Success → Step 7 |
 | 7 | `OrderSuccessScreen` | Terminal screen — shows the confirmed sales order. "Done" pops to app root | — |
@@ -93,9 +93,65 @@ Search modalities (barcode, voice, image) all resolve to a text query and feed t
 
 Same idle/in-progress/succeeded/failed cubit shape as `my_visits`' route sync, but catalog-scoped only (products + categories), keyed by `SyncScope.forCurrentUser`. `SyncRepositoryImpl` is the only repository allowed to touch `ProductRemoteDataSource`. Initial sync pages through the backend (500/page), upserting products after each page and syncing all categories up front. Delta sync fetches everything changed since the last sync (falls back to a full initial sync if never synced) and applies upserts + deletes. Cart/quotation/sales-order data is never synced remotely — it's purely local, "SAP" is only mocked at the point of conversion.
 
+## 11. Product finder (quotation product selection)
+
+Entering a quotation no longer loads a product list. Screen order is fixed:
+
+```
+Search + Filter  (always visible, every stage)
+Active filter chips
+Category → [SAP-defined steps, one at a time] → Products
+Cart summary + Find New Product
+```
+
+**Two ways in, both bounded.** A new rep walks the hierarchy; an experienced rep types a material code from the category screen and gets products immediately. `ProductFilterFlowBloc` has one call site for `BrowseProducts`, gated on `hasSearch || isFilterComplete` — browsing must finish the hierarchy, searching must clear `minQueryLength` (2). Nothing else can reach the catalog, so an idle screen still can't pull the whole product list.
+
+Search covers code, name, SKU, barcode, **material code** and description. Query sanitisation keeps `-`, `.` and `/` — stripping them made every hyphenated material-code search unmatchable.
+
+**Quantity is the commit.** There is no Add button. `CartQuantityStepper` on each card writes straight through `CartLineBinding` to `CartCubit`: zero removes the line, above zero creates or updates it. `CartLineBinding` mirrors `CartCubit.addProduct`'s own merge rule (product + unit + lead + customer, customized lines excluded) so the two can't disagree about what "the same line" is.
+
+**Find New Product** clears category, steps, search and results, keeps the cart, and returns to category selection — the "next line item" action.
+
+**Filter button** (always visible) opens `FilterOptionsSheet`: sort, in-stock-only, per-chip clearing and clear-all. Those are preferences *over* the result set, so they re-run the query but never invalidate an answered step.
+
+**Removed from the builder**: the unit picker, the standalone quantity stepper, and the header discount-percentage chips. The header discount was preview-only — it was never persisted (`SaveQuotation` takes no discount argument), so removing it changes no stored quotation. Per-line discounts (`CartItem.discountPercent`, `CartCubit.updateDiscount`) are untouched and still reach the totals through the cart subtotal.
+
+**Where the hierarchy comes from.** The steps a category exposes — which ones, in what order, under what business label, rendered as chips or a grid — are published by SAP (`ProductFilterRemoteDataSource`, mocked by `isi_filter_schema_data.dart`). Nothing in `presentation/` or `domain/` knows that Palm walks Profile → Family → Thickness → Colour → Length while DeBar walks Diameter → Grade → Length. Adding a level is a backend change.
+
+**Where the values come from.** Option values are `SELECT DISTINCT … GROUP BY` aggregates over the locally synced catalog (`CatalogDao.distinctFacetValues`), narrowed by every answer above. Consequences:
+
+- Each level costs one query returning a few dozen short strings, regardless of catalog size — a 100k-SKU catalog is walkable offline.
+- An option that matches nothing is never offered, so the flow is dead-end free.
+- A step with no options for the current path is **skipped**, not shown empty — which is what lets one generic fallback schema serve categories of very different attribute coverage.
+
+**Layers**
+
+| Layer | Type |
+|---|---|
+| Entities | `filter/{filter_step, filter_option, filter_selection, category_filter_schema, product_attribute}.dart` |
+| Repository | `ProductFilterRepository` → `ProductFilterRepositoryImpl` (remote schema + local facet values) |
+| Usecases | `FetchFilterCategories`, `GetCategoryFilterSchema`, `GetFilterStepOptions` (+ existing `BrowseProducts` for the final page) |
+| Bloc | `ProductFilterFlowBloc` — owns the entire flow; the only call site for `BrowseProducts`, reachable only once every required step is answered |
+| Widgets | `widgets/filter_flow/` — `product_search_bar`, `category_selector`, `product_family_selector`, `dynamic_filter_section`, `filter_chip_bar`, `filter_options_sheet`, `product_result_grid`, `product_result_card`, `cart_quantity_stepper`, `cart_summary_bar`, `find_new_product_button`, `empty_products`, `loading_products`, `filter_flow_transition`, `guided_product_filter_view` |
+| Cart plumbing | `cart_line_binding.dart` — the one translation from "stepper reads N" to a `CartCubit` add/update/remove |
+
+**Invalidation rule** (in `FilterSelection`, not the bloc): answering or clearing a step drops every answer below it, plus the product list. Removing the Thickness chip clears Length and the results but keeps Category + Family.
+
+**Search** appears only once products are resolved, and narrows within them (name / code / material code / description via the existing `BrowseProducts` LIKE query). Voice and photo lookup feed the same query.
+
+**Demo data.** `isi_demo_catalog.dart` — 10 categories transcribed from the real SAP material master (`SAP_BP_Data.pbix`): Palm Profile Roofing, PU Insulated Panels, Roofing Accessories, Cold Formed Sections, Galvanized Pipes, K-Pipe, GI Steel Sheet, GI Steel Bending, Reinforcement (traded), Beams (traded) — x **exactly 6 SKUs each**, so every branch of every schema is walkable end to end. Material numbers, descriptions (English + Khmer), grades, gauges and net weights are verbatim SAP values; only price is synthesized. `mock_product_data.dart` generates the traded/MRO bulk catalog on top, which still exercises paging. Category ids across the two never collide — a generated row landing in an ISI category would inject invented gauges into the guided flow.
+
+**Sync triggering.** `SyncCubit.syncIfNeeded()` pulls when the device has never synced **or** when it holds a sync timestamp with an empty catalog. The timestamp alone is not evidence: a device that synced under a previous taxonomy carries a valid date over zero products, and keying off the date read that as "nothing to do" — the empty category picker with no way to recover. When the timestamp and the catalog disagree, the catalog wins. Both finder hosts provide `SyncCubit` themselves and reload the flow on `SyncSucceeded`, so neither depends on whichever screen the rep arrived from having synced.
+
+**Category sync.** Categories are reference data with no tombstone, so `SyncRepositoryImpl._syncCategories()` fetches the full list and calls `pruneCategoriesNotIn` on **both** the initial and delta paths. Delta matters most: a device that had already synced would otherwise pull changed products forever and never learn the taxonomy moved, showing an empty category picker over a full catalog. Schema v14 clears catalog tables + `catalog_sync_meta` so existing installs re-pull rather than delta against ids that no longer exist.
+
+**Khmer search.** The query sanitizer keeps `\p{L}\p{N}\p{M}` — the `\p{M}` is load-bearing. Khmer builds a syllable from a base consonant plus combining marks, all category M; dropping them shatters one word into space-separated consonants that LIKE can never match. Covered by a test that pulls a real Khmer word out of the catalog rather than hardcoding one.
+
 ## 10. Known gaps / things to verify or flag
 
 - Barcode scanning (`BarcodeScannerService`/`GetProductByBarcode`) exists end-to-end but isn't currently wired to a button in `CatalogSearchBar` — dead entry point until hooked up.
 - `QuotationStatus.converted` may never actually get set — `SalesOrderRepositoryImpl.createFromQuotation` doesn't appear to call `markConverted()` on the source quotation. Worth confirming before relying on that status in reporting/UI.
 - `OrderSuccessScreen`'s `onNewOrder` callback is scaffolded (doc comment says it's meant to be hidden for Lead/Route-Stock-Count entry points) but is never actually passed from `SalesOrderScreen` today — the "New Order" action is unreachable.
 - Tapping a confirmed sales-order row on `OrderScreen`'s recent list does nothing (`onTap: null`) — only quotations are tappable there.
+- `ShopListScreen.seedSearchTerm` (the out-of-stock item handed over from Route Stock Count) no longer pre-seeds a catalog search — the guided configurator has no catalog-wide search to seed. Tagged `TODO(order)` in `shop_order_entry_screen.dart`; wants a SAP product → category resolve endpoint so the hand-off can pre-select a category instead.
+- `CatalogBloc` and `widgets/catalog/product_lists_section.dart` are no longer used by the quotation builder or the filter screen. Left in place rather than deleted in the same change — removing them is a separate refactor.

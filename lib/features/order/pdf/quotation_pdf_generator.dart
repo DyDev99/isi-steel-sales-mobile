@@ -406,7 +406,8 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
                       decoration: pw.BoxDecoration(
                         color: theme.panel,
                         borderRadius: pw.BorderRadius.circular(3),
-                        border: pw.Border.all(color: theme.brandAccent, width: 0.5),
+                        border:
+                            pw.Border.all(color: theme.brandAccent, width: 0.5),
                       ),
                       child: _t(
                         _l('orders.quotation.pdf.customized', 'CUSTOMIZED'),

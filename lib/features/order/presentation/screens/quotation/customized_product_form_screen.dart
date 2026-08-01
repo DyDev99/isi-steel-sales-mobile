@@ -175,7 +175,6 @@ class __CustomizedProductFormViewState
                       children: [
                         _buildBaseProductHeader(theme, colorScheme),
                         const SizedBox(height: 20),
-
                         _SectionTitle(title: '1. TECHNICAL DRAWING / SKETCH'),
                         const SizedBox(height: 8),
                         DrawingUploadComponent(
@@ -184,13 +183,11 @@ class __CustomizedProductFormViewState
                           onRemoveImage: () => cubit.removeDrawing(),
                         ),
                         const SizedBox(height: 24),
-
                         _SectionTitle(
                             title: '2. SPECIFICATIONS FOR '
                                 '${widget.baseProduct.subCategory.toUpperCase()}'),
                         const SizedBox(height: 12),
                         _buildMeasurementFields(cubit),
-
                         if (_hasAppearance) ...[
                           const SizedBox(height: 20),
                           _SectionTitle(title: '3. APPEARANCE / FINISH'),
@@ -208,7 +205,6 @@ class __CustomizedProductFormViewState
                             ),
                           ),
                         ],
-
                         const SizedBox(height: 20),
                         _SectionTitle(
                             title:
@@ -235,8 +231,8 @@ class __CustomizedProductFormViewState
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: colorScheme.surface,
-                  border:
-                      Border(top: BorderSide(color: colorScheme.outlineVariant)),
+                  border: Border(
+                      top: BorderSide(color: colorScheme.outlineVariant)),
                 ),
                 child: SafeArea(
                   child: Row(
@@ -269,16 +265,14 @@ class __CustomizedProductFormViewState
   bool get _hasAppearance => _fields.contains(CustomizationField.appearance);
 
   Widget _buildMeasurementFields(CustomizationCubit cubit) {
-    final numericFields = _fields
-        .where((f) => f != CustomizationField.appearance)
-        .toList();
+    final numericFields =
+        _fields.where((f) => f != CustomizationField.appearance).toList();
 
     // Two-per-row grid.
     final rows = <Widget>[];
     for (var i = 0; i < numericFields.length; i += 2) {
       final left = numericFields[i];
-      final right =
-          i + 1 < numericFields.length ? numericFields[i + 1] : null;
+      final right = i + 1 < numericFields.length ? numericFields[i + 1] : null;
       rows.add(Padding(
         padding: const EdgeInsets.only(bottom: 12),
         child: Row(

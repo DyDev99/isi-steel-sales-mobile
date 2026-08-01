@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:isi_steel_sales_mobile/core/error/exceptions.dart';
+import 'package:isi_steel_sales_mobile/features/order/data/mock/isi_demo_catalog.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/mock/mock_product_data.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/models/category_model.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/models/product_model.dart';
@@ -28,23 +29,43 @@ class MockProductRemoteDataSource implements ProductRemoteDataSource {
     try {
       final raw = await rootBundle.loadString('assets/mock/products.json');
       final decoded = jsonDecode(raw) as Map<String, dynamic>;
-      final productsJson = decoded['products'] as List;
-      final categoriesJson = decoded['categories'] as List;
-      _products = productsJson
-          .map((e) => ProductModel.fromJson(e as Map<String, dynamic>))
-          .toList();
-      _categories = categoriesJson
-          .map((e) => CategoryModel.fromJson(e as Map<String, dynamic>))
-          .toList();
+      _products = _parseProducts(decoded['products'] as List);
+      _categories = _parseCategories(decoded['categories'] as List);
     } catch (_) {
       final generated = MockProductData.generate();
-      _products = (generated['products'] as List)
-          .map((e) => ProductModel.fromJson(e as Map<String, dynamic>))
-          .toList();
-      _categories = (generated['categories'] as List)
-          .map((e) => CategoryModel.fromJson(e as Map<String, dynamic>))
-          .toList();
+      _products = _parseProducts(generated['products'] as List);
+      _categories = _parseCategories(generated['categories'] as List);
     }
+    _mergeIsiDemoLines();
+  }
+
+  List<ProductModel> _parseProducts(List raw) =>
+      raw.map((e) => ProductModel.fromJson(e as Map<String, dynamic>)).toList();
+
+  List<CategoryModel> _parseCategories(List raw) => raw
+      .map((e) => CategoryModel.fromJson(e as Map<String, dynamic>))
+      .toList();
+
+  /// Folds the hand-written ISI demo lines into whatever the feed returned.
+  ///
+  /// Done here rather than only inside [MockProductData] so the committed
+  /// `assets/mock/products.json` — 20 MB, generated before these lines existed —
+  /// doesn't have to be regenerated for the guided configurator to have data.
+  /// Ids are stable and prefixed, so re-running the generator and re-merging
+  /// converge on the same rows rather than duplicating them.
+  void _mergeIsiDemoLines() {
+    final existingProducts = _products!.map((p) => p.id).toSet();
+    _products!.addAll(
+      _parseProducts(IsiDemoCatalog.products())
+          .where((p) => !existingProducts.contains(p.id)),
+    );
+
+    final existingCategories = _categories!.map((c) => c.id).toSet();
+    _categories!.insertAll(
+      0,
+      _parseCategories(IsiDemoCatalog.categories())
+          .where((c) => !existingCategories.contains(c.id)),
+    );
   }
 
   bool _inScope(ProductModel p, SyncScope scope) =>

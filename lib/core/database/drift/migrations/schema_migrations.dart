@@ -4,7 +4,7 @@ import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
 /// The single source of truth for the encrypted database's schema version.
 /// Bump this by exactly one whenever a schema change ships, and add the matching
 /// step to [_stepwiseMigrations].
-const int kCurrentSchemaVersion = 13;
+const int kCurrentSchemaVersion = 14;
 
 /// Keys under which the migrator records bookkeeping in `app_metadata`, so the
 /// on-device schema history is auditable and a failed/partial upgrade is
@@ -218,6 +218,33 @@ final Map<int, SchemaMigrationStep> _stepwiseMigrations =
   // Separate from v12 so a failure here leaves a coherent Orders schema rather
   // than a half-built cutover, matching the v7/v8 split.
   13: (m, db) async => m.createTable(db.workflowState),
+  // v14: catalog taxonomy reset — no schema change, a data reset.
+  //
+  // The demo catalog's categories moved from invented steel groupings to the
+  // ones derived from SAP's material master, so every `category_id` on disk
+  // changed. Categories carry no tombstone (they are reference data replaced
+  // wholesale on sync, not a syncable entity), so the retired rows would
+  // survive and orphan `categoriesWithProducts()` — the product finder would
+  // open on categories that dead-end on the first tap.
+  //
+  // Products go too: theirs point at category ids that no longer exist, which
+  // reads as "catalog populated" while every guided-filter query returns
+  // nothing. Child rows are deleted ahead of products because prices/stock
+  // carry a foreign key onto it.
+  //
+  // Clearing `catalog_sync_meta` is the load-bearing line: `getLastSyncedAt`
+  // is what `syncIfNeeded()` uses to choose initial vs delta, so leaving it
+  // set would delta against the tables just emptied and repopulate almost
+  // nothing.
+  14: (m, db) async {
+    await db.customStatement('DELETE FROM prices;');
+    await db.customStatement('DELETE FROM stock;');
+    await db.customStatement('DELETE FROM favorites;');
+    await db.customStatement('DELETE FROM recent_products;');
+    await db.customStatement('DELETE FROM products;');
+    await db.customStatement('DELETE FROM categories;');
+    await db.customStatement('DELETE FROM catalog_sync_meta;');
+  },
 };
 
 /// Builds the [MigrationStrategy] for [db]: creates the schema on first run,

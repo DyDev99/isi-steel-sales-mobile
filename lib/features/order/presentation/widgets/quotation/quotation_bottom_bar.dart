@@ -10,12 +10,10 @@ class QuotationBottomBar extends StatelessWidget {
     super.key,
     required this.onSave,
     this.onBack,
-    required this.discount,
   });
 
   final VoidCallback onSave;
   final VoidCallback? onBack;
-  final int discount;
 
   @override
   Widget build(BuildContext context) {

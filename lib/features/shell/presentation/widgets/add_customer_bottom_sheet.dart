@@ -6,7 +6,7 @@ import 'package:phone_form_field/phone_form_field.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
-import 'package:isi_steel_sales_mobile/core/device/device_insets.dart'; // TODO: fix path to match where you put device_insets.dart
+import 'package:isi_steel_sales_mobile/core/device/device_insets.dart';
 import 'package:isi_steel_sales_mobile/features/home/presentation/bloc/add_customer_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/lead.dart';
 
@@ -16,8 +16,15 @@ void showAddCustomerSheet(BuildContext context,
     context: context,
     backgroundColor: Colors.transparent,
     isScrollControlled: true,
+    enableDrag: true,
+    // Animation configuration for smooth entrance and exit
+    sheetAnimationStyle: AnimationStyle(
+      duration: const Duration(milliseconds: 400),
+      reverseDuration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutCubic,
+      reverseCurve: Curves.easeInCubic,
+    ),
     builder: (BuildContext modalContext) {
-      // Fixed: The sheet handles its internal provider scope self-contained
       return AddCustomerBottomSheet(wonLeads: wonLeads);
     },
   );
@@ -75,7 +82,6 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    // Fixed: Wrapped with BlocProvider directly inside build to survive Navigator route push
     return BlocProvider<AddCustomerBloc>(
       create: (context) => sl<AddCustomerBloc>(),
       child: BlocConsumer<AddCustomerBloc, AddCustomerState>(
@@ -88,52 +94,74 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
           }
         },
         builder: (context, state) {
-          return Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(28)),
+          return AnimatedPadding(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
             ),
-            padding: EdgeInsets.fromLTRB(
-                24.w,
-                16.h,
-                24.w,
-                // Was viewInsets.bottom + 24.h — that only accounted for the
-                // keyboard. With the keyboard closed, the CTA button sat flush
-                // against the iOS home indicator / Android gesture bar.
-                // sheetBottomInset adds the safe-area inset in that case too.
-                context.deviceInsets.sheetBottomInset(extra: 24.h)),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 42.w,
-                    height: 5.h,
-                    decoration: BoxDecoration(
-                      color: context.appColors.border,
-                      borderRadius: BorderRadius.circular(10),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(28)),
+              ),
+              padding: EdgeInsets.fromLTRB(24.w, 16.h, 24.w,
+                  context.deviceInsets.sheetBottomInset(extra: 24.h)),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 42.w,
+                      height: 5.h,
+                      decoration: BoxDecoration(
+                        color: context.appColors.border,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
                   ),
-                ),
-                SizedBox(height: 20.h),
-                _buildFormHeader(state),
-                SizedBox(height: 20.h),
-                if (state.status == AddCustomerStatus.submitting)
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(40),
-                      child: CircularProgressIndicator(
-                          color: Theme.of(context).colorScheme.secondary),
-                    ),
-                  )
-                else ...[
-                  _buildActiveStepBody(state),
+                  SizedBox(height: 20.h),
+                  _buildFormHeader(state),
+                  SizedBox(height: 20.h),
+
+                  // Smooth Animated Transition between Step Views
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    switchInCurve: Curves.easeInOut,
+                    switchOutCurve: Curves.easeInOut,
+                    transitionBuilder:
+                        (Widget child, Animation<double> animation) {
+                      return FadeTransition(
+                        opacity: animation,
+                        child: SizeTransition(
+                          sizeFactor: animation,
+                          axisAlignment: -1.0,
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: state.status == AddCustomerStatus.submitting
+                        ? Center(
+                            key: const ValueKey('submitting_loader'),
+                            child: Padding(
+                              padding: const EdgeInsets.all(40),
+                              child: CircularProgressIndicator(
+                                  color:
+                                      Theme.of(context).colorScheme.secondary),
+                            ),
+                          )
+                        : KeyedSubtree(
+                            key: ValueKey(state.currentStep),
+                            child: _buildActiveStepBody(state),
+                          ),
+                  ),
+
                   SizedBox(height: 24.h),
                   _buildFormNavigationActionButtons(context, state),
-                ]
-              ],
+                ],
+              ),
             ),
           );
         },
@@ -164,11 +192,17 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title,
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 250),
+              child: Text(
+                title,
+                key: ValueKey(title),
                 style: TextStyle(
                     color: Theme.of(context).colorScheme.onSurface,
                     fontSize: 20.sp,
-                    fontWeight: FontWeight.w900)),
+                    fontWeight: FontWeight.w900),
+              ),
+            ),
             Text('add_customer.subtitle'.tr,
                 style: TextStyle(
                     color: Theme.of(context)

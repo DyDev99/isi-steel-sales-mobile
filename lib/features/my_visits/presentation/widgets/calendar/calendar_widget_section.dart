@@ -5,31 +5,15 @@ import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/calendar/calendar_month_view.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/calendar/calendar_toggle_button.dart';
 
-/// Compact-by-default, expandable monthly route calendar for the My Visit
-/// Dashboard.
-///
-/// Collapsed, it's just today's date plus a dot summary of today's routes —
-/// a glance, not a whole screen of grid. Tapping it reveals the full month
-/// view via [AnimatedSize] so a field rep can still drill into any date to
-/// plan ahead, without the calendar eating vertical space by default.
-///
-/// This widget owns no Bloc/repository access on purpose — [routeCountForDate]
-/// is a pure function the caller supplies, so the calendar itself stays
-/// reusable and testable independent of how "routes for a day" is computed.
-/// See `_MyVisitsDashboardScreenState.routesScheduledOn` in
-/// `route_dashboard_screen.dart` for the (currently placeholder — see the
-/// comment there) date association it's fed today.
-///
-/// Replaces the previous `GridCalendarCard`, which rendered the full month
-/// grid unconditionally and took ~2x the vertical space this does collapsed.
-class RouteCalendarSection extends StatefulWidget {
-  const RouteCalendarSection({
+/// Compact-by-default, expandable monthly stop calendar for the My Visit Dashboard.
+class StopCalendarSection extends StatefulWidget {
+  const StopCalendarSection({
     super.key,
     required this.focusedMonth,
     required this.selectedDate,
     required this.onMonthChanged,
     required this.onDateSelected,
-    required this.routeCountForDate,
+    required this.stopCountForDate,
     this.initiallyExpanded = false,
   });
 
@@ -38,19 +22,16 @@ class RouteCalendarSection extends StatefulWidget {
   final ValueChanged<DateTime> onMonthChanged;
   final ValueChanged<DateTime> onDateSelected;
 
-  /// Number of routes scheduled on [date]. Pure and side-effect free — this
-  /// widget calls it for every visible cell, so keep it cheap (an O(n) scan
-  /// per cell is fine for the route counts this app deals with, but cache
-  /// upstream if that ever changes).
-  final int Function(DateTime date) routeCountForDate;
+  /// Number of stops scheduled on [date].
+  final int Function(DateTime date) stopCountForDate;
 
   final bool initiallyExpanded;
 
   @override
-  State<RouteCalendarSection> createState() => _RouteCalendarSectionState();
+  State<StopCalendarSection> createState() => _StopCalendarSectionState();
 }
 
-class _RouteCalendarSectionState extends State<RouteCalendarSection> {
+class _StopCalendarSectionState extends State<StopCalendarSection> {
   bool _expanded = false;
 
   @override
@@ -77,24 +58,9 @@ class _RouteCalendarSectionState extends State<RouteCalendarSection> {
         children: [
           CalendarToggleButton(
             expanded: _expanded,
-            todayRouteCount: widget.routeCountForDate(today),
+            todayStopCount: widget.stopCountForDate(today),
             onTap: () => setState(() => _expanded = !_expanded),
           ),
-          // ClipRect + AnimatedSize, with both branches explicitly keyed.
-          //
-          // `RenderAnimatedSize` only restarts its animation when it observes a
-          // layout in which the child's size actually changed. If the child is
-          // swapped while this subtree is laid out but not visible — an
-          // offstage `IndexedStack` tab, or a `ListView` recycling it — that
-          // size change is never observed and the render box keeps its previous
-          // height. The card above has a solid `colors.card` background, so the
-          // visible result was a tall empty white block where the calendar
-          // should be: the collapsed (zero-height) child painted inside a box
-          // still sized for the expanded month grid.
-          //
-          // Distinct keys force a genuine element swap so the new size is
-          // always observed, and ClipRect guarantees nothing paints outside the
-          // animating bounds even if a frame lands mid-transition.
           ClipRect(
             child: AnimatedSize(
               duration: const Duration(milliseconds: 260),
@@ -109,7 +75,7 @@ class _RouteCalendarSectionState extends State<RouteCalendarSection> {
                         selectedDate: widget.selectedDate,
                         onMonthChanged: widget.onMonthChanged,
                         onDateSelected: widget.onDateSelected,
-                        routeCountForDate: widget.routeCountForDate,
+                        stopCountForDate: widget.stopCountForDate,
                       ),
                     )
                   : const SizedBox(

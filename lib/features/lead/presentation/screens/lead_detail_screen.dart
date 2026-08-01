@@ -30,8 +30,6 @@ import 'package:isi_steel_sales_mobile/features/lead/presentation/widgets/priori
 import 'package:isi_steel_sales_mobile/features/lead/presentation/widgets/send_to_hq_sheet.dart';
 import 'package:isi_steel_sales_mobile/features/lead/presentation/widgets/stage_badge.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_cubit.dart';
-import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/catalog_bloc.dart';
-import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/catalog_event.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/quotation_builder_screen.dart';
 
@@ -174,9 +172,8 @@ class _DetailBody extends StatelessWidget {
       settings: const RouteSettings(name: QuotationBuilderScreen.routeName),
       builder: (_) => MultiBlocProvider(
         providers: [
-          BlocProvider(
-              create: (_) =>
-                  sl<CatalogBloc>()..add(const CatalogLoadRequested())),
+          // No catalog pre-load: the builder opens on the guided product
+          // configurator, which fetches categories only.
           BlocProvider(create: (_) => sl<CartCubit>()..load()),
           BlocProvider(create: (_) => sl<SyncCubit>()),
         ],

@@ -12,14 +12,18 @@ import 'package:isi_steel_sales_mobile/features/order/data/local/cart_drift_loca
 import 'package:isi_steel_sales_mobile/features/order/data/local/cart_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/local/catalog_filter_store.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/local/product_drift_local_data_source.dart';
+import 'package:isi_steel_sales_mobile/features/order/data/local/product_filter_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/local/product_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/local/quotation_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/local/sync_queue_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/local/sales_order_local_data_source.dart';
+import 'package:isi_steel_sales_mobile/features/order/data/remote/mock_product_filter_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/remote/mock_product_remote_data_source.dart';
+import 'package:isi_steel_sales_mobile/features/order/data/remote/product_filter_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/remote/product_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/repositories/cart_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/repositories/category_repository_impl.dart';
+import 'package:isi_steel_sales_mobile/features/order/data/repositories/product_filter_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/repositories/product_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/repositories/quotation_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/repositories/sales_order_repository_impl.dart';
@@ -30,12 +34,12 @@ import 'package:isi_steel_sales_mobile/features/order/data/services/mock_quotati
 import 'package:isi_steel_sales_mobile/features/order/data/services/mock_mto_pricing_service.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/repositories/cart_repository.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/repositories/category_repository.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/repositories/product_filter_repository.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/repositories/product_repository.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/repositories/quotation_repository.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/repositories/sales_order_repository.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/repositories/sync_queue_repository.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/repositories/sync_repository.dart';
-import 'package:isi_steel_sales_mobile/features/order/domain/services/barcode_scanner_service.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/services/credit_service.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/services/image_search_service.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/services/mto_pricing_service.dart';
@@ -54,8 +58,11 @@ import 'package:isi_steel_sales_mobile/features/order/domain/usecases/fetch_bran
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/fetch_cart.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/fetch_categories.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/fetch_favorites.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/usecases/fetch_filter_categories.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/fetch_recent_products.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_category_filter_schema.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_credit_summary.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_filter_step_options.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_last_synced_at.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_pricing.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_product_by_barcode.dart';
@@ -81,6 +88,7 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/car
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/catalog_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/product_detail_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/sync_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/product_filter_flow/product_filter_flow_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/sync/continue_work_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/sync/pending_sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/services/geolocator_order_location_service.dart';
@@ -111,6 +119,10 @@ Future<void> registerOrderFeature(GetIt sl) async {
       () => SalesOrderLocalDataSourceImpl(sl<AppDatabase>().salesOrderDao));
   sl.registerLazySingleton<ProductRemoteDataSource>(
       () => MockProductRemoteDataSource());
+  sl.registerLazySingleton<ProductFilterRemoteDataSource>(
+      () => MockProductFilterRemoteDataSource());
+  sl.registerLazySingleton<ProductFilterLocalDataSource>(
+      () => ProductFilterDriftLocalDataSource(sl<AppDatabase>().catalogDao));
   sl.registerLazySingleton<CatalogFilterStore>(
       () => CatalogFilterStore(HiveService.cacheBox));
   sl.registerLazySingleton<SyncQueueLocalDataSource>(
@@ -135,6 +147,8 @@ Future<void> registerOrderFeature(GetIt sl) async {
       () => ProductRepositoryImpl(sl()));
   sl.registerLazySingleton<CategoryRepository>(
       () => CategoryRepositoryImpl(sl()));
+  sl.registerLazySingleton<ProductFilterRepository>(
+      () => ProductFilterRepositoryImpl(remote: sl(), local: sl()));
   sl.registerLazySingleton<CartRepository>(
       () => CartRepositoryImpl(cartLocal: sl(), productLocal: sl()));
   sl.registerLazySingleton<QuotationRepository>(
@@ -175,6 +189,11 @@ Future<void> registerOrderFeature(GetIt sl) async {
   sl.registerLazySingleton(() => FetchCategories(sl()));
   sl.registerLazySingleton(() => RequestMtoQuote(sl()));
 
+  // Guided product configurator: one usecase per level of the flow.
+  sl.registerLazySingleton(() => FetchFilterCategories(sl()));
+  sl.registerLazySingleton(() => GetCategoryFilterSchema(sl()));
+  sl.registerLazySingleton(() => GetFilterStepOptions(sl()));
+
   sl.registerLazySingleton(() => FetchCart(sl()));
   sl.registerLazySingleton(() => AddToCart(sl()));
   sl.registerLazySingleton(() => UpdateCartItem(sl()));
@@ -200,6 +219,12 @@ Future<void> registerOrderFeature(GetIt sl) async {
   // ── Presentation ────────────────────────────────────────────────────
   sl.registerFactory(
       () => CatalogBloc(browseProducts: sl(), fetchBrands: sl()));
+  sl.registerFactory(() => ProductFilterFlowBloc(
+        fetchFilterCategories: sl(),
+        getCategoryFilterSchema: sl(),
+        getFilterStepOptions: sl(),
+        browseProducts: sl(),
+      ));
   sl.registerFactory(() => ProductDetailCubit(
         getProductById: sl(),
         getProductVariants: sl(),
@@ -222,6 +247,7 @@ Future<void> registerOrderFeature(GetIt sl) async {
         runInitialSync: sl(),
         runDeltaSync: sl(),
         getLastSyncedAt: sl(),
+        countProducts: sl(),
         sessionManager: sl<SessionManager>(),
       ));
   sl.registerFactory(() => PendingSyncCubit(repository: sl(), processor: sl()));

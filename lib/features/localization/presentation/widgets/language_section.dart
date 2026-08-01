@@ -32,7 +32,8 @@ class LanguageSection extends StatelessWidget {
           const SizedBox(height: 4),
           BlocBuilder<LanguageCubit, Locale>(
             builder: (context, locale) {
-              final supported = context.read<LanguageCubit>().supportedLanguages;
+              final supported =
+                  context.read<LanguageCubit>().supportedLanguages;
               final language = supported.firstWhere(
                 (l) => l.code == locale.languageCode,
                 orElse: () => supported.first,

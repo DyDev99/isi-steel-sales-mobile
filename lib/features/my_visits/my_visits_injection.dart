@@ -65,6 +65,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/acti
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/location_tracking_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/route_dashboard_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/route_sync_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/stop_dashboard_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/resumable_visit_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/depot_selection_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/depot_stock_count_cubit.dart';
@@ -162,6 +163,11 @@ Future<void> registerMyVisitsFeature(GetIt sl) async {
 
   // ── Presentation ────────────────────────────────────────────────────
   sl.registerFactory(() => RouteDashboardCubit(watchAllRoutes: sl()));
+  // Stop-centric dashboard: today's stops sorted nearest-first by live GPS.
+  sl.registerFactory(() => StopDashboardCubit(
+        watchTodayRoutes: sl(),
+        locationService: sl(),
+      ));
   sl.registerFactory(() => ActiveRouteBloc(
         saveActiveWorkflow: sl(),
         clearActiveWorkflow: sl(),

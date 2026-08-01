@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/active_workflow.dart';
@@ -7,10 +8,8 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/resumable_visit_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/navigation/resume_workflow_dispatcher.dart';
 
-/// Visit-flow "Continue Previous Work" card — the check-in twin of
-/// [ContinueWorkingCard]. Appears in the Home continue section when the rep has
-/// an in-progress route; **Continue** resumes the exact check-in (and refreshes
-/// state on return), **dismiss** clears it. Never auto-navigates.
+/// Visit-flow "Continue Previous Work" card — styled with gold accent framing,
+/// dual-bordered icon badge, and corner watermarks.
 class ContinueVisitCard extends StatelessWidget {
   const ContinueVisitCard({super.key});
 
@@ -29,18 +28,13 @@ class ContinueVisitCard extends StatelessWidget {
 class _VisitCard extends StatelessWidget {
   const _VisitCard({required this.route, this.workflow});
   final RoutePlan route;
-
-  /// The persisted navigation pointer, used to restore the exact screen the rep
-  /// stopped on (Route Count Stock, etc.). Null → guided route resume.
   final ActiveWorkflow? workflow;
+
+  static const Color _goldBorderColor = Color(0xFFCBA135);
 
   Future<void> _continue(BuildContext context) async {
     final cubit = context.read<ResumableVisitCubit>();
-    // Single source of restore truth: map the persisted workflow → the exact
-    // screen (falls back to Choose Stop when nothing is restorable).
     await resumeActiveWorkflow(context, route, workflow);
-    // Coming back from the flow: re-resolve so a finished route drops off the
-    // card and progress updates.
     await cubit.refresh();
   }
 
@@ -69,9 +63,6 @@ class _VisitCard extends StatelessWidget {
     if (confirmed ?? false) await cubit.dismiss();
   }
 
-  /// Explicit end of the visit. Check-out is deferred now that Stock Count no
-  /// longer auto-checks-out, so this is how the rep closes the stop when the
-  /// Quotation/Sales Order task is done.
   Future<void> _checkOut(BuildContext context) async {
     final cubit = context.read<ResumableVisitCubit>();
     final confirmed = await showDialog<bool>(
@@ -100,96 +91,218 @@ class _VisitCard extends StatelessWidget {
     final colors = context.appColors;
     final total = route.stops.length;
     final done = route.completedStops;
+
     return Container(
-      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: scheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colors.info.withValues(alpha: 0.4)),
-        boxShadow: colors.cardShadow,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.pin_drop_rounded, size: 18, color: colors.info),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text('sync.continue_previous'.tr,
-                    style: TextStyle(
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w800,
-                        color: scheme.onSurface)),
-              ),
-              InkWell(
-                onTap: () => _dismiss(context),
-                borderRadius: BorderRadius.circular(20),
-                child: Padding(
-                  padding: const EdgeInsets.all(2),
-                  child: Icon(Icons.close_rounded,
-                      size: 18, color: colors.textSecondary),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            route.name,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-                fontSize: 12.5,
-                fontWeight: FontWeight.w700,
-                color: colors.info),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            'sync.checkin_progress'.trParams({'done': done, 'total': total}),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 12, color: colors.textSecondary),
-          ),
-          const SizedBox(height: 10),
-          if (total > 0)
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: done / total,
-                minHeight: 5,
-                backgroundColor: colors.border,
-                valueColor: AlwaysStoppedAnimation(colors.info),
-              ),
-            ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () => _checkOut(context),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: colors.info,
-                    side: BorderSide(color: colors.info),
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                  ),
-                  child: Text('sync.check_out'.tr),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: FilledButton.icon(
-                  onPressed: () => _continue(context),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: colors.info,
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                  ),
-                  icon: const Icon(Icons.play_arrow_rounded, size: 18),
-                  label: Text('common.continue'.tr),
-                ),
-              ),
-            ],
+        borderRadius: BorderRadius.circular(18.r),
+        border: Border.all(
+          color: _goldBorderColor,
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 12.r,
+            offset: Offset(0, 4.h),
           ),
         ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(17.r),
+        child: Stack(
+          children: [
+            // Top-Left Watermark Circle
+            Positioned(
+              top: -22.r,
+              left: -22.r,
+              child: Container(
+                width: 55.r,
+                height: 55.r,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: colors.info.withValues(alpha: 0.15),
+                    width: 1.5,
+                  ),
+                ),
+              ),
+            ),
+            // Bottom-Right Watermark Circle
+            Positioned(
+              bottom: -22.r,
+              right: -22.r,
+              child: Container(
+                width: 55.r,
+                height: 55.r,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: colors.info.withValues(alpha: 0.15),
+                    width: 1.5,
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.all(14.r),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      // Dual-bordered Icon Avatar Badge
+                      Container(
+                        padding: EdgeInsets.all(8.r),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: colors.info.withValues(alpha: 0.12),
+                          border: Border.all(
+                            color: _goldBorderColor.withValues(alpha: 0.8),
+                            width: 1.2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.04),
+                              blurRadius: 4.r,
+                              offset: Offset(0, 2.h),
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          Icons.pin_drop_rounded,
+                          size: 18.sp,
+                          color: colors.info,
+                        ),
+                      ),
+                      SizedBox(width: 10.w),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'sync.continue_previous'.tr,
+                              style: TextStyle(
+                                fontSize: 13.5.sp,
+                                fontWeight: FontWeight.w800,
+                                color: colors.textPrimary,
+                              ),
+                            ),
+                            SizedBox(height: 2.h),
+                            Text(
+                              route.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w600,
+                                color: colors.info,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      InkWell(
+                        onTap: () => _dismiss(context),
+                        borderRadius: BorderRadius.circular(20.r),
+                        child: Padding(
+                          padding: EdgeInsets.all(4.r),
+                          child: Icon(
+                            Icons.close_rounded,
+                            size: 18.sp,
+                            color: colors.textSecondary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 10.h),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'sync.checkin_progress'
+                            .trParams({'done': done, 'total': total}),
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w500,
+                          color: colors.textSecondary,
+                        ),
+                      ),
+                      Text(
+                        '${((total > 0 ? done / total : 0) * 100).toInt()}%',
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w700,
+                          color: _goldBorderColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 6.h),
+                  if (total > 0)
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4.r),
+                      child: LinearProgressIndicator(
+                        value: done / total,
+                        minHeight: 6.h,
+                        backgroundColor: colors.border.withValues(alpha: 0.5),
+                        valueColor:
+                            const AlwaysStoppedAnimation(_goldBorderColor),
+                      ),
+                    ),
+                  SizedBox(height: 14.h),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => _checkOut(context),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: colors.info,
+                            side: BorderSide(
+                                color: colors.info.withValues(alpha: 0.5)),
+                            padding: EdgeInsets.symmetric(vertical: 10.h),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.r),
+                            ),
+                          ),
+                          child: Text(
+                            'sync.check_out'.tr,
+                            style: TextStyle(
+                              fontSize: 12.5.sp,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 10.w),
+                      Expanded(
+                        child: FilledButton.icon(
+                          onPressed: () => _continue(context),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: colors.info,
+                            padding: EdgeInsets.symmetric(vertical: 10.h),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.r),
+                            ),
+                          ),
+                          icon: Icon(Icons.play_arrow_rounded, size: 18.sp),
+                          label: Text(
+                            'common.continue'.tr,
+                            style: TextStyle(
+                              fontSize: 12.5.sp,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

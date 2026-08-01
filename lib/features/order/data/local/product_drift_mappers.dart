@@ -103,6 +103,8 @@ extension ProductFilterMapper on ProductFilter {
       page: page,
       pageSize: pageSize,
       categoryId: categoryId,
+      familyId: familyId,
+      subCategory: subCategory,
       brand: brand,
       warehouseCode: warehouseCode,
       size: size,

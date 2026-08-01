@@ -1,21 +1,60 @@
 import 'dart:math';
 
+import 'package:isi_steel_sales_mobile/features/order/data/mock/isi_demo_catalog.dart';
+
 /// Deterministic generator for the demo product catalog.
 ///
 /// Produces plain JSON-ready maps (not domain entities) — its only job is to
 /// build the payload written to `assets/mock/products.json` by
-/// `tool/generate_mock_products.dart`, and to act as `MockProductRemoteDataSource`'s
-/// in-memory fallback if that asset is ever missing.
+/// `tool/generate_mock_products.dart`, and to act as
+/// `MockProductRemoteDataSource`'s in-memory fallback if that asset is ever
+/// missing.
+///
+/// ## What this generates, and why it isn't roofing
+///
+/// [IsiDemoCatalog] covers the ten manufactured and traded steel lines with
+/// six hand-picked real SKUs each — enough to walk every branch of every
+/// filter schema by hand, not enough to page. This generator covers the
+/// *other* half of what a rep sells: the **traded catalog**, SAP MaterialType
+/// `HAWA`, 1,155 distinct materials in the `SAP_BP_Data.pbix` extract —
+/// Schneider switchgear, cable, gypsum and fibre-cement board, skylight
+/// sheet, roofing screws and general site consumables.
+///
+/// Two rules follow from that split and both matter:
+///
+/// 1. **The category ids here never collide with [IsiDemoCatalog]'s.** Facet
+///    options are `SELECT DISTINCT` aggregates scoped to a category, so a
+///    single generated row landing in `cat_isi_palm_profile` would inject
+///    invented gauges into the guided flow and destroy the "six SKUs, walkable
+///    by hand" property the demo catalog exists to provide.
+/// 2. **MRO stock is deliberately excluded.** The blank-`ProductGroup` half of
+///    the material master also holds ~8,000 `ERSA`/`HIBE`/`HIB1` rows —
+///    bearings, pneumatics, PPE, welding gas, safety shoes. Those are plant
+///    maintenance stores, not sales stock. A rep's catalog should not be able
+///    to quote a customer a pair of size-39 safety boots, so they are not
+///    modelled here at all.
+///
+/// ## Real vocabulary, generated combinatorics
+///
+/// Every brand, series, rating, cross-section and sheet size below is read off
+/// the real material master. What is *generated* is the cross product: SAP
+/// stocks 70 Draka cable materials, this emits every plausible
+/// core-count x cross-section combination, because the point of the bulk
+/// catalog is paging and query performance, not inventory accuracy. Embedding
+/// 1,155 verbatim rows would bloat the source file for no test value; the
+/// hand-picked verbatim rows live in [IsiDemoCatalog] where they earn their
+/// place.
 ///
 /// Composed from small single-purpose generators, mirroring how a real ERP
-/// catalog is actually assembled — `ProductGenerator` crosses category leaves
-/// x grade x brand into ~300 non-sellable "families" (e.g. "ISI Steel SD390
-/// Rebar"), `VariantGenerator` expands each family into 20-100 sellable SKUs
-/// (sizes/diameters/lengths), `WarehouseGenerator` assigns each SKU to a
-/// handful of warehouses, `PricingGenerator` derives every price tier from a
-/// base price, and `PromotionGenerator` decides which rows carry a
-/// promotion. Swapping any one of these for a smarter version (or a real
-/// SAP-fed pipeline) doesn't touch the others.
+/// catalog is actually assembled — [ProductGenerator] crosses category leaves
+/// x series x brand into ~300 non-sellable "families" (e.g. "Schneider Easy9
+/// MCB"), [VariantGenerator] expands each family into its sellable
+/// ratings/sizes, [WarehouseGenerator] assigns each SKU to a handful of
+/// warehouses to land at ~11,000 rows, [PricingGenerator] derives every price
+/// tier from a base price,
+/// and [PromotionGenerator] decides which rows carry a promotion. Swapping any
+/// one of these for a smarter version (or a real SAP-fed pipeline) doesn't
+/// touch the others.
 class MockProductData {
   MockProductData._();
 
@@ -54,7 +93,7 @@ class MockProductData {
             'barcode': _barcodeFor(id),
             'name': '${family.namePrefix} ${variant.sizeLabel}',
             'description':
-                '${family.namePrefix} ${variant.sizeLabel}, ${family.grade} grade, '
+                '${family.namePrefix} ${variant.sizeLabel}, ${family.grade}, '
                     '${family.brand}, ${family.material}.',
             'categoryId': family.categoryId,
             'subCategory': family.grade,
@@ -104,8 +143,14 @@ class MockProductData {
 
     return {
       'generatedAt': DateTime.now().toIso8601String(),
-      'categories': CategoryGenerator.categories,
-      'products': products,
+      // The hand-written ISI demo lines lead, so the guided configurator opens
+      // on them; the generated trading catalog follows and still exercises the
+      // paging/performance paths.
+      'categories': [
+        ...IsiDemoCatalog.categories(),
+        ...CategoryGenerator.categories,
+      ],
+      'products': [...IsiDemoCatalog.products(), ...products],
     };
   }
 
@@ -123,152 +168,140 @@ class MockProductData {
   }
 }
 
-/// Category taxonomy — Steel/Structural/Flat/Pipe (as originally specified)
-/// plus Hardware and Construction.
+/// Category taxonomy for the traded catalog, grouped the way SAP's
+/// `MaterialGroupName` groups it: electrical distribution, cable, boards,
+/// roofing trade items and general site supply.
+///
+/// Ids are namespaced `cat_trade_*` so they can never collide with
+/// [IsiDemoCatalog]'s `cat_isi_*` — see the note on this file's class doc for
+/// why that separation is load-bearing rather than cosmetic.
 class CategoryGenerator {
   CategoryGenerator._();
 
   static final List<Map<String, dynamic>> categories = [
-    {'id': 'cat_steel', 'parentId': null, 'name': 'Steel', 'sortOrder': 0},
     {
-      'id': 'cat_steel_rebar',
-      'parentId': 'cat_steel',
-      'name': 'Rebar',
-      'sortOrder': 0
-    },
-    {
-      'id': 'cat_steel_wire_rod',
-      'parentId': 'cat_steel',
-      'name': 'Wire Rod',
-      'sortOrder': 1
-    },
-    {
-      'id': 'cat_steel_billet',
-      'parentId': 'cat_steel',
-      'name': 'Billet',
-      'sortOrder': 2
-    },
-    {
-      'id': 'cat_structural',
+      'id': 'cat_trade_electrical',
       'parentId': null,
-      'name': 'Structural Steel',
-      'sortOrder': 1
-    },
-    {
-      'id': 'cat_structural_hbeam',
-      'parentId': 'cat_structural',
-      'name': 'H Beam',
+      'name': 'Electrical Distribution',
       'sortOrder': 0
     },
     {
-      'id': 'cat_structural_ibeam',
-      'parentId': 'cat_structural',
-      'name': 'I Beam',
+      'id': 'cat_trade_mcb',
+      'parentId': 'cat_trade_electrical',
+      'name': 'Miniature Circuit Breakers',
+      'sortOrder': 0
+    },
+    {
+      'id': 'cat_trade_mccb',
+      'parentId': 'cat_trade_electrical',
+      'name': 'Moulded Case Circuit Breakers',
       'sortOrder': 1
     },
     {
-      'id': 'cat_structural_cchannel',
-      'parentId': 'cat_structural',
-      'name': 'C Channel',
+      'id': 'cat_trade_rccb',
+      'parentId': 'cat_trade_electrical',
+      'name': 'Residual Current Devices',
       'sortOrder': 2
     },
     {
-      'id': 'cat_structural_anglebar',
-      'parentId': 'cat_structural',
-      'name': 'Angle Bar',
+      'id': 'cat_trade_contactor',
+      'parentId': 'cat_trade_electrical',
+      'name': 'Contactors & Overload Relays',
       'sortOrder': 3
     },
-    {'id': 'cat_flat', 'parentId': null, 'name': 'Flat Steel', 'sortOrder': 2},
     {
-      'id': 'cat_flat_plate',
-      'parentId': 'cat_flat',
-      'name': 'Plate',
-      'sortOrder': 0
-    },
-    {
-      'id': 'cat_flat_coil',
-      'parentId': 'cat_flat',
-      'name': 'Coil',
-      'sortOrder': 1
-    },
-    {
-      'id': 'cat_flat_sheet',
-      'parentId': 'cat_flat',
-      'name': 'Sheet',
-      'sortOrder': 2
-    },
-    {'id': 'cat_pipe', 'parentId': null, 'name': 'Pipe', 'sortOrder': 3},
-    {
-      'id': 'cat_pipe_gi',
-      'parentId': 'cat_pipe',
-      'name': 'GI Pipe',
-      'sortOrder': 0
-    },
-    {
-      'id': 'cat_pipe_black',
-      'parentId': 'cat_pipe',
-      'name': 'Black Pipe',
-      'sortOrder': 1
-    },
-    {
-      'id': 'cat_pipe_stainless',
-      'parentId': 'cat_pipe',
-      'name': 'Stainless Pipe',
-      'sortOrder': 2
-    },
-    {
-      'id': 'cat_hardware',
+      'id': 'cat_trade_cable',
       'parentId': null,
-      'name': 'Hardware',
+      'name': 'Cable',
+      'sortOrder': 1
+    },
+    {
+      'id': 'cat_trade_cable_pvc',
+      'parentId': 'cat_trade_cable',
+      'name': 'PVC Insulated',
+      'sortOrder': 0
+    },
+    {
+      'id': 'cat_trade_cable_xlpe',
+      'parentId': 'cat_trade_cable',
+      'name': 'XLPE Insulated',
+      'sortOrder': 1
+    },
+    {
+      'id': 'cat_trade_cable_bare',
+      'parentId': 'cat_trade_cable',
+      'name': 'Bare Conductor',
+      'sortOrder': 2
+    },
+    {
+      'id': 'cat_trade_board',
+      'parentId': null,
+      'name': 'Boards & Ceiling',
+      'sortOrder': 2
+    },
+    {
+      'id': 'cat_trade_board_gypsum',
+      'parentId': 'cat_trade_board',
+      'name': 'Gypsum Board',
+      'sortOrder': 0
+    },
+    {
+      'id': 'cat_trade_board_fibre',
+      'parentId': 'cat_trade_board',
+      'name': 'Fibre Cement Board',
+      'sortOrder': 1
+    },
+    {
+      'id': 'cat_trade_board_plank',
+      'parentId': 'cat_trade_board',
+      'name': 'Plank & Ceiling',
+      'sortOrder': 2
+    },
+    {
+      'id': 'cat_trade_roofing',
+      'parentId': null,
+      'name': 'Roofing Trade Items',
+      'sortOrder': 3
+    },
+    {
+      'id': 'cat_trade_skylight',
+      'parentId': 'cat_trade_roofing',
+      'name': 'Skylight & Translucent',
+      'sortOrder': 0
+    },
+    {
+      'id': 'cat_trade_screws',
+      'parentId': 'cat_trade_roofing',
+      'name': 'Screws & Fixings',
+      'sortOrder': 1
+    },
+    {
+      'id': 'cat_trade_general',
+      'parentId': null,
+      'name': 'General Trading',
       'sortOrder': 4
     },
     {
-      'id': 'cat_hardware_nuts',
-      'parentId': 'cat_hardware',
-      'name': 'Nuts',
+      'id': 'cat_trade_plate',
+      'parentId': 'cat_trade_general',
+      'name': 'Steel Plate',
       'sortOrder': 0
     },
     {
-      'id': 'cat_hardware_bolts',
-      'parentId': 'cat_hardware',
-      'name': 'Bolts',
+      'id': 'cat_trade_chemical',
+      'parentId': 'cat_trade_general',
+      'name': 'Paint & Chemical',
       'sortOrder': 1
     },
     {
-      'id': 'cat_hardware_washers',
-      'parentId': 'cat_hardware',
-      'name': 'Washers',
-      'sortOrder': 2
-    },
-    {
-      'id': 'cat_construction',
-      'parentId': null,
-      'name': 'Construction',
-      'sortOrder': 5
-    },
-    {
-      'id': 'cat_construction_cement',
-      'parentId': 'cat_construction',
-      'name': 'Cement',
-      'sortOrder': 0
-    },
-    {
-      'id': 'cat_construction_nails',
-      'parentId': 'cat_construction',
-      'name': 'Nails',
-      'sortOrder': 1
-    },
-    {
-      'id': 'cat_construction_wire_mesh',
-      'parentId': 'cat_construction',
-      'name': 'Wire Mesh',
+      'id': 'cat_trade_anchor',
+      'parentId': 'cat_trade_general',
+      'name': 'Anchors & Adhesives',
       'sortOrder': 2
     },
   ];
 }
 
-/// A non-sellable "product family" (category leaf x grade x brand) — never
-/// persisted on its own, just the grouping [Product.familyId] rows share.
 class ProductFamily {
   const ProductFamily({
     required this.familyId,
@@ -307,6 +340,7 @@ class _LeafSpec {
     required this.categoryId,
     required this.namePrefix,
     required this.grades,
+    required this.brands,
     required this.material,
     required this.unit,
     required this.businessUnit,
@@ -317,7 +351,18 @@ class _LeafSpec {
   final String key;
   final String categoryId;
   final String namePrefix;
+
+  /// The series or spec a customer picks between. For traded goods this is
+  /// rarely a metallurgical grade — it is a breaking capacity, a voltage
+  /// rating or a board type — but it lands on the same `grade` column, which
+  /// is what lets one `ProductFilter` serve both halves of the catalog.
   final List<String> grades;
+
+  /// Real supplying brands for *this* leaf. Deliberately per-leaf rather than
+  /// one global list: Gyproc does not make contactors, and a global cross
+  /// would emit thousands of rows no rep would believe.
+  final List<String> brands;
+
   final String material;
   final String unit;
   final String businessUnit;
@@ -325,213 +370,199 @@ class _LeafSpec {
   final bool isMtoEligible;
 }
 
-/// Crosses each category leaf's grade list with every brand to produce the
-/// demo's ~300 base product families.
+/// Crosses each category leaf's series list with that leaf's real brands to
+/// produce the traded catalog's base product families.
 class ProductGenerator {
   ProductGenerator._();
 
-  static const brands = [
-    'ISI Steel',
-    'KIC Group',
-    'Mesan Steel',
-    'Cambo Steel',
-    'Angkor Metal',
-    'Sena Metal'
-  ];
-
   static const _leaves = <_LeafSpec>[
+    // ── Electrical distribution (SAP MaterialGroupName "Schneider") ──
     _LeafSpec(
-        key: 'rebar',
-        categoryId: 'cat_steel_rebar',
-        namePrefix: 'Rebar',
-        grades: ['SD295', 'SD390', 'SD490'],
-        material: 'Carbon Steel',
+        key: 'mcb',
+        categoryId: 'cat_trade_mcb',
+        namePrefix: 'MCB',
+        grades: ['C-Curve 6kA', 'C-Curve 10kA', 'B-Curve 6kA', 'D-Curve 10kA'],
+        brands: ['Schneider Easy9', 'Schneider Acti9', 'Schneider Domae'],
+        material: 'Thermoplastic',
         unit: 'PCS',
-        businessUnit: 'Construction Steel',
-        basePrice: 6.5,
+        businessUnit: 'Trading',
+        basePrice: 9.5),
+    _LeafSpec(
+        key: 'mccb',
+        categoryId: 'cat_trade_mccb',
+        namePrefix: 'MCCB',
+        grades: ['25kA', '36kA', '50kA'],
+        brands: ['Schneider EasyPact', 'Schneider ComPact'],
+        material: 'Thermoplastic',
+        unit: 'PCS',
+        businessUnit: 'Trading',
+        basePrice: 120.0),
+    _LeafSpec(
+        key: 'rccb',
+        categoryId: 'cat_trade_rccb',
+        namePrefix: 'RCCB',
+        grades: ['30mA AC-Type', '100mA AC-Type', '300mA AC-Type'],
+        brands: ['Schneider Easy9', 'Schneider Acti9'],
+        material: 'Thermoplastic',
+        unit: 'PCS',
+        businessUnit: 'Trading',
+        basePrice: 38.0),
+    _LeafSpec(
+        key: 'contactor',
+        categoryId: 'cat_trade_contactor',
+        namePrefix: 'Contactor',
+        grades: ['AC-3 220VAC', 'AC-3 380VAC', 'AC-3 24VDC'],
+        brands: ['Schneider TeSys D', 'Schneider TeSys Daca'],
+        material: 'Thermoplastic',
+        unit: 'PCS',
+        businessUnit: 'Trading',
+        basePrice: 42.0),
+
+    // ── Cable (SAP "Cable-Draka" / "Cable-Cadivi" / "Cable-STP") ──
+    _LeafSpec(
+        key: 'cablePvc',
+        categoryId: 'cat_trade_cable_pvc',
+        namePrefix: 'Cu/PVC Cable',
+        grades: ['450/750V', '0.6/1kV'],
+        brands: ['Draka', 'CADIVI', 'Sento', 'LS', 'Thipha'],
+        material: 'Copper / PVC',
+        unit: 'M',
+        businessUnit: 'Trading',
+        basePrice: 1.35),
+    _LeafSpec(
+        key: 'cableXlpe',
+        categoryId: 'cat_trade_cable_xlpe',
+        namePrefix: 'Cu/XLPE/PVC Cable',
+        grades: ['0.6/1kV', '0.6/1kV FR', '0.6/1kV LSHF'],
+        brands: ['Draka', 'CADIVI', 'Sento', 'LS'],
+        material: 'Copper / XLPE',
+        unit: 'M',
+        businessUnit: 'Trading',
+        basePrice: 1.85),
+    _LeafSpec(
+        key: 'cableBare',
+        categoryId: 'cat_trade_cable_bare',
+        namePrefix: 'Bare Copper Conductor',
+        grades: ['Annealed', 'Hard Drawn'],
+        brands: ['CADIVI', 'Thipha'],
+        material: 'Copper',
+        unit: 'M',
+        businessUnit: 'Trading',
+        basePrice: 2.4),
+
+    // ── Boards (SAP "Board-Gyproc" / "Board-Shera" / "Board-Other") ──
+    _LeafSpec(
+        key: 'gypsum',
+        categoryId: 'cat_trade_board_gypsum',
+        namePrefix: 'Gypsum Board',
+        grades: ['Standard TE', 'Moisture Resistant', 'Fire Rated'],
+        brands: ['Gyproc', 'Zeit', 'APLUS', 'Tam Duraflex'],
+        material: 'Gypsum',
+        unit: 'PCS',
+        businessUnit: 'Trading',
+        basePrice: 7.2),
+    _LeafSpec(
+        key: 'fibreBoard',
+        categoryId: 'cat_trade_board_fibre',
+        namePrefix: 'Fibre Cement Board',
+        grades: ['SE Smooth', 'Square Edge', 'Recessed Edge'],
+        brands: ['Shera', 'APLUS', 'MC Board'],
+        material: 'Fibre Cement',
+        unit: 'PCS',
+        businessUnit: 'Trading',
+        basePrice: 11.5),
+    _LeafSpec(
+        key: 'plank',
+        categoryId: 'cat_trade_board_plank',
+        namePrefix: 'Ceiling Plank',
+        grades: ['Vent Classic', 'Deco Texture', 'Teak Cherry'],
+        brands: ['Shera', 'MC Board'],
+        material: 'Fibre Cement',
+        unit: 'PCS',
+        businessUnit: 'Trading',
+        basePrice: 9.0),
+
+    // ── Roofing trade items (SAP "Transparent Roofing" / "Roofing Screws") ──
+    _LeafSpec(
+        key: 'skylight',
+        categoryId: 'cat_trade_skylight',
+        namePrefix: 'Skylight Sheet',
+        grades: ['Opal', 'Clear', 'Tinted'],
+        brands: ['Natalite', 'NAACO'],
+        material: 'Polycarbonate',
+        unit: 'PCS',
+        businessUnit: 'Trading',
+        basePrice: 16.0,
         isMtoEligible: true),
     _LeafSpec(
-        key: 'wireRod',
-        categoryId: 'cat_steel_wire_rod',
-        namePrefix: 'Wire Rod',
-        grades: ['SAE1006', 'SAE1008', 'SAE1010'],
-        material: 'Low Carbon Steel',
-        unit: 'COIL',
-        businessUnit: 'Construction Steel',
-        basePrice: 5.5),
-    _LeafSpec(
-        key: 'billet',
-        categoryId: 'cat_steel_billet',
-        namePrefix: 'Billet',
-        grades: ['Q235', 'Q275', '5SP'],
-        material: 'Carbon Steel',
-        unit: 'PCS',
-        businessUnit: 'Construction Steel',
-        basePrice: 380,
-        isMtoEligible: true),
-    _LeafSpec(
-        key: 'hbeam',
-        categoryId: 'cat_structural_hbeam',
-        namePrefix: 'H Beam',
-        grades: ['SS400', 'Q235', 'A572'],
-        material: 'Structural Steel',
-        unit: 'PCS',
-        businessUnit: 'Structural Steel',
-        basePrice: 320,
-        isMtoEligible: true),
-    _LeafSpec(
-        key: 'ibeam',
-        categoryId: 'cat_structural_ibeam',
-        namePrefix: 'I Beam',
-        grades: ['SS400', 'Q235', 'A572'],
-        material: 'Structural Steel',
-        unit: 'PCS',
-        businessUnit: 'Structural Steel',
-        basePrice: 300),
-    _LeafSpec(
-        key: 'cchannel',
-        categoryId: 'cat_structural_cchannel',
-        namePrefix: 'C Channel',
-        grades: ['SS400', 'Q235', 'A36'],
-        material: 'Structural Steel',
-        unit: 'PCS',
-        businessUnit: 'Structural Steel',
-        basePrice: 70),
-    _LeafSpec(
-        key: 'anglebar',
-        categoryId: 'cat_structural_anglebar',
-        namePrefix: 'Angle Bar',
-        grades: ['SS400', 'Q235', 'A36'],
-        material: 'Structural Steel',
-        unit: 'PCS',
-        businessUnit: 'Structural Steel',
-        basePrice: 20),
+        key: 'screw',
+        categoryId: 'cat_trade_screws',
+        namePrefix: 'Self Drilling Screw',
+        grades: ['ZN-EPDM', 'YP-PVC', 'Painted Head'],
+        brands: ['ISI', 'Trading-Others'],
+        material: 'Zinc Plated Steel',
+        unit: 'PAC',
+        businessUnit: 'Trading',
+        basePrice: 4.1),
+
+    // ── General trading (SAP "Trading-Others") ──
     _LeafSpec(
         key: 'plate',
-        categoryId: 'cat_flat_plate',
+        categoryId: 'cat_trade_plate',
         namePrefix: 'Steel Plate',
-        grades: ['MS', 'SS400', 'A36'],
+        grades: ['Q345B', 'Q235B', 'A36'],
+        brands: ['Trading-Others', 'ISI'],
         material: 'Carbon Steel',
-        unit: 'SHEET',
-        businessUnit: 'Flat Products',
-        basePrice: 45,
+        unit: 'PCS',
+        businessUnit: 'Trading',
+        basePrice: 210.0,
         isMtoEligible: true),
     _LeafSpec(
-        key: 'coil',
-        categoryId: 'cat_flat_coil',
-        namePrefix: 'Hot Rolled Coil',
-        grades: ['SPHC', 'SS400', 'DX51D'],
-        material: 'Carbon Steel',
-        unit: 'MT',
-        businessUnit: 'Flat Products',
-        basePrice: 620),
-    _LeafSpec(
-        key: 'sheet',
-        categoryId: 'cat_flat_sheet',
-        namePrefix: 'Steel Sheet',
-        grades: ['SPCC', 'SS400', 'Galvanized'],
-        material: 'Carbon Steel',
-        unit: 'SHEET',
-        businessUnit: 'Flat Products',
-        basePrice: 14),
-    _LeafSpec(
-        key: 'giPipe',
-        categoryId: 'cat_pipe_gi',
-        namePrefix: 'GI Pipe',
-        grades: ['SCH40', 'SCH80', 'Class B'],
-        material: 'Galvanized Steel',
+        key: 'chemical',
+        categoryId: 'cat_trade_chemical',
+        namePrefix: 'Metal Paint',
+        grades: ['Primer ZP', 'Top Coat', 'Thinner'],
+        brands: ['Metal Lux', 'Trading-Others'],
+        material: 'Alkyd',
         unit: 'PCS',
-        businessUnit: 'Pipe & Tube',
-        basePrice: 9),
+        businessUnit: 'Trading',
+        basePrice: 12.0),
     _LeafSpec(
-        key: 'blackPipe',
-        categoryId: 'cat_pipe_black',
-        namePrefix: 'Black Pipe',
-        grades: ['SCH40', 'SCH80', 'Class B'],
-        material: 'Carbon Steel',
+        key: 'anchor',
+        categoryId: 'cat_trade_anchor',
+        namePrefix: 'Chemical Anchor',
+        grades: ['HIT-RE Injectable', 'Mixing Nozzle', 'Threaded Rod'],
+        brands: ['Hilti', 'Trading-Others'],
+        material: 'Epoxy',
         unit: 'PCS',
-        businessUnit: 'Pipe & Tube',
-        basePrice: 7),
-    _LeafSpec(
-        key: 'stainlessPipe',
-        categoryId: 'cat_pipe_stainless',
-        namePrefix: 'Stainless Pipe',
-        grades: ['304', '316', '201'],
-        material: 'Stainless Steel',
-        unit: 'PCS',
-        businessUnit: 'Pipe & Tube',
-        basePrice: 28,
-        isMtoEligible: true),
-    _LeafSpec(
-        key: 'bolts',
-        categoryId: 'cat_hardware_bolts',
-        namePrefix: 'Hex Bolt',
-        grades: ['Grade 8.8', 'Grade 10.9', 'Stainless A2'],
-        material: 'Alloy Steel',
-        unit: 'BOX',
-        businessUnit: 'Hardware',
-        basePrice: 0.15),
-    _LeafSpec(
-        key: 'nuts',
-        categoryId: 'cat_hardware_nuts',
-        namePrefix: 'Hex Nut',
-        grades: ['Grade 8.8', 'Grade 10.9', 'Stainless A2'],
-        material: 'Alloy Steel',
-        unit: 'BOX',
-        businessUnit: 'Hardware',
-        basePrice: 0.08),
-    _LeafSpec(
-        key: 'washers',
-        categoryId: 'cat_hardware_washers',
-        namePrefix: 'Washer',
-        grades: ['Flat', 'Spring', 'Stainless'],
-        material: 'Steel',
-        unit: 'BOX',
-        businessUnit: 'Hardware',
-        basePrice: 0.03),
-    _LeafSpec(
-        key: 'cement',
-        categoryId: 'cat_construction_cement',
-        namePrefix: 'Cement',
-        grades: ['OPC', 'PPC', 'Rapid Hardening'],
-        material: 'Portland Cement',
-        unit: 'BAG',
-        businessUnit: 'Construction Materials',
-        basePrice: 5.2),
-    _LeafSpec(
-        key: 'nails',
-        categoryId: 'cat_construction_nails',
-        namePrefix: 'Nail',
-        grades: ['Common', 'Concrete', 'Roofing'],
-        material: 'Steel Wire',
-        unit: 'BOX',
-        businessUnit: 'Construction Materials',
-        basePrice: 1.1),
-    _LeafSpec(
-        key: 'wireMesh',
-        categoryId: 'cat_construction_wire_mesh',
-        namePrefix: 'Wire Mesh',
-        grades: ['Welded', 'Chain Link', 'Hexagonal'],
-        material: 'Galvanized Wire',
-        unit: 'ROLL',
-        businessUnit: 'Construction Materials',
-        basePrice: 32),
+        businessUnit: 'Trading',
+        basePrice: 18.0),
   ];
+
+  /// Union of every leaf's brand list. Kept for callers that want "all brands
+  /// in the generated catalog" without knowing the leaf structure.
+  static List<String> get brands {
+    final all = <String>{};
+    for (final leaf in _leaves) {
+      all.addAll(leaf.brands);
+    }
+    return all.toList()..sort();
+  }
 
   static List<ProductFamily> buildFamilies() {
     final families = <ProductFamily>[];
     for (final leaf in _leaves) {
       for (final grade in leaf.grades) {
-        for (final brand in brands) {
+        for (final brand in leaf.brands) {
           final gradeSlug = grade.replaceAll(RegExp(r'[^A-Za-z0-9]'), '');
           final brandSlug = brand.replaceAll(RegExp(r'[^A-Za-z0-9]'), '');
           families.add(ProductFamily(
             familyId: 'fam_${leaf.key}_${gradeSlug}_$brandSlug',
-            familyName: '$brand $grade ${leaf.namePrefix}',
+            familyName: '$brand ${leaf.namePrefix} $grade',
             codePrefix: '${leaf.key.toUpperCase()}-$gradeSlug-$brandSlug',
             categoryId: leaf.categoryId,
             leafKey: leaf.key,
-            namePrefix: '$grade ${leaf.namePrefix}',
+            namePrefix: '$brand ${leaf.namePrefix}',
             grade: grade,
             brand: brand,
             material: leaf.material,
@@ -569,295 +600,342 @@ class VariantSpec {
   final bool mtoHint;
 }
 
-/// Expands one family into its 20-100 sellable size/length SKUs. Dimensions
-/// are grade-independent (a 12mm SD295 rebar is the same shape as a 12mm
-/// SD390 one), so this only needs to branch on [ProductFamily.leafKey].
+/// Expands one family into its sellable SKUs. Ratings and dimensions are
+/// series-independent (a 63A breaker is a 63A breaker whether it is Easy9 or
+/// Acti9), so this only needs to branch on [ProductFamily.leafKey].
+///
+/// Numeric columns are populated only where the attribute is physically
+/// meaningful — a circuit breaker has no thickness, a cable has no width. The
+/// facet query skips non-positive numerics, so a breaker category never offers
+/// a thickness picker.
 class VariantGenerator {
   VariantGenerator._();
 
   static List<VariantSpec> buildVariants(ProductFamily family) {
     return switch (family.leafKey) {
-      'rebar' => _rebar(),
-      'wireRod' => _wireRod(),
-      'billet' => _billet(),
-      'hbeam' => _beam('H'),
-      'ibeam' => _beam('I'),
-      'cchannel' => _cchannel(),
-      'anglebar' => _angleBar(),
+      'mcb' => _mcb(),
+      'mccb' => _mccb(),
+      'rccb' => _rccb(),
+      'contactor' => _contactor(),
+      'cablePvc' || 'cableXlpe' => _cable(),
+      'cableBare' => _bareConductor(),
+      'gypsum' || 'fibreBoard' => _board(),
+      'plank' => _plank(),
+      'skylight' => _skylight(),
+      'screw' => _screw(),
       'plate' => _plate(),
-      'coil' => _coil(),
-      'sheet' => _sheet(),
-      'giPipe' || 'blackPipe' => _pipe(),
-      'stainlessPipe' => _pipe(lengths: const [4, 6]),
-      'bolts' => _bolt(),
-      'nuts' => _nut(),
-      'washers' => _washer(),
-      'cement' => _cement(),
-      'nails' => _nail(),
-      'wireMesh' => _wireMesh(),
+      'chemical' => _chemical(),
+      'anchor' => _anchor(),
       _ => const [],
     };
   }
 
-  static List<VariantSpec> _rebar() => [
-        for (final d in [6, 8, 10, 12, 16, 19, 22, 25, 28, 32])
-          for (final len in [6, 9, 12])
-            VariantSpec(
-              sizeLabel: '${d}mm-${len}M',
-              diameter: d.toDouble(),
-              thickness: 0,
-              length: len.toDouble(),
-              width: d.toDouble(),
-              height: d.toDouble(),
-              weight: d * d * 0.00617 * len,
-              mtoHint: len == 12 && d >= 28,
-            ),
-      ];
-
-  static List<VariantSpec> _wireRod() => [
-        for (final d in [5.5, 6, 6.5, 7, 8, 9, 10, 12])
-          for (final coilKg in [500, 1000, 2000])
-            VariantSpec(
-              sizeLabel: '${d}mm-${coilKg}KG',
-              diameter: d.toDouble(),
-              thickness: 0,
-              length: 0,
-              width: d.toDouble(),
-              height: d.toDouble(),
-              weight: coilKg.toDouble(),
-            ),
-      ];
-
-  static List<VariantSpec> _billet() => [
-        for (final size in [100, 120, 130, 150, 180, 200])
-          for (final len in [6, 9, 12, 15])
-            VariantSpec(
-              sizeLabel: '${size}x$size-${len}M',
-              diameter: 0,
-              thickness: 0,
-              length: len.toDouble(),
-              width: size.toDouble(),
-              height: size.toDouble(),
-              weight: size * size * 0.00785 * len / 1000,
-              mtoHint: true,
-            ),
-      ];
-
-  static List<VariantSpec> _beam(String type) => [
-        for (final size in [
-          '100x100',
-          '150x150',
-          '200x200',
-          '250x250',
-          '300x300',
-          '350x350',
-          '400x400'
-        ])
-          for (final len in [6, 9, 12])
-            VariantSpec(
-              sizeLabel: '$size-${len}M',
-              diameter: 0,
-              thickness: 0,
-              length: len.toDouble(),
-              width: double.parse(size.split('x')[0]),
-              height: double.parse(size.split('x')[1]),
-              weight: double.parse(size.split('x')[0]) *
-                  (type == 'H' ? 0.4 : 0.35) *
-                  len,
-              mtoHint: len == 12,
-            ),
-      ];
-
-  static List<VariantSpec> _cchannel() => [
-        for (final size in ['75x40', '100x50', '125x65', '150x75', '200x80'])
-          for (final len in [6, 9, 12])
-            VariantSpec(
-              sizeLabel: '$size-${len}M',
-              diameter: 0,
-              thickness: 0,
-              length: len.toDouble(),
-              width: double.parse(size.split('x')[0]),
-              height: double.parse(size.split('x')[1]),
-              weight: double.parse(size.split('x')[0]) * 0.15 * len,
-            ),
-      ];
-
-  static List<VariantSpec> _angleBar() => [
-        for (final size in [
-          '25x25',
-          '30x30',
-          '40x40',
-          '50x50',
-          '63x63',
-          '75x75',
-          '90x90',
-          '100x100'
-        ])
-          for (final t in [3, 4, 5, 6])
-            for (final len in [6, 9])
-              VariantSpec(
-                sizeLabel: '$size-T$t-${len}M',
-                diameter: 0,
-                thickness: t.toDouble(),
-                length: len.toDouble(),
-                width: double.parse(size.split('x')[0]),
-                height: t.toDouble(),
-                weight: double.parse(size.split('x')[0]) * t * 0.0154 * len,
-              ),
-      ];
-
-  static List<VariantSpec> _plate() => [
-        for (final t in [3, 4, 5, 6, 8, 10, 12, 16, 20, 25])
-          for (final size in [
-            '4x8ft',
-            '5x10ft',
-            '6x12ft',
-            '1500x6000mm',
-            '2000x6000mm'
-          ])
-            VariantSpec(
-              sizeLabel: '${t}mm-$size',
-              diameter: 0,
-              thickness: t.toDouble(),
-              length: 0,
-              width: 0,
-              height: t.toDouble(),
-              weight: t * 7.85 * 3,
-              mtoHint: t >= 20,
-            ),
-      ];
-
-  static List<VariantSpec> _coil() => [
-        for (var t = 0.3; t <= 3.0; t += 0.3)
-          for (final width in [1000, 1219, 1250, 1500])
-            VariantSpec(
-              sizeLabel: '${t.toStringAsFixed(1)}mm-${width}W',
-              diameter: 0,
-              thickness: double.parse(t.toStringAsFixed(1)),
-              length: 0,
-              width: width.toDouble(),
-              height: double.parse(t.toStringAsFixed(1)),
-              weight: t * width * 7.85 / 1000,
-            ),
-      ];
-
-  static List<VariantSpec> _sheet() => [
-        for (var t = 0.3; t <= 3.0; t += 0.3)
-          for (final size in ['4x8ft', '5x10ft', '4x10ft'])
-            VariantSpec(
-              sizeLabel: '${t.toStringAsFixed(1)}mm-$size',
-              diameter: 0,
-              thickness: double.parse(t.toStringAsFixed(1)),
-              length: 0,
-              width: 0,
-              height: double.parse(t.toStringAsFixed(1)),
-              weight: t * 6.5,
-            ),
-      ];
-
-  static List<VariantSpec> _pipe({List<int> lengths = const [4, 6, 12]}) => [
-        for (final size in [
-          '1/2"',
-          '3/4"',
-          '1"',
-          '1.25"',
-          '1.5"',
-          '2"',
-          '2.5"',
-          '3"',
-          '4"'
-        ])
-          for (final len in lengths)
-            VariantSpec(
-              sizeLabel: '${size.replaceAll('"', 'IN')}-${len}M',
-              diameter: 0,
-              thickness: 0,
-              length: len.toDouble(),
-              width: 0,
-              height: 0,
-              weight: len * 1.2,
-            ),
-      ];
-
-  static List<VariantSpec> _bolt() => [
-        for (final size in ['M6', 'M8', 'M10', 'M12', 'M16', 'M20', 'M24'])
-          for (final len in [20, 30, 40, 50, 60, 80, 100])
-            VariantSpec(
-              sizeLabel: '$size-${len}mm',
-              diameter: double.parse(size.substring(1)),
-              thickness: 0,
-              length: len.toDouble(),
-              width: 0,
-              height: 0,
-              weight: double.parse(size.substring(1)) * len * 0.0006,
-            ),
-      ];
-
-  static List<VariantSpec> _nut() => [
-        for (final size in ['M6', 'M8', 'M10', 'M12', 'M16', 'M20', 'M24'])
+  /// Pole count x amp rating, both off the real Schneider range in the
+  /// material master (EZ9F… part numbers encode exactly this pair).
+  static List<VariantSpec> _mcb() {
+    const poles = [1, 2, 3, 4];
+    // Easy9/Domae stop at 63A, Acti9 runs to 125A; the union is what the
+    // branch counter actually stocks.
+    const amps = [6, 10, 16, 20, 25, 32, 40, 50, 63, 80, 100, 125];
+    return [
+      for (final p in poles)
+        for (final a in amps)
           VariantSpec(
-            sizeLabel: size,
-            diameter: double.parse(size.substring(1)),
-            thickness: 0,
-            length: 0,
-            width: 0,
-            height: 0,
-            weight: double.parse(size.substring(1)) * 0.004,
-          ),
-      ];
-
-  static List<VariantSpec> _washer() => [
-        for (final size in ['M6', 'M8', 'M10', 'M12', 'M16', 'M20', 'M24'])
-          VariantSpec(
-            sizeLabel: size,
-            diameter: double.parse(size.substring(1)),
-            thickness: 0,
-            length: 0,
-            width: 0,
-            height: 0,
-            weight: double.parse(size.substring(1)) * 0.001,
-          ),
-      ];
-
-  static List<VariantSpec> _cement() => [
-        for (final bagKg in [25, 40, 50])
-          VariantSpec(
-            sizeLabel: '${bagKg}kg',
+            sizeLabel: '${p}P ${a}A',
             diameter: 0,
             thickness: 0,
             length: 0,
             width: 0,
             height: 0,
-            weight: bagKg.toDouble(),
+            weight: 0.12 * p,
           ),
-      ];
+    ];
+  }
 
-  static List<VariantSpec> _nail() => [
-        for (final len in [25, 38, 50, 63, 75, 100])
+  static List<VariantSpec> _mccb() {
+    const poles = [3, 4];
+    const amps = [100, 125, 160, 200, 250, 320, 400, 630];
+    return [
+      for (final p in poles)
+        for (final a in amps)
           VariantSpec(
-            sizeLabel: '${len}mm',
+            sizeLabel: '${p}P ${a}A',
             diameter: 0,
             thickness: 0,
-            length: len.toDouble(),
+            length: 0,
             width: 0,
             height: 0,
-            weight: len * 0.006,
+            weight: 1.4 + a / 400,
           ),
-      ];
+    ];
+  }
 
-  static List<VariantSpec> _wireMesh() => [
-        for (final gauge in [8, 10, 12, 14])
-          for (final roll in ['1x30m', '1.2x30m', '1.5x30m'])
+  static List<VariantSpec> _rccb() {
+    const poles = [2, 4];
+    const amps = [25, 40, 63, 80, 100];
+    return [
+      for (final p in poles)
+        for (final a in amps)
+          VariantSpec(
+            sizeLabel: '${p}P ${a}A',
+            diameter: 0,
+            thickness: 0,
+            length: 0,
+            width: 0,
+            height: 0,
+            weight: 0.2 * p,
+          ),
+    ];
+  }
+
+  static List<VariantSpec> _contactor() {
+    const amps = [9, 12, 18, 25, 32, 38, 50, 65, 80, 95];
+    return [
+      for (final a in amps)
+        VariantSpec(
+          sizeLabel: '3P ${a}A',
+          diameter: 0,
+          thickness: 0,
+          length: 0,
+          width: 0,
+          height: 0,
+          weight: 0.35 + a / 100,
+        ),
+    ];
+  }
+
+  /// Core count x nominal cross-section, in the `1Cx2.5mm2` notation the real
+  /// descriptions use. Cross-sections are the full IEC preferred series that
+  /// appears across the Draka/CADIVI/Sento rows.
+  static List<VariantSpec> _cable() {
+    const cores = [1, 2, 3, 4];
+    // IEC 60228 preferred series, the full run that appears across the
+    // Draka / CADIVI / Sento rows.
+    // Every entry must be a double literal: one bare `4` makes this a
+    // List<num> and VariantSpec's double parameters stop accepting it.
+    const areas = <double>[
+      0.75,
+      1.0,
+      1.5,
+      2.5,
+      4.0,
+      6.0,
+      10.0,
+      16.0,
+      25.0,
+      35.0,
+      50.0,
+      70.0,
+      95.0,
+      120.0,
+      150.0,
+      185.0,
+      240.0,
+      300.0,
+    ];
+    return [
+      for (final c in cores)
+        for (final a in areas)
+          VariantSpec(
+            sizeLabel: '${c}Cx${_trim(a)}mm2',
+            diameter: 0,
+            // Nominal conductor area has no column of its own, so it rides on
+            // `thickness` — the only spare numeric facet — which is why the
+            // cable categories label that step "Cross-section", not
+            // "Thickness". See the note in the class doc.
+            thickness: a,
+            length: 0,
+            width: 0,
+            height: 0,
+            weight: c * a * 0.0105,
+          ),
+    ];
+  }
+
+  static List<VariantSpec> _bareConductor() {
+    const areas = <double>[
+      16.0,
+      25.0,
+      35.0,
+      50.0,
+      70.0,
+      95.0,
+      120.0,
+      150.0,
+      185.0,
+      240.0,
+      300.0,
+    ];
+    return [
+      for (final a in areas)
+        VariantSpec(
+          sizeLabel: '${_trim(a)}mm2',
+          diameter: 0,
+          thickness: a,
+          length: 0,
+          width: 0,
+          height: 0,
+          weight: a * 0.0092,
+        ),
+    ];
+  }
+
+  /// Thickness x sheet size. Both lists are the real ones: 1200x2400 and
+  /// 1220x2440 both appear in the master because the suppliers disagree.
+  static List<VariantSpec> _board() {
+    const thicknesses = <double>[4.0, 6.0, 8.0, 9.0, 12.0, 15.0, 18.0];
+    const sheets = <List<double>>[
+      [1200.0, 2400.0],
+      [1220.0, 2440.0],
+      [600.0, 1200.0],
+    ];
+    return [
+      for (final t in thicknesses)
+        for (final s in sheets)
+          VariantSpec(
+            sizeLabel: '${_trim(t)}x${_trim(s[0])}x${_trim(s[1])}',
+            diameter: 0,
+            thickness: t,
+            length: s[1] / 1000,
+            width: s[0],
+            height: 0,
+            weight: t * s[0] * s[1] / 1000000 * 0.9,
+          ),
+    ];
+  }
+
+  static List<VariantSpec> _plank() {
+    const thicknesses = <double>[4.0, 6.0, 8.0];
+    const planks = <List<double>>[
+      [200.0, 4000.0],
+      [300.0, 3000.0],
+      [600.0, 1200.0],
+    ];
+    return [
+      for (final t in thicknesses)
+        for (final p in planks)
+          VariantSpec(
+            sizeLabel: '${_trim(t)}x${_trim(p[0])}x${_trim(p[1])}',
+            diameter: 0,
+            thickness: t,
+            length: p[1] / 1000,
+            width: p[0],
+            height: 0,
+            weight: t * p[0] * p[1] / 1000000 * 1.1,
+          ),
+    ];
+  }
+
+  /// Matches the Palm Profile roofing pitches so a skylight sheet can be
+  /// ordered to drop into the same run — 980 and 1000-7 are the real ones.
+  static List<VariantSpec> _skylight() {
+    const profiles = ['PalmCap 980', 'Trim 1000-7', 'Trim 1000-5', 'Wave 950'];
+    const thicknesses = <double>[0.8, 1.0, 1.2, 1.5, 2.0];
+    const lengths = <double>[2.0, 3.0, 4.0, 6.0];
+    return [
+      for (final p in profiles)
+        for (final t in thicknesses)
+          for (final l in lengths)
             VariantSpec(
-              sizeLabel: 'G$gauge-$roll',
-              diameter: gauge.toDouble(),
-              thickness: 0,
-              length: 30,
-              width: double.parse(roll.split('x')[0]),
+              sizeLabel: '$p ${_trim(t)}mm x ${_trim(l)}m',
+              diameter: 0,
+              thickness: t,
+              length: l,
+              width: 980,
               height: 0,
-              weight: gauge * 3.5,
+              weight: t * l * 1.35,
+              mtoHint: l >= 6,
             ),
-      ];
+    ];
+  }
+
+  static List<VariantSpec> _screw() {
+    const gauges = [10, 12, 14];
+    const lengths = <double>[1.0, 1.5, 2.0, 2.5, 3.0, 4.0];
+    return [
+      for (final g in gauges)
+        for (final l in lengths)
+          VariantSpec(
+            sizeLabel: '#$g x ${_trim(l)}"',
+            diameter: g / 2,
+            thickness: 0,
+            length: l * 0.0254,
+            width: 0,
+            height: 0,
+            weight: 0.9 + l * 0.4,
+          ),
+    ];
+  }
+
+  static List<VariantSpec> _plate() {
+    const thicknesses = <double>[
+      3.0,
+      4.0,
+      5.0,
+      6.0,
+      8.0,
+      10.0,
+      12.0,
+      16.0,
+      20.0,
+      25.0,
+    ];
+    const sheets = <List<double>>[
+      [1500.0, 6000.0],
+      [2000.0, 6000.0],
+    ];
+    return [
+      for (final t in thicknesses)
+        for (final s in sheets)
+          VariantSpec(
+            sizeLabel: '${_trim(t)}x${_trim(s[0])}x${_trim(s[1])}',
+            diameter: 0,
+            thickness: t,
+            length: s[1] / 1000,
+            width: s[0],
+            height: 0,
+            weight: t * s[0] * s[1] / 1000000 * 7.85,
+            mtoHint: t >= 16,
+          ),
+    ];
+  }
+
+  static List<VariantSpec> _chemical() {
+    const packs = ['0.8L', '3L', '5L', '18L', '20L'];
+    return [
+      for (final p in packs)
+        VariantSpec(
+          sizeLabel: p,
+          diameter: 0,
+          thickness: 0,
+          length: 0,
+          width: 0,
+          height: 0,
+          weight: double.parse(p.replaceAll(RegExp(r'[^0-9.]'), '')) * 1.1,
+        ),
+    ];
+  }
+
+  static List<VariantSpec> _anchor() {
+    const sizes = ['M8', 'M10', 'M12', 'M16', 'M20', '330ml', '500ml'];
+    return [
+      for (final s in sizes)
+        VariantSpec(
+          sizeLabel: s,
+          diameter: 0,
+          thickness: 0,
+          length: 0,
+          width: 0,
+          height: 0,
+          weight: 0.6,
+        ),
+    ];
+  }
+
+  /// "2.5" not "2.5000000001", "4" not "4.0" — variant labels end up in
+  /// product codes and barcodes, so they have to be stable and terse.
+  static String _trim(double v) =>
+      v == v.roundToDouble() ? v.toStringAsFixed(0) : v.toString();
 }
 
 class Warehouse {
@@ -867,9 +945,14 @@ class Warehouse {
 }
 
 /// Warehouse network + which SKUs stock where — every SKU is assigned to a
-/// small subset (1-3), not all warehouses, matching how real plants only
-/// carry a slice of the catalog and keeping the demo dataset in the
-/// spec'd 10k-30k row range instead of exploding by full warehouse count.
+/// small subset (2-4 of 8), not all warehouses, matching how real branches
+/// only carry a slice of the catalog and keeping the dataset in the spec'd
+/// 10k-30k row range instead of exploding by full warehouse count.
+///
+/// The spread is 2-4 rather than the 1-3 the steel catalog used because the
+/// traded range is narrower: ~3.7k distinct codes against the old ~7k, so a
+/// lower multiplier would drop the catalog under the row count the paging and
+/// scroll-performance tests are calibrated against.
 class WarehouseGenerator {
   WarehouseGenerator._();
 
@@ -885,7 +968,7 @@ class WarehouseGenerator {
   ];
 
   static List<Warehouse> assignFor(List<Warehouse> all, Random rand) {
-    final count = 1 + rand.nextInt(3);
+    final count = 2 + rand.nextInt(3);
     final shuffled = List<Warehouse>.from(all)..shuffle(rand);
     return shuffled.take(count).toList();
   }
@@ -914,6 +997,12 @@ class VariantPricing {
 /// Derives every price tier from one base price. Standard carries the
 /// nominal margin over cost; the other tiers are consistent discounts/
 /// markups off standard, matching how real customer price groups work.
+///
+/// Unchanged from the steel catalog this file used to generate, and it still
+/// behaves: on traded goods with no meaningful dimensions (a breaker, a tin of
+/// primer) `sizeFactor` collapses to 1 and the leaf's `basePrice` carries the
+/// whole value, which is why those base prices are set per item rather than
+/// per kilo.
 class PricingGenerator {
   PricingGenerator._();
 
@@ -947,6 +1036,11 @@ class AppliedPromotion {
   final double promotionPrice;
 }
 
+/// Mirrors the domain `PromotionType` enum member-for-member. [ProductModel]
+/// parses this back with `PromotionType.values.byName(...)`, which throws on
+/// an unknown name — so adding a member here without adding it to the domain
+/// enum breaks catalog parsing at sync time, not at compile time. Change both
+/// or neither.
 enum PromotionType { percentDiscount, buyXGetY, clearance, monthly }
 
 /// Decides which rows carry a promotion (~15%) and what it looks like.

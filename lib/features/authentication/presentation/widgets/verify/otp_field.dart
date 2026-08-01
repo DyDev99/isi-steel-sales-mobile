@@ -159,8 +159,7 @@ class OtpFieldState extends State<OtpField> {
               : TextInputAction.next,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           // SMS autofill on Android typically targets the first box.
-          autofillHints:
-              index == 0 ? const [AutofillHints.oneTimeCode] : null,
+          autofillHints: index == 0 ? const [AutofillHints.oneTimeCode] : null,
           style: TextStyle(
             color: scheme.onSurface,
             fontSize: 20,

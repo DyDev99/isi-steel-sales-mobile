@@ -136,7 +136,8 @@ class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
                                   'auth.create_new_password_title'.tr,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
-                                    color: Theme.of(context).colorScheme.onSurface,
+                                    color:
+                                        Theme.of(context).colorScheme.onSurface,
                                     fontSize: 26,
                                     fontWeight: FontWeight.w900,
                                     height: 1.15,
@@ -147,7 +148,8 @@ class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
                                   'auth.create_new_password_subtitle'.tr,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
-                                      color: context.appColors.textSecondary, fontSize: 15),
+                                      color: context.appColors.textSecondary,
+                                      fontSize: 15),
                                 ),
                               ],
                             ),

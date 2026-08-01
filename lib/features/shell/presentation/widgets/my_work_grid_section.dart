@@ -1,21 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:isi_steel_sales_mobile/core/animations/animated_card.dart';
 import 'package:isi_steel_sales_mobile/core/animations/app_animations.dart';
 import 'package:isi_steel_sales_mobile/core/animations/fade_slide_transition.dart';
 import 'package:isi_steel_sales_mobile/core/animations/shimmer_loading.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/presentation/services/coach_keys.dart';
 import 'package:isi_steel_sales_mobile/features/home/presentation/bloc/home_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/add_customer_bottom_sheet.dart';
 
 class MyWorkGridSection extends StatelessWidget {
   const MyWorkGridSection({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // The section spotlight targets this whole block cleanly.
     return CoachKeys.wrap(
       CoachKeys.myWork,
       child: Padding(
@@ -33,15 +31,15 @@ class MyWorkGridSection extends StatelessWidget {
                   child: FadeSlideIn(
                     delay: FadeSlideIn.staggerDelay(0),
                     child: CoachKeys.wrap(
-                      CoachKeys.myLeads,
+                      CoachKeys.addCustomer,
                       child: _MyWorkCard(
-                        label: 'shell.my_leads'.tr,
-                        icon: Icons.layers_outlined,
-                        accent: const Color(0xFF4C9AFF),
-                        badgeText: 'shell.badge_due'.trParams({'count': 1}),
+                        label: 'shell.add_customer'.tr,
+                        icon: Icons.person_add_outlined,
+                        accent: const Color(0xFF3B82F6),
                         isActive: false,
-                        onTap: () =>
-                            sl<ShellTabController>().goTo(ShellTab.leads),
+                        onTap: () {
+                          showAddCustomerSheet(context, wonLeads: []);
+                        },
                       ),
                     ),
                   ),
@@ -55,7 +53,7 @@ class MyWorkGridSection extends StatelessWidget {
                       child: _MyWorkCard(
                         label: 'shell.my_visits'.tr,
                         icon: Icons.assignment_turned_in_outlined,
-                        accent: const Color(0xFF36B37E),
+                        accent: const Color(0xFF10B981),
                         badgeText: 'shell.badge_today'.trParams({'count': 3}),
                         isActive: true,
                         onTap: () =>
@@ -79,7 +77,7 @@ class MyWorkGridSection extends StatelessWidget {
                       child: _MyWorkCard(
                         label: 'shell.my_customers'.tr,
                         icon: Icons.people_alt_outlined,
-                        accent: const Color(0xFFFF5C00),
+                        accent: const Color(0xFFF97316),
                         isActive: false,
                         onTap: () =>
                             sl<ShellTabController>().goTo(ShellTab.customers),
@@ -96,7 +94,7 @@ class MyWorkGridSection extends StatelessWidget {
                       child: _MyWorkCard(
                         label: 'shell.my_quotes_orders'.tr,
                         icon: Icons.description_outlined,
-                        accent: const Color(0xFFFFAB00),
+                        accent: const Color(0xFFF59E0B),
                         isActive: false,
                         onTap: () =>
                             sl<ShellTabController>().goTo(ShellTab.orders),
@@ -113,7 +111,7 @@ class MyWorkGridSection extends StatelessWidget {
   }
 }
 
-class _MyWorkCard extends StatelessWidget {
+class _MyWorkCard extends StatefulWidget {
   const _MyWorkCard({
     required this.label,
     required this.icon,
@@ -131,89 +129,216 @@ class _MyWorkCard extends StatelessWidget {
   final bool isActive;
 
   @override
+  State<_MyWorkCard> createState() => _MyWorkCardState();
+}
+
+class _MyWorkCardState extends State<_MyWorkCard> {
+  bool _isPressed = false;
+
+  // Traditional Gold Accent Palette
+  static const Color _goldLight = Color(0xFFF3E5AB);
+  static const Color _goldPrimary = Color(0xFFD4AF37);
+  static const Color _goldDark = Color(0xFF996515);
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
 
-    return AnimatedCard(
-      onTap: onTap,
-      semanticLabel: badgeText == null ? label : '$label, $badgeText',
-      color: scheme.surface,
-      borderRadius: BorderRadius.circular(20.r),
-      splashColor: accent.withValues(alpha: 0.12),
-      highlightColor: accent.withValues(alpha: 0.05),
-      restShadow: [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: isDark ? 0.20 : 0.03),
-          blurRadius: isActive ? 16 : 10,
-          offset: Offset(0, isActive ? 6 : 4),
-        ),
-      ],
-      builder: (context, pressed, hovered) {
-        return SizedBox(
-          height: 116.h,
+    final depthOffset = _isPressed ? 2.0 : 6.0;
+
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _isPressed = true),
+      onTapUp: (_) {
+        setState(() => _isPressed = false);
+        widget.onTap();
+      },
+      onTapCancel: () => setState(() => _isPressed = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 100),
+        curve: Curves.easeOut,
+        transform: Matrix4.translationValues(0, _isPressed ? 4.0 : 0.0, 0),
+        child: Container(
+          height: 120.h,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20.r),
+            // 3D Extrusion Shadow + Traditional Ambient Glow
+            boxShadow: [
+              // Bottom Extrusion Shadow for 3D effect
+              BoxShadow(
+                color: widget.accent.withValues(alpha: isDark ? 0.35 : 0.25),
+                offset: Offset(0, depthOffset),
+                blurRadius: _isPressed ? 2 : 6,
+              ),
+              // Soft Base Depth Shadow
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.40 : 0.08),
+                offset: Offset(0, depthOffset + 2),
+                blurRadius: _isPressed ? 4 : 12,
+              ),
+            ],
+          ),
           child: Stack(
             children: [
-              Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Subtle, professional icon feedback: a small bounce +
-                    // a slight rotate on press. No playful overshoot.
-                    AnimatedScale(
-                      scale: pressed ? 0.94 : 1.0,
-                      duration: AppDurations.pressUp,
-                      curve: AppCurves.bounce,
-                      child: AnimatedRotation(
-                        turns: pressed ? -0.015 : 0.0,
-                        duration: AppDurations.pressUp,
-                        curve: AppCurves.standard,
-                        child: Container(
-                          width: 46.r,
-                          height: 46.r,
-                          decoration: BoxDecoration(
-                            color: accent.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(14.r),
+              // 1. Traditional Outer Gold Frame & Card Base
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20.r),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      _goldLight.withValues(alpha: 0.8),
+                      _goldPrimary,
+                      _goldDark,
+                    ],
+                  ),
+                ),
+                padding: EdgeInsets.all(2.r), // Gold Rim Width
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(18.r),
+                    color: scheme.surface,
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        scheme.surface,
+                        Color.lerp(
+                          scheme.surface,
+                          widget.accent,
+                          0.05,
+                        )!,
+                      ],
+                    ),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(18.r),
+                    child: Stack(
+                      children: [
+                        // Traditional Subtle Corner Ornament Accents
+                        Positioned(
+                          top: -12.r,
+                          left: -12.r,
+                          child:
+                              _TraditionalCornerOrnament(color: widget.accent),
+                        ),
+                        Positioned(
+                          bottom: -12.r,
+                          right: -12.r,
+                          child: Transform.rotate(
+                            angle: 3.14159,
+                            child: _TraditionalCornerOrnament(
+                                color: widget.accent),
                           ),
-                          child: Icon(icon, color: accent, size: 22.r),
                         ),
-                      ),
-                    ),
-                    SizedBox(height: 12.h),
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 8.w),
-                      child: Text(
-                        label,
-                        textAlign: TextAlign.center,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w800,
-                          color: scheme.onSurface,
-                          letterSpacing: -0.2,
+
+                        // Card Content
+                        Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              // 2. 3D Embossed Icon Medallion
+                              Container(
+                                width: 48.r,
+                                height: 48.r,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      widget.accent.withValues(alpha: 0.25),
+                                      widget.accent.withValues(alpha: 0.08),
+                                    ],
+                                  ),
+                                  border: Border.all(
+                                    color: _goldPrimary.withValues(alpha: 0.6),
+                                    width: 1.5,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color:
+                                          widget.accent.withValues(alpha: 0.2),
+                                      offset: const Offset(0, 3),
+                                      blurRadius: 6,
+                                    ),
+                                    BoxShadow(
+                                      color: Colors.white.withValues(
+                                          alpha: isDark ? 0.05 : 0.6),
+                                      offset: const Offset(-2, -2),
+                                      blurRadius: 4,
+                                    ),
+                                  ],
+                                ),
+                                child: Center(
+                                  child: Icon(
+                                    widget.icon,
+                                    color: widget.accent,
+                                    size: 22.r,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: 10.h),
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 8.w),
+                                child: Text(
+                                  widget.label,
+                                  textAlign: TextAlign.center,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 13.5.sp,
+                                    fontWeight: FontWeight.w800,
+                                    color: scheme.onSurface,
+                                    letterSpacing: -0.1,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
 
-              // Badge now lives safely inside the card's top-right corner
-              // (the old version offset it -32.w and clipped on small phones),
-              // and animates when its value changes.
-              if (badgeText != null)
+              // 3. Badge with 3D Elevation
+              if (widget.badgeText != null)
                 Positioned(
-                  top: 10.h,
-                  right: 10.w,
-                  child: _WorkBadge(text: badgeText!),
+                  top: 8.h,
+                  right: 8.w,
+                  child: _WorkBadge(text: widget.badgeText!),
                 ),
             ],
           ),
-        );
-      },
+        ),
+      ),
+    );
+  }
+}
+
+/// Traditional geometric motif corner decoration
+class _TraditionalCornerOrnament extends StatelessWidget {
+  const _TraditionalCornerOrnament({required this.color});
+
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 36.r,
+      height: 36.r,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: color.withValues(alpha: 0.12),
+          width: 2,
+        ),
+      ),
     );
   }
 }
@@ -237,13 +362,22 @@ class _WorkBadge extends StatelessWidget {
         key: ValueKey<String>(text),
         padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
         decoration: BoxDecoration(
-          color: scheme.secondary,
+          gradient: const LinearGradient(
+            colors: [Color(0xFFD4AF37), Color(0xFFB8860B)],
+          ),
           borderRadius: BorderRadius.circular(100.r),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.25),
+              offset: const Offset(0, 2),
+              blurRadius: 4,
+            ),
+          ],
         ),
         child: Text(
           text,
           style: TextStyle(
-            color: scheme.onSecondary,
+            color: Colors.white,
             fontSize: 9.sp,
             fontWeight: FontWeight.w900,
           ),
@@ -262,34 +396,39 @@ class _SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final color = theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6) ??
-        theme.colorScheme.onSurface.withValues(alpha: 0.6);
+    final color = theme.textTheme.bodySmall?.color?.withValues(alpha: 0.8) ??
+        theme.colorScheme.onSurface.withValues(alpha: 0.8);
+
     return Padding(
       padding: EdgeInsets.only(left: 4.w, bottom: 12.h),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: 14.sp,
-          fontWeight: FontWeight.w900,
-          letterSpacing: letterSpacing,
-          color: color,
-        ),
+      child: Row(
+        children: [
+          Container(
+            width: 4.w,
+            height: 14.h,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(2.r),
+              gradient: const LinearGradient(
+                colors: [Color(0xFFD4AF37), Color(0xFF996515)],
+              ),
+            ),
+          ),
+          SizedBox(width: 8.w),
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w900,
+              letterSpacing: letterSpacing,
+              color: color,
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-/// Drop-in skeleton that mirrors the grid's footprint 1:1 so there is no
-/// layout jump when [HomeCubit] finishes loading. Wire it up with a selector,
-/// e.g.:
-///
-/// ```dart
-/// BlocBuilder<HomeCubit, HomeState>(
-///   builder: (context, state) => state.isLoading
-///       ? const MyWorkGridSkeleton()
-///       : const MyWorkGridSection(),
-/// )
-/// ```
 class MyWorkGridSkeleton extends StatelessWidget {
   const MyWorkGridSkeleton({super.key});
 
@@ -322,7 +461,7 @@ class MyWorkGridSkeleton extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     return Expanded(
       child: Container(
-        height: 116.h,
+        height: 120.h,
         decoration: BoxDecoration(
           color: scheme.surface,
           borderRadius: BorderRadius.circular(20.r),
@@ -333,9 +472,9 @@ class MyWorkGridSkeleton extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               ShimmerBox(
-                width: 46.r,
-                height: 46.r,
-                borderRadius: BorderRadius.circular(14.r),
+                width: 48.r,
+                height: 48.r,
+                borderRadius: BorderRadius.circular(24.r),
               ),
               SizedBox(height: 12.h),
               ShimmerBox(width: 72.w, height: 12.h),

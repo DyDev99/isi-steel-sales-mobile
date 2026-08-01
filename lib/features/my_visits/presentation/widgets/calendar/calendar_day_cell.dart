@@ -2,18 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
-import 'route_indicator_dots.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/calendar/stops_indicator_dots.dart';
 
-/// One cell in [CalendarMonthView]'s grid: a date number with wrapping route
+/// One cell in [CalendarMonthView]'s grid: a date number with wrapping stop
 /// dots (up to 4 columns) centered directly beneath it.
-///
-/// - **Today** always gets a filled primary circle + bold white text — this
-///   holds even if today also happens to be the selected date.
-/// - A **selected date that isn't today** gets a lighter tinted circle, so
-///   the two states never look identical.
-/// - Leading/trailing days from adjacent months render faded and disabled
-///   (tapping does nothing) rather than blank, matching how Google/Apple
-///   Calendar fill the grid instead of leaving the start of the month empty.
 class CalendarDayCell extends StatelessWidget {
   const CalendarDayCell({
     super.key,
@@ -21,7 +13,7 @@ class CalendarDayCell extends StatelessWidget {
     required this.isCurrentMonth,
     required this.isToday,
     required this.isSelected,
-    required this.routeCount,
+    required this.stopCount,
     required this.onTap,
   });
 
@@ -29,7 +21,7 @@ class CalendarDayCell extends StatelessWidget {
   final bool isCurrentMonth;
   final bool isToday;
   final bool isSelected;
-  final int routeCount;
+  final int stopCount;
   final VoidCallback onTap;
 
   @override
@@ -81,11 +73,11 @@ class CalendarDayCell extends StatelessWidget {
             ),
           ),
           SizedBox(height: 4.h),
-          // Adjacent-month days never show route dots — those routes belong
+          // Adjacent-month days never show stop dots — those belong
           // to a different focused month and would be misleading here.
           isCurrentMonth
-              ? RouteIndicatorDots(
-                  count: routeCount,
+              ? StopIndicatorDots(
+                  count: stopCount,
                   maxVisible: 8,
                   columns: 4,
                   activeColor: isToday ? scheme.primary : colors.iconMuted,

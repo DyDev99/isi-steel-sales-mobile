@@ -1,0 +1,108 @@
+import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+
+/// Running total of what the quantity steppers have put in the quotation.
+///
+/// Necessary precisely because there is no "Add to cart" button any more: when
+/// a `+` tap is the whole commit action, the rep needs an unambiguous, always
+/// current answer to "did that land, and what am I at now".
+///
+/// Purely presentational — it renders the numbers it is handed and reports
+/// taps. Totals are computed by `CartCubit`, which stays the single source of
+/// truth for quotation money.
+class CartSummaryBar extends StatelessWidget {
+  const CartSummaryBar({
+    super.key,
+    required this.lineCount,
+    required this.totalQuantity,
+    required this.subtotal,
+    this.onTap,
+  });
+
+  final int lineCount;
+  final double totalQuantity;
+  final double subtotal;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
+
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 240),
+      curve: Curves.easeOutCubic,
+      child: lineCount == 0
+          ? const SizedBox(width: double.infinity)
+          : Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                color: scheme.primary.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(14),
+                border:
+                    Border.all(color: scheme.primary.withValues(alpha: 0.30)),
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: onTap,
+                  borderRadius: BorderRadius.circular(14),
+                  child: Row(
+                    children: [
+                      Icon(Icons.shopping_cart_rounded,
+                          size: 19, color: scheme.primary),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'orders.guided_filter.cart_lines'
+                                  .trParams({'count': lineCount}),
+                              style: TextStyle(
+                                color: colors.textPrimary,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            const SizedBox(height: 1),
+                            Text(
+                              'orders.guided_filter.cart_units'.trParams(
+                                  {'count': totalQuantity.toStringAsFixed(0)}),
+                              style: TextStyle(
+                                color: colors.textSecondary,
+                                fontSize: 11.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 220),
+                        transitionBuilder: (child, animation) => FadeTransition(
+                          opacity: animation,
+                          child: SizeTransition(
+                            sizeFactor: animation,
+                            axis: Axis.horizontal,
+                            child: child,
+                          ),
+                        ),
+                        child: Text(
+                          '\$${subtotal.toStringAsFixed(2)}',
+                          key: ValueKey(subtotal.toStringAsFixed(2)),
+                          style: TextStyle(
+                            color: scheme.primary,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+    );
+  }
+}

@@ -41,6 +41,21 @@ abstract interface class ProductLocalDataSource {
   Future<List<CategoryModel>> fetchCategories();
   Future<void> upsertCategories(List<CategoryModel> categories);
 
+  /// Deletes every category whose id is **not** in [keepIds].
+  ///
+  /// Categories have no tombstone in the sync feed — [markDeleted] covers
+  /// products only — so a category that disappears upstream would otherwise
+  /// linger locally forever. That is survivable right up until the products
+  /// that referenced it are re-pointed somewhere else: `categoriesWithProducts`
+  /// is a join, so a table full of orphaned ids joins to nothing and the
+  /// guided flow renders "No product categories available" on a device that
+  /// just successfully synced thousands of products.
+  ///
+  /// Implementations MUST treat an empty [keepIds] as a no-op. A category
+  /// fetch that fails and returns `[]` must never be allowed to wipe the
+  /// table.
+  Future<void> pruneCategoriesNotIn(List<String> keepIds);
+
   /// Batched, transactional upsert into the product/price/stock tables.
   Future<void> upsertProducts(List<ProductModel> products);
   Future<void> markDeleted(List<String> ids);

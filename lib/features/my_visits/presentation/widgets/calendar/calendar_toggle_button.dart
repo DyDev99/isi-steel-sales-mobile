@@ -4,26 +4,19 @@ import 'package:intl/intl.dart';
 
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
-import 'route_indicator_dots.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/calendar/stops_indicator_dots.dart';
 
-/// The calendar's compact, always-visible header: today's weekday + date and
-/// a dot summary of today's routes, plus the chevron that expands the full
-/// month view.
-///
-/// Deliberately always shows *today* rather than whichever date is selected
-/// in the expanded grid — per the design brief, this is a quick "what's on
-/// today" glance. The user's selection elsewhere already drives the existing
-/// day-header/route list below the calendar on the dashboard screen.
+/// The calendar's compact header: today's date and a dot summary of today's stops.
 class CalendarToggleButton extends StatelessWidget {
   const CalendarToggleButton({
     super.key,
     required this.expanded,
-    required this.todayRouteCount,
+    required this.todayStopCount,
     required this.onTap,
   });
 
   final bool expanded;
-  final int todayRouteCount;
+  final int todayStopCount;
   final VoidCallback onTap;
 
   @override
@@ -71,7 +64,7 @@ class CalendarToggleButton extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'my_visits.calendar.todays_routes'.tr,
+                        'my_visits.calendar.todays_stops'.tr,
                         style: TextStyle(
                           color: colors.textSecondary,
                           fontSize: 11.sp,
@@ -79,8 +72,8 @@ class CalendarToggleButton extends StatelessWidget {
                         ),
                       ),
                       SizedBox(width: 8.w),
-                      RouteIndicatorDots(
-                        count: todayRouteCount,
+                      StopIndicatorDots(
+                        count: todayStopCount,
                         maxVisible: 8,
                         dotSize: 5,
                       ),

@@ -16,6 +16,12 @@ class GeolocatorTrackingService implements LocationTrackingService {
   StreamSubscription<Position>? _subscription;
   StreamController<LocationSample>? _controller;
 
+  // Separate lifecycle from the route-scoped [track] stream above so the
+  // dashboard's foreground-only observation never starts/stops the foreground
+  // service.
+  StreamSubscription<Position>? _observeSubscription;
+  StreamController<LocationSample>? _observeController;
+
   @override
   Future<bool> ensurePermission({bool background = false}) async {
     if (!await Geolocator.isLocationServiceEnabled()) return false;
@@ -81,6 +87,32 @@ class GeolocatorTrackingService implements LocationTrackingService {
     }
     return const LocationSettings(
         accuracy: LocationAccuracy.high, distanceFilter: 10);
+  }
+
+  @override
+  Stream<LocationSample> observe({int distanceFilterMeters = 25}) {
+    _observeController ??=
+        StreamController<LocationSample>.broadcast(onCancel: stopObserving);
+    _observeSubscription ??= Geolocator.getPositionStream(
+      // Plain settings: no foreground-service notification (that belongs to the
+      // route-scoped [track]); larger distance filter to conserve battery.
+      locationSettings: LocationSettings(
+          accuracy: LocationAccuracy.high,
+          distanceFilter: distanceFilterMeters),
+    ).listen(
+      (position) =>
+          _observeController?.add(_toSample('stop-dashboard', position)),
+      onError: (Object _) {},
+    );
+    return _observeController!.stream;
+  }
+
+  @override
+  Future<void> stopObserving() async {
+    await _observeSubscription?.cancel();
+    _observeSubscription = null;
+    await _observeController?.close();
+    _observeController = null;
   }
 
   LocationSample _toSample(String routeId, Position position) => LocationSample(

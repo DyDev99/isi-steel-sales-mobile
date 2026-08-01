@@ -149,9 +149,7 @@ class IdentifierFieldState extends State<IdentifierField> {
         if (v == null || v.trim().isEmpty) {
           return widget.required ? 'auth.email_required'.tr : null;
         }
-        return _emailRegExp.hasMatch(v.trim())
-            ? null
-            : 'auth.invalid_email'.tr;
+        return _emailRegExp.hasMatch(v.trim()) ? null : 'auth.invalid_email'.tr;
       },
     );
   }

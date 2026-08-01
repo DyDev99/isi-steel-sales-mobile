@@ -15,6 +15,8 @@ class ProductQuery {
     this.page = 0,
     this.pageSize = 30,
     this.categoryId,
+    this.familyId,
+    this.subCategory,
     this.brand,
     this.warehouseCode,
     this.size,
@@ -33,6 +35,8 @@ class ProductQuery {
   final int page;
   final int pageSize;
   final String? categoryId;
+  final String? familyId;
+  final String? subCategory;
   final String? brand;
   final String? warehouseCode;
   final String? size;
@@ -45,6 +49,21 @@ class ProductQuery {
   final String? material;
   final bool availableOnly;
   final ProductQuerySort sort;
+}
+
+/// One distinct value of a filterable product column, with how many catalog
+/// rows still match if it is selected. Neutral row shape — the Order feature
+/// maps it onto its own `FilterOption` entity.
+class CatalogFacetValue {
+  const CatalogFacetValue({
+    required this.value,
+    required this.label,
+    required this.matchCount,
+  });
+
+  final String value;
+  final String label;
+  final int matchCount;
 }
 
 /// Scoped accessor for the offline product catalog master data. Reads exclude
@@ -82,6 +101,22 @@ class CatalogDao extends DatabaseAccessor<AppDatabase> with _$CatalogDaoMixin {
   ) async {
     if (rows.isEmpty) return;
     await batch((b) => b.insertAllOnConflictUpdate(table, rows));
+  }
+
+  /// Deletes every category *except* [keepIds] — the categories the feed just
+  /// published.
+  ///
+  /// Categories have no `deleted` flag (they are SAP-controlled reference data
+  /// replaced wholesale on sync, not a syncable entity), so a taxonomy change
+  /// leaves the retired rows behind. That matters because the product finder
+  /// opens on "categories that have products": a stale row whose products were
+  /// re-pointed at a new id shows up as a category that dead-ends immediately.
+  ///
+  /// Refuses an empty [keepIds] rather than treating it as "keep nothing" — a
+  /// feed that failed to parse must not be able to wipe the taxonomy.
+  Future<void> pruneCategoriesNotIn(List<String> keepIds) async {
+    if (keepIds.isEmpty) return;
+    await (delete(categories)..where((t) => t.id.isNotIn(keepIds))).go();
   }
 
   Future<void> markDeleted(List<String> ids) async {
@@ -339,6 +374,85 @@ class CatalogDao extends DatabaseAccessor<AppDatabase> with _$CatalogDaoMixin {
     ).get();
   }
 
+  /// One level of the guided filter flow: the distinct values of a single
+  /// product column among the rows still matching [q], with how many rows each
+  /// value keeps alive.
+  ///
+  /// This is deliberately *not* a product read — it returns at most a few dozen
+  /// short strings regardless of catalog size, which is what lets the guided
+  /// flow walk a 100k-SKU catalog without paging a single product until the
+  /// last step is answered. [facet] is resolved against [facetColumns] rather
+  /// than interpolated from caller input, so no caller can shape the SQL.
+  ///
+  /// Values come back as TEXT even for the REAL columns (`CAST`), so callers
+  /// get one uniform signature; numeric parsing belongs to the layer that knows
+  /// the attribute's type.
+  Future<List<CatalogFacetValue>> distinctFacetValues({
+    required String facet,
+    required ProductQuery q,
+  }) async {
+    final spec = facetColumns[facet];
+    if (spec == null) {
+      throw ArgumentError.value(facet, 'facet', 'Not a filterable facet');
+    }
+    final (valueCol, labelSpec, isNumeric) = spec;
+    final labelCol = labelSpec ?? valueCol;
+    // A numeric column carries 0 for "not applicable to this product type"
+    // (a steel sheet has no length), which is an absence, not a value — so it
+    // must never surface as a selectable option.
+    final blank =
+        isNumeric ? 'p.$valueCol > 0' : "CAST(p.$valueCol AS TEXT) != ''";
+    final (where, vars) = _productWhere(q);
+    final rows = await customSelect(
+      'SELECT CAST(p.$valueCol AS TEXT) AS facet_value, '
+      'CAST(MIN(p.$labelCol) AS TEXT) AS facet_label, COUNT(*) AS facet_count '
+      '$_productJoins WHERE $where '
+      'AND p.$valueCol IS NOT NULL AND $blank '
+      'GROUP BY p.$valueCol ORDER BY p.$valueCol ASC',
+      variables: vars,
+      readsFrom: _productReads,
+    ).get();
+    return rows
+        .map((r) => CatalogFacetValue(
+              value: r.read<String>('facet_value'),
+              label: r.read<String>('facet_label'),
+              matchCount: r.read<int>('facet_count'),
+            ))
+        .toList();
+  }
+
+  /// Whitelist of columns [distinctFacetValues] may group by, keyed by the
+  /// neutral facet name callers use:
+  /// `(value column, label column or null when identical, is numeric)`.
+  static const Map<String, (String, String?, bool)> facetColumns = {
+    'family': ('family_id', 'family_name', false),
+    'subCategory': ('sub_category', null, false),
+    'brand': ('brand', null, false),
+    'size': ('size', null, false),
+    'grade': ('grade', null, false),
+    'material': ('material', null, false),
+    'length': ('length', null, true),
+    'width': ('width', null, true),
+    'height': ('height', null, true),
+    'diameter': ('diameter', null, true),
+    'thickness': ('thickness', null, true),
+  };
+
+  /// Categories that actually hold at least one live product. The guided
+  /// configurator opens on this rather than the full taxonomy — offering a
+  /// category whose every branch dead-ends is the same defect as offering an
+  /// option that matches nothing.
+  Future<List<Category>> categoriesWithProducts() async {
+    final rows = await customSelect(
+      'SELECT c.* FROM categories c '
+      'WHERE EXISTS (SELECT 1 FROM products p '
+      '              WHERE p.category_id = c.id AND p.deleted = 0) '
+      'ORDER BY c.sort_order ASC, c.name ASC',
+      readsFrom: {categories, products},
+    ).get();
+    return rows.map((r) => categories.map(r.data)).toList();
+  }
+
   Future<List<String>> distinctBrands() async {
     final rows = await customSelect(
       'SELECT DISTINCT brand FROM products WHERE deleted = 0 ORDER BY brand ASC',
@@ -373,6 +487,8 @@ class CatalogDao extends DatabaseAccessor<AppDatabase> with _$CatalogDaoMixin {
     }
 
     eq('category_id', q.categoryId);
+    eq('family_id', q.familyId);
+    eq('sub_category', q.subCategory);
     eq('brand', q.brand);
     eq('warehouse_code', q.warehouseCode);
     eq('size', q.size);
@@ -388,12 +504,39 @@ class CatalogDao extends DatabaseAccessor<AppDatabase> with _$CatalogDaoMixin {
       where.add('(COALESCE(s.quantity, 0) - COALESCE(s.reserved, 0)) > 0');
     }
 
-    final sanitized = q.query.replaceAll(RegExp(r'[^\w\s.]'), ' ').trim();
+    // Keep letters of *any* script, digits, and the punctuation that is part
+    // of a steel identifier ("1/2\"", "TRIM-7", "0.30").
+    //
+    // `\w` is ASCII-only, so the previous pattern silently deleted every Khmer
+    // character: a rep searching ស័ង្កសី got an empty query, which reads as
+    // "no text filter" and returns the whole catalog. SAP carries a Khmer
+    // description on every material and reps search in it, so this is a
+    // correctness fix, not a nicety.
+    //
+    // `\p{M}` is not optional: Khmer builds a syllable from a base consonant
+    // plus combining marks (ស + ័ + ្ + ក …), all of which are category M.
+    // Dropping them doesn't just lose accents, it shatters one word into
+    // several space-separated consonants that LIKE can never match again.
+    final sanitized = q.query
+        .replaceAll(RegExp(r'[^\p{L}\p{N}\p{M}\s./-]', unicode: true), ' ')
+        .trim();
     if (sanitized.isNotEmpty) {
       final like = '%$sanitized%';
-      where.add('(p.code LIKE ? OR p.name LIKE ? OR p.barcode LIKE ? '
-          'OR p.sku LIKE ? OR p.brand LIKE ?)');
-      for (var i = 0; i < 5; i++) {
+      // Every identifier a rep might have in front of them: what's printed on
+      // the tag (code/barcode/SKU), what SAP calls it (material code), and
+      // what it's described as in either language (name/description carry the
+      // localised text until a dedicated Khmer-name column exists).
+      const columns = [
+        'code',
+        'name',
+        'barcode',
+        'sku',
+        'brand',
+        'material_code',
+        'description',
+      ];
+      where.add('(${columns.map((c) => 'p.$c LIKE ?').join(' OR ')})');
+      for (var i = 0; i < columns.length; i++) {
         vars.add(Variable(like));
       }
     }

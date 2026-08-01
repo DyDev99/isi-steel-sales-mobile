@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
@@ -11,6 +12,7 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/car
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_state.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/success/order_success_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/quotation_line_tile.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/back_to_home.dart';
 
 class SalesOrderScreen extends StatefulWidget {
   const SalesOrderScreen({super.key, required this.quotation});
@@ -58,12 +60,40 @@ class _SalesOrderScreenState extends State<SalesOrderScreen> {
       backgroundColor: colors.canvas,
       appBar: AppBar(
         backgroundColor: colors.canvas,
-        iconTheme: IconThemeData(color: colors.textPrimary),
-        title: Text('orders.sales_order.title'.tr,
-            style: TextStyle(
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        titleSpacing: 0,
+        // Left side: Chevron Back + Sales Order Title
+        title: Row(
+          children: [
+            IconButton(
+              icon: Icon(
+                Icons.chevron_left_rounded,
                 color: colors.textPrimary,
-                fontSize: 17,
-                fontWeight: FontWeight.w800)),
+                size: 28.sp,
+              ),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            Expanded(
+              child: Text(
+                'orders.sales_order.title'.tr,
+                style: TextStyle(
+                  color: colors.textPrimary,
+                  fontSize: 17.sp,
+                  fontWeight: FontWeight.w800,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+        // Right side: Back to Home button
+        actions: [
+          Padding(
+            padding: EdgeInsets.only(right: 16.w),
+            child: const BackToHomeButton(),
+          ),
+        ],
       ),
       body: BlocBuilder<CartCubit, CartState>(
         builder: (context, state) {
