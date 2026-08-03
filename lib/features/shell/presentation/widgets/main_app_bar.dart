@@ -103,7 +103,7 @@ class MainAppBar extends StatelessWidget {
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(12.r),
                             child: Image.asset(
-                              'assets/logos/isi_main_screen_logo.png',
+                              'assets/logos/isi_main_shell_logo.png',
                               height: 40.h,
                               width: 140.w,
                               fit: BoxFit.cover,
