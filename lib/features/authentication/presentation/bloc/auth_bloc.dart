@@ -36,7 +36,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     // `droppable` guards against double-submits: extra taps while a login
     // is in flight are ignored rather than queued.
     on<LoginSubmittedEvent>(_onLogin, transformer: droppable());
-    on<LogoutRequested>(_onLogout);
+    // `droppable` for the same reason as login: sign-out is idempotent but not
+    // free — each run clears the stores again and bumps the restart
+    // generation, so a double-tap would tear the whole app down twice.
+    on<LogoutRequested>(_onLogout, transformer: droppable());
   }
 
   final Login _login;

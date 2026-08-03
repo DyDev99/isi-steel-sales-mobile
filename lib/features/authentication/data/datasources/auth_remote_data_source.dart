@@ -12,7 +12,14 @@ abstract interface class AuthRemoteDataSource {
     required String password,
   });
   Future<UserModel> getCurrentUser();
-  Future<void> logout();
+
+  /// Revokes [accessToken] server-side.
+  ///
+  /// The credential is passed in rather than read from the token store,
+  /// because sign-out clears that store *first* — see
+  /// `AuthRepositoryImpl.logout`. Relying on [AuthInterceptor] here would send
+  /// the revocation unauthenticated and get a 401.
+  Future<void> logout({required String accessToken});
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -65,9 +72,20 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Future<void> logout() async {
+  Future<void> logout({required String accessToken}) async {
     try {
-      await _client.post<void>(AppConstants.logoutEndpoint);
+      await _client.post<void>(
+        AppConstants.logoutEndpoint,
+        options: Options(
+          headers: {'Authorization': 'Bearer $accessToken'},
+          // The session is already gone locally by the time this runs, so a
+          // 401 here is expected and uninteresting — let it come back as a
+          // plain response instead of tripping the interceptor's refresh
+          // path, which would burn another connect timeout re-authenticating
+          // a session that no longer exists.
+          validateStatus: (_) => true,
+        ),
+      );
     } on DioException catch (e) {
       throw _map(e);
     }
