@@ -16,6 +16,12 @@ abstract interface class RouteRepository {
   /// dashboard stays live without manual reloads.
   Stream<List<RoutePlan>> watchTodayRoutes();
 
+  /// One-shot read of every locally-synced route regardless of date — the
+  /// non-stream twin of [watchAllRoutes], used to re-read after a sync lands
+  /// (sync writes through the local data source, which the broadcast stream
+  /// doesn't observe). Backs the Stop Dashboard's multi-day view + calendar.
+  ResultFuture<List<RoutePlan>> fetchAllRoutes();
+
   /// Continuous stream of every locally-synced route regardless of date —
   /// feeds the calendar's per-day route-count dots and lets a rep browse a
   /// different day's routes, neither of which [watchTodayRoutes] can answer

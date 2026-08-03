@@ -157,11 +157,18 @@ jobs:
         # via <meta>. Clickjacking protection needs a real HTTP header, and
         # GitHub Pages cannot send one — see `docs/flutter-web.md` §6.
         #
-        # If Google Maps is enabled on web later, add its exact origin to
-        # `script-src` and `connect-src`. Never widen either to a wildcard.
+        # Google Maps (enabled on web — see web/index.html) needs four exact
+        # origins, never a wildcard:
+        #   script-src  maps.googleapis.com  the loader + the API modules it
+        #               pulls in; maps.gstatic.com serves those module chunks.
+        #   style-src   fonts.googleapis.com — the API injects its own
+        #               stylesheet link for map controls.
+        #   font-src    fonts.gstatic.com — the faces that stylesheet points at.
+        # Map tiles and API calls need no new entry: `img-src ... https:` and
+        # `connect-src 'self' https:` already cover them.
         run: |
           set -e
-          CSP="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'"
+          CSP="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://maps.googleapis.com https://maps.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'"
           TAG="<meta http-equiv=\"Content-Security-Policy\" content=\"$CSP\">"
           # Inserted immediately after <head> so it applies to everything below.
           sed -i "0,/<head>/s|<head>|<head>\n  $TAG|" build/web/index.html
@@ -200,6 +207,8 @@ jobs:
             || { echo "::error::sqlite3.wasm missing from build/web — Drift cannot start on web. It must be committed at web/sqlite3.wasm."; exit 1; }
           grep -q 'base href="'"$BASE_HREF"'"' build/web/index.html \
             || { echo "::error::base href was not substituted; assets will 404 under the repository sub-path."; exit 1; }
+          grep -q 'maps.googleapis.com/maps/api/js' build/web/index.html \
+            || { echo "::error::Google Maps JS loader missing from build/web/index.html — GoogleMap widgets render blank on web. It must stay in web/index.html <head>."; exit 1; }
           echo "Web assets verified."
 
       - uses: actions/configure-pages@v5

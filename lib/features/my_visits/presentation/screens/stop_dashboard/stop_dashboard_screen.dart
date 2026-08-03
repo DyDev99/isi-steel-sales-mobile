@@ -165,24 +165,13 @@ class _LoadedView extends StatefulWidget {
 }
 
 class _LoadedViewState extends State<_LoadedView> {
-  late DateTime _focusedMonth;
-  late DateTime _selectedDate;
+  DateTime _focusedMonth = DateTime.now();
 
-  @override
-  void initState() {
-    super.initState();
-    _focusedMonth = DateTime.now();
-    _selectedDate = DateTime.now();
-  }
-
-  /// Calculates stop counts for calendar date indicators.
-  /// Currently matches against today's loaded stops.
-  int _getStopCountForDate(DateTime date) {
-    if (DateUtils.isSameDay(date, DateTime.now())) {
-      return widget.state.stops.length;
-    }
-    return 0;
-  }
+  /// Per-day stop count for the calendar dots — across every synced day, from
+  /// the cubit's `allRoutes` (Today…+4 land here). Selecting a day filters the
+  /// list via the cubit.
+  int _getStopCountForDate(DateTime date) =>
+      widget.state.stopCountForDay(date);
 
   @override
   Widget build(BuildContext context) {
@@ -204,13 +193,12 @@ class _LoadedViewState extends State<_LoadedView> {
                 children: [
                   StopCalendarSection(
                     focusedMonth: _focusedMonth,
-                    selectedDate: _selectedDate,
-                    onMonthChanged: (newMonth) {
-                      setState(() => _focusedMonth = newMonth);
-                    },
-                    onDateSelected: (newDate) {
-                      setState(() => _selectedDate = newDate);
-                    },
+                    selectedDate: widget.state.selectedDate,
+                    onMonthChanged: (newMonth) =>
+                        setState(() => _focusedMonth = newMonth),
+                    onDateSelected: (newDate) => context
+                        .read<StopDashboardCubit>()
+                        .setSelectedDate(newDate),
                     stopCountForDate: _getStopCountForDate,
                   ),
                   SizedBox(height: 14.h),
@@ -221,7 +209,7 @@ class _LoadedViewState extends State<_LoadedView> {
                     onSelected: widget.onFilter,
                   ),
                   SizedBox(height: 6.h),
-                  if (widget.state.locationDenied)
+                  if (widget.state.locationUnavailable)
                     _Hint(
                       icon: Icons.location_off_rounded,
                       text: 'my_visits.stop_dashboard.location_denied'.tr,

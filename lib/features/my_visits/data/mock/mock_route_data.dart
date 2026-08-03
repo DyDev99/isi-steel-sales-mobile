@@ -229,61 +229,66 @@ class RouteGenerator {
     'Rithy Pech',
   ];
 
+  /// Number of consecutive daily schedules generated: Today … Today+4.
+  static const int _dayCount = 5;
+
+  /// Territory the mock sync is scoped to (`RouteSyncScope.forCurrentUser`).
+  /// Every daily route MUST carry this territory or `MockRouteRemoteDataSource
+  /// ._routesForScope` filters it out and the dashboard shows nothing. The
+  /// *displayed* province per stop still varies — it comes from the synced
+  /// customer directory (`CustomerRowStopInfoMapper.toStopInfo`), not from here.
+  static const String _scopedTerritory = 'Phnom Penh';
+
+  /// One realistic **daily schedule** per day for [_dayCount] days, each with
+  /// **3–5 stops** — a field rep's actual workload, not a transport route of
+  /// dozens of stops. Today carries a natural execution mix (a couple done, one
+  /// in-progress, maybe one missed, the rest pending); future days are all
+  /// pending. Stops reference customers from the pool purely to resolve the
+  /// `route_stops.customer_id` FK — the shop shown is the joined directory row.
   static List<Map<String, dynamic>> build(
       Random rand, List<Map<String, dynamic>> customers) {
-    final routeCount = 18 + rand.nextInt(13); // 18-30
     final routes = <Map<String, dynamic>>[];
-    final today = DateTime.now();
-    final visitDate = DateTime(today.year, today.month, today.day);
+    final now = DateTime.now();
+    final baseDay = DateTime(now.year, now.month, now.day);
 
-    final byTerritory = <String, List<Map<String, dynamic>>>{};
-    for (final c in customers) {
-      (byTerritory[c['territory'] as String] ??= []).add(c);
-    }
-    final territoryNames = byTerritory.keys.toList();
+    // Prefer scoped-territory customers for tidy attribution; fall back to the
+    // whole pool if the seed produced too few (display is unaffected either way).
+    final scoped = customers
+        .where((c) => c['territory'] == _scopedTerritory)
+        .toList(growable: false);
+    final source = scoped.length >= _dayCount ? scoped : customers;
+    var cursor = 0;
+    Map<String, dynamic> nextCustomer() => source[cursor++ % source.length];
 
-    for (var r = 0; r < routeCount; r++) {
-      // Guarantee the synced territory (Phnom Penh — see RouteSyncScope) has a
-      // full day of routes; the rest scatter randomly across provinces.
-      final territoryName = r < 6
-          ? 'Phnom Penh'
-          : territoryNames[rand.nextInt(territoryNames.length)];
-      final pool = List<Map<String, dynamic>>.from(byTerritory[territoryName]!)
-        ..shuffle(rand);
-      final stopCount = min(pool.length, 8 + rand.nextInt(8)); // 8-15
-      final routeId = 'ROUTE-${(1000 + r)}';
+    for (var d = 0; d < _dayCount; d++) {
+      final visitDate = baseDay.add(Duration(days: d));
+      final isToday = d == 0;
+      final routeId = 'SCHEDULE-${visitDate.year}'
+          '${visitDate.month.toString().padLeft(2, '0')}'
+          '${visitDate.day.toString().padLeft(2, '0')}';
       final rep = _repNames[rand.nextInt(_repNames.length)];
+      final stopCount = 3 + rand.nextInt(3); // 3–5
 
-      // Give the day a realistic execution mix so the dashboard summary
-      // (completed / remaining / missed / progress) actually has something to
-      // show. Profiles cycle: fully-visited, in-progress, and not-yet-started.
-      //   0 → completed  (every stop checked out)
-      //   1 → in-progress (visited up to `doneThrough`, currently at that stop)
-      //   2,3 → planned   (nothing done yet)
-      final routeProfile = r % 4;
-      final doneThrough = switch (routeProfile) {
-        0 => stopCount,
-        1 => (stopCount * 0.4).round(),
-        _ => 0,
-      };
-      // One skipped call on longer in-progress routes, to exercise "missed".
-      final missedIndex =
-          routeProfile == 1 && stopCount > 4 ? doneThrough ~/ 2 : -1;
+      // Execution mix — today only. Order of checks below: missed → done →
+      // checkedIn → pending, so these indices can overlap safely.
+      final doneThrough = isToday ? (stopCount >= 4 ? 2 : 1) : 0;
+      final checkedInIndex = isToday ? doneThrough : -1;
+      final missedIndex = (isToday && stopCount >= 5) ? 1 : -1;
 
-      var cursor = visitDate.add(const Duration(hours: 8));
+      var clock = visitDate.add(const Duration(hours: 8));
       final stops = <Map<String, dynamic>>[];
       for (var s = 0; s < stopCount; s++) {
-        final customer = pool[s];
-        final travelMinutes = 15 + rand.nextInt(25);
+        final customer = nextCustomer();
+        final travelMinutes = 15 + rand.nextInt(20);
         final visitMinutes = 15 + rand.nextInt(20);
-        final plannedArrival = cursor.add(Duration(minutes: travelMinutes));
+        final plannedArrival = clock.add(Duration(minutes: travelMinutes));
         final plannedDeparture =
             plannedArrival.add(Duration(minutes: visitMinutes));
 
         final stop = <String, dynamic>{
           'id': '$routeId-STOP-${s + 1}',
           'routeId': routeId,
-          'customerId': customer['id'], // Now populated with a real, synced ID
+          'customerId': customer['id'], // patched to a real synced id at load
           'sequence': s + 1,
           'plannedArrival': plannedArrival.toIso8601String(),
           'plannedDeparture': plannedDeparture.toIso8601String(),
@@ -292,8 +297,6 @@ class RouteGenerator {
         if (s == missedIndex) {
           stop['status'] = 'missed';
         } else if (s < doneThrough) {
-          // Visited: actual times jitter a few minutes off the plan so the
-          // summary's visit-time totals look natural rather than exact.
           final actualArrival =
               plannedArrival.add(Duration(minutes: rand.nextInt(6) - 2));
           final actualDeparture = actualArrival
@@ -301,8 +304,7 @@ class RouteGenerator {
           stop['status'] = 'checkedOut';
           stop['actualArrival'] = actualArrival.toIso8601String();
           stop['actualDeparture'] = actualDeparture.toIso8601String();
-        } else if (s == doneThrough && routeProfile == 1) {
-          // The rep is currently checked in at this stop.
+        } else if (s == checkedInIndex) {
           stop['status'] = 'checkedIn';
           stop['actualArrival'] = plannedArrival
               .add(Duration(minutes: rand.nextInt(6) - 2))
@@ -312,26 +314,20 @@ class RouteGenerator {
         }
 
         stops.add(stop);
-        cursor = plannedDeparture;
+        clock = plannedDeparture;
       }
-
-      final routeStatus = switch (routeProfile) {
-        0 => 'completed',
-        1 => 'inProgress',
-        _ => 'published',
-      };
 
       routes.add({
         'id': routeId,
-        'name': '$territoryName Route ${r + 1}',
+        'name': isToday ? "Today's Visit Plan" : 'Daily Visit Plan',
         'repId': 'REP-${rep.hashCode & 0xFFFF}',
         'repName': rep,
-        'territory': territoryName,
+        'territory': _scopedTerritory,
         'visitDate': visitDate.toIso8601String(),
         'plannedStart':
             visitDate.add(const Duration(hours: 8)).toIso8601String(),
-        'plannedEnd': cursor.toIso8601String(),
-        'status': routeStatus,
+        'plannedEnd': clock.toIso8601String(),
+        'status': isToday ? 'inProgress' : 'published',
         'stops': stops,
       });
     }

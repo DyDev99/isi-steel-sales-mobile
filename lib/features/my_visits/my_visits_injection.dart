@@ -30,6 +30,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/repositories/ro
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/repositories/visit_repository.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/repositories/visit_sync_repository.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/fraud_detection_service.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/stop_distance_sorter.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/location_tracking_service.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/proof_photo_service.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/services/camera_proof_photo_service.dart';
@@ -48,6 +49,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/get_re
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/push_pending_visit_data.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/save_active_workflow.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/fetch_location_samples.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/fetch_all_routes.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/fetch_today_routes.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/fetch_visit_data.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/get_route.dart';
@@ -102,6 +104,7 @@ Future<void> registerMyVisitsFeature(GetIt sl) async {
       () => GeolocatorTrackingService());
   sl.registerLazySingleton<FraudDetectionService>(
       () => const FraudDetectionService());
+  sl.registerLazySingleton<StopDistanceSorter>(() => const StopDistanceSorter());
   sl.registerLazySingleton<ProofPhotoService>(
       () => const CameraProofPhotoService());
 
@@ -123,6 +126,7 @@ Future<void> registerMyVisitsFeature(GetIt sl) async {
 
   // ── Use cases ───────────────────────────────────────────────────────
   sl.registerLazySingleton(() => FetchTodayRoutes(sl()));
+  sl.registerLazySingleton(() => FetchAllRoutes(sl()));
   sl.registerLazySingleton(() => WatchTodayRoutes(sl()));
   sl.registerLazySingleton(() => WatchAllRoutes(sl()));
   sl.registerLazySingleton(() => GetRoute(sl()));
@@ -163,11 +167,13 @@ Future<void> registerMyVisitsFeature(GetIt sl) async {
 
   // ── Presentation ────────────────────────────────────────────────────
   sl.registerFactory(() => RouteDashboardCubit(watchAllRoutes: sl()));
-  // Stop-centric dashboard: today's stops sorted nearest-first by live GPS.
+  // Stop-centric dashboard: multi-day (calendar) stops sorted nearest-first by
+  // live GPS, with a planned-order fallback when location is unavailable.
   sl.registerFactory(() => StopDashboardCubit(
-        watchTodayRoutes: sl(),
-        fetchTodayRoutes: sl(),
+        watchAllRoutes: sl(),
+        fetchAllRoutes: sl(),
         locationService: sl(),
+        sorter: sl(),
       ));
   sl.registerFactory(() => ActiveRouteBloc(
         saveActiveWorkflow: sl(),

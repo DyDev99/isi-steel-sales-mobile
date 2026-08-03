@@ -469,7 +469,7 @@ class _ActionChip extends StatefulWidget {
 class _ActionChipState extends State<_ActionChip> {
   double _scale = 1.0;
 
-  void _onTapDown(_) => setState(() => _scale = 0.95);
+  void _onTapDown(TapDownDetails _) => setState(() => _scale = 0.95);
   void _onTapCancel() => setState(() => _scale = 1.0);
 
   @override

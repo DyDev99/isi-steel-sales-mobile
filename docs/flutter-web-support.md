@@ -53,7 +53,7 @@ Authoritative, derived from the resolved plugin graph (`.flutter-plugins-depende
 | `open_filex` | ❌ none | 1 | 🟡 Web uses browser download/print instead |
 | `geocoding` | ❌ none | **0** | 🟢 **Unused dependency — drop it** |
 | `geolocator` | ✅ `geolocator_web` | 4 | 🟡 Works; browser permission UX differs |
-| `google_maps_flutter` | ✅ `google_maps_flutter_web` | 2 | 🟡 Works; needs JS API key in `index.html` |
+| `google_maps_flutter` | ✅ `google_maps_flutter_web` (0.6.3) | 1 | 🟢 **Configured** — JS API key + `drawing,geometry,marker` libraries in `web/index.html`; CSP origins allowed in `deploy-web.yml`. Behaviour deltas in §5.1 |
 | `image_picker` | ✅ `image_picker_for_web` | 5 | 🟡 Returns `XFile`, never a `File` path |
 | `mobile_scanner` | ✅ web | 1 | 🟡 Requires HTTPS + camera grant |
 | `speech_to_text` | ✅ web | 2 | 🟡 Browser-dependent; Chrome only in practice |
@@ -191,6 +191,31 @@ core/database/drift/connection/
 | `ImageSearchService` | `ImagePickerSearchService` | `image_picker_for_web` |
 | `PdfShareService` | `open_filex` | `printing` web → browser print/download |
 | `GeofenceService`, `FraudDetectionService` | pure Dart + `dart:io` | Audit: fraud detection imports `dart:io` for device signals that don't exist on web. Web needs an explicitly weaker, documented policy — tagged `// TODO(release-gate):` per `SECURITY.md` §11 |
+
+### 5.1 Google Maps on web — configured, with three behaviour deltas
+
+Setup is done: `web/index.html` loads the Maps JavaScript API in `<head>`, and
+`deploy-web.yml` allows `maps.googleapis.com` / `maps.gstatic.com` in
+`script-src`, `fonts.googleapis.com` in `style-src`, and `fonts.gstatic.com` in
+`font-src`. No `pubspec.yaml` change was needed — `google_maps_flutter_web` is
+endorsed and already resolves transitively.
+
+**Operational precondition:** the key in `index.html` is public by construction
+and must be restricted by HTTP referrer in the Google Cloud console to the Pages
+origin plus `localhost`, with the Maps JavaScript API the only API enabled on
+it. Unrestricted, it is billable by anyone who views source.
+
+The one map widget ([transit_map.dart](../lib/features/my_visits/presentation/widgets/transit_map.dart))
+renders on web, but three of its behaviours do not survive the port:
+
+| Delta | Effect on web | Fix when web maps become a priority |
+|---|---|---|
+| `myLocationEnabled` / `myLocationButtonEnabled` are **ignored** by the web plugin ([flutter#64073](https://github.com/flutter/flutter/issues/64073)) | No native blue dot. The GPS-diagnostic use documented in `transit_map.dart`'s `dispose` comment — comparing the OS dot against the tracked marker — is unavailable, and `LocationTrackingCubit`'s marker is the only position indicator | Optional: draw an accuracy circle from `navigator.geolocation` |
+| `BitmapDescriptor.defaultMarkerWithHue` is **unsupported** on web; the plugin resolves it to a null icon | Both markers fall back to the same default red pin, so target shop and current position are visually indistinguishable | Ship two marker asset images and select by platform |
+| The map is an `HtmlElementView`; Flutter widgets stacked above it **do not receive mouse events** ([flutter#73830](https://github.com/flutter/flutter/issues/73830)) | The recenter FAB in the map `Stack` is unclickable on web (touch/mobile unaffected) | Wrap the FAB in `PointerInterceptor` — adds the `pointer_interceptor` dependency |
+
+None of these break the build or the mobile target; they are web-only fidelity
+gaps, and they belong to W3 rather than to this configuration change.
 
 ---
 

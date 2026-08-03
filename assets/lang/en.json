@@ -918,11 +918,17 @@
       "stat_distance": "Total dist.",
       "stat_travel": "Travel",
       "locating": "Finding your location…",
-      "location_denied": "Location off — stops aren't sorted by distance.",
+      "location_denied": "Current location unavailable. Showing planned visit order.",
       "no_matches": "No stops match",
       "no_matches_hint": "Try a different search or filter.",
       "no_stops_today": "No stops for today",
-      "pull_to_sync": "Pull down to sync today's stops."
+      "pull_to_sync": "Pull down to sync today's stops.",
+      "type_depot": "Depot",
+      "type_distributor": "Distributor",
+      "type_contractor": "Contractor",
+      "type_retail": "Retail",
+      "type_hardware": "Hardware",
+      "type_shop": "Shop"
     }
   },
   "language": {
@@ -1089,7 +1095,7 @@
   },
   "coach": {
     "welcome": {
-      "title": "Welcome to ISI Steel 👋",
+      "title": "Welcome to STEEL360 APP 👋",
       "message": "A quick tour to get you selling faster. Ready?"
     },
     "home": {
@@ -1167,12 +1173,12 @@
     "resume_hint": "Resume tour"
   },
   "app": {
-    "title": "ISI Steel Sales",
+    "title": "STEEL360 APP",
     "not_found": "Not found",
     "no_route": "No route: {name}"
   },
   "splash": {
-    "brand": "ISI STEEL",
+    "brand": "STEEL360",
     "tagline": "Sales Mobile"
   },
   "settings": {

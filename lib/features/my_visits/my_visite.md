@@ -111,6 +111,38 @@ Ending the day (`EndDayRequested`, found in the legacy `ActiveRouteScreen`) mark
 3. **Route sync silently failing, dashboard permanently stuck on "No local data found."** Root cause: the customer/route sync FK ordering dependency described in §8, combined with the dashboard only listening for `RouteSyncSucceeded` and silently dropping `RouteSyncFailed`. Fixed by triggering customer sync at shell startup and surfacing sync failures via SnackBar.
 4. **Seeded test routes invisible to "today."** `seed_isi_tower_test_route.dart`'s `visitDate` was built from local midnight instead of UTC (the same class of bug §8's UTC day-window note describes). Fixed by anchoring to `DateTime.utc(...)`.
 
-## 11. Open question
+## 11. Stop-centric dashboard (current primary flow)
+
+The primary My Visits entry is now `StopDashboardScreen` (stop-centric), not the
+route-centric dashboard. Flow: **Stop Dashboard → Stop Information → Check-In →
+Quotation Builder** (the shelf/stock-count step was removed from the visit path; the
+depot stock-count feature still lives on the Home Quick Action).
+
+- **Mock daily schedule.** `RouteGenerator` (`data/mock/mock_route_data.dart`) now emits
+  **5 daily schedules — Today … Today+4, one route per day, 3–5 stops each** (not 18–30
+  routes of 8–15 stops). Today carries a realistic status mix (a couple checked-out, one
+  checked-in, rest pending, optionally one missed); future days are all pending. All routes
+  carry territory `'Phnom Penh'` (the sync scope); per-stop **province variety still shows**
+  because the displayed shop comes from the joined customer directory
+  (`CustomerRowStopInfoMapper.toStopInfo`), not `routes.json`. Regenerate with
+  `dart run tool/generate_mock_routes.dart`.
+- **Multi-day + calendar.** `StopDashboardCubit` watches **all** routes (`WatchAllRoutes`)
+  and holds a `selectedDate` (default today). The collapsible calendar shows **per-day
+  STOP-count dots** (`StopDashboardLoaded.stopCountForDay`); picking a day calls
+  `setSelectedDate` and the list re-filters. Post-sync re-read uses `FetchAllRoutes`
+  (`reload()`), since sync writes through the data source and the watch stream doesn't
+  observe it.
+- **Sorting is domain, not UI.** Ordering lives in `StopDistanceSorter`
+  (`domain/services/stop_distance_sorter.dart`, returns `RankedStop`): with a GPS fix →
+  nearest-first (Haversine); without → **planned order** (by sequence), distances null. The
+  cubit only orchestrates the route + location streams and calls it.
+- **GPS fallback (never blocks).** `LocationTrackingService.observe` is a foreground-only
+  position stream (no foreground-service notification). If permission is denied **or** no
+  fix lands within an 8 s timeout (emulator / GPS off / failure), the cubit sets
+  `locationUnavailable`, keeps the planned order, hides distances, and the screen shows
+  *"Current location unavailable. Showing planned visit order."* A later fix upgrades to
+  distance sort. Stop details / check-in / the whole workflow stay reachable with no GPS.
+
+## 12. Open question
 
 `ActiveRouteScreen` / `StopDetailScreen` (legacy flow) still exist alongside the guided 4-step flow. Worth confirming with the team whether they should be removed, kept as a fallback, or documented as deprecated.

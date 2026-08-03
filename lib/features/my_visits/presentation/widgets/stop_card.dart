@@ -8,6 +8,39 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/models/today_stop.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/navigation/open_quotation.dart';
 
+/// Derives a display **customer type** from the shop name (Depot / Distributor
+/// / Contractor / Retail / Hardware / Shop) — presentation-only, so no schema
+/// column or migration is needed. Returns a localization key.
+String stopCustomerTypeKey(String shopName) {
+  final n = shopName.toLowerCase();
+  if (n.contains('depot')) return 'my_visits.stop_dashboard.type_depot';
+  if (n.contains('distribut')) {
+    return 'my_visits.stop_dashboard.type_distributor';
+  }
+  if (n.contains('contractor') || n.contains('construction')) {
+    return 'my_visits.stop_dashboard.type_contractor';
+  }
+  if (n.contains('retail') || n.contains('outlet')) {
+    return 'my_visits.stop_dashboard.type_retail';
+  }
+  if (n.contains('hardware')) return 'my_visits.stop_dashboard.type_hardware';
+  return 'my_visits.stop_dashboard.type_shop';
+}
+
+IconData stopCustomerTypeIcon(String shopName) {
+  final n = shopName.toLowerCase();
+  if (n.contains('depot')) return Icons.warehouse_rounded;
+  if (n.contains('distribut')) return Icons.local_shipping_rounded;
+  if (n.contains('contractor') || n.contains('construction')) {
+    return Icons.engineering_rounded;
+  }
+  if (n.contains('retail') || n.contains('outlet')) {
+    return Icons.shopping_bag_rounded;
+  }
+  if (n.contains('hardware')) return Icons.hardware_rounded;
+  return Icons.storefront_rounded;
+}
+
 /// Modern animated Material 3 stop card with tactile feedback, split-unit
 /// distance formatting, dynamic status enum styling, direct quotation action button,
 /// and a bottom-right animated "Skip Stop" reason dialog popup.
@@ -250,6 +283,10 @@ class _StopCardState extends State<StopCard>
                             runSpacing: 6.h,
                             crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
+                              _MetaChip(
+                                icon: stopCustomerTypeIcon(customer.name),
+                                label: stopCustomerTypeKey(customer.name).tr,
+                              ),
                               _MetaChip(
                                 icon: Icons.alt_route_rounded,
                                 label: widget.todayStop.routeName,

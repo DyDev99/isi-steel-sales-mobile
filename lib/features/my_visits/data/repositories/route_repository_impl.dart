@@ -32,6 +32,15 @@ class RouteRepositoryImpl implements RouteRepository {
   }
 
   @override
+  ResultFuture<List<RoutePlan>> fetchAllRoutes() async {
+    try {
+      return Success(await _local.fetchAllRoutes());
+    } on CacheException catch (e) {
+      return Failed(CacheFailure(message: e.message));
+    }
+  }
+
+  @override
   Stream<List<RoutePlan>> watchTodayRoutes() =>
       _watch(_routesController, _local.fetchTodayRoutes);
 
