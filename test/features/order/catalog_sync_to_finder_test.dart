@@ -1,5 +1,6 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localized_text.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart'
     hide Category;
 import 'package:isi_steel_sales_mobile/features/order/data/local/product_drift_local_data_source.dart';
@@ -114,8 +115,18 @@ void main() {
     // What an upgraded device looks like: categories from the previous
     // taxonomy already sitting in the table, with no products pointing at them.
     await local.upsertCategories(const [
-      CategoryModel(id: 'cat_isi_palm', name: 'Palm (retired)', sortOrder: 0),
-      CategoryModel(id: 'cat_isi_debar', name: 'DeBar (retired)', sortOrder: 1),
+      CategoryModel(
+        id: 'cat_isi_palm',
+        code: 'cat_isi_palm',
+        name: LocalizedText(en: 'Palm (retired)', km: ''),
+        displayOrder: 0,
+      ),
+      CategoryModel(
+        id: 'cat_isi_debar',
+        code: 'cat_isi_debar',
+        name: LocalizedText(en: 'DeBar (retired)', km: ''),
+        displayOrder: 1,
+      ),
     ]);
 
     await sync.runInitialSync(scope);

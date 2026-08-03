@@ -4,7 +4,7 @@ import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
 /// The single source of truth for the encrypted database's schema version.
 /// Bump this by exactly one whenever a schema change ships, and add the matching
 /// step to [_stepwiseMigrations].
-const int kCurrentSchemaVersion = 14;
+const int kCurrentSchemaVersion = 15;
 
 /// Keys under which the migrator records bookkeeping in `app_metadata`, so the
 /// on-device schema history is auditable and a failed/partial upgrade is
@@ -243,6 +243,64 @@ final Map<int, SchemaMigrationStep> _stepwiseMigrations =
     await db.customStatement('DELETE FROM recent_products;');
     await db.customStatement('DELETE FROM products;');
     await db.customStatement('DELETE FROM categories;');
+    await db.customStatement('DELETE FROM catalog_sync_meta;');
+  },
+  // v15: localisation and ERP master-data columns on the catalog.
+  //
+  // Products gain the Khmer name, colour, specification and SAP creation date;
+  // categories become a real taxonomy node (SAP code, both names, description,
+  // icon, active flag, timestamps) instead of an id/name/order triple.
+  //
+  // Every column is added with a default or as nullable, so this is a pure
+  // widening — existing rows stay valid and no data is rewritten. The catalog
+  // is re-pulled from SAP anyway; the sync watermark is cleared at the end so
+  // the next open backfills the new columns rather than deltaing against rows
+  // that predate them.
+  15: (m, db) async {
+    // Only add what is genuinely missing.
+    //
+    // A walk starting below v4 hits `createTable(categories/products)` first,
+    // and `createTable` emits the table's *current* definition — which already
+    // contains these columns. Re-adding them then fails with "duplicate column
+    // name" and strands the upgrade. Same trap v10 documents for
+    // `visit_stock_updates`; the fix is to ask the database what it actually
+    // has rather than assuming what version it came from.
+    Future<Set<String>> columnsOf(String table) async {
+      final rows = await db.customSelect("PRAGMA table_info('$table');").get();
+      return rows.map((r) => r.data['name'] as String).toSet();
+    }
+
+    Future<void> addMissing(
+      TableInfo<Table, dynamic> table,
+      Set<String> existing,
+      List<GeneratedColumn<Object>> columns,
+    ) async {
+      for (final column in columns) {
+        if (existing.contains(column.name)) continue;
+        await m.addColumn(table, column);
+      }
+    }
+
+    await addMissing(db.products, await columnsOf('products'), [
+      db.products.nameKh,
+      db.products.color,
+      db.products.specification,
+      db.products.createdAt,
+    ]);
+
+    await addMissing(db.categories, await columnsOf('categories'), [
+      db.categories.code,
+      db.categories.nameKh,
+      db.categories.description,
+      db.categories.descriptionKh,
+      db.categories.icon,
+      db.categories.active,
+      db.categories.createdAt,
+      db.categories.updatedAt,
+    ]);
+
+    // Forces the next sync down the initial path so the widened columns are
+    // populated — a delta would only touch rows SAP happens to have changed.
     await db.customStatement('DELETE FROM catalog_sync_meta;');
   },
 };

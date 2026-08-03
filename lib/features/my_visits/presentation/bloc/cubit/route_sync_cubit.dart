@@ -1,6 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
 import 'package:isi_steel_sales_mobile/core/usecase/usecase.dart';
+import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/browse_customers.dart';
+import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/customer_params.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/get_customer_last_synced_at.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/run_customer_initial_sync.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_sync_scope.dart';
@@ -22,6 +24,7 @@ class RouteSyncCubit extends Cubit<RouteSyncState> {
     required PushPendingVisitData pushPendingVisitData,
     required RunCustomerInitialSync runCustomerInitialSync,
     required GetCustomerLastSyncedAt getCustomerLastSyncedAt,
+    required BrowseCustomers browseCustomers,
     required SessionManager sessionManager,
   })  : _runInitialSync = runInitialSync,
         _runDeltaSync = runDeltaSync,
@@ -29,6 +32,7 @@ class RouteSyncCubit extends Cubit<RouteSyncState> {
         _pushPendingVisitData = pushPendingVisitData,
         _runCustomerInitialSync = runCustomerInitialSync,
         _getCustomerLastSyncedAt = getCustomerLastSyncedAt,
+        _browseCustomers = browseCustomers,
         _sessionManager = sessionManager,
         super(const RouteSyncIdle());
 
@@ -38,6 +42,7 @@ class RouteSyncCubit extends Cubit<RouteSyncState> {
   final PushPendingVisitData _pushPendingVisitData;
   final RunCustomerInitialSync _runCustomerInitialSync;
   final GetCustomerLastSyncedAt _getCustomerLastSyncedAt;
+  final BrowseCustomers _browseCustomers;
   final SessionManager _sessionManager;
 
   /// Pulls routes whenever the dashboard opens.
@@ -59,6 +64,31 @@ class RouteSyncCubit extends Cubit<RouteSyncState> {
 
   Future<void> refresh() => _run(isInitial: false);
 
+  /// True when the SAP customer directory has to be pulled before routes can
+  /// be.
+  ///
+  /// Two independent facts have to agree: a watermark saying we pulled once,
+  /// and rows actually being there. Either one alone is a false negative —
+  /// this is the same "timestamp says synced, table says empty" trap the
+  /// catalog's `SyncCubit` guards against, and it costs one indexed read of a
+  /// single row to close.
+  Future<bool> _customerDirectoryNeedsPull() async {
+    final watermark = await _getCustomerLastSyncedAt(const NoParams());
+    final neverSynced =
+        watermark.when(success: (at) => at == null, failure: (_) => true);
+    if (neverSynced) return true;
+
+    final page = await _browseCustomers(
+      const BrowseCustomersParams(page: 0, pageSize: 1),
+    );
+    return page.when(
+      success: (customers) => customers.items.isEmpty,
+      // A read failure is not evidence of emptiness; re-pulling on every open
+      // would be worse than trusting the watermark we already have.
+      failure: (_) => false,
+    );
+  }
+
   Future<void> _run({required bool isInitial}) async {
     emit(RouteSyncInProgress(isInitial: isInitial));
 
@@ -72,10 +102,14 @@ class RouteSyncCubit extends Cubit<RouteSyncState> {
     // closes that race on every entry point (first open, pull-to-refresh,
     // retry). Skipped entirely once the customer watermark exists; at worst it
     // races the shell's own sync into a double-run of an idempotent upsert.
-    final customerWatermark = await _getCustomerLastSyncedAt(const NoParams());
-    final customersNeedInitial = customerWatermark.when(
-        success: (at) => at == null, failure: (_) => true);
-    if (customersNeedInitial) {
+    // The watermark alone is not enough evidence that the directory is there.
+    // A device that synced customers under an older build, or whose customer
+    // rows were cleared by a migration, keeps a perfectly valid timestamp over
+    // an empty table — and this gate then skipped the pull, after which the
+    // route feed (which rebases stops onto real customer ids) failed with
+    // "run Customer Sync first" and every Visit screen came up blank. When the
+    // watermark and the table disagree, the table wins.
+    if (await _customerDirectoryNeedsPull()) {
       final customerSync = await _runCustomerInitialSync(const NoParams());
       final blocked = customerSync.when(
         success: (_) => false,

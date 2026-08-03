@@ -3701,11 +3701,42 @@ class $CategoriesTable extends Categories
   late final GeneratedColumn<String> parentId = GeneratedColumn<String>(
       'parent_id', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _codeMeta = const VerificationMeta('code');
+  @override
+  late final GeneratedColumn<String> code = GeneratedColumn<String>(
+      'code', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(''));
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   @override
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
       'name', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _nameKhMeta = const VerificationMeta('nameKh');
+  @override
+  late final GeneratedColumn<String> nameKh = GeneratedColumn<String>(
+      'name_kh', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(''));
+  static const VerificationMeta _descriptionMeta =
+      const VerificationMeta('description');
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+      'description', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _descriptionKhMeta =
+      const VerificationMeta('descriptionKh');
+  @override
+  late final GeneratedColumn<String> descriptionKh = GeneratedColumn<String>(
+      'description_kh', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _iconMeta = const VerificationMeta('icon');
+  @override
+  late final GeneratedColumn<String> icon = GeneratedColumn<String>(
+      'icon', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _sortOrderMeta =
       const VerificationMeta('sortOrder');
   @override
@@ -3714,8 +3745,42 @@ class $CategoriesTable extends Categories
       type: DriftSqlType.int,
       requiredDuringInsert: false,
       defaultValue: const Constant(0));
+  static const VerificationMeta _activeMeta = const VerificationMeta('active');
   @override
-  List<GeneratedColumn> get $columns => [id, parentId, name, sortOrder];
+  late final GeneratedColumn<bool> active = GeneratedColumn<bool>(
+      'active', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("active" IN (0, 1))'),
+      defaultValue: const Constant(true));
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+      'updated_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        parentId,
+        code,
+        name,
+        nameKh,
+        description,
+        descriptionKh,
+        icon,
+        sortOrder,
+        active,
+        createdAt,
+        updatedAt
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -3735,15 +3800,51 @@ class $CategoriesTable extends Categories
       context.handle(_parentIdMeta,
           parentId.isAcceptableOrUnknown(data['parent_id']!, _parentIdMeta));
     }
+    if (data.containsKey('code')) {
+      context.handle(
+          _codeMeta, code.isAcceptableOrUnknown(data['code']!, _codeMeta));
+    }
     if (data.containsKey('name')) {
       context.handle(
           _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
+    if (data.containsKey('name_kh')) {
+      context.handle(_nameKhMeta,
+          nameKh.isAcceptableOrUnknown(data['name_kh']!, _nameKhMeta));
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+          _descriptionMeta,
+          description.isAcceptableOrUnknown(
+              data['description']!, _descriptionMeta));
+    }
+    if (data.containsKey('description_kh')) {
+      context.handle(
+          _descriptionKhMeta,
+          descriptionKh.isAcceptableOrUnknown(
+              data['description_kh']!, _descriptionKhMeta));
+    }
+    if (data.containsKey('icon')) {
+      context.handle(
+          _iconMeta, icon.isAcceptableOrUnknown(data['icon']!, _iconMeta));
+    }
     if (data.containsKey('sort_order')) {
       context.handle(_sortOrderMeta,
           sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta));
+    }
+    if (data.containsKey('active')) {
+      context.handle(_activeMeta,
+          active.isAcceptableOrUnknown(data['active']!, _activeMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
     }
     return context;
   }
@@ -3758,10 +3859,26 @@ class $CategoriesTable extends Categories
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
       parentId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}parent_id']),
+      code: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}code'])!,
       name: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      nameKh: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name_kh'])!,
+      description: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}description']),
+      descriptionKh: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}description_kh']),
+      icon: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}icon']),
       sortOrder: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}sort_order'])!,
+      active: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}active'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at']),
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at']),
     );
   }
 
@@ -3774,13 +3891,45 @@ class $CategoriesTable extends Categories
 class Category extends DataClass implements Insertable<Category> {
   final String id;
   final String? parentId;
+
+  /// SAP `ProductGroup` / `MaterialGroupName`. Stable across display renames,
+  /// so sync matches on this rather than on a name the sales team may reword.
+  final String code;
+
+  /// English display name. `name` keeps its original column so existing reads
+  /// and the v14 data survive the upgrade untouched.
   final String name;
+
+  /// Khmer display name. Empty when SAP carries no Khmer text — the entity
+  /// falls back to English rather than rendering a blank label.
+  final String nameKh;
+  final String? description;
+  final String? descriptionKh;
+
+  /// Icon *key*, resolved to a glyph in presentation. Storing a key rather
+  /// than a codepoint lets SAP publish a category the app has never seen
+  /// without shipping an update.
+  final String? icon;
   final int sortOrder;
+
+  /// Retired categories stay for historical quotation lines to resolve
+  /// against, but are never offered for new selection.
+  final bool active;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
   const Category(
       {required this.id,
       this.parentId,
+      required this.code,
       required this.name,
-      required this.sortOrder});
+      required this.nameKh,
+      this.description,
+      this.descriptionKh,
+      this.icon,
+      required this.sortOrder,
+      required this.active,
+      this.createdAt,
+      this.updatedAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -3788,8 +3937,26 @@ class Category extends DataClass implements Insertable<Category> {
     if (!nullToAbsent || parentId != null) {
       map['parent_id'] = Variable<String>(parentId);
     }
+    map['code'] = Variable<String>(code);
     map['name'] = Variable<String>(name);
+    map['name_kh'] = Variable<String>(nameKh);
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    if (!nullToAbsent || descriptionKh != null) {
+      map['description_kh'] = Variable<String>(descriptionKh);
+    }
+    if (!nullToAbsent || icon != null) {
+      map['icon'] = Variable<String>(icon);
+    }
     map['sort_order'] = Variable<int>(sortOrder);
+    map['active'] = Variable<bool>(active);
+    if (!nullToAbsent || createdAt != null) {
+      map['created_at'] = Variable<DateTime>(createdAt);
+    }
+    if (!nullToAbsent || updatedAt != null) {
+      map['updated_at'] = Variable<DateTime>(updatedAt);
+    }
     return map;
   }
 
@@ -3799,8 +3966,24 @@ class Category extends DataClass implements Insertable<Category> {
       parentId: parentId == null && nullToAbsent
           ? const Value.absent()
           : Value(parentId),
+      code: Value(code),
       name: Value(name),
+      nameKh: Value(nameKh),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
+      descriptionKh: descriptionKh == null && nullToAbsent
+          ? const Value.absent()
+          : Value(descriptionKh),
+      icon: icon == null && nullToAbsent ? const Value.absent() : Value(icon),
       sortOrder: Value(sortOrder),
+      active: Value(active),
+      createdAt: createdAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdAt),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
     );
   }
 
@@ -3810,8 +3993,16 @@ class Category extends DataClass implements Insertable<Category> {
     return Category(
       id: serializer.fromJson<String>(json['id']),
       parentId: serializer.fromJson<String?>(json['parentId']),
+      code: serializer.fromJson<String>(json['code']),
       name: serializer.fromJson<String>(json['name']),
+      nameKh: serializer.fromJson<String>(json['nameKh']),
+      description: serializer.fromJson<String?>(json['description']),
+      descriptionKh: serializer.fromJson<String?>(json['descriptionKh']),
+      icon: serializer.fromJson<String?>(json['icon']),
       sortOrder: serializer.fromJson<int>(json['sortOrder']),
+      active: serializer.fromJson<bool>(json['active']),
+      createdAt: serializer.fromJson<DateTime?>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime?>(json['updatedAt']),
     );
   }
   @override
@@ -3820,28 +4011,64 @@ class Category extends DataClass implements Insertable<Category> {
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
       'parentId': serializer.toJson<String?>(parentId),
+      'code': serializer.toJson<String>(code),
       'name': serializer.toJson<String>(name),
+      'nameKh': serializer.toJson<String>(nameKh),
+      'description': serializer.toJson<String?>(description),
+      'descriptionKh': serializer.toJson<String?>(descriptionKh),
+      'icon': serializer.toJson<String?>(icon),
       'sortOrder': serializer.toJson<int>(sortOrder),
+      'active': serializer.toJson<bool>(active),
+      'createdAt': serializer.toJson<DateTime?>(createdAt),
+      'updatedAt': serializer.toJson<DateTime?>(updatedAt),
     };
   }
 
   Category copyWith(
           {String? id,
           Value<String?> parentId = const Value.absent(),
+          String? code,
           String? name,
-          int? sortOrder}) =>
+          String? nameKh,
+          Value<String?> description = const Value.absent(),
+          Value<String?> descriptionKh = const Value.absent(),
+          Value<String?> icon = const Value.absent(),
+          int? sortOrder,
+          bool? active,
+          Value<DateTime?> createdAt = const Value.absent(),
+          Value<DateTime?> updatedAt = const Value.absent()}) =>
       Category(
         id: id ?? this.id,
         parentId: parentId.present ? parentId.value : this.parentId,
+        code: code ?? this.code,
         name: name ?? this.name,
+        nameKh: nameKh ?? this.nameKh,
+        description: description.present ? description.value : this.description,
+        descriptionKh:
+            descriptionKh.present ? descriptionKh.value : this.descriptionKh,
+        icon: icon.present ? icon.value : this.icon,
         sortOrder: sortOrder ?? this.sortOrder,
+        active: active ?? this.active,
+        createdAt: createdAt.present ? createdAt.value : this.createdAt,
+        updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
       );
   Category copyWithCompanion(CategoriesCompanion data) {
     return Category(
       id: data.id.present ? data.id.value : this.id,
       parentId: data.parentId.present ? data.parentId.value : this.parentId,
+      code: data.code.present ? data.code.value : this.code,
       name: data.name.present ? data.name.value : this.name,
+      nameKh: data.nameKh.present ? data.nameKh.value : this.nameKh,
+      description:
+          data.description.present ? data.description.value : this.description,
+      descriptionKh: data.descriptionKh.present
+          ? data.descriptionKh.value
+          : this.descriptionKh,
+      icon: data.icon.present ? data.icon.value : this.icon,
       sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
+      active: data.active.present ? data.active.value : this.active,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
@@ -3850,57 +4077,114 @@ class Category extends DataClass implements Insertable<Category> {
     return (StringBuffer('Category(')
           ..write('id: $id, ')
           ..write('parentId: $parentId, ')
+          ..write('code: $code, ')
           ..write('name: $name, ')
-          ..write('sortOrder: $sortOrder')
+          ..write('nameKh: $nameKh, ')
+          ..write('description: $description, ')
+          ..write('descriptionKh: $descriptionKh, ')
+          ..write('icon: $icon, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('active: $active, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, parentId, name, sortOrder);
+  int get hashCode => Object.hash(id, parentId, code, name, nameKh, description,
+      descriptionKh, icon, sortOrder, active, createdAt, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Category &&
           other.id == this.id &&
           other.parentId == this.parentId &&
+          other.code == this.code &&
           other.name == this.name &&
-          other.sortOrder == this.sortOrder);
+          other.nameKh == this.nameKh &&
+          other.description == this.description &&
+          other.descriptionKh == this.descriptionKh &&
+          other.icon == this.icon &&
+          other.sortOrder == this.sortOrder &&
+          other.active == this.active &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
 }
 
 class CategoriesCompanion extends UpdateCompanion<Category> {
   final Value<String> id;
   final Value<String?> parentId;
+  final Value<String> code;
   final Value<String> name;
+  final Value<String> nameKh;
+  final Value<String?> description;
+  final Value<String?> descriptionKh;
+  final Value<String?> icon;
   final Value<int> sortOrder;
+  final Value<bool> active;
+  final Value<DateTime?> createdAt;
+  final Value<DateTime?> updatedAt;
   final Value<int> rowid;
   const CategoriesCompanion({
     this.id = const Value.absent(),
     this.parentId = const Value.absent(),
+    this.code = const Value.absent(),
     this.name = const Value.absent(),
+    this.nameKh = const Value.absent(),
+    this.description = const Value.absent(),
+    this.descriptionKh = const Value.absent(),
+    this.icon = const Value.absent(),
     this.sortOrder = const Value.absent(),
+    this.active = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   CategoriesCompanion.insert({
     required String id,
     this.parentId = const Value.absent(),
+    this.code = const Value.absent(),
     required String name,
+    this.nameKh = const Value.absent(),
+    this.description = const Value.absent(),
+    this.descriptionKh = const Value.absent(),
+    this.icon = const Value.absent(),
     this.sortOrder = const Value.absent(),
+    this.active = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         name = Value(name);
   static Insertable<Category> custom({
     Expression<String>? id,
     Expression<String>? parentId,
+    Expression<String>? code,
     Expression<String>? name,
+    Expression<String>? nameKh,
+    Expression<String>? description,
+    Expression<String>? descriptionKh,
+    Expression<String>? icon,
     Expression<int>? sortOrder,
+    Expression<bool>? active,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (parentId != null) 'parent_id': parentId,
+      if (code != null) 'code': code,
       if (name != null) 'name': name,
+      if (nameKh != null) 'name_kh': nameKh,
+      if (description != null) 'description': description,
+      if (descriptionKh != null) 'description_kh': descriptionKh,
+      if (icon != null) 'icon': icon,
       if (sortOrder != null) 'sort_order': sortOrder,
+      if (active != null) 'active': active,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -3908,14 +4192,30 @@ class CategoriesCompanion extends UpdateCompanion<Category> {
   CategoriesCompanion copyWith(
       {Value<String>? id,
       Value<String?>? parentId,
+      Value<String>? code,
       Value<String>? name,
+      Value<String>? nameKh,
+      Value<String?>? description,
+      Value<String?>? descriptionKh,
+      Value<String?>? icon,
       Value<int>? sortOrder,
+      Value<bool>? active,
+      Value<DateTime?>? createdAt,
+      Value<DateTime?>? updatedAt,
       Value<int>? rowid}) {
     return CategoriesCompanion(
       id: id ?? this.id,
       parentId: parentId ?? this.parentId,
+      code: code ?? this.code,
       name: name ?? this.name,
+      nameKh: nameKh ?? this.nameKh,
+      description: description ?? this.description,
+      descriptionKh: descriptionKh ?? this.descriptionKh,
+      icon: icon ?? this.icon,
       sortOrder: sortOrder ?? this.sortOrder,
+      active: active ?? this.active,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -3929,11 +4229,35 @@ class CategoriesCompanion extends UpdateCompanion<Category> {
     if (parentId.present) {
       map['parent_id'] = Variable<String>(parentId.value);
     }
+    if (code.present) {
+      map['code'] = Variable<String>(code.value);
+    }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
+    if (nameKh.present) {
+      map['name_kh'] = Variable<String>(nameKh.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (descriptionKh.present) {
+      map['description_kh'] = Variable<String>(descriptionKh.value);
+    }
+    if (icon.present) {
+      map['icon'] = Variable<String>(icon.value);
+    }
     if (sortOrder.present) {
       map['sort_order'] = Variable<int>(sortOrder.value);
+    }
+    if (active.present) {
+      map['active'] = Variable<bool>(active.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -3946,8 +4270,16 @@ class CategoriesCompanion extends UpdateCompanion<Category> {
     return (StringBuffer('CategoriesCompanion(')
           ..write('id: $id, ')
           ..write('parentId: $parentId, ')
+          ..write('code: $code, ')
           ..write('name: $name, ')
+          ..write('nameKh: $nameKh, ')
+          ..write('description: $description, ')
+          ..write('descriptionKh: $descriptionKh, ')
+          ..write('icon: $icon, ')
           ..write('sortOrder: $sortOrder, ')
+          ..write('active: $active, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -4003,12 +4335,34 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
       'name', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _nameKhMeta = const VerificationMeta('nameKh');
+  @override
+  late final GeneratedColumn<String> nameKh = GeneratedColumn<String>(
+      'name_kh', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(''));
   static const VerificationMeta _descriptionMeta =
       const VerificationMeta('description');
   @override
   late final GeneratedColumn<String> description = GeneratedColumn<String>(
       'description', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _colorMeta = const VerificationMeta('color');
+  @override
+  late final GeneratedColumn<String> color = GeneratedColumn<String>(
+      'color', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(''));
+  static const VerificationMeta _specificationMeta =
+      const VerificationMeta('specification');
+  @override
+  late final GeneratedColumn<String> specification = GeneratedColumn<String>(
+      'specification', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(''));
   static const VerificationMeta _categoryIdMeta =
       const VerificationMeta('categoryId');
   @override
@@ -4125,6 +4479,12 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
   late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
       'updated_at', aliasedName, false,
       type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
   static const VerificationMeta _deletedMeta =
       const VerificationMeta('deleted');
   @override
@@ -4161,7 +4521,10 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
         materialCode,
         barcode,
         name,
+        nameKh,
         description,
+        color,
+        specification,
         categoryId,
         subCategory,
         brand,
@@ -4182,6 +4545,7 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
         isMto,
         status,
         updatedAt,
+        createdAt,
         deleted,
         minStock,
         maxStock
@@ -4247,6 +4611,10 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
+    if (data.containsKey('name_kh')) {
+      context.handle(_nameKhMeta,
+          nameKh.isAcceptableOrUnknown(data['name_kh']!, _nameKhMeta));
+    }
     if (data.containsKey('description')) {
       context.handle(
           _descriptionMeta,
@@ -4254,6 +4622,16 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
               data['description']!, _descriptionMeta));
     } else if (isInserting) {
       context.missing(_descriptionMeta);
+    }
+    if (data.containsKey('color')) {
+      context.handle(
+          _colorMeta, color.isAcceptableOrUnknown(data['color']!, _colorMeta));
+    }
+    if (data.containsKey('specification')) {
+      context.handle(
+          _specificationMeta,
+          specification.isAcceptableOrUnknown(
+              data['specification']!, _specificationMeta));
     }
     if (data.containsKey('category_id')) {
       context.handle(
@@ -4379,6 +4757,10 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
     } else if (isInserting) {
       context.missing(_updatedAtMeta);
     }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
     if (data.containsKey('deleted')) {
       context.handle(_deletedMeta,
           deleted.isAcceptableOrUnknown(data['deleted']!, _deletedMeta));
@@ -4416,8 +4798,14 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
           .read(DriftSqlType.string, data['${effectivePrefix}barcode'])!,
       name: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      nameKh: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name_kh'])!,
       description: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}description'])!,
+      color: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}color'])!,
+      specification: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}specification'])!,
       categoryId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}category_id'])!,
       subCategory: attachedDatabase.typeMapping
@@ -4458,6 +4846,8 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
           .read(DriftSqlType.string, data['${effectivePrefix}status'])!,
       updatedAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at']),
       deleted: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}deleted'])!,
       minStock: attachedDatabase.typeMapping
@@ -4481,8 +4871,22 @@ class Product extends DataClass implements Insertable<Product> {
   final String sku;
   final String materialCode;
   final String barcode;
+
+  /// SAP `MaterialDes`.
   final String name;
+
+  /// SAP `MaterialDesKH`. Defaulted rather than nullable so every read gets a
+  /// string and the fallback lives in one place ([LocalizedText.resolve]).
+  final String nameKh;
   final String description;
+
+  /// Top colour / finish — the last thing a roofing customer chooses, and
+  /// distinct from `grade`.
+  final String color;
+
+  /// Free-text spec for rows the structured dimension columns don't fully
+  /// describe.
+  final String specification;
   final String categoryId;
   final String subCategory;
   final String brand;
@@ -4503,6 +4907,10 @@ class Product extends DataClass implements Insertable<Product> {
   final bool isMto;
   final String status;
   final DateTime updatedAt;
+
+  /// SAP creation date. Nullable — the current extract doesn't carry it for
+  /// every material, and a fabricated date would be worse than a null.
+  final DateTime? createdAt;
   final bool deleted;
   final double minStock;
   final double maxStock;
@@ -4515,7 +4923,10 @@ class Product extends DataClass implements Insertable<Product> {
       required this.materialCode,
       required this.barcode,
       required this.name,
+      required this.nameKh,
       required this.description,
+      required this.color,
+      required this.specification,
       required this.categoryId,
       required this.subCategory,
       required this.brand,
@@ -4536,6 +4947,7 @@ class Product extends DataClass implements Insertable<Product> {
       required this.isMto,
       required this.status,
       required this.updatedAt,
+      this.createdAt,
       required this.deleted,
       required this.minStock,
       required this.maxStock});
@@ -4550,7 +4962,10 @@ class Product extends DataClass implements Insertable<Product> {
     map['material_code'] = Variable<String>(materialCode);
     map['barcode'] = Variable<String>(barcode);
     map['name'] = Variable<String>(name);
+    map['name_kh'] = Variable<String>(nameKh);
     map['description'] = Variable<String>(description);
+    map['color'] = Variable<String>(color);
+    map['specification'] = Variable<String>(specification);
     map['category_id'] = Variable<String>(categoryId);
     map['sub_category'] = Variable<String>(subCategory);
     map['brand'] = Variable<String>(brand);
@@ -4571,6 +4986,9 @@ class Product extends DataClass implements Insertable<Product> {
     map['is_mto'] = Variable<bool>(isMto);
     map['status'] = Variable<String>(status);
     map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || createdAt != null) {
+      map['created_at'] = Variable<DateTime>(createdAt);
+    }
     map['deleted'] = Variable<bool>(deleted);
     map['min_stock'] = Variable<double>(minStock);
     map['max_stock'] = Variable<double>(maxStock);
@@ -4587,7 +5005,10 @@ class Product extends DataClass implements Insertable<Product> {
       materialCode: Value(materialCode),
       barcode: Value(barcode),
       name: Value(name),
+      nameKh: Value(nameKh),
       description: Value(description),
+      color: Value(color),
+      specification: Value(specification),
       categoryId: Value(categoryId),
       subCategory: Value(subCategory),
       brand: Value(brand),
@@ -4608,6 +5029,9 @@ class Product extends DataClass implements Insertable<Product> {
       isMto: Value(isMto),
       status: Value(status),
       updatedAt: Value(updatedAt),
+      createdAt: createdAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdAt),
       deleted: Value(deleted),
       minStock: Value(minStock),
       maxStock: Value(maxStock),
@@ -4626,7 +5050,10 @@ class Product extends DataClass implements Insertable<Product> {
       materialCode: serializer.fromJson<String>(json['materialCode']),
       barcode: serializer.fromJson<String>(json['barcode']),
       name: serializer.fromJson<String>(json['name']),
+      nameKh: serializer.fromJson<String>(json['nameKh']),
       description: serializer.fromJson<String>(json['description']),
+      color: serializer.fromJson<String>(json['color']),
+      specification: serializer.fromJson<String>(json['specification']),
       categoryId: serializer.fromJson<String>(json['categoryId']),
       subCategory: serializer.fromJson<String>(json['subCategory']),
       brand: serializer.fromJson<String>(json['brand']),
@@ -4647,6 +5074,7 @@ class Product extends DataClass implements Insertable<Product> {
       isMto: serializer.fromJson<bool>(json['isMto']),
       status: serializer.fromJson<String>(json['status']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      createdAt: serializer.fromJson<DateTime?>(json['createdAt']),
       deleted: serializer.fromJson<bool>(json['deleted']),
       minStock: serializer.fromJson<double>(json['minStock']),
       maxStock: serializer.fromJson<double>(json['maxStock']),
@@ -4664,7 +5092,10 @@ class Product extends DataClass implements Insertable<Product> {
       'materialCode': serializer.toJson<String>(materialCode),
       'barcode': serializer.toJson<String>(barcode),
       'name': serializer.toJson<String>(name),
+      'nameKh': serializer.toJson<String>(nameKh),
       'description': serializer.toJson<String>(description),
+      'color': serializer.toJson<String>(color),
+      'specification': serializer.toJson<String>(specification),
       'categoryId': serializer.toJson<String>(categoryId),
       'subCategory': serializer.toJson<String>(subCategory),
       'brand': serializer.toJson<String>(brand),
@@ -4685,6 +5116,7 @@ class Product extends DataClass implements Insertable<Product> {
       'isMto': serializer.toJson<bool>(isMto),
       'status': serializer.toJson<String>(status),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'createdAt': serializer.toJson<DateTime?>(createdAt),
       'deleted': serializer.toJson<bool>(deleted),
       'minStock': serializer.toJson<double>(minStock),
       'maxStock': serializer.toJson<double>(maxStock),
@@ -4700,7 +5132,10 @@ class Product extends DataClass implements Insertable<Product> {
           String? materialCode,
           String? barcode,
           String? name,
+          String? nameKh,
           String? description,
+          String? color,
+          String? specification,
           String? categoryId,
           String? subCategory,
           String? brand,
@@ -4721,6 +5156,7 @@ class Product extends DataClass implements Insertable<Product> {
           bool? isMto,
           String? status,
           DateTime? updatedAt,
+          Value<DateTime?> createdAt = const Value.absent(),
           bool? deleted,
           double? minStock,
           double? maxStock}) =>
@@ -4733,7 +5169,10 @@ class Product extends DataClass implements Insertable<Product> {
         materialCode: materialCode ?? this.materialCode,
         barcode: barcode ?? this.barcode,
         name: name ?? this.name,
+        nameKh: nameKh ?? this.nameKh,
         description: description ?? this.description,
+        color: color ?? this.color,
+        specification: specification ?? this.specification,
         categoryId: categoryId ?? this.categoryId,
         subCategory: subCategory ?? this.subCategory,
         brand: brand ?? this.brand,
@@ -4754,6 +5193,7 @@ class Product extends DataClass implements Insertable<Product> {
         isMto: isMto ?? this.isMto,
         status: status ?? this.status,
         updatedAt: updatedAt ?? this.updatedAt,
+        createdAt: createdAt.present ? createdAt.value : this.createdAt,
         deleted: deleted ?? this.deleted,
         minStock: minStock ?? this.minStock,
         maxStock: maxStock ?? this.maxStock,
@@ -4771,8 +5211,13 @@ class Product extends DataClass implements Insertable<Product> {
           : this.materialCode,
       barcode: data.barcode.present ? data.barcode.value : this.barcode,
       name: data.name.present ? data.name.value : this.name,
+      nameKh: data.nameKh.present ? data.nameKh.value : this.nameKh,
       description:
           data.description.present ? data.description.value : this.description,
+      color: data.color.present ? data.color.value : this.color,
+      specification: data.specification.present
+          ? data.specification.value
+          : this.specification,
       categoryId:
           data.categoryId.present ? data.categoryId.value : this.categoryId,
       subCategory:
@@ -4799,6 +5244,7 @@ class Product extends DataClass implements Insertable<Product> {
       isMto: data.isMto.present ? data.isMto.value : this.isMto,
       status: data.status.present ? data.status.value : this.status,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       deleted: data.deleted.present ? data.deleted.value : this.deleted,
       minStock: data.minStock.present ? data.minStock.value : this.minStock,
       maxStock: data.maxStock.present ? data.maxStock.value : this.maxStock,
@@ -4816,7 +5262,10 @@ class Product extends DataClass implements Insertable<Product> {
           ..write('materialCode: $materialCode, ')
           ..write('barcode: $barcode, ')
           ..write('name: $name, ')
+          ..write('nameKh: $nameKh, ')
           ..write('description: $description, ')
+          ..write('color: $color, ')
+          ..write('specification: $specification, ')
           ..write('categoryId: $categoryId, ')
           ..write('subCategory: $subCategory, ')
           ..write('brand: $brand, ')
@@ -4837,6 +5286,7 @@ class Product extends DataClass implements Insertable<Product> {
           ..write('isMto: $isMto, ')
           ..write('status: $status, ')
           ..write('updatedAt: $updatedAt, ')
+          ..write('createdAt: $createdAt, ')
           ..write('deleted: $deleted, ')
           ..write('minStock: $minStock, ')
           ..write('maxStock: $maxStock')
@@ -4854,7 +5304,10 @@ class Product extends DataClass implements Insertable<Product> {
         materialCode,
         barcode,
         name,
+        nameKh,
         description,
+        color,
+        specification,
         categoryId,
         subCategory,
         brand,
@@ -4875,6 +5328,7 @@ class Product extends DataClass implements Insertable<Product> {
         isMto,
         status,
         updatedAt,
+        createdAt,
         deleted,
         minStock,
         maxStock
@@ -4891,7 +5345,10 @@ class Product extends DataClass implements Insertable<Product> {
           other.materialCode == this.materialCode &&
           other.barcode == this.barcode &&
           other.name == this.name &&
+          other.nameKh == this.nameKh &&
           other.description == this.description &&
+          other.color == this.color &&
+          other.specification == this.specification &&
           other.categoryId == this.categoryId &&
           other.subCategory == this.subCategory &&
           other.brand == this.brand &&
@@ -4912,6 +5369,7 @@ class Product extends DataClass implements Insertable<Product> {
           other.isMto == this.isMto &&
           other.status == this.status &&
           other.updatedAt == this.updatedAt &&
+          other.createdAt == this.createdAt &&
           other.deleted == this.deleted &&
           other.minStock == this.minStock &&
           other.maxStock == this.maxStock);
@@ -4926,7 +5384,10 @@ class ProductsCompanion extends UpdateCompanion<Product> {
   final Value<String> materialCode;
   final Value<String> barcode;
   final Value<String> name;
+  final Value<String> nameKh;
   final Value<String> description;
+  final Value<String> color;
+  final Value<String> specification;
   final Value<String> categoryId;
   final Value<String> subCategory;
   final Value<String> brand;
@@ -4947,6 +5408,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
   final Value<bool> isMto;
   final Value<String> status;
   final Value<DateTime> updatedAt;
+  final Value<DateTime?> createdAt;
   final Value<bool> deleted;
   final Value<double> minStock;
   final Value<double> maxStock;
@@ -4960,7 +5422,10 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     this.materialCode = const Value.absent(),
     this.barcode = const Value.absent(),
     this.name = const Value.absent(),
+    this.nameKh = const Value.absent(),
     this.description = const Value.absent(),
+    this.color = const Value.absent(),
+    this.specification = const Value.absent(),
     this.categoryId = const Value.absent(),
     this.subCategory = const Value.absent(),
     this.brand = const Value.absent(),
@@ -4981,6 +5446,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     this.isMto = const Value.absent(),
     this.status = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
     this.deleted = const Value.absent(),
     this.minStock = const Value.absent(),
     this.maxStock = const Value.absent(),
@@ -4995,7 +5461,10 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     required String materialCode,
     required String barcode,
     required String name,
+    this.nameKh = const Value.absent(),
     required String description,
+    this.color = const Value.absent(),
+    this.specification = const Value.absent(),
     required String categoryId,
     required String subCategory,
     required String brand,
@@ -5016,6 +5485,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     this.isMto = const Value.absent(),
     this.status = const Value.absent(),
     required DateTime updatedAt,
+    this.createdAt = const Value.absent(),
     this.deleted = const Value.absent(),
     this.minStock = const Value.absent(),
     this.maxStock = const Value.absent(),
@@ -5056,7 +5526,10 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     Expression<String>? materialCode,
     Expression<String>? barcode,
     Expression<String>? name,
+    Expression<String>? nameKh,
     Expression<String>? description,
+    Expression<String>? color,
+    Expression<String>? specification,
     Expression<String>? categoryId,
     Expression<String>? subCategory,
     Expression<String>? brand,
@@ -5077,6 +5550,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     Expression<bool>? isMto,
     Expression<String>? status,
     Expression<DateTime>? updatedAt,
+    Expression<DateTime>? createdAt,
     Expression<bool>? deleted,
     Expression<double>? minStock,
     Expression<double>? maxStock,
@@ -5091,7 +5565,10 @@ class ProductsCompanion extends UpdateCompanion<Product> {
       if (materialCode != null) 'material_code': materialCode,
       if (barcode != null) 'barcode': barcode,
       if (name != null) 'name': name,
+      if (nameKh != null) 'name_kh': nameKh,
       if (description != null) 'description': description,
+      if (color != null) 'color': color,
+      if (specification != null) 'specification': specification,
       if (categoryId != null) 'category_id': categoryId,
       if (subCategory != null) 'sub_category': subCategory,
       if (brand != null) 'brand': brand,
@@ -5112,6 +5589,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
       if (isMto != null) 'is_mto': isMto,
       if (status != null) 'status': status,
       if (updatedAt != null) 'updated_at': updatedAt,
+      if (createdAt != null) 'created_at': createdAt,
       if (deleted != null) 'deleted': deleted,
       if (minStock != null) 'min_stock': minStock,
       if (maxStock != null) 'max_stock': maxStock,
@@ -5128,7 +5606,10 @@ class ProductsCompanion extends UpdateCompanion<Product> {
       Value<String>? materialCode,
       Value<String>? barcode,
       Value<String>? name,
+      Value<String>? nameKh,
       Value<String>? description,
+      Value<String>? color,
+      Value<String>? specification,
       Value<String>? categoryId,
       Value<String>? subCategory,
       Value<String>? brand,
@@ -5149,6 +5630,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
       Value<bool>? isMto,
       Value<String>? status,
       Value<DateTime>? updatedAt,
+      Value<DateTime?>? createdAt,
       Value<bool>? deleted,
       Value<double>? minStock,
       Value<double>? maxStock,
@@ -5162,7 +5644,10 @@ class ProductsCompanion extends UpdateCompanion<Product> {
       materialCode: materialCode ?? this.materialCode,
       barcode: barcode ?? this.barcode,
       name: name ?? this.name,
+      nameKh: nameKh ?? this.nameKh,
       description: description ?? this.description,
+      color: color ?? this.color,
+      specification: specification ?? this.specification,
       categoryId: categoryId ?? this.categoryId,
       subCategory: subCategory ?? this.subCategory,
       brand: brand ?? this.brand,
@@ -5183,6 +5668,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
       isMto: isMto ?? this.isMto,
       status: status ?? this.status,
       updatedAt: updatedAt ?? this.updatedAt,
+      createdAt: createdAt ?? this.createdAt,
       deleted: deleted ?? this.deleted,
       minStock: minStock ?? this.minStock,
       maxStock: maxStock ?? this.maxStock,
@@ -5217,8 +5703,17 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
+    if (nameKh.present) {
+      map['name_kh'] = Variable<String>(nameKh.value);
+    }
     if (description.present) {
       map['description'] = Variable<String>(description.value);
+    }
+    if (color.present) {
+      map['color'] = Variable<String>(color.value);
+    }
+    if (specification.present) {
+      map['specification'] = Variable<String>(specification.value);
     }
     if (categoryId.present) {
       map['category_id'] = Variable<String>(categoryId.value);
@@ -5280,6 +5775,9 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
     if (deleted.present) {
       map['deleted'] = Variable<bool>(deleted.value);
     }
@@ -5306,7 +5804,10 @@ class ProductsCompanion extends UpdateCompanion<Product> {
           ..write('materialCode: $materialCode, ')
           ..write('barcode: $barcode, ')
           ..write('name: $name, ')
+          ..write('nameKh: $nameKh, ')
           ..write('description: $description, ')
+          ..write('color: $color, ')
+          ..write('specification: $specification, ')
           ..write('categoryId: $categoryId, ')
           ..write('subCategory: $subCategory, ')
           ..write('brand: $brand, ')
@@ -5327,6 +5828,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
           ..write('isMto: $isMto, ')
           ..write('status: $status, ')
           ..write('updatedAt: $updatedAt, ')
+          ..write('createdAt: $createdAt, ')
           ..write('deleted: $deleted, ')
           ..write('minStock: $minStock, ')
           ..write('maxStock: $maxStock, ')
@@ -19981,15 +20483,31 @@ typedef $$CustomerSyncMetaTableProcessedTableManager = ProcessedTableManager<
 typedef $$CategoriesTableCreateCompanionBuilder = CategoriesCompanion Function({
   required String id,
   Value<String?> parentId,
+  Value<String> code,
   required String name,
+  Value<String> nameKh,
+  Value<String?> description,
+  Value<String?> descriptionKh,
+  Value<String?> icon,
   Value<int> sortOrder,
+  Value<bool> active,
+  Value<DateTime?> createdAt,
+  Value<DateTime?> updatedAt,
   Value<int> rowid,
 });
 typedef $$CategoriesTableUpdateCompanionBuilder = CategoriesCompanion Function({
   Value<String> id,
   Value<String?> parentId,
+  Value<String> code,
   Value<String> name,
+  Value<String> nameKh,
+  Value<String?> description,
+  Value<String?> descriptionKh,
+  Value<String?> icon,
   Value<int> sortOrder,
+  Value<bool> active,
+  Value<DateTime?> createdAt,
+  Value<DateTime?> updatedAt,
   Value<int> rowid,
 });
 
@@ -20008,11 +20526,35 @@ class $$CategoriesTableFilterComposer
   ColumnFilters<String> get parentId => $composableBuilder(
       column: $table.parentId, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<String> get code => $composableBuilder(
+      column: $table.code, builder: (column) => ColumnFilters(column));
+
   ColumnFilters<String> get name => $composableBuilder(
       column: $table.name, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<String> get nameKh => $composableBuilder(
+      column: $table.nameKh, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get descriptionKh => $composableBuilder(
+      column: $table.descriptionKh, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get icon => $composableBuilder(
+      column: $table.icon, builder: (column) => ColumnFilters(column));
+
   ColumnFilters<int> get sortOrder => $composableBuilder(
       column: $table.sortOrder, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get active => $composableBuilder(
+      column: $table.active, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
 }
 
 class $$CategoriesTableOrderingComposer
@@ -20030,11 +20572,36 @@ class $$CategoriesTableOrderingComposer
   ColumnOrderings<String> get parentId => $composableBuilder(
       column: $table.parentId, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get code => $composableBuilder(
+      column: $table.code, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get name => $composableBuilder(
       column: $table.name, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get nameKh => $composableBuilder(
+      column: $table.nameKh, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get descriptionKh => $composableBuilder(
+      column: $table.descriptionKh,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get icon => $composableBuilder(
+      column: $table.icon, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<int> get sortOrder => $composableBuilder(
       column: $table.sortOrder, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get active => $composableBuilder(
+      column: $table.active, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
 }
 
 class $$CategoriesTableAnnotationComposer
@@ -20052,11 +20619,35 @@ class $$CategoriesTableAnnotationComposer
   GeneratedColumn<String> get parentId =>
       $composableBuilder(column: $table.parentId, builder: (column) => column);
 
+  GeneratedColumn<String> get code =>
+      $composableBuilder(column: $table.code, builder: (column) => column);
+
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
 
+  GeneratedColumn<String> get nameKh =>
+      $composableBuilder(column: $table.nameKh, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => column);
+
+  GeneratedColumn<String> get descriptionKh => $composableBuilder(
+      column: $table.descriptionKh, builder: (column) => column);
+
+  GeneratedColumn<String> get icon =>
+      $composableBuilder(column: $table.icon, builder: (column) => column);
+
   GeneratedColumn<int> get sortOrder =>
       $composableBuilder(column: $table.sortOrder, builder: (column) => column);
+
+  GeneratedColumn<bool> get active =>
+      $composableBuilder(column: $table.active, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 }
 
 class $$CategoriesTableTableManager extends RootTableManager<
@@ -20084,29 +20675,61 @@ class $$CategoriesTableTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
             Value<String?> parentId = const Value.absent(),
+            Value<String> code = const Value.absent(),
             Value<String> name = const Value.absent(),
+            Value<String> nameKh = const Value.absent(),
+            Value<String?> description = const Value.absent(),
+            Value<String?> descriptionKh = const Value.absent(),
+            Value<String?> icon = const Value.absent(),
             Value<int> sortOrder = const Value.absent(),
+            Value<bool> active = const Value.absent(),
+            Value<DateTime?> createdAt = const Value.absent(),
+            Value<DateTime?> updatedAt = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               CategoriesCompanion(
             id: id,
             parentId: parentId,
+            code: code,
             name: name,
+            nameKh: nameKh,
+            description: description,
+            descriptionKh: descriptionKh,
+            icon: icon,
             sortOrder: sortOrder,
+            active: active,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
             rowid: rowid,
           ),
           createCompanionCallback: ({
             required String id,
             Value<String?> parentId = const Value.absent(),
+            Value<String> code = const Value.absent(),
             required String name,
+            Value<String> nameKh = const Value.absent(),
+            Value<String?> description = const Value.absent(),
+            Value<String?> descriptionKh = const Value.absent(),
+            Value<String?> icon = const Value.absent(),
             Value<int> sortOrder = const Value.absent(),
+            Value<bool> active = const Value.absent(),
+            Value<DateTime?> createdAt = const Value.absent(),
+            Value<DateTime?> updatedAt = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               CategoriesCompanion.insert(
             id: id,
             parentId: parentId,
+            code: code,
             name: name,
+            nameKh: nameKh,
+            description: description,
+            descriptionKh: descriptionKh,
+            icon: icon,
             sortOrder: sortOrder,
+            active: active,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
@@ -20137,7 +20760,10 @@ typedef $$ProductsTableCreateCompanionBuilder = ProductsCompanion Function({
   required String materialCode,
   required String barcode,
   required String name,
+  Value<String> nameKh,
   required String description,
+  Value<String> color,
+  Value<String> specification,
   required String categoryId,
   required String subCategory,
   required String brand,
@@ -20158,6 +20784,7 @@ typedef $$ProductsTableCreateCompanionBuilder = ProductsCompanion Function({
   Value<bool> isMto,
   Value<String> status,
   required DateTime updatedAt,
+  Value<DateTime?> createdAt,
   Value<bool> deleted,
   Value<double> minStock,
   Value<double> maxStock,
@@ -20172,7 +20799,10 @@ typedef $$ProductsTableUpdateCompanionBuilder = ProductsCompanion Function({
   Value<String> materialCode,
   Value<String> barcode,
   Value<String> name,
+  Value<String> nameKh,
   Value<String> description,
+  Value<String> color,
+  Value<String> specification,
   Value<String> categoryId,
   Value<String> subCategory,
   Value<String> brand,
@@ -20193,6 +20823,7 @@ typedef $$ProductsTableUpdateCompanionBuilder = ProductsCompanion Function({
   Value<bool> isMto,
   Value<String> status,
   Value<DateTime> updatedAt,
+  Value<DateTime?> createdAt,
   Value<bool> deleted,
   Value<double> minStock,
   Value<double> maxStock,
@@ -20232,8 +20863,17 @@ class $$ProductsTableFilterComposer
   ColumnFilters<String> get name => $composableBuilder(
       column: $table.name, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<String> get nameKh => $composableBuilder(
+      column: $table.nameKh, builder: (column) => ColumnFilters(column));
+
   ColumnFilters<String> get description => $composableBuilder(
       column: $table.description, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get color => $composableBuilder(
+      column: $table.color, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get specification => $composableBuilder(
+      column: $table.specification, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get categoryId => $composableBuilder(
       column: $table.categoryId, builder: (column) => ColumnFilters(column));
@@ -20295,6 +20935,9 @@ class $$ProductsTableFilterComposer
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
       column: $table.updatedAt, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
   ColumnFilters<bool> get deleted => $composableBuilder(
       column: $table.deleted, builder: (column) => ColumnFilters(column));
 
@@ -20339,8 +20982,18 @@ class $$ProductsTableOrderingComposer
   ColumnOrderings<String> get name => $composableBuilder(
       column: $table.name, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get nameKh => $composableBuilder(
+      column: $table.nameKh, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get description => $composableBuilder(
       column: $table.description, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get color => $composableBuilder(
+      column: $table.color, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get specification => $composableBuilder(
+      column: $table.specification,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get categoryId => $composableBuilder(
       column: $table.categoryId, builder: (column) => ColumnOrderings(column));
@@ -20404,6 +21057,9 @@ class $$ProductsTableOrderingComposer
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
       column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<bool> get deleted => $composableBuilder(
       column: $table.deleted, builder: (column) => ColumnOrderings(column));
 
@@ -20447,8 +21103,17 @@ class $$ProductsTableAnnotationComposer
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
 
+  GeneratedColumn<String> get nameKh =>
+      $composableBuilder(column: $table.nameKh, builder: (column) => column);
+
   GeneratedColumn<String> get description => $composableBuilder(
       column: $table.description, builder: (column) => column);
+
+  GeneratedColumn<String> get color =>
+      $composableBuilder(column: $table.color, builder: (column) => column);
+
+  GeneratedColumn<String> get specification => $composableBuilder(
+      column: $table.specification, builder: (column) => column);
 
   GeneratedColumn<String> get categoryId => $composableBuilder(
       column: $table.categoryId, builder: (column) => column);
@@ -20510,6 +21175,9 @@ class $$ProductsTableAnnotationComposer
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
   GeneratedColumn<bool> get deleted =>
       $composableBuilder(column: $table.deleted, builder: (column) => column);
 
@@ -20551,7 +21219,10 @@ class $$ProductsTableTableManager extends RootTableManager<
             Value<String> materialCode = const Value.absent(),
             Value<String> barcode = const Value.absent(),
             Value<String> name = const Value.absent(),
+            Value<String> nameKh = const Value.absent(),
             Value<String> description = const Value.absent(),
+            Value<String> color = const Value.absent(),
+            Value<String> specification = const Value.absent(),
             Value<String> categoryId = const Value.absent(),
             Value<String> subCategory = const Value.absent(),
             Value<String> brand = const Value.absent(),
@@ -20572,6 +21243,7 @@ class $$ProductsTableTableManager extends RootTableManager<
             Value<bool> isMto = const Value.absent(),
             Value<String> status = const Value.absent(),
             Value<DateTime> updatedAt = const Value.absent(),
+            Value<DateTime?> createdAt = const Value.absent(),
             Value<bool> deleted = const Value.absent(),
             Value<double> minStock = const Value.absent(),
             Value<double> maxStock = const Value.absent(),
@@ -20586,7 +21258,10 @@ class $$ProductsTableTableManager extends RootTableManager<
             materialCode: materialCode,
             barcode: barcode,
             name: name,
+            nameKh: nameKh,
             description: description,
+            color: color,
+            specification: specification,
             categoryId: categoryId,
             subCategory: subCategory,
             brand: brand,
@@ -20607,6 +21282,7 @@ class $$ProductsTableTableManager extends RootTableManager<
             isMto: isMto,
             status: status,
             updatedAt: updatedAt,
+            createdAt: createdAt,
             deleted: deleted,
             minStock: minStock,
             maxStock: maxStock,
@@ -20621,7 +21297,10 @@ class $$ProductsTableTableManager extends RootTableManager<
             required String materialCode,
             required String barcode,
             required String name,
+            Value<String> nameKh = const Value.absent(),
             required String description,
+            Value<String> color = const Value.absent(),
+            Value<String> specification = const Value.absent(),
             required String categoryId,
             required String subCategory,
             required String brand,
@@ -20642,6 +21321,7 @@ class $$ProductsTableTableManager extends RootTableManager<
             Value<bool> isMto = const Value.absent(),
             Value<String> status = const Value.absent(),
             required DateTime updatedAt,
+            Value<DateTime?> createdAt = const Value.absent(),
             Value<bool> deleted = const Value.absent(),
             Value<double> minStock = const Value.absent(),
             Value<double> maxStock = const Value.absent(),
@@ -20656,7 +21336,10 @@ class $$ProductsTableTableManager extends RootTableManager<
             materialCode: materialCode,
             barcode: barcode,
             name: name,
+            nameKh: nameKh,
             description: description,
+            color: color,
+            specification: specification,
             categoryId: categoryId,
             subCategory: subCategory,
             brand: brand,
@@ -20677,6 +21360,7 @@ class $$ProductsTableTableManager extends RootTableManager<
             isMto: isMto,
             status: status,
             updatedAt: updatedAt,
+            createdAt: createdAt,
             deleted: deleted,
             minStock: minStock,
             maxStock: maxStock,

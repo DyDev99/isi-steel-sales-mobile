@@ -1,10 +1,21 @@
-import 'package:isi_steel_sales_mobile/core/platform/local_files.dart';
-
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
-import 'package:isi_steel_sales_mobile/shared/widgets/glass_card.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/cart_quantity_stepper.dart';
 
+/// One quotation line, in three rows: what it is, what it costs, what it
+/// totals.
+///
+/// Deliberately dense. A rep building a real quotation adds a dozen lines and
+/// then scrolls back to check them, so vertical space per line is the whole
+/// ergonomic budget — the old tile spent 56dp of it on a catalog stock photo
+/// that told them nothing a steel SKU's code and specs didn't already say, and
+/// cost a network fetch per row while doing it. Now ~78dp of pure information.
+///
+/// A *customization drawing* is the one image that survives, because it is the
+/// rep's own sketch and the one thing on the line that text genuinely cannot
+/// convey. It is also rare, so it costs nothing on the common path.
 class CartItemTile extends StatelessWidget {
   const CartItemTile({
     super.key,
@@ -16,11 +27,6 @@ class CartItemTile extends StatelessWidget {
   final CartItem item;
   final ValueChanged<double> onQuantityChanged;
   final VoidCallback onRemove;
-
-  bool get _hasDrawing =>
-      item.isCustomized &&
-      item.drawingImagePath != null &&
-      localFileExists(item.drawingImagePath!);
 
   /// Measurements + finish, joined for the review line (null for plain lines).
   String? get _customSpecs {
@@ -34,151 +40,130 @@ class CartItemTile extends StatelessWidget {
     return parts.isEmpty ? null : parts.join(' · ');
   }
 
+  /// Material code first — it is what a rep reads back to the counter — then
+  /// whatever distinguishes this line from its siblings.
+  String get _identityLine {
+    final parts = <String>[
+      if (item.product.materialCode.trim().isNotEmpty)
+        item.product.materialCode,
+      ...?_customSpecs?.split(' · '),
+      if (_customSpecs == null && item.product.size.trim().isNotEmpty)
+        item.product.size,
+    ];
+    return parts.join(' · ');
+  }
+
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<AppThemeColors>()!;
-    final specs = _customSpecs;
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
+    final discounted = item.discountPercent > 0;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: GlassCard(
-        padding: const EdgeInsets.all(12),
-        child: Row(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Container(
+        decoration: BoxDecoration(
+          color: colors.card,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: colors.border),
+        ),
+        padding: const EdgeInsets.fromLTRB(12, 10, 4, 10),
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            // Only a customization drawing earns a thumbnail here: it's the
-            // rep's own sketch and the one thing on the line that text can't
-            // convey. Catalog stock photos are omitted — a cart line is read
-            // for its code, specs and price, and the photo only pushed those
-            // sideways (and cost a network fetch per row).
-            if (_hasDrawing) ...[
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: localFileImage(
-                  (item.drawingImagePath!),
-                  width: 56,
-                  height: 56,
-                  fit: BoxFit.cover,
-                ),
-              ),
-              const SizedBox(width: 10),
-            ],
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          item.product.name,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: colors.textPrimary,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ),
-                      if (item.isCustomized) ...[
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: colors.accentPurple.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            '✏️',
-                            style: TextStyle(
-                                fontSize: 10, color: colors.accentPurple),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '${item.product.code} · \$${item.unitPrice.toStringAsFixed(2)}/${item.unit}',
-                    style: TextStyle(
-                      color: colors.textSecondary,
-                      fontSize: 11,
-                    ),
-                  ),
-                  if (specs != null) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      specs,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: colors.accentPurple,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                  if (item.customizationDescription != null &&
-                      item.customizationDescription!.trim().isNotEmpty) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      'Note: ${item.customizationDescription!.trim()}',
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: colors.textSecondary,
-                        fontSize: 10.5,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      _QtyButton(
-                        icon: Icons.remove_rounded,
-                        onTap: () => onQuantityChanged(item.quantity - 1),
-                      ),
-                      SizedBox(
-                        width: 36,
-                        child: Text(
-                          item.quantity.toStringAsFixed(0),
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: colors.textPrimary,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                      _QtyButton(
-                        icon: Icons.add_rounded,
-                        onTap: () => onQuantityChanged(item.quantity + 1),
-                      ),
-                      const Spacer(),
-                      Text(
-                        '\$${item.lineTotal.toStringAsFixed(2)}',
-                        style: TextStyle(
-                          color: colors.accentPurple,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ],
-                  ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (item.isCustomized) ...[
+                  Icon(Icons.tune_rounded,
+                      size: 13, color: colors.accentPurple),
+                  const SizedBox(width: 4),
                 ],
-              ),
+                Expanded(
+                  child: Text(
+                    item.product.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: colors.textPrimary,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      height: 1.1,
+                    ),
+                  ),
+                ),
+                // Compact hit target rather than a full IconButton: the default
+                // 48dp box alone would blow the row-height budget.
+                InkWell(
+                  onTap: onRemove,
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.all(6),
+                    child: Icon(Icons.close_rounded,
+                        size: 16, color: colors.iconMuted),
+                  ),
+                ),
+              ],
             ),
-            IconButton(
-              onPressed: onRemove,
-              icon: Icon(
-                Icons.delete_outline_rounded,
-                color: colors.success,
-                size: 20,
-              ),
+            const SizedBox(height: 3),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    _identityLine,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: colors.textSecondary, fontSize: 11),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                _StockDot(available: item.product.isAvailable),
+                const SizedBox(width: 8),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                CartQuantityStepper(
+                  quantity: item.quantity.round(),
+                  onChanged: (value) => onQuantityChanged(value.toDouble()),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    '\$${item.unitPrice.toStringAsFixed(2)}/${item.unit}'
+                    '${discounted ? '  −${item.discountPercent.toStringAsFixed(0)}%' : ''}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: discounted ? scheme.primary : colors.textSecondary,
+                      fontSize: 11,
+                      fontWeight: discounted ? FontWeight.w700 : null,
+                    ),
+                  ),
+                ),
+                // The total is what the rep re-reads on every scroll-back, so
+                // it animates rather than snapping — a silently changed number
+                // is one nobody trusts.
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  transitionBuilder: (child, animation) => FadeTransition(
+                    opacity: animation,
+                    child: ScaleTransition(scale: animation, child: child),
+                  ),
+                  child: Text(
+                    '\$${item.lineTotal.toStringAsFixed(2)}',
+                    key: ValueKey(item.lineTotal.toStringAsFixed(2)),
+                    style: TextStyle(
+                      color: colors.textPrimary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+              ],
             ),
           ],
         ),
@@ -187,33 +172,38 @@ class CartItemTile extends StatelessWidget {
   }
 }
 
-class _QtyButton extends StatelessWidget {
-  const _QtyButton({required this.icon, required this.onTap});
-  final IconData icon;
-  final VoidCallback onTap;
+/// Stock presence as a dot plus a word — colour alone would leave the state
+/// unreadable to a colour-blind rep, which on a quotation line is the
+/// difference between promising stock and promising a lead time.
+class _StockDot extends StatelessWidget {
+  const _StockDot({required this.available});
+  final bool available;
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<AppThemeColors>()!;
+    final colors = context.appColors;
+    final color = available ? colors.success : colors.warning;
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        width: 26,
-        height: 26,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: colors.surfaceSoft,
-          border: Border.all(color: colors.border),
-          borderRadius: BorderRadius.circular(8),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 6,
+          height: 6,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
-        child: Icon(
-          icon,
-          size: 13,
-          color: colors.textPrimary,
+        const SizedBox(width: 4),
+        Text(
+          available
+              ? 'orders.catalog.in_stock_short'.tr
+              : 'orders.catalog.out_of_stock'.tr,
+          style: TextStyle(
+            color: color,
+            fontSize: 10.5,
+            fontWeight: FontWeight.w700,
+          ),
         ),
-      ),
+      ],
     );
   }
 }

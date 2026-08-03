@@ -1,6 +1,8 @@
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:isi_steel_sales_mobile/core/session/app_restart_controller.dart';
 import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
+import 'package:isi_steel_sales_mobile/core/session/session_scoped_store.dart';
 import 'package:isi_steel_sales_mobile/core/usecase/usecase.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/domain/usecases/get_current_user.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/domain/usecases/login.dart';
@@ -20,10 +22,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     required Logout logout,
     required GetCurrentUser getCurrentUser,
     required SessionManager sessionManager,
+    required SessionResetService sessionReset,
+    required AppRestartController appRestart,
   })  : _login = login,
         _logout = logout,
         _getCurrentUser = getCurrentUser,
         _session = sessionManager,
+        _sessionReset = sessionReset,
+        _appRestart = appRestart,
         super(const AuthInitialState()) {
     on<AuthCheckRequested>(_onCheck);
     on<AuthGuestRequested>(_onGuest);
@@ -37,6 +43,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final Logout _logout;
   final GetCurrentUser _getCurrentUser;
   final SessionManager _session;
+  final SessionResetService _sessionReset;
+  final AppRestartController _appRestart;
 
   /// Session restore on boot. A cached session promotes to [AuthenticatedState];
   /// its absence is *not* an error here — the user simply continues as a guest,
@@ -81,14 +89,38 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     ));
   }
 
-  /// Signing out drops the token/session and returns the user to guest
-  /// browsing — the app stays open and usable, matching the guest-first model.
+  /// Signing out drops the token store, every session-scoped feature store,
+  /// and the in-memory session, in that order.
+  ///
+  /// Ordering matters: tokens go first so a request racing the sign-out cannot
+  /// be authorized, and [SessionManager.clear] goes last because it is what
+  /// notifies listeners the session ended — anything reacting to that must
+  /// find the underlying stores already empty rather than half-cleared.
+  ///
+  /// The emitted state is [AuthGuestState] rather than a dedicated
+  /// "logged out" one: this app is guest-first, so "signed out" and "browsing
+  /// as a guest" are genuinely the same authorization level. Where the user
+  /// *lands* is the caller's decision, not this bloc's.
+  /// Restarting the app is part of signing out, not something the caller has
+  /// to remember to do afterwards.
+  ///
+  /// It cannot be driven off the emitted state either: [AuthGuestState] is an
+  /// `Equatable` with no props, so every instance compares equal and bloc
+  /// suppresses the emit whenever guest was already the current state. A
+  /// screen waiting for that state to arrive waits forever — which is exactly
+  /// why the first version of this appeared to do nothing. Restarting here
+  /// makes it unconditional, and gives every future sign-out entry point the
+  /// same behaviour for free.
   Future<void> _onLogout(
     LogoutRequested event,
     Emitter<AuthState> emit,
   ) async {
     await _logout(const NoParams());
+    await _sessionReset.clearAll();
     _session.clear();
     emit(const AuthGuestState());
+
+    // Last, so the rebuilt tree reads an already-cleared session.
+    _appRestart.restart();
   }
 }

@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' show Value;
 import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart'
     as db;
 import 'package:isi_steel_sales_mobile/core/database/drift/daos/catalog_dao.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localized_text.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/models/category_model.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/models/product_model.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product_filter.dart';
@@ -76,9 +77,19 @@ extension ProductModelCatalogMapper on ProductModel {
 extension CategoryModelCatalogMapper on CategoryModel {
   db.CategoriesCompanion toCompanion() => db.CategoriesCompanion.insert(
         id: id,
-        name: name,
+        // `name` stays the English column so v14 rows and every existing read
+        // keep working; Khmer lands beside it rather than replacing it.
+        name: name.en,
+        nameKh: Value(name.km),
+        code: Value(code),
         parentId: Value(parentId),
-        sortOrder: Value(sortOrder),
+        description: Value(description?.en),
+        descriptionKh: Value(description?.km),
+        icon: Value(icon),
+        sortOrder: Value(displayOrder),
+        active: Value(active),
+        createdAt: Value(createdAt),
+        updatedAt: Value(updatedAt),
       );
 }
 
@@ -86,8 +97,19 @@ extension CategoryRowCatalogMapper on db.Category {
   CategoryModel toModel() => CategoryModel(
         id: id,
         parentId: parentId,
-        name: name,
-        sortOrder: sortOrder,
+        // Older rows predate the code column; the id is a stable stand-in and
+        // keeps the node addressable until the next sync backfills it.
+        code: code.trim().isEmpty ? id : code,
+        name: LocalizedText(en: name, km: nameKh),
+        description:
+            (description ?? '').isEmpty && (descriptionKh ?? '').isEmpty
+                ? null
+                : LocalizedText(en: description ?? '', km: descriptionKh ?? ''),
+        icon: icon,
+        displayOrder: sortOrder,
+        active: active,
+        createdAt: createdAt,
+        updatedAt: updatedAt,
       );
 }
 

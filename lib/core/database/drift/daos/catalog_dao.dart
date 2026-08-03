@@ -526,14 +526,26 @@ class CatalogDao extends DatabaseAccessor<AppDatabase> with _$CatalogDaoMixin {
       // the tag (code/barcode/SKU), what SAP calls it (material code), and
       // what it's described as in either language (name/description carry the
       // localised text until a dedicated Khmer-name column exists).
+      // Both languages, always — not the active locale's column only.
+      //
+      // A rep with the UI in English who types a Khmer product name is looking
+      // for that product; returning nothing would be a defect, not correct
+      // locale handling. Searching both costs one more `OR` on an already
+      // indexed scan and removes a whole class of "it's not in the app"
+      // support calls.
       const columns = [
         'code',
-        'name',
+        'name', // SAP MaterialDes (English)
+        'name_kh', // SAP MaterialDesKH
         'barcode',
         'sku',
         'brand',
         'material_code',
         'description',
+        'specification',
+        'color',
+        'size',
+        'grade',
       ];
       where.add('(${columns.map((c) => 'p.$c LIKE ?').join(' OR ')})');
       for (var i = 0; i < columns.length; i++) {

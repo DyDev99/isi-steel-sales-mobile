@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/category.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/filter_flow_transition.dart';
@@ -95,14 +96,18 @@ class _CategoryTile extends StatelessWidget {
             child: Row(
               children: [
                 Icon(
-                  _iconFor(category.name),
+                  // Keyed off the SAP code / icon key, never the display
+                  // name: matching on a localised label meant every category
+                  // silently lost its icon the moment the UI switched to
+                  // Khmer.
+                  _iconFor(category.icon ?? category.code),
                   size: 20,
                   color: selected ? scheme.primary : colors.iconMuted,
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    category.name,
+                    context.localized(category.name),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(

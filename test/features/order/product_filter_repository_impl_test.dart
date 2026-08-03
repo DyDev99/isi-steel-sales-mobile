@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localized_text.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/daos/catalog_dao.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/local/product_filter_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/mock/isi_demo_catalog.dart';
@@ -25,9 +26,11 @@ class _FakeLocal implements ProductFilterLocalDataSource {
   @override
   Future<List<CategoryModel>> categoriesWithProducts() async => const [
         CategoryModel(
-            id: IsiDemoCatalog.palmProfileCategoryId,
-            name: 'Palm',
-            sortOrder: 0),
+          id: IsiDemoCatalog.palmProfileCategoryId,
+          code: 'PALM_PROFILE',
+          name: LocalizedText(en: 'Palm Profile Roofing', km: 'ផាម ភ្លី'),
+          displayOrder: 0,
+        ),
       ];
 
   @override

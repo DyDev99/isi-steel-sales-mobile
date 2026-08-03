@@ -166,6 +166,7 @@ Future<void> registerMyVisitsFeature(GetIt sl) async {
   // Stop-centric dashboard: today's stops sorted nearest-first by live GPS.
   sl.registerFactory(() => StopDashboardCubit(
         watchTodayRoutes: sl(),
+        fetchTodayRoutes: sl(),
         locationService: sl(),
       ));
   sl.registerFactory(() => ActiveRouteBloc(
@@ -205,6 +206,7 @@ Future<void> registerMyVisitsFeature(GetIt sl) async {
         // doesn't matter.
         runCustomerInitialSync: sl(),
         getCustomerLastSyncedAt: sl(),
+        browseCustomers: sl(),
         sessionManager: sl<SessionManager>(),
       ));
 

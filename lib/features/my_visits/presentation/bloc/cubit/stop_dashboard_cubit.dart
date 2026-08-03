@@ -7,6 +7,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_status.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/geofence_service.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/location_tracking_service.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/fetch_today_routes.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/watch_today_routes.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/state/stop_dashboard_state.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/models/today_stop.dart';
@@ -21,12 +22,15 @@ import 'package:isi_steel_sales_mobile/features/my_visits/presentation/models/to
 class StopDashboardCubit extends Cubit<StopDashboardState> {
   StopDashboardCubit({
     required WatchTodayRoutes watchTodayRoutes,
+    required FetchTodayRoutes fetchTodayRoutes,
     required LocationTrackingService locationService,
   })  : _watchTodayRoutes = watchTodayRoutes,
+        _fetchTodayRoutes = fetchTodayRoutes,
         _locationService = locationService,
         super(const StopDashboardLoading());
 
   final WatchTodayRoutes _watchTodayRoutes;
+  final FetchTodayRoutes _fetchTodayRoutes;
   final LocationTrackingService _locationService;
 
   StreamSubscription<List<RoutePlan>>? _routesSub;
@@ -65,6 +69,31 @@ class StopDashboardCubit extends Cubit<StopDashboardState> {
     _positionSub = _locationService
         .observe(distanceFilterMeters: 25)
         .listen(_onPosition, onError: (Object _) {});
+  }
+
+  /// Re-reads today's routes from the local store.
+  ///
+  /// Needed because [WatchTodayRoutes]' stream only re-emits for mutations
+  /// made *through the route repository* — and sync doesn't go that way. It
+  /// writes through `RouteLocalDataSource` directly, so a pull that lands
+  /// after this cubit has already taken its opening snapshot is invisible to
+  /// it. That is the empty Stop Dashboard: the rows are on the device, nothing
+  /// ever told the screen. The dashboard calls this when a sync reports
+  /// success.
+  ///
+  /// The deeper fix is for the repository's watch to be backed by a Drift
+  /// query stream, which would make every writer visible to every reader
+  /// regardless of which object performed the write. That is a larger change
+  /// to the route read path than this defect justifies on its own — tracked in
+  /// `docs/my_visits`.
+  Future<void> reload() async {
+    final result = await _fetchTodayRoutes(const NoParams());
+    result.when(
+      success: _onRoutes,
+      // A failed re-read leaves the last good list on screen rather than
+      // blanking it — the rep is mid-route and stale stops beat no stops.
+      failure: (_) {},
+    );
   }
 
   void _onRoutes(List<RoutePlan> routes) {

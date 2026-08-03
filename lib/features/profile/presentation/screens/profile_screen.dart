@@ -62,18 +62,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
     if (confirmed != true || !context.mounted) return;
-    final ok = await context.read<ProfileCubit>().logout();
-    if (!ok || !context.mounted) return;
 
-    // Dispatch logout event to reset auth state
+    // Fire and forget, deliberately. `AuthBloc` owns the whole sign-out:
+    // it clears the token store, the session-scoped feature stores and
+    // `SessionManager`, then restarts the app — which is what discards this
+    // screen along with the rest of the authenticated stack.
+    //
+    // This screen used to do three of those things itself, including calling
+    // `ProfileCubit.logout()` (a remote call that cleared nothing locally) and
+    // then navigating to `'/'` — which is `Static.splash`, whose timer forwards
+    // straight back into the shell. Hence "logout puts me back where I was".
     context.read<AuthBloc>().add(const LogoutRequested());
-
-    // Restart/reload the app navigation flow back to initial/root screen
-    // and wipe all existing screen history.
-    Navigator.of(context).pushNamedAndRemoveUntil(
-      '/', // or AppRoutes.initial / splash / login route
-      (route) => false,
-    );
   }
 
   @override

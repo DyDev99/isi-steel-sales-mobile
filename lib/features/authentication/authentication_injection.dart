@@ -26,6 +26,11 @@ void registerAuthFeature(GetIt sl) {
       logout: sl(),
       getCurrentUser: sl(),
       sessionManager: sl(),
+      // Resolved lazily at bloc construction, which happens after every
+      // feature has registered — auth is wired before order/my_visits, so an
+      // eager reference here would not find their repositories yet.
+      sessionReset: sl(),
+      appRestart: sl(),
     ),
   );
 

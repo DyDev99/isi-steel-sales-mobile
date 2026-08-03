@@ -98,8 +98,16 @@ class _StopDashboardScreenState extends State<StopDashboardScreen> {
       backgroundColor: colors.canvas,
       body: SafeArea(
         child: BlocListener<RouteSyncCubit, RouteSyncState>(
-          listenWhen: (p, c) => c is RouteSyncFailed,
+          listenWhen: (p, c) => c is RouteSyncFailed || c is RouteSyncSucceeded,
           listener: (context, state) {
+            // A pull that lands after the cubit took its opening snapshot is
+            // otherwise invisible to it — sync writes through the local data
+            // source, not the repository whose stream this screen watches. See
+            // `StopDashboardCubit.reload`.
+            if (state is RouteSyncSucceeded) {
+              context.read<StopDashboardCubit>().reload();
+              return;
+            }
             if (state is RouteSyncFailed) {
               ScaffoldMessenger.of(context)
                 ..hideCurrentSnackBar()

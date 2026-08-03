@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
@@ -107,7 +108,7 @@ class _GuidedProductFilterViewState extends State<GuidedProductFilterView> {
       sortBy: state.sortBy,
       availableOnly: state.availableOnly,
       selection: state.selection,
-      categoryLabel: state.category?.name,
+      categoryLabel: context.localizedOrNull(state.category?.name),
     );
     if (result == null || !mounted) return;
 
@@ -258,7 +259,7 @@ class _Header extends StatelessWidget {
               : Padding(
                   padding: const EdgeInsets.only(top: 10),
                   child: FilterChipBar(
-                    categoryLabel: state.category!.name,
+                    categoryLabel: context.localized(state.category!.name),
                     selection: state.selection,
                     onClearStep: onClearStep,
                     onClearCategory: onClearCategory,

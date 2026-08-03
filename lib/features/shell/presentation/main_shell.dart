@@ -535,6 +535,7 @@ class _MainShellState extends State<MainShell> {
             ),
           ),
         ),
+        // Inside MainShell -> _buildBody -> Stack children:
         Positioned(
           top: 0,
           left: 0,
@@ -549,7 +550,10 @@ class _MainShellState extends State<MainShell> {
                 : () => _openGuestNotifications(context),
           ),
         ),
-        const AppCoachHost(),
+        // Wrap AppCoachHost in Positioned.fill directly inside the Stack
+        const Positioned.fill(
+          child: AppCoachHost(),
+        ),
       ],
     );
   }

@@ -5,6 +5,10 @@ import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
 import 'package:isi_steel_sales_mobile/core/usecase/usecase.dart';
 import 'package:isi_steel_sales_mobile/core/utils/result.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer_sync_result.dart';
+import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer.dart';
+import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer_paged_result.dart';
+import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/browse_customers.dart';
+import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/customer_params.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/get_customer_last_synced_at.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/run_customer_initial_sync.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_sync_result.dart';
@@ -32,6 +36,12 @@ class _MockRunCustomerInitialSync extends Mock
 class _MockGetCustomerLastSyncedAt extends Mock
     implements GetCustomerLastSyncedAt {}
 
+class _MockBrowseCustomers extends Mock implements BrowseCustomers {}
+
+/// Only its presence in the list matters — the gate asks "are there any rows",
+/// never what is in them.
+class _FakeCustomer extends Mock implements Customer {}
+
 class _MockSessionManager extends Mock implements SessionManager {}
 
 void main() {
@@ -49,12 +59,14 @@ void main() {
   late _MockPushPendingVisitData pushPendingVisitData;
   late _MockRunCustomerInitialSync runCustomerInitialSync;
   late _MockGetCustomerLastSyncedAt getCustomerLastSyncedAt;
+  late _MockBrowseCustomers browseCustomers;
   late _MockSessionManager sessionManager;
 
   setUpAll(() {
     registerFallbackValue(const NoParams());
     registerFallbackValue(
         const RouteSyncScope(repId: 'guest', territory: 'Phnom Penh'));
+    registerFallbackValue(const BrowseCustomersParams(page: 0, pageSize: 1));
   });
 
   setUp(() {
@@ -64,6 +76,11 @@ void main() {
     pushPendingVisitData = _MockPushPendingVisitData();
     runCustomerInitialSync = _MockRunCustomerInitialSync();
     getCustomerLastSyncedAt = _MockGetCustomerLastSyncedAt();
+    browseCustomers = _MockBrowseCustomers();
+    // Default: the directory has rows. Tests that care override this.
+    when(() => browseCustomers(any())).thenAnswer((_) async => Success(
+        CustomerPagedResult(
+            items: [_FakeCustomer()], page: 0, hasMore: false)));
     sessionManager = _MockSessionManager();
     when(() => sessionManager.currentUser).thenReturn(null);
   });
@@ -75,6 +92,7 @@ void main() {
         pushPendingVisitData: pushPendingVisitData,
         runCustomerInitialSync: runCustomerInitialSync,
         getCustomerLastSyncedAt: getCustomerLastSyncedAt,
+        browseCustomers: browseCustomers,
         sessionManager: sessionManager,
       );
 
@@ -100,7 +118,45 @@ void main() {
   void customerInitialSucceeds() => when(() => runCustomerInitialSync(any()))
       .thenAnswer((_) async => Success(customerResult));
 
+  void customerDirectoryEmpty() =>
+      when(() => browseCustomers(any())).thenAnswer((_) async => const Success(
+          CustomerPagedResult(items: [], page: 0, hasMore: false)));
+
   group('syncIfNeeded', () {
+    blocTest<RouteSyncCubit, RouteSyncState>(
+      'pulls customers when the watermark says synced but the table is empty',
+      build: buildCubit,
+      setUp: () {
+        // The state behind the empty Visit dashboards: a customer watermark
+        // left by an earlier build over a directory that is actually empty.
+        // Skipping the pull here left the route feed — which rebases stops
+        // onto real customer ids — with nothing to rebase onto, so every
+        // Visit screen came up blank.
+        customersAlreadySynced();
+        customerDirectoryEmpty();
+        customerInitialSucceeds();
+        routesPreviouslySynced();
+        routeDeltaSucceeds();
+      },
+      act: (cubit) => cubit.syncIfNeeded(),
+      verify: (_) {
+        verify(() => runCustomerInitialSync(any())).called(1);
+        verify(() => runRouteDeltaSync(any())).called(1);
+      },
+    );
+
+    blocTest<RouteSyncCubit, RouteSyncState>(
+      'skips the customer pull when the directory is genuinely populated',
+      build: buildCubit,
+      setUp: () {
+        customersAlreadySynced();
+        routesPreviouslySynced();
+        routeDeltaSucceeds();
+      },
+      act: (cubit) => cubit.syncIfNeeded(),
+      verify: (_) => verifyNever(() => runCustomerInitialSync(any())),
+    );
+
     blocTest<RouteSyncCubit, RouteSyncState>(
       'runs an initial route sync when there is no route watermark',
       build: buildCubit,

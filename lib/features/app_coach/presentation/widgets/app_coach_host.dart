@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lottie/lottie.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/domain/entities/coach_action.dart';
@@ -7,16 +8,9 @@ import 'package:isi_steel_sales_mobile/features/app_coach/domain/entities/coach_
 import 'package:isi_steel_sales_mobile/features/app_coach/presentation/blocs/app_coach_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/presentation/services/coach_anchor_registry.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/presentation/widgets/assistant_overlay.dart';
-import 'package:isi_steel_sales_mobile/features/app_coach/presentation/widgets/floating_assistant_button.dart';
 import 'package:isi_steel_sales_mobile/features/home/presentation/bloc/home_cubit.dart';
 
 /// Mounts the coach layer over the app shell.
-///
-/// Drop it as the top child of `MainShell`'s `Stack`. It provides the singleton
-/// [AppCoachBloc], translates shell tab-switches into coach actions (so the
-/// walkthrough advances on real navigation, never a bare "Next"), keeps anchors
-/// on-screen via `ensureVisible`, and renders either the assistant overlay or
-/// the paused floating button — or nothing when idle/completed.
 class AppCoachHost extends StatefulWidget {
   const AppCoachHost({super.key});
 
@@ -33,15 +27,6 @@ class _AppCoachHostState extends State<AppCoachHost> {
   void initState() {
     super.initState();
     _tabs.addListener(_onTabChanged);
-    // Guest-first onboarding means the coach must NOT run for guests browsing
-    // the shell. But a first-time user who actually signs in *should* get the
-    // walkthrough — so start it only when authenticated. The bloc itself
-    // no-ops if the tutorial was already completed or skipped, so returning
-    // signed-in users won't see it again.
-    //
-    // A fresh sign-in rebuilds MainShell (login clears the stack to `main`),
-    // re-running this initState with the session already set — so this check
-    // fires at exactly the right moment for the first login.
     if (sl<SessionManager>().isAuthenticated) {
       _bloc.add(const CoachStarted());
     }
@@ -53,9 +38,6 @@ class _AppCoachHostState extends State<AppCoachHost> {
     super.dispose();
   }
 
-  /// A tab switch is a real user action — report it so the matching step can
-  /// advance. Programmatic returns to Home emit [CoachAction.openHome], which no
-  /// step waits for, so they're harmless.
   void _onTabChanged() {
     const map = <int, CoachAction>{
       ShellTab.home: CoachAction.openHome,
@@ -68,16 +50,12 @@ class _AppCoachHostState extends State<AppCoachHost> {
     if (action != null) _bloc.add(CoachActionTriggered(action));
   }
 
-  /// When a step becomes active, make sure its anchor is visible: bring the
-  /// shell back to Home (all anchors live there) and scroll the target into
-  /// view. Guarded so it runs once per step.
   void _onStepShown(AppCoachState state) {
     final step = state.currentStep;
     if (step == null || step.id == _shownStepId) return;
     _shownStepId = step.id;
 
     if (step.autoNavigateHome && _tabs.value != ShellTab.home) {
-      // Let the user glimpse the tab they opened before easing back Home.
       Future.delayed(const Duration(milliseconds: 650), () {
         if (mounted) _tabs.goTo(ShellTab.home);
       });
@@ -109,14 +87,19 @@ class _AppCoachHostState extends State<AppCoachHost> {
       value: _bloc,
       child: BlocConsumer<AppCoachBloc, AppCoachState>(
         listener: (_, state) => _onStepShown(state),
-        // Only rebuild the heavy overlay when something it draws changes.
         buildWhen: (a, b) =>
             a.status != b.status ||
             a.index != b.index ||
-            a.completedStepIds.length != b.completedStepIds.length,
+            a.completedStepIds.length != b.completedStepIds.length ||
+            a.isVisible != b.isVisible,
         builder: (context, state) {
-          // Always occupy the shell's full Stack; the child decides what shows.
-          return Positioned.fill(child: _buildLayer(state, reduceMotion));
+          // Immediately unmount layer if completed or invisible (and not paused)
+          if (state.status == CoachStatus.completed ||
+              (!state.isVisible && state.status != CoachStatus.paused)) {
+            return const SizedBox.shrink();
+          }
+
+          return _buildLayer(state, reduceMotion);
         },
       ),
     );
@@ -128,8 +111,25 @@ class _AppCoachHostState extends State<AppCoachHost> {
 
     if (state.status == CoachStatus.paused) {
       key = const ValueKey('coach-paused');
-      child = FloatingAssistantButton(
-        onResume: () => _bloc.add(const CoachResumed()),
+      child = Align(
+        alignment: Alignment.bottomRight,
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.only(right: 16.0, bottom: 16.0),
+            child: GestureDetector(
+              onTap: () => _bloc.add(const CoachResumed()),
+              child: SizedBox(
+                width: 120,
+                height: 120,
+                child: Lottie.asset(
+                  "assets/lotties/Live chatbot.json",
+                  fit: BoxFit.contain,
+                  animate: !reduceMotion,
+                ),
+              ),
+            ),
+          ),
+        ),
       );
     } else {
       final step = state.currentStep;
@@ -137,11 +137,6 @@ class _AppCoachHostState extends State<AppCoachHost> {
         key = const ValueKey('coach-empty');
         child = const SizedBox.shrink();
       } else {
-        // Deliberately NOT keyed by step.id: AssistantOverlay must stay the
-        // same State instance across steps so its own rect-sync and
-        // step-to-step transition logic (see didUpdateWidget) keeps working.
-        // Only the three *modes* below (paused / overlay / empty) cross-fade
-        // against each other.
         key = const ValueKey('coach-overlay');
         child = AssistantOverlay(
           step: step,

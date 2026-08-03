@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/category.dart';
 
@@ -82,8 +83,8 @@ class _FilterCategorySelectorState extends State<FilterCategorySelector> {
               padding: const EdgeInsets.only(left: 8),
               child: _Tile(
                 key: _keyFor(cat.id),
-                label: cat.name,
-                icon: _getIconData(cat.name),
+                label: context.localized(cat.name),
+                icon: _getIconData(cat.icon ?? cat.code),
                 selected: widget.selectedCategoryId == cat.id,
                 onTap: () => widget.onSelect(cat.id),
               ),

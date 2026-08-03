@@ -71,6 +71,7 @@ flutter:
     # 2. Include your logos folder here
     - assets/logos/
     - assets/mock/
+    - assets/lotties/
     - assets/images/
     - assets/lang/
 

@@ -19,7 +19,13 @@ import 'package:isi_steel_sales_mobile/core/services/pdf/pdf_assets.dart';
 import 'package:isi_steel_sales_mobile/core/services/pdf/pdf_file_service.dart';
 import 'package:isi_steel_sales_mobile/core/services/pdf/pdf_service.dart';
 import 'package:isi_steel_sales_mobile/core/services/pdf/pdf_share_service.dart';
+import 'package:isi_steel_sales_mobile/core/session/app_restart_controller.dart';
 import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
+import 'package:isi_steel_sales_mobile/core/session/session_scoped_store.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/repositories/cart_repository.dart';
+import 'package:isi_steel_sales_mobile/features/order/data/session/order_session_scoped_store.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/repositories/active_workflow_repository.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/data/session/visit_session_scoped_store.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/app_coach_injection.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/authentication_injection.dart';
 import 'package:isi_steel_sales_mobile/features/localization/localization_injection.dart';
@@ -88,6 +94,7 @@ Future<void> initDependencies() async {
   sl.registerFactory<ConnectivityCubit>(() => ConnectivityCubit(sl()));
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
   sl.registerLazySingleton<SessionManager>(() => SessionManager());
+  sl.registerLazySingleton<AppRestartController>(() => AppRestartController());
   sl.registerLazySingleton<AppPreferences>(
     () => AppPreferencesImpl(HiveService.cacheBox),
   );
@@ -112,4 +119,23 @@ Future<void> initDependencies() async {
   await registerMyVisitsFeature(sl);
   registerProfileFeature(sl);
   registerAppCoachFeature(sl);
+
+  // ── Sign-out fan-out ───────────────────────────────────────────────
+  //
+  // Registered after every feature so each one's repositories exist to be
+  // resolved. Adding a feature that holds rep-scoped data means adding one
+  // entry here — the logout path itself never changes.
+  //
+  // Master data (catalog, customer directory) is deliberately absent: it is
+  // SAP-owned, identical for the next user, and expensive to re-pull. Clearing
+  // it on sign-out would turn logout into a multi-minute re-download.
+  sl.registerLazySingleton<SessionResetService>(
+    () => SessionResetService(
+      [
+        OrderSessionScopedStore(sl<CartRepository>()),
+        VisitSessionScopedStore(sl<ActiveWorkflowRepository>()),
+      ],
+      sl<AppLogger>(),
+    ),
+  );
 }

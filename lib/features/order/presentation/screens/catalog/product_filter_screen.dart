@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
@@ -115,7 +116,8 @@ class _ProductFilterScreenState extends State<ProductFilterScreen> {
           title: BlocBuilder<ProductFilterFlowBloc, ProductFilterFlowState>(
             buildWhen: (a, b) => a.category != b.category,
             builder: (context, state) => Text(
-              state.category?.name ?? 'orders.filter.title'.tr,
+              context.localizedOrNull(state.category?.name) ??
+                  'orders.filter.title'.tr,
               style: TextStyle(
                 color: colors.textPrimary,
                 fontSize: 17,

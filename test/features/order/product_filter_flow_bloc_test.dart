@@ -1,5 +1,6 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localized_text.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart'
     hide Category, Product;
 import 'package:isi_steel_sales_mobile/features/order/data/local/product_drift_local_data_source.dart';
@@ -55,7 +56,11 @@ void main() {
     final base = IsiDemoCatalog.products().first;
     await catalog.upsertCategories([
       const CategoryModel(
-          id: 'cat_legacy_demo', name: 'Legacy Demo', sortOrder: 9),
+        id: 'cat_legacy_demo',
+        code: 'cat_legacy_demo',
+        name: LocalizedText(en: 'Legacy Demo', km: ''),
+        displayOrder: 9,
+      ),
     ]);
     await catalog.upsertProducts([
       for (var i = 0; i < 2; i++)
@@ -138,8 +143,9 @@ void main() {
   /// of the flow per test.
   const structural = Category(
     id: IsiDemoCatalog.palmProfileCategoryId,
-    name: 'Palm Profile Roofing',
-    sortOrder: 0,
+    code: 'PALM_PROFILE',
+    name: LocalizedText(en: 'Palm Profile Roofing', km: 'ផាម ភ្លី'),
+    displayOrder: 0,
   );
 
   /// A row read back out of the demo catalog, so tests that need a real
@@ -284,8 +290,11 @@ void main() {
 
     bloc.add(const FilterFlowStarted());
     await settle();
-    bloc.add(const FilterCategorySelected(
-        Category(id: 'cat_legacy_demo', name: 'Legacy Demo', sortOrder: 9)));
+    bloc.add(const FilterCategorySelected(Category(
+        id: 'cat_legacy_demo',
+        code: 'cat_legacy_demo',
+        name: LocalizedText(en: 'Legacy Demo', km: ''),
+        displayOrder: 9)));
     await settle();
 
     final shown = <String>[];
@@ -519,8 +528,9 @@ void main() {
 
     bloc.add(const FilterCategorySelected(Category(
         id: IsiDemoCatalog.reinforcementCategoryId,
-        name: 'Reinforcement (Traded)',
-        sortOrder: 0)));
+        code: 'reinforcementCategoryId',
+        name: LocalizedText(en: 'Reinforcement (Traded)', km: ''),
+        displayOrder: 0)));
     await settle();
 
     final rebarOptions = bloc.state.activeOptions.map((o) => o.label).toSet();
@@ -533,8 +543,9 @@ void main() {
     await settle();
     bloc.add(const FilterCategorySelected(Category(
         id: IsiDemoCatalog.giPipeCategoryId,
-        name: 'Galvanized Pipes',
-        sortOrder: 0)));
+        code: 'giPipeCategoryId',
+        name: LocalizedText(en: 'Galvanized Pipes', km: ''),
+        displayOrder: 0)));
     await settle();
 
     expect(

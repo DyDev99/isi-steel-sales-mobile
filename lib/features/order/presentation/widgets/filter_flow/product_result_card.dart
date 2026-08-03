@@ -46,8 +46,6 @@ class ProductResultCard extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onCustomize;
 
-  static const _imageSize = 56.0;
-
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
@@ -79,8 +77,6 @@ class ProductResultCard extends StatelessWidget {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _ProductThumbnail(url: product.imageUrl),
-                    const SizedBox(width: 10),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -231,42 +227,6 @@ class ProductResultCard extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _ProductThumbnail extends StatelessWidget {
-  const _ProductThumbnail({required this.url});
-  final String url;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-
-    Widget placeholder() => Container(
-          width: ProductResultCard._imageSize,
-          height: ProductResultCard._imageSize,
-          color: colors.surfaceSoft,
-          alignment: Alignment.center,
-          child: Icon(Icons.inventory_2_outlined,
-              color: colors.textHint, size: 22),
-        );
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(10),
-      child: url.isEmpty
-          ? placeholder()
-          : Image.network(
-              url,
-              width: ProductResultCard._imageSize,
-              height: ProductResultCard._imageSize,
-              fit: BoxFit.cover,
-              // A steel catalog photo is never worth blocking the row on, so a
-              // failed or slow fetch degrades to the placeholder silently.
-              errorBuilder: (_, __, ___) => placeholder(),
-              frameBuilder: (_, child, frame, wasSync) =>
-                  wasSync || frame != null ? child : placeholder(),
-            ),
     );
   }
 }

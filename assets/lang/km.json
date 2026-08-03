@@ -172,7 +172,8 @@
       "matched_photo": "ផ្គូផ្គងតាមរូបថត៖ {query}",
       "out_of_stock": "អស់ស្តុក",
       "all_categories": "ទាំងអស់",
-      "load_more": "មើលបន្ថែម"
+      "load_more": "មើលបន្ថែម",
+      "in_stock_short": "មានស្តុក"
     },
     "territory": {
       "title": "ជ្រើសរើសតំបន់",

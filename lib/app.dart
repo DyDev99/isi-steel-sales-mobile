@@ -5,6 +5,7 @@ import 'package:get_it/get_it.dart';
 import 'package:isi_steel_sales_mobile/core/database/hive/app_preferences.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/breakpoints.dart';
+import 'package:isi_steel_sales_mobile/core/session/app_restart_controller.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_event.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_state.dart';
@@ -84,37 +85,47 @@ class ISISteelSalesApp extends StatelessWidget {
           // users and guests land straight back on the shell (not the splash)
           // via the auth-aware initial route.
           builder: (context, child) => BlocBuilder<LanguageCubit, Locale>(
-            builder: (context, locale) {
-              final authState = context.read<AuthBloc>().state;
-              final initialRoute = _resolveInitialRoute(authState);
-              final fontFamily = AppTypography.fontFamilyForLocale(locale);
-              // Only the theme *mode* drives this rebuild — the two ThemeData
-              // objects themselves are cached in AppTheme, so switching light
-              // ⇄ dark never re-derives a theme and the whole app restyles in
-              // one frame with no restart.
-              return BlocSelector<ThemeCubit, ThemeState, AppThemeMode>(
-                selector: (state) => state.mode,
-                builder: (context, themeMode) {
-                  return MaterialApp(
-                    key: ValueKey('lang_${locale.languageCode}'),
-                    navigatorKey: navigatorKey, // Assign the key here
-                    onGenerateTitle: (_) => 'app.title'.tr,
-                    debugShowCheckedModeBanner: false,
-                    scrollBehavior: _AppScrollBehavior(),
-                    theme: AppTheme.light(fontFamily),
-                    darkTheme: AppTheme.dark(fontFamily),
-                    themeMode: _materialThemeMode(themeMode),
-                    locale: locale,
-                    initialRoute: initialRoute,
-                    // Build the initial route as a single page (avoids Flutter's
-                    // default '/'-splitting pulling in a not-found parent route).
-                    onGenerateInitialRoutes: (name) =>
-                        [AppPages.onGenerateRoute(RouteSettings(name: name))],
-                    onGenerateRoute: AppPages.onGenerateRoute,
-                  );
-                },
-              );
-            },
+            builder: (context, locale) => ValueListenableBuilder<int>(
+              // Sign-out bumps this, which changes the key below and rebuilds
+              // the whole app — see [AppRestartController]. Nested inside the
+              // language builder so the two compose: either can restart the
+              // app, neither cancels the other.
+              valueListenable: GetIt.instance<AppRestartController>(),
+              builder: (context, restartGeneration, _) {
+                final authState = context.read<AuthBloc>().state;
+                final initialRoute = _resolveInitialRoute(authState);
+                final fontFamily = AppTypography.fontFamilyForLocale(locale);
+                // Only the theme *mode* drives this rebuild — the two ThemeData
+                // objects themselves are cached in AppTheme, so switching light
+                // ⇄ dark never re-derives a theme and the whole app restyles in
+                // one frame with no restart.
+                return BlocSelector<ThemeCubit, ThemeState, AppThemeMode>(
+                  selector: (state) => state.mode,
+                  builder: (context, themeMode) {
+                    return MaterialApp(
+                      // Both a language change and a sign-out restart the app by
+                      // changing this key.
+                      key: ValueKey(
+                          'lang_${locale.languageCode}_r$restartGeneration'),
+                      navigatorKey: navigatorKey, // Assign the key here
+                      onGenerateTitle: (_) => 'app.title'.tr,
+                      debugShowCheckedModeBanner: false,
+                      scrollBehavior: _AppScrollBehavior(),
+                      theme: AppTheme.light(fontFamily),
+                      darkTheme: AppTheme.dark(fontFamily),
+                      themeMode: _materialThemeMode(themeMode),
+                      locale: locale,
+                      initialRoute: initialRoute,
+                      // Build the initial route as a single page (avoids Flutter's
+                      // default '/'-splitting pulling in a not-found parent route).
+                      onGenerateInitialRoutes: (name) =>
+                          [AppPages.onGenerateRoute(RouteSettings(name: name))],
+                      onGenerateRoute: AppPages.onGenerateRoute,
+                    );
+                  },
+                );
+              },
+            ),
           ),
         ),
       ),
