@@ -101,65 +101,103 @@ class IsiDemoCatalog {
   /// pipe lines, then the semi-finished flat products, then the traded goods
   /// last because they are the thinnest range. Negative sort orders keep them
   /// ahead of the bulk generated trading catalog.
+  /// Every row carries **both** languages. A category with only `name` renders
+  /// its English label to a Khmer-speaking rep — the fallback in
+  /// [LocalizedText.resolve] is a safety net for missing SAP data, not a
+  /// licence to ship half-translated master data. `catalog_localization_test`
+  /// fails the build if a row here loses its Khmer.
+  ///
+  /// `code` is the SAP `ProductGroup`, kept explicit rather than defaulted from
+  /// the id so a taxonomy rename never silently repoints the mapping.
   static List<Map<String, dynamic>> categories() => const [
         {
           'id': palmProfileCategoryId,
           'parentId': null,
+          'code': 'PALM_PROFILE',
           'name': 'Palm Profile Roofing',
+          'nameKh': 'ស័ង្កសី ផាម ភ្លី',
+          'icon': 'roofing',
           'sortOrder': -10,
         },
         {
           'id': puPanelCategoryId,
           'parentId': null,
+          'code': 'PU_PANEL',
           'name': 'PU Insulated Panels',
+          'nameKh': 'ផ្ទាំង PU អ៊ីសូឡង់',
+          'icon': 'panel',
           'sortOrder': -9,
         },
         {
           'id': accessoriesCategoryId,
           'parentId': null,
+          'code': 'PALM_ACCESSORIES',
           'name': 'Roofing Accessories',
+          'nameKh': 'គ្រឿងបន្លាស់ដំបូល',
+          'icon': 'accessory',
           'sortOrder': -8,
         },
         {
           'id': coldFormCategoryId,
           'parentId': null,
+          'code': 'COLD_FORM',
           'name': 'Cold Formed Sections',
+          'nameKh': 'ដែករាងបត់ត្រជាក់',
+          'icon': 'section',
           'sortOrder': -7,
         },
         {
           'id': giPipeCategoryId,
           'parentId': null,
+          'code': 'GI_PIPE',
           'name': 'Galvanized Pipes',
+          'nameKh': 'បំពង់ស័ង្កសី',
+          'icon': 'pipe',
           'sortOrder': -6,
         },
         {
           'id': kPipeCategoryId,
           'parentId': null,
+          'code': 'K_PIPE',
           'name': 'K-Pipe',
+          'nameKh': 'បំពង់ K',
+          'icon': 'pipe',
           'sortOrder': -5,
         },
         {
           'id': steelSheetCategoryId,
           'parentId': null,
+          'code': 'STEEL_SHEET',
           'name': 'GI Steel Sheet',
+          'nameKh': 'សន្លឹកដែកស័ង្កសី',
+          'icon': 'sheet',
           'sortOrder': -4,
         },
         {
           'id': sheetBendingCategoryId,
           'parentId': null,
+          'code': 'SHEET_BENDING',
           'name': 'GI Steel Bending',
+          'nameKh': 'ដែកស័ង្កសីបត់',
+          'icon': 'bending',
           'sortOrder': -3,
         },
         {
           'id': reinforcementCategoryId,
           'parentId': null,
+          'code': 'REINFORCEMENT',
           'name': 'Reinforcement (Traded)',
+          'nameKh': 'ដែកពង្រឹង (ជួញដូរ)',
+          'icon': 'rebar',
           'sortOrder': -2,
         },
         {
           'id': tradedSectionCategoryId,
           'parentId': null,
+          'code': 'TRADED_SECTIONS',
           'name': 'Beams (Traded)',
+          'nameKh': 'ធ្នឹមដែក (ជួញដូរ)',
+          'icon': 'beam',
           'sortOrder': -1,
         },
       ];
@@ -1304,10 +1342,21 @@ class IsiDemoCatalog {
       'materialCode': materialNumber,
       'barcode': _barcodeFor(id),
       'name': name,
-      // The Khmer material description leads: it is what the counter staff and
-      // most customers read. English spec follows for the office.
-      'description': '$nameKh\n$name - $grade - $material',
+      // Khmer is its own field, not a prefix glued onto the description.
+      //
+      // It used to be concatenated, which meant the UI could only ever render
+      // both languages at once or neither — a Khmer-speaking rep got the
+      // English name with Khmer stapled above it, and search could not tell
+      // the two apart. Separate columns let the widget pick one and the
+      // search index match both.
+      'nameKh': nameKh,
+      'description': '$name - $grade - $material',
       'categoryId': categoryId,
+      // `subCategory` carries SAP's TopColor; `color` is the real home for it
+      // now that the column exists. Both are written so the guided filter's
+      // published schema (which reads `subCategory`) keeps working unchanged.
+      'color': finish,
+      'specification': '$size · $grade · $material',
       'subCategory': finish,
       'brand': brand,
       'grade': grade,

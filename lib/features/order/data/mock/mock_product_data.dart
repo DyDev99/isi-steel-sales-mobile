@@ -183,120 +183,140 @@ class CategoryGenerator {
       'id': 'cat_trade_electrical',
       'parentId': null,
       'name': 'Electrical Distribution',
+      'nameKh': 'ចែកចាយអគ្គិសនី',
       'sortOrder': 0
     },
     {
       'id': 'cat_trade_mcb',
       'parentId': 'cat_trade_electrical',
       'name': 'Miniature Circuit Breakers',
+      'nameKh': 'ប្រដាប់កាត់ចរន្តតូច',
       'sortOrder': 0
     },
     {
       'id': 'cat_trade_mccb',
       'parentId': 'cat_trade_electrical',
       'name': 'Moulded Case Circuit Breakers',
+      'nameKh': 'ប្រដាប់កាត់ចរន្ត MCCB',
       'sortOrder': 1
     },
     {
       'id': 'cat_trade_rccb',
       'parentId': 'cat_trade_electrical',
       'name': 'Residual Current Devices',
+      'nameKh': 'ឧបករណ៍ការពារចរន្តលេច',
       'sortOrder': 2
     },
     {
       'id': 'cat_trade_contactor',
       'parentId': 'cat_trade_electrical',
       'name': 'Contactors & Overload Relays',
+      'nameKh': 'កុងតាក់ទ័រ និងរីឡេការពារ',
       'sortOrder': 3
     },
     {
       'id': 'cat_trade_cable',
       'parentId': null,
       'name': 'Cable',
+      'nameKh': 'ខ្សែភ្លើង',
       'sortOrder': 1
     },
     {
       'id': 'cat_trade_cable_pvc',
       'parentId': 'cat_trade_cable',
       'name': 'PVC Insulated',
+      'nameKh': 'អ៊ីសូឡង់ PVC',
       'sortOrder': 0
     },
     {
       'id': 'cat_trade_cable_xlpe',
       'parentId': 'cat_trade_cable',
       'name': 'XLPE Insulated',
+      'nameKh': 'អ៊ីសូឡង់ XLPE',
       'sortOrder': 1
     },
     {
       'id': 'cat_trade_cable_bare',
       'parentId': 'cat_trade_cable',
       'name': 'Bare Conductor',
+      'nameKh': 'ខ្សែចរន្តអាក្រាត',
       'sortOrder': 2
     },
     {
       'id': 'cat_trade_board',
       'parentId': null,
       'name': 'Boards & Ceiling',
+      'nameKh': 'ផ្ទាំង និងពិដាន',
       'sortOrder': 2
     },
     {
       'id': 'cat_trade_board_gypsum',
       'parentId': 'cat_trade_board',
       'name': 'Gypsum Board',
+      'nameKh': 'ផ្ទាំងជីប',
       'sortOrder': 0
     },
     {
       'id': 'cat_trade_board_fibre',
       'parentId': 'cat_trade_board',
       'name': 'Fibre Cement Board',
+      'nameKh': 'ផ្ទាំងស៊ីម៉ងត៍ហ្វីប',
       'sortOrder': 1
     },
     {
       'id': 'cat_trade_board_plank',
       'parentId': 'cat_trade_board',
       'name': 'Plank & Ceiling',
+      'nameKh': 'ផ្ទាំងក្តារ និងពិដាន',
       'sortOrder': 2
     },
     {
       'id': 'cat_trade_roofing',
       'parentId': null,
       'name': 'Roofing Trade Items',
+      'nameKh': 'ទំនិញដំបូល',
       'sortOrder': 3
     },
     {
       'id': 'cat_trade_skylight',
       'parentId': 'cat_trade_roofing',
       'name': 'Skylight & Translucent',
+      'nameKh': 'សន្លឹកពន្លឺ',
       'sortOrder': 0
     },
     {
       'id': 'cat_trade_screws',
       'parentId': 'cat_trade_roofing',
       'name': 'Screws & Fixings',
+      'nameKh': 'វីស និងគ្រឿងភ្ជាប់',
       'sortOrder': 1
     },
     {
       'id': 'cat_trade_general',
       'parentId': null,
       'name': 'General Trading',
+      'nameKh': 'ទំនិញទូទៅ',
       'sortOrder': 4
     },
     {
       'id': 'cat_trade_plate',
       'parentId': 'cat_trade_general',
       'name': 'Steel Plate',
+      'nameKh': 'ផ្ទាំងដែក',
       'sortOrder': 0
     },
     {
       'id': 'cat_trade_chemical',
       'parentId': 'cat_trade_general',
       'name': 'Paint & Chemical',
+      'nameKh': 'ថ្នាំលាប និងគីមី',
       'sortOrder': 1
     },
     {
       'id': 'cat_trade_anchor',
       'parentId': 'cat_trade_general',
       'name': 'Anchors & Adhesives',
+      'nameKh': 'ប៊ូឡុងបោះ និងកាវ',
       'sortOrder': 2
     },
   ];

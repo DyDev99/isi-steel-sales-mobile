@@ -389,14 +389,15 @@ void main() {
     expect(bloc.state.products.single.materialCode, materialCode);
   });
 
-  test('search matches the Khmer description', () async {
+  test('search matches the Khmer product name', () async {
     bloc.add(const FilterFlowStarted());
     await settle();
 
-    // SAP carries MaterialDesKH alongside the English description, and reps
-    // read the Khmer one. Take a distinctive word out of a real row.
+    // SAP's MaterialDesKH now lives in its own `nameKh` column rather than
+    // being concatenated into the description, so the assertion follows it
+    // there. Take a distinctive word out of a real row.
     final khmer =
-        (demoRow(IsiDemoCatalog.palmProfileCategoryId)['description'] as String)
+        (demoRow(IsiDemoCatalog.palmProfileCategoryId)['nameKh'] as String)
             .split(RegExp(r'\s+'))
             .firstWhere((w) => w.runes.any((r) => r > 0x1780));
 
@@ -405,7 +406,7 @@ void main() {
     expect(bloc.state.products, isNotEmpty,
         reason: 'Khmer text must be searchable, not just the English name');
     expect(
-      bloc.state.products.every((p) => p.description.contains(khmer)),
+      bloc.state.products.every((p) => p.nameKh.contains(khmer)),
       isTrue,
     );
   });

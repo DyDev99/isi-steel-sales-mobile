@@ -6,12 +6,13 @@ import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
 /// A 3D-embossed call-to-action card infused with traditional golden motifs,
 /// featuring corner frame flourishes, central Lottie animation, and a tactile button.
+/// Fully responsive to Light and Dark themes.
 class GuestCtaCard extends StatelessWidget {
   const GuestCtaCard({super.key, required this.onAuthenticate});
 
   final VoidCallback onAuthenticate;
 
-  // Traditional Gold Palette Colors
+  // Traditional Gold Palette Constants
   static const Color goldDark = Color(0xFFB8860B);
   static const Color goldMedium = Color(0xFFD4AF37);
   static const Color goldLight = Color(0xFFF3E5AB);
@@ -19,7 +20,19 @@ class GuestCtaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final appColors = context.appColors;
+    final isDark = theme.brightness == Brightness.dark;
+
+    // Theme-aware surface & accent palette
+    final cardBgColors = isDark
+        ? [appColors.card, appColors.surfaceSoft]
+        : [warmParchment, const Color(0xFFFAF5E8)];
+
+    final cornerColor = isDark ? goldLight.withValues(alpha: 0.6) : goldMedium;
+    final innerBorderColor =
+        (isDark ? goldLight : goldMedium).withValues(alpha: isDark ? 0.2 : 0.3);
 
     return Container(
       width: double.infinity,
@@ -29,14 +42,16 @@ class GuestCtaCard extends StatelessWidget {
         boxShadow: [
           // Ambient soft glow
           BoxShadow(
-            color: goldDark.withValues(alpha: 0.12),
+            color: (isDark ? goldMedium : goldDark)
+                .withValues(alpha: isDark ? 0.08 : 0.12),
             blurRadius: 28,
             spreadRadius: 2,
             offset: const Offset(0, 10),
           ),
           // Deep sharp 3D base shadow
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color:
+                appColors.shadowColor.withValues(alpha: isDark ? 0.35 : 0.08),
             blurRadius: 16,
             offset: const Offset(0, 8),
           ),
@@ -46,20 +61,26 @@ class GuestCtaCard extends StatelessWidget {
         // Outer Traditional Gold Metallic Frame
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(28),
-          gradient: const LinearGradient(
+          gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [goldLight, goldMedium, goldDark],
+            colors: isDark
+                ? [
+                    goldLight.withValues(alpha: 0.8),
+                    goldMedium,
+                    goldDark.withValues(alpha: 0.7),
+                  ]
+                : const [goldLight, goldMedium, goldDark],
           ),
         ),
         padding: const EdgeInsets.all(2.5), // Frame border thickness
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(25),
-            gradient: const LinearGradient(
+            gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [warmParchment, Color(0xFFFAF5E8)],
+              colors: cardBgColors,
             ),
           ),
           child: ClipRRect(
@@ -72,7 +93,7 @@ class GuestCtaCard extends StatelessWidget {
                   left: 0,
                   child: CustomPaint(
                     size: const Size(70, 70),
-                    painter: TraditionalCornerPainter(color: goldMedium),
+                    painter: TraditionalCornerPainter(color: cornerColor),
                   ),
                 ),
 
@@ -84,19 +105,19 @@ class GuestCtaCard extends StatelessWidget {
                     angle: math.pi,
                     child: CustomPaint(
                       size: const Size(70, 70),
-                      painter: TraditionalCornerPainter(color: goldMedium),
+                      painter: TraditionalCornerPainter(color: cornerColor),
                     ),
                   ),
                 ),
 
-                // --- Inner Traditional Inner Border Accent ---
+                // --- Inner Traditional Border Accent ---
                 Positioned.fill(
                   child: Container(
                     margin: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(18),
                       border: Border.all(
-                        color: goldMedium.withValues(alpha: 0.3),
+                        color: innerBorderColor,
                         width: 1,
                       ),
                     ),
@@ -119,7 +140,8 @@ class GuestCtaCard extends StatelessWidget {
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: goldDark.withValues(alpha: 0.1),
+                              color: (isDark ? goldLight : goldDark)
+                                  .withValues(alpha: isDark ? 0.05 : 0.1),
                               blurRadius: 20,
                               spreadRadius: 4,
                             ),
@@ -132,6 +154,8 @@ class GuestCtaCard extends StatelessWidget {
                         ),
                       ),
 
+                      const SizedBox(height: 16),
+
                       // --- 3D Raised Action Button ---
                       Container(
                         width: double.infinity,
@@ -141,12 +165,16 @@ class GuestCtaCard extends StatelessWidget {
                           // 3D Shadow underneath the button
                           boxShadow: [
                             BoxShadow(
-                              color: scheme.primary.withValues(alpha: 0.35),
+                              color: scheme.primary.withValues(
+                                alpha: isDark ? 0.5 : 0.35,
+                              ),
                               blurRadius: 10,
                               offset: const Offset(0, 5),
                             ),
                             BoxShadow(
-                              color: goldDark.withValues(alpha: 0.2),
+                              color: goldDark.withValues(
+                                alpha: isDark ? 0.3 : 0.2,
+                              ),
                               blurRadius: 4,
                               offset: const Offset(0, 2),
                             ),
@@ -157,13 +185,14 @@ class GuestCtaCard extends StatelessWidget {
                             end: Alignment.bottomCenter,
                             colors: [
                               scheme.primary,
-                              scheme.primary.withRed(
-                                math.max(0, scheme.primary.red - 25),
-                              ),
+                              Color.lerp(scheme.primary, Colors.black, 0.15) ??
+                                  scheme.primary,
                             ],
                           ),
                           border: Border.all(
-                            color: goldLight.withValues(alpha: 0.6),
+                            color: goldLight.withValues(
+                              alpha: isDark ? 0.4 : 0.6,
+                            ),
                             width: 1.2,
                           ),
                         ),
@@ -175,20 +204,20 @@ class GuestCtaCard extends StatelessWidget {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.login_rounded,
                                   size: 20,
-                                  color: Colors.white,
+                                  color: scheme.onPrimary,
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
                                   'auth.login_btn'.tr,
-                                  style: const TextStyle(
-                                    color: Colors.white,
+                                  style: TextStyle(
+                                    color: scheme.onPrimary,
                                     fontSize: 16,
                                     fontWeight: FontWeight.w800,
                                     letterSpacing: 0.3,
-                                    shadows: [
+                                    shadows: const [
                                       Shadow(
                                         color: Colors.black38,
                                         offset: Offset(0, 1),
@@ -260,5 +289,6 @@ class TraditionalCornerPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant TraditionalCornerPainter oldDelegate) =>
+      oldDelegate.color != color;
 }

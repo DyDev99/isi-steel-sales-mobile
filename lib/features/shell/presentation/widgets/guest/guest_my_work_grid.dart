@@ -10,7 +10,7 @@ class GuestMyWorkGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final appColors = context.appColors;
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
@@ -38,9 +38,7 @@ class GuestMyWorkGrid extends StatelessWidget {
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w900,
                     letterSpacing: 1.5,
-                    color: theme.textTheme.bodySmall?.color
-                            ?.withValues(alpha: 0.7) ??
-                        theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                    color: appColors.textSecondary,
                   ),
                 ),
               ],
@@ -118,7 +116,10 @@ class _WorkCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final appColors = context.appColors;
+    final isDark = theme.brightness == Brightness.dark;
 
     return Semantics(
       button: true,
@@ -132,15 +133,19 @@ class _WorkCard extends StatelessWidget {
             height: 124.h,
             clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
-              color: scheme.surface,
+              color: isDark ? appColors.card : scheme.surface,
               borderRadius: BorderRadius.circular(20.r),
               border: Border.all(
-                color: const Color(0xFFE5B54E).withValues(alpha: 0.5),
+                color:
+                    (isDark ? const Color(0xFFF3E5AB) : const Color(0xFFE5B54E))
+                        .withValues(alpha: isDark ? 0.35 : 0.5),
                 width: 1.5,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFFC88D2B).withValues(alpha: 0.12),
+                  color: isDark
+                      ? appColors.shadowColor.withValues(alpha: 0.3)
+                      : const Color(0xFFC88D2B).withValues(alpha: 0.12),
                   blurRadius: 16,
                   offset: const Offset(0, 6),
                 ),
@@ -158,7 +163,7 @@ class _WorkCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: tint.withValues(alpha: 0.25),
+                        color: tint.withValues(alpha: isDark ? 0.35 : 0.25),
                         width: 1.5,
                       ),
                     ),
@@ -175,7 +180,7 @@ class _WorkCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: tint.withValues(alpha: 0.25),
+                        color: tint.withValues(alpha: isDark ? 0.35 : 0.25),
                         width: 1.5,
                       ),
                     ),
@@ -193,9 +198,9 @@ class _WorkCard extends StatelessWidget {
                         height: 48.r,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: tint.withValues(alpha: 0.12),
+                          color: tint.withValues(alpha: isDark ? 0.18 : 0.12),
                           border: Border.all(
-                            color: tint.withValues(alpha: 0.35),
+                            color: tint.withValues(alpha: isDark ? 0.45 : 0.35),
                             width: 1.2,
                           ),
                         ),
@@ -215,7 +220,7 @@ class _WorkCard extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 14.sp,
                             fontWeight: FontWeight.w800,
-                            color: const Color(0xFF1E293B),
+                            color: appColors.textPrimary,
                             letterSpacing: -0.2,
                           ),
                           textAlign: TextAlign.center,
