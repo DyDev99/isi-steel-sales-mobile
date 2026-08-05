@@ -1185,6 +1185,14 @@
     "language_title": "Language",
     "language": "Display language"
   },
+  "products":{
+    "status":{
+      "out_of_stock": "Out of stock",
+      "low_stock": "Low stock",
+      "in_stock": "In stock",
+      "high_stock": "High stock"
+    }
+  },
   "shell": {
     "my_work": "MY WORK",
     "quick_actions": "QUICK ACTIONS",

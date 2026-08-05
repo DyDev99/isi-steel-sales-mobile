@@ -8,42 +8,8 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/models/today_stop.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/navigation/open_quotation.dart';
 
-/// Derives a display **customer type** from the shop name (Depot / Distributor
-/// / Contractor / Retail / Hardware / Shop) — presentation-only, so no schema
-/// column or migration is needed. Returns a localization key.
-String stopCustomerTypeKey(String shopName) {
-  final n = shopName.toLowerCase();
-  if (n.contains('depot')) return 'my_visits.stop_dashboard.type_depot';
-  if (n.contains('distribut')) {
-    return 'my_visits.stop_dashboard.type_distributor';
-  }
-  if (n.contains('contractor') || n.contains('construction')) {
-    return 'my_visits.stop_dashboard.type_contractor';
-  }
-  if (n.contains('retail') || n.contains('outlet')) {
-    return 'my_visits.stop_dashboard.type_retail';
-  }
-  if (n.contains('hardware')) return 'my_visits.stop_dashboard.type_hardware';
-  return 'my_visits.stop_dashboard.type_shop';
-}
-
-IconData stopCustomerTypeIcon(String shopName) {
-  final n = shopName.toLowerCase();
-  if (n.contains('depot')) return Icons.warehouse_rounded;
-  if (n.contains('distribut')) return Icons.local_shipping_rounded;
-  if (n.contains('contractor') || n.contains('construction')) {
-    return Icons.engineering_rounded;
-  }
-  if (n.contains('retail') || n.contains('outlet')) {
-    return Icons.shopping_bag_rounded;
-  }
-  if (n.contains('hardware')) return Icons.hardware_rounded;
-  return Icons.storefront_rounded;
-}
-
-/// Modern animated Material 3 stop card with tactile feedback, split-unit
-/// distance formatting, dynamic status enum styling, direct quotation action button,
-/// and a bottom-right animated "Skip Stop" reason dialog popup.
+/// Cleaned Material 3 stop card with streamlined metadata, dynamic status enum styling,
+/// direct quotation action button, and a bottom-right animated "Skip Stop" dialog popup.
 class StopCard extends StatefulWidget {
   const StopCard({
     super.key,
@@ -181,7 +147,7 @@ class _StopCardState extends State<StopCard>
             duration: const Duration(milliseconds: 200),
             decoration: BoxDecoration(
               color: colors.card,
-              borderRadius: BorderRadius.circular(20.r),
+              borderRadius: BorderRadius.circular(16.r),
               border: Border.all(
                 color: isCheckInActive
                     ? statusConfig.color.withValues(alpha: 0.5)
@@ -199,10 +165,10 @@ class _StopCardState extends State<StopCard>
                   : colors.cardShadow,
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(20.r),
+              borderRadius: BorderRadius.circular(16.r),
               child: Stack(
                 children: [
-                  // Accent Bar on the left side indicating status / active stop
+                  // Accent Bar on the left side indicating status
                   Positioned(
                     left: 0,
                     top: 0,
@@ -214,7 +180,7 @@ class _StopCardState extends State<StopCard>
                   ),
 
                   Padding(
-                    padding: EdgeInsets.fromLTRB(16.w, 14.h, 14.w, 14.h),
+                    padding: EdgeInsets.fromLTRB(16.w, 12.h, 14.w, 12.h),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -234,11 +200,11 @@ class _StopCardState extends State<StopCard>
                                     style: TextStyle(
                                       color: colors.textPrimary,
                                       fontSize: 15.sp,
-                                      fontWeight: FontWeight.w900,
+                                      fontWeight: FontWeight.w800,
                                       letterSpacing: -0.3,
                                     ),
                                   ),
-                                  SizedBox(height: 3.h),
+                                  SizedBox(height: 2.h),
                                   Text(
                                     customer.address,
                                     maxLines: 1,
@@ -273,35 +239,24 @@ class _StopCardState extends State<StopCard>
                           ],
                         ),
 
-                        SizedBox(height: 12.h),
+                        SizedBox(height: 10.h),
 
-                        // Bottom Section: Metadata Chips (Extra right padding when skip button is visible)
+                        // Bottom Streamlined Metadata Row
                         Padding(
-                          padding: EdgeInsets.only(right: _canSkip ? 36.w : 0),
-                          child: Wrap(
-                            spacing: 8.w,
-                            runSpacing: 6.h,
-                            crossAxisAlignment: WrapCrossAlignment.center,
+                          padding: EdgeInsets.only(right: _canSkip ? 32.w : 0),
+                          child: Row(
                             children: [
-                              _MetaChip(
-                                icon: stopCustomerTypeIcon(customer.name),
-                                label: stopCustomerTypeKey(customer.name).tr,
-                              ),
-                              _MetaChip(
-                                icon: Icons.alt_route_rounded,
-                                label: widget.todayStop.routeName,
-                              ),
+                              // Time Schedule Chip
                               _MetaChip(
                                 icon: Icons.schedule_rounded,
                                 label:
                                     '${timeFmt.format(widget.todayStop.stop.plannedArrival)}–${timeFmt.format(widget.todayStop.stop.plannedDeparture)}',
                               ),
-                              if (customer.code.isNotEmpty)
-                                _MetaChip(
-                                  icon: Icons.tag_rounded,
-                                  label: customer.code,
-                                ),
-                              if (_highPriority)
+
+                              SizedBox(width: 6.w),
+
+                              // High Priority Tag (if applicable)
+                              if (_highPriority) ...[
                                 _MetaChip(
                                   icon: Icons.error_outline_rounded,
                                   label:
@@ -309,6 +264,10 @@ class _StopCardState extends State<StopCard>
                                   color: colors.warning,
                                   isBold: true,
                                 ),
+                                SizedBox(width: 6.w),
+                              ],
+
+                              const Spacer(),
 
                               // Distance & ETA badge
                               Container(
@@ -341,18 +300,7 @@ class _StopCardState extends State<StopCard>
                                         fontWeight: FontWeight.w800,
                                       ),
                                     ),
-                                    if (eta != null) ...[
-                                      SizedBox(width: 4.w),
-                                      Text(
-                                        '• ~$eta min',
-                                        style: TextStyle(
-                                          color: scheme.primary
-                                              .withValues(alpha: 0.8),
-                                          fontSize: 10.sp,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ],
+                                    
                                   ],
                                 ),
                               ),
@@ -366,8 +314,8 @@ class _StopCardState extends State<StopCard>
                   // Bottom-Right Skip Action Button
                   if (_canSkip)
                     Positioned(
-                      bottom: 10.h,
-                      right: 10.w,
+                      bottom: 8.h,
+                      right: 8.w,
                       child: _SkipButton(
                         onTap: () => _handleSkipTap(context),
                       ),
@@ -412,7 +360,7 @@ class _SkipButtonState extends State<_SkipButton> {
         duration: const Duration(milliseconds: 100),
         curve: Curves.easeOutCubic,
         child: Container(
-          padding: EdgeInsets.all(7.r),
+          padding: EdgeInsets.all(6.r),
           decoration: BoxDecoration(
             color: scheme.error.withValues(alpha: 0.1),
             shape: BoxShape.circle,
@@ -430,7 +378,7 @@ class _SkipButtonState extends State<_SkipButton> {
           ),
           child: Icon(
             Icons.skip_next_rounded,
-            size: 16.sp,
+            size: 15.sp,
             color: scheme.error,
           ),
         ),

@@ -1195,6 +1195,14 @@
     "language": "ភាសាបង្ហាញ",
     "language_title": "ភាសា"
   },
+  "products":{
+    "status":{
+      "out_of_stock": "គ្មានទំនិញក្នុងស្តុក",
+      "low_stock": "ទំនិញនៅសល់តិច",
+      "in_stock": "មានទំនិញក្នុងស្តុក",
+      "high_stock": "ទំនិញមានគ្រប់គ្រាន់"
+  }
+},
   "shell": {
     "add_customer": "បន្ថែមអតិថិជន",
     "add_visit": {

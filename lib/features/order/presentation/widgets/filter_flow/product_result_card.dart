@@ -3,12 +3,19 @@ import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/cart_quantity_stepper.dart';
 
+/// Extension helper if using String extension getter for translations.
+/// Remove or adjust if already imported from your localization package.
+extension StringTranslateX on String {
+  String get tr => this; // Replace with your localization translation logic if needed
+}
+
 /// One matched SKU, and the only place a product enters the quotation.
 ///
-/// There is no "Add" button: the stepper *is* the commit. Quantity above zero
-/// means this line is in the quotation, and the card says so — the border and
-/// the running line total change — so the rep never has to look elsewhere to
-/// confirm the tap landed.
+/// Evaluates numerical stock into categorical condition badges using `products.status.*` translation keys:
+/// - `'products.status.low_stock'.tr` (<= 10)
+/// - `'products.status.in_stock'.tr` (11 - 50)
+/// - `'products.status.high_stock'.tr` (> 50)
+/// - `'products.status.out_of_stock'.tr` (0 or unavailable)
 class ProductResultCard extends StatelessWidget {
   const ProductResultCard({
     super.key,
@@ -23,28 +30,70 @@ class ProductResultCard extends StatelessWidget {
     this.lineTotalLabel,
     this.onTap,
     this.onCustomize,
+    this.lowStockThreshold = 10,
+    this.mediumStockThreshold = 50,
   });
 
   final Product product;
   final bool isFavorite;
 
-  /// How many of this SKU are currently in the cart. Comes from `CartCubit`,
-  /// so the card has no quantity state of its own to drift out of sync.
+  /// How many of this SKU are currently in the cart.
   final int quantity;
 
   final ValueChanged<int> onQuantityChanged;
   final VoidCallback onToggleFavorite;
 
-  /// "0.30 mm · 3.90 m" — the answered specs, echoed back.
+  /// Optional override spec line (e.g. "0.30 mm · 3.90 m").
   final String? specLine;
   final String? stockLabel;
   final String? outOfStockLabel;
 
-  /// Pre-formatted "3 × $11.59 = $34.77", shown only once in the cart.
+  /// Pre-formatted line total label (e.g. "3 × $11.59 = $34.77").
   final String? lineTotalLabel;
 
   final VoidCallback? onTap;
   final VoidCallback? onCustomize;
+
+  /// Custom threshold boundaries for stock categories
+  final int lowStockThreshold;
+  final int mediumStockThreshold;
+
+  /// Resolves the stock badge label and color using matching translation keys.
+  _StockStatus _resolveStockStatus(BuildContext context) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
+
+    if (!product.isAvailable) {
+      return _StockStatus(
+        label: outOfStockLabel ?? 'products.status.out_of_stock'.tr,
+        color: scheme.error,
+      );
+    }
+
+    final stock = product.stockQuantity ?? 0;
+
+    if (stock <= 0) {
+      return _StockStatus(
+        label: outOfStockLabel ?? 'products.status.out_of_stock'.tr,
+        color: scheme.error,
+      );
+    } else if (stock <= lowStockThreshold) {
+      return _StockStatus(
+        label: 'products.status.low_stock'.tr,
+        color: colors.warning,
+      );
+    } else if (stock <= mediumStockThreshold) {
+      return _StockStatus(
+        label: 'products.status.in_stock'.tr,
+        color: scheme.primary,
+      );
+    } else {
+      return _StockStatus(
+        label: 'products.status.high_stock'.tr,
+        color: colors.success,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,6 +101,7 @@ class ProductResultCard extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final available = product.isAvailable;
     final inCart = quantity > 0;
+    final stockStatus = _resolveStockStatus(context);
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 240),
@@ -140,18 +190,26 @@ class ProductResultCard extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            available
-                                ? (stockLabel ?? '')
-                                : (outOfStockLabel ?? ''),
-                            style: TextStyle(
-                              color:
-                                  available ? colors.success : colors.warning,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
+                          // Stock status badge using products.status keys
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: stockStatus.color.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              stockStatus.label,
+                              style: TextStyle(
+                                color: stockStatus.color,
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w800,
+                              ),
                             ),
                           ),
-                          const SizedBox(height: 3),
+                          const SizedBox(height: 4),
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.baseline,
                             textBaseline: TextBaseline.alphabetic,
@@ -195,8 +253,6 @@ class ProductResultCard extends StatelessWidget {
                     const SizedBox(width: 4),
                   ],
                 ),
-                // Only shown once the line exists, so an untouched card stays
-                // as short as it was.
                 AnimatedSize(
                   duration: const Duration(milliseconds: 240),
                   curve: Curves.easeOutCubic,
@@ -206,8 +262,11 @@ class ProductResultCard extends StatelessWidget {
                           padding: const EdgeInsets.only(top: 10),
                           child: Row(
                             children: [
-                              Icon(Icons.check_circle_rounded,
-                                  size: 14, color: scheme.primary),
+                              Icon(
+                                Icons.check_circle_rounded,
+                                size: 14,
+                                color: scheme.primary,
+                              ),
                               const SizedBox(width: 6),
                               Text(
                                 lineTotalLabel!,
@@ -229,6 +288,12 @@ class ProductResultCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class _StockStatus {
+  const _StockStatus({required this.label, required this.color});
+  final String label;
+  final Color color;
 }
 
 class _SquareAction extends StatelessWidget {
