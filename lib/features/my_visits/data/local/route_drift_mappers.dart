@@ -38,6 +38,11 @@ extension CustomerRowStopInfoMapper on Customer {
   CustomerStopInfoModel toStopInfo() => CustomerStopInfoModel(
         id: id,
         name: shopName,
+        // Both languages ride along on the projection, so the stop card and
+        // the customer card render the same shop identically after a language
+        // switch. Projecting only `shopName` was why a Khmer session showed
+        // Khmer in the directory and Latin on the route.
+        nameKh: khName ?? '',
         code: customerCode,
         contact: ownerName,
         phone: phone,

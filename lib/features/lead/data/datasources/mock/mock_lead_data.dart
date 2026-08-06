@@ -22,55 +22,66 @@ import 'package:isi_steel_sales_mobile/features/lead/domain/entities/won_info.da
 class MockLeadData {
   MockLeadData._();
 
-  static const _companyNamesSeed = [
-    'Angkor Steel Depot',
-    'Mekong Steel Trading',
-    'Phnom Penh Iron Supply',
-    'Golden Metal Depot',
-    'Kampot Steel Center',
-    'Battambang Construction Supply',
-    'Kandal Hardware',
-    'Tonle Steel',
-    'New Bridge Steel',
-    'Victory Depot',
+  /// The ten hand-written accounts that open the board, as `(en, km)` pairs.
+  ///
+  /// Every company name in this file carries both languages on the *same*
+  /// entry. The alternative — a Khmer copy of the list — desynchronises the
+  /// moment either side is edited, and a lead whose Khmer name belongs to a
+  /// different company is worse than one with no Khmer name at all.
+  static const _companyNamesSeed = <(String, String)>[
+    ('Angkor Steel Depot', 'ឃ្លាំងដែក អង្គរ'),
+    ('Mekong Steel Trading', 'ជួញដូរដែក មេគង្គ'),
+    ('Phnom Penh Iron Supply', 'ផ្គត់ផ្គង់ដែក ភ្នំពេញ'),
+    ('Golden Metal Depot', 'ឃ្លាំងលោហៈ មាស'),
+    ('Kampot Steel Center', 'មជ្ឈមណ្ឌលដែក កំពត'),
+    ('Battambang Construction Supply', 'ផ្គត់ផ្គង់សំណង់ បាត់ដំបង'),
+    ('Kandal Hardware', 'គ្រឿងដែក កណ្តាល'),
+    ('Tonle Steel', 'ដែក ទន្លេ'),
+    ('New Bridge Steel', 'ដែក ស្ពានថ្មី'),
+    ('Victory Depot', 'ឃ្លាំង ជ័យជម្នះ'),
   ];
 
-  static const _namePrefixes = [
-    'Angkor',
-    'Mekong',
-    'Tonle',
-    'Bayon',
-    'Naga',
-    'Golden',
-    'Royal',
-    'Victory',
-    'Chenla',
-    'Independence',
-    'Friendship',
-    'Kampuchea',
-    'Sunrise',
-    'Diamond',
-    'Union',
-    'Prosperity',
-    'Rithisen',
-    'Mekong Delta',
-    'Riverside',
-    'Highland',
+  /// `(en, km)`. Khmer renders the proper noun, not a transliteration:
+  /// `Golden` is `មាស` (gold), `Prosperity` is `រុងរឿង`.
+  static const _namePrefixes = <(String, String)>[
+    ('Angkor', 'អង្គរ'),
+    ('Mekong', 'មេគង្គ'),
+    ('Tonle', 'ទន្លេ'),
+    ('Bayon', 'បាយ័ន'),
+    ('Naga', 'នាគ'),
+    ('Golden', 'មាស'),
+    ('Royal', 'រាជា'),
+    ('Victory', 'ជ័យជម្នះ'),
+    ('Chenla', 'ចេនឡា'),
+    ('Independence', 'ឯករាជ្យ'),
+    ('Friendship', 'មិត្តភាព'),
+    ('Kampuchea', 'កម្ពុជា'),
+    ('Sunrise', 'ថ្ងៃរះ'),
+    ('Diamond', 'ពេជ្រ'),
+    ('Union', 'សាមគ្គី'),
+    ('Prosperity', 'រុងរឿង'),
+    ('Rithisen', 'ឫទ្ធិសែន'),
+    ('Mekong Delta', 'ដីសណ្តមេគង្គ'),
+    ('Riverside', 'មាត់ទន្លេ'),
+    ('Highland', 'ទីខ្ពស់'),
   ];
 
-  static const _nameSuffixes = [
-    'Steel Depot',
-    'Steel Trading',
-    'Iron Supply',
-    'Metal Depot',
-    'Steel Center',
-    'Construction Supply',
-    'Hardware',
-    'Steel Co.',
-    'Steel Group',
-    'Building Materials',
-    'Metal Works',
-    'Steel Warehouse',
+  /// Business types, `(en, km)`. Khmer names the trade first and the company
+  /// second — "ឃ្លាំងដែក អង្គរ" — which is why [_buildLead] composes the Khmer
+  /// name suffix-first from the same drawn pair.
+  static const _nameSuffixes = <(String, String)>[
+    ('Steel Depot', 'ឃ្លាំងដែក'),
+    ('Steel Trading', 'ជួញដូរដែក'),
+    ('Iron Supply', 'ផ្គត់ផ្គង់ដែក'),
+    ('Metal Depot', 'ឃ្លាំងលោហៈ'),
+    ('Steel Center', 'មជ្ឈមណ្ឌលដែក'),
+    ('Construction Supply', 'ផ្គត់ផ្គង់សំណង់'),
+    ('Hardware', 'គ្រឿងដែក'),
+    ('Steel Co.', 'ក្រុមហ៊ុនដែក'),
+    ('Steel Group', 'ក្រុមហ៊ុនដែករួម'),
+    ('Building Materials', 'សម្ភារៈសំណង់'),
+    ('Metal Works', 'រោងជាងលោហៈ'),
+    ('Steel Warehouse', 'ឃ្លាំងទំនិញដែក'),
   ];
 
   static const _ownerNames = [
@@ -156,9 +167,17 @@ class MockLeadData {
 
   static Lead _buildLead(Random rand, int index) {
     final id = 'LEAD-${(1000 + index)}';
-    final companyName = index < _companyNamesSeed.length
+    // One draw, both languages. Curated accounts come from the seed list
+    // verbatim; generated ones compose prefix+suffix, English prefix-first and
+    // Khmer suffix-first, from the *same* two drawn pairs — so the two names
+    // can never describe different companies.
+    final (companyName, companyNameKh) = index < _companyNamesSeed.length
         ? _companyNamesSeed[index]
-        : '${_pick(rand, _namePrefixes)} ${_pick(rand, _nameSuffixes)}';
+        : () {
+            final (prefixEn, prefixKh) = _pickPair(rand, _namePrefixes);
+            final (suffixEn, suffixKh) = _pickPair(rand, _nameSuffixes);
+            return ('$prefixEn $suffixEn', '$suffixKh $prefixKh');
+          }();
 
     final ownerName = 'Mr./Ms. ${_pick(rand, _ownerNames)}'.replaceFirst(
       'Mr./Ms.',
@@ -292,6 +311,7 @@ class MockLeadData {
     return Lead(
       id: id,
       companyName: companyName,
+      companyNameKh: companyNameKh,
       ownerName: ownerName,
       phone: _phone(rand),
       email: '${_slug(companyName)}@gmail.com',
@@ -577,6 +597,11 @@ class MockLeadData {
     items.sort((a, b) => b.timestamp.compareTo(a.timestamp));
     return items;
   }
+
+  /// [_pick]'s bilingual twin: draws one `(en, km)` entry so both languages
+  /// come from the same random step.
+  static (String, String) _pickPair(Random rand, List<(String, String)> list) =>
+      list[rand.nextInt(list.length)];
 
   static String _pick(Random rand, List<String> list) =>
       list[rand.nextInt(list.length)];

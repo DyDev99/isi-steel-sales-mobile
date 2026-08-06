@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localized_text.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/contact.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/credit_status.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/lead_document.dart';
@@ -16,6 +17,7 @@ class Lead extends Equatable {
   const Lead({
     required this.id,
     required this.companyName,
+    this.companyNameKh = '',
     required this.ownerName,
     required this.phone,
     required this.email,
@@ -47,7 +49,23 @@ class Lead extends Equatable {
   });
 
   final String id;
+
+  /// Latin trade name. Kept under its original name because the pipeline
+  /// board, forms and activity log all read it; [displayName] is the
+  /// localised accessor.
   final String companyName;
+
+  /// Khmer trade name.
+  ///
+  /// Defaulted rather than required because a lead is *created by the rep in
+  /// the field* — unlike a customer, there is no SAP record to read a Khmer
+  /// name off. The capture form does not ask for one (a rep standing in a shop
+  /// doorway should not be made to type the name twice), so most locally
+  /// created leads carry only [companyName] and fall back to it in Khmer. Once
+  /// the lead is approved and becomes a SAP customer, `name3` supplies the
+  /// Khmer name properly.
+  final String companyNameKh;
+
   final String ownerName;
   final String phone;
   final String email;
@@ -84,6 +102,20 @@ class Lead extends Equatable {
   final OpportunityInfo? opportunityInfo;
   final WonInfo? wonInfo;
 
+  /// The company's name in both languages. Widgets render
+  /// `context.localized(lead.displayName)`; Khmer falls back to the Latin name
+  /// when [companyNameKh] is empty, which is the common case for leads a rep
+  /// created in the field.
+  LocalizedText get displayName =>
+      LocalizedText(en: companyName, km: companyNameKh);
+
+  /// Everything the pipeline search should match, in both languages at once.
+  Iterable<String> get searchableValues sync* {
+    yield* displayName.allValues;
+    yield ownerName;
+    yield phone;
+  }
+
   Lead copyWith({
     PipelineStage? stage,
     Priority? priority,
@@ -101,6 +133,7 @@ class Lead extends Equatable {
     return Lead(
       id: id,
       companyName: companyName,
+      companyNameKh: companyNameKh,
       ownerName: ownerName ?? this.ownerName,
       phone: phone,
       email: email,
@@ -136,6 +169,7 @@ class Lead extends Equatable {
   List<Object?> get props => [
         id,
         companyName,
+        companyNameKh,
         ownerName,
         phone,
         email,

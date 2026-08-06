@@ -127,34 +127,40 @@ class TerritoryGenerator {
 class CustomerGenerator {
   CustomerGenerator._();
 
-  static const _namePrefixes = [
-    'Angkor',
-    'Mekong',
-    'Golden',
-    'Royal',
-    'Prosperity',
-    'Union',
-    'Kingdom',
-    'Sunrise',
-    'Diamond',
-    'Phnom',
-    'Delta',
-    'Heritage',
-    'Central',
-    'National',
-    'Pacific',
+  /// `(en, km)` pairs, drawn once and read twice — the same single-source rule
+  /// `mock_customer_data.dart` applies. Two independent lists would put a
+  /// different shop in each language behind the same stop id.
+  static const _namePrefixes = <(String, String)>[
+    ('Angkor', 'អង្គរ'),
+    ('Mekong', 'មេគង្គ'),
+    ('Golden', 'មាស'),
+    ('Royal', 'រាជា'),
+    ('Prosperity', 'រុងរឿង'),
+    ('Union', 'សាមគ្គី'),
+    ('Kingdom', 'រាជាណាចក្រ'),
+    ('Sunrise', 'ថ្ងៃរះ'),
+    ('Diamond', 'ពេជ្រ'),
+    ('Phnom', 'ភ្នំ'),
+    ('Delta', 'ដីសណ្ត'),
+    ('Heritage', 'បេតិកភណ្ឌ'),
+    ('Central', 'កណ្តាល'),
+    ('National', 'ជាតិ'),
+    ('Pacific', 'ប៉ាស៊ីហ្វិក'),
   ];
-  static const _nameSuffixes = [
-    'Hardware',
-    'Construction Supply',
-    'Steel Depot',
-    'Trading Co.',
-    'Building Materials',
-    'Iron Works',
-    'Metal Center',
-    'Engineering',
-    'Contractors',
-    'Warehouse',
+
+  /// Business types, `(en, km)`. Khmer names the trade first, then the shop —
+  /// "ឃ្លាំងដែក អង្គរ" — so the Khmer name is composed suffix-first.
+  static const _nameSuffixes = <(String, String)>[
+    ('Hardware', 'គ្រឿងដែក'),
+    ('Construction Supply', 'ផ្គត់ផ្គង់សំណង់'),
+    ('Steel Depot', 'ឃ្លាំងដែក'),
+    ('Trading Co.', 'ក្រុមហ៊ុនជួញដូរ'),
+    ('Building Materials', 'សម្ភារៈសំណង់'),
+    ('Iron Works', 'រោងជាងដែក'),
+    ('Metal Center', 'មជ្ឈមណ្ឌលលោហៈ'),
+    ('Engineering', 'វិស្វកម្ម'),
+    ('Contractors', 'ក្រុមហ៊ុនសំណង់'),
+    ('Warehouse', 'ឃ្លាំងទំនិញ'),
   ];
   static const _contactFirstNames = [
     'Sokha',
@@ -185,8 +191,13 @@ class CustomerGenerator {
       final district =
           territory.districts[rand.nextInt(territory.districts.length)];
 
-      final name = '${_namePrefixes[rand.nextInt(_namePrefixes.length)]} '
-          '${_nameSuffixes[rand.nextInt(_nameSuffixes.length)]}';
+      final (prefixEn, prefixKh) =
+          _namePrefixes[rand.nextInt(_namePrefixes.length)];
+      final (suffixEn, suffixKh) =
+          _nameSuffixes[rand.nextInt(_nameSuffixes.length)];
+      final name = '$prefixEn $suffixEn';
+      final nameKh = '$suffixKh $prefixKh';
+
       final contact =
           _contactFirstNames[rand.nextInt(_contactFirstNames.length)];
 
@@ -200,6 +211,7 @@ class CustomerGenerator {
       customers.add({
         'id': realId,
         'name': name,
+        'nameKh': nameKh,
         'code': 'C${(10000 + seq)}',
         'contact': contact,
         'phone':
@@ -319,7 +331,16 @@ class RouteGenerator {
 
       routes.add({
         'id': routeId,
-        'name': isToday ? "Today's Visit Plan" : 'Daily Visit Plan',
+        // A translation *key*, not a label. Unlike a shop name — master data
+        // that genuinely differs per language and rides on the record — this
+        // is UI chrome the mock happens to supply, so it belongs in the
+        // translation bundle. `'…'.tr` returns any unrecognised string
+        // unchanged (LOCALIZATION.md §2), so once SAP sends a real route
+        // description like "Phnom Penh North", the same call site renders it
+        // verbatim with no branch.
+        'name': isToday
+            ? 'my_visits.route_info.plan_today'
+            : 'my_visits.route_info.plan_daily',
         'repId': 'REP-${rep.hashCode & 0xFFFF}',
         'repName': rep,
         'territory': _scopedTerritory,

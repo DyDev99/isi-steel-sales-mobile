@@ -21,9 +21,7 @@ class ProductResultGrid extends StatelessWidget {
     this.onTap,
     this.onCustomize,
     this.specLineBuilder,
-    this.stockLabelBuilder,
     this.lineTotalBuilder,
-    this.outOfStockLabel,
   });
 
   final List<Product> products;
@@ -41,9 +39,7 @@ class ProductResultGrid extends StatelessWidget {
   final ValueChanged<Product>? onCustomize;
 
   final String Function(Product product)? specLineBuilder;
-  final String Function(Product product)? stockLabelBuilder;
   final String Function(Product product, int quantity)? lineTotalBuilder;
-  final String? outOfStockLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -62,9 +58,7 @@ class ProductResultGrid extends StatelessWidget {
                   isFavorite: favoriteIds.contains(product.id),
                   quantity: quantity,
                   specLine: specLineBuilder?.call(product),
-                  stockLabel: stockLabelBuilder?.call(product),
                   lineTotalLabel: lineTotalBuilder?.call(product, quantity),
-                  outOfStockLabel: outOfStockLabel,
                   onQuantityChanged: (value) =>
                       onQuantityChanged(product, value),
                   onToggleFavorite: () => onToggleFavorite(product),

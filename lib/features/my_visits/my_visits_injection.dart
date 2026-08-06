@@ -104,7 +104,8 @@ Future<void> registerMyVisitsFeature(GetIt sl) async {
       () => GeolocatorTrackingService());
   sl.registerLazySingleton<FraudDetectionService>(
       () => const FraudDetectionService());
-  sl.registerLazySingleton<StopDistanceSorter>(() => const StopDistanceSorter());
+  sl.registerLazySingleton<StopDistanceSorter>(
+      () => const StopDistanceSorter());
   sl.registerLazySingleton<ProofPhotoService>(
       () => const CameraProofPhotoService());
 

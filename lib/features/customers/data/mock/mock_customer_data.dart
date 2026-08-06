@@ -85,36 +85,51 @@ class MockCustomerData {
     'Sokha',
   ];
 
-  static const List<String> _shopPrefixes = [
-    'Angkor',
-    'Mekong',
-    'Golden',
-    'Bayon',
-    'Sunrise',
-    'Royal',
-    'Phnom',
-    'Silver',
-    'Diamond',
-    'Lotus',
-    'Naga',
-    'Apsara',
-    'Tonle',
-    'Preah',
+  /// Shop-name vocabulary, carried as `(en, km)` pairs on the *same* entry.
+  ///
+  /// This is the single-source rule applied to generated data: one random draw
+  /// yields both languages, so a generated customer can never exist in English
+  /// and be missing in Khmer. Two parallel lists drawn independently — or worse,
+  /// a `customers_kh.json` — would put a different shop in each language for
+  /// the same `id`.
+  ///
+  /// The Khmer side is the trade name a Cambodian shopkeeper would actually
+  /// paint on the sign, not a transliteration: `Golden` is `មាស` (gold), not
+  /// `ហ្គោលដិន`.
+  static const List<(String, String)> _shopPrefixes = [
+    ('Angkor', 'អង្គរ'),
+    ('Mekong', 'មេគង្គ'),
+    ('Golden', 'មាស'),
+    ('Bayon', 'បាយ័ន'),
+    ('Sunrise', 'ថ្ងៃរះ'),
+    ('Royal', 'រាជា'),
+    ('Phnom', 'ភ្នំ'),
+    ('Silver', 'ប្រាក់'),
+    ('Diamond', 'ពេជ្រ'),
+    ('Lotus', 'ឈូក'),
+    ('Naga', 'នាគ'),
+    ('Apsara', 'អប្សរា'),
+    ('Tonle', 'ទន្លេ'),
+    ('Preah', 'ព្រះ'),
   ];
 
-  static const List<String> _shopSuffixes = [
-    'Hardware',
-    'Hardware Outlet',
-    'Steel Trading',
-    'Depot',
-    'Distribution Center',
-    'Construction Supply',
-    'Contractors',
-    'Iron Works',
-    'Building Materials',
-    'Roofing Center',
-    'Pipe & Fittings',
-    'Retail Outlet',
+  /// Business types, `(en, km)`. Khmer word order puts the trade before the
+  /// name — "ហាងគ្រឿងដែក អង្គរ", literally "hardware shop Angkor" — which is
+  /// why [_generated] composes the Khmer name suffix-first and the English
+  /// name prefix-first from the same pair.
+  static const List<(String, String)> _shopSuffixes = [
+    ('Hardware', 'គ្រឿងដែក'),
+    ('Hardware Outlet', 'ហាងគ្រឿងដែក'),
+    ('Steel Trading', 'ជួញដូរដែក'),
+    ('Depot', 'ឃ្លាំង'),
+    ('Distribution Center', 'មជ្ឈមណ្ឌលចែកចាយ'),
+    ('Construction Supply', 'ផ្គត់ផ្គង់សំណង់'),
+    ('Contractors', 'ក្រុមហ៊ុនសំណង់'),
+    ('Iron Works', 'រោងជាងដែក'),
+    ('Building Materials', 'សម្ភារៈសំណង់'),
+    ('Roofing Center', 'មជ្ឈមណ្ឌលដំបូល'),
+    ('Pipe & Fittings', 'បំពង់ និងគ្រឿងភ្ជាប់'),
+    ('Retail Outlet', 'ហាងលក់រាយ'),
   ];
 
   /// (province, district, lat, lng) — real Cambodian provincial centres so map
@@ -587,8 +602,15 @@ class MockCustomerData {
       final given = _givenNames[rng.nextInt(_givenNames.length)];
       final owner = '$family $given';
 
-      final shop = '${_shopPrefixes[rng.nextInt(_shopPrefixes.length)]} '
-          '${_shopSuffixes[rng.nextInt(_shopSuffixes.length)]}';
+      // One draw per part, both languages read off the same pair — see the
+      // note on [_shopPrefixes]. Drawing twice would desynchronise them.
+      final (prefixEn, prefixKh) =
+          _shopPrefixes[rng.nextInt(_shopPrefixes.length)];
+      final (suffixEn, suffixKh) =
+          _shopSuffixes[rng.nextInt(_shopSuffixes.length)];
+      final shop = '$prefixEn $suffixEn';
+      final shopKh = '$suffixKh $prefixKh';
+
       final (province, district, lat, lng) =
           _locations[rng.nextInt(_locations.length)];
       final (repId, repName) = _reps[rng.nextInt(_reps.length)];
@@ -612,6 +634,11 @@ class MockCustomerData {
         customerCode: 'CUS-${(1000 + n * 7).toString().padLeft(4, '0')}',
         shopName: shop,
         enName: '$shop Co., Ltd',
+        // Previously null on all 120 generated rows, which is why the
+        // directory stayed English after a language switch while the six
+        // curated accounts translated correctly — the bug looked like a
+        // localization failure and was really a data gap.
+        khName: shopKh,
         ownerName: owner,
         phone: '0${rng.nextInt(3) + 1}${rng.nextInt(9)} '
             '${(rng.nextInt(900) + 100)} ${(rng.nextInt(900) + 100)}',

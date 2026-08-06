@@ -236,7 +236,7 @@
         "prepared_by": "រៀបចំដោយ (អ្នកលក់)",
         "approved_by": "អនុម័តដោយ",
         "customer_signature": "ហត្ថលេខាអតិថិជន",
-        "footer": "ISI Steel · បង្កើតដោយ ISI Sales Mobile",
+        "footer": "ISI Steel · បង្កើតដោយ SteelForce",
         "page": "ទំព័រ"
       }
     },
@@ -878,7 +878,9 @@
       "reason_other": "ផ្សេងទៀត",
       "create_title": "បង្កើតសម្រាប់ចំណតនេះ",
       "create_quotation": "បង្កើតសម្រង់តម្លៃ",
-      "create_order": "បង្កើតការបញ្ជាទិញ"
+      "create_order": "បង្កើតការបញ្ជាទិញ",
+      "plan_today": "ផែនការទស្សនកិច្ចថ្ងៃនេះ",
+      "plan_daily": "ផែនការទស្សនកិច្ចប្រចាំថ្ងៃ"
     },
     "calendar": {
       "todays_stops": "ផ្លូវធ្វើដំណើរថ្ងៃនេះ",
@@ -935,6 +937,9 @@
       "type_retail": "លក់រាយ",
       "type_hardware": "គ្រឿងដែក",
       "type_shop": "ហាង"
+    },
+    "tracking": {
+      "notification_text": "កំពុងតាមដានផ្លូវរបស់អ្នក"
     }
   },
   "add_customer": {
@@ -1109,7 +1114,7 @@
   },
   "coach": {
     "welcome": {
-      "title": "សូមស្វាគមន៍មកកាន់ STEEL360 APP 👋",
+      "title": "សូមស្វាគមន៍មកកាន់ SteelForce 👋",
       "message": "ដំណើរណែនាំខ្លីៗ ដើម្បីលក់បានលឿនជាងមុន។ រួចរាល់ទេ?"
     },
     "home": {
@@ -1187,22 +1192,23 @@
     "resume_hint": "បន្តដំណើរណែនាំ"
   },
   "app": {
+    "name": "SteelForce",
     "no_route": "រកមិនឃើញផ្លូវ៖ {name}",
     "not_found": "រកមិនឃើញ",
-    "title": "ISI Steel Sales"
+    "title": "SteelForce"
   },
   "settings": {
     "language": "ភាសាបង្ហាញ",
     "language_title": "ភាសា"
   },
-  "products":{
-    "status":{
+  "products": {
+    "status": {
       "out_of_stock": "គ្មានទំនិញក្នុងស្តុក",
       "low_stock": "ទំនិញនៅសល់តិច",
       "in_stock": "មានទំនិញក្នុងស្តុក",
       "high_stock": "ទំនិញមានគ្រប់គ្រាន់"
-  }
-},
+    }
+  },
   "shell": {
     "add_customer": "បន្ថែមអតិថិជន",
     "add_visit": {
@@ -1249,8 +1255,9 @@
     "target_progress": "{achieved} នៃ {target}"
   },
   "splash": {
-    "brand": "ISI STEEL",
-    "tagline": "Sales Mobile"
+    "brand": "SteelForce",
+    "tagline": "Sales Mobile",
+    "group_line": "សមាជិកនៃក្រុមហ៊ុន ISI Group"
   },
   "sync": {
     "attempt": "ព្យាយាមលើកទី {count}",

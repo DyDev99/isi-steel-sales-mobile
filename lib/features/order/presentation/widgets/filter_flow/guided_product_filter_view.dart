@@ -546,10 +546,6 @@ class _ProductStage extends StatelessWidget {
               onCustomize: onCustomize,
               onTap: onProductTap,
               specLineBuilder: _specLine,
-              stockLabelBuilder: (product) => 'orders.guided_filter.in_stock'
-                  .trParams(
-                      {'count': product.availableQuantity.toStringAsFixed(0)}),
-              outOfStockLabel: 'orders.catalog.out_of_stock'.tr,
             ),
           ),
           if (state.hasMore)

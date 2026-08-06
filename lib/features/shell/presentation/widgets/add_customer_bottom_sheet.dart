@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:phone_form_field/phone_form_field.dart';
 
+import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
@@ -499,7 +500,8 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
           items: widget.wonLeads.map((lead) {
             return DropdownMenuItem<Lead>(
               value: lead,
-              child: Text(lead.companyName,
+              // The picker *label* follows the UI language …
+              child: Text(context.localized(lead.displayName),
                   style: TextStyle(
                       color: Theme.of(context).colorScheme.onSurface)),
             );
@@ -508,6 +510,11 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
             setState(() {
               _selectedLead = lead;
               if (lead != null) {
+                // … but the prefilled *value* stays the Latin trade name.
+                // This field becomes `customers.shop_name`, which SAP holds as
+                // `name1` and every document prints — seeding it from the
+                // Khmer name because the rep happened to be in a Khmer session
+                // would put Khmer text in a Latin-only master-data field.
                 _shopNameCtrl.text = lead.companyName;
                 _ownerNameCtrl.text = lead.ownerName;
                 _contactNameCtrl.text = lead.ownerName;

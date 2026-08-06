@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localized_text.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer_contact.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer_status.dart';
 
@@ -117,6 +118,42 @@ class Customer extends Equatable {
 
   /// When SAP created the record ([updatedAt] covers modification).
   final DateTime? createdAt;
+
+  /// The customer's name in both languages, for rendering.
+  ///
+  /// English resolves to [shopName] rather than [enName] deliberately:
+  /// [shopName] is non-nullable and populated for every row, while SAP leaves
+  /// `name1` blank on plenty of accounts. Falling back the other way would
+  /// blank out the directory for exactly the customers with the least master
+  /// data — the ones a rep most needs to find.
+  ///
+  /// Khmer resolves to [khName] (SAP `name3`). Where SAP carries no Khmer name,
+  /// [LocalizedText.resolve] falls back to English, so a Khmer session shows a
+  /// Latin shop name instead of an empty row.
+  ///
+  /// Widgets render `context.localized(customer.displayName)`. Nothing is
+  /// re-fetched on a language switch because both languages are already here —
+  /// the same design as [Product.displayName] and [Category.name].
+  LocalizedText get displayName =>
+      LocalizedText(en: shopName, km: khName ?? '');
+
+  /// Everything the directory search should match, in every language at once.
+  ///
+  /// Spans both languages regardless of the active locale on purpose: a rep who
+  /// knows a shop by its Khmer name types that whether or not the UI is in
+  /// Khmer, and returning nothing would be a defect. The DAO applies the same
+  /// rule in SQL (`CustomerDao.browse`); this is the in-memory twin, used where
+  /// a list is already loaded and re-querying would be wasteful.
+  Iterable<String> get searchableValues sync* {
+    yield* displayName.allValues;
+    if ((enName?.trim().isNotEmpty ?? false) && enName != shopName) {
+      yield enName!;
+    }
+    yield customerCode;
+    yield sapCustomerId;
+    yield ownerName;
+    yield phone;
+  }
 
   /// Headroom left against the credit limit. Clamped at zero so an
   /// over-limit account reads as "no credit available" rather than negative.

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/shop/shop_order_entry_screen.dart'; // Adjust path if needed
@@ -79,7 +80,10 @@ class CustomerCard extends StatelessWidget {
                             ),
                           const SizedBox(height: 2),
                           Text(
-                            customer.shopName,
+                            // Both languages are already on the entity, so a
+                            // language switch re-resolves this line on the next
+                            // rebuild — no re-query, no re-sync.
+                            context.localized(customer.displayName),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(

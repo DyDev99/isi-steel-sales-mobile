@@ -170,8 +170,7 @@ class _LoadedViewState extends State<_LoadedView> {
   /// Per-day stop count for the calendar dots — across every synced day, from
   /// the cubit's `allRoutes` (Today…+4 land here). Selecting a day filters the
   /// list via the cubit.
-  int _getStopCountForDate(DateTime date) =>
-      widget.state.stopCountForDay(date);
+  int _getStopCountForDate(DateTime date) => widget.state.stopCountForDay(date);
 
   @override
   Widget build(BuildContext context) {

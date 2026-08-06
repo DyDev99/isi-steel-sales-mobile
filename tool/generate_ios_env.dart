@@ -54,7 +54,8 @@ void main(List<String> args) {
     'GOOGLE_MAPS_API_KEY=$mapsKey\n',
   );
 
-  stdout.writeln('Wrote ${out.path} (APP_ENV=${values['APP_ENV'] ?? 'unknown'})');
+  stdout
+      .writeln('Wrote ${out.path} (APP_ENV=${values['APP_ENV'] ?? 'unknown'})');
 }
 
 /// Minimal `.env` reader: `KEY=VALUE`, ignoring blank lines and `#` comments.

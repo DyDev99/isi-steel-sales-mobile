@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_status.dart';
@@ -105,7 +106,7 @@ class _StopCardState extends State<StopCard>
       openQuotationForCustomer(
         context,
         customerId: customer.id,
-        customerName: customer.name,
+        customerName: context.localized(customer.displayName),
       );
     }
   }
@@ -194,7 +195,7 @@ class _StopCardState extends State<StopCard>
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    customer.name,
+                                    context.localized(customer.displayName),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
@@ -300,7 +301,6 @@ class _StopCardState extends State<StopCard>
                                         fontWeight: FontWeight.w800,
                                       ),
                                     ),
-                                    
                                   ],
                                 ),
                               ),

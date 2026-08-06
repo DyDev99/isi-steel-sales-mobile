@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
@@ -82,7 +83,7 @@ class CartItemTile extends StatelessWidget {
                 ],
                 Expanded(
                   child: Text(
-                    item.product.name,
+                    context.localized(item.product.displayName),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(

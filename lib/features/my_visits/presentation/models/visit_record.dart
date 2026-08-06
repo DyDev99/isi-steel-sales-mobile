@@ -1,3 +1,5 @@
+import 'package:isi_steel_sales_mobile/core/localization/localized_text.dart';
+
 /// UI-only status for a completed/attempted visit shown in the visit history
 /// flow. Deliberately separate from the real `VisitStatus` domain enum used
 /// by the live dispatch flow — this model only ever comes from static mock
@@ -11,6 +13,7 @@ class VisitRecord {
   const VisitRecord({
     required this.id,
     required this.customerName,
+    this.customerNameKh = '',
     required this.address,
     required this.latitude,
     required this.longitude,
@@ -27,6 +30,12 @@ class VisitRecord {
 
   final String id;
   final String customerName;
+
+  /// Khmer shop name. Defaulted so the fixture can grow a Khmer name per row
+  /// without every construction site changing; empty falls back to
+  /// [customerName] via [displayName].
+  final String customerNameKh;
+
   final String address;
   final double latitude;
   final double longitude;
@@ -39,6 +48,13 @@ class VisitRecord {
   final String? notes;
   final int photoCount;
   final String? phoneNumber;
+
+  /// The shop's name in both languages, resolved at render time like every
+  /// other piece of master data in the app — even though this row is a
+  /// fixture, it is shaped the way the real visit-history backend will be so
+  /// swapping the source is a datasource change, not a UI change.
+  LocalizedText get displayName =>
+      LocalizedText(en: customerName, km: customerNameKh);
 
   Duration? get duration {
     if (checkInTime == null || checkOutTime == null) return null;

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:phone_form_field/phone_form_field.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get_it/get_it.dart';
 import 'package:isi_steel_sales_mobile/core/database/hive/app_preferences.dart';
+import 'package:isi_steel_sales_mobile/core/localization/fallback_localizations_delegate.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/breakpoints.dart';
 import 'package:isi_steel_sales_mobile/core/session/app_restart_controller.dart';
@@ -35,6 +38,36 @@ class _AppScrollBehavior extends MaterialScrollBehavior {
 /// re-runs the initial-route resolver — without this, those rebuilds could
 /// replay the splash. Module-private and set exactly once for the process.
 bool _splashShown = false;
+
+/// The locales `MaterialApp` will actually resolve to.
+///
+/// Must stay in step with `LanguageModel.supported` and the `assets/lang/*.json`
+/// bundles: a language offered in the picker but missing here resolves back to
+/// English, and the only visible symptom is master data quietly staying Latin.
+///
+/// Public so `test/core/localization/locale_resolution_test.dart` can assert
+/// against the *real* list rather than a copy — a copied list would keep
+/// passing after someone edited this one, which is precisely the failure mode
+/// that test exists to catch.
+const List<Locale> kSupportedLocales = [Locale('en'), Locale('km')];
+
+/// Wired per the setup note in
+/// `features/authentication/.../forgot_password/identifier_field.dart`:
+/// `phone_form_field`'s country picker throws "no MaterialLocalizations found"
+/// without its delegate, and the Material/Widgets/Cupertino delegates are what
+/// give Flutter's own widgets (date picker, text-selection menu) Khmer copy.
+///
+/// Public for the same reason as [kSupportedLocales].
+///
+/// The phone-field delegates are wrapped because that package ships no Khmer —
+/// see [FallbackLocalizationsDelegate]. Flutter's own three cover `km` natively
+/// and are passed straight through.
+final List<LocalizationsDelegate<dynamic>> kLocalizationsDelegates = [
+  GlobalMaterialLocalizations.delegate,
+  GlobalWidgetsLocalizations.delegate,
+  GlobalCupertinoLocalizations.delegate,
+  ...withEnglishFallback(PhoneFieldLocalization.delegates),
+];
 
 class ISISteelSalesApp extends StatelessWidget {
   const ISISteelSalesApp({super.key});
@@ -115,6 +148,23 @@ class ISISteelSalesApp extends StatelessWidget {
                       darkTheme: AppTheme.dark(fontFamily),
                       themeMode: _materialThemeMode(themeMode),
                       locale: locale,
+                      // `locale:` alone does NOT make `Localizations.localeOf`
+                      // return Khmer. MaterialApp *resolves* the requested
+                      // locale against `supportedLocales`, which defaults to
+                      // `[Locale('en','US')]` when unset — so `Locale('km')`
+                      // fell straight back to English.
+                      //
+                      // That produced the exact split this app shipped with:
+                      // every `'key'.tr` label was Khmer (the String extension
+                      // reads a global singleton and never consults
+                      // `Localizations`), while every piece of master data
+                      // resolved through `context.localized(...)` came out
+                      // English — because it asks `Localizations.localeOf`,
+                      // which was still saying `en`. Chrome translated, data
+                      // not: the bug looked like missing Khmer *data* and was
+                      // really a missing three-line locale declaration.
+                      supportedLocales: kSupportedLocales,
+                      localizationsDelegates: kLocalizationsDelegates,
                       initialRoute: initialRoute,
                       // Build the initial route as a single page (avoids Flutter's
                       // default '/'-splitting pulling in a not-found parent route).

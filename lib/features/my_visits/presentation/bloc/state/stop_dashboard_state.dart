@@ -82,8 +82,12 @@ final class StopDashboardLoaded extends StopDashboardState {
     final q = query.trim().toLowerCase();
     if (q.isEmpty) return true;
     final c = s.stop.customer;
-    return c.name.toLowerCase().contains(q) ||
-        c.code.toLowerCase().contains(q) ||
+    // Matches the shop's name in *either* language, whichever the UI is
+    // showing: a rep who knows a shop by its Khmer sign types that even while
+    // the app is in English, and vice versa. `searchableValues` already spans
+    // both plus the customer code — the same rule `CustomerDao.browse` applies
+    // in SQL, so in-memory and on-disk search agree.
+    return c.searchableValues.any((v) => v.toLowerCase().contains(q)) ||
         c.address.toLowerCase().contains(q) ||
         s.routeName.toLowerCase().contains(q);
   }

@@ -51,7 +51,7 @@
       backing up that sync cannot rebuild.
     -->
     <application
-        android:label="ISI Steel Sales"
+        android:label="@string/app_name"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon"
         android:allowBackup="false"

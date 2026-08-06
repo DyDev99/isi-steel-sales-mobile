@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
 import 'package:isi_steel_sales_mobile/features/lead/presentation/l10n/lead_labels.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
@@ -79,7 +80,7 @@ class LeadPipelineCard extends StatelessWidget {
                               padding: const EdgeInsets.only(
                                   right: 28), // Safe border clear path zone
                               child: Text(
-                                lead.companyName,
+                                context.localized(lead.displayName),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(

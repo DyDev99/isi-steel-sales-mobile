@@ -1,5 +1,6 @@
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:isi_steel_sales_mobile/core/localization/active_language.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/domain/entities/user_role.dart';
@@ -127,8 +128,11 @@ class PipelineBloc extends Bloc<PipelineEvent, PipelineState> {
     } catch (_) {
       // Roll back on failure.
       emit(current.copyWith(
-          blockedMoveMessage: () =>
-              'leads.couldnt_move'.trParams({'company': lead.companyName})));
+          blockedMoveMessage: () => 'leads.couldnt_move'.trParams(
+              // A bloc has no BuildContext, so the company name resolves
+              // through the context-free reader rather than defaulting to the
+              // Latin name inside an otherwise-Khmer message.
+              {'company': ActiveLanguage.resolve(lead.displayName)})));
     }
   }
 
@@ -252,9 +256,12 @@ class PipelineBloc extends Bloc<PipelineEvent, PipelineState> {
 
     if (filter.search.trim().isNotEmpty) {
       final q = filter.search.trim().toLowerCase();
-      filtered = filtered.where((l) =>
-          l.companyName.toLowerCase().contains(q) ||
-          l.ownerName.toLowerCase().contains(q));
+      // Matches the company name in *either* language plus owner and phone.
+      // A rep who knows a prospect by its Khmer sign types that regardless of
+      // the UI language — returning nothing would be a defect, not correct
+      // behaviour.
+      filtered = filtered.where(
+          (l) => l.searchableValues.any((v) => v.toLowerCase().contains(q)));
     }
     if (filter.territory != null) {
       filtered = filtered.where((l) => l.territory == filter.territory);

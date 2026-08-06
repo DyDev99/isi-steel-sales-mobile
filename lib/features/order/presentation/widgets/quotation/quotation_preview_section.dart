@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
 import 'package:isi_steel_sales_mobile/core/platform/local_files.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -220,10 +221,11 @@ class QuotationPreviewSection extends StatelessWidget {
                               children: [
                                 Flexible(
                                   child: Text(
-                                    product.name.isNotEmpty
-                                        ? product.name
-                                        : 'orders.quotation_extra.structural_item'
-                                            .tr,
+                                    product.displayName.isEmpty
+                                        ? 'orders.quotation_extra.structural_item'
+                                            .tr
+                                        : context
+                                            .localized(product.displayName),
                                     style: TextStyle(
                                       fontSize: 13.sp,
                                       fontWeight: FontWeight.w500,

@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:isi_steel_sales_mobile/core/localization/active_language.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/customer_params.dart';
@@ -66,8 +67,12 @@ class DepotStockCountCubit extends Cubit<DepotStockCountState> {
     emit(state.copyWith(status: DepotStockCountStatus.loading));
 
     final customerResult = await _getCustomerById(CustomerIdParams(shopId));
-    final shopName =
-        customerResult.when(success: (c) => c.shopName, failure: (_) => null);
+    // Resolved here rather than in the widget because the name lands in cubit
+    // state and is read back by the stock-count header; a cubit has no
+    // BuildContext, so [ActiveLanguage] supplies the locale.
+    final shopName = customerResult.when(
+        success: (c) => ActiveLanguage.resolve(c.displayName),
+        failure: (_) => null);
     if (shopName == null) {
       emit(state.copyWith(
         status: DepotStockCountStatus.error,

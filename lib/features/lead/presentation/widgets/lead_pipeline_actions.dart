@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
@@ -88,7 +89,8 @@ class LeadPipelineActions {
         title: Text('leads.delete_confirm_title'.tr,
             style: TextStyle(color: colors.textPrimary)),
         content: Text(
-          'leads.delete_confirm_body'.trParams({'company': lead.companyName}),
+          'leads.delete_confirm_body'
+              .trParams({'company': context.localized(lead.displayName)}),
           style: TextStyle(color: colors.textSecondary),
         ),
         actions: [

@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/location_sample.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_stop.dart';
 
@@ -86,7 +87,7 @@ class _TransitMapState extends State<TransitMap> {
         position: _targetLatLng,
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
         infoWindow: InfoWindow(
-            title: widget.target.customer.name,
+            title: context.localized(widget.target.customer.displayName),
             snippet: widget.target.customer.address),
       ),
       if (current != null)

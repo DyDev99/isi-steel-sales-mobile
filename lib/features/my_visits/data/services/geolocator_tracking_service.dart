@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart'
 import 'dart:math';
 
 import 'package:geolocator/geolocator.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/location_sample.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/location_tracking_service.dart';
 
@@ -69,8 +70,14 @@ class GeolocatorTrackingService implements LocationTrackingService {
         accuracy: LocationAccuracy.high,
         distanceFilter: 10,
         foregroundNotificationConfig: ForegroundNotificationConfig(
-          notificationTitle: 'ISI Steel Sales',
-          notificationText: 'Tracking your route',
+          // Shown in the Android notification shade for as long as background
+          // tracking runs, so it is user-facing copy, not a debug label: it
+          // carries the app brand and resolves through the same key store as
+          // the rest of the UI. `.tr` is context-free by design
+          // (LOCALIZATION.md §2), which is what lets a data-layer service
+          // localise without reaching for a BuildContext it cannot have.
+          notificationTitle: 'app.name'.tr,
+          notificationText: 'my_visits.tracking.notification_text'.tr,
           enableWakeLock: true,
         ),
       );

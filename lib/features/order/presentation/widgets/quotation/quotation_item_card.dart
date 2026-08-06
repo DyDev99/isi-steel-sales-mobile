@@ -1,3 +1,4 @@
+import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
 import 'package:isi_steel_sales_mobile/core/platform/local_files.dart';
 import 'package:flutter/material.dart';
 
@@ -70,7 +71,7 @@ class QuotationItemCard extends StatelessWidget {
                         children: [
                           Expanded(
                             child: Text(
-                              item.product.name,
+                              context.localized(item.product.displayName),
                               style: theme.textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),

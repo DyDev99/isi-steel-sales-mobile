@@ -12,6 +12,7 @@ List<VisitRecord> buildMockVisitHistory() {
     VisitRecord(
       id: 'v-1001',
       customerName: 'Golden Dragon Hardware',
+      customerNameKh: 'គ្រឿងដែក នាគមាស',
       address: 'St. 271, Phnom Penh',
       latitude: 11.5697,
       longitude: 104.9247,
@@ -29,6 +30,7 @@ List<VisitRecord> buildMockVisitHistory() {
     VisitRecord(
       id: 'v-1002',
       customerName: 'Borey Angkor Supplies',
+      customerNameKh: 'ផ្គត់ផ្គង់ បុរីអង្គរ',
       address: 'National Road 4, Kandal',
       latitude: 11.4863,
       longitude: 104.8402,
@@ -44,6 +46,7 @@ List<VisitRecord> buildMockVisitHistory() {
     VisitRecord(
       id: 'v-1003',
       customerName: 'Meas Family Metal Shop',
+      customerNameKh: 'ហាងលោហៈ គ្រួសារមាស',
       address: 'Street 6A, Siem Reap',
       latitude: 13.3671,
       longitude: 103.8448,
@@ -60,6 +63,7 @@ List<VisitRecord> buildMockVisitHistory() {
     VisitRecord(
       id: 'v-1004',
       customerName: 'Sok Heng Construction',
+      customerNameKh: 'សំណង់ សុខ ហេង',
       address: 'Road 217, Battambang',
       latitude: 13.0957,
       longitude: 103.2022,
@@ -72,6 +76,7 @@ List<VisitRecord> buildMockVisitHistory() {
     VisitRecord(
       id: 'v-1005',
       customerName: 'ISI Tower Depot',
+      customerNameKh: 'ឃ្លាំង អាយអេសអាយ ថៅវើ',
       address: 'Monivong Blvd, Phnom Penh',
       latitude: 11.5564,
       longitude: 104.9282,
@@ -88,6 +93,7 @@ List<VisitRecord> buildMockVisitHistory() {
     VisitRecord(
       id: 'v-1006',
       customerName: 'Chenda Steel Trading',
+      customerNameKh: 'ជួញដូរដែក ចិន្តា',
       address: 'St. 1019, Phnom Penh',
       latitude: 11.5811,
       longitude: 104.8956,
@@ -100,6 +106,7 @@ List<VisitRecord> buildMockVisitHistory() {
     VisitRecord(
       id: 'v-1007',
       customerName: 'Vanna Building Materials',
+      customerNameKh: 'សម្ភារៈសំណង់ វណ្ណា',
       address: 'National Road 5, Kampong Chhnang',
       latitude: 12.2500,
       longitude: 104.6667,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localized_builder.dart';
@@ -71,6 +72,10 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
     final lead = Lead(
       id: 'LEAD-${DateTime.now().microsecondsSinceEpoch}',
       companyName: customer.shopName,
+      // Carries the customer's Khmer name onto the opportunity, so the lead
+      // renders in Khmer on the pipeline board exactly as it did in the
+      // directory rather than reverting to Latin at the hand-off.
+      companyNameKh: customer.khName ?? '',
       ownerName: customer.ownerName,
       phone: customer.phone,
       email: customer.email ?? '',
@@ -194,7 +199,7 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
           title: BlocBuilder<CustomerDetailCubit, CustomerDetailState>(
             builder: (context, state) => Text(
               state is CustomerDetailLoaded
-                  ? state.customer.shopName
+                  ? context.localized(state.customer.displayName)
                   : 'customers.customer_fallback'.tr,
               style: TextStyle(
                   color: context.appColors.textPrimary,
@@ -495,8 +500,8 @@ class _EstimatedValueSheetState extends State<_EstimatedValueSheet> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-                'customers.new_opportunity'
-                    .trParams({'shop': widget.customer.shopName}),
+                'customers.new_opportunity'.trParams(
+                    {'shop': context.localized(widget.customer.displayName)}),
                 style: TextStyle(
                     color: colors.textPrimary,
                     fontSize: 16,

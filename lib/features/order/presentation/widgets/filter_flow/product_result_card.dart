@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/cart_quantity_stepper.dart';
 
-/// Extension helper if using String extension getter for translations.
-/// Remove or adjust if already imported from your localization package.
-extension StringTranslateX on String {
-  String get tr => this; // Replace with your localization translation logic if needed
-}
-
 /// One matched SKU, and the only place a product enters the quotation.
 ///
-/// Evaluates numerical stock into categorical condition badges using `products.status.*` translation keys:
-/// - `'products.status.low_stock'.tr` (<= 10)
-/// - `'products.status.in_stock'.tr` (11 - 50)
-/// - `'products.status.high_stock'.tr` (> 50)
-/// - `'products.status.out_of_stock'.tr` (0 or unavailable)
+/// The stock badge is *categorical*, never a raw number: the quantity is the
+/// condition, the label is a status. A rep deciding whether to quote needs
+/// "can I sell this", not an inventory readout — and an exact count on a card
+/// is a number they will read as a promise the moment it goes stale.
+///
+/// [Product.availableQuantity] selects the band:
+/// - `'products.status.out_of_stock'.tr` — nothing sellable
+/// - `'products.status.low_stock'.tr` — <= [lowStockThreshold]
+/// - `'products.status.in_stock'.tr` — up to [mediumStockThreshold]
+/// - `'products.status.high_stock'.tr` — above it
 class ProductResultCard extends StatelessWidget {
   const ProductResultCard({
     super.key,
@@ -25,8 +26,6 @@ class ProductResultCard extends StatelessWidget {
     required this.onQuantityChanged,
     required this.onToggleFavorite,
     this.specLine,
-    this.stockLabel,
-    this.outOfStockLabel,
     this.lineTotalLabel,
     this.onTap,
     this.onCustomize,
@@ -45,8 +44,6 @@ class ProductResultCard extends StatelessWidget {
 
   /// Optional override spec line (e.g. "0.30 mm · 3.90 m").
   final String? specLine;
-  final String? stockLabel;
-  final String? outOfStockLabel;
 
   /// Pre-formatted line total label (e.g. "3 × $11.59 = $34.77").
   final String? lineTotalLabel;
@@ -58,31 +55,32 @@ class ProductResultCard extends StatelessWidget {
   final int lowStockThreshold;
   final int mediumStockThreshold;
 
-  /// Resolves the stock badge label and color using matching translation keys.
+  /// Maps the available quantity onto a status band. The quantity itself is
+  /// never rendered — it only decides which band applies.
   _StockStatus _resolveStockStatus(BuildContext context) {
     final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
 
+    // `availableQuantity`, not `stockQuantity`: reserved units are already
+    // spoken for and cannot be quoted, so counting them would badge a SKU as
+    // "high stock" that a rep cannot actually sell. `isAvailable` is derived
+    // from the same figure, which keeps the badge and the stepper's enabled
+    // state agreeing with each other.
+    final available = product.availableQuantity;
+
     if (!product.isAvailable) {
       return _StockStatus(
-        label: outOfStockLabel ?? 'products.status.out_of_stock'.tr,
+        label: 'products.status.out_of_stock'.tr,
         color: scheme.error,
       );
     }
 
-    final stock = product.stockQuantity ?? 0;
-
-    if (stock <= 0) {
-      return _StockStatus(
-        label: outOfStockLabel ?? 'products.status.out_of_stock'.tr,
-        color: scheme.error,
-      );
-    } else if (stock <= lowStockThreshold) {
+    if (available <= lowStockThreshold) {
       return _StockStatus(
         label: 'products.status.low_stock'.tr,
         color: colors.warning,
       );
-    } else if (stock <= mediumStockThreshold) {
+    } else if (available <= mediumStockThreshold) {
       return _StockStatus(
         label: 'products.status.in_stock'.tr,
         color: scheme.primary,
@@ -132,7 +130,7 @@ class ProductResultCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            product.name,
+                            context.localized(product.displayName),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(

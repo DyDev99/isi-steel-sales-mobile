@@ -111,10 +111,8 @@ List<String> _checkNoCategoryCollision(
     }
   }
 
-  final demoCategoryIds = categories
-      .map((c) => c['id'] as String)
-      .where(_isDemo)
-      .toSet();
+  final demoCategoryIds =
+      categories.map((c) => c['id'] as String).where(_isDemo).toSet();
 
   final strays = <String>{};
   for (final product in products) {

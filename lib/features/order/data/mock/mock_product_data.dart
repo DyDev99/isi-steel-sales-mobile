@@ -92,6 +92,12 @@ class MockProductData {
             'materialCode': materialCode,
             'barcode': _barcodeFor(id),
             'name': '${family.namePrefix} ${variant.sizeLabel}',
+            // Same record, both languages — never a second dataset. The size
+            // label (`3P 63A`, `1Cx2.5mm2`) and the brand are deliberately not
+            // translated: they are SAP vocabulary a rep reads identically in
+            // either language, and "translating" them would make the Khmer
+            // catalog un-searchable by part number.
+            'nameKh': '${family.namePrefixKh} ${variant.sizeLabel}',
             'description':
                 '${family.namePrefix} ${variant.sizeLabel}, ${family.grade}, '
                     '${family.brand}, ${family.material}.',
@@ -330,6 +336,7 @@ class ProductFamily {
     required this.categoryId,
     required this.leafKey,
     required this.namePrefix,
+    required this.namePrefixKh,
     required this.grade,
     required this.brand,
     required this.material,
@@ -345,6 +352,13 @@ class ProductFamily {
   final String categoryId;
   final String leafKey;
   final String namePrefix;
+
+  /// Khmer counterpart of [namePrefix], carried on the *same* family rather
+  /// than in a parallel Khmer catalog. Khmer puts the item type before the
+  /// brand ("ខ្សែភ្លើង ស្ពាន់/PVC Draka"), which is why this is a whole
+  /// prefix and not a word-for-word swap of [namePrefix].
+  final String namePrefixKh;
+
   final String grade;
   final String brand;
   final String material;
@@ -359,6 +373,7 @@ class _LeafSpec {
     required this.key,
     required this.categoryId,
     required this.namePrefix,
+    required this.namePrefixKh,
     required this.grades,
     required this.brands,
     required this.material,
@@ -371,6 +386,13 @@ class _LeafSpec {
   final String key;
   final String categoryId;
   final String namePrefix;
+
+  /// Khmer for [namePrefix]. Written by a Khmer speaker against the trade
+  /// vocabulary a Cambodian hardware buyer actually uses at the counter — a
+  /// machine translation of "MCCB" or "Self Drilling Screw" produces a phrase
+  /// no rep would say and no customer would recognise, which is worse than
+  /// leaving the row in English.
+  final String namePrefixKh;
 
   /// The series or spec a customer picks between. For traded goods this is
   /// rarely a metallurgical grade — it is a breaking capacity, a voltage
@@ -401,6 +423,7 @@ class ProductGenerator {
         key: 'mcb',
         categoryId: 'cat_trade_mcb',
         namePrefix: 'MCB',
+        namePrefixKh: 'ប្រដាប់កាត់ចរន្តតូច',
         grades: ['C-Curve 6kA', 'C-Curve 10kA', 'B-Curve 6kA', 'D-Curve 10kA'],
         brands: ['Schneider Easy9', 'Schneider Acti9', 'Schneider Domae'],
         material: 'Thermoplastic',
@@ -411,6 +434,7 @@ class ProductGenerator {
         key: 'mccb',
         categoryId: 'cat_trade_mccb',
         namePrefix: 'MCCB',
+        namePrefixKh: 'ប្រដាប់កាត់ចរន្ត MCCB',
         grades: ['25kA', '36kA', '50kA'],
         brands: ['Schneider EasyPact', 'Schneider ComPact'],
         material: 'Thermoplastic',
@@ -421,6 +445,7 @@ class ProductGenerator {
         key: 'rccb',
         categoryId: 'cat_trade_rccb',
         namePrefix: 'RCCB',
+        namePrefixKh: 'ឧបករណ៍ការពារចរន្តលេច',
         grades: ['30mA AC-Type', '100mA AC-Type', '300mA AC-Type'],
         brands: ['Schneider Easy9', 'Schneider Acti9'],
         material: 'Thermoplastic',
@@ -431,6 +456,7 @@ class ProductGenerator {
         key: 'contactor',
         categoryId: 'cat_trade_contactor',
         namePrefix: 'Contactor',
+        namePrefixKh: 'កុងតាក់ទ័រ',
         grades: ['AC-3 220VAC', 'AC-3 380VAC', 'AC-3 24VDC'],
         brands: ['Schneider TeSys D', 'Schneider TeSys Daca'],
         material: 'Thermoplastic',
@@ -443,6 +469,7 @@ class ProductGenerator {
         key: 'cablePvc',
         categoryId: 'cat_trade_cable_pvc',
         namePrefix: 'Cu/PVC Cable',
+        namePrefixKh: 'ខ្សែភ្លើង ស្ពាន់/PVC',
         grades: ['450/750V', '0.6/1kV'],
         brands: ['Draka', 'CADIVI', 'Sento', 'LS', 'Thipha'],
         material: 'Copper / PVC',
@@ -453,6 +480,7 @@ class ProductGenerator {
         key: 'cableXlpe',
         categoryId: 'cat_trade_cable_xlpe',
         namePrefix: 'Cu/XLPE/PVC Cable',
+        namePrefixKh: 'ខ្សែភ្លើង ស្ពាន់/XLPE/PVC',
         grades: ['0.6/1kV', '0.6/1kV FR', '0.6/1kV LSHF'],
         brands: ['Draka', 'CADIVI', 'Sento', 'LS'],
         material: 'Copper / XLPE',
@@ -463,6 +491,7 @@ class ProductGenerator {
         key: 'cableBare',
         categoryId: 'cat_trade_cable_bare',
         namePrefix: 'Bare Copper Conductor',
+        namePrefixKh: 'ខ្សែស្ពាន់អាក្រាត',
         grades: ['Annealed', 'Hard Drawn'],
         brands: ['CADIVI', 'Thipha'],
         material: 'Copper',
@@ -475,6 +504,7 @@ class ProductGenerator {
         key: 'gypsum',
         categoryId: 'cat_trade_board_gypsum',
         namePrefix: 'Gypsum Board',
+        namePrefixKh: 'ផ្ទាំងជីប',
         grades: ['Standard TE', 'Moisture Resistant', 'Fire Rated'],
         brands: ['Gyproc', 'Zeit', 'APLUS', 'Tam Duraflex'],
         material: 'Gypsum',
@@ -485,6 +515,7 @@ class ProductGenerator {
         key: 'fibreBoard',
         categoryId: 'cat_trade_board_fibre',
         namePrefix: 'Fibre Cement Board',
+        namePrefixKh: 'ផ្ទាំងស៊ីម៉ងត៍ហ្វីប',
         grades: ['SE Smooth', 'Square Edge', 'Recessed Edge'],
         brands: ['Shera', 'APLUS', 'MC Board'],
         material: 'Fibre Cement',
@@ -495,6 +526,7 @@ class ProductGenerator {
         key: 'plank',
         categoryId: 'cat_trade_board_plank',
         namePrefix: 'Ceiling Plank',
+        namePrefixKh: 'ក្តារពិដាន',
         grades: ['Vent Classic', 'Deco Texture', 'Teak Cherry'],
         brands: ['Shera', 'MC Board'],
         material: 'Fibre Cement',
@@ -507,6 +539,7 @@ class ProductGenerator {
         key: 'skylight',
         categoryId: 'cat_trade_skylight',
         namePrefix: 'Skylight Sheet',
+        namePrefixKh: 'សន្លឹកពន្លឺ',
         grades: ['Opal', 'Clear', 'Tinted'],
         brands: ['Natalite', 'NAACO'],
         material: 'Polycarbonate',
@@ -518,6 +551,7 @@ class ProductGenerator {
         key: 'screw',
         categoryId: 'cat_trade_screws',
         namePrefix: 'Self Drilling Screw',
+        namePrefixKh: 'វីសខួងខ្លួនឯង',
         grades: ['ZN-EPDM', 'YP-PVC', 'Painted Head'],
         brands: ['ISI', 'Trading-Others'],
         material: 'Zinc Plated Steel',
@@ -530,6 +564,7 @@ class ProductGenerator {
         key: 'plate',
         categoryId: 'cat_trade_plate',
         namePrefix: 'Steel Plate',
+        namePrefixKh: 'ផ្ទាំងដែក',
         grades: ['Q345B', 'Q235B', 'A36'],
         brands: ['Trading-Others', 'ISI'],
         material: 'Carbon Steel',
@@ -541,6 +576,7 @@ class ProductGenerator {
         key: 'chemical',
         categoryId: 'cat_trade_chemical',
         namePrefix: 'Metal Paint',
+        namePrefixKh: 'ថ្នាំលាបដែក',
         grades: ['Primer ZP', 'Top Coat', 'Thinner'],
         brands: ['Metal Lux', 'Trading-Others'],
         material: 'Alkyd',
@@ -551,6 +587,7 @@ class ProductGenerator {
         key: 'anchor',
         categoryId: 'cat_trade_anchor',
         namePrefix: 'Chemical Anchor',
+        namePrefixKh: 'ប៊ូឡុងបោះគីមី',
         grades: ['HIT-RE Injectable', 'Mixing Nozzle', 'Threaded Rod'],
         brands: ['Hilti', 'Trading-Others'],
         material: 'Epoxy',
@@ -583,6 +620,10 @@ class ProductGenerator {
             categoryId: leaf.categoryId,
             leafKey: leaf.key,
             namePrefix: '$brand ${leaf.namePrefix}',
+            // Khmer leads with the item type and trails the brand — the order
+            // a Cambodian counter clerk says it in. English is the reverse.
+            // Same underlying family either way; only the rendering differs.
+            namePrefixKh: '${leaf.namePrefixKh} $brand',
             grade: grade,
             brand: brand,
             material: leaf.material,

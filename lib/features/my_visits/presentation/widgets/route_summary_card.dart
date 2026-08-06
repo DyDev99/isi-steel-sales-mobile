@@ -93,7 +93,10 @@ class RouteSummaryCard extends StatelessWidget {
                         child: Material(
                           type: MaterialType.transparency,
                           child: Text(
-                            route.name,
+                            // Key for mock plans, verbatim description for
+                            // real SAP ones — `.tr` returns anything it
+                            // doesn't recognise unchanged.
+                            route.name.tr,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(

@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_stop.dart';
 
 class StopMap extends StatelessWidget {
@@ -55,7 +56,7 @@ class StopMap extends StatelessWidget {
             const Icon(Icons.location_on, color: Colors.red, size: 36),
             const SizedBox(height: 8),
             Text(
-              stop.customer.name,
+              context.localized(stop.customer.displayName),
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ],

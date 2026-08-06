@@ -5,6 +5,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localized_builder.dart';
@@ -202,7 +203,7 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen>
     openQuotationForCustomer(
       navigator.context,
       customerId: stop.customer.id,
-      customerName: stop.customer.name,
+      customerName: context.localized(stop.customer.displayName),
     );
   }
 
@@ -425,7 +426,7 @@ class _UnifiedCustomerHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  stop.customer.name,
+                  context.localized(stop.customer.displayName),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(

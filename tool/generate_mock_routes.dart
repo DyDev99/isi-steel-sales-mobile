@@ -27,7 +27,7 @@ void main(List<String> args) {
   final dummyCustomerIds = List.generate(320, (i) => 'MOCK-CUST-${i + 1}');
 
   final data = MockRouteData.generate(dummyCustomerIds, seed: seed);
-  
+
   final file = File('assets/mock/routes.json');
   file.parent.createSync(recursive: true);
   file.writeAsStringSync(jsonEncode(data));

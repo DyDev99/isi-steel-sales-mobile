@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart' show DateUtils;
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/usecase/usecase.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/location_sample.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_plan.dart';
@@ -155,7 +156,13 @@ class StopDashboardCubit extends Cubit<StopDashboardState> {
     for (final route in _routes) {
       if (!DateUtils.isSameDay(route.visitDate, _selectedDate)) continue;
       for (final stop in route.stops) {
-        ctx[stop.id] = (routeId: route.id, routeName: route.name);
+        // `RoutePlan.name` carries a translation key for mock-generated plans
+        // and a verbatim SAP description for real ones; `.tr` resolves the
+        // former and passes the latter through untouched, so one call handles
+        // both. Resolved here rather than in the widget because the search
+        // predicate in `StopDashboardLoaded._matchesQuery` compares against
+        // this value — a raw key would never match what the rep sees.
+        ctx[stop.id] = (routeId: route.id, routeName: route.name.tr);
         stops.add(stop);
       }
     }

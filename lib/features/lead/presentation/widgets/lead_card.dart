@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
 import 'package:isi_steel_sales_mobile/features/lead/presentation/l10n/lead_labels.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
@@ -86,7 +87,7 @@ class _CardBody extends StatelessWidget {
                 GlassCard(
                   padding: const EdgeInsets.all(12),
                   onTap: onTap,
-                  child: _content(scheme, colors),
+                  child: _content(context, scheme, colors),
                 ),
                 // Left-side corporate accent band
                 Positioned(
@@ -112,7 +113,10 @@ class _CardBody extends StatelessWidget {
     );
   }
 
-  Widget _content(ColorScheme scheme, AppThemeColors colors) {
+  // Takes the context so the company name can resolve against the active
+  // locale — the name is bilingual data on the entity, not a translation key.
+  Widget _content(
+      BuildContext context, ColorScheme scheme, AppThemeColors colors) {
     final infoChips = <Widget>[
       if (lead.ownerName.trim().isNotEmpty)
         Flexible(
@@ -146,7 +150,7 @@ class _CardBody extends StatelessWidget {
                     right:
                         24), // Ensures text wraps cleanly under floating badge area
                 child: Text(
-                  lead.companyName,
+                  context.localized(lead.displayName),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(

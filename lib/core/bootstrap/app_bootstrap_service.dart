@@ -2,6 +2,7 @@ import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/migrations/legacy_orders_importer.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/migrations/legacy_source_factory.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/migrations/legacy_routes_importer.dart';
+import 'package:isi_steel_sales_mobile/core/database/drift/migrations/master_data_locale_backfill.dart';
 import 'package:isi_steel_sales_mobile/core/database/hive/hive_service.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/logging/app_logger.dart';
@@ -69,6 +70,11 @@ class AppBootstrapService {
       //    build that would have created one.
       await _importLegacyRoutes(logger);
       await _importLegacyOrders(logger);
+
+      // 5b. One-shot master-data locale backfill. Local disk only (it clears
+      //     three cursor tables), so ADR-002 §3 still holds — the re-sync it
+      //     arms happens later, opportunistically, on whatever screen asks.
+      await _backfillMasterDataLocale(logger);
 
       // 6. Session restore: intentionally a no-op here. AuthBloc's
       //    AuthCheckRequested reads the cached user from secure storage in the
@@ -177,6 +183,23 @@ Future<void> _importLegacyOrders(AppLogger logger) async {
     }
   } catch (error, stackTrace) {
     logger.error('bootstrap.legacy_orders_import_failed',
+        error: error, stackTrace: stackTrace);
+  }
+}
+
+/// Arms a one-time full re-sync of master data so an already-synced install
+/// picks up the Khmer names the feed now carries. See
+/// [MasterDataLocaleBackfill] for why a delta sync can never do this on its own.
+///
+/// A failure here is logged and swallowed, matching the legacy importers above:
+/// the marker is only written inside the transaction, so a failed attempt
+/// simply retries on the next launch. The cost of *not* running is stale names,
+/// not data loss — never a reason to block boot.
+Future<void> _backfillMasterDataLocale(AppLogger logger) async {
+  try {
+    await MasterDataLocaleBackfill(db: sl<AppDatabase>(), logger: logger).run();
+  } catch (error, stackTrace) {
+    logger.error('bootstrap.master_data_locale_backfill_failed',
         error: error, stackTrace: stackTrace);
   }
 }

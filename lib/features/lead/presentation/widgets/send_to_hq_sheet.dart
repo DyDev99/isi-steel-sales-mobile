@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
 import 'package:isi_steel_sales_mobile/features/lead/presentation/l10n/lead_labels.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
@@ -92,7 +93,9 @@ class _SendToHqSheetState extends State<_SendToHqSheet> {
                         fontSize: 12,
                         fontWeight: FontWeight.w700)),
                 const SizedBox(height: 8),
-                _ConfirmedRow(label: 'leads.shop'.tr, value: lead.companyName),
+                _ConfirmedRow(
+                    label: 'leads.shop'.tr,
+                    value: context.localized(lead.displayName)),
                 _ConfirmedRow(label: 'customers.phone'.tr, value: lead.phone),
                 _ConfirmedRow(
                   label: 'leads.hq.gps_location'.tr,

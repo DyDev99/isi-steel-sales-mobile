@@ -1,3 +1,4 @@
+import 'package:isi_steel_sales_mobile/core/localization/active_language.dart';
 import 'package:isi_steel_sales_mobile/core/platform/local_files.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -106,7 +107,12 @@ class QuotationPdfService {
         }
 
         // Details column formatting
-        final detailText = StringBuffer(item.product.name);
+        // Resolved through [ActiveLanguage] rather than a `BuildContext`: the
+        // PDF is composed outside the widget tree, and a Khmer session must
+        // produce a Khmer document (LOCALIZATION.md §8) rather than silently
+        // falling back to the English material description.
+        final detailText =
+            StringBuffer(ActiveLanguage.resolve(item.product.displayName));
         if (item.isCustomized) {
           detailText.write('\n(Customized Request)');
           if (item.measurements != null) {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
 import 'package:isi_steel_sales_mobile/features/lead/presentation/l10n/lead_labels.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -81,7 +82,8 @@ class LeadDetailScreen extends StatelessWidget {
         title: Text('leads.delete_confirm_title'.tr,
             style: TextStyle(color: context.appColors.textPrimary)),
         content: Text(
-            'leads.delete_confirm_body'.trParams({'company': lead.companyName}),
+            'leads.delete_confirm_body'
+                .trParams({'company': context.localized(lead.displayName)}),
             style: TextStyle(color: context.appColors.textSecondary)),
         actions: [
           TextButton(
@@ -199,7 +201,7 @@ class _DetailBody extends StatelessWidget {
               icon: Icon(Icons.arrow_back_rounded, color: colors.textPrimary),
             ),
             Expanded(
-              child: Text(lead.companyName,
+              child: Text(context.localized(lead.displayName),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -524,8 +526,8 @@ class _DetailBody extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
-                    onPressed: () =>
-                        _openCatalog(context, lead.id, lead.companyName),
+                    onPressed: () => _openCatalog(
+                        context, lead.id, context.localized(lead.displayName)),
                     icon: const Icon(Icons.add_shopping_cart_rounded, size: 18),
                     label: Text('leads.add_products'.tr),
                   ),

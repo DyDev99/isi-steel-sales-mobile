@@ -1,3 +1,4 @@
+import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
 import 'package:isi_steel_sales_mobile/core/platform/local_files.dart';
 
 import 'package:flutter/material.dart';
@@ -132,7 +133,7 @@ class _CartPreviewRow extends StatelessWidget {
                 children: [
                   Flexible(
                     child: Text(
-                      item.product.name,
+                      context.localized(item.product.displayName),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(

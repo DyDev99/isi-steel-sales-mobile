@@ -75,7 +75,8 @@ class _CategorySelectorState extends State<CategorySelector> {
                 borderRadius: BorderRadius.circular(20.r),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
-                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 6.h),
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 16.w, vertical: 6.h),
                   decoration: BoxDecoration(
                     color: colors.card,
                     borderRadius: BorderRadius.circular(20.r),
@@ -163,9 +164,8 @@ class _CategoryTile extends StatelessWidget {
                 ],
         ),
         border: Border.all(
-          color: selected
-              ? scheme.primary
-              : colors.border.withValues(alpha: 0.8),
+          color:
+              selected ? scheme.primary : colors.border.withValues(alpha: 0.8),
           width: selected ? 1.5.w : 1.w,
         ),
         boxShadow: selected
@@ -270,14 +270,19 @@ class _CategoryTile extends StatelessWidget {
 
     // 1. Roofing, Tiles, Panels & Trusses
     if (n.contains('tile') || n.contains('wave')) return Icons.roofing_rounded;
-    if (n.contains('deck') || n.contains('panel')) return Icons.view_quilt_rounded;
+    if (n.contains('deck') || n.contains('panel')) {
+      return Icons.view_quilt_rounded;
+    }
     if (n.contains('truss') || n.contains('palm') || n.contains('inno')) {
       return Icons.architecture_rounded;
     }
     if (n.contains('roof')) return Icons.roofing_rounded;
 
     // 2. Flashing, Gutters & Ridge Caps
-    if (n.contains('gutter') || n.contains('flashing') || n.contains('ridge') || n.contains('cap')) {
+    if (n.contains('gutter') ||
+        n.contains('flashing') ||
+        n.contains('ridge') ||
+        n.contains('cap')) {
       return Icons.border_top_rounded;
     }
 
@@ -285,11 +290,17 @@ class _CategoryTile extends StatelessWidget {
     if (n.contains('screw') || n.contains('bolt') || n.contains('fastener')) {
       return Icons.build_circle_outlined;
     }
-    if (n.contains('weld') || n.contains('electrode')) return Icons.flash_on_rounded;
-    if (n.contains('hardware') || n.contains('tool')) return Icons.hardware_rounded;
+    if (n.contains('weld') || n.contains('electrode')) {
+      return Icons.flash_on_rounded;
+    }
+    if (n.contains('hardware') || n.contains('tool')) {
+      return Icons.hardware_rounded;
+    }
 
     // 4. Pipes & Tubing (Round, Square, Rectangular)
-    if (n.contains('square') || n.contains('box pipe')) return Icons.crop_square_rounded;
+    if (n.contains('square') || n.contains('box pipe')) {
+      return Icons.crop_square_rounded;
+    }
     if (n.contains('pipe') || n.contains('tube') || n.contains('hollow')) {
       return Icons.circle_outlined;
     }
@@ -298,29 +309,46 @@ class _CategoryTile extends StatelessWidget {
     if (n.contains('h-beam') || n.contains('i-beam') || n.contains('beam')) {
       return Icons.table_rows_rounded;
     }
-    if (n.contains('purlin') || n.contains('c-purlin') || n.contains('z-purlin') || n.contains('cam')) {
+    if (n.contains('purlin') ||
+        n.contains('c-purlin') ||
+        n.contains('z-purlin') ||
+        n.contains('cam')) {
       return Icons.view_week_rounded;
     }
-    if (n.contains('angle') || n.contains('channel')) return Icons.turn_right_rounded;
-    if (n.contains('structural') || n.contains('steel')) return Icons.grid_goldenratio;
+    if (n.contains('angle') || n.contains('channel')) {
+      return Icons.turn_right_rounded;
+    }
+    if (n.contains('structural') || n.contains('steel')) {
+      return Icons.grid_goldenratio;
+    }
 
     // 6. Rebar, Deformed Bars & Wire Mesh
     if (n.contains('mesh') || n.contains('fence') || n.contains('net')) {
       return Icons.grid_4x4_rounded;
     }
-    if (n.contains('rebar') || n.contains('deformed') || n.contains('bar') || n.contains('rod')) {
+    if (n.contains('rebar') ||
+        n.contains('deformed') ||
+        n.contains('bar') ||
+        n.contains('rod')) {
       return Icons.straighten_rounded;
     }
 
     // 7. Coils, Flat Sheets & Plates
-    if (n.contains('coil') || n.contains('roll')) return Icons.motion_photos_on_rounded;
-    if (n.contains('checkered') || n.contains('plate')) return Icons.grid_on_rounded;
+    if (n.contains('coil') || n.contains('roll')) {
+      return Icons.motion_photos_on_rounded;
+    }
+    if (n.contains('checkered') || n.contains('plate')) {
+      return Icons.grid_on_rounded;
+    }
     if (n.contains('flat') || n.contains('sheet') || n.contains('slitted')) {
       return Icons.layers_outlined;
     }
 
     // 8. Ceiling, Drywall & Interior
-    if (n.contains('ceiling') || n.contains('drywall') || n.contains('stud') || n.contains('track')) {
+    if (n.contains('ceiling') ||
+        n.contains('drywall') ||
+        n.contains('stud') ||
+        n.contains('track')) {
       return Icons.space_dashboard_rounded;
     }
     if (n.contains('interior')) return Icons.chair_outlined;

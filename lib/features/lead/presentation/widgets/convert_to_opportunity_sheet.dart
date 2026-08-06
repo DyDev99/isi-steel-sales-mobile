@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/lead.dart';
@@ -51,7 +52,9 @@ class _ConvertSheetState extends State<_ConvertSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('leads.qualify'.trParams({'company': widget.lead.companyName}),
+            Text(
+                'leads.qualify'.trParams(
+                    {'company': context.localized(widget.lead.displayName)}),
                 style: TextStyle(
                     color: colors.textPrimary,
                     fontSize: 17,

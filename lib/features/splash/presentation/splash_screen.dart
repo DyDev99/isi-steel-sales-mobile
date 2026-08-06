@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/database/hive/app_preferences.dart';
 import 'package:isi_steel_sales_mobile/core/utils/version.dart';
@@ -95,17 +96,26 @@ class _SplashScreenState extends State<SplashScreen>
                     // If Vibe.cta is a light-colored gradient, it won't show on white.
                     // Change the color/gradient to something dark (e.g., Colors.black)
                     Text(
-                      'STEEL360',
+                      // Was the literal 'STEEL360' — which is why the
+                      // `splash.brand` key existed but never rendered, and why
+                      // the splash still showed the old name after every other
+                      // surface had been rebranded. The key resolves to
+                      // "SteelForce" in both bundles; brand names are not
+                      // translated (LOCALIZATION.md §9), but they *are* keyed
+                      // so a rebrand is a bundle edit, not a code hunt.
+                      'splash.brand'.tr,
                       style: const TextStyle(
                         fontSize: 26,
                         fontWeight: FontWeight.w900,
-                        letterSpacing: 4,
+                        // Reduced from 4: that spacing was tuned for an
+                        // all-caps wordmark and pulls a mixed-case one apart.
+                        letterSpacing: 1.5,
                         color: Colors.black, // Explicitly set to black
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Members of the ISI Group',
+                      'splash.group_line'.tr,
                       style: const TextStyle(
                         color: Colors.grey, // Changed from Vibe.muted
                         fontSize: 13,

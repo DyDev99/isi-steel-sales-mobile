@@ -6,6 +6,7 @@ class CustomerStopInfoModel extends CustomerStopInfo {
   const CustomerStopInfoModel({
     required super.id,
     required super.name,
+    super.nameKh,
     required super.code,
     required super.contact,
     required super.phone,
@@ -20,6 +21,9 @@ class CustomerStopInfoModel extends CustomerStopInfo {
   factory CustomerStopInfoModel.fromJson(DataMap json) => CustomerStopInfoModel(
         id: json['id'] as String,
         name: json['name'] as String,
+        // Absent on payloads generated before the catalog went bilingual;
+        // `''` is the documented "no Khmer name" value, not a parse failure.
+        nameKh: json['nameKh'] as String? ?? '',
         code: json['code'] as String,
         contact: json['contact'] as String,
         phone: json['phone'] as String,
@@ -36,6 +40,7 @@ class CustomerStopInfoModel extends CustomerStopInfo {
   factory CustomerStopInfoModel.fromRow(DataMap row) => CustomerStopInfoModel(
         id: row['id'] as String,
         name: row['name'] as String,
+        nameKh: row['name_kh'] as String? ?? '',
         code: row['code'] as String,
         contact: row['contact'] as String,
         phone: row['phone'] as String,
@@ -52,6 +57,7 @@ class CustomerStopInfoModel extends CustomerStopInfo {
   DataMap toRow() => {
         'id': id,
         'name': name,
+        'name_kh': nameKh,
         'code': code,
         'contact': contact,
         'phone': phone,

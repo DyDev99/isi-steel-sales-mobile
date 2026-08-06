@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localized_builder.dart';
@@ -155,7 +156,7 @@ class QuotationDetailScreen extends StatelessWidget {
               children: [
                 for (final line in quotation.lines)
                   _LineRow(
-                      name: line.product.name,
+                      name: context.localized(line.product.displayName),
                       qty: line.quantity,
                       total: line.lineTotal),
               ],

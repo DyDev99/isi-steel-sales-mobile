@@ -137,6 +137,17 @@ class MockProductRemoteDataSource implements ProductRemoteDataSource {
           materialCode: p.materialCode,
           barcode: p.barcode,
           name: p.name,
+          // A delta rebuilds the row from scratch, so every field it forgets
+          // is silently *erased* — not left alone. These four are all
+          // defaulted on the constructor (`nameKh = ''`, `color = ''`, …),
+          // so omitting them compiled fine and quietly wiped the Khmer name
+          // off ~5% of the catalog on every delta sync. That is a data-loss
+          // bug, not a mock shortcut: it made a correctly-synced bilingual
+          // catalog decay back to English-only the longer the app ran.
+          nameKh: p.nameKh,
+          color: p.color,
+          specification: p.specification,
+          createdAt: p.createdAt,
           description: p.description,
           categoryId: p.categoryId,
           subCategory: p.subCategory,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/lead.dart';
@@ -60,8 +61,8 @@ class _WonSheetState extends State<_WonSheet> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                  'leads.won.title'
-                      .trParams({'company': widget.lead.companyName}),
+                  'leads.won.title'.trParams(
+                      {'company': context.localized(widget.lead.displayName)}),
                   style: TextStyle(
                       color: colors.textPrimary,
                       fontSize: 17,
