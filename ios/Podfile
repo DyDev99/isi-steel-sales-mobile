@@ -2,7 +2,7 @@
 # highest floor among this app's plugins, verified from their podspecs:
 #   google_maps_flutter_ios 2.18.4 → 14.0  ← binding constraint
 #   image_picker_ios        0.8.13 → 13.0
-#   mobile_scanner          5.2.3  → 12.0
+#   mobile_scanner          7.x    → 11.0  (uses Apple Vision, no MLKit)
 #   geolocator_apple        2.3.14 → 11.0
 #   sqlcipher_flutter_libs  0.6.8  →  8.0
 # The project previously declared 13.0, which is below the Maps floor. Leaving

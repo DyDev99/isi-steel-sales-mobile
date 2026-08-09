@@ -426,7 +426,14 @@ class _MainShellState extends State<MainShell> {
             },
             child: Scaffold(
               backgroundColor: context.appColors.canvas,
-              body: context.windowSize.hasSideNavigation
+              // Side navigation is deliberately *desktop-only* (>= 1024), not
+              // `hasSideNavigation` (>= 600). On a tablet the rail added a
+              // second navigation model on top of the "My Work" grid that
+              // phones already use, for no gain — a tablet has ample room for
+              // the grid, so it now gets exactly the phone experience. The rail
+              // is kept for genuine desktop/browser widths, where a persistent
+              // nav is worth the horizontal space it costs.
+              body: context.windowSize.isExpanded
                   ? Row(
                       children: [
                         _buildNavigationRail(context, context.windowSize),

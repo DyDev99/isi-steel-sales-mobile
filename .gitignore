@@ -59,6 +59,13 @@ app.*.map.json
 # Graphify knowledge graph (rebuildable artifact: `graphify update .`)
 graphify-out/
 
+# Machine-specific Claude Code settings. The graphify PreToolUse hooks embed an
+# ABSOLUTE path to the graphify executable, which differs per OS and per user
+# (macOS: ~/.local/bin/graphify, Windows: %APPDATA%/uv/tools/.../graphify.exe).
+# Committing them breaks every other developer's machine, so each developer
+# generates their own with `graphify claude install`. See docs/GRAPHIFY.md.
+.claude/settings.local.json
+
 # Gradle writes its build-scan/problems reports here. The root /build/ rule
 # above does not cover android/build/, so this artifact was being tracked.
 /android/build/

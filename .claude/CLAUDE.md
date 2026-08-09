@@ -99,6 +99,7 @@ dart run build_runner build --delete-conflicting-outputs   # after any Drift tab
 | Security standards, OWASP mapping, release checklist | `docs/SECURITY.md` |
 | Phased rollout, sprints, task backlog, risk register | `docs/MIGRATION_PLAN.md` |
 | Why key decisions were made (one per major decision) | `docs/adr/ADR-001` through `ADR-008` |
+| Codebase knowledge graph — setup, queries, blast-radius analysis | `docs/GRAPHIFY.md` |
 
 Architecture Decision Records (`docs/adr/`):
 

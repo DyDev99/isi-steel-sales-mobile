@@ -1,29 +1,14 @@
 {
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash|Grep",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "C:/Users/chandy.neat/AppData/Roaming/uv/tools/graphifyy/Scripts/graphify.exe hook-guard search"
-          }
-        ]
-      },
-      {
-        "matcher": "Read|Glob",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "C:/Users/chandy.neat/AppData/Roaming/uv/tools/graphifyy/Scripts/graphify.exe hook-guard read"
-          }
-        ]
-      }
-    ]
-  },
   "permissions": {
     "allow": [
-      "Bash(graphify update *)"
+      "Bash(graphify update *)",
+      "Bash(graphify query *)",
+      "Bash(graphify path *)",
+      "Bash(graphify explain *)",
+      "Bash(graphify affected *)",
+      "Bash(graphify god-nodes *)",
+      "Bash(graphify export *)",
+      "Bash(graphify benchmark *)"
     ]
   }
 }
