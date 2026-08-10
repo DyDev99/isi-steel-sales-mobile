@@ -2,8 +2,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:isi_steel_sales_mobile/core/animations/app_animations.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/presentation/services/coach_keys.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/usecases/lead_usecase.dart';
@@ -41,7 +43,7 @@ class MainAppBar extends StatelessWidget {
     final colors = context.appColors;
 
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
+      duration: AppDurations.medium,
       width: double.infinity,
       decoration: BoxDecoration(
         color: isHome ? Colors.transparent : scheme.surface,
@@ -66,7 +68,8 @@ class MainAppBar extends StatelessWidget {
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: EdgeInsets.fromLTRB(12.w, 10.h, 16.w, 10.h),
+          padding: EdgeInsets.fromLTRB(
+              context.rw(12), context.rh(10), context.rw(16), context.rh(10)),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -78,10 +81,10 @@ class MainAppBar extends StatelessWidget {
                   child: Icon(
                     Icons.arrow_back_ios_new_rounded,
                     color: scheme.onSurface,
-                    size: 16.sp,
+                    size: context.rr(16),
                   ),
                 ),
-                SizedBox(width: 12.w),
+                SizedBox(width: context.rw(12)),
               ],
 
               // 2. Main Content (Logo or Title)
@@ -104,8 +107,8 @@ class MainAppBar extends StatelessWidget {
                             borderRadius: BorderRadius.circular(12.r),
                             child: Image.asset(
                               'assets/logos/isi_main_shell_logo.png',
-                              height: 40.h,
-                              width: 140.w,
+                              height: context.rh(40),
+                              width: context.rw(140),
                               fit: BoxFit.cover,
                             ),
                           ),
@@ -115,7 +118,7 @@ class MainAppBar extends StatelessWidget {
                         title,
                         style: TextStyle(
                           color: scheme.onSurface,
-                          fontSize: 18.sp,
+                          fontSize: context.rsp(18),
                           fontWeight: FontWeight.w800,
                           letterSpacing: -0.2,
                           shadows: [
@@ -130,7 +133,7 @@ class MainAppBar extends StatelessWidget {
                         maxLines: 1,
                       ),
               ),
-              SizedBox(width: 12.w),
+              SizedBox(width: context.rw(12)),
 
               // 3. Language Selector Popup Menu — 3D Medallion
               CoachKeys.wrap(
@@ -179,15 +182,15 @@ class MainAppBar extends StatelessWidget {
                       final isSelected = currentLang == language.code;
                       return PopupMenuItem<String>(
                         value: language.code,
-                        height: 44.h,
+                        height: context.rh(48),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
                               language.flag,
-                              style: TextStyle(fontSize: 18.sp),
+                              style: TextStyle(fontSize: context.rsp(18)),
                             ),
-                            SizedBox(width: 10.w),
+                            SizedBox(width: context.rw(10)),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisSize: MainAxisSize.min,
@@ -196,7 +199,7 @@ class MainAppBar extends StatelessWidget {
                                   language.nameKey.tr,
                                   style: TextStyle(
                                     color: scheme.onSurface,
-                                    fontSize: 13.sp,
+                                    fontSize: context.rsp(13),
                                     fontWeight: isSelected
                                         ? FontWeight.w800
                                         : FontWeight.w500,
@@ -207,16 +210,16 @@ class MainAppBar extends StatelessWidget {
                                   style: TextStyle(
                                     color:
                                         scheme.onSurface.withValues(alpha: 0.5),
-                                    fontSize: 10.sp,
+                                    fontSize: context.rsp(10),
                                   ),
                                 ),
                               ],
                             ),
-                            SizedBox(width: 16.w),
+                            SizedBox(width: context.rw(16)),
                             if (isSelected)
                               Icon(
                                 Icons.check_circle_rounded,
-                                size: 16.sp,
+                                size: context.rr(16),
                                 color: _goldPrimary,
                               ),
                           ],
@@ -229,12 +232,12 @@ class MainAppBar extends StatelessWidget {
                     child: Icon(
                       Icons.language,
                       color: isHome ? Colors.white : scheme.onSurface,
-                      size: 18.sp,
+                      size: context.rr(18),
                     ),
                   ),
                 ),
               ),
-              SizedBox(width: 10.w),
+              SizedBox(width: context.rw(10)),
 
               // 4. Notification Bell — 3D Medallion
               CoachKeys.wrap(
@@ -244,7 +247,7 @@ class MainAppBar extends StatelessWidget {
                   onTapOverride: onNotificationTap,
                 ),
               ),
-              SizedBox(width: 10.w),
+              SizedBox(width: context.rw(10)),
 
               // 5. User Avatar — 3D Traditional Gold Frame
               CoachKeys.wrap(
@@ -252,8 +255,8 @@ class MainAppBar extends StatelessWidget {
                 child: GestureDetector(
                   onTap: onAvatarTap,
                   child: Container(
-                    width: 38.r,
-                    height: 38.r,
+                    width: context.rr(38),
+                    height: context.rr(38),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12.r),
                       // Gold Metallic Outer Rim Frame
@@ -282,15 +285,15 @@ class MainAppBar extends StatelessWidget {
                         imageUrl:
                             'https://png.pngtree.com/png-clipart/20240111/original/pngtree-cool-smile-profile-emoji-png-image_14087472.png',
                         fit: BoxFit.cover,
-                        placeholder: (context, url) => const Icon(
+                        placeholder: (context, url) => Icon(
                           Icons.person,
                           color: Color.fromARGB(255, 195, 172, 0),
-                          size: 18,
+                          size: context.rr(18),
                         ),
-                        errorWidget: (context, url, error) => const Icon(
+                        errorWidget: (context, url, error) => Icon(
                           Icons.person,
                           color: Color.fromARGB(255, 195, 172, 0),
-                          size: 18,
+                          size: context.rr(18),
                         ),
                       ),
                     ),
@@ -327,8 +330,8 @@ class _AppBarMedallionButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 36.r,
-        height: 36.r,
+        width: context.rr(36),
+        height: context.rr(36),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           gradient: LinearGradient(
@@ -388,15 +391,15 @@ class _NotificationBell extends StatelessWidget {
             Icon(
               Icons.notifications_none_rounded,
               color: isInverseColor ? Colors.white : scheme.onSurface,
-              size: 20.sp,
+              size: context.rr(20),
             ),
             if (hasNotifications)
               Positioned(
                 right: -2,
                 top: -2,
                 child: Container(
-                  width: 9.r,
-                  height: 9.r,
+                  width: context.rr(9),
+                  height: context.rr(9),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       colors: [Color(0xFFEF4444), Color(0xFFB91C1C)],

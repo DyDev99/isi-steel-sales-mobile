@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
 class MonthlyTargetCard extends StatefulWidget {
@@ -94,7 +95,7 @@ class _MonthlyTargetCardState extends State<MonthlyTargetCard> {
             ),
             padding: EdgeInsets.all(2.r), // Gold Border Trim Thickness
             child: Container(
-              padding: EdgeInsets.all(18.w),
+              padding: EdgeInsets.all(context.rw(18)),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(18.r),
                 color: scheme.surface,
@@ -185,7 +186,7 @@ class _MonthlyTargetCardState extends State<MonthlyTargetCard> {
                                       .trParams({'month': widget.monthName}),
                                   style: TextStyle(
                                     color: scheme.onSurface,
-                                    fontSize: 14.sp,
+                                    fontSize: context.rsp(14),
                                     fontWeight: FontWeight.w700,
                                     letterSpacing: -0.2,
                                   ),
@@ -224,7 +225,7 @@ class _MonthlyTargetCardState extends State<MonthlyTargetCard> {
                                 '$_percentage%',
                                 style: TextStyle(
                                   color: Colors.white,
-                                  fontSize: 12.sp,
+                                  fontSize: context.rsp(12),
                                   fontWeight: FontWeight.w900,
                                 ),
                               ),
@@ -232,7 +233,7 @@ class _MonthlyTargetCardState extends State<MonthlyTargetCard> {
                           ],
                         ),
 
-                        SizedBox(height: 16.h),
+                        SizedBox(height: context.rh(16)),
 
                         // 2. Large Value Display with 3D Depth Style
                         Row(
@@ -243,7 +244,7 @@ class _MonthlyTargetCardState extends State<MonthlyTargetCard> {
                               '\$${widget.achievedAmount.toInt()}',
                               style: TextStyle(
                                 color: scheme.onSurface,
-                                fontSize: 24.sp,
+                                fontSize: context.rsp(24),
                                 fontWeight: FontWeight.w900,
                                 letterSpacing: -0.5,
                                 shadows: [
@@ -261,18 +262,18 @@ class _MonthlyTargetCardState extends State<MonthlyTargetCard> {
                               '/ \$${widget.targetAmount.toInt()}',
                               style: TextStyle(
                                 color: scheme.onSurface.withValues(alpha: 0.5),
-                                fontSize: 14.sp,
+                                fontSize: context.rsp(14),
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
                           ],
                         ),
 
-                        SizedBox(height: 14.h),
+                        SizedBox(height: context.rh(14)),
 
                         // 3. Carved 3D Progress Track
                         Container(
-                          height: 12.h,
+                          height: context.rh(12),
                           decoration: BoxDecoration(
                             color: appColors.surfaceSoft,
                             borderRadius: BorderRadius.circular(10.r),
@@ -294,7 +295,7 @@ class _MonthlyTargetCardState extends State<MonthlyTargetCard> {
                               FractionallySizedBox(
                                 widthFactor: _progress,
                                 child: Container(
-                                  height: 12.h,
+                                  height: context.rh(12),
                                   decoration: BoxDecoration(
                                     gradient: LinearGradient(
                                       begin: Alignment.topCenter,

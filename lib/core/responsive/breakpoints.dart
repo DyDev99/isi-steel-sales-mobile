@@ -40,6 +40,21 @@ class Breakpoints {
   /// Below this, side navigation is a compact rail; above, it can be expanded.
   static const double mediumMax = 1024;
 
+  /// Minimum width for persistent side navigation (the rail).
+  ///
+  /// Deliberately *above* every tablet rather than at the [mediumMax]
+  /// (`expanded`) boundary. A large iPad Pro is **1024–1032pt** wide in
+  /// portrait (12.9" is 1024; the M5 13" is 1032), so keying the rail off
+  /// `expanded` (>= 1024) landed just past the boundary and put a sidebar on
+  /// the one device class this app does not want one on. Verified on an
+  /// iPad Pro 13" (M5) simulator: 2064px / 2 = 1032pt.
+  ///
+  /// 1440 clears every iPad — the largest is 1366–1376pt even in landscape —
+  /// and the common Android tablets (a Pixel Tablet is 1280pt in landscape),
+  /// while a maximised desktop browser still qualifies. The rail is a desktop
+  /// affordance here; tablets use the same "My Work" grid the phone uses.
+  static const double sideNavigationMin = 1440;
+
   /// Content is never allowed to stretch wider than this.
   ///
   /// Not an aesthetic preference: a data table or form field spanning 2560px
@@ -65,6 +80,12 @@ extension ResponsiveContext on BuildContext {
 
   /// Shorthand for the most common branch.
   bool get isCompactWindow => windowSize.isCompact;
+
+  /// True only on windows wide enough to be a desktop browser — never a
+  /// tablet. See [Breakpoints.sideNavigationMin] for why this is not simply
+  /// `windowSize.isExpanded`.
+  bool get showsSideNavigation =>
+      MediaQuery.sizeOf(this).width >= Breakpoints.sideNavigationMin;
 
   /// Picks a value per size class, falling back down the ladder.
   ///

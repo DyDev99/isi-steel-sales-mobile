@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/device/device_insets.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/guest/guest_cta_card.dart';
 import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/guest/guest_fade_in.dart';
 import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/guest/guest_my_work_grid.dart';
@@ -31,7 +32,7 @@ class GuestHomeScreen extends StatelessWidget {
         GuestFadeIn(
           delay: Duration.zero,
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(context.pagePadding),
             child: GuestCtaCard(onAuthenticate: onLogin),
           ),
         ),

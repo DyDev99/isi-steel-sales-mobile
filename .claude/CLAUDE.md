@@ -3,6 +3,12 @@
 > ISI Steel Sales Mobile — Offline-First Enterprise CRM (Flutter)
 > This file is read automatically at the start of every session in this repo. It tells you what this project is, what state it's actually in, and the rules you must follow before writing any code.
 >
+> **Building or changing a feature, screen, or any UI? `docs/FEATURE_UI_STANDARD.md`
+> is the gate — read it first and put its §14 checklist in the PR.** It covers
+> security, no-crash stability, performance, responsive/adaptive, animation,
+> the traditional-premium visual language, calm UX, localization,
+> accessibility, and long-term scale/maintenance/upgrade readiness.
+>
 > **Before writing any code, also open `docs/AI_ENGINEERING_PLAYBOOK.md`.** This file (`CLAUDE.md`) is the pointer; the playbook is the operational manual — conventions, naming, folder ownership, the feature/PR/review checklists, refactoring and performance rules, security and offline checklists, anti-patterns, and a full worked code example of the correct layering. Keep it open while you work, not just at session start.
 
 ---
@@ -91,6 +97,7 @@ dart run build_runner build --delete-conflicting-outputs   # after any Drift tab
 | Area | Document |
 |---|---|
 | **Day-to-day operational manual — checklists, conventions, worked code example** | **`docs/AI_ENGINEERING_PLAYBOOK.md`** |
+| **Gate for any new feature / screen / UI upgrade — security, stability, performance, responsive, motion, visual language, UX, longevity** | **`docs/FEATURE_UI_STANDARD.md`** |
 | Cross-cutting engineering rules | `docs/ENGINEERING_STANDARD.md` |
 | System overview, layers, folder structure, dependency graph | `docs/ARCHITECTURE.md` |
 | Offline behavior, guest-first auth, resumable workflow | `docs/OFFLINE_FIRST.md` |

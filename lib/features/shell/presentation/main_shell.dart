@@ -8,7 +8,7 @@ import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localized_builder.dart';
 import 'package:isi_steel_sales_mobile/core/network/connectivity_cubit.dart';
-import 'package:isi_steel_sales_mobile/core/responsive/breakpoints.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/presentation/services/coach_anchor_registry.dart';
@@ -147,7 +147,8 @@ class _MainShellState extends State<MainShell> {
     }
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(16.w, 4.h, 16.w, 0.h),
+      padding: EdgeInsets.fromLTRB(
+          context.pagePadding, context.rh(4), context.pagePadding, 0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -157,8 +158,8 @@ class _MainShellState extends State<MainShell> {
               children: [
                 // Traditional Gold Pillar Accent Line
                 Container(
-                  width: 3.5.w,
-                  height: 32.h,
+                  width: context.rw(3.5),
+                  height: context.rh(32),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(2.r),
                     gradient: const LinearGradient(
@@ -185,7 +186,7 @@ class _MainShellState extends State<MainShell> {
                         greetingKey.tr,
                         style: TextStyle(
                           color: Colors.white.withValues(alpha: 0.9),
-                          fontSize: 13.sp,
+                          fontSize: context.rsp(13),
                           fontWeight: FontWeight.w600,
                         ),
                         maxLines: 1,
@@ -196,7 +197,7 @@ class _MainShellState extends State<MainShell> {
                         'Sokha Novel',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 19.sp,
+                          fontSize: context.rsp(19),
                           fontWeight: FontWeight.w900,
                           letterSpacing: -0.5,
                           shadows: [
@@ -246,7 +247,7 @@ class _MainShellState extends State<MainShell> {
           children: [
             SafeArea(
               bottom: false,
-              child: SizedBox(height: 70.h),
+              child: SizedBox(height: context.rh(70)),
             ),
             Expanded(
               child: ListView(
@@ -260,9 +261,9 @@ class _MainShellState extends State<MainShell> {
                 ),
                 children: [
                   _buildWelcomeSection(context),
-                  SizedBox(height: 16.h),
+                  SizedBox(height: context.rh(16)),
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16.w),
+                    padding: EdgeInsets.symmetric(horizontal: context.pagePadding),
                     child: CoachKeys.wrap(
                       CoachKeys.monthlyTarget,
                       child: MonthlyTargetCard(
@@ -282,17 +283,17 @@ class _MainShellState extends State<MainShell> {
                       ),
                     ),
                   ),
-                  SizedBox(height: 16.h),
+                  SizedBox(height: context.rh(16)),
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16.w),
+                    padding: EdgeInsets.symmetric(horizontal: context.pagePadding),
                     child: const ConnectivityBanner(),
                   ),
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16.w),
+                    padding: EdgeInsets.symmetric(horizontal: context.pagePadding),
                     child: const ContinueVisitCard(),
                   ),
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16.w),
+                    padding: EdgeInsets.symmetric(horizontal: context.pagePadding),
                     child: const ContinueWorkingCard(),
                   ),
                   SizedBox(height: 8.h),
@@ -333,7 +334,7 @@ class _MainShellState extends State<MainShell> {
                   key: const ValueKey('authenticated_home_view'))
               : GuestHomeScreen(
                   key: const ValueKey('guest_home_view'),
-                  topInset: 70.h,
+                  topInset: context.rh(70),
                   onLogin: () => _openProfile(context),
                 ),
         );
@@ -344,7 +345,7 @@ class _MainShellState extends State<MainShell> {
   Widget _buildTab(int i) {
     Widget wrapWithTopSpacing(Widget screen) {
       return Padding(
-        padding: EdgeInsets.only(top: 80.h),
+        padding: EdgeInsets.only(top: context.rh(80)),
         child: screen,
       );
     }
@@ -426,14 +427,14 @@ class _MainShellState extends State<MainShell> {
             },
             child: Scaffold(
               backgroundColor: context.appColors.canvas,
-              // Side navigation is deliberately *desktop-only* (>= 1024), not
-              // `hasSideNavigation` (>= 600). On a tablet the rail added a
-              // second navigation model on top of the "My Work" grid that
-              // phones already use, for no gain — a tablet has ample room for
-              // the grid, so it now gets exactly the phone experience. The rail
-              // is kept for genuine desktop/browser widths, where a persistent
-              // nav is worth the horizontal space it costs.
-              body: context.windowSize.isExpanded
+              // Side navigation is deliberately *desktop-only*, not
+              // `hasSideNavigation` (>= 600) and not `isExpanded` (>= 1024) —
+              // an iPad Pro 12.9" is exactly 1024pt in portrait, so `expanded`
+              // sits right on a tablet. On a tablet the rail added a second
+              // navigation model on top of the "My Work" grid that phones
+              // already use, for no gain, so tablets now get exactly the phone
+              // experience. See [Breakpoints.sideNavigationMin].
+              body: context.showsSideNavigation
                   ? Row(
                       children: [
                         _buildNavigationRail(context, context.windowSize),

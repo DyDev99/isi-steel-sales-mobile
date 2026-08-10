@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
 class GuestMyWorkGrid extends StatelessWidget {
@@ -13,29 +14,36 @@ class GuestMyWorkGrid extends StatelessWidget {
     final appColors = context.appColors;
 
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+      padding: EdgeInsets.symmetric(
+        horizontal: context.pagePadding,
+        vertical: context.rh(8),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
           // Section Title Header with Gold Accent Indicator
           Padding(
-            padding: EdgeInsets.only(left: 4.w, bottom: 14.h),
+            padding: EdgeInsets.only(left: 4.w, bottom: context.rh(14)),
             child: Row(
               children: [
                 Container(
                   width: 4.w,
-                  height: 16.h,
+                  height: context.rh(16),
                   decoration: BoxDecoration(
                     color: const Color(0xFFC88D2B),
                     borderRadius: BorderRadius.circular(2.r),
                   ),
                 ),
-                SizedBox(width: 8.w),
+                SizedBox(width: context.rw(8)),
                 Text(
                   'shell.my_work'.tr.toUpperCase(),
                   style: TextStyle(
-                    fontSize: 14.sp,
+                    // Matches _SectionHeader in my_work_grid_section.dart — the
+                    // guest and authenticated home must not diverge. See the
+                    // note there for why the base widens above compact.
+                    fontSize: context
+                        .rsp(context.responsive(compact: 14.0, medium: 16.0)),
                     fontWeight: FontWeight.w900,
                     letterSpacing: 1.5,
                     color: appColors.textSecondary,
@@ -56,7 +64,7 @@ class GuestMyWorkGrid extends StatelessWidget {
                   onTap: onRequireLogin,
                 ),
               ),
-              SizedBox(width: 12.w),
+              SizedBox(width: context.rw(12)),
               Expanded(
                 child: _WorkCard(
                   label: 'shell.my_visits'.tr,
@@ -69,7 +77,7 @@ class GuestMyWorkGrid extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: context.rh(12)),
           Row(
             children: [
               Expanded(
@@ -80,7 +88,7 @@ class GuestMyWorkGrid extends StatelessWidget {
                   onTap: onRequireLogin,
                 ),
               ),
-              SizedBox(width: 12.w),
+              SizedBox(width: context.rw(12)),
               Expanded(
                 child: _WorkCard(
                   label: 'shell.my_quotes_orders'.tr,
@@ -130,7 +138,7 @@ class _WorkCard extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(20.r),
           child: Container(
-            height: 124.h,
+            height: context.rh(124),
             clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
               color: isDark ? appColors.card : scheme.surface,
@@ -194,8 +202,8 @@ class _WorkCard extends StatelessWidget {
                     children: [
                       // Circular Icon Shape
                       Container(
-                        width: 48.r,
-                        height: 48.r,
+                        width: context.rr(48),
+                        height: context.rr(48),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: tint.withValues(alpha: isDark ? 0.18 : 0.12),
@@ -208,17 +216,17 @@ class _WorkCard extends StatelessWidget {
                           child: Icon(
                             icon,
                             color: tint,
-                            size: 22.r,
+                            size: context.rr(22),
                           ),
                         ),
                       ),
-                      SizedBox(height: 10.h),
+                      SizedBox(height: context.rh(10)),
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 10.w),
                         child: Text(
                           label,
                           style: TextStyle(
-                            fontSize: 14.sp,
+                            fontSize: context.rsp(14),
                             fontWeight: FontWeight.w800,
                             color: appColors.textPrimary,
                             letterSpacing: -0.2,
@@ -256,7 +264,7 @@ class _WorkCard extends StatelessWidget {
                         badgeText!,
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 10.sp,
+                          fontSize: context.rsp(10),
                           fontWeight: FontWeight.w900,
                         ),
                       ),

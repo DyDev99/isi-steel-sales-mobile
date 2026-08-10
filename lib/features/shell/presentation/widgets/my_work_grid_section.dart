@@ -5,6 +5,7 @@ import 'package:isi_steel_sales_mobile/core/animations/fade_slide_transition.dar
 import 'package:isi_steel_sales_mobile/core/animations/shimmer_loading.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/presentation/services/coach_keys.dart';
 import 'package:isi_steel_sales_mobile/features/home/presentation/bloc/home_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/add_customer_bottom_sheet.dart';
@@ -17,7 +18,10 @@ class MyWorkGridSection extends StatelessWidget {
     return CoachKeys.wrap(
       CoachKeys.myWork,
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+        padding: EdgeInsets.symmetric(
+          horizontal: context.pagePadding,
+          vertical: context.rh(12),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -44,7 +48,7 @@ class MyWorkGridSection extends StatelessWidget {
                     ),
                   ),
                 ),
-                SizedBox(width: 12.w),
+                SizedBox(width: context.rw(12)),
                 Expanded(
                   child: FadeSlideIn(
                     delay: FadeSlideIn.staggerDelay(1),
@@ -64,7 +68,7 @@ class MyWorkGridSection extends StatelessWidget {
                 ),
               ],
             ),
-            SizedBox(height: 12.h),
+            SizedBox(height: context.rh(12)),
 
             // Row 2
             Row(
@@ -85,7 +89,7 @@ class MyWorkGridSection extends StatelessWidget {
                     ),
                   ),
                 ),
-                SizedBox(width: 12.w),
+                SizedBox(width: context.rw(12)),
                 Expanded(
                   child: FadeSlideIn(
                     delay: FadeSlideIn.staggerDelay(3),
@@ -160,7 +164,7 @@ class _MyWorkCardState extends State<_MyWorkCard> {
         curve: Curves.easeOut,
         transform: Matrix4.translationValues(0, _isPressed ? 4.0 : 0.0, 0),
         child: Container(
-          height: 120.h,
+          height: context.rh(120),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20.r),
             // 3D Extrusion Shadow + Traditional Ambient Glow
@@ -242,8 +246,8 @@ class _MyWorkCardState extends State<_MyWorkCard> {
                             children: [
                               // 2. 3D Embossed Icon Medallion
                               Container(
-                                width: 48.r,
-                                height: 48.r,
+                                width: context.rr(48),
+                                height: context.rr(48),
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   gradient: LinearGradient(
@@ -277,11 +281,11 @@ class _MyWorkCardState extends State<_MyWorkCard> {
                                   child: Icon(
                                     widget.icon,
                                     color: widget.accent,
-                                    size: 22.r,
+                                    size: context.rr(22),
                                   ),
                                 ),
                               ),
-                              SizedBox(height: 10.h),
+                              SizedBox(height: context.rh(10)),
                               Padding(
                                 padding: EdgeInsets.symmetric(horizontal: 8.w),
                                 child: Text(
@@ -290,7 +294,7 @@ class _MyWorkCardState extends State<_MyWorkCard> {
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
-                                    fontSize: 13.5.sp,
+                                    fontSize: context.rsp(13.5),
                                     fontWeight: FontWeight.w800,
                                     color: scheme.onSurface,
                                     letterSpacing: -0.1,
@@ -378,7 +382,7 @@ class _WorkBadge extends StatelessWidget {
           text,
           style: TextStyle(
             color: Colors.white,
-            fontSize: 9.sp,
+            fontSize: context.rsp(9),
             fontWeight: FontWeight.w900,
           ),
         ),
@@ -399,13 +403,20 @@ class _SectionHeader extends StatelessWidget {
     final color = theme.textTheme.bodySmall?.color?.withValues(alpha: 0.8) ??
         theme.colorScheme.onSurface.withValues(alpha: 0.8);
 
+    // A section header has to outrank the card labels beneath it. On a phone
+    // 14pt against 13.5pt labels is enough separation, but once the type scale
+    // opens up on a tablet the labels reach ~23pt and an equal-sized header
+    // stops reading as a heading at all. Widening the base on larger windows —
+    // rather than raising it everywhere — keeps the phone baseline frozen.
+    final double headerBase = context.responsive(compact: 14.0, medium: 16.0);
+
     return Padding(
-      padding: EdgeInsets.only(left: 4.w, bottom: 12.h),
+      padding: EdgeInsets.only(left: 4.w, bottom: context.rh(12)),
       child: Row(
         children: [
           Container(
-            width: 4.w,
-            height: 14.h,
+            width: context.rw(4),
+            height: context.rh(14),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(2.r),
               gradient: const LinearGradient(
@@ -413,11 +424,11 @@ class _SectionHeader extends StatelessWidget {
               ),
             ),
           ),
-          SizedBox(width: 8.w),
+          SizedBox(width: context.rw(8)),
           Text(
             text,
             style: TextStyle(
-              fontSize: 14.sp,
+              fontSize: context.rsp(headerBase),
               fontWeight: FontWeight.w900,
               letterSpacing: letterSpacing,
               color: color,
@@ -435,7 +446,10 @@ class MyWorkGridSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+      padding: EdgeInsets.symmetric(
+          horizontal: context.pagePadding,
+          vertical: context.rh(12),
+        ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -443,13 +457,13 @@ class MyWorkGridSkeleton extends StatelessWidget {
           _SectionHeader('shell.my_work'.tr, letterSpacing: 1.6),
           Row(children: [
             _skeletonCell(context),
-            SizedBox(width: 12.w),
+            SizedBox(width: context.rw(12)),
             _skeletonCell(context)
           ]),
-          SizedBox(height: 12.h),
+          SizedBox(height: context.rh(12)),
           Row(children: [
             _skeletonCell(context),
-            SizedBox(width: 12.w),
+            SizedBox(width: context.rw(12)),
             _skeletonCell(context)
           ]),
         ],
@@ -461,7 +475,7 @@ class MyWorkGridSkeleton extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     return Expanded(
       child: Container(
-        height: 120.h,
+        height: context.rh(120),
         decoration: BoxDecoration(
           color: scheme.surface,
           borderRadius: BorderRadius.circular(20.r),
@@ -476,7 +490,7 @@ class MyWorkGridSkeleton extends StatelessWidget {
                 height: 48.r,
                 borderRadius: BorderRadius.circular(24.r),
               ),
-              SizedBox(height: 12.h),
+              SizedBox(height: context.rh(12)),
               ShimmerBox(width: 72.w, height: 12.h),
             ],
           ),
