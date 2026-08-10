@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/network/connectivity_cubit.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// A calm, always-visible-when-offline banner styled with gold accent framing,
 /// dual-bordered icon avatar, and subtle corner watermarks.
@@ -22,7 +23,7 @@ class ConnectivityBanner extends StatelessWidget {
         return Container(
           decoration: BoxDecoration(
             color: colors.surfaceSoft,
-            borderRadius: BorderRadius.circular(16.r),
+            borderRadius: BorderRadius.circular(context.rr(16)),
             border: Border.all(
               color: _goldBorderColor,
               width: 1.2,
@@ -31,21 +32,21 @@ class ConnectivityBanner extends StatelessWidget {
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.06),
                 blurRadius: 10.r,
-                offset: Offset(0, 4.h),
+                offset: Offset(0, context.rh(4)),
               ),
             ],
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(15.r),
+            borderRadius: BorderRadius.circular(context.rr(15)),
             child: Stack(
               children: [
                 // Top-Left Corner Decorative Circle Watermark
                 Positioned(
-                  top: -20.r,
-                  left: -20.r,
+                  top: -context.rr(20),
+                  left: -context.rr(20),
                   child: Container(
-                    width: 50.r,
-                    height: 50.r,
+                    width: context.rr(50),
+                    height: context.rr(50),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
@@ -57,11 +58,11 @@ class ConnectivityBanner extends StatelessWidget {
                 ),
                 // Bottom-Right Corner Decorative Circle Watermark
                 Positioned(
-                  bottom: -20.r,
-                  right: -20.r,
+                  bottom: -context.rr(20),
+                  right: -context.rr(20),
                   child: Container(
-                    width: 50.r,
-                    height: 50.r,
+                    width: context.rr(50),
+                    height: context.rr(50),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
@@ -74,12 +75,12 @@ class ConnectivityBanner extends StatelessWidget {
                 // Main Banner Content
                 Padding(
                   padding:
-                      EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+                      EdgeInsets.symmetric(horizontal: context.rw(14), vertical: context.rh(12)),
                   child: Row(
                     children: [
                       // Dual-Bordered Circular Icon Badge
                       Container(
-                        padding: EdgeInsets.all(8.r),
+                        padding: EdgeInsets.all(context.rr(8)),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: colors.slate.withValues(alpha: 0.12),
@@ -91,23 +92,23 @@ class ConnectivityBanner extends StatelessWidget {
                             BoxShadow(
                               color: Colors.black.withValues(alpha: 0.04),
                               blurRadius: 4.r,
-                              offset: Offset(0, 2.h),
+                              offset: Offset(0, context.rh(2)),
                             ),
                           ],
                         ),
                         child: Icon(
                           Icons.cloud_off_rounded,
                           color: colors.slate,
-                          size: 20.sp,
+                          size: context.rsp(20),
                         ),
                       ),
-                      SizedBox(width: 12.w),
+                      SizedBox(width: context.rw(12)),
                       Expanded(
                         child: Text(
                           'sync.offline_banner'.tr,
                           style: TextStyle(
                             color: colors.textPrimary,
-                            fontSize: 13.sp,
+                            fontSize: context.rsp(13),
                             fontWeight: FontWeight.w700,
                             letterSpacing: 0.1,
                           ),

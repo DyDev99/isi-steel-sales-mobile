@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/sync_state.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 class SyncStatusBanner extends StatelessWidget {
   const SyncStatusBanner({super.key});
@@ -31,7 +32,7 @@ class SyncStatusBanner extends StatelessWidget {
           SyncFailed(:final message) => _Banner(
               color: scheme.error,
               icon:
-                  Icon(Icons.cloud_off_rounded, size: 16, color: scheme.error),
+                  Icon(Icons.cloud_off_rounded, size: context.rr(16), color: scheme.error),
               text: message,
             ),
           SyncSucceeded(:final upserted, :final deleted)
@@ -39,7 +40,7 @@ class SyncStatusBanner extends StatelessWidget {
             _Banner(
               color: appColors.success,
               icon: Icon(Icons.check_circle_rounded,
-                  size: 16, color: appColors.success),
+                  size: context.rr(16), color: appColors.success),
               text:
                   'orders.catalog_sync.updated'.trParams({'count': upserted}) +
                       (deleted > 0
@@ -73,11 +74,11 @@ class _Banner extends StatelessWidget {
       child: Row(
         children: [
           icon,
-          const SizedBox(width: 8),
+          SizedBox(width: context.rw(8)),
           Expanded(
             child: Text(text,
                 style: TextStyle(
-                    color: color, fontSize: 12, fontWeight: FontWeight.w600)),
+                    color: color, fontSize: context.rsp(12), fontWeight: FontWeight.w600)),
           ),
         ],
       ),

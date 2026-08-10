@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// Floating bottom action bar for the filter experience: a secondary "Reset"
 /// action and a primary "Apply" button that doubles as a live result counter
@@ -58,7 +59,7 @@ class FilterActionBar extends StatelessWidget {
               child: Text('common.reset'.tr,
                   style: const TextStyle(fontWeight: FontWeight.w700)),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: context.rw(12)),
             Expanded(
               child: ElevatedButton(
                 onPressed: loading ? null : onApply,
@@ -81,8 +82,8 @@ class FilterActionBar extends StatelessWidget {
                       )
                     : Text(
                         _applyLabel,
-                        style: const TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.w800),
+                        style: TextStyle(
+                            fontSize: context.rsp(14), fontWeight: FontWeight.w800),
                       ),
               ),
             ),

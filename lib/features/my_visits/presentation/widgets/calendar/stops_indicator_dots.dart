@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// Renders up to [maxVisible] small dots — one per scheduled stop — arranged
 /// in a wrapping grid (default 4 columns) with an overflow count ("+3") appended.
@@ -38,37 +38,38 @@ class StopIndicatorDots extends StatelessWidget {
     final visibleCount = count > maxVisible ? maxVisible : count;
     final overflow = count - maxVisible;
 
-    final double dotSizeW = dotSize.w;
-    final double spacingW = spacing.w;
+    // FIXED: Replaced flutter_screenutil extensions with responsive_sizing context methods
+    final double dotSizePx = context.rr(dotSize);
+    final double spacingPx = context.rw(spacing);
 
     // Calculate specific width needed to force wrapping after [columns] items.
     final wrapContainerWidth =
-        (dotSizeW * columns) + (spacingW * (columns - 1));
+        (dotSizePx * columns) + (spacingPx * (columns - 1));
 
     return Center(
       child: SizedBox(
         width: wrapContainerWidth,
         child: Wrap(
           alignment: WrapAlignment.start,
-          spacing: spacingW,
-          runSpacing: crossSpacing.h,
+          spacing: spacingPx,
+          runSpacing: context.rh(crossSpacing),
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             for (var i = 0; i < visibleCount; i++)
               Container(
-                width: dotSizeW,
-                height: dotSizeW,
+                width: dotSizePx,
+                height: dotSizePx,
                 decoration: BoxDecoration(color: color, shape: BoxShape.circle),
               ),
             if (overflow > 0)
               Padding(
-                padding: EdgeInsets.only(left: spacingW / 2),
+                padding: EdgeInsets.only(left: spacingPx / 2),
                 child: Text(
                   '+$overflow',
                   style: overflowStyle ??
                       TextStyle(
                         color: colors.textSecondary,
-                        fontSize: 9.sp,
+                        fontSize: context.rsp(9),
                         fontWeight: FontWeight.w700,
                         height: 1,
                       ),

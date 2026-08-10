@@ -1,41 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:phone_form_field/phone_form_field.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/core/utils/colors.dart';
-import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/vibe_field.dart';
+import 'package:phone_form_field/phone_form_field.dart';
 
-/// NOTE ON SETUP
-/// `phone_form_field` needs its localization delegate wired up once at the
-/// app root (MaterialApp), or the country picker / validator error text
-/// will throw a "no MaterialLocalizations found" error:
-///
-///   MaterialApp(
-///     localizationsDelegates: [
-///       ...GlobalMaterialLocalizations.delegates,
-///       ...PhoneFieldLocalization.delegates,
-///     ],
-///     supportedLocales: PhoneFieldView.supportedLocales,
-///     ...
-///   )
-///
-/// Add that next to the app's existing localization setup if it isn't
-/// there already — otherwise the phone tab of this field will crash when
-/// it first builds.
-
-/// Which kind of identifier the person is currently entering.
 enum ContactMode { email, phone }
 
-/// A single field that toggles between an email input and a
-/// `phone_form_field` phone input, styled to match [VibeField].
-///
-/// The two modes hold fundamentally different value types (a plain string
-/// vs a [PhoneNumber]), so this widget is not a [FormField] itself.
-/// Instead it exposes [validate] and [value] via [IdentifierFieldState] —
-/// give it a `GlobalKey<IdentifierFieldState>` and call
-/// `key.currentState!.validate()` alongside the surrounding `Form`'s own
-/// `validate()` on submit (see `login_screen.dart` /
-/// `forgot_password_screen.dart` for the pattern).
 class IdentifierField extends StatefulWidget {
   const IdentifierField({
     super.key,
@@ -47,8 +19,6 @@ class IdentifierField extends StatefulWidget {
   });
 
   final ContactMode initialMode;
-
-  /// Country pre-selected in the phone picker (Cambodia by default).
   final IsoCode defaultCountry;
   final bool required;
   final TextInputAction? textInputAction;
@@ -77,9 +47,6 @@ class IdentifierFieldState extends State<IdentifierField> {
     super.dispose();
   }
 
-  /// The identifier ready to submit: trimmed email, or the phone number as
-  /// `+<countryCode><nsn>` (e.g. `+85512345678`). Adjust here if the
-  /// backend expects a different phone format.
   String get value {
     if (_mode == ContactMode.email) return _emailController.text.trim();
     final phone = _phoneController.value;
@@ -89,8 +56,6 @@ class IdentifierFieldState extends State<IdentifierField> {
 
   ContactMode get mode => _mode;
 
-  /// Validates whichever input is currently active. Call this alongside the
-  /// surrounding `Form`'s own `validate()` before submitting.
   bool validate() {
     if (_mode == ContactMode.email) {
       return _emailFieldKey.currentState?.validate() ?? false;
@@ -118,7 +83,7 @@ class IdentifierFieldState extends State<IdentifierField> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _ModeSwitcher(mode: _mode, onChanged: _switchMode),
-        const SizedBox(height: 10),
+        SizedBox(height: context.rh(10)),
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 200),
           switchInCurve: Curves.easeOut,
@@ -160,7 +125,9 @@ class IdentifierFieldState extends State<IdentifierField> {
       controller: _phoneController,
       textInputAction: widget.textInputAction,
       style: TextStyle(
-          color: Theme.of(context).colorScheme.onSurface, fontSize: 15),
+        color: Theme.of(context).colorScheme.onSurface,
+        fontSize: context.rsp(15),
+      ),
       cursorColor: Theme.of(context).colorScheme.secondary,
       autovalidateMode: AutovalidateMode.onUserInteraction,
       countrySelectorNavigator: const CountrySelectorNavigator.bottomSheet(),
@@ -171,9 +138,11 @@ class IdentifierFieldState extends State<IdentifierField> {
         showDialCode: true,
         showIsoCode: false,
         showFlag: true,
-        flagSize: 16,
+        flagSize: context.rr(16),
         textStyle: TextStyle(
-            color: Theme.of(context).colorScheme.onSurface, fontSize: 15),
+          color: Theme.of(context).colorScheme.onSurface,
+          fontSize: context.rsp(15),
+        ),
       ),
       decoration: vibeFieldDecoration(
         context,
@@ -185,8 +154,6 @@ class IdentifierFieldState extends State<IdentifierField> {
   }
 }
 
-/// Small segmented pill that toggles between Email and Phone, styled to
-/// match the rest of the Vibe auth screens.
 class _ModeSwitcher extends StatelessWidget {
   const _ModeSwitcher({required this.mode, required this.onChanged});
 
@@ -197,10 +164,10 @@ class _ModeSwitcher extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     return Container(
-      padding: const EdgeInsets.all(4),
+      padding: EdgeInsets.all(context.rr(4)),
       decoration: BoxDecoration(
         color: colors.surfaceStrong,
-        borderRadius: BorderRadius.circular(AppColors.radius),
+        borderRadius: BorderRadius.circular(context.rr(AppColors.radius)),
         border: Border.all(color: colors.border),
       ),
       child: Row(
@@ -239,10 +206,10 @@ class _ModeSwitcher extends StatelessWidget {
         behavior: HitTestBehavior.opaque,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 10),
+          padding: EdgeInsets.symmetric(vertical: context.rh(10)),
           decoration: BoxDecoration(
             color: selected ? accent.withValues(alpha: 0.14) : null,
-            borderRadius: BorderRadius.circular(AppColors.radius - 2),
+            borderRadius: BorderRadius.circular(context.rr(AppColors.radius - 2)),
             border: selected
                 ? Border.all(color: accent.withValues(alpha: 0.5))
                 : null,
@@ -250,13 +217,13 @@ class _ModeSwitcher extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 16, color: selected ? accent : muted),
-              const SizedBox(width: 6),
+              Icon(icon, size: context.rr(16), color: selected ? accent : muted),
+              SizedBox(width: context.rw(6)),
               Text(
                 label,
                 style: TextStyle(
                   color: selected ? accent : muted,
-                  fontSize: 13,
+                  fontSize: context.rsp(13),
                   fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
                 ),
               ),

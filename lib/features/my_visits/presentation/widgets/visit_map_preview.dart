@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// Static placeholder "map" preview — same decorative-grid-plus-pin design as
 /// `GpsLocationCard` (lead feature), reused here so the visit card/detail
@@ -62,7 +63,7 @@ class VisitMapPreview extends StatelessWidget {
                     '${latitude.toStringAsFixed(5)}, ${longitude.toStringAsFixed(5)}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Colors.white, fontSize: 11.5),
+                    style: TextStyle(color: Colors.white, fontSize: context.rsp(11.5)),
                   ),
                 ),
               ),

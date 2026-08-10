@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/catalog_bloc.dart';
@@ -9,6 +8,7 @@ import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.da
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/catalog_state.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/catalog/catalog_skeletons.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/catalog/product_card.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 class ProductListSection extends StatelessWidget {
   const ProductListSection({
@@ -66,11 +66,11 @@ class ProductListSection extends StatelessWidget {
                   'Products',
                   style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 14,
+                      fontSize: context.rsp(14),
                       color: scheme.onSurface),
                 ),
                 if (hasActiveAttributeFilter) ...[
-                  const SizedBox(width: 8),
+                  SizedBox(width: context.rw(8)),
                   Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -83,16 +83,16 @@ class ProductListSection extends StatelessWidget {
                           .trParams({'count': items.length}),
                       style: TextStyle(
                           color: scheme.primary,
-                          fontSize: 11,
+                          fontSize: context.rsp(11),
                           fontWeight: FontWeight.w700),
                     ),
                   ),
                 ],
               ],
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: context.rh(8)),
             SizedBox(
-              height: height ?? 200.h,
+              height: height ?? context.rh(200),
               child: Column(
                 children: [
                   Expanded(
@@ -142,7 +142,7 @@ class ProductListSection extends StatelessWidget {
                             Center(
                               child: isLoadingMore
                                   ? Padding(
-                                      padding: const EdgeInsets.all(16),
+                                      padding: EdgeInsets.all(context.rr(16)),
                                       child: CircularProgressIndicator(
                                           color: scheme.primary),
                                     )

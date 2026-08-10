@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/filter/filter_selection.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/filter_flow_transition.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// The breadcrumb the rep steers by: `Palm › Palm 70 › 0.30 mm › 3.90 m`.
 ///
@@ -66,7 +67,7 @@ class FilterChipBar extends StatelessWidget {
             ),
           ),
           if (trailing != null) ...[
-            const SizedBox(width: 8),
+            SizedBox(width: context.rw(8)),
             trailing!,
           ],
         ],
@@ -82,7 +83,7 @@ class _Separator extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.symmetric(horizontal: 2),
-        child: Icon(Icons.chevron_right_rounded, size: 16, color: color),
+        child: Icon(Icons.chevron_right_rounded, size: context.rr(16), color: color),
       );
 }
 
@@ -130,19 +131,19 @@ class _SummaryChip extends StatelessWidget {
               label,
               style: TextStyle(
                 color: isRoot ? scheme.primary : colors.textPrimary,
-                fontSize: 12,
+                fontSize: context.rsp(12),
                 fontWeight: FontWeight.w700,
               ),
             ),
-            const SizedBox(width: 2),
+            SizedBox(width: context.rw(2)),
             InkWell(
               onTap: onClear,
               borderRadius: BorderRadius.circular(12),
               child: Padding(
-                padding: const EdgeInsets.all(3),
+                padding: EdgeInsets.all(context.rr(3)),
                 child: Icon(
                   Icons.close_rounded,
-                  size: 13,
+                  size: context.rr(13),
                   color: isRoot ? scheme.primary : colors.iconMuted,
                 ),
               ),

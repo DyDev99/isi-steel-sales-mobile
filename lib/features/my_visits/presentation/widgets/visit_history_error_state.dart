@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// UI-only error state for the visit history list — no real fetch/retry logic
 /// behind it, the caller wires [onRetry] to whatever it wants to re-run.
@@ -20,29 +21,29 @@ class VisitHistoryErrorState extends StatelessWidget {
           children: [
             Container(
               width: 72,
-              height: 72,
+              height: context.rh(72),
               alignment: Alignment.center,
               decoration: BoxDecoration(
                   color: scheme.error.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(20)),
               child:
-                  Icon(Icons.cloud_off_rounded, size: 34, color: scheme.error),
+                  Icon(Icons.cloud_off_rounded, size: context.rr(34), color: scheme.error),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: context.rh(16)),
             Text(
               'my_visits.history.error_title'.tr,
               style: TextStyle(
                   color: colors.textPrimary,
-                  fontSize: 15,
+                  fontSize: context.rsp(15),
                   fontWeight: FontWeight.w800),
             ),
-            const SizedBox(height: 6),
+            SizedBox(height: context.rh(6)),
             Text(
               'my_visits.history.error_message'.tr,
               textAlign: TextAlign.center,
-              style: TextStyle(color: colors.textSecondary, fontSize: 13),
+              style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(13)),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: context.rh(20)),
             ElevatedButton(
               onPressed: onRetry,
               style: ElevatedButton.styleFrom(

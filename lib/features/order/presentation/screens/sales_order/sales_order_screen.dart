@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
@@ -13,6 +12,7 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/car
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/success/order_success_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/quotation_line_tile.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/back_to_home.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 class SalesOrderScreen extends StatefulWidget {
   const SalesOrderScreen({super.key, required this.quotation});
@@ -70,7 +70,7 @@ class _SalesOrderScreenState extends State<SalesOrderScreen> {
               icon: Icon(
                 Icons.chevron_left_rounded,
                 color: colors.textPrimary,
-                size: 28.sp,
+                size: context.rsp(28),
               ),
               onPressed: () => Navigator.of(context).pop(),
             ),
@@ -79,7 +79,7 @@ class _SalesOrderScreenState extends State<SalesOrderScreen> {
                 'orders.sales_order.title'.tr,
                 style: TextStyle(
                   color: colors.textPrimary,
-                  fontSize: 17.sp,
+                  fontSize: context.rsp(17),
                   fontWeight: FontWeight.w800,
                 ),
                 overflow: TextOverflow.ellipsis,
@@ -90,7 +90,7 @@ class _SalesOrderScreenState extends State<SalesOrderScreen> {
         // Right side: Back to Home button
         actions: [
           Padding(
-            padding: EdgeInsets.only(right: 16.w),
+            padding: EdgeInsets.only(right: context.rw(16)),
             child: const BackToHomeButton(),
           ),
         ],
@@ -137,7 +137,7 @@ class _SalesOrderScreenState extends State<SalesOrderScreen> {
                       Divider(color: colors.divider, height: 20),
                       _Row('orders.sales_order.title'.tr, total,
                           emphasize: true),
-                      const SizedBox(height: 12),
+                      SizedBox(height: context.rh(12)),
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
@@ -150,8 +150,8 @@ class _SalesOrderScreenState extends State<SalesOrderScreen> {
                                   height: 18,
                                   child: CircularProgressIndicator(
                                       strokeWidth: 2, color: Colors.white))
-                              : const Icon(Icons.check_circle_outline_rounded,
-                                  size: 20),
+                              : Icon(Icons.check_circle_outline_rounded,
+                                  size: context.rr(20)),
                           label: Text('orders.sales_order.create_in_sap'.tr,
                               style:
                                   const TextStyle(fontWeight: FontWeight.w800)),

@@ -1,17 +1,16 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/breakpoints.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/gradient_button.dart';
+import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/status_pill.dart';
+import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/verify/otp_field.dart';
+import 'package:isi_steel_sales_mobile/routes/app_routes.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/aurora_background.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/glass_card.dart';
-import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/gradient_button.dart';
-import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/verify/otp_field.dart';
-import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/status_pill.dart';
-import 'package:isi_steel_sales_mobile/routes/app_routes.dart';
 
-/// Outcome of a code-verification attempt, returned by
-/// [VerifyScreen.onVerify].
 class VerifyResult {
   const VerifyResult.success([this.message]) : isSuccess = true;
   const VerifyResult.failure(this.message) : isSuccess = false;
@@ -20,41 +19,6 @@ class VerifyResult {
   final String? message;
 }
 
-/// Step 2 of the forgot-password flow (or any OTP step): the person enters
-/// the code that was sent to [target] (an email or phone from
-/// `ForgotPasswordScreen`).
-///
-/// Same design choice as `ForgotPasswordScreen`: this takes plain callbacks
-/// instead of dispatching AuthBloc events directly, since this repo's
-/// auth_event.dart / auth_state.dart weren't available while building it.
-///
-/// Out of the box (no `onVerified` passed), a successful check pushes
-/// straight to `CreateNewPasswordScreen` with stubbed callbacks — enough to
-/// see the whole flow working end to end. Once AuthBloc events exist,
-/// override `onVerified` instead to dispatch them yourself, e.g.:
-///
-///   VerifyScreen(
-///     target: identifier,
-///     onVerify: (code) async {
-///       `context.read<AuthBloc>().add(VerifyOtpRequestedEvent(identifier, code));`
-///       // ...await the resulting state and map it to a VerifyResult
-///     },
-///     onVerified: (code) => Navigator.of(context).pushReplacement(
-///       MaterialPageRoute(
-///         builder: (_) => CreateNewPasswordScreen(
-///           onSubmit: (newPassword) async {
-///             `context.read<AuthBloc>().add(`
-///               ResetPasswordRequestedEvent(identifier, code, newPassword),
-///             );
-///             // ...await the resulting state and map it to a ResetPasswordResult
-///           },
-///         ),
-///       ),
-///     ),
-///     onResend: () async {
-///       `context.read<AuthBloc>().add(ForgotPasswordRequestedEvent(identifier));`
-///     },
-///   )
 class VerifyScreen extends StatefulWidget {
   const VerifyScreen({
     super.key,
@@ -67,29 +31,12 @@ class VerifyScreen extends StatefulWidget {
     this.resendCooldown = const Duration(seconds: 30),
   });
 
-  /// The email or phone the code was sent to — shown in the subtitle.
   final String target;
-
-  /// Called with the entered code. Return a [VerifyResult] describing
-  /// whether it was accepted.
   final Future<VerifyResult> Function(String code) onVerify;
-
-  /// Called right after a successful verification. If provided, this is
-  /// responsible for navigating to whatever comes next (e.g. dispatching
-  /// an AuthBloc event, then pushing a route yourself). If omitted, this
-  /// screen falls back to pushing the `Static.createNewPassword` route
-  /// with `target`/`code` as arguments — see [_navigateToCreateNewPassword].
   final ValueChanged<String>? onVerified;
-
-  /// Called when the person taps "Resend code". Omit to hide the resend
-  /// action entirely.
   final Future<void> Function()? onResend;
-
   final VoidCallback? onBackToLogin;
-
   final int codeLength;
-
-  /// How long the resend button stays disabled after each send.
   final Duration resendCooldown;
 
   @override
@@ -175,16 +122,8 @@ class _VerifyScreenState extends State<VerifyScreen> {
     _startCooldown();
   }
 
-  /// Default fallback used when [VerifyScreen.onVerified] isn't provided —
-  /// pushes straight to the create-new-password step so the flow works
-  /// out of the box.
-  ///
-  /// Navigates via the named [Static.createNewPassword] route (rather than
-  /// building the screen inline) so app_page.dart owns the `onSubmit` /
-  /// `onSuccess` callbacks with a live route context. Building it inline
-  /// here and capturing this screen's `context` in `onSuccess` would break
-  /// once this route is replaced, since that context is no longer mounted.
   void _navigateToCreateNewPassword(String code) {
+    if (!context.mounted) return;
     Navigator.of(context).pushReplacementNamed(
       Static.createNewPassword,
       arguments: {'target': widget.target, 'code': code},
@@ -193,6 +132,12 @@ class _VerifyScreenState extends State<VerifyScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final maxCardWidth = context.responsive(
+      compact: 420.0,
+      medium: 520.0,
+      expanded: 600.0,
+    );
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       body: Stack(
@@ -208,10 +153,8 @@ class _VerifyScreenState extends State<VerifyScreen> {
                 Expanded(
                   child: Center(
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 16),
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 420),
+                        padding: EdgeInsets.all(context.pagePadding),                      child: ConstrainedBox(
+                        constraints: BoxConstraints(maxWidth: maxCardWidth),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
@@ -220,34 +163,34 @@ class _VerifyScreenState extends State<VerifyScreen> {
                               children: [
                                 Icon(
                                   Icons.mark_email_unread_outlined,
-                                  size: 40,
-                                  color:
-                                      Theme.of(context).colorScheme.secondary,
+                                  size: context.rr(44),
+                                  color: Theme.of(context).colorScheme.secondary,
                                 ),
-                                const SizedBox(height: 18),
+                                SizedBox(height: context.rh(18)),
                                 Text(
                                   'auth.verify_code_title'.tr,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     color:
                                         Theme.of(context).colorScheme.onSurface,
-                                    fontSize: 26,
+                                    fontSize: context.rsp(26),
                                     fontWeight: FontWeight.w900,
                                     height: 1.15,
                                   ),
                                 ),
-                                const SizedBox(height: 8),
+                                SizedBox(height: context.rh(8)),
                                 Text(
                                   'auth.verify_code_subtitle'
                                       .trParams({'target': widget.target}),
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
-                                      color: context.appColors.textSecondary,
-                                      fontSize: 15),
+                                    color: context.appColors.textSecondary,
+                                    fontSize: context.rsp(15),
+                                  ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 24),
+                            SizedBox(height: context.rh(24)),
                             GlassCard(child: _form()),
                           ],
                         ),
@@ -272,14 +215,14 @@ class _VerifyScreenState extends State<VerifyScreen> {
           length: widget.codeLength,
           onCompleted: _submit,
         ),
-        const SizedBox(height: 14),
+        SizedBox(height: context.rh(14)),
         StatusPill(status: _status, message: _errorMessage),
         GradientButton(
           label: 'auth.verify'.tr,
           loading: _status == AuthVibeStatus.verifying,
           onPressed: () => _submit(),
         ),
-        const SizedBox(height: 10),
+        SizedBox(height: context.rh(10)),
         Center(
           child: TextButton(
             onPressed:
@@ -294,6 +237,7 @@ class _VerifyScreenState extends State<VerifyScreen> {
                 color: _secondsLeft > 0
                     ? context.appColors.textSecondary
                     : context.appColors.info,
+                fontSize: context.rsp(14),
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -312,12 +256,12 @@ class _BackButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(left: 8, top: 4),
+      padding: EdgeInsets.only(left: context.rw(8), top: context.rh(4)),
       child: Align(
         alignment: Alignment.centerLeft,
         child: IconButton(
           onPressed: onPressed,
-          icon: const Icon(Icons.arrow_back_ios_new, size: 18),
+          icon: Icon(Icons.arrow_back_ios_new, size: context.rr(18)),
           color: Theme.of(context).colorScheme.onSurface,
         ),
       ),

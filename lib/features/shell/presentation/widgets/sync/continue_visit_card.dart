@@ -7,6 +7,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/active
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_plan.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/resumable_visit_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/navigation/resume_workflow_dispatcher.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// Visit-flow "Continue Previous Work" card — styled with gold accent framing,
 /// dual-bordered icon badge, and corner watermarks.
@@ -95,7 +96,7 @@ class _VisitCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: scheme.surface,
-        borderRadius: BorderRadius.circular(18.r),
+        borderRadius: BorderRadius.circular(context.rr(18)),
         border: Border.all(
           color: _goldBorderColor,
           width: 1.2,
@@ -104,21 +105,21 @@ class _VisitCard extends StatelessWidget {
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 12.r,
-            offset: Offset(0, 4.h),
+            offset: Offset(0, context.rh(4)),
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(17.r),
+        borderRadius: BorderRadius.circular(context.rr(17)),
         child: Stack(
           children: [
             // Top-Left Watermark Circle
             Positioned(
-              top: -22.r,
-              left: -22.r,
+              top: -context.rr(22),
+              left: -context.rr(22),
               child: Container(
-                width: 55.r,
-                height: 55.r,
+                width: context.rr(55),
+                height: context.rr(55),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
@@ -130,11 +131,11 @@ class _VisitCard extends StatelessWidget {
             ),
             // Bottom-Right Watermark Circle
             Positioned(
-              bottom: -22.r,
-              right: -22.r,
+              bottom: -context.rr(22),
+              right: -context.rr(22),
               child: Container(
-                width: 55.r,
-                height: 55.r,
+                width: context.rr(55),
+                height: context.rr(55),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
@@ -145,7 +146,7 @@ class _VisitCard extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: EdgeInsets.all(14.r),
+              padding: EdgeInsets.all(context.rr(14)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -153,7 +154,7 @@ class _VisitCard extends StatelessWidget {
                     children: [
                       // Dual-bordered Icon Avatar Badge
                       Container(
-                        padding: EdgeInsets.all(8.r),
+                        padding: EdgeInsets.all(context.rr(8)),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: colors.info.withValues(alpha: 0.12),
@@ -165,17 +166,17 @@ class _VisitCard extends StatelessWidget {
                             BoxShadow(
                               color: Colors.black.withValues(alpha: 0.04),
                               blurRadius: 4.r,
-                              offset: Offset(0, 2.h),
+                              offset: Offset(0, context.rh(2)),
                             ),
                           ],
                         ),
                         child: Icon(
                           Icons.pin_drop_rounded,
-                          size: 18.sp,
+                          size: context.rsp(18),
                           color: colors.info,
                         ),
                       ),
-                      SizedBox(width: 10.w),
+                      SizedBox(width: context.rw(10)),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -183,18 +184,18 @@ class _VisitCard extends StatelessWidget {
                             Text(
                               'sync.continue_previous'.tr,
                               style: TextStyle(
-                                fontSize: 13.5.sp,
+                                fontSize: context.rsp(13.5),
                                 fontWeight: FontWeight.w800,
                                 color: colors.textPrimary,
                               ),
                             ),
-                            SizedBox(height: 2.h),
+                            SizedBox(height: context.rh(2)),
                             Text(
                               route.name,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                fontSize: 12.sp,
+                                fontSize: context.rsp(12),
                                 fontWeight: FontWeight.w600,
                                 color: colors.info,
                               ),
@@ -204,19 +205,19 @@ class _VisitCard extends StatelessWidget {
                       ),
                       InkWell(
                         onTap: () => _dismiss(context),
-                        borderRadius: BorderRadius.circular(20.r),
+                        borderRadius: BorderRadius.circular(context.rr(20)),
                         child: Padding(
-                          padding: EdgeInsets.all(4.r),
+                          padding: EdgeInsets.all(context.rr(4)),
                           child: Icon(
                             Icons.close_rounded,
-                            size: 18.sp,
+                            size: context.rsp(18),
                             color: colors.textSecondary,
                           ),
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 10.h),
+                  SizedBox(height: context.rh(10)),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -224,7 +225,7 @@ class _VisitCard extends StatelessWidget {
                         'sync.checkin_progress'
                             .trParams({'done': done, 'total': total}),
                         style: TextStyle(
-                          fontSize: 12.sp,
+                          fontSize: context.rsp(12),
                           fontWeight: FontWeight.w500,
                           color: colors.textSecondary,
                         ),
@@ -232,26 +233,26 @@ class _VisitCard extends StatelessWidget {
                       Text(
                         '${((total > 0 ? done / total : 0) * 100).toInt()}%',
                         style: TextStyle(
-                          fontSize: 12.sp,
+                          fontSize: context.rsp(12),
                           fontWeight: FontWeight.w700,
                           color: _goldBorderColor,
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 6.h),
+                  SizedBox(height: context.rh(6)),
                   if (total > 0)
                     ClipRRect(
-                      borderRadius: BorderRadius.circular(4.r),
+                      borderRadius: BorderRadius.circular(context.rr(4)),
                       child: LinearProgressIndicator(
                         value: done / total,
-                        minHeight: 6.h,
+                        minHeight: context.rh(6),
                         backgroundColor: colors.border.withValues(alpha: 0.5),
                         valueColor:
                             const AlwaysStoppedAnimation(_goldBorderColor),
                       ),
                     ),
-                  SizedBox(height: 14.h),
+                  SizedBox(height: context.rh(14)),
                   Row(
                     children: [
                       Expanded(
@@ -261,36 +262,36 @@ class _VisitCard extends StatelessWidget {
                             foregroundColor: colors.info,
                             side: BorderSide(
                                 color: colors.info.withValues(alpha: 0.5)),
-                            padding: EdgeInsets.symmetric(vertical: 10.h),
+                            padding: EdgeInsets.symmetric(vertical: context.rh(10)),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10.r),
+                              borderRadius: BorderRadius.circular(context.rr(10)),
                             ),
                           ),
                           child: Text(
                             'sync.check_out'.tr,
                             style: TextStyle(
-                              fontSize: 12.5.sp,
+                              fontSize: context.rsp(12.5),
                               fontWeight: FontWeight.w700,
                             ),
                           ),
                         ),
                       ),
-                      SizedBox(width: 10.w),
+                      SizedBox(width: context.rw(10)),
                       Expanded(
                         child: FilledButton.icon(
                           onPressed: () => _continue(context),
                           style: FilledButton.styleFrom(
                             backgroundColor: colors.info,
-                            padding: EdgeInsets.symmetric(vertical: 10.h),
+                            padding: EdgeInsets.symmetric(vertical: context.rh(10)),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10.r),
+                              borderRadius: BorderRadius.circular(context.rr(10)),
                             ),
                           ),
-                          icon: Icon(Icons.play_arrow_rounded, size: 18.sp),
+                          icon: Icon(Icons.play_arrow_rounded, size: context.rsp(18)),
                           label: Text(
                             'common.continue'.tr,
                             style: TextStyle(
-                              fontSize: 12.5.sp,
+                              fontSize: context.rsp(12.5),
                               fontWeight: FontWeight.w700,
                             ),
                           ),

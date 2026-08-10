@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:speech_to_text/speech_to_text.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// Pushed by [SpeechVoiceSearchService]. Listens on-device via `speech_to_text`
 /// and pops with the recognized query string, or `null` if the user cancels,
@@ -114,12 +115,12 @@ class _VoiceSearchScreenState extends State<VoiceSearchScreen> {
         title: Text('orders.voice.title'.tr,
             style: TextStyle(
                 color: colors.textPrimary,
-                fontSize: 17,
+                fontSize: context.rsp(17),
                 fontWeight: FontWeight.w800)),
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(context.rr(24)),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -129,9 +130,9 @@ class _VoiceSearchScreenState extends State<VoiceSearchScreen> {
                     ? 'orders.voice.listening'.tr
                     : (_error ?? 'orders.voice.tap_to_start'.tr),
                 textAlign: TextAlign.center,
-                style: TextStyle(color: colors.textSecondary, fontSize: 14),
+                style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(14)),
               ),
-              const SizedBox(height: 28),
+              SizedBox(height: context.rh(28)),
               GestureDetector(
                 onTap: _listening ? _accept : _startListening,
                 child: AnimatedContainer(
@@ -154,11 +155,11 @@ class _VoiceSearchScreenState extends State<VoiceSearchScreen> {
                   child: Icon(
                     _listening ? Icons.mic_rounded : Icons.mic_none_rounded,
                     color: _listening ? Colors.white : primaryColor,
-                    size: 46,
+                    size: context.rr(46),
                   ),
                 ),
               ),
-              const SizedBox(height: 28),
+              SizedBox(height: context.rh(28)),
               Text(
                 _words.isEmpty ? 'orders.voice.example'.tr : _words,
                 textAlign: TextAlign.center,

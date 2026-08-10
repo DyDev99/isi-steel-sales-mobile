@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// The always-visible entry point into the catalog.
 ///
@@ -45,7 +46,7 @@ class ProductSearchBar extends StatelessWidget {
       children: [
         Expanded(
           child: Container(
-            height: 46,
+            height: context.rh(46),
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
               color: colors.surfaceSoft,
@@ -54,20 +55,20 @@ class ProductSearchBar extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Icon(Icons.search_rounded, color: colors.iconMuted, size: 20),
-                const SizedBox(width: 8),
+                Icon(Icons.search_rounded, color: colors.iconMuted, size: context.rr(20)),
+                SizedBox(width: context.rw(8)),
                 Expanded(
                   child: TextField(
                     controller: controller,
                     onChanged: onChanged,
                     textInputAction: TextInputAction.search,
-                    style: TextStyle(color: colors.textPrimary, fontSize: 13.5),
+                    style: TextStyle(color: colors.textPrimary, fontSize: context.rsp(13.5)),
                     decoration: InputDecoration(
                       isDense: true,
                       border: InputBorder.none,
                       hintText: 'orders.guided_filter.search_hint'.tr,
                       hintStyle:
-                          TextStyle(color: colors.textHint, fontSize: 13),
+                          TextStyle(color: colors.textHint, fontSize: context.rsp(13)),
                     ),
                   ),
                 ),
@@ -85,7 +86,7 @@ class ProductSearchBar extends StatelessWidget {
                             },
                             borderRadius: BorderRadius.circular(20),
                             child: Icon(Icons.close_rounded,
-                                color: colors.iconMuted, size: 18),
+                                color: colors.iconMuted, size: context.rr(18)),
                           ),
                   ),
                 ),
@@ -98,7 +99,7 @@ class ProductSearchBar extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: context.rw(8)),
         _FilterButton(count: activeFilterCount, onTap: onFilterTap),
       ],
     );
@@ -116,7 +117,7 @@ class _IconAction extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         child: Padding(
           padding: const EdgeInsets.only(left: 8),
-          child: Icon(icon, color: context.appColors.iconMuted, size: 19),
+          child: Icon(icon, color: context.appColors.iconMuted, size: context.rr(19)),
         ),
       );
 }
@@ -137,7 +138,7 @@ class _FilterButton extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 220),
         curve: Curves.easeOutCubic,
-        height: 46,
+        height: context.rh(46),
         decoration: BoxDecoration(
           color: active
               ? scheme.primary.withValues(alpha: 0.12)
@@ -155,15 +156,15 @@ class _FilterButton extends StatelessWidget {
               child: Row(
                 children: [
                   Icon(Icons.tune_rounded,
-                      size: 19,
+                      size: context.rr(19),
                       color: active ? scheme.primary : colors.iconMuted),
                   if (active) ...[
-                    const SizedBox(width: 6),
+                    SizedBox(width: context.rw(6)),
                     Text(
                       '$count',
                       style: TextStyle(
                         color: scheme.primary,
-                        fontSize: 12.5,
+                        fontSize: context.rsp(12.5),
                         fontWeight: FontWeight.w800,
                       ),
                     ),

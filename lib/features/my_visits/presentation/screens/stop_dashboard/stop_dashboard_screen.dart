@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/error/exceptions.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
@@ -23,6 +22,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/s
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/stop_card_skeleton.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/stop_dashboard/stop_filter_bar.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/stop_dashboard/stop_search_field.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// The primary My Visits entry point: today's stops, sorted nearest-first by
 /// live location. Replaces the route-centric dashboard.
@@ -186,7 +186,7 @@ class _LoadedViewState extends State<_LoadedView> {
         slivers: [
           SliverToBoxAdapter(
             child: Padding(
-              padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 0),
+              padding: EdgeInsets.fromLTRB(context.rw(20), context.rh(12), context.rw(20), 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -200,14 +200,14 @@ class _LoadedViewState extends State<_LoadedView> {
                         .setSelectedDate(newDate),
                     stopCountForDate: _getStopCountForDate,
                   ),
-                  SizedBox(height: 14.h),
+                  SizedBox(height: context.rh(14)),
                   StopSearchField(onChanged: widget.onQuery),
-                  SizedBox(height: 10.h),
+                  SizedBox(height: context.rh(10)),
                   StopFilterBar(
                     selected: widget.state.filter,
                     onSelected: widget.onFilter,
                   ),
-                  SizedBox(height: 6.h),
+                  SizedBox(height: context.rh(6)),
                   if (widget.state.locationUnavailable)
                     _Hint(
                       icon: Icons.location_off_rounded,
@@ -220,7 +220,7 @@ class _LoadedViewState extends State<_LoadedView> {
                       text: 'my_visits.stop_dashboard.locating'.tr,
                       color: colors.textSecondary,
                     ),
-                  SizedBox(height: 6.h),
+                  SizedBox(height: context.rh(6)),
                 ],
               ),
             ),
@@ -232,7 +232,7 @@ class _LoadedViewState extends State<_LoadedView> {
             )
           else
             SliverPadding(
-              padding: EdgeInsets.fromLTRB(20.w, 4.h, 20.w, 24.h),
+              padding: EdgeInsets.fromLTRB(context.rw(20), context.rh(4), context.rw(20), context.rh(24)),
               sliver: SliverList.builder(
                 itemCount: visible.length,
                 itemBuilder: (context, index) {
@@ -299,17 +299,17 @@ class _Hint extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(top: 4.h),
+      padding: EdgeInsets.only(top: context.rh(4)),
       child: Row(
         children: [
-          Icon(icon, size: 14.w, color: color),
-          SizedBox(width: 6.w),
+          Icon(icon, size: context.rw(14), color: color),
+          SizedBox(width: context.rw(6)),
           Expanded(
             child: Text(
               text,
               style: TextStyle(
                 color: color,
-                fontSize: 11.5.sp,
+                fontSize: context.rsp(11.5),
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -329,7 +329,7 @@ class _EmptyState extends StatelessWidget {
     final colors = context.appColors;
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(32.w),
+        padding: EdgeInsets.all(context.rw(32)),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -337,10 +337,10 @@ class _EmptyState extends StatelessWidget {
               hasAnyStops
                   ? Icons.filter_alt_off_rounded
                   : Icons.event_available_rounded,
-              size: 40.w,
+              size: context.rw(40),
               color: colors.textHint,
             ),
-            SizedBox(height: 12.h),
+            SizedBox(height: context.rh(12)),
             Text(
               hasAnyStops
                   ? 'my_visits.stop_dashboard.no_matches'.tr
@@ -348,17 +348,17 @@ class _EmptyState extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: colors.textPrimary,
-                fontSize: 14.sp,
+                fontSize: context.rsp(14),
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 6.h),
+            SizedBox(height: context.rh(6)),
             Text(
               hasAnyStops
                   ? 'my_visits.stop_dashboard.no_matches_hint'.tr
                   : 'my_visits.stop_dashboard.pull_to_sync'.tr,
               textAlign: TextAlign.center,
-              style: TextStyle(color: colors.textSecondary, fontSize: 12.sp),
+              style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(12)),
             ),
           ],
         ),

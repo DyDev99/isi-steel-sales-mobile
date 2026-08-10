@@ -10,6 +10,7 @@ import 'package:isi_steel_sales_mobile/features/lead/domain/entities/won_info.da
 import 'package:isi_steel_sales_mobile/features/lead/domain/pipeline_rules.dart';
 import 'package:isi_steel_sales_mobile/features/lead/presentation/widgets/convert_to_opportunity_sheet.dart';
 import 'package:isi_steel_sales_mobile/features/lead/presentation/widgets/won_sheet.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/app_bottom_sheet.dart';
 
 /// Result of a stage move: the target stage, plus whichever conversion
 /// payload that target required (if any).
@@ -49,6 +50,7 @@ Future<StageMoveResult?> showMoveStageSheet({
   final colors = context.appColors;
   final scheme = Theme.of(context).colorScheme;
   final chosen = await showModalBottomSheet<PipelineStage>(
+    constraints: const BoxConstraints(maxWidth: AppBottomSheet.maxWidth),
     context: context,
     backgroundColor: colors.surfaceSoft,
     shape: const RoundedRectangleBorder(

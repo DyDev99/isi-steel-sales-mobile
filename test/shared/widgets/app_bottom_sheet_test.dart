@@ -169,19 +169,20 @@ void main() {
       );
     });
 
-    testWidgets('is width-capped on a tablet so actions stay reachable',
-        (tester) async {
+    testWidgets('spans the full window on a tablet', (tester) async {
+      // Reversed deliberately. This previously asserted a 560pt cap, on the
+      // reasoning that a full-width sheet puts Cancel and Save ~700px apart.
+      // That holds only for a single narrow column stretched across the screen;
+      // the sheets now lay their content out in multiple columns to fill the
+      // width (see add_customer_bottom_sheet's all-steps layout), so the width
+      // is used rather than merely spanned.
       await pumpRealSheet(
         tester,
         size: const Size(1024, 1366),
         child: const SizedBox(height: 80, key: Key('body')),
       );
 
-      expect(
-        tester.getSize(find.byType(AppBottomSheet)).width,
-        AppBottomSheet.maxWidth,
-        reason: 'a full-width sheet puts Cancel and Save ~700px apart',
-      );
+      expect(tester.getSize(find.byType(AppBottomSheet)).width, 1024);
     });
 
     testWidgets('is full-width on a phone', (tester) async {

@@ -4,6 +4,7 @@ import 'package:isi_steel_sales_mobile/core/localization/localization_services.d
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/lead.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/won_info.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/app_bottom_sheet.dart';
 
 List<String> get _timelines => [
       'leads.won.this_month'.tr,
@@ -17,6 +18,7 @@ List<String> get _timelines => [
 Future<WonInfo?> showWonSheet(
     {required BuildContext context, required Lead lead}) {
   return showModalBottomSheet<WonInfo>(
+    constraints: const BoxConstraints(maxWidth: AppBottomSheet.maxWidth),
     context: context,
     backgroundColor: context.appColors.surfaceSoft,
     shape: const RoundedRectangleBorder(

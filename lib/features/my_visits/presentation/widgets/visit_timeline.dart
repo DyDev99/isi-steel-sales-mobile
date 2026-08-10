@@ -3,6 +3,7 @@ import 'package:isi_steel_sales_mobile/core/localization/localization_services.d
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_stop.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/fetch_visit_data.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 class TimelineEntry {
   const TimelineEntry(
@@ -87,7 +88,7 @@ class VisitTimeline extends StatelessWidget {
     final colors = context.appColors;
     if (entries.isEmpty) {
       return Text('common.no_activity_yet'.tr,
-          style: TextStyle(color: colors.textSecondary, fontSize: 12.5));
+          style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(12.5)));
     }
     return Column(
       children: [
@@ -99,24 +100,24 @@ class VisitTimeline extends StatelessWidget {
               children: [
                 Container(
                   width: 28,
-                  height: 28,
+                  height: context.rh(28),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                       color: colors.surfaceStrong,
                       borderRadius: BorderRadius.circular(8)),
-                  child: Icon(entry.icon, size: 14, color: scheme.primary),
+                  child: Icon(entry.icon, size: context.rr(14), color: scheme.primary),
                 ),
-                const SizedBox(width: 10),
+                SizedBox(width: context.rw(10)),
                 Expanded(
                   child: Text(entry.label,
                       style: TextStyle(
                           color: colors.textPrimary,
-                          fontSize: 12.5,
+                          fontSize: context.rsp(12.5),
                           fontWeight: FontWeight.w600)),
                 ),
                 Text(_formatTime(entry.time),
                     style:
-                        TextStyle(color: colors.textSecondary, fontSize: 11)),
+                        TextStyle(color: colors.textSecondary, fontSize: context.rsp(11))),
               ],
             ),
           ),

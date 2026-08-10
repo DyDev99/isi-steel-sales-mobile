@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/calendar/stops_indicator_dots.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// One cell in [CalendarMonthView]'s grid: a date number with wrapping stop
 /// dots (up to 4 columns) centered directly beneath it.
@@ -54,12 +54,13 @@ class CalendarDayCell extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(height: 4.h),
+          SizedBox(height: context.rh(4)),
           AnimatedContainer(
             duration: const Duration(milliseconds: 180),
             curve: Curves.easeOut,
-            width: 30.w,
-            height: 30.w,
+            // FIXED: Used context.rr for uniform radial scaling on circular container
+            width: context.rr(30),
+            height: context.rr(30),
             decoration:
                 BoxDecoration(color: circleColor, shape: BoxShape.circle),
             alignment: Alignment.center,
@@ -67,14 +68,12 @@ class CalendarDayCell extends StatelessWidget {
               '${date.day}',
               style: TextStyle(
                 color: numberColor,
-                fontSize: 14.sp,
+                fontSize: context.rsp(14),
                 fontWeight: numberWeight,
               ),
             ),
           ),
-          SizedBox(height: 4.h),
-          // Adjacent-month days never show stop dots — those belong
-          // to a different focused month and would be misleading here.
+          SizedBox(height: context.rh(4)),
           isCurrentMonth
               ? StopIndicatorDots(
                   count: stopCount,

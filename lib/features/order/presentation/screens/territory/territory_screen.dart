@@ -8,6 +8,7 @@ import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/custom
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customer_sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/shop/shop_list_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/order_skeletons.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 class TerritoryScreen extends StatefulWidget {
   const TerritoryScreen({super.key});
@@ -62,7 +63,7 @@ class _TerritoryScreenState extends State<TerritoryScreen> {
         title: Text('orders.territory.title'.tr,
             style: TextStyle(
                 color: colors.textPrimary,
-                fontSize: 17,
+                fontSize: context.rsp(17),
                 fontWeight: FontWeight.w800)),
       ),
       body: FutureBuilder<Map<String, int>>(
@@ -115,7 +116,7 @@ class _TerritoryTile extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(16),
           child: Container(
-            padding: const EdgeInsets.all(14),
+            padding: EdgeInsets.all(context.rr(14)),
             decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: colors.border)),
@@ -123,14 +124,14 @@ class _TerritoryTile extends StatelessWidget {
               children: [
                 Container(
                   width: 40,
-                  height: 40,
+                  height: context.rh(40),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                       color: colors.surfaceSoft,
                       borderRadius: BorderRadius.circular(12)),
                   child: Icon(Icons.map_rounded, color: colors.accentPurple),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: context.rw(12)),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -138,15 +139,15 @@ class _TerritoryTile extends StatelessWidget {
                       Text(name,
                           style: TextStyle(
                               color: colors.textPrimary,
-                              fontSize: 14,
+                              fontSize: context.rsp(14),
                               fontWeight: FontWeight.w800)),
-                      const SizedBox(height: 2),
+                      SizedBox(height: context.rh(2)),
                       Text(
                           'orders.territory.shop_count'
                               .tr
                               .replaceAll('{count}', '$shopCount'),
                           style: TextStyle(
-                              color: colors.textSecondary, fontSize: 12)),
+                              color: colors.textSecondary, fontSize: context.rsp(12))),
                     ],
                   ),
                 ),
@@ -168,7 +169,7 @@ class _TerritorySkeleton extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
       physics: const NeverScrollableScrollPhysics(),
-      children: const [
+      children: [
         OrderTileSkeleton(),
         OrderTileSkeleton(),
         OrderTileSkeleton(),

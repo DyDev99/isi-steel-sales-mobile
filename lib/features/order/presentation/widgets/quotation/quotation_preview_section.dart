@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
 import 'package:isi_steel_sales_mobile/core/platform/local_files.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 class QuotationPreviewSection extends StatelessWidget {
   const QuotationPreviewSection({
@@ -39,7 +39,7 @@ class QuotationPreviewSection extends StatelessWidget {
         borderColor: colors.border,
         backgroundColor: colors.card,
         strokeWidth: 1.5,
-        radius: 16.r,
+        radius: context.rr(16),
         dashLength: 4.0,
         gap: 4.0,
       ),
@@ -54,7 +54,7 @@ class QuotationPreviewSection extends StatelessWidget {
             ),
           ],
         ),
-        padding: EdgeInsets.all(16.w),
+        padding: EdgeInsets.all(context.rw(16)),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -69,30 +69,30 @@ class QuotationPreviewSection extends StatelessWidget {
                     children: [
                       Image.asset(
                         logoAsset,
-                        height: 40.h,
-                        width: 120.h,
+                        height: context.rh(40),
+                        width: context.rh(120),
                         fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) => Icon(
                           Icons.business,
                           color: colors.brandNavy,
-                          size: 20,
+                          size: context.rr(20),
                         ),
                       ),
-                      SizedBox(height: 6.h),
+                      SizedBox(height: context.rh(6)),
                       Text(
                         'orders.quotation.builder_title'.tr,
                         style: TextStyle(
-                          fontSize: 14.sp,
+                          fontSize: context.rsp(14),
                           fontWeight: FontWeight.w900,
                           color: colors.brandNavy,
                           letterSpacing: 0.8,
                         ),
                       ),
-                      SizedBox(height: 2.h),
+                      SizedBox(height: context.rh(2)),
                       Text(
                         '${shopName ?? 'orders.quotation_extra.walk_in'.tr} · ${'orders.quotation_extra.today'.tr}',
                         style: TextStyle(
-                          fontSize: 12.sp,
+                          fontSize: context.rsp(12),
                           fontWeight: FontWeight.w500,
                           color: colors.textSecondary,
                         ),
@@ -106,28 +106,28 @@ class QuotationPreviewSection extends StatelessWidget {
                     top: 0,
                     child: InkWell(
                       onTap: onEnlargeTap,
-                      borderRadius: BorderRadius.circular(8.r),
+                      borderRadius: BorderRadius.circular(context.rr(8)),
                       child: Container(
                         padding: EdgeInsets.symmetric(
-                            horizontal: 10.w, vertical: 5.h),
+                            horizontal: context.rw(10), vertical: context.rh(5)),
                         decoration: BoxDecoration(
                           color: colors.surfaceSoft,
                           border: Border.all(color: colors.border),
-                          borderRadius: BorderRadius.circular(8.r),
+                          borderRadius: BorderRadius.circular(context.rr(8)),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
                               Icons.fullscreen_rounded,
-                              size: 14.w,
+                              size: context.rw(14),
                               color: colors.brandNavy,
                             ),
-                            SizedBox(width: 4.w),
+                            SizedBox(width: context.rw(4)),
                             Text(
                               'orders.quotation_extra.enlarge'.tr,
                               style: TextStyle(
-                                fontSize: 11.sp,
+                                fontSize: context.rsp(11),
                                 fontWeight: FontWeight.w700,
                                 color: colors.brandNavy,
                               ),
@@ -139,19 +139,19 @@ class QuotationPreviewSection extends StatelessWidget {
                   ),
               ],
             ),
-            SizedBox(height: 16.h),
+            SizedBox(height: context.rh(16)),
             const _DashedDivider(),
-            SizedBox(height: 16.h),
+            SizedBox(height: context.rh(16)),
 
             // --- NEW: DYNAMIC PRODUCT LIST INSIDE QUOTATION ---
             if (items.isEmpty)
               Center(
                 child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 4.h),
+                  padding: EdgeInsets.symmetric(vertical: context.rh(4)),
                   child: Text(
                     'orders.quotation_extra.no_items'.tr,
                     style: TextStyle(
-                      fontSize: 14.sp,
+                      fontSize: context.rsp(14),
                       fontWeight: FontWeight.w500,
                       color: colors.textSecondary,
                     ),
@@ -179,17 +179,17 @@ class QuotationPreviewSection extends StatelessWidget {
                     localFileExists(item.drawingImagePath!);
 
                 return Padding(
-                  padding: EdgeInsets.only(bottom: 8.h),
+                  padding: EdgeInsets.only(bottom: context.rh(8)),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Qty
                       SizedBox(
-                        width: 30.w,
+                        width: context.rw(30),
                         child: Text(
                           '${qty}x',
                           style: TextStyle(
-                            fontSize: 13.sp,
+                            fontSize: context.rsp(13),
                             fontWeight: FontWeight.w600,
                             color: colors.textPrimary,
                           ),
@@ -198,19 +198,19 @@ class QuotationPreviewSection extends StatelessWidget {
                       // Drawing thumbnail (customized lines only)
                       if (item.isCustomized) ...[
                         ClipRRect(
-                          borderRadius: BorderRadius.circular(6.r),
+                          borderRadius: BorderRadius.circular(context.rr(6)),
                           child: Container(
-                            width: 34.w,
-                            height: 34.w,
+                            width: context.rw(34),
+                            height: context.rw(34),
                             color: colors.surfaceSoft,
                             child: hasDrawing
                                 ? localFileImage((item.drawingImagePath!),
                                     fit: BoxFit.cover)
                                 : Icon(Icons.tune_rounded,
-                                    size: 16.w, color: colors.brandNavy),
+                                    size: context.rw(16), color: colors.brandNavy),
                           ),
                         ),
-                        SizedBox(width: 8.w),
+                        SizedBox(width: context.rw(8)),
                       ],
                       // Product Name & details
                       Expanded(
@@ -227,7 +227,7 @@ class QuotationPreviewSection extends StatelessWidget {
                                         : context
                                             .localized(product.displayName),
                                     style: TextStyle(
-                                      fontSize: 13.sp,
+                                      fontSize: context.rsp(13),
                                       fontWeight: FontWeight.w500,
                                       color: colors.textPrimary,
                                     ),
@@ -235,9 +235,9 @@ class QuotationPreviewSection extends StatelessWidget {
                                 ),
                                 if (item.isCustomized)
                                   Padding(
-                                    padding: EdgeInsets.only(left: 4.w),
+                                    padding: EdgeInsets.only(left: context.rw(4)),
                                     child: Text('✏️',
-                                        style: TextStyle(fontSize: 11.sp)),
+                                        style: TextStyle(fontSize: context.rsp(11))),
                                   ),
                               ],
                             ),
@@ -245,7 +245,7 @@ class QuotationPreviewSection extends StatelessWidget {
                               Text(
                                 specParts.join(' · '),
                                 style: TextStyle(
-                                  fontSize: 11.sp,
+                                  fontSize: context.rsp(11),
                                   color: colors.brandNavy,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -255,7 +255,7 @@ class QuotationPreviewSection extends StatelessWidget {
                               Text(
                                 '${product.size} ${product.grade}'.trim(),
                                 style: TextStyle(
-                                  fontSize: 11.sp,
+                                  fontSize: context.rsp(11),
                                   color: colors.textSecondary,
                                 ),
                               ),
@@ -263,11 +263,11 @@ class QuotationPreviewSection extends StatelessWidget {
                         ),
                       ),
                       // Row Total
-                      SizedBox(width: 8.w),
+                      SizedBox(width: context.rw(8)),
                       Text(
                         '\$${rowTotal.toStringAsFixed(0)}',
                         style: TextStyle(
-                          fontSize: 13.sp,
+                          fontSize: context.rsp(13),
                           fontWeight: FontWeight.w600,
                           color: colors.textPrimary,
                         ),
@@ -277,9 +277,9 @@ class QuotationPreviewSection extends StatelessWidget {
                 );
               }),
 
-            SizedBox(height: 8.h),
+            SizedBox(height: context.rh(8)),
             const _DashedDivider(),
-            SizedBox(height: 14.h),
+            SizedBox(height: context.rh(14)),
 
             // Pricing Rows Section Breakdown
             Row(
@@ -288,7 +288,7 @@ class QuotationPreviewSection extends StatelessWidget {
                 Text(
                   'orders.quotation_extra.subtotal'.tr,
                   style: TextStyle(
-                    fontSize: 14.sp,
+                    fontSize: context.rsp(14),
                     fontWeight: FontWeight.w500,
                     color: colors.textPrimary,
                   ),
@@ -296,14 +296,14 @@ class QuotationPreviewSection extends StatelessWidget {
                 Text(
                   '\$${subtotal.toStringAsFixed(0)}',
                   style: TextStyle(
-                    fontSize: 14.sp,
+                    fontSize: context.rsp(14),
                     fontWeight: FontWeight.w600,
                     color: colors.textPrimary,
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 8.h),
+            SizedBox(height: context.rh(8)),
 
             // Discount Row
             Row(
@@ -312,7 +312,7 @@ class QuotationPreviewSection extends StatelessWidget {
                 Text(
                   'orders.quotation_extra.discount'.tr,
                   style: TextStyle(
-                    fontSize: 14.sp,
+                    fontSize: context.rsp(14),
                     fontWeight: FontWeight.w500,
                     color: colors.textPrimary,
                   ),
@@ -320,14 +320,14 @@ class QuotationPreviewSection extends StatelessWidget {
                 Text(
                   '-\$${discount.toStringAsFixed(0)}',
                   style: TextStyle(
-                    fontSize: 14.sp,
+                    fontSize: context.rsp(14),
                     fontWeight: FontWeight.w600,
                     color: discount > 0 ? colors.success : colors.textPrimary,
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 8.h),
+            SizedBox(height: context.rh(8)),
 
             // Tax Row
             Row(
@@ -336,7 +336,7 @@ class QuotationPreviewSection extends StatelessWidget {
                 Text(
                   'orders.quotation_extra.tax'.tr,
                   style: TextStyle(
-                    fontSize: 14.sp,
+                    fontSize: context.rsp(14),
                     fontWeight: FontWeight.w500,
                     color: colors.textPrimary,
                   ),
@@ -344,16 +344,16 @@ class QuotationPreviewSection extends StatelessWidget {
                 Text(
                   '\$${tax.toStringAsFixed(0)}',
                   style: TextStyle(
-                    fontSize: 14.sp,
+                    fontSize: context.rsp(14),
                     fontWeight: FontWeight.w600,
                     color: colors.textPrimary,
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 12.h),
+            SizedBox(height: context.rh(12)),
             const _DashedDivider(),
-            SizedBox(height: 12.h),
+            SizedBox(height: context.rh(12)),
 
             // Total Row
             Row(
@@ -362,7 +362,7 @@ class QuotationPreviewSection extends StatelessWidget {
                 Text(
                   'orders.quotation_extra.total'.tr,
                   style: TextStyle(
-                    fontSize: 16.sp,
+                    fontSize: context.rsp(16),
                     fontWeight: FontWeight.w900,
                     color: colors.brandNavy,
                   ),
@@ -370,22 +370,22 @@ class QuotationPreviewSection extends StatelessWidget {
                 Text(
                   '\$${total.toStringAsFixed(0)}',
                   style: TextStyle(
-                    fontSize: 16.sp,
+                    fontSize: context.rsp(16),
                     fontWeight: FontWeight.w900,
                     color: colors.brandNavy,
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 14.h),
+            SizedBox(height: context.rh(14)),
             const _DashedDivider(),
-            SizedBox(height: 12.h),
+            SizedBox(height: context.rh(12)),
 
             // Bottom Disclaimer Footer Layout
             Text(
               'orders.quotation_extra.quote_disclaimer'.tr,
               style: TextStyle(
-                fontSize: 11.sp,
+                fontSize: context.rsp(11),
                 fontWeight: FontWeight.w500,
                 color: colors.textHint,
               ),

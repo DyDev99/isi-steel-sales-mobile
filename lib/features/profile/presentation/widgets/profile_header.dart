@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/profile/domain/entities/worker_profile.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 class ProfileHeader extends StatelessWidget {
   const ProfileHeader({super.key, required this.profile});
@@ -50,7 +51,7 @@ class ProfileHeader extends StatelessWidget {
                     _initials,
                     style: TextStyle(
                       color: scheme.primary,
-                      fontSize: 26,
+                      fontSize: context.rsp(26),
                       fontWeight: FontWeight.w800,
                     ),
                   ),
@@ -63,7 +64,7 @@ class ProfileHeader extends StatelessWidget {
                     _initials,
                     style: TextStyle(
                       color: scheme.primary.withValues(alpha: 0.5),
-                      fontSize: 26,
+                      fontSize: context.rsp(26),
                       fontWeight: FontWeight.w800,
                     ),
                   ),
@@ -72,16 +73,16 @@ class ProfileHeader extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: context.rh(12)),
         Text(
           profile.fullName,
           style: TextStyle(
             color: scheme.onSurface,
-            fontSize: 18,
+            fontSize: context.rsp(18),
             fontWeight: FontWeight.w900,
           ),
         ),
-        const SizedBox(height: 4),
+        SizedBox(height: context.rh(4)),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
@@ -93,15 +94,15 @@ class ProfileHeader extends StatelessWidget {
             profile.role,
             style: TextStyle(
               color: scheme.primary,
-              fontSize: 12,
+              fontSize: context.rsp(12),
               fontWeight: FontWeight.w700,
             ),
           ),
         ),
-        const SizedBox(height: 2),
+        SizedBox(height: context.rh(2)),
         Text(
           '#${profile.employeeCode}',
-          style: TextStyle(color: colors.textSecondary, fontSize: 12),
+          style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(12)),
         ),
       ],
     );

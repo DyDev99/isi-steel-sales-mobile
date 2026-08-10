@@ -3,6 +3,8 @@ import 'package:isi_steel_sales_mobile/core/localization/localization_services.d
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/filter/filter_selection.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product_filter.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/app_bottom_sheet.dart';
 
 /// What the always-visible Filter button opens.
 ///
@@ -85,7 +87,7 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: context.rh(16)),
             Row(
               children: [
                 Expanded(
@@ -93,7 +95,7 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet> {
                     'orders.guided_filter.filters'.tr,
                     style: TextStyle(
                       color: colors.textPrimary,
-                      fontSize: 17,
+                      fontSize: context.rsp(17),
                       fontWeight: FontWeight.w900,
                     ),
                   ),
@@ -105,9 +107,9 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet> {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: context.rh(8)),
             _SectionLabel('orders.guided_filter.sort_by'.tr),
-            const SizedBox(height: 8),
+            SizedBox(height: context.rh(8)),
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -120,22 +122,22 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet> {
                   ),
               ],
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: context.rh(20)),
             _SectionLabel('orders.guided_filter.availability'.tr),
-            const SizedBox(height: 4),
+            SizedBox(height: context.rh(4)),
             SwitchListTile.adaptive(
               contentPadding: EdgeInsets.zero,
               value: _availableOnly,
               onChanged: (value) => setState(() => _availableOnly = value),
               title: Text(
                 'orders.filter.in_stock_only'.tr,
-                style: TextStyle(color: colors.textPrimary, fontSize: 14),
+                style: TextStyle(color: colors.textPrimary, fontSize: context.rsp(14)),
               ),
             ),
             if (widget.categoryLabel != null) ...[
-              const SizedBox(height: 8),
+              SizedBox(height: context.rh(8)),
               _SectionLabel('orders.guided_filter.active_filters'.tr),
-              const SizedBox(height: 8),
+              SizedBox(height: context.rh(8)),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
@@ -154,16 +156,16 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet> {
                 ],
               ),
               if (_cleared.isNotEmpty) ...[
-                const SizedBox(height: 8),
+                SizedBox(height: context.rh(8)),
                 Text(
                   'orders.guided_filter.clear_dependents_note'.tr,
-                  style: TextStyle(color: colors.textSecondary, fontSize: 11.5),
+                  style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(11.5)),
                 ),
               ],
             ],
-            const SizedBox(height: 20),
+            SizedBox(height: context.rh(20)),
             SizedBox(
-              height: 46,
+              height: context.rh(46),
               child: FilledButton(
                 onPressed: _apply,
                 style: FilledButton.styleFrom(
@@ -199,6 +201,7 @@ Future<FilterOptionsResult?> showFilterOptionsSheet({
   required String? categoryLabel,
 }) {
   return showModalBottomSheet<FilterOptionsResult>(
+    constraints: const BoxConstraints(maxWidth: AppBottomSheet.maxWidth),
     context: context,
     isScrollControlled: true,
     backgroundColor: Theme.of(context).colorScheme.surface,
@@ -223,7 +226,7 @@ class _SectionLabel extends StatelessWidget {
         text.toUpperCase(),
         style: TextStyle(
           color: context.appColors.textSecondary,
-          fontSize: 11,
+          fontSize: context.rsp(11),
           fontWeight: FontWeight.w800,
           letterSpacing: 0.4,
         ),
@@ -269,15 +272,15 @@ class _ChoiceChip extends StatelessWidget {
               label,
               style: TextStyle(
                 color: selected ? scheme.primary : colors.textSecondary,
-                fontSize: 12.5,
+                fontSize: context.rsp(12.5),
                 fontWeight: FontWeight.w700,
                 decoration: selected ? null : TextDecoration.lineThrough,
               ),
             ),
             if (trailingIcon != null) ...[
-              const SizedBox(width: 5),
+              SizedBox(width: context.rw(5)),
               Icon(trailingIcon,
-                  size: 13,
+                  size: context.rr(13),
                   color: selected ? scheme.primary : colors.iconMuted),
             ],
           ],
@@ -305,7 +308,7 @@ class _StaticChip extends StatelessWidget {
         label,
         style: TextStyle(
           color: colors.textPrimary,
-          fontSize: 12.5,
+          fontSize: context.rsp(12.5),
           fontWeight: FontWeight.w700,
         ),
       ),

@@ -8,6 +8,8 @@ import 'package:isi_steel_sales_mobile/features/order/domain/usecases/browse_pro
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/catalog_params.dart'
     as catalog_params;
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_order_line.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/app_bottom_sheet.dart';
 
 /// Searches the real product catalog (`order` feature's `ProductRepository`,
 /// via `BrowseProducts`) rather than inventing a second product concept —
@@ -15,6 +17,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_
 Future<VisitOrderLine?> showOrderCaptureSheet(
     {required BuildContext context, required String stopId}) {
   return showModalBottomSheet<VisitOrderLine>(
+    constraints: const BoxConstraints(maxWidth: AppBottomSheet.maxWidth),
     context: context,
     backgroundColor: context.appColors.surfaceSoft,
     isScrollControlled: true,
@@ -74,9 +77,9 @@ class _OrderCaptureSheetState extends State<_OrderCaptureSheet> {
               Text('my_visits.forms.capture_order'.tr,
                   style: TextStyle(
                       color: colors.textPrimary,
-                      fontSize: 17,
+                      fontSize: context.rsp(17),
                       fontWeight: FontWeight.w800)),
-              const SizedBox(height: 12),
+              SizedBox(height: context.rh(12)),
               TextField(
                 controller: _searchController,
                 onChanged: _search,
@@ -90,10 +93,10 @@ class _OrderCaptureSheetState extends State<_OrderCaptureSheet> {
                       borderSide: BorderSide.none),
                 ),
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: context.rh(10)),
               if (_searching)
                 Padding(
-                    padding: const EdgeInsets.all(12),
+                    padding: EdgeInsets.all(context.rr(12)),
                     child: CircularProgressIndicator(color: primary)),
               if (!_searching && _results.isNotEmpty)
                 ConstrainedBox(
@@ -111,25 +114,25 @@ class _OrderCaptureSheetState extends State<_OrderCaptureSheet> {
                         title: Text(p.name,
                             style: TextStyle(
                                 color: colors.textPrimary,
-                                fontSize: 13,
+                                fontSize: context.rsp(13),
                                 fontWeight: FontWeight.w700)),
                         subtitle: Text(
                             '${p.code} · \$${p.effectivePrice.toStringAsFixed(2)}',
                             style: TextStyle(
-                                color: colors.textSecondary, fontSize: 11.5)),
+                                color: colors.textSecondary, fontSize: context.rsp(11.5))),
                         onTap: () => setState(() => _selected = p),
                       );
                     },
                   ),
                 ),
               if (_selected != null) ...[
-                const SizedBox(height: 12),
+                SizedBox(height: context.rh(12)),
                 Row(
                   children: [
                     Expanded(
                       child: Text('Quantity',
                           style: TextStyle(
-                              color: colors.textSecondary, fontSize: 12.5)),
+                              color: colors.textSecondary, fontSize: context.rsp(12.5))),
                     ),
                     IconButton(
                       onPressed: () => setState(
@@ -147,7 +150,7 @@ class _OrderCaptureSheetState extends State<_OrderCaptureSheet> {
                   ],
                 ),
               ],
-              const SizedBox(height: 12),
+              SizedBox(height: context.rh(12)),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(

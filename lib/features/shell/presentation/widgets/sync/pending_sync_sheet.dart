@@ -7,6 +7,8 @@ import 'package:isi_steel_sales_mobile/features/order/domain/entities/quotation_
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/sync_queue_item.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/sync/pending_sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/sync/pending_sync_state.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/app_bottom_sheet.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// The "Sync Center" — a bottom sheet listing the outbound SAP queue with the
 /// SAP response, retry state, and the only two actions the spec allows the user
@@ -14,6 +16,7 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/sync/pen
 Future<void> showPendingSyncSheet(BuildContext context) {
   final cubit = context.read<PendingSyncCubit>();
   return showModalBottomSheet<void>(
+    constraints: const BoxConstraints(maxWidth: AppBottomSheet.maxWidth),
     context: context,
     isScrollControlled: true,
     backgroundColor: context.appColors.surfaceSoft,
@@ -45,13 +48,13 @@ class _SyncSheet extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _grabber(colors.border),
-                  const SizedBox(height: 12),
+                  SizedBox(height: context.rh(12)),
                   Row(
                     children: [
                       Expanded(
                         child: Text('sync.center_title'.tr,
                             style: TextStyle(
-                                fontSize: 17,
+                                fontSize: context.rsp(17),
                                 fontWeight: FontWeight.w800,
                                 color: scheme.onSurface)),
                       ),
@@ -59,16 +62,16 @@ class _SyncSheet extends StatelessWidget {
                         _SyncNowButton(isSyncing: state.isSyncing),
                     ],
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: context.rh(4)),
                   Text(
                     'sync.counts'.trParams({
                       'pending': state.counts.pending,
                       'failed': state.counts.failed,
                       'conflict': state.counts.conflict,
                     }),
-                    style: TextStyle(color: colors.textSecondary, fontSize: 12),
+                    style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(12)),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: context.rh(12)),
                   if (state.items.isEmpty)
                     const _EmptyQueue()
                   else
@@ -76,7 +79,7 @@ class _SyncSheet extends StatelessWidget {
                       child: ListView.separated(
                         shrinkWrap: true,
                         itemCount: state.items.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 10),
+                        separatorBuilder: (_, __) => SizedBox(height: context.rh(10)),
                         itemBuilder: (context, i) =>
                             _QueueTile(item: state.items[i]),
                       ),
@@ -121,7 +124,7 @@ class _SyncNowButton extends StatelessWidget {
               height: 14,
               child: CircularProgressIndicator(
                   strokeWidth: 2, color: Colors.white))
-          : const Icon(Icons.sync_rounded, size: 16),
+          : Icon(Icons.sync_rounded, size: context.rr(16)),
       label: Text(isSyncing ? 'sync.syncing'.tr : 'sync.sync_now'.tr),
     );
   }
@@ -137,7 +140,7 @@ class _QueueTile extends StatelessWidget {
     final colors = context.appColors;
     final color = _statusColor(context, item.status);
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(context.rr(12)),
       decoration: BoxDecoration(
         color: scheme.surface,
         borderRadius: BorderRadius.circular(14),
@@ -157,14 +160,14 @@ class _QueueTile extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                       fontWeight: FontWeight.w800,
-                      fontSize: 13.5,
+                      fontSize: context.rsp(13.5),
                       color: scheme.onSurface),
                 ),
               ),
               _StatusChip(status: item.status, color: color),
             ],
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: context.rh(4)),
           Text(
             [
               if (item.itemCount != null)
@@ -173,10 +176,10 @@ class _QueueTile extends StatelessWidget {
               if (item.attemptCount > 0)
                 'sync.attempt'.trParams({'count': item.attemptCount}),
             ].join(' · '),
-            style: TextStyle(color: colors.textSecondary, fontSize: 11.5),
+            style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(11.5)),
           ),
           if (item.sapDocumentNumber != null) ...[
-            const SizedBox(height: 6),
+            SizedBox(height: context.rh(6)),
             _InfoLine(
               icon: Icons.check_circle_rounded,
               color: colors.success,
@@ -185,7 +188,7 @@ class _QueueTile extends StatelessWidget {
             ),
           ],
           if (item.status.needsUserAction && item.lastError != null) ...[
-            const SizedBox(height: 6),
+            SizedBox(height: context.rh(6)),
             _InfoLine(
               icon: Icons.error_outline_rounded,
               color: scheme.error,
@@ -193,7 +196,7 @@ class _QueueTile extends StatelessWidget {
             ),
           ],
           if (item.status.needsUserAction) ...[
-            const SizedBox(height: 8),
+            SizedBox(height: context.rh(8)),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -204,11 +207,11 @@ class _QueueTile extends StatelessWidget {
                   child: Text('common.discard'.tr,
                       style: TextStyle(color: colors.textSecondary)),
                 ),
-                const SizedBox(width: 4),
+                SizedBox(width: context.rw(4)),
                 FilledButton.tonalIcon(
                   onPressed: () =>
                       context.read<PendingSyncCubit>().retry(item.quotationId),
-                  icon: const Icon(Icons.refresh_rounded, size: 16),
+                  icon: Icon(Icons.refresh_rounded, size: context.rr(16)),
                   label: Text('common.retry'.tr),
                 ),
               ],
@@ -270,11 +273,11 @@ class _InfoLine extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 14, color: color),
-        const SizedBox(width: 6),
+        Icon(icon, size: context.rr(14), color: color),
+        SizedBox(width: context.rw(6)),
         Expanded(
           child: Text(text,
-              style: TextStyle(color: color, fontSize: 11.5, height: 1.3)),
+              style: TextStyle(color: color, fontSize: context.rsp(11.5), height: 1.3)),
         ),
       ],
     );
@@ -294,14 +297,14 @@ class _EmptyQueue extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.cloud_done_rounded, size: 40, color: colors.success),
-            const SizedBox(height: 10),
+            Icon(Icons.cloud_done_rounded, size: context.rr(40), color: colors.success),
+            SizedBox(height: context.rh(10)),
             Text('sync.everything_synced'.tr,
                 style: TextStyle(
                     color: scheme.onSurface, fontWeight: FontWeight.w700)),
-            const SizedBox(height: 4),
+            SizedBox(height: context.rh(4)),
             Text('sync.none_waiting'.tr,
-                style: TextStyle(color: colors.textSecondary, fontSize: 12)),
+                style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(12))),
           ],
         ),
       ),

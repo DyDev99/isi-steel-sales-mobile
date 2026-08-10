@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 class PromotionBadge extends StatelessWidget {
   const PromotionBadge({super.key, required this.label});
@@ -17,12 +18,12 @@ class PromotionBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.local_offer_rounded, size: 11, color: scheme.error),
-          const SizedBox(width: 3),
+          Icon(Icons.local_offer_rounded, size: context.rr(11), color: scheme.error),
+          SizedBox(width: context.rw(3)),
           Text(label,
               style: TextStyle(
                   color: scheme.error,
-                  fontSize: 10.5,
+                  fontSize: context.rsp(10.5),
                   fontWeight: FontWeight.w700)),
         ],
       ),

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/domain/entities/coach_step.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// The assistant tooltip: a compact card with an avatar, a short title + message
 /// (≤ 2 lines), a slim progress bar, and one primary CTA (plus an optional
@@ -40,10 +40,10 @@ class AssistantBubble extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: Container(
-          padding: EdgeInsets.fromLTRB(18.w, 16.h, 16.w, 16.h),
+          padding: EdgeInsets.fromLTRB(context.rw(18), context.rh(16), context.rw(16), context.rh(16)),
           decoration: BoxDecoration(
             color: colors.card,
-            borderRadius: BorderRadius.circular(22.r),
+            borderRadius: BorderRadius.circular(context.rr(22)),
             border: Border.all(color: scheme.primary.withValues(alpha: 0.10)),
             boxShadow: [
               // Tight contact shadow for definition against the scrim...
@@ -68,7 +68,7 @@ class AssistantBubble extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _Avatar(color: scheme.primary),
-                  SizedBox(width: 12.w),
+                  SizedBox(width: context.rw(12)),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -79,20 +79,20 @@ class AssistantBubble extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            fontSize: 15.5.sp,
+                            fontSize: context.rsp(15.5),
                             fontWeight: FontWeight.w800,
                             color: colors.textPrimary,
                             letterSpacing: -0.3,
                             height: 1.15,
                           ),
                         ),
-                        SizedBox(height: 4.h),
+                        SizedBox(height: context.rh(4)),
                         Text(
                           step.messageKey.tr,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            fontSize: 12.5.sp,
+                            fontSize: context.rsp(12.5),
                             height: 1.35,
                             color: colors.textSecondary,
                           ),
@@ -109,7 +109,7 @@ class AssistantBubble extends StatelessWidget {
                   ),
                 ],
               ),
-              SizedBox(height: 14.h),
+              SizedBox(height: context.rh(14)),
               _ProgressBar(
                 value: progress,
                 stepNumber: stepNumber,
@@ -117,7 +117,7 @@ class AssistantBubble extends StatelessWidget {
                 trackColor: colors.surfaceStrong,
                 fillColor: scheme.primary,
               ),
-              SizedBox(height: 14.h),
+              SizedBox(height: context.rh(14)),
               Row(
                 children: [
                   if (step.canSkip)
@@ -149,8 +149,8 @@ class _Avatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        width: 38.r,
-        height: 38.r,
+        width: context.rr(38),
+        height: context.rr(38),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -160,10 +160,10 @@ class _Avatar extends StatelessWidget {
               color.withValues(alpha: 0.10),
             ],
           ),
-          borderRadius: BorderRadius.circular(13.r),
+          borderRadius: BorderRadius.circular(context.rr(13)),
           border: Border.all(color: color.withValues(alpha: 0.18)),
         ),
-        child: Icon(Icons.auto_awesome_rounded, size: 20.r, color: color),
+        child: Icon(Icons.auto_awesome_rounded, size: context.rr(20), color: color),
       );
 }
 
@@ -190,7 +190,7 @@ class _ProgressBar extends StatelessWidget {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(100),
             child: Container(
-              height: 6.h,
+              height: context.rh(6),
               color: trackColor,
               alignment: Alignment.centerLeft,
               child: TweenAnimationBuilder<double>(
@@ -216,7 +216,7 @@ class _ProgressBar extends StatelessWidget {
             ),
           ),
         ),
-        SizedBox(width: 10.w),
+        SizedBox(width: context.rw(10)),
         _StepPill(stepNumber: stepNumber, total: total, color: fillColor),
       ],
     );
@@ -238,7 +238,7 @@ class _StepPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
+        padding: EdgeInsets.symmetric(horizontal: context.rw(8), vertical: context.rh(3)),
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.10),
           borderRadius: BorderRadius.circular(100),
@@ -246,7 +246,7 @@ class _StepPill extends StatelessWidget {
         child: Text(
           '$stepNumber/$total',
           style: TextStyle(
-            fontSize: 11.sp,
+            fontSize: context.rsp(11),
             fontWeight: FontWeight.w800,
             color: color,
           ),
@@ -282,10 +282,10 @@ class _PrimaryButtonState extends State<_PrimaryButton> {
       curve: Curves.easeOut,
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(14.r),
+        borderRadius: BorderRadius.circular(context.rr(14)),
         child: Ink(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14.r),
+            borderRadius: BorderRadius.circular(context.rr(14)),
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -304,18 +304,18 @@ class _PrimaryButtonState extends State<_PrimaryButton> {
             ],
           ),
           child: InkWell(
-            borderRadius: BorderRadius.circular(14.r),
+            borderRadius: BorderRadius.circular(context.rr(14)),
             onTap: () {
               HapticFeedback.selectionClick();
               widget.onTap();
             },
             onHighlightChanged: (v) => setState(() => _pressed = v),
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 11.h),
+              padding: EdgeInsets.symmetric(horizontal: context.rw(20), vertical: context.rh(11)),
               child: Text(
                 widget.label,
                 style: TextStyle(
-                  fontSize: 13.sp,
+                  fontSize: context.rsp(13),
                   fontWeight: FontWeight.w800,
                   color: widget.foreground,
                   letterSpacing: -0.1,
@@ -338,17 +338,17 @@ class _TextButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => InkWell(
-        borderRadius: BorderRadius.circular(10.r),
+        borderRadius: BorderRadius.circular(context.rr(10)),
         onTap: () {
           HapticFeedback.selectionClick();
           onTap();
         },
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
+          padding: EdgeInsets.symmetric(horizontal: context.rw(8), vertical: context.rh(8)),
           child: Text(
             label,
             style: TextStyle(
-              fontSize: 12.5.sp,
+              fontSize: context.rsp(12.5),
               fontWeight: FontWeight.w700,
               color: color,
             ),
@@ -379,9 +379,9 @@ class _IconButton extends StatelessWidget {
           onPressed: onTap,
           tooltip: tooltip,
           visualDensity: VisualDensity.compact,
-          constraints: BoxConstraints.tight(Size(32.r, 32.r)),
+          constraints: BoxConstraints.tight(Size(context.rr(32), context.rr(32))),
           padding: EdgeInsets.zero,
-          icon: Icon(icon, size: 16.r, color: color),
+          icon: Icon(icon, size: context.rr(16), color: color),
         ),
       );
 }

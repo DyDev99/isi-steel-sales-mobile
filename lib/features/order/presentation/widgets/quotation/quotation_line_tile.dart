@@ -4,6 +4,7 @@ import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/cart_item_tile.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/discount_preset_chips.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 class QuotationLineTile extends StatelessWidget {
   const QuotationLineTile({
@@ -80,7 +81,7 @@ class _StockStatusChip extends StatelessWidget {
         label,
         style: TextStyle(
           color: color,
-          fontSize: 10.5,
+          fontSize: context.rsp(10.5),
           fontWeight: FontWeight.w700,
         ),
       ),

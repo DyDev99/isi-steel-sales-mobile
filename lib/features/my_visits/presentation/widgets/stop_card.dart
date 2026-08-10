@@ -8,6 +8,7 @@ import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_status.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/models/today_stop.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/navigation/open_quotation.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// Cleaned Material 3 stop card with streamlined metadata, dynamic status enum styling,
 /// direct quotation action button, and a bottom-right animated "Skip Stop" dialog popup.
@@ -131,7 +132,7 @@ class _StopCardState extends State<StopCard>
     final isCompleted = _status == VisitStatus.checkedOut;
 
     return Padding(
-      padding: EdgeInsets.only(bottom: 12.h),
+      padding: EdgeInsets.only(bottom: context.rh(12)),
       child: GestureDetector(
         onTapDown: (_) => setState(() => _isPressed = true),
         onTapUp: (_) {
@@ -148,12 +149,12 @@ class _StopCardState extends State<StopCard>
             duration: const Duration(milliseconds: 200),
             decoration: BoxDecoration(
               color: colors.card,
-              borderRadius: BorderRadius.circular(16.r),
+              borderRadius: BorderRadius.circular(context.rr(16)),
               border: Border.all(
                 color: isCheckInActive
                     ? statusConfig.color.withValues(alpha: 0.5)
                     : colors.border,
-                width: isCheckInActive ? 1.5.w : 1.w,
+                width: isCheckInActive ? context.rw(1.5) : context.rw(1),
               ),
               boxShadow: _isPressed
                   ? [
@@ -166,7 +167,7 @@ class _StopCardState extends State<StopCard>
                   : colors.cardShadow,
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(16.r),
+              borderRadius: BorderRadius.circular(context.rr(16)),
               child: Stack(
                 children: [
                   // Accent Bar on the left side indicating status
@@ -175,13 +176,13 @@ class _StopCardState extends State<StopCard>
                     top: 0,
                     bottom: 0,
                     child: Container(
-                      width: 4.w,
+                      width: context.rw(4),
                       color: statusConfig.color,
                     ),
                   ),
 
                   Padding(
-                    padding: EdgeInsets.fromLTRB(16.w, 12.h, 14.w, 12.h),
+                    padding: EdgeInsets.fromLTRB(context.rw(16), context.rh(12), context.rw(14), context.rh(12)),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -200,19 +201,19 @@ class _StopCardState extends State<StopCard>
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
                                       color: colors.textPrimary,
-                                      fontSize: 15.sp,
+                                      fontSize: context.rsp(15),
                                       fontWeight: FontWeight.w800,
                                       letterSpacing: -0.3,
                                     ),
                                   ),
-                                  SizedBox(height: 2.h),
+                                  SizedBox(height: context.rh(2)),
                                   Text(
                                     customer.address,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
                                       color: colors.textSecondary,
-                                      fontSize: 11.5.sp,
+                                      fontSize: context.rsp(11.5),
                                       height: 1.2,
                                     ),
                                   ),
@@ -220,7 +221,7 @@ class _StopCardState extends State<StopCard>
                               ),
                             ),
 
-                            SizedBox(width: 8.w),
+                            SizedBox(width: context.rw(8)),
 
                             // Animated Status Pill
                             _StatusPill(
@@ -232,7 +233,7 @@ class _StopCardState extends State<StopCard>
 
                             // Quick Quotation Basket Icon for Completed Stops
                             if (isCompleted) ...[
-                              SizedBox(width: 8.w),
+                              SizedBox(width: context.rw(8)),
                               _QuotationButton(
                                 onTap: () => _handleQuotationTap(context),
                               ),
@@ -240,11 +241,11 @@ class _StopCardState extends State<StopCard>
                           ],
                         ),
 
-                        SizedBox(height: 10.h),
+                        SizedBox(height: context.rh(10)),
 
                         // Bottom Streamlined Metadata Row
                         Padding(
-                          padding: EdgeInsets.only(right: _canSkip ? 32.w : 0),
+                          padding: EdgeInsets.only(right: _canSkip ? context.rw(32) : 0),
                           child: Row(
                             children: [
                               // Time Schedule Chip
@@ -254,7 +255,7 @@ class _StopCardState extends State<StopCard>
                                     '${timeFmt.format(widget.todayStop.stop.plannedArrival)}–${timeFmt.format(widget.todayStop.stop.plannedDeparture)}',
                               ),
 
-                              SizedBox(width: 6.w),
+                              SizedBox(width: context.rw(6)),
 
                               // High Priority Tag (if applicable)
                               if (_highPriority) ...[
@@ -265,7 +266,7 @@ class _StopCardState extends State<StopCard>
                                   color: colors.warning,
                                   isBold: true,
                                 ),
-                                SizedBox(width: 6.w),
+                                SizedBox(width: context.rw(6)),
                               ],
 
                               const Spacer(),
@@ -273,12 +274,12 @@ class _StopCardState extends State<StopCard>
                               // Distance & ETA badge
                               Container(
                                 padding: EdgeInsets.symmetric(
-                                  horizontal: 8.w,
-                                  vertical: 4.h,
+                                  horizontal: context.rw(8),
+                                  vertical: context.rh(4),
                                 ),
                                 decoration: BoxDecoration(
                                   color: scheme.primary.withValues(alpha: 0.08),
-                                  borderRadius: BorderRadius.circular(8.r),
+                                  borderRadius: BorderRadius.circular(context.rr(8)),
                                   border: Border.all(
                                     color:
                                         scheme.primary.withValues(alpha: 0.15),
@@ -289,15 +290,15 @@ class _StopCardState extends State<StopCard>
                                   children: [
                                     Icon(
                                       Icons.near_me_rounded,
-                                      size: 11.w,
+                                      size: context.rw(11),
                                       color: scheme.primary,
                                     ),
-                                    SizedBox(width: 4.w),
+                                    SizedBox(width: context.rw(4)),
                                     Text(
                                       _distanceLabel(),
                                       style: TextStyle(
                                         color: scheme.primary,
-                                        fontSize: 11.sp,
+                                        fontSize: context.rsp(11),
                                         fontWeight: FontWeight.w800,
                                       ),
                                     ),
@@ -314,8 +315,8 @@ class _StopCardState extends State<StopCard>
                   // Bottom-Right Skip Action Button
                   if (_canSkip)
                     Positioned(
-                      bottom: 8.h,
-                      right: 8.w,
+                      bottom: context.rh(8),
+                      right: context.rw(8),
                       child: _SkipButton(
                         onTap: () => _handleSkipTap(context),
                       ),
@@ -360,25 +361,25 @@ class _SkipButtonState extends State<_SkipButton> {
         duration: const Duration(milliseconds: 100),
         curve: Curves.easeOutCubic,
         child: Container(
-          padding: EdgeInsets.all(6.r),
+          padding: EdgeInsets.all(context.rr(6)),
           decoration: BoxDecoration(
             color: scheme.error.withValues(alpha: 0.1),
             shape: BoxShape.circle,
             border: Border.all(
               color: scheme.error.withValues(alpha: 0.3),
-              width: 1.w,
+              width: context.rw(1),
             ),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.04),
                 blurRadius: 4.r,
-                offset: Offset(0, 2.h),
+                offset: Offset(0, context.rh(2)),
               ),
             ],
           ),
           child: Icon(
             Icons.skip_next_rounded,
-            size: 15.sp,
+            size: context.rsp(15),
             color: scheme.error,
           ),
         ),
@@ -460,12 +461,12 @@ class _SkipReasonDialogContentState extends State<_SkipReasonDialogContent> {
 
     return Dialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24.r),
+        borderRadius: BorderRadius.circular(context.rr(24)),
       ),
       elevation: 12,
       backgroundColor: scheme.surface,
       child: Padding(
-        padding: EdgeInsets.fromLTRB(18.w, 20.h, 18.w, 16.h),
+        padding: EdgeInsets.fromLTRB(context.rw(18), context.rh(20), context.rw(18), context.rh(16)),
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -475,18 +476,18 @@ class _SkipReasonDialogContentState extends State<_SkipReasonDialogContent> {
               Row(
                 children: [
                   Container(
-                    padding: EdgeInsets.all(8.r),
+                    padding: EdgeInsets.all(context.rr(8)),
                     decoration: BoxDecoration(
                       color: scheme.error.withValues(alpha: 0.12),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       Icons.do_not_disturb_on_outlined,
-                      size: 20.sp,
+                      size: context.rsp(20),
                       color: scheme.error,
                     ),
                   ),
-                  SizedBox(width: 10.w),
+                  SizedBox(width: context.rw(10)),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -494,17 +495,17 @@ class _SkipReasonDialogContentState extends State<_SkipReasonDialogContent> {
                         Text(
                           'Skip Stop Reason',
                           style: TextStyle(
-                            fontSize: 16.sp,
+                            fontSize: context.rsp(16),
                             fontWeight: FontWeight.w900,
                             color: colors.textPrimary,
                             letterSpacing: -0.2,
                           ),
                         ),
-                        SizedBox(height: 2.h),
+                        SizedBox(height: context.rh(2)),
                         Text(
                           'Please select or enter why you want to skip this stop.',
                           style: TextStyle(
-                            fontSize: 11.5.sp,
+                            fontSize: context.rsp(11.5),
                             color: colors.textSecondary,
                           ),
                         ),
@@ -514,12 +515,12 @@ class _SkipReasonDialogContentState extends State<_SkipReasonDialogContent> {
                 ],
               ),
 
-              SizedBox(height: 16.h),
+              SizedBox(height: context.rh(16)),
 
               // Reason Chips
               Wrap(
-                spacing: 8.w,
-                runSpacing: 8.h,
+                spacing: context.rw(8),
+                runSpacing: context.rh(8),
                 children: _predefinedReasons.map((reason) {
                   final isSelected = _selectedReason == reason;
                   return ChoiceChip(
@@ -539,13 +540,13 @@ class _SkipReasonDialogContentState extends State<_SkipReasonDialogContent> {
                           : colors.border.withValues(alpha: 0.5),
                     ),
                     labelStyle: TextStyle(
-                      fontSize: 12.sp,
+                      fontSize: context.rsp(12),
                       fontWeight:
                           isSelected ? FontWeight.w800 : FontWeight.w600,
                       color: isSelected ? scheme.primary : colors.textPrimary,
                     ),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.r),
+                      borderRadius: BorderRadius.circular(context.rr(10)),
                     ),
                   );
                 }).toList(),
@@ -553,36 +554,36 @@ class _SkipReasonDialogContentState extends State<_SkipReasonDialogContent> {
 
               // Custom Note TextField for 'Other'
               if (_selectedReason == 'Other') ...[
-                SizedBox(height: 12.h),
+                SizedBox(height: context.rh(12)),
                 TextField(
                   controller: _customNoteController,
                   maxLines: 2,
                   onChanged: (_) => setState(() {}),
                   style:
-                      TextStyle(fontSize: 12.5.sp, color: colors.textPrimary),
+                      TextStyle(fontSize: context.rsp(12.5), color: colors.textPrimary),
                   decoration: InputDecoration(
                     hintText: 'Provide details for skipping...',
                     hintStyle: TextStyle(
-                      fontSize: 12.sp,
+                      fontSize: context.rsp(12),
                       color: colors.textSecondary.withValues(alpha: 0.6),
                     ),
                     contentPadding:
-                        EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+                        EdgeInsets.symmetric(horizontal: context.rw(12), vertical: context.rh(10)),
                     filled: true,
                     fillColor: colors.border.withValues(alpha: 0.2),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12.r),
+                      borderRadius: BorderRadius.circular(context.rr(12)),
                       borderSide: BorderSide(color: colors.border),
                     ),
                     focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12.r),
+                      borderRadius: BorderRadius.circular(context.rr(12)),
                       borderSide: BorderSide(color: scheme.primary, width: 1.5),
                     ),
                   ),
                 ),
               ],
 
-              SizedBox(height: 20.h),
+              SizedBox(height: context.rh(20)),
 
               // Action Buttons
               Row(
@@ -596,12 +597,12 @@ class _SkipReasonDialogContentState extends State<_SkipReasonDialogContent> {
                     child: Text(
                       'Cancel',
                       style: TextStyle(
-                        fontSize: 12.5.sp,
+                        fontSize: context.rsp(12.5),
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
-                  SizedBox(width: 8.w),
+                  SizedBox(width: context.rw(8)),
                   FilledButton(
                     onPressed: isSubmitEnabled ? _submit : null,
                     style: FilledButton.styleFrom(
@@ -609,17 +610,17 @@ class _SkipReasonDialogContentState extends State<_SkipReasonDialogContent> {
                       disabledBackgroundColor:
                           scheme.error.withValues(alpha: 0.3),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.r),
+                        borderRadius: BorderRadius.circular(context.rr(10)),
                       ),
                       padding: EdgeInsets.symmetric(
-                        horizontal: 18.w,
-                        vertical: 10.h,
+                        horizontal: context.rw(18),
+                        vertical: context.rh(10),
                       ),
                     ),
                     child: Text(
                       'Confirm Skip',
                       style: TextStyle(
-                        fontSize: 12.5.sp,
+                        fontSize: context.rsp(12.5),
                         fontWeight: FontWeight.w800,
                       ),
                     ),
@@ -664,18 +665,18 @@ class _QuotationButtonState extends State<_QuotationButton> {
         duration: const Duration(milliseconds: 100),
         curve: Curves.easeOutCubic,
         child: Container(
-          padding: EdgeInsets.all(7.w),
+          padding: EdgeInsets.all(context.rw(7)),
           decoration: BoxDecoration(
             color: scheme.primary.withValues(alpha: 0.12),
             shape: BoxShape.circle,
             border: Border.all(
               color: scheme.primary.withValues(alpha: 0.3),
-              width: 1.w,
+              width: context.rw(1),
             ),
           ),
           child: Icon(
             Icons.shopping_basket_rounded,
-            size: 15.w,
+            size: context.rw(15),
             color: scheme.primary,
           ),
         ),
@@ -745,13 +746,13 @@ class _StatusPillState extends State<_StatusPill>
             widget.isPulsing ? 0.12 + (_pulseController.value * 0.12) : 0.12;
 
         return Container(
-          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
+          padding: EdgeInsets.symmetric(horizontal: context.rw(10), vertical: context.rh(5)),
           decoration: BoxDecoration(
             color: widget.color.withValues(alpha: opacity),
-            borderRadius: BorderRadius.circular(20.r),
+            borderRadius: BorderRadius.circular(context.rr(20)),
             border: Border.all(
               color: widget.color.withValues(alpha: 0.25),
-              width: 0.8.w,
+              width: context.rw(0.8),
             ),
           ),
           child: Row(
@@ -759,15 +760,15 @@ class _StatusPillState extends State<_StatusPill>
             children: [
               Icon(
                 widget.icon,
-                size: 11.w,
+                size: context.rw(11),
                 color: widget.color,
               ),
-              SizedBox(width: 4.w),
+              SizedBox(width: context.rw(4)),
               Text(
                 widget.label,
                 style: TextStyle(
                   color: widget.color,
-                  fontSize: 10.5.sp,
+                  fontSize: context.rsp(10.5),
                   fontWeight: FontWeight.w800,
                   letterSpacing: -0.1,
                 ),
@@ -800,24 +801,24 @@ class _MetaChip extends StatelessWidget {
     final fg = color ?? colors.textSecondary;
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+      padding: EdgeInsets.symmetric(horizontal: context.rw(8), vertical: context.rh(4)),
       decoration: BoxDecoration(
         color: (color ?? colors.border)
             .withValues(alpha: color != null ? 0.1 : 0.4),
-        borderRadius: BorderRadius.circular(8.r),
+        borderRadius: BorderRadius.circular(context.rr(8)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 12.w, color: fg),
-          SizedBox(width: 4.w),
+          Icon(icon, size: context.rw(12), color: fg),
+          SizedBox(width: context.rw(4)),
           Text(
             label,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
               color: fg,
-              fontSize: 11.sp,
+              fontSize: context.rsp(11),
               fontWeight: isBold ? FontWeight.w800 : FontWeight.w600,
             ),
           ),

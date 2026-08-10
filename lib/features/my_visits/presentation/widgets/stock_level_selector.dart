@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/stock_level.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// Semantic color for each [StockLevel], resolved from the active
 /// [ColorScheme] only — supports light + dark with no hardcoded colors.
@@ -61,8 +62,8 @@ class StockLevelSelector extends StatelessWidget {
         visualDensity: VisualDensity.compact,
         padding: const WidgetStatePropertyAll(
             EdgeInsets.symmetric(horizontal: 10, vertical: 6)),
-        textStyle: const WidgetStatePropertyAll(
-            TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700)),
+        textStyle: WidgetStatePropertyAll(
+            TextStyle(fontSize: context.rsp(12.5), fontWeight: FontWeight.w700)),
         backgroundColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
             return selectedColor?.withValues(alpha: 0.14);
@@ -138,7 +139,7 @@ class StockLevelRow extends StatelessWidget {
           Row(
             children: [
               _ProductThumb(imageUrl: imageUrl),
-              const SizedBox(width: 10),
+              SizedBox(width: context.rw(10)),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -148,29 +149,29 @@ class StockLevelRow extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                             color: colors.textPrimary,
-                            fontSize: 14,
+                            fontSize: context.rsp(14),
                             fontWeight: FontWeight.w800)),
                     if (subtitle.isNotEmpty || size.isNotEmpty) ...[
-                      const SizedBox(height: 2),
+                      SizedBox(height: context.rh(2)),
                       Text(
                         [subtitle, size].where((s) => s.isNotEmpty).join(' · '),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                            color: colors.textSecondary, fontSize: 11),
+                            color: colors.textSecondary, fontSize: context.rsp(11)),
                       ),
                     ],
                   ],
                 ),
               ),
               if (missing) ...[
-                const SizedBox(width: 8),
+                SizedBox(width: context.rw(8)),
                 Icon(Icons.error_outline_rounded,
-                    size: 18, color: scheme.error),
+                    size: context.rr(18), color: scheme.error),
               ],
             ],
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: context.rh(10)),
           SizedBox(
             width: double.infinity,
             child: StockLevelSelector(value: level, onChanged: onLevelSelected),
@@ -190,12 +191,12 @@ class _ProductThumb extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final fallback =
-        Icon(Icons.inventory_2_outlined, size: 20, color: colors.iconMuted);
+        Icon(Icons.inventory_2_outlined, size: context.rr(20), color: colors.iconMuted);
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
       child: Container(
         width: 40,
-        height: 40,
+        height: context.rh(40),
         color: colors.surfaceSoft,
         alignment: Alignment.center,
         child: imageUrl.isEmpty
@@ -205,7 +206,7 @@ class _ProductThumb extends StatelessWidget {
             : Image.network(imageUrl,
                 fit: BoxFit.cover,
                 width: 40,
-                height: 40,
+                height: context.rh(40),
                 errorBuilder: (_, __, ___) => fallback),
       ),
     );

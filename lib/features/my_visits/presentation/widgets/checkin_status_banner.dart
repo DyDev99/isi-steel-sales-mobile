@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// Surfaces exactly why check-in is (or isn't) allowed right now — blocked
 /// reasons in red, non-blocking fraud/VPN warnings in amber. Covers both
@@ -37,14 +38,14 @@ class CheckinStatusBanner extends StatelessWidget {
                   .trParams({'distance': distanceMeters.toStringAsFixed(0)}),
         ),
         if (blockedReason != null) ...[
-          const SizedBox(height: 8),
+          SizedBox(height: context.rh(8)),
           _Pill(
               color: Theme.of(context).colorScheme.error,
               icon: Icons.block_rounded,
               text: blockedReason!),
         ],
         for (final warning in warnings) ...[
-          const SizedBox(height: 8),
+          SizedBox(height: context.rh(8)),
           _Pill(
               color: colors.warning,
               icon: Icons.warning_amber_rounded,
@@ -72,13 +73,13 @@ class _Pill extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(icon, size: 16, color: color),
-          const SizedBox(width: 8),
+          Icon(icon, size: context.rr(16), color: color),
+          SizedBox(width: context.rw(8)),
           Expanded(
               child: Text(text,
                   style: TextStyle(
                       color: color,
-                      fontSize: 12,
+                      fontSize: context.rsp(12),
                       fontWeight: FontWeight.w600))),
         ],
       ),

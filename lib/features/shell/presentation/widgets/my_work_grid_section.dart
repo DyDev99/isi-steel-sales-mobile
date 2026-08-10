@@ -354,7 +354,6 @@ class _WorkBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     return AnimatedSwitcher(
       duration: AppDurations.medium,
       switchInCurve: AppCurves.emphasized,

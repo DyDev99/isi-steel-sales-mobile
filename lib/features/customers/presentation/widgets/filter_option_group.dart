@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/animations/app_animations.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// One collapsible filter group: a tappable summary row that always shows the
 /// current selection, expanding to reveal its options.
@@ -112,7 +113,7 @@ class _Summary extends StatelessWidget {
             AnimatedContainer(
               duration: AppDurations.medium,
               curve: AppCurves.standard,
-              padding: const EdgeInsets.all(7),
+              padding: EdgeInsets.all(context.rr(7)),
               decoration: BoxDecoration(
                 color: hasSelection
                     ? scheme.primary.withValues(alpha: 0.14)
@@ -121,11 +122,11 @@ class _Summary extends StatelessWidget {
               ),
               child: Icon(
                 icon,
-                size: 17,
+                size: context.rr(17),
                 color: hasSelection ? scheme.primary : colors.iconMuted,
               ),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: context.rw(12)),
             Expanded(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -135,12 +136,12 @@ class _Summary extends StatelessWidget {
                     label,
                     style: TextStyle(
                       color: colors.textSecondary,
-                      fontSize: 11.5,
+                      fontSize: context.rsp(11.5),
                       fontWeight: FontWeight.w700,
                       letterSpacing: 0.2,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  SizedBox(height: context.rh(2)),
                   // Cross-fades the summary text when the selection changes,
                   // instead of the label snapping to a new value.
                   AnimatedSwitcher(
@@ -153,7 +154,7 @@ class _Summary extends StatelessWidget {
                       style: TextStyle(
                         color:
                             hasSelection ? scheme.primary : colors.textPrimary,
-                        fontSize: 13.5,
+                        fontSize: context.rsp(13.5),
                         fontWeight: FontWeight.w800,
                       ),
                     ),
@@ -161,7 +162,7 @@ class _Summary extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: context.rw(8)),
             AnimatedRotation(
               turns: expanded ? 0.5 : 0.0,
               duration: AppDurations.medium,
@@ -169,7 +170,7 @@ class _Summary extends StatelessWidget {
               child: Icon(
                 Icons.keyboard_arrow_down_rounded,
                 color: colors.iconMuted,
-                size: 22,
+                size: context.rr(22),
               ),
             ),
           ],
@@ -238,7 +239,7 @@ class FilterChoiceChip extends StatelessWidget {
                           padding: const EdgeInsets.only(right: 4),
                           child: Icon(
                             Icons.check_rounded,
-                            size: 14,
+                            size: context.rr(14),
                             color: scheme.primary,
                           ),
                         )
@@ -248,7 +249,7 @@ class FilterChoiceChip extends StatelessWidget {
                   label,
                   style: TextStyle(
                     color: selected ? scheme.primary : colors.textPrimary,
-                    fontSize: 12.5,
+                    fontSize: context.rsp(12.5),
                     fontWeight: FontWeight.w700,
                   ),
                 ),

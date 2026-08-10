@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// Running total of what the quantity steppers have put in the quotation.
 ///
@@ -51,8 +52,8 @@ class CartSummaryBar extends StatelessWidget {
                   child: Row(
                     children: [
                       Icon(Icons.shopping_cart_rounded,
-                          size: 19, color: scheme.primary),
-                      const SizedBox(width: 10),
+                          size: context.rr(19), color: scheme.primary),
+                      SizedBox(width: context.rw(10)),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -62,17 +63,17 @@ class CartSummaryBar extends StatelessWidget {
                                   .trParams({'count': lineCount}),
                               style: TextStyle(
                                 color: colors.textPrimary,
-                                fontSize: 13,
+                                fontSize: context.rsp(13),
                                 fontWeight: FontWeight.w800,
                               ),
                             ),
-                            const SizedBox(height: 1),
+                            SizedBox(height: context.rh(1)),
                             Text(
                               'orders.guided_filter.cart_units'.trParams(
                                   {'count': totalQuantity.toStringAsFixed(0)}),
                               style: TextStyle(
                                 color: colors.textSecondary,
-                                fontSize: 11.5,
+                                fontSize: context.rsp(11.5),
                               ),
                             ),
                           ],
@@ -93,7 +94,7 @@ class CartSummaryBar extends StatelessWidget {
                           key: ValueKey(subtotal.toStringAsFixed(2)),
                           style: TextStyle(
                             color: scheme.primary,
-                            fontSize: 16,
+                            fontSize: context.rsp(16),
                             fontWeight: FontWeight.w900,
                           ),
                         ),

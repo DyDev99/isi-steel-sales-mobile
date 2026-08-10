@@ -6,6 +6,7 @@ import 'package:isi_steel_sales_mobile/shared/widgets/glass_card.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/gradient_button.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/status_pill.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/vibe_field.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// Outcome of a password-reset submission, returned by
 /// [CreateNewPasswordScreen.onSubmit].
@@ -17,25 +18,6 @@ class ResetPasswordResult {
   final String? message;
 }
 
-/// Step 3 of the forgot-password flow: the person picks a new password
-/// after verifying their code on `VerifyScreen`.
-///
-/// Same design choice as the other steps — plain callback instead of
-/// dispatching an AuthBloc event directly, since auth_event.dart /
-/// auth_state.dart weren't available while building this. Wire it up from
-/// the navigation layer, e.g.:
-///
-///   CreateNewPasswordScreen(
-///     onSubmit: (newPassword) async {
-///       `context.read<AuthBloc>().add(`
-///         ResetPasswordRequestedEvent(target, code, newPassword),
-///       );
-///       // ...await the resulting state and map it to a ResetPasswordResult
-///     },
-///     onSuccess: () => Navigator.of(context).pushReplacementNamed(
-///       Static.resetPasswordSuccess,
-///     ),
-///   )
 class CreateNewPasswordScreen extends StatefulWidget {
   const CreateNewPasswordScreen({
     super.key,
@@ -44,14 +26,8 @@ class CreateNewPasswordScreen extends StatefulWidget {
     this.onBack,
   });
 
-  /// Called with the new password once both fields validate and match.
-  /// Return a [ResetPasswordResult] describing whether it succeeded.
   final Future<ResetPasswordResult> Function(String newPassword) onSubmit;
-
-  /// Called right after a successful reset — use this to navigate to the
-  /// success screen (or straight back to login).
   final VoidCallback? onSuccess;
-
   final VoidCallback? onBack;
 
   @override
@@ -100,6 +76,13 @@ class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Dynamic max-width for tablet viewports while keeping column layout
+    final maxCardWidth = context.responsive(
+      compact: 420.0,
+      medium: 520.0,
+      expanded: 580.0,
+    );
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       body: Stack(
@@ -115,10 +98,11 @@ class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
                 Expanded(
                   child: Center(
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 16),
+                      // FIXED: Dynamic EdgeInsets using context.pagePadding
+                      padding: EdgeInsets.all(context.pagePadding),
                       child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 420),
+                        // FIXED: Replaced static 420 constraint with responsive scaling
+                        constraints: BoxConstraints(maxWidth: maxCardWidth),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
@@ -127,33 +111,33 @@ class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
                               children: [
                                 Icon(
                                   Icons.password_outlined,
-                                  size: 40,
+                                  size: context.rr(40),
                                   color:
                                       Theme.of(context).colorScheme.secondary,
                                 ),
-                                const SizedBox(height: 18),
+                                SizedBox(height: context.rh(18)),
                                 Text(
                                   'auth.create_new_password_title'.tr,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     color:
                                         Theme.of(context).colorScheme.onSurface,
-                                    fontSize: 26,
+                                    fontSize: context.rsp(26),
                                     fontWeight: FontWeight.w900,
                                     height: 1.15,
                                   ),
                                 ),
-                                const SizedBox(height: 8),
+                                SizedBox(height: context.rh(8)),
                                 Text(
                                   'auth.create_new_password_subtitle'.tr,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                       color: context.appColors.textSecondary,
-                                      fontSize: 15),
+                                      fontSize: context.rsp(15)),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 24),
+                            SizedBox(height: context.rh(24)),
                             GlassCard(child: _form()),
                           ],
                         ),
@@ -189,7 +173,7 @@ class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
                     ? Icons.visibility_outlined
                     : Icons.visibility_off_outlined,
                 color: context.appColors.textSecondary,
-                size: 20,
+                size: context.rr(20),
               ),
               onPressed: () => setState(() => _obscureNew = !_obscureNew),
             ),
@@ -197,7 +181,7 @@ class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
                 ? 'auth.password_too_short'.tr
                 : null,
           ),
-          const SizedBox(height: 14),
+          SizedBox(height: context.rh(14)),
           VibeField(
             controller: _confirmPassword,
             label: 'auth.confirm_new_password'.tr,
@@ -213,7 +197,7 @@ class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
                     ? Icons.visibility_outlined
                     : Icons.visibility_off_outlined,
                 color: context.appColors.textSecondary,
-                size: 20,
+                size: context.rr(20),
               ),
               onPressed: () =>
                   setState(() => _obscureConfirm = !_obscureConfirm),
@@ -227,7 +211,7 @@ class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
                   : 'auth.passwords_dont_match'.tr;
             },
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: context.rh(20)),
           StatusPill(status: _status, message: _errorMessage),
           GradientButton(
             label: 'auth.reset_password_button'.tr,
@@ -248,12 +232,13 @@ class _BackButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(left: 8, top: 4),
+      // FIXED: Converted static padding to relative responsive constraints
+      padding: EdgeInsets.only(left: context.rw(8), top: context.rh(4)),
       child: Align(
         alignment: Alignment.centerLeft,
         child: IconButton(
           onPressed: onPressed,
-          icon: const Icon(Icons.arrow_back_ios_new, size: 18),
+          icon: Icon(Icons.arrow_back_ios_new, size: context.rr(18)),
           color: Theme.of(context).colorScheme.onSurface,
         ),
       ),

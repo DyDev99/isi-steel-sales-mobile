@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'calendar_day_cell.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// Prev/next chevrons around the "Month yyyy" label.
 class MonthNavigation extends StatelessWidget {
@@ -29,7 +29,7 @@ class MonthNavigation extends StatelessWidget {
           DateFormat.yMMMM().format(focusedMonth),
           style: TextStyle(
             color: colors.textPrimary,
-            fontSize: 16.sp,
+            fontSize: context.rsp(16),
             fontWeight: FontWeight.w800,
           ),
         ),
@@ -49,10 +49,14 @@ class _NavButton extends StatelessWidget {
     final colors = context.appColors;
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(20.r),
+      borderRadius: BorderRadius.circular(context.rr(20)),
       child: Padding(
-        padding: EdgeInsets.all(6.w),
-        child: Icon(icon, color: colors.iconMuted, size: 22.w),
+        padding: EdgeInsets.all(context.rr(6)),
+        child: Icon(
+          icon,
+          color: colors.iconMuted,
+          size: context.rr(22),
+        ),
       ),
     );
   }
@@ -95,6 +99,13 @@ class CalendarMonthView extends StatelessWidget {
       return label.length > 2 ? label.substring(0, 2) : label;
     });
 
+    // Adjusted childAspectRatio by / 1.15 to grant 15% extra height per cell
+    final dynamicChildAspectRatio = context.responsive<double>(
+      compact: 0.71,
+      medium: 1.30,
+      expanded: 1.74,
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -103,7 +114,7 @@ class CalendarMonthView extends StatelessWidget {
           onPrevious: () => _goToMonth(-1),
           onNext: () => _goToMonth(1),
         ),
-        SizedBox(height: 16.h),
+        SizedBox(height: context.rh(16)),
         Row(
           children: [
             for (final label in weekdayLabels)
@@ -113,7 +124,7 @@ class CalendarMonthView extends StatelessWidget {
                     label,
                     style: TextStyle(
                       color: colors.textSecondary,
-                      fontSize: 12.sp,
+                      fontSize: context.rsp(12),
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -121,7 +132,7 @@ class CalendarMonthView extends StatelessWidget {
               ),
           ],
         ),
-        SizedBox(height: 8.h),
+        SizedBox(height: context.rh(8)),
         GestureDetector(
           behavior: HitTestBehavior.opaque,
           onHorizontalDragEnd: (details) {
@@ -152,9 +163,9 @@ class CalendarMonthView extends StatelessWidget {
               itemCount: 42,
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 7,
-                mainAxisSpacing: 4.h,
-                crossAxisSpacing: 2.w,
-                childAspectRatio: 0.78,
+                mainAxisSpacing: context.rh(4),
+                crossAxisSpacing: context.rw(2),
+                childAspectRatio: dynamicChildAspectRatio,
               ),
               itemBuilder: (context, index) {
                 final date = gridStart.add(Duration(days: index));

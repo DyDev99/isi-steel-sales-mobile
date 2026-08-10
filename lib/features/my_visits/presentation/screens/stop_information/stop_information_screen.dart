@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
@@ -16,6 +15,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubi
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/visit_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/state/location_tracking_state.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/stops_check_in_screen.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 class StopInformationScreen extends StatelessWidget {
   const StopInformationScreen({
@@ -101,7 +101,7 @@ class StopInformationScreen extends StatelessWidget {
           'my_visits.stop_info.title'.tr,
           style: TextStyle(
             color: colors.textPrimary,
-            fontSize: 17.sp,
+            fontSize: context.rsp(17),
             fontWeight: FontWeight.w800,
           ),
         ),
@@ -109,19 +109,19 @@ class StopInformationScreen extends StatelessWidget {
       body: SafeArea(
         top: false,
         child: ListView(
-          padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 20.h),
+          padding: EdgeInsets.fromLTRB(context.rw(16), context.rh(8), context.rw(16), context.rh(20)),
           children: [
             _StaggeredEntrance(
               delayMs: 0,
               child:
                   _HeroCard(stop: stop, index: index, totalStops: totalStops),
             ),
-            SizedBox(height: 14.h),
+            SizedBox(height: context.rh(14)),
             _StaggeredEntrance(
               delayMs: 80,
               child: _DetailsCard(stop: stop),
             ),
-            SizedBox(height: 14.h),
+            SizedBox(height: context.rh(14)),
             _StaggeredEntrance(
               delayMs: 160,
               child: _QuickActions(
@@ -192,10 +192,10 @@ class _HeroCard extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final c = stop.customer;
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(context.rw(16)),
       decoration: BoxDecoration(
         color: colors.card,
-        borderRadius: BorderRadius.circular(18.r),
+        borderRadius: BorderRadius.circular(context.rr(18)),
         border: Border.all(color: colors.border),
         boxShadow: colors.cardShadow,
       ),
@@ -205,17 +205,17 @@ class _HeroCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 48.w,
-                height: 48.w,
+                width: context.rw(48),
+                height: context.rw(48),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: scheme.primary.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(14.r),
+                  borderRadius: BorderRadius.circular(context.rr(14)),
                 ),
                 child: Icon(Icons.storefront_rounded,
-                    color: scheme.primary, size: 24.w),
+                    color: scheme.primary, size: context.rw(24)),
               ),
-              SizedBox(width: 12.w),
+              SizedBox(width: context.rw(12)),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -226,15 +226,15 @@ class _HeroCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: colors.textPrimary,
-                        fontSize: 17.sp,
+                        fontSize: context.rsp(17),
                         fontWeight: FontWeight.w900,
                       ),
                     ),
-                    SizedBox(height: 2.h),
+                    SizedBox(height: context.rh(2)),
                     Text(
                       c.code,
                       style: TextStyle(
-                          color: colors.textSecondary, fontSize: 12.5.sp),
+                          color: colors.textSecondary, fontSize: context.rsp(12.5)),
                     ),
                   ],
                 ),
@@ -242,18 +242,18 @@ class _HeroCard extends StatelessWidget {
               _StatusPill(label: stop.status.name.toUpperCase()),
             ],
           ),
-          SizedBox(height: 14.h),
+          SizedBox(height: context.rh(14)),
           Row(
             children: [
               Icon(Icons.route_rounded,
-                  size: 15.w, color: colors.textSecondary),
-              SizedBox(width: 6.w),
+                  size: context.rw(15), color: colors.textSecondary),
+              SizedBox(width: context.rw(6)),
               Text(
                 'my_visits.stop_info.stop_of'
                     .trParams({'current': index + 1, 'total': totalStops}),
                 style: TextStyle(
                   color: colors.textSecondary,
-                  fontSize: 12.sp,
+                  fontSize: context.rsp(12),
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -273,16 +273,16 @@ class _StatusPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+      padding: EdgeInsets.symmetric(horizontal: context.rw(10), vertical: context.rh(4)),
       decoration: BoxDecoration(
         color: scheme.primary.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(20.r),
+        borderRadius: BorderRadius.circular(context.rr(20)),
       ),
       child: Text(
         label,
         style: TextStyle(
           color: scheme.primary,
-          fontSize: 10.5.sp,
+          fontSize: context.rsp(10.5),
           fontWeight: FontWeight.w800,
         ),
       ),
@@ -313,10 +313,10 @@ class _DetailsCard extends StatelessWidget {
                 pos.latitude, pos.longitude, c.latitude, c.longitude));
 
         return Container(
-          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 6.h),
+          padding: EdgeInsets.symmetric(horizontal: context.rw(16), vertical: context.rh(6)),
           decoration: BoxDecoration(
             color: colors.card,
-            borderRadius: BorderRadius.circular(18.r),
+            borderRadius: BorderRadius.circular(context.rr(18)),
             border: Border.all(color: colors.border),
           ),
           child: Column(
@@ -381,7 +381,7 @@ class _InfoRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 12.h),
+      padding: EdgeInsets.symmetric(vertical: context.rh(12)),
       decoration: BoxDecoration(
         border: last
             ? null
@@ -390,8 +390,8 @@ class _InfoRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 18.w, color: colors.textSecondary),
-          SizedBox(width: 12.w),
+          Icon(icon, size: context.rw(18), color: colors.textSecondary),
+          SizedBox(width: context.rw(12)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -399,14 +399,14 @@ class _InfoRow extends StatelessWidget {
                 Text(
                   label,
                   style:
-                      TextStyle(color: colors.textSecondary, fontSize: 11.5.sp),
+                      TextStyle(color: colors.textSecondary, fontSize: context.rsp(11.5)),
                 ),
-                SizedBox(height: 2.h),
+                SizedBox(height: context.rh(2)),
                 Text(
                   value,
                   style: TextStyle(
                     color: colors.textPrimary,
-                    fontSize: 13.5.sp,
+                    fontSize: context.rsp(13.5),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -450,8 +450,8 @@ class _QuickActions extends StatelessWidget {
       ),
     ];
     return Wrap(
-      spacing: 10.w,
-      runSpacing: 10.h,
+      spacing: context.rw(10),
+      runSpacing: context.rh(10),
       children: [for (final a in actions) _ActionChip(a.$1, a.$2, a.$3)],
     );
   }
@@ -484,7 +484,7 @@ class _ActionChipState extends State<_ActionChip> {
       curve: Curves.easeOutCubic,
       child: Material(
         color: colors.card,
-        borderRadius: BorderRadius.circular(14.r),
+        borderRadius: BorderRadius.circular(context.rr(14)),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTapDown: _onTapDown,
@@ -494,21 +494,21 @@ class _ActionChipState extends State<_ActionChip> {
             widget.onTap();
           },
           child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
+            padding: EdgeInsets.symmetric(horizontal: context.rw(14), vertical: context.rh(10)),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(14.r),
+              borderRadius: BorderRadius.circular(context.rr(14)),
               border: Border.all(color: colors.border),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(widget.icon, size: 17.w, color: scheme.primary),
-                SizedBox(width: 8.w),
+                Icon(widget.icon, size: context.rw(17), color: scheme.primary),
+                SizedBox(width: context.rw(8)),
                 Text(
                   widget.label,
                   style: TextStyle(
                     color: colors.textPrimary,
-                    fontSize: 12.5.sp,
+                    fontSize: context.rsp(12.5),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -542,25 +542,25 @@ class _StartVisitBar extends StatelessWidget {
           )
         ],
       ),
-      padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 12.h),
+      padding: EdgeInsets.fromLTRB(context.rw(20), context.rh(12), context.rw(20), context.rh(12)),
       child: SafeArea(
         top: false,
         child: SizedBox(
           width: double.infinity,
-          height: 50.h,
+          height: context.rh(50),
           child: ElevatedButton.icon(
             onPressed: onStart,
-            icon: Icon(Icons.play_arrow_rounded, size: 22.w),
+            icon: Icon(Icons.play_arrow_rounded, size: context.rw(22)),
             label: Text(
               'my_visits.stop_info.start_visit'.tr,
-              style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w800),
+              style: TextStyle(fontSize: context.rsp(15), fontWeight: FontWeight.w800),
             ),
             style: ElevatedButton.styleFrom(
               backgroundColor: scheme.primary,
               foregroundColor: scheme.onPrimary,
               elevation: 0,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14.r),
+                borderRadius: BorderRadius.circular(context.rr(14)),
               ),
             ),
           ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/app_theme.dart';
@@ -68,16 +69,23 @@ void main() {
     await LocalizationService.instance.load('en');
   });
 
+  // Mirrors `app.dart`: the whole app runs inside ScreenUtilInit, so any widget
+  // using the responsive helpers (`context.rsp` and friends) needs it here too.
+  // Without it ScreenUtil's fields are unset and the card throws
+  // LateInitializationError before it can render.
   Future<void> pump(WidgetTester tester, Product product) => tester.pumpWidget(
-        MaterialApp(
-          theme: AppTheme.light('Inter'),
-          home: Scaffold(
-            body: ProductResultCard(
-              product: product,
-              isFavorite: false,
-              quantity: 0,
-              onQuantityChanged: (_) {},
-              onToggleFavorite: () {},
+        ScreenUtilInit(
+          designSize: const Size(390, 844),
+          builder: (context, _) => MaterialApp(
+            theme: AppTheme.light('Inter'),
+            home: Scaffold(
+              body: ProductResultCard(
+                product: product,
+                isFavorite: false,
+                quantity: 0,
+                onQuantityChanged: (_) {},
+                onToggleFavorite: () {},
+              ),
             ),
           ),
         ),

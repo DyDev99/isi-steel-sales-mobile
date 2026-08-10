@@ -4,6 +4,7 @@ import 'package:isi_steel_sales_mobile/core/localization/localization_services.d
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/cart_quantity_stepper.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// One quotation line, in three rows: what it is, what it costs, what it
 /// totals.
@@ -78,8 +79,8 @@ class CartItemTile extends StatelessWidget {
               children: [
                 if (item.isCustomized) ...[
                   Icon(Icons.tune_rounded,
-                      size: 13, color: colors.accentPurple),
-                  const SizedBox(width: 4),
+                      size: context.rr(13), color: colors.accentPurple),
+                  SizedBox(width: context.rw(4)),
                 ],
                 Expanded(
                   child: Text(
@@ -88,7 +89,7 @@ class CartItemTile extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: colors.textPrimary,
-                      fontSize: 13,
+                      fontSize: context.rsp(13),
                       fontWeight: FontWeight.w800,
                       height: 1.1,
                     ),
@@ -100,14 +101,14 @@ class CartItemTile extends StatelessWidget {
                   onTap: onRemove,
                   borderRadius: BorderRadius.circular(8),
                   child: Padding(
-                    padding: const EdgeInsets.all(6),
+                    padding: EdgeInsets.all(context.rr(6)),
                     child: Icon(Icons.close_rounded,
-                        size: 16, color: colors.iconMuted),
+                        size: context.rr(16), color: colors.iconMuted),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 3),
+            SizedBox(height: context.rh(3)),
             Row(
               children: [
                 Expanded(
@@ -115,22 +116,22 @@ class CartItemTile extends StatelessWidget {
                     _identityLine,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: colors.textSecondary, fontSize: 11),
+                    style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(11)),
                   ),
                 ),
-                const SizedBox(width: 6),
+                SizedBox(width: context.rw(6)),
                 _StockDot(available: item.product.isAvailable),
-                const SizedBox(width: 8),
+                SizedBox(width: context.rw(8)),
               ],
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: context.rh(8)),
             Row(
               children: [
                 CartQuantityStepper(
                   quantity: item.quantity.round(),
                   onChanged: (value) => onQuantityChanged(value.toDouble()),
                 ),
-                const SizedBox(width: 10),
+                SizedBox(width: context.rw(10)),
                 Expanded(
                   child: Text(
                     '\$${item.unitPrice.toStringAsFixed(2)}/${item.unit}'
@@ -139,7 +140,7 @@ class CartItemTile extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: discounted ? scheme.primary : colors.textSecondary,
-                      fontSize: 11,
+                      fontSize: context.rsp(11),
                       fontWeight: discounted ? FontWeight.w700 : null,
                     ),
                   ),
@@ -158,12 +159,12 @@ class CartItemTile extends StatelessWidget {
                     key: ValueKey(item.lineTotal.toStringAsFixed(2)),
                     style: TextStyle(
                       color: colors.textPrimary,
-                      fontSize: 14,
+                      fontSize: context.rsp(14),
                       fontWeight: FontWeight.w900,
                     ),
                   ),
                 ),
-                const SizedBox(width: 10),
+                SizedBox(width: context.rw(10)),
               ],
             ),
           ],
@@ -193,14 +194,14 @@ class _StockDot extends StatelessWidget {
           height: 6,
           decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
-        const SizedBox(width: 4),
+        SizedBox(width: context.rw(4)),
         Text(
           available
               ? 'orders.catalog.in_stock_short'.tr
               : 'orders.catalog.out_of_stock'.tr,
           style: TextStyle(
             color: color,
-            fontSize: 10.5,
+            fontSize: context.rsp(10.5),
             fontWeight: FontWeight.w700,
           ),
         ),

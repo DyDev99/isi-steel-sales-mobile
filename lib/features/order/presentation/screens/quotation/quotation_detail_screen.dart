@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
@@ -15,6 +14,7 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/quotation_builder_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/sales_order/sales_order_screen.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/back_to_home.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 class QuotationDetailScreen extends StatelessWidget {
   const QuotationDetailScreen({super.key, required this.quotation});
@@ -87,7 +87,7 @@ class QuotationDetailScreen extends StatelessWidget {
               icon: Icon(
                 Icons.chevron_left_rounded,
                 color: colors.textPrimary,
-                size: 28.sp,
+                size: context.rsp(28),
               ),
               onPressed: () => Navigator.of(context).pop(),
             ),
@@ -96,7 +96,7 @@ class QuotationDetailScreen extends StatelessWidget {
                 'orders.quotation.details_title'.tr,
                 style: TextStyle(
                   color: colors.textPrimary,
-                  fontSize: 17.sp,
+                  fontSize: context.rsp(17),
                   fontWeight: FontWeight.w800,
                 ),
                 overflow: TextOverflow.ellipsis,
@@ -107,7 +107,7 @@ class QuotationDetailScreen extends StatelessWidget {
         // Right side: Back to Home button
         actions: [
           Padding(
-            padding: EdgeInsets.only(right: 16.w),
+            padding: EdgeInsets.only(right: context.rw(16)),
             child: const BackToHomeButton(),
           ),
         ],
@@ -121,7 +121,7 @@ class QuotationDetailScreen extends StatelessWidget {
                 child: Text(quotation.id,
                     style: TextStyle(
                         color: colors.textPrimary,
-                        fontSize: 20,
+                        fontSize: context.rsp(20),
                         fontWeight: FontWeight.w900)),
               ),
               Container(
@@ -133,20 +133,20 @@ class QuotationDetailScreen extends StatelessWidget {
                 child: Text(quotation.sapDraftStatus,
                     style: TextStyle(
                         color: theme.colorScheme.primary,
-                        fontSize: 11.5,
+                        fontSize: context.rsp(11.5),
                         fontWeight: FontWeight.w700)),
               ),
             ],
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: context.rh(4)),
           Text(quotation.shopName ?? quotation.leadDisplayName ?? '',
-              style: TextStyle(color: colors.textSecondary, fontSize: 13)),
-          const SizedBox(height: 4),
+              style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(13))),
+          SizedBox(height: context.rh(4)),
           Text(
             '${'orders.quotation.valid_until'.tr}: ${_formatDate(quotation.validUntil)}',
-            style: TextStyle(color: colors.textSecondary, fontSize: 12),
+            style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(12)),
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: context.rh(20)),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14),
             decoration: BoxDecoration(
@@ -162,16 +162,16 @@ class QuotationDetailScreen extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: context.rh(16)),
           _TotalsCard(quotation: quotation),
-          const SizedBox(height: 24),
+          SizedBox(height: context.rh(24)),
           if (!canConvert)
             Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: Text('orders.quotation.convert_disabled_lead'.tr,
                   style: TextStyle(
                       color: colors.textSecondary,
-                      fontSize: 12,
+                      fontSize: context.rsp(12),
                       fontStyle: FontStyle.italic)),
             ),
           SizedBox(
@@ -191,7 +191,7 @@ class QuotationDetailScreen extends StatelessWidget {
                   style: const TextStyle(fontWeight: FontWeight.w800)),
             ),
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: context.rh(10)),
           SizedBox(
             width: double.infinity,
             child: OutlinedButton(
@@ -199,7 +199,7 @@ class QuotationDetailScreen extends StatelessWidget {
               child: Text('orders.quotation.edit_quotation'.tr),
             ),
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: context.rh(20)),
         ],
       ),
     );
@@ -228,16 +228,16 @@ class _LineRow extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                     color: colors.textPrimary,
-                    fontSize: 13,
+                    fontSize: context.rsp(13),
                     fontWeight: FontWeight.w700)),
           ),
           Text('x${qty.toStringAsFixed(0)}',
-              style: TextStyle(color: colors.textSecondary, fontSize: 12)),
-          const SizedBox(width: 12),
+              style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(12))),
+          SizedBox(width: context.rw(12)),
           Text('\$${total.toStringAsFixed(2)}',
               style: TextStyle(
                   color: colors.textPrimary,
-                  fontSize: 13,
+                  fontSize: context.rsp(13),
                   fontWeight: FontWeight.w700)),
         ],
       ),
@@ -252,7 +252,7 @@ class _TotalsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: EdgeInsets.all(context.rr(14)),
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: context.appColors.border)),

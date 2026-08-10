@@ -1,42 +1,93 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:phone_form_field/phone_form_field.dart';
 
-import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
+import 'package:isi_steel_sales_mobile/core/device/device_insets.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
-import 'package:isi_steel_sales_mobile/core/device/device_insets.dart';
 import 'package:isi_steel_sales_mobile/features/home/presentation/bloc/add_customer_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/lead.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/app_bottom_sheet.dart';
 
-void showAddCustomerSheet(BuildContext context,
-    {required List<Lead> wonLeads}) {
-  showModalBottomSheet(
-    context: context,
-    backgroundColor: Colors.transparent,
-    isScrollControlled: true,
-    enableDrag: true,
-    // Animation configuration for smooth entrance and exit
-    sheetAnimationStyle: AnimationStyle(
-      duration: const Duration(milliseconds: 400),
-      reverseDuration: const Duration(milliseconds: 300),
-      curve: Curves.easeOutCubic,
-      reverseCurve: Curves.easeInCubic,
-    ),
-    builder: (BuildContext modalContext) {
-      return AddCustomerBottomSheet(wonLeads: wonLeads);
-    },
-  );
+void showAddCustomerSheet(
+  BuildContext context, {
+  required List<Lead> wonLeads,
+}) {
+  final screenWidth = MediaQuery.sizeOf(context).width;
+  final isTablet = screenWidth >= 600;
+
+  if (isTablet) {
+    // showGeneralDialog completely overrides bottom sheet max-width constraints
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'AddCustomerSheet',
+      barrierColor: Colors.black54,
+      transitionDuration: const Duration(milliseconds: 250),
+      pageBuilder: (context, anim1, anim2) {
+        return Align(
+          alignment: Alignment.bottomCenter,
+          child: Material(
+            color: Colors.transparent,
+            child: SizedBox(
+              // Was `double.infinity`, which is what the comment above means by
+              // overriding the sheet's max width — on a 1032pt iPad this form
+              // spanned the whole screen and put Cancel and Save ~700pt apart.
+              // Capped to the same measure every other sheet uses; `Align`
+              // above centres it (FS-UX-3, FS-RSP-5).
+              width: AppBottomSheet.maxWidth,
+              height: MediaQuery.sizeOf(context).height * 0.9,
+              child: AddCustomerBottomSheet(
+                wonLeads: wonLeads,
+                isTablet: true,
+              ),
+            ),
+          ),
+        );
+      },
+      transitionBuilder: (context, anim1, anim2, child) {
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, 1),
+            end: Offset.zero,
+          ).animate(
+            CurvedAnimation(parent: anim1, curve: Curves.easeOutCubic),
+          ),
+          child: child,
+        );
+      },
+    );
+  } else {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      useSafeArea: true,
+      // Was `double.infinity` on both axes, which spanned the whole 1032pt of
+      // an iPad and left this form's Cancel and Save ~700pt apart. Capped and
+      // centred like every other sheet (FS-UX-3, FS-RSP-5).
+      constraints: const BoxConstraints(maxWidth: AppBottomSheet.maxWidth),
+      builder: (BuildContext modalContext) {
+        return AddCustomerBottomSheet(
+          wonLeads: wonLeads,
+          isTablet: false,
+        );
+      },
+    );
+  }
 }
 
 class AddCustomerBottomSheet extends StatefulWidget {
   final List<Lead> wonLeads;
+  final bool isTablet;
 
   const AddCustomerBottomSheet({
     super.key,
     required this.wonLeads,
+    this.isTablet = false,
   });
 
   @override
@@ -59,6 +110,15 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
   String _gpsCoords = "";
   String _licenceFile = "";
   String _patentFile = "";
+
+  // Helper to ensure text and dimensions remain legible on larger screens
+  double _fontSize(double basePhoneSize) {
+    return widget.isTablet ? basePhoneSize * 1.25 : context.rsp(basePhoneSize);
+  }
+
+  double _spacing(double basePhoneSize) {
+    return widget.isTablet ? basePhoneSize * 1.2 : context.rh(basePhoneSize);
+  }
 
   @override
   void initState() {
@@ -83,6 +143,8 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+
     return BlocProvider<AddCustomerBloc>(
       create: (context) => sl<AddCustomerBloc>(),
       child: BlocConsumer<AddCustomerBloc, AddCustomerState>(
@@ -91,78 +153,86 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('add_customer.success'.tr)),
             );
-            Navigator.pop(context);
+            if (context.mounted) {
+              Navigator.pop(context);
+            }
           }
         },
         builder: (context, state) {
+          final content = Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(widget.isTablet ? 24 : context.rr(28)),
+              ),
+            ),
+            padding: EdgeInsets.fromLTRB(
+              widget.isTablet ? 36 : context.rw(24),
+              widget.isTablet ? 24 : context.rh(16),
+              widget.isTablet ? 36 : context.rw(24),
+              widget.isTablet
+                  ? 32
+                  : context.deviceInsets.sheetBottomInset(
+                      extra: context.rh(24),
+                    ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: widget.isTablet ? 60 : context.rw(42),
+                    height: widget.isTablet ? 6 : context.rh(5),
+                    decoration: BoxDecoration(
+                      color: context.appColors.border,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+                SizedBox(height: _spacing(12)),
+                _buildFormHeader(state),
+                SizedBox(height: _spacing(24)),
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 300),
+                      switchInCurve: Curves.easeInOut,
+                      switchOutCurve: Curves.easeInOut,
+                      child: state.status == AddCustomerStatus.submitting
+                          ? Center(
+                              key: const ValueKey('submitting_loader'),
+                              child: Padding(
+                                padding: EdgeInsets.all(_spacing(40)),
+                                child: CircularProgressIndicator(
+                                  color: Theme.of(context).colorScheme.secondary,
+                                ),
+                              ),
+                            )
+                          : _showsAllSteps
+                              ? _buildAllStepsBody()
+                              : KeyedSubtree(
+                                  key: ValueKey(state.currentStep),
+                                  child: _buildActiveStepBody(state),
+                                ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: _spacing(24)),
+                _buildFormNavigationActionButtons(context, state),
+              ],
+            ),
+          );
+
           return AnimatedPadding(
             duration: const Duration(milliseconds: 200),
             curve: Curves.easeOut,
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom,
-            ),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(28)),
-              ),
-              padding: EdgeInsets.fromLTRB(24.w, 16.h, 24.w,
-                  context.deviceInsets.sheetBottomInset(extra: 24.h)),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 42.w,
-                      height: 5.h,
-                      decoration: BoxDecoration(
-                        color: context.appColors.border,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 20.h),
-                  _buildFormHeader(state),
-                  SizedBox(height: 20.h),
-
-                  // Smooth Animated Transition between Step Views
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 300),
-                    switchInCurve: Curves.easeInOut,
-                    switchOutCurve: Curves.easeInOut,
-                    transitionBuilder:
-                        (Widget child, Animation<double> animation) {
-                      return FadeTransition(
-                        opacity: animation,
-                        child: SizeTransition(
-                          sizeFactor: animation,
-                          axisAlignment: -1.0,
-                          child: child,
-                        ),
-                      );
-                    },
-                    child: state.status == AddCustomerStatus.submitting
-                        ? Center(
-                            key: const ValueKey('submitting_loader'),
-                            child: Padding(
-                              padding: const EdgeInsets.all(40),
-                              child: CircularProgressIndicator(
-                                  color:
-                                      Theme.of(context).colorScheme.secondary),
-                            ),
-                          )
-                        : KeyedSubtree(
-                            key: ValueKey(state.currentStep),
-                            child: _buildActiveStepBody(state),
-                          ),
-                  ),
-
-                  SizedBox(height: 24.h),
-                  _buildFormNavigationActionButtons(context, state),
-                ],
-              ),
+            padding: EdgeInsets.only(bottom: bottomInset),
+            child: SizedBox(
+              width: double.infinity,
+              child: content,
             ),
           );
         },
@@ -182,6 +252,13 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
       stepNumber = 3;
     }
 
+    // With every step on screen there is no "current" step to name, and a
+    // "Step 1 of 3" counter next to three visible steps is actively confusing.
+    // Each column carries its own heading instead (see _buildAllStepsBody).
+    if (_showsAllSteps) {
+      title = 'add_customer.title'.tr;
+    }
+
     final stepText = 'add_customer.step_indicator'
         .tr
         .replaceAll('{current}', '$stepNumber')
@@ -199,39 +276,66 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
                 title,
                 key: ValueKey(title),
                 style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
-                    fontSize: 20.sp,
-                    fontWeight: FontWeight.w900),
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontSize: _fontSize(24),
+                  fontWeight: FontWeight.w900,
+                ),
               ),
             ),
-            Text('add_customer.subtitle'.tr,
-                style: TextStyle(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.5),
-                    fontSize: 12.sp)),
+            SizedBox(height: 4),
+            Text(
+              'add_customer.subtitle'.tr,
+              style: TextStyle(
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.5),
+                fontSize: _fontSize(14),
+              ),
+            ),
           ],
         ),
+        if (!_showsAllSteps)
         Container(
-          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+          padding: EdgeInsets.symmetric(
+            horizontal: widget.isTablet ? 20 : context.rw(16),
+            vertical: widget.isTablet ? 10 : context.rh(8),
+          ),
           decoration: BoxDecoration(
             color: context.appColors.surfaceSoft,
-            borderRadius: BorderRadius.circular(20.r),
+            borderRadius: BorderRadius.circular(20),
             border: Border.all(color: context.appColors.border),
           ),
-          child: Text(stepText,
-              style: TextStyle(
-                  color: Theme.of(context).colorScheme.secondary,
-                  fontSize: 11.sp,
-                  fontWeight: FontWeight.w800)),
+          child: Text(
+            stepText,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.secondary,
+              fontSize: _fontSize(14),
+              fontWeight: FontWeight.w800,
+            ),
+          ),
         )
       ],
     );
   }
 
-  Widget _buildActiveStepBody(AddCustomerState state) {
-    switch (state.currentStep) {
+  /// How many form steps are shown at once.
+  ///
+  /// The form has three steps. On a phone they are a stepper — one at a time —
+  /// which is unchanged. A tablet has the width to show them together, so the
+  /// rep fills the whole customer record on one surface instead of paging
+  /// through it three times. Column count follows available width, not device
+  /// type (FS-RSP-1); at `medium` the third step wraps onto a second row, so
+  /// every step is still visible, just in two columns rather than three.
+  int get _stepColumns => context.responsive(compact: 1, medium: 2, expanded: 3);
+
+  bool get _showsAllSteps => _stepColumns > 1;
+
+  Widget _buildActiveStepBody(AddCustomerState state) =>
+      _buildStepBody(state.currentStep);
+
+  Widget _buildStepBody(CustomerFormStep step) {
+    switch (step) {
       case CustomerFormStep.shopDetails:
         return Form(
           key: _formKey1,
@@ -241,16 +345,18 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
               _buildInputLabel('shell.select_won_lead'.tr, required: true),
               _buildLeadDropdownField(),
               if (_selectedLead != null) ...[
-                SizedBox(height: 6.h),
+                SizedBox(height: _spacing(6)),
                 Row(
                   children: [
-                    Icon(Icons.edit_outlined,
-                        size: 13.sp,
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.4)),
-                    SizedBox(width: 4.w),
+                    Icon(
+                      Icons.edit_outlined,
+                      size: _fontSize(16),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.4),
+                    ),
+                    SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'add_customer.prefilled_editable_hint'.tr,
@@ -259,7 +365,7 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
                               .colorScheme
                               .onSurface
                               .withValues(alpha: 0.4),
-                          fontSize: 11.sp,
+                          fontSize: _fontSize(13),
                           fontStyle: FontStyle.italic,
                         ),
                       ),
@@ -267,10 +373,10 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
                   ],
                 ),
               ],
-              SizedBox(height: 14.h),
+              SizedBox(height: _spacing(18)),
               _buildInputLabel('add_customer.shop_name'.tr, required: true),
               _buildTextField(_shopNameCtrl, 'add_customer.shop_name_hint'.tr),
-              SizedBox(height: 14.h),
+              SizedBox(height: _spacing(18)),
               _buildInputLabel('add_customer.shop_type'.tr, required: true),
               _buildDropdownField(
                 value: _selectedShopType,
@@ -284,10 +390,9 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
                 },
                 onChanged: (val) => setState(() => _selectedShopType = val),
               ),
-              SizedBox(height: 14.h),
+              SizedBox(height: _spacing(18)),
               _buildInputLabel('add_customer.owner_name'.tr, required: true),
-              _buildTextField(
-                  _ownerNameCtrl, 'add_customer.owner_name_hint'.tr),
+              _buildTextField(_ownerNameCtrl, 'add_customer.owner_name_hint'.tr),
             ],
           ),
         );
@@ -301,7 +406,7 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
               _buildInputLabel('add_customer.contact_name'.tr, required: true),
               _buildTextField(
                   _contactNameCtrl, 'add_customer.contact_name_hint'.tr),
-              SizedBox(height: 14.h),
+              SizedBox(height: _spacing(18)),
               _buildInputLabel('add_customer.role'.tr, required: true),
               _buildDropdownField(
                 value: _selectedRole,
@@ -313,7 +418,7 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
                 },
                 onChanged: (val) => setState(() => _selectedRole = val),
               ),
-              SizedBox(height: 14.h),
+              SizedBox(height: _spacing(18)),
               _buildInputLabel('add_customer.phone'.tr, required: true),
               _buildPhoneField(_phoneCtrl, 'add_customer.phone_hint'.tr),
             ],
@@ -335,7 +440,7 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
               onTap: () =>
                   setState(() => _gpsCoords = "11.5564° N, 104.9282° E"),
             ),
-            SizedBox(height: 14.h),
+            SizedBox(height: _spacing(18)),
             _buildInputLabel('add_customer.compliance'.tr),
             _buildActionTriggerTile(
               label: 'add_customer.licence'.tr,
@@ -346,7 +451,7 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
               completed: _licenceFile.isNotEmpty,
               onTap: () => setState(() => _licenceFile = "lic_reg_corp.jpg"),
             ),
-            SizedBox(height: 10.h),
+            SizedBox(height: _spacing(12)),
             _buildActionTriggerTile(
               label: 'add_customer.tax_paper'.tr,
               sub: _patentFile.isEmpty
@@ -356,28 +461,33 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
               completed: _patentFile.isNotEmpty,
               onTap: () => setState(() => _patentFile = "national_patent.jpg"),
             ),
-            SizedBox(height: 16.h),
+            SizedBox(height: _spacing(20)),
             Container(
-              padding: EdgeInsets.all(12.w),
+              padding: EdgeInsets.all(widget.isTablet ? 20 : context.rw(16)),
               decoration: BoxDecoration(
                 color: context.appColors.warningAlt.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(12.r),
+                borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                    color: context.appColors.warningAlt.withValues(alpha: 0.3)),
+                  color: context.appColors.warningAlt.withValues(alpha: 0.3),
+                ),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.shield_outlined,
-                      color: context.appColors.warningAlt, size: 20),
-                  SizedBox(width: 10.w),
+                  Icon(
+                    Icons.shield_outlined,
+                    color: context.appColors.warningAlt,
+                    size: _fontSize(24),
+                  ),
+                  SizedBox(width: 14),
                   Expanded(
                     child: Text(
                       'add_customer.credit_notice'.tr,
                       style: TextStyle(
-                          color: context.appColors.warningAlt,
-                          fontSize: 11.sp,
-                          fontWeight: FontWeight.w600,
-                          height: 1.3),
+                        color: context.appColors.warningAlt,
+                        fontSize: _fontSize(14),
+                        fontWeight: FontWeight.w600,
+                        height: 1.4,
+                      ),
                     ),
                   ),
                 ],
@@ -388,11 +498,103 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
     }
   }
 
+  String _stepTitle(CustomerFormStep step) => switch (step) {
+        CustomerFormStep.shopDetails => 'add_customer.steps.shop_details'.tr,
+        CustomerFormStep.contactPerson => 'add_customer.steps.contact_person'.tr,
+        CustomerFormStep.locationAndPapers =>
+          'add_customer.steps.location_papers'.tr,
+      };
+
+  /// All three steps at once, in [_stepColumns] columns.
+  ///
+  /// `Wrap` rather than a fixed `Row`: at two columns the third step needs to
+  /// fall onto a second line, and Wrap does that without a second layout path.
+  /// The item width is computed from the real constraints instead of a
+  /// fraction of the screen, so this stays correct inside a sheet that is
+  /// itself inset by the keyboard.
+  Widget _buildAllStepsBody() {
+    const steps = CustomerFormStep.values;
+    final gap = context.rw(24);
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = _stepColumns;
+        final itemWidth =
+            (constraints.maxWidth - gap * (columns - 1)) / columns;
+
+        return Wrap(
+          spacing: gap,
+          runSpacing: context.rh(24),
+          children: [
+            for (final step in steps)
+              SizedBox(
+                width: itemWidth,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _stepTitle(step),
+                      style: TextStyle(
+                        fontSize: _fontSize(16),
+                        fontWeight: FontWeight.w800,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                    SizedBox(height: _spacing(12)),
+                    _buildStepBody(step),
+                  ],
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Validates and commits every step, for the all-steps-visible layout.
+  ///
+  /// The stepper path commits each step as the rep advances past it; with all
+  /// steps on screen there is no "advance", so the same three events fire
+  /// together on submit. Returns false if either form fails, leaving the
+  /// inline validation messages to explain why.
+  bool _commitAllSteps(AddCustomerBloc bloc) {
+    final valid = (_formKey1.currentState?.validate() ?? false) &&
+        (_formKey2.currentState?.validate() ?? false) &&
+        _selectedShopType != null &&
+        _selectedRole != null;
+    if (!valid) return false;
+
+    bloc.add(UpdateShopDetails(
+      shopName: _shopNameCtrl.text,
+      shopType: _selectedShopType!,
+      ownerName: _ownerNameCtrl.text,
+    ));
+    bloc.add(UpdateContactDetails(
+      name: _contactNameCtrl.text,
+      role: _selectedRole!,
+      phone: _phoneCtrl.value.international,
+    ));
+    bloc.add(UpdateLocationAndPapers(
+      gpsLocation: _gpsCoords,
+      businessLicencePath: _licenceFile,
+      taxPaperPath: _patentFile,
+    ));
+    return true;
+  }
+
   Widget _buildFormNavigationActionButtons(
       BuildContext context, AddCustomerState state) {
     final bloc = context.read<AddCustomerBloc>();
-    final isFirstStep = state.currentStep == CustomerFormStep.shopDetails;
-    final isLastStep = state.currentStep == CustomerFormStep.locationAndPapers;
+    // With every step visible there is nothing to page through: the Back arrow
+    // has no meaning and the primary action always submits.
+    final isFirstStep =
+        _showsAllSteps || state.currentStep == CustomerFormStep.shopDetails;
+    final isLastStep = _showsAllSteps ||
+        state.currentStep == CustomerFormStep.locationAndPapers;
+
+    final btnPadding = widget.isTablet
+        ? const EdgeInsets.symmetric(vertical: 22)
+        : EdgeInsets.symmetric(vertical: context.rh(18));
 
     return Row(
       children: [
@@ -401,32 +603,39 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
             flex: 1,
             child: OutlinedButton(
               style: OutlinedButton.styleFrom(
-                padding: EdgeInsets.symmetric(vertical: 16.h),
+                padding: btnPadding,
                 side: BorderSide(color: context.appColors.border),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14.r)),
+                  borderRadius: BorderRadius.circular(14),
+                ),
               ),
               onPressed: () => bloc.add(PreviousStep()),
-              child: Icon(Icons.arrow_back,
-                  color: Theme.of(context).colorScheme.onSurface),
+              child: Icon(
+                Icons.arrow_back,
+                color: Theme.of(context).colorScheme.onSurface,
+                size: _fontSize(24),
+              ),
             ),
           ),
-          SizedBox(width: 12.w),
+          SizedBox(width: 12),
         ],
         Expanded(
           flex: 2,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
-              padding: EdgeInsets.symmetric(vertical: 16.h),
+              padding: btnPadding,
               backgroundColor: isLastStep
                   ? context.appColors.success
                   : Theme.of(context).colorScheme.primary,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14.r)),
+                borderRadius: BorderRadius.circular(14),
+              ),
               elevation: 0,
             ),
             onPressed: () {
-              if (state.currentStep == CustomerFormStep.shopDetails) {
+              if (_showsAllSteps) {
+                if (_commitAllSteps(bloc)) bloc.add(SubmitToHQ());
+              } else if (state.currentStep == CustomerFormStep.shopDetails) {
                 if (_formKey1.currentState!.validate() &&
                     _selectedShopType != null) {
                   bloc.add(UpdateShopDetails(
@@ -463,7 +672,7 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
                 color: isLastStep
                     ? Colors.white
                     : Theme.of(context).colorScheme.surface,
-                fontSize: 15.sp,
+                fontSize: _fontSize(16),
                 fontWeight: FontWeight.w900,
               ),
             ),
@@ -473,48 +682,53 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
     );
   }
 
-  // ==================== Reusable Widgets ====================
-
   Widget _buildLeadDropdownField() {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16.w),
+      padding: EdgeInsets.symmetric(
+        horizontal: widget.isTablet ? 20 : context.rw(16),
+        vertical: widget.isTablet ? 12 : context.rh(6),
+      ),
       decoration: BoxDecoration(
         color: context.appColors.surfaceSoft,
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: context.appColors.border),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<Lead>(
           value: _selectedLead,
-          hint: Text('add_customer.pick_one'.tr,
-              style: TextStyle(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withValues(alpha: 0.3),
-                  fontSize: 13.sp)),
+          hint: Text(
+            'add_customer.pick_one'.tr,
+            style: TextStyle(
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.3),
+              fontSize: _fontSize(15),
+            ),
+          ),
           dropdownColor: context.appColors.surfaceSoft,
-          icon: Icon(Icons.keyboard_arrow_down_rounded,
-              color: Theme.of(context).colorScheme.onSurface),
+          icon: Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: Theme.of(context).colorScheme.onSurface,
+            size: _fontSize(24),
+          ),
           isExpanded: true,
           items: widget.wonLeads.map((lead) {
             return DropdownMenuItem<Lead>(
               value: lead,
-              // The picker *label* follows the UI language …
-              child: Text(context.localized(lead.displayName),
-                  style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface)),
+              child: Text(
+                context.localized(lead.displayName),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontSize: _fontSize(15),
+                ),
+              ),
             );
           }).toList(),
           onChanged: (Lead? lead) {
             setState(() {
               _selectedLead = lead;
               if (lead != null) {
-                // … but the prefilled *value* stays the Latin trade name.
-                // This field becomes `customers.shop_name`, which SAP holds as
-                // `name1` and every document prints — seeding it from the
-                // Khmer name because the rep happened to be in a Khmer session
-                // would put Khmer text in a Latin-only master-data field.
                 _shopNameCtrl.text = lead.companyName;
                 _ownerNameCtrl.text = lead.ownerName;
                 _contactNameCtrl.text = lead.ownerName;
@@ -529,22 +743,24 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
   }
 
   Widget _buildInputLabel(String label, {bool required = false}) => Padding(
-        padding: EdgeInsets.only(bottom: 6.h, left: 2.w),
+        padding: EdgeInsets.only(bottom: 8, left: 2),
         child: RichText(
           text: TextSpan(
             text: label,
             style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface,
-                fontSize: 13.sp,
-                fontWeight: FontWeight.w700),
+              color: Theme.of(context).colorScheme.onSurface,
+              fontSize: _fontSize(15),
+              fontWeight: FontWeight.w700,
+            ),
             children: required
                 ? [
                     TextSpan(
                       text: ' *',
                       style: TextStyle(
-                          color: Theme.of(context).colorScheme.error,
-                          fontSize: 13.sp,
-                          fontWeight: FontWeight.w900),
+                        color: Theme.of(context).colorScheme.error,
+                        fontSize: _fontSize(15),
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                   ]
                 : null,
@@ -560,43 +776,53 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
         keyboardType: keyboardType,
         readOnly: readOnly,
         style: TextStyle(
-            color: Theme.of(context)
-                .colorScheme
-                .onSurface
-                .withValues(alpha: readOnly ? 0.6 : 1.0)),
+          color: Theme.of(context)
+              .colorScheme
+              .onSurface
+              .withValues(alpha: readOnly ? 0.6 : 1.0),
+          fontSize: _fontSize(15),
+        ),
         validator: (v) => (v == null || v.trim().isEmpty)
             ? 'add_customer.error.required'.tr
             : null,
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: TextStyle(
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurface
-                  .withValues(alpha: 0.3),
-              fontSize: 13.sp),
+            color: Theme.of(context)
+                .colorScheme
+                .onSurface
+                .withValues(alpha: 0.3),
+            fontSize: _fontSize(15),
+          ),
           filled: true,
           fillColor: readOnly
               ? context.appColors.border.withValues(alpha: 0.2)
               : context.appColors.surfaceSoft,
-          contentPadding:
-              EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: widget.isTablet ? 20 : context.rw(16),
+            vertical: widget.isTablet ? 20 : context.rh(16),
+          ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12.r),
+            borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide(color: context.appColors.border),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12.r),
-            borderSide:
-                BorderSide(color: Theme.of(context).colorScheme.onSurface),
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
           ),
           errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12.r),
-            borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(
+              color: Theme.of(context).colorScheme.error,
+            ),
           ),
           focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12.r),
-            borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(
+              color: Theme.of(context).colorScheme.error,
+            ),
           ),
         ),
       );
@@ -607,16 +833,21 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
         controller: controller,
         enabled: !readOnly,
         style: TextStyle(
-            color: Theme.of(context)
-                .colorScheme
-                .onSurface
-                .withValues(alpha: readOnly ? 0.6 : 1.0)),
+          color: Theme.of(context)
+              .colorScheme
+              .onSurface
+              .withValues(alpha: readOnly ? 0.6 : 1.0),
+          fontSize: _fontSize(15),
+        ),
         countryButtonStyle: CountryButtonStyle(
           showFlag: true,
           showIsoCode: false,
           showDialCode: true,
           showDropdownIcon: !readOnly,
-          textStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+          textStyle: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface,
+            fontSize: _fontSize(15),
+          ),
         ),
         validator: PhoneValidator.compose([
           PhoneValidator.required(context,
@@ -627,33 +858,41 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: TextStyle(
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurface
-                  .withValues(alpha: 0.3),
-              fontSize: 13.sp),
+            color: Theme.of(context)
+                .colorScheme
+                .onSurface
+                .withValues(alpha: 0.3),
+            fontSize: _fontSize(15),
+          ),
           filled: true,
           fillColor: readOnly
               ? context.appColors.border.withValues(alpha: 0.2)
               : context.appColors.surfaceSoft,
-          contentPadding:
-              EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: widget.isTablet ? 20 : context.rw(16),
+            vertical: widget.isTablet ? 20 : context.rh(16),
+          ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12.r),
+            borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide(color: context.appColors.border),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12.r),
-            borderSide:
-                BorderSide(color: Theme.of(context).colorScheme.onSurface),
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
           ),
           errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12.r),
-            borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(
+              color: Theme.of(context).colorScheme.error,
+            ),
           ),
           focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12.r),
-            borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(
+              color: Theme.of(context).colorScheme.error,
+            ),
           ),
         ),
       );
@@ -666,41 +905,60 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
     bool isDisabled = false,
   }) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16.w),
+      padding: EdgeInsets.symmetric(
+        horizontal: widget.isTablet ? 20 : context.rw(16),
+        vertical: widget.isTablet ? 12 : context.rh(6),
+      ),
       decoration: BoxDecoration(
         color: isDisabled
             ? context.appColors.border.withValues(alpha: 0.2)
             : context.appColors.surfaceSoft,
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: context.appColors.border),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: value,
-          hint: Text(hint,
-              style: TextStyle(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withValues(alpha: 0.3),
-                  fontSize: 13.sp)),
+          hint: Text(
+            hint,
+            style: TextStyle(
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.3),
+              fontSize: _fontSize(15),
+            ),
+          ),
           dropdownColor: context.appColors.surfaceSoft,
-          icon: Icon(Icons.keyboard_arrow_down_rounded,
-              color: Theme.of(context).colorScheme.onSurface),
+          icon: Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: Theme.of(context).colorScheme.onSurface,
+            size: _fontSize(24),
+          ),
           isExpanded: true,
           items: isDisabled
               ? (_selectedLead != null && value != null
                   ? [
                       DropdownMenuItem(
-                          value: value, child: Text(items[value] ?? ''))
+                        value: value,
+                        child: Text(
+                          items[value] ?? '',
+                          style: TextStyle(fontSize: _fontSize(15)),
+                        ),
+                      )
                     ]
                   : null)
               : items.entries
                   .map((entry) => DropdownMenuItem<String>(
-                      value: entry.key,
-                      child: Text(entry.value,
+                        value: entry.key,
+                        child: Text(
+                          entry.value,
                           style: TextStyle(
-                              color: Theme.of(context).colorScheme.onSurface))))
+                            color: Theme.of(context).colorScheme.onSurface,
+                            fontSize: _fontSize(15),
+                          ),
+                        ),
+                      ))
                   .toList(),
           onChanged: isDisabled ? null : onChanged,
         ),
@@ -717,58 +975,70 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(14.r),
+      borderRadius: BorderRadius.circular(14),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: EdgeInsets.all(14.w),
+        padding: EdgeInsets.all(widget.isTablet ? 22 : context.rw(18)),
         decoration: BoxDecoration(
           color: completed
               ? context.appColors.success.withValues(alpha: 0.05)
               : Colors.transparent,
-          borderRadius: BorderRadius.circular(14.r),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(
-              color: completed
-                  ? context.appColors.success
-                  : context.appColors.border,
-              width: completed ? 1.5 : 1),
+            color: completed
+                ? context.appColors.success
+                : context.appColors.border,
+            width: completed ? 1.5 : 1,
+          ),
         ),
         child: Row(
           children: [
-            Icon(icon,
-                color: completed
-                    ? context.appColors.success
-                    : Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.6)),
-            SizedBox(width: 14.w),
+            Icon(
+              icon,
+              size: _fontSize(24),
+              color: completed
+                  ? context.appColors.success
+                  : Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.6),
+            ),
+            SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(label,
-                      style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface,
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w700)),
-                  Text(sub,
-                      style: TextStyle(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withValues(alpha: 0.4),
-                          fontSize: 11.sp)),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontSize: _fontSize(16),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  SizedBox(height: 2),
+                  Text(
+                    sub,
+                    style: TextStyle(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.4),
+                      fontSize: _fontSize(13),
+                    ),
+                  ),
                 ],
               ),
             ),
             Icon(
-                completed
-                    ? Icons.check_circle_rounded
-                    : Icons.add_a_photo_rounded,
-                color: completed
-                    ? context.appColors.success
-                    : Theme.of(context).colorScheme.onSurface,
-                size: 20),
+              completed
+                  ? Icons.check_circle_rounded
+                  : Icons.add_a_photo_rounded,
+              color: completed
+                  ? context.appColors.success
+                  : Theme.of(context).colorScheme.onSurface,
+              size: _fontSize(24),
+            ),
           ],
         ),
       ),

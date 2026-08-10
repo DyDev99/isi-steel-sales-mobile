@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localized_builder.dart';
@@ -17,6 +16,7 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quota
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/credit_summary_card.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/off_visit_reason_sheet.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/back_to_home.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 // Import your BackToHomeButton path here
 // import 'path_to/back_to_home_button.dart';
 
@@ -119,7 +119,7 @@ class _ShopOrderEntryScreenState extends State<ShopOrderEntryScreen> {
               icon: Icon(
                 Icons.chevron_left_rounded,
                 color: colors.textPrimary,
-                size: 28.sp,
+                size: context.rsp(28),
               ),
               onPressed: () => Navigator.of(context).pop(),
             ),
@@ -128,7 +128,7 @@ class _ShopOrderEntryScreenState extends State<ShopOrderEntryScreen> {
                 customer.shopName,
                 style: TextStyle(
                   color: colors.textPrimary,
-                  fontSize: 17.sp,
+                  fontSize: context.rsp(17),
                   fontWeight: FontWeight.w800,
                 ),
                 overflow: TextOverflow.ellipsis,
@@ -139,7 +139,7 @@ class _ShopOrderEntryScreenState extends State<ShopOrderEntryScreen> {
         // Right Side: Back to home button
         actions: [
           Padding(
-            padding: EdgeInsets.only(right: 16.w),
+            padding: EdgeInsets.only(right: context.rw(16)),
             child: const BackToHomeButton(label: 'Back to home'),
           ),
         ],
@@ -148,17 +148,17 @@ class _ShopOrderEntryScreenState extends State<ShopOrderEntryScreen> {
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
         children: [
           Text(customer.address,
-              style: TextStyle(color: colors.textPrimary, fontSize: 13)),
+              style: TextStyle(color: colors.textPrimary, fontSize: context.rsp(13))),
           Text('${customer.district}, ${customer.province}',
-              style: TextStyle(color: colors.textSecondary, fontSize: 12)),
-          const SizedBox(height: 14),
+              style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(12))),
+          SizedBox(height: context.rh(14)),
           FutureBuilder<CreditSummary?>(
             future: _summaryFuture,
             builder: (context, snapshot) {
               if (snapshot.connectionState != ConnectionState.done) {
                 return Center(
                     child: Padding(
-                        padding: const EdgeInsets.all(20),
+                        padding: EdgeInsets.all(context.rr(20)),
                         child: CircularProgressIndicator(
                             color: colors.accentPurple)));
               }
@@ -171,7 +171,7 @@ class _ShopOrderEntryScreenState extends State<ShopOrderEntryScreen> {
             },
           ),
           if (!widget.skipOffVisitCheck) ...[
-            const SizedBox(height: 14),
+            SizedBox(height: context.rh(14)),
             _OffVisitBanner(
                 reason: _reason,
                 onPick: () async {
@@ -180,23 +180,23 @@ class _ShopOrderEntryScreenState extends State<ShopOrderEntryScreen> {
                   if (picked != null) setState(() => _reason = picked);
                 }),
           ],
-          const SizedBox(height: 14),
+          SizedBox(height: context.rh(14)),
           Row(
             children: [
               Icon(Icons.gps_fixed_rounded,
-                  size: 15, color: colors.textSecondary),
-              const SizedBox(width: 6),
+                  size: context.rr(15), color: colors.textSecondary),
+              SizedBox(width: context.rw(6)),
               Text(
                 _capturingGps
                     ? 'orders.shop.capture_gps'.tr
                     : _gps == null
                         ? 'orders.shop.capture_gps'.tr
                         : '${_gps!.lat.toStringAsFixed(5)}, ${_gps!.lng.toStringAsFixed(5)}',
-                style: TextStyle(color: colors.textSecondary, fontSize: 12),
+                style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(12)),
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: context.rh(24)),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
@@ -212,7 +212,7 @@ class _ShopOrderEntryScreenState extends State<ShopOrderEntryScreen> {
                   style: const TextStyle(fontWeight: FontWeight.w800)),
             ),
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: context.rh(10)),
           SizedBox(
             width: double.infinity,
             child: OutlinedButton(
@@ -236,7 +236,7 @@ class _OffVisitBanner extends StatelessWidget {
     final colors = context.appColors;
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(context.rr(12)),
       decoration: BoxDecoration(
         color: colors.warning.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(12),
@@ -245,8 +245,8 @@ class _OffVisitBanner extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.info_outline_rounded, color: colors.warning, size: 18),
-          const SizedBox(width: 10),
+          Icon(Icons.info_outline_rounded, color: colors.warning, size: context.rr(18)),
+          SizedBox(width: context.rw(10)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -254,15 +254,15 @@ class _OffVisitBanner extends StatelessWidget {
                 Text('orders.shop.off_visit_warning'.tr,
                     style: TextStyle(
                         color: colors.warning,
-                        fontSize: 12.5,
+                        fontSize: context.rsp(12.5),
                         fontWeight: FontWeight.w600,
                         height: 1.35)),
                 if (reason != null) ...[
-                  const SizedBox(height: 6),
+                  SizedBox(height: context.rh(6)),
                   Text(reason!.localizedLabel,
                       style: TextStyle(
                           color: colors.textPrimary,
-                          fontSize: 12,
+                          fontSize: context.rsp(12),
                           fontWeight: FontWeight.w700)),
                 ],
               ],

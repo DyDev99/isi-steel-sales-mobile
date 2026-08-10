@@ -13,6 +13,7 @@ import 'package:isi_steel_sales_mobile/features/profile/presentation/widgets/pro
 import 'package:isi_steel_sales_mobile/features/localization/presentation/widgets/language_section.dart';
 import 'package:isi_steel_sales_mobile/features/settings/theme/presentation/widgets/appearance_section.dart';
 import 'package:isi_steel_sales_mobile/routes/app_routes.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -63,15 +64,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
     if (confirmed != true || !context.mounted) return;
 
-    // Fire and forget, deliberately. `AuthBloc` owns the whole sign-out:
-    // it clears the token store, the session-scoped feature stores and
-    // `SessionManager`, then restarts the app — which is what discards this
-    // screen along with the rest of the authenticated stack.
-    //
-    // This screen used to do three of those things itself, including calling
-    // `ProfileCubit.logout()` (a remote call that cleared nothing locally) and
-    // then navigating to `'/'` — which is `Static.splash`, whose timer forwards
-    // straight back into the shell. Hence "logout puts me back where I was".
     context.read<AuthBloc>().add(const LogoutRequested());
   }
 
@@ -80,16 +72,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return LocalizedBuilder(
       builder: (context) {
         final scheme = Theme.of(context).colorScheme;
+        final screenWidth = MediaQuery.sizeOf(context).width;
+        final isTablet = screenWidth >= 600;
+
         return Scaffold(
           backgroundColor: scheme.surface,
           appBar: AppBar(
             backgroundColor: scheme.surface,
             iconTheme: IconThemeData(color: scheme.onSurface),
-            title: Text('profile.title'.tr,
-                style: TextStyle(
-                    color: scheme.onSurface,
-                    fontSize: 17,
-                    fontWeight: FontWeight.w800)),
+            title: Text(
+              'profile.title'.tr,
+              style: TextStyle(
+                color: scheme.onSurface,
+                fontSize: isTablet ? 22 : context.rsp(17),
+                fontWeight: FontWeight.w800,
+              ),
+            ),
           ),
           body: BlocConsumer<ProfileCubit, ProfileState>(
             listener: (context, state) {
@@ -99,50 +97,95 @@ class _ProfileScreenState extends State<ProfileScreen> {
               }
             },
             builder: (context, state) => switch (state) {
-              ProfileLoaded() => ListView(
-                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
-                  children: [
-                    ProfileHeader(profile: state.profile),
-                    const SizedBox(height: 24),
-                    ProfileInfoSection(profile: state.profile),
-                    const SizedBox(height: 16),
-                    const AppearanceSection(),
-                    const SizedBox(height: 16),
-                    const LanguageSection(),
-                    const SizedBox(height: 20),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed:
-                            state.isSaving ? null : () => _edit(context, state),
-                        icon: const Icon(Icons.edit_rounded, size: 18),
-                        label: Text('profile.edit_profile'.tr),
-                      ),
+              ProfileLoaded() => Center(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: isTablet ? 720 : double.infinity,
                     ),
-                    const SizedBox(height: 10),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: () => Navigator.of(context)
-                            .pushNamed(Static.forgotPassword),
-                        icon: const Icon(Icons.lock_reset_rounded, size: 18),
-                        label: Text('profile.change_password'.tr),
+                    child: ListView(
+                      padding: EdgeInsets.fromLTRB(
+                        isTablet ? 32 : 20,
+                        isTablet ? 32 : 20,
+                        isTablet ? 32 : 20,
+                        32,
                       ),
-                    ),
-                    const SizedBox(height: 20),
-                    SizedBox(
-                      width: double.infinity,
-                      child: TextButton.icon(
-                        onPressed: () => _confirmLogout(context),
-                        icon: Icon(Icons.logout_rounded,
-                            size: 18, color: scheme.error),
-                        label: Text('profile.logout'.tr,
-                            style: TextStyle(
+                      children: [
+                        ProfileHeader(profile: state.profile),
+                        SizedBox(height: isTablet ? 32 : context.rh(24)),
+                        ProfileInfoSection(profile: state.profile),
+                        SizedBox(height: isTablet ? 24 : context.rh(16)),
+                        const AppearanceSection(),
+                        SizedBox(height: isTablet ? 24 : context.rh(16)),
+                        const LanguageSection(),
+                        SizedBox(height: isTablet ? 28 : context.rh(20)),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              padding: EdgeInsets.symmetric(
+                                vertical: isTablet ? 18 : 12,
+                              ),
+                            ),
+                            onPressed: state.isSaving
+                                ? null
+                                : () => _edit(context, state),
+                            icon: Icon(Icons.edit_rounded,
+                                size: isTablet ? 22 : context.rr(18)),
+                            label: Text(
+                              'profile.edit_profile'.tr,
+                              style: TextStyle(
+                                fontSize: isTablet ? 16 : context.rsp(14),
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: isTablet ? 14 : context.rh(10)),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              padding: EdgeInsets.symmetric(
+                                vertical: isTablet ? 18 : 12,
+                              ),
+                            ),
+                            onPressed: () => Navigator.of(context)
+                                .pushNamed(Static.forgotPassword),
+                            icon: Icon(Icons.lock_reset_rounded,
+                                size: isTablet ? 22 : context.rr(18)),
+                            label: Text(
+                              'profile.change_password'.tr,
+                              style: TextStyle(
+                                fontSize: isTablet ? 16 : context.rsp(14),
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: isTablet ? 28 : context.rh(20)),
+                        SizedBox(
+                          width: double.infinity,
+                          child: TextButton.icon(
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.symmetric(
+                                vertical: isTablet ? 18 : 12,
+                              ),
+                            ),
+                            onPressed: () => _confirmLogout(context),
+                            icon: Icon(Icons.logout_rounded,
+                                size: isTablet ? 22 : context.rr(18),
+                                color: scheme.error),
+                            label: Text(
+                              'profile.logout'.tr,
+                              style: TextStyle(
                                 color: scheme.error,
-                                fontWeight: FontWeight.w700)),
-                      ),
+                                fontSize: isTablet ? 16 : context.rsp(14),
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ProfileError(:final message) => Center(
                   child: Text(message,

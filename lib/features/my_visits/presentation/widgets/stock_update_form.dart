@@ -4,6 +4,8 @@ import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/stock_level.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_stock_update.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/stock_level_selector.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/app_bottom_sheet.dart';
 
 /// Bottom sheet for a one-off stock status capture from the stop detail
 /// screen: product name + a single Low / Medium / High selection (no numeric
@@ -15,6 +17,7 @@ Future<VisitStockUpdate?> showStockUpdateSheet(
   StockLevel? level;
 
   return showModalBottomSheet<VisitStockUpdate>(
+    constraints: const BoxConstraints(maxWidth: AppBottomSheet.maxWidth),
     context: context,
     backgroundColor: context.appColors.surfaceSoft,
     isScrollControlled: true,
@@ -34,21 +37,21 @@ Future<VisitStockUpdate?> showStockUpdateSheet(
                 Text('my_visits.forms.update_stock'.tr,
                     style: TextStyle(
                         color: context.appColors.textPrimary,
-                        fontSize: 17,
+                        fontSize: context.rsp(17),
                         fontWeight: FontWeight.w800)),
-                const SizedBox(height: 12),
+                SizedBox(height: context.rh(12)),
                 TextField(
                     controller: productController,
                     onChanged: (_) => setSheetState(() {}),
                     decoration: InputDecoration(
                         hintText: 'my_visits.forms.product_name'.tr)),
-                const SizedBox(height: 14),
+                SizedBox(height: context.rh(14)),
                 Text('my_visits.forms.stock_status'.tr,
                     style: TextStyle(
                         color: context.appColors.textSecondary,
-                        fontSize: 12.5,
+                        fontSize: context.rsp(12.5),
                         fontWeight: FontWeight.w700)),
-                const SizedBox(height: 8),
+                SizedBox(height: context.rh(8)),
                 SizedBox(
                   width: double.infinity,
                   child: StockLevelSelector(
@@ -57,12 +60,12 @@ Future<VisitStockUpdate?> showStockUpdateSheet(
                         setSheetState(() => level = selected),
                   ),
                 ),
-                const SizedBox(height: 10),
+                SizedBox(height: context.rh(10)),
                 TextField(
                     controller: notesController,
                     decoration:
                         InputDecoration(hintText: 'common.notes_optional'.tr)),
-                const SizedBox(height: 16),
+                SizedBox(height: context.rh(16)),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(

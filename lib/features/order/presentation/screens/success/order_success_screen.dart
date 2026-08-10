@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart'; // 👈 ADJUST THIS PATH TO YOUR THEME EXTENSION FILE
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/sales_order.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 class OrderSuccessScreen extends StatelessWidget {
   const OrderSuccessScreen(
@@ -36,29 +37,29 @@ class OrderSuccessScreen extends StatelessWidget {
                             color: colors.success.withValues(alpha: 0.14),
                             shape: BoxShape.circle),
                         child: Icon(Icons.check_rounded,
-                            color: colors.success, size: 44),
+                            color: colors.success, size: context.rr(44)),
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: context.rh(20)),
                     Center(
                       child: Text(salesOrder.id,
                           style: TextStyle(
                               color: colors.textPrimary,
-                              fontSize: 22,
+                              fontSize: context.rsp(22),
                               fontWeight: FontWeight.w900)),
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: context.rh(4)),
                     Center(
                       child: Text(
                           salesOrder.shopName ??
                               salesOrder.leadDisplayName ??
                               '',
                           style: TextStyle(
-                              color: colors.textSecondary, fontSize: 13)),
+                              color: colors.textSecondary, fontSize: context.rsp(13))),
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: context.rh(24)),
                     Container(
-                      padding: const EdgeInsets.all(16),
+                      padding: EdgeInsets.all(context.rr(16)),
                       decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(color: colors.border)),
@@ -79,12 +80,12 @@ class OrderSuccessScreen extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: context.rh(20)),
                     Text('orders.success.sap_message'.tr,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                             color: colors.textSecondary,
-                            fontSize: 12.5,
+                            fontSize: context.rsp(12.5),
                             height: 1.4)),
                   ],
                 ),
@@ -106,7 +107,7 @@ class OrderSuccessScreen extends StatelessWidget {
                 ),
               ),
               if (onNewOrder != null) ...[
-                const SizedBox(height: 10),
+                SizedBox(height: context.rh(10)),
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton(
@@ -139,7 +140,7 @@ class _Row extends StatelessWidget {
           Expanded(
               child: Text(label,
                   style:
-                      TextStyle(color: colors.textSecondary, fontSize: 12.5))),
+                      TextStyle(color: colors.textSecondary, fontSize: context.rsp(12.5)))),
           Text(value,
               style: TextStyle(
                 color: emphasize ? colors.accentPurple : colors.textPrimary,

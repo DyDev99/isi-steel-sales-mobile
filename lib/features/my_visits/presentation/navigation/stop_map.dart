@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_stop.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 class StopMap extends StatelessWidget {
   const StopMap({
@@ -53,8 +54,8 @@ class StopMap extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.location_on, color: Colors.red, size: 36),
-            const SizedBox(height: 8),
+            Icon(Icons.location_on, color: Colors.red, size: context.rr(36)),
+            SizedBox(height: context.rh(8)),
             Text(
               context.localized(stop.customer.displayName),
               style: const TextStyle(fontWeight: FontWeight.bold),

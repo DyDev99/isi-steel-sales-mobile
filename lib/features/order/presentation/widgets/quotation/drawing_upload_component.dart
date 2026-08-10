@@ -1,6 +1,8 @@
 import 'package:isi_steel_sales_mobile/core/platform/local_files.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/app_bottom_sheet.dart';
 
 class DrawingUploadComponent extends StatelessWidget {
   final String? imagePath;
@@ -58,8 +60,8 @@ class DrawingUploadComponent extends StatelessWidget {
               child: Row(
                 children: [
                   Icon(Icons.check_circle_rounded,
-                      color: colorScheme.primary, size: 20),
-                  const SizedBox(width: 8),
+                      color: colorScheme.primary, size: context.rr(20)),
+                  SizedBox(width: context.rw(8)),
                   Text(
                     'Custom Drawing Attached',
                     style: theme.textTheme.labelLarge?.copyWith(
@@ -70,7 +72,7 @@ class DrawingUploadComponent extends StatelessWidget {
                   const Spacer(),
                   TextButton.icon(
                     onPressed: () => _showSourcePicker(context),
-                    icon: const Icon(Icons.refresh_rounded, size: 18),
+                    icon: Icon(Icons.refresh_rounded, size: context.rr(18)),
                     label: const Text('Replace'),
                   ),
                 ],
@@ -82,7 +84,7 @@ class DrawingUploadComponent extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(context.rr(20)),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(16),
@@ -94,15 +96,15 @@ class DrawingUploadComponent extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Icon(Icons.draw_rounded, size: 48, color: colorScheme.primary),
-          const SizedBox(height: 12),
+          Icon(Icons.draw_rounded, size: context.rr(48), color: colorScheme.primary),
+          SizedBox(height: context.rh(12)),
           Text(
             'Attach Product Drawing or Sketch',
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: context.rh(4)),
           Text(
             'Capture site measurements or technical sketches',
             style: theme.textTheme.bodySmall?.copyWith(
@@ -110,19 +112,19 @@ class DrawingUploadComponent extends StatelessWidget {
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: context.rh(16)),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               FilledButton.icon(
                 onPressed: () => onPickImage(ImageSource.camera),
-                icon: const Icon(Icons.camera_alt_rounded, size: 18),
+                icon: Icon(Icons.camera_alt_rounded, size: context.rr(18)),
                 label: const Text('Camera'),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: context.rw(12)),
               OutlinedButton.icon(
                 onPressed: () => onPickImage(ImageSource.gallery),
-                icon: const Icon(Icons.photo_library_rounded, size: 18),
+                icon: Icon(Icons.photo_library_rounded, size: context.rr(18)),
                 label: const Text('Gallery'),
               ),
             ],
@@ -134,6 +136,7 @@ class DrawingUploadComponent extends StatelessWidget {
 
   void _showSourcePicker(BuildContext context) {
     showModalBottomSheet(
+      constraints: const BoxConstraints(maxWidth: AppBottomSheet.maxWidth),
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),

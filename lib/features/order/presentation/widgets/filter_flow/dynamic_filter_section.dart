@@ -4,6 +4,7 @@ import 'package:isi_steel_sales_mobile/features/order/domain/entities/filter/fil
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/filter/filter_step.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/filter_flow_transition.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/loading_products.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// Renders *any* specification step the backend defines — Thickness, Colour,
 /// Shape, Grade, Diameter, or something merchandising invents next quarter.
@@ -182,17 +183,17 @@ class _OptionSurface extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: selected ? scheme.primary : colors.textPrimary,
-                      fontSize: 13,
+                      fontSize: context.rsp(13),
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                   if (shape == _OptionShape.tile) ...[
-                    const SizedBox(height: 2),
+                    SizedBox(height: context.rh(2)),
                     Text(
                       '${option.matchCount}',
                       style: TextStyle(
                         color: colors.textSecondary,
-                        fontSize: 10.5,
+                        fontSize: context.rsp(10.5),
                         fontWeight: FontWeight.w600,
                       ),
                     ),

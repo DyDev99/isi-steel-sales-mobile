@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product_filter.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/app_bottom_sheet.dart';
 
 Future<void> showCatalogFilterSheet({
   required BuildContext context,
@@ -12,6 +14,7 @@ Future<void> showCatalogFilterSheet({
   final appColors = context.appColors;
 
   return showModalBottomSheet<void>(
+    constraints: const BoxConstraints(maxWidth: AppBottomSheet.maxWidth),
     context: context,
     backgroundColor: appColors.surfaceSoft,
     isScrollControlled: true,
@@ -59,7 +62,7 @@ class _CatalogFilterSheetState extends State<_CatalogFilterSheet> {
                     child: Text('common.filter_sort'.tr,
                         style: TextStyle(
                             color: scheme.onSurface,
-                            fontSize: 17,
+                            fontSize: context.rsp(17),
                             fontWeight: FontWeight.w800)),
                   ),
                   TextButton(
@@ -74,7 +77,7 @@ class _CatalogFilterSheetState extends State<_CatalogFilterSheet> {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: context.rh(12)),
               _Label('common.sort_by'.tr),
               _ChipGroup<ProductSortBy>(
                 options: {
@@ -90,7 +93,7 @@ class _CatalogFilterSheetState extends State<_CatalogFilterSheet> {
                 selected: _sortBy,
                 onSelected: (v) => setState(() => _sortBy = v),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: context.rh(16)),
               _Label('orders.filter.brand'.tr),
               _ChipGroup<String?>(
                 options: {
@@ -100,7 +103,7 @@ class _CatalogFilterSheetState extends State<_CatalogFilterSheet> {
                 selected: _brand,
                 onSelected: (v) => setState(() => _brand = v),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: context.rh(16)),
               SwitchListTile.adaptive(
                 contentPadding: EdgeInsets.zero,
                 value: _availableOnly,
@@ -109,10 +112,10 @@ class _CatalogFilterSheetState extends State<_CatalogFilterSheet> {
                 title: Text('orders.filter.in_stock_only'.tr,
                     style: TextStyle(
                         color: scheme.onSurface,
-                        fontSize: 13,
+                        fontSize: context.rsp(13),
                         fontWeight: FontWeight.w600)),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: context.rh(8)),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -155,7 +158,7 @@ class _Label extends StatelessWidget {
                     .colorScheme
                     .onSurface
                     .withValues(alpha: 0.5),
-                fontSize: 12,
+                fontSize: context.rsp(12),
                 fontWeight: FontWeight.w700)),
       );
 }
@@ -197,7 +200,7 @@ class _ChipGroup<T> extends StatelessWidget {
               e.value,
               style: TextStyle(
                 color: isSelected ? scheme.primary : scheme.onSurface,
-                fontSize: 12.5,
+                fontSize: context.rsp(12.5),
                 fontWeight: FontWeight.w600,
               ),
             ),

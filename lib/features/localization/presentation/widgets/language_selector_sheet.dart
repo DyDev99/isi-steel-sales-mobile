@@ -6,6 +6,7 @@ import 'package:isi_steel_sales_mobile/features/localization/domain/entities/lan
 import 'package:isi_steel_sales_mobile/features/localization/presentation/bloc/language_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/localization/presentation/widgets/language_reload_dialog.dart';
 import 'package:isi_steel_sales_mobile/routes/app_routes.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/app_bottom_sheet.dart';
 
 /// Opens the language picker. Tapping a language applies it **instantly**
 /// (every `.tr` in the live tree re-resolves — no restart), persists it, and
@@ -14,22 +15,63 @@ import 'package:isi_steel_sales_mobile/routes/app_routes.dart';
 /// so this works from anywhere below `MaterialApp`.
 Future<void> showLanguageSelectorSheet(BuildContext context) {
   final languageCubit = context.read<LanguageCubit>();
+  final isTablet = MediaQuery.sizeOf(context).width >= 600;
+
+  if (isTablet) {
+    return showGeneralDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'LanguageSelector',
+      barrierColor: Colors.black54,
+      transitionDuration: const Duration(milliseconds: 250),
+      pageBuilder: (context, anim1, anim2) {
+        return Align(
+          alignment: Alignment.center,
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              width: 520,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: BlocProvider.value(
+                value: languageCubit,
+                child: const _LanguageSelectorSheet(isTablet: true),
+              ),
+            ),
+          ),
+        );
+      },
+      transitionBuilder: (context, anim1, anim2, child) {
+        return ScaleTransition(
+          scale: CurvedAnimation(parent: anim1, curve: Curves.easeOutCubic),
+          child: child,
+        );
+      },
+    );
+  }
+
   return showModalBottomSheet<void>(
+    constraints: const BoxConstraints(maxWidth: AppBottomSheet.maxWidth),
     context: context,
     showDragHandle: true,
     isScrollControlled: true,
     builder: (sheetContext) => BlocProvider.value(
       value: languageCubit,
-      child: const _LanguageSelectorSheet(),
+      child: const _LanguageSelectorSheet(isTablet: false),
     ),
   );
 }
 
 class _LanguageSelectorSheet extends StatefulWidget {
-  const _LanguageSelectorSheet();
+  const _LanguageSelectorSheet({this.isTablet = false});
+
+  final bool isTablet;
 
   @override
-  State<_LanguageSelectorSheet> createState() => _LanguageSelectorSheetState();
+  State<_LanguageSelectorSheet> createState() =>
+      _LanguageSelectorSheetState();
 }
 
 class _LanguageSelectorSheetState extends State<_LanguageSelectorSheet> {
@@ -44,9 +86,6 @@ class _LanguageSelectorSheetState extends State<_LanguageSelectorSheet> {
       return;
     }
 
-    // Ask before switching: applying a language reloads the whole app
-    // (MaterialApp is recreated) so every screen re-renders in the new
-    // language — the user opts into that, it never happens under them.
     final target = cubit.supportedLanguages.firstWhere(
       (l) => l.code == code,
       orElse: () => cubit.supportedLanguages.first,
@@ -57,12 +96,6 @@ class _LanguageSelectorSheetState extends State<_LanguageSelectorSheet> {
     setState(() => _switching = code);
     await cubit.changeLanguage(code);
 
-    // The reload the dialog promised. Recreating MaterialApp alone is not
-    // enough: the shared global [navigatorKey] makes Flutter *reparent* the
-    // existing Navigator (stack, screen state and all) into the new tree
-    // instead of rebuilding it. Resetting the stack to the shell guarantees
-    // every screen — and the data it loads — comes back in the new language.
-    // This also dismisses this sheet (it is a route on the same stack).
     navigatorKey.currentState
         ?.pushNamedAndRemoveUntil(Static.main, (route) => false);
   }
@@ -70,31 +103,47 @@ class _LanguageSelectorSheetState extends State<_LanguageSelectorSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    // LocalizedBuilder so the sheet itself re-renders live mid-switch.
     return LocalizedBuilder(
       builder: (context) => SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+          padding: EdgeInsets.fromLTRB(
+            widget.isTablet ? 28 : 20,
+            widget.isTablet ? 24 : 4,
+            widget.isTablet ? 28 : 20,
+            widget.isTablet ? 28 : 20,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'language.choose_title'.tr,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: theme.colorScheme.onSurface,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'language.choose_title'.tr,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      fontSize: widget.isTablet ? 20 : null,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                  if (widget.isTablet)
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                ],
               ),
               const SizedBox(height: 4),
               Text(
                 'language.choose_subtitle'.tr,
                 style: theme.textTheme.bodySmall?.copyWith(
+                  fontSize: widget.isTablet ? 14 : null,
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: widget.isTablet ? 20 : 16),
               BlocBuilder<LanguageCubit, Locale>(
                 builder: (context, locale) => Column(
                   children: [
@@ -104,6 +153,7 @@ class _LanguageSelectorSheetState extends State<_LanguageSelectorSheet> {
                         language: language,
                         selected: locale.languageCode == language.code,
                         switching: _switching == language.code,
+                        isTablet: widget.isTablet,
                         onTap: () => _select(language.code),
                       ),
                   ],
@@ -126,11 +176,13 @@ class LanguageOptionTile extends StatelessWidget {
     required this.selected,
     required this.onTap,
     this.switching = false,
+    this.isTablet = false,
   });
 
   final LanguageEntity language;
   final bool selected;
   final bool switching;
+  final bool isTablet;
   final VoidCallback onTap;
 
   @override
@@ -138,7 +190,7 @@ class LanguageOptionTile extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: EdgeInsets.only(bottom: isTablet ? 12 : 10),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         curve: Curves.easeOut,
@@ -158,12 +210,15 @@ class LanguageOptionTile extends StatelessWidget {
           child: InkWell(
             onTap: onTap,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              padding: EdgeInsets.symmetric(
+                horizontal: isTablet ? 18 : 14,
+                vertical: isTablet ? 16 : 12,
+              ),
               child: Row(
                 children: [
                   Container(
-                    width: 40,
-                    height: 40,
+                    width: isTablet ? 48 : 40,
+                    height: isTablet ? 48 : 40,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       color: selected
@@ -171,19 +226,21 @@ class LanguageOptionTile extends StatelessWidget {
                           : scheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Text(language.flag,
-                        style: const TextStyle(fontSize: 20)),
+                    child: Text(
+                      language.flag,
+                      style: TextStyle(fontSize: isTablet ? 24 : 20),
+                    ),
                   ),
-                  const SizedBox(width: 14),
+                  SizedBox(width: isTablet ? 18 : 14),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          // Native name — always in its own language.
                           language.nameKey.tr,
                           style: textTheme.bodyLarge?.copyWith(
                             fontWeight: FontWeight.w700,
+                            fontSize: isTablet ? 17 : null,
                             color: scheme.onSurface,
                           ),
                         ),
@@ -191,6 +248,7 @@ class LanguageOptionTile extends StatelessWidget {
                         Text(
                           language.regionKey.tr,
                           style: textTheme.bodySmall?.copyWith(
+                            fontSize: isTablet ? 13.5 : null,
                             color: scheme.onSurfaceVariant,
                           ),
                         ),
@@ -200,8 +258,8 @@ class LanguageOptionTile extends StatelessWidget {
                   const SizedBox(width: 8),
                   switching
                       ? SizedBox(
-                          width: 22,
-                          height: 22,
+                          width: isTablet ? 26 : 22,
+                          height: isTablet ? 26 : 22,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
                             color: scheme.primary,
@@ -212,7 +270,7 @@ class LanguageOptionTile extends StatelessWidget {
                               ? Icons.radio_button_checked_rounded
                               : Icons.radio_button_unchecked_rounded,
                           color: selected ? scheme.primary : scheme.outline,
-                          size: 22,
+                          size: isTablet ? 26 : 22,
                         ),
                 ],
               ),

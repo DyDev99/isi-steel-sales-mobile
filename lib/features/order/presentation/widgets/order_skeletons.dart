@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/glass_card.dart';
 import 'package:isi_steel_sales_mobile/core/animations/shimmer_loading.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// Placeholder for one pending-order row — mirrors `_OrderTile` (items + date
 /// on the left, status pill + total on the right).
@@ -10,24 +11,24 @@ class OrderTileSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: EdgeInsets.only(bottom: 10),
       child: GlassCard(
         child: Shimmer(
           child: Row(
-            children: const [
+            children: [
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ShimmerBox(width: 60, height: 13, radius: 4),
-                    SizedBox(height: 6),
-                    ShimmerBox(width: 84, height: 11, radius: 4),
+                    const ShimmerBox(width: 60, height: 13, radius: 4),
+                    SizedBox(height: context.rh(6)),
+                    const ShimmerBox(width: 84, height: 11, radius: 4),
                   ],
                 ),
               ),
-              ShimmerBox(width: 74, height: 18, radius: 20),
-              SizedBox(width: 10),
-              ShimmerBox(width: 52, height: 14, radius: 4),
+              const ShimmerBox(width: 74, height: 18, radius: 20),
+              SizedBox(width: context.rw(10)),
+              const ShimmerBox(width: 52, height: 14, radius: 4),
             ],
           ),
         ),

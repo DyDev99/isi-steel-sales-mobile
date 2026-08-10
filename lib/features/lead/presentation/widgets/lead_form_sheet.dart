@@ -9,6 +9,7 @@ import 'package:isi_steel_sales_mobile/features/lead/domain/entities/lead.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/lead_source.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/pipeline_stage.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/priority.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/app_bottom_sheet.dart';
 
 /// Create/edit bottom sheet. When [existing] is null this creates a new
 /// lead in [PipelineStage.leads]; otherwise it returns an updated copy of
@@ -16,6 +17,7 @@ import 'package:isi_steel_sales_mobile/features/lead/domain/entities/priority.da
 Future<Lead?> showLeadFormSheet(
     {required BuildContext context, Lead? existing}) {
   return showModalBottomSheet<Lead>(
+    constraints: const BoxConstraints(maxWidth: AppBottomSheet.maxWidth),
     context: context,
     backgroundColor: context.appColors.surfaceSoft,
     isScrollControlled: true,

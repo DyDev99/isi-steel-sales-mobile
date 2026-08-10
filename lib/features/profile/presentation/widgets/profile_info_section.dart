@@ -4,6 +4,7 @@ import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/glass_card.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/features/profile/domain/entities/worker_profile.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 class ProfileInfoSection extends StatelessWidget {
   const ProfileInfoSection({super.key, required this.profile});
@@ -31,9 +32,9 @@ class ProfileInfoSection extends StatelessWidget {
           Text('profile.details'.tr,
               style: TextStyle(
                   color: scheme.onSurface,
-                  fontSize: 14.5,
+                  fontSize: context.rsp(14.5),
                   fontWeight: FontWeight.w800)),
-          const SizedBox(height: 12),
+          SizedBox(height: context.rh(12)),
           _InfoTile(
               icon: Icons.email_rounded,
               label: 'profile.email'.tr,
@@ -97,15 +98,15 @@ class _InfoTile extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 10),
           child: Row(
             children: [
-              Icon(icon, size: 18, color: scheme.primary),
-              const SizedBox(width: 12),
+              Icon(icon, size: context.rr(18), color: scheme.primary),
+              SizedBox(width: context.rw(12)),
               Text(label,
-                  style: TextStyle(color: colors.textSecondary, fontSize: 13)),
+                  style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(13))),
               const Spacer(),
               Text(value,
                   style: TextStyle(
                       color: valueColor ?? scheme.onSurface,
-                      fontSize: 13,
+                      fontSize: context.rsp(13),
                       fontWeight: FontWeight.w700)),
             ],
           ),

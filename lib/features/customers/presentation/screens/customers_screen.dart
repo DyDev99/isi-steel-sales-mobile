@@ -21,6 +21,8 @@ import 'package:isi_steel_sales_mobile/features/lead/presentation/bloc/pipeline_
 import 'package:isi_steel_sales_mobile/features/lead/presentation/bloc/pipeline_state.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/navigation/open_quotation.dart';
 import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/add_customer_bottom_sheet.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/app_bottom_sheet.dart';
 
 enum _QuickAccess {
   all,
@@ -241,7 +243,7 @@ class _Loaded extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 20),
+                  SizedBox(height: context.rh(20)),
                   const CustomerSyncStatusBanner(),
                   CustomerSearchBar(
                     onSearchChanged: (q) => context
@@ -264,6 +266,7 @@ class _Loaded extends StatelessWidget {
                             pipelineState.columns[PipelineStage.won] ?? [];
 
                         showModalBottomSheet(
+                          constraints: const BoxConstraints(maxWidth: AppBottomSheet.maxWidth),
                           context: context,
                           backgroundColor: context.appColors.surfaceSoft,
                           isScrollControlled: true,
@@ -277,7 +280,7 @@ class _Loaded extends StatelessWidget {
                       }
                     },
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: context.rh(12)),
                   _QuickAccessRow(
                       selected: quickAccess, onChanged: onQuickAccessChanged),
                 ],
@@ -300,7 +303,7 @@ class _Loaded extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               sliver: SliverList.separated(
                 itemCount: rows.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 10),
+                separatorBuilder: (_, __) => SizedBox(height: context.rh(10)),
                 itemBuilder: (context, index) {
                   final row = rows[index];
                   return switch (row) {
@@ -330,7 +333,7 @@ class _Loaded extends StatelessWidget {
           if (state.isLoadingMore && quickAccess == _QuickAccess.all)
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(context.rr(16)),
                 child: Center(
                     child: CircularProgressIndicator(color: scheme.primary)),
               ),
@@ -349,12 +352,17 @@ class _QuickAccessRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 36,
+      // Must scale with the label inside it. At 36 fixed, the chips clipped on
+      // tablet the moment the type scale went up: a 12.5pt label becomes ~20pt
+      // at `expanded`, and with the chip's own vertical padding the row needs
+      // ~41pt. A horizontal ListView has to be height-bounded, so the bound
+      // scales rather than being removed (FS-A11Y-2).
+      height: context.rh(36),
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
         itemCount: _QuickAccess.values.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        separatorBuilder: (_, __) => SizedBox(width: context.rw(8)),
         itemBuilder: (context, index) {
           final value = _QuickAccess.values[index];
           return _Segment(
@@ -386,12 +394,12 @@ class _GroupHeader extends StatelessWidget {
             title,
             style: TextStyle(
               color: colors.textPrimary,
-              fontSize: 12.5,
+              fontSize: context.rsp(12.5),
               fontWeight: FontWeight.w900,
               letterSpacing: 0.6,
             ),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: context.rw(8)),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
@@ -402,12 +410,12 @@ class _GroupHeader extends StatelessWidget {
               '$count',
               style: TextStyle(
                 color: scheme.primary,
-                fontSize: 10.5,
+                fontSize: context.rsp(10.5),
                 fontWeight: FontWeight.w800,
               ),
             ),
           ),
-          const SizedBox(width: 10),
+          SizedBox(width: context.rw(10)),
           Expanded(child: Divider(color: colors.divider, height: 1)),
         ],
       ),
@@ -430,7 +438,12 @@ class _Segment extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        // Scales with the label; fixed padding around scaled type is what makes
+        // a chip look cramped on tablet even once its row is tall enough.
+        padding: EdgeInsets.symmetric(
+          horizontal: context.rw(14),
+          vertical: context.rh(8),
+        ),
         decoration: BoxDecoration(
           color: selected ? scheme.primary : colors.surfaceSoft,
           borderRadius: BorderRadius.circular(20),
@@ -440,7 +453,7 @@ class _Segment extends StatelessWidget {
           label,
           style: TextStyle(
             color: selected ? scheme.onPrimary : colors.textPrimary,
-            fontSize: 12.5,
+            fontSize: context.rsp(12.5),
             fontWeight: FontWeight.w700,
           ),
         ),

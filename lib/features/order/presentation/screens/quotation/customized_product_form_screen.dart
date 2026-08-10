@@ -10,6 +10,7 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/car
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/customization/customization_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/customization/customization_state.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/drawing_upload_component.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// Category-aware product customization. Which measurement fields appear
 /// (length / width / height / thickness / diameter) is driven by the base
@@ -167,31 +168,31 @@ class __CustomizedProductFormViewState
             children: [
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(context.rr(16)),
                   child: Form(
                     key: _formKey,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildBaseProductHeader(theme, colorScheme),
-                        const SizedBox(height: 20),
+                        SizedBox(height: context.rh(20)),
                         _SectionTitle(title: '1. TECHNICAL DRAWING / SKETCH'),
-                        const SizedBox(height: 8),
+                        SizedBox(height: context.rh(8)),
                         DrawingUploadComponent(
                           imagePath: dataState.drawingImagePath,
                           onPickImage: (src) => cubit.captureOrPickDrawing(src),
                           onRemoveImage: () => cubit.removeDrawing(),
                         ),
-                        const SizedBox(height: 24),
+                        SizedBox(height: context.rh(24)),
                         _SectionTitle(
                             title: '2. SPECIFICATIONS FOR '
                                 '${widget.baseProduct.subCategory.toUpperCase()}'),
-                        const SizedBox(height: 12),
+                        SizedBox(height: context.rh(12)),
                         _buildMeasurementFields(cubit),
                         if (_hasAppearance) ...[
-                          const SizedBox(height: 20),
+                          SizedBox(height: context.rh(20)),
                           _SectionTitle(title: '3. APPEARANCE / FINISH'),
-                          const SizedBox(height: 8),
+                          SizedBox(height: context.rh(8)),
                           TextFormField(
                             controller: _appearanceController,
                             onChanged: cubit.updateAppearance,
@@ -205,11 +206,11 @@ class __CustomizedProductFormViewState
                             ),
                           ),
                         ],
-                        const SizedBox(height: 20),
+                        SizedBox(height: context.rh(20)),
                         _SectionTitle(
                             title:
                                 '${_hasAppearance ? '4' : '3'}. ADDITIONAL INSTRUCTIONS'),
-                        const SizedBox(height: 8),
+                        SizedBox(height: context.rh(8)),
                         TextFormField(
                           controller: _notesController,
                           maxLines: 3,
@@ -228,7 +229,7 @@ class __CustomizedProductFormViewState
                 ),
               ),
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(context.rr(16)),
                 decoration: BoxDecoration(
                   color: colorScheme.surface,
                   border: Border(
@@ -278,7 +279,7 @@ class __CustomizedProductFormViewState
         child: Row(
           children: [
             Expanded(child: _measurementField(left, cubit)),
-            const SizedBox(width: 12),
+            SizedBox(width: context.rw(12)),
             Expanded(
               child: right == null
                   ? const SizedBox.shrink()
@@ -326,7 +327,7 @@ class __CustomizedProductFormViewState
 
   Widget _buildBaseProductHeader(ThemeData theme, ColorScheme colorScheme) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(context.rr(12)),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(14),
@@ -335,14 +336,14 @@ class __CustomizedProductFormViewState
         children: [
           Container(
             width: 48,
-            height: 48,
+            height: context.rh(48),
             decoration: BoxDecoration(
               color: colorScheme.primaryContainer,
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(Icons.inventory_2_rounded, color: colorScheme.primary),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: context.rw(12)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

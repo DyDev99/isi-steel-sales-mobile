@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/glass_card.dart';
 import 'package:isi_steel_sales_mobile/core/animations/shimmer_loading.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 class ProductCardSkeleton extends StatelessWidget {
   const ProductCardSkeleton({super.key});
@@ -14,7 +14,7 @@ class ProductCardSkeleton extends StatelessWidget {
     final baseColor = context.appColors.border.withValues(alpha: 0.4);
 
     return GlassCard(
-      padding: const EdgeInsets.all(8),
+      padding: EdgeInsets.all(context.rr(8)),
       child: Shimmer(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -24,7 +24,7 @@ class ProductCardSkeleton extends StatelessWidget {
                   color: baseColor, borderRadius: BorderRadius.circular(10)),
               child: const SizedBox(width: _imageSize, height: _imageSize),
             ),
-            const SizedBox(width: 10),
+            SizedBox(width: context.rw(10)),
             Expanded(
               child: SizedBox(
                 height: _imageSize,
@@ -37,16 +37,16 @@ class ProductCardSkeleton extends StatelessWidget {
                       children: [
                         ShimmerBox(
                             width: 40, height: 10, radius: 4, color: baseColor),
-                        const SizedBox(height: 4),
+                        SizedBox(height: context.rh(4)),
                         ShimmerBox(
                             width: double.infinity,
                             height: 13,
                             radius: 4,
                             color: baseColor),
-                        const SizedBox(height: 4),
+                        SizedBox(height: context.rh(4)),
                         ShimmerBox(
                             width: 90, height: 11, radius: 4, color: baseColor),
-                        const SizedBox(height: 3),
+                        SizedBox(height: context.rh(3)),
                         ShimmerBox(
                             width: 70, height: 11, radius: 4, color: baseColor),
                       ],
@@ -78,11 +78,11 @@ class CatalogGridSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
-      padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 16.h),
+      padding: EdgeInsets.fromLTRB(context.rw(16), context.rh(8), context.rw(16), context.rh(16)),
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: itemCount,
-      separatorBuilder: (_, __) => const SizedBox(height: 10),
+      separatorBuilder: (_, __) => SizedBox(height: context.rh(10)),
       itemBuilder: (_, __) => const ProductCardSkeleton(),
     );
   }

@@ -4,6 +4,7 @@ import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/shop/shop_order_entry_screen.dart'; // Adjust path if needed
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 class CustomerCard extends StatelessWidget {
   const CustomerCard({
@@ -56,7 +57,7 @@ class CustomerCard extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(16),
           child: Padding(
-            padding: const EdgeInsets.all(12),
+            padding: EdgeInsets.all(context.rr(12)),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -73,12 +74,12 @@ class CustomerCard extends StatelessWidget {
                             Text(
                               customer.customerCode,
                               style: TextStyle(
-                                fontSize: 11,
+                                fontSize: context.rsp(11),
                                 fontWeight: FontWeight.w700,
                                 color: scheme.primary,
                               ),
                             ),
-                          const SizedBox(height: 2),
+                          SizedBox(height: context.rh(2)),
                           Text(
                             // Both languages are already on the entity, so a
                             // language switch re-resolves this line on the next
@@ -87,7 +88,7 @@ class CustomerCard extends StatelessWidget {
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: context.rsp(14),
                               fontWeight: FontWeight.w700,
                               color: colors.textPrimary,
                               height: 1.2,
@@ -102,7 +103,7 @@ class CustomerCard extends StatelessWidget {
                             ? Icons.star_rounded
                             : Icons.star_outline_rounded,
                         color: isFavorite ? Colors.amber : colors.textSecondary,
-                        size: 22,
+                        size: context.rr(22),
                       ),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
@@ -110,24 +111,24 @@ class CustomerCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 10),
+                SizedBox(height: context.rh(10)),
                 // Bottom Row: Territory / Sub-info
                 if (customer.territory.isNotEmpty)
                   Row(
                     children: [
                       Icon(
                         Icons.location_on_outlined,
-                        size: 13,
+                        size: context.rr(13),
                         color: colors.textSecondary,
                       ),
-                      const SizedBox(width: 4),
+                      SizedBox(width: context.rw(4)),
                       Expanded(
                         child: Text(
                           customer.territory,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            fontSize: 11.5,
+                            fontSize: context.rsp(11.5),
                             color: colors.textSecondary,
                           ),
                         ),
@@ -151,7 +152,7 @@ class CustomerCard extends StatelessWidget {
             flex: 8,
             child: cardContent,
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: context.rw(8)),
           // 20% Width: Vertical "Create Quotation" Button
           Expanded(
             flex: 2,
@@ -207,18 +208,18 @@ class _CreateQuotationButtonState extends State<_CreateQuotationButton> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: EdgeInsets.all(context.rr(8)),
                 decoration: BoxDecoration(
                   color: scheme.primary.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   Icons.request_quote_rounded,
-                  size: 20,
+                  size: context.rr(20),
                   color: scheme.primary,
                 ),
               ),
-              const SizedBox(height: 6),
+              SizedBox(height: context.rh(6)),
               Text(
                 'Create\nQuotation',
                 textAlign: TextAlign.center,
@@ -226,7 +227,7 @@ class _CreateQuotationButtonState extends State<_CreateQuotationButton> {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   color: scheme.primary,
-                  fontSize: 10.5,
+                  fontSize: context.rsp(10.5),
                   fontWeight: FontWeight.w800,
                   height: 1.15,
                 ),

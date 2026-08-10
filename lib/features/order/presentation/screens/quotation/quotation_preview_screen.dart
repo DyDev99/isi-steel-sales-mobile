@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
@@ -8,6 +7,7 @@ import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/pdf/pdf_generation_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/pdf/pdf_generation_state.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/quotation_preview_section.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// Full-screen quotation preview + PDF export entry point.
 ///
@@ -148,7 +148,7 @@ class _QuotationView extends StatelessWidget {
             Expanded(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
-                padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 8.h),
+                padding: EdgeInsets.fromLTRB(context.rw(16), context.rh(16), context.rw(16), context.rh(8)),
                 child: Column(
                   children: [
                     QuotationPreviewSection(
@@ -164,7 +164,7 @@ class _QuotationView extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+              padding: EdgeInsets.symmetric(horizontal: context.rw(16), vertical: context.rh(12)),
               child: BlocConsumer<PdfGenerationCubit, PdfGenerationState>(
                 listener: (context, state) {
                   if (state is PdfGenerated) {
@@ -197,34 +197,34 @@ class _QuotationView extends StatelessWidget {
                             isGenerating ? null : () => Navigator.pop(context),
                         style: OutlinedButton.styleFrom(
                           padding: EdgeInsets.symmetric(
-                              vertical: 14.h, horizontal: 24.w),
+                              vertical: context.rh(14), horizontal: context.rw(24)),
                           side:
                               BorderSide(color: themeColors.border, width: 1.5),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14.r),
+                            borderRadius: BorderRadius.circular(context.rr(14)),
                           ),
                         ),
                         child: Text(
                           'common.back'.tr,
                           style: TextStyle(
-                            fontSize: 15.sp,
+                            fontSize: context.rsp(15),
                             fontWeight: FontWeight.bold,
                             color: themeColors.textSecondary,
                           ),
                         ),
                       ),
-                      SizedBox(width: 12.w),
+                      SizedBox(width: context.rw(12)),
                       Expanded(
                         child: InkWell(
                           onTap: isGenerating ? null : () => _download(context),
-                          borderRadius: BorderRadius.circular(14.r),
+                          borderRadius: BorderRadius.circular(context.rr(14)),
                           child: Container(
-                            height: 52.h,
+                            height: context.rh(52),
                             decoration: BoxDecoration(
                               color: isGenerating
                                   ? colorScheme.primary.withValues(alpha: 0.7)
                                   : colorScheme.primary,
-                              borderRadius: BorderRadius.circular(14.r),
+                              borderRadius: BorderRadius.circular(context.rr(14)),
                               boxShadow: [
                                 BoxShadow(
                                   color: colorScheme.primary
@@ -240,8 +240,8 @@ class _QuotationView extends StatelessWidget {
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       SizedBox(
-                                        width: 18.w,
-                                        height: 18.w,
+                                        width: context.rw(18),
+                                        height: context.rw(18),
                                         child: CircularProgressIndicator(
                                           strokeWidth: 2,
                                           valueColor:
@@ -250,11 +250,11 @@ class _QuotationView extends StatelessWidget {
                                           ),
                                         ),
                                       ),
-                                      SizedBox(width: 10.w),
+                                      SizedBox(width: context.rw(10)),
                                       Text(
                                         'orders.quotation.pdf.generating'.tr,
                                         style: TextStyle(
-                                          fontSize: 15.sp,
+                                          fontSize: context.rsp(15),
                                           fontWeight: FontWeight.bold,
                                           color: colorScheme.onPrimary,
                                         ),
@@ -264,7 +264,7 @@ class _QuotationView extends StatelessWidget {
                                 : Text(
                                     'orders.quotation.pdf.download'.tr,
                                     style: TextStyle(
-                                      fontSize: 15.sp,
+                                      fontSize: context.rsp(15),
                                       fontWeight: FontWeight.bold,
                                       color: colorScheme.onPrimary,
                                     ),

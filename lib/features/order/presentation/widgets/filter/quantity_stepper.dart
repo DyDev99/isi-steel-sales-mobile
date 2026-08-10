@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// A `[-]  n  [+]` quantity stepper with press-and-hold auto-repeat.
 class QuantityStepper extends StatefulWidget {
@@ -64,7 +65,7 @@ class _QuantityStepperState extends State<QuantityStepper> {
     final canIncrement = widget.value < widget.max;
 
     return Container(
-      height: 46,
+      height: context.rh(46),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         border: Border.all(color: context.appColors.border),
@@ -87,7 +88,7 @@ class _QuantityStepperState extends State<QuantityStepper> {
             child: Text(
               '${widget.value}',
               style: TextStyle(
-                fontSize: 15,
+                fontSize: context.rsp(15),
                 fontWeight: FontWeight.w800,
                 color: theme.colorScheme.onSurface,
               ),
@@ -135,10 +136,10 @@ class _StepButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           child: SizedBox(
             width: 44,
-            height: 44,
+            height: context.rh(44),
             child: Icon(
               icon,
-              size: 20,
+              size: context.rr(20),
               color: enabled
                   ? Theme.of(context).colorScheme.primary
                   : theme.disabledColor.withValues(alpha: 0.4),

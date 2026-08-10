@@ -6,6 +6,7 @@ import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/notification_item.dart';
 import 'package:isi_steel_sales_mobile/features/notification/domain/usecases/fetch_notifications.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/usecases/lead_usecase.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/app_bottom_sheet.dart';
 
 Future<void> showNotificationsSheet({
   required BuildContext context,
@@ -18,6 +19,7 @@ Future<void> showNotificationsSheet({
 }) {
   final colors = context.appColors;
   return showModalBottomSheet<void>(
+    constraints: const BoxConstraints(maxWidth: AppBottomSheet.maxWidth),
     context: context,
     backgroundColor: colors.surfaceSoft,
     isScrollControlled: true,

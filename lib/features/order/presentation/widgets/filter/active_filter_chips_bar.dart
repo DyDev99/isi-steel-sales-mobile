@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// One removable summary chip describing an active filter facet.
 class FilterChipData {
@@ -32,21 +33,21 @@ class ActiveFilterChipsBar extends StatelessWidget {
     final theme = Theme.of(context);
     if (chips.isEmpty) return const SizedBox.shrink();
     return SizedBox(
-      height: 36,
+      height: context.rh(36),
       child: Row(
         children: [
           _CounterBadge(count: chips.length),
-          const SizedBox(width: 8),
+          SizedBox(width: context.rw(8)),
           Expanded(
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: chips.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              separatorBuilder: (_, __) => SizedBox(width: context.rw(8)),
               itemBuilder: (context, index) =>
                   _RemovableChip(data: chips[index]),
             ),
           ),
-          const SizedBox(width: 4),
+          SizedBox(width: context.rw(4)),
           TextButton(
             onPressed: onClearAll,
             style: TextButton.styleFrom(
@@ -68,14 +69,14 @@ class _CounterBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: 24,
-      height: 24,
+      height: context.rh(24),
       alignment: Alignment.center,
       decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.primary, shape: BoxShape.circle),
       child: Text(
         '$count',
-        style: const TextStyle(
-            color: Colors.white, fontSize: 12, fontWeight: FontWeight.w800),
+        style: TextStyle(
+            color: Colors.white, fontSize: context.rsp(12), fontWeight: FontWeight.w800),
       ),
     );
   }
@@ -106,18 +107,18 @@ class _RemovableChip extends StatelessWidget {
             data.label,
             style: TextStyle(
                 color: Theme.of(context).colorScheme.primary,
-                fontSize: 12.5,
+                fontSize: context.rsp(12.5),
                 fontWeight: FontWeight.w700),
           ),
-          const SizedBox(width: 2),
+          SizedBox(width: context.rw(2)),
           InkWell(
             onTap: data.onClear,
             borderRadius: BorderRadius.circular(999),
             child: Padding(
-              padding: const EdgeInsets.all(4),
+              padding: EdgeInsets.all(context.rr(4)),
               child: Icon(
                 Icons.close_rounded,
-                size: 14,
+                size: context.rr(14),
                 color: theme.colorScheme.primary,
               ),
             ),

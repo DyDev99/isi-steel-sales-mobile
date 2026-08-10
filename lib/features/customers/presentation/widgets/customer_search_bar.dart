@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 class CustomerSearchBar extends StatelessWidget {
   const CustomerSearchBar({
@@ -24,7 +25,7 @@ class CustomerSearchBar extends StatelessWidget {
       children: [
         Expanded(
           child: Container(
-            height: 44,
+            height: context.rh(44),
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
               color: colors.card, //[cite: 3]
@@ -34,20 +35,20 @@ class CustomerSearchBar extends StatelessWidget {
             child: Row(
               children: [
                 Icon(Icons.search_rounded,
-                    color: colors.textSecondary, size: 20), //[cite: 3]
-                const SizedBox(width: 8),
+                    color: colors.textSecondary, size: context.rr(20)), //[cite: 3]
+                SizedBox(width: context.rw(8)),
                 Expanded(
                   child: TextField(
                     onChanged: onSearchChanged, //[cite: 3]
                     style: TextStyle(
-                        color: colors.textPrimary, fontSize: 13.5), //[cite: 3]
+                        color: colors.textPrimary, fontSize: context.rsp(13.5)), //[cite: 3]
                     decoration: InputDecoration(
                       isDense: true,
                       border: InputBorder.none,
                       hintText: 'customers.search_hint'.tr, //[cite: 3]
                       hintStyle: TextStyle(
                           color: colors.textSecondary,
-                          fontSize: 13.5), //[cite: 3]
+                          fontSize: context.rsp(13.5)), //[cite: 3]
                     ),
                   ),
                 ),
@@ -55,13 +56,13 @@ class CustomerSearchBar extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(width: 10),
+        SizedBox(width: context.rw(10)),
         InkWell(
           onTap: onFilterTap, //[cite: 3]
           borderRadius: BorderRadius.circular(14),
           child: Container(
             width: 44,
-            height: 44,
+            height: context.rh(44),
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: hasActiveFilters
@@ -77,10 +78,10 @@ class CustomerSearchBar extends StatelessWidget {
                 color: hasActiveFilters
                     ? scheme.primary
                     : colors.textPrimary, //[cite: 3]
-                size: 20),
+                size: context.rr(20)),
           ),
         ),
-        const SizedBox(width: 10), // Space between filter and add button
+        SizedBox(width: context.rw(10)), // Space between filter and add button
 
         // 3. New Add Customer Button on the right of filter
         InkWell(
@@ -88,7 +89,7 @@ class CustomerSearchBar extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           child: Container(
             width: 44,
-            height: 44,
+            height: context.rh(44),
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: colors.card,
@@ -98,7 +99,7 @@ class CustomerSearchBar extends StatelessWidget {
             child: Icon(
               Icons.person_add_alt_1_rounded,
               color: colors.textPrimary,
-              size: 20,
+              size: context.rr(20),
             ),
           ),
         ),

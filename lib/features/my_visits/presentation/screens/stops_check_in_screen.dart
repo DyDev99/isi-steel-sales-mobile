@@ -27,6 +27,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/presentation/navigatio
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/stop_information/stop_information_screen.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/transit_map.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/quotation_builder_screen.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 const bool kDebugForceInsideGeofence = true;
 
@@ -228,7 +229,7 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen>
           'my_visits.flow.checkin_title'.tr,
           style: TextStyle(
             color: colors.textPrimary,
-            fontSize: 17,
+            fontSize: context.rsp(17),
             fontWeight: FontWeight.w800,
             letterSpacing: -0.3,
           ),
@@ -342,14 +343,14 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen>
                                       .customer.geofenceRadiusMeters
                                       .round(),
                                 ),
-                                const SizedBox(height: 18),
+                                SizedBox(height: context.rh(18)),
                                 Row(
                                   children: [
                                     Text(
                                       'my_visits.flow.proof_photo'.tr,
                                       style: TextStyle(
                                         color: colors.textPrimary,
-                                        fontSize: 14,
+                                        fontSize: context.rsp(14),
                                         fontWeight: FontWeight.w800,
                                       ),
                                     ),
@@ -357,20 +358,20 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen>
                                     if (photos.isEmpty) _PulseIndicator(),
                                   ],
                                 ),
-                                const SizedBox(height: 12),
+                                SizedBox(height: context.rh(12)),
                                 _CameraDropzone(
                                   photos: photos,
                                   capturing: _capturing,
                                   isLocked: false,
                                   onTap: () => _capture(stop),
                                 ),
-                                const SizedBox(height: 10),
+                                SizedBox(height: context.rh(10)),
                                 Text(
                                   'my_visits.flow.checkin_explainer'.tr,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     color: colors.textSecondary,
-                                    fontSize: 11.5,
+                                    fontSize: context.rsp(11.5),
                                     height: 1.35,
                                   ),
                                 ),
@@ -431,25 +432,25 @@ class _UnifiedCustomerHeader extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: colors.textPrimary,
-                    fontSize: 17,
+                    fontSize: context.rsp(17),
                     fontWeight: FontWeight.w900,
                     letterSpacing: -0.3,
                   ),
                 ),
-                const SizedBox(height: 3),
+                SizedBox(height: context.rh(3)),
                 Text(
                   stop.customer.address,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: colors.textSecondary,
-                    fontSize: 12.5,
+                    fontSize: context.rsp(12.5),
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: context.rw(12)),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
@@ -465,14 +466,14 @@ class _UnifiedCustomerHeader extends StatelessWidget {
                 Icon(
                   Icons.navigation_rounded,
                   color: scheme.primary,
-                  size: 14,
+                  size: context.rr(14),
                 ),
-                const SizedBox(width: 5),
+                SizedBox(width: context.rw(5)),
                 Text(
                   '$distanceLabel • ~$etaMinutes ${'my_visits.flow.minutes_shortTemplate'.tr}',
                   style: TextStyle(
                     color: scheme.primary,
-                    fontSize: 11.5,
+                    fontSize: context.rsp(11.5),
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -525,7 +526,7 @@ class _GeoStatusBanner extends StatelessWidget {
                   .replaceAll('{radius}', '$radiusMeters'),
         ),
         if (blockedReason != null) ...[
-          const SizedBox(height: 8),
+          SizedBox(height: context.rh(8)),
           _StatusPill(
             color: scheme.error,
             icon: Icons.block_rounded,
@@ -533,7 +534,7 @@ class _GeoStatusBanner extends StatelessWidget {
           ),
         ],
         for (final warning in warnings) ...[
-          const SizedBox(height: 8),
+          SizedBox(height: context.rh(8)),
           _StatusPill(
             color: colors.warning,
             icon: Icons.warning_amber_rounded,
@@ -569,8 +570,8 @@ class _StatusPill extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: color),
-          const SizedBox(width: 10),
+          Icon(icon, size: context.rr(18), color: color),
+          SizedBox(width: context.rw(10)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -579,17 +580,17 @@ class _StatusPill extends StatelessWidget {
                   text,
                   style: TextStyle(
                     color: color,
-                    fontSize: 12.5,
+                    fontSize: context.rsp(12.5),
                     fontWeight: FontWeight.w800,
                   ),
                 ),
                 if (subtitle != null) ...[
-                  const SizedBox(height: 2),
+                  SizedBox(height: context.rh(2)),
                   Text(
                     subtitle!,
                     style: TextStyle(
                       color: color.withValues(alpha: 0.85),
-                      fontSize: 11,
+                      fontSize: context.rsp(11),
                     ),
                   ),
                 ]
@@ -673,7 +674,7 @@ class _DropzonePlaceholder extends StatelessWidget {
         AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           width: 48,
-          height: 48,
+          height: context.rh(48),
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: (isLocked ? colors.textSecondary : scheme.primary)
@@ -683,24 +684,24 @@ class _DropzonePlaceholder extends StatelessWidget {
           child: Icon(
             isLocked ? Icons.lock_outline_rounded : Icons.camera_alt_rounded,
             color: isLocked ? colors.textSecondary : scheme.primary,
-            size: 22,
+            size: context.rr(22),
           ),
         ),
-        const SizedBox(height: 10),
+        SizedBox(height: context.rh(10)),
         Text(
           isLocked
               ? 'my_visits.flow.transit_banner_locked'.tr
               : 'my_visits.flow.take_photo'.tr,
           style: TextStyle(
             color: isLocked ? colors.textSecondary : colors.textPrimary,
-            fontSize: 13.5,
+            fontSize: context.rsp(13.5),
             fontWeight: FontWeight.w800,
           ),
         ),
-        const SizedBox(height: 3),
+        SizedBox(height: context.rh(3)),
         Text(
           'my_visits.flow.fit_frame'.tr,
-          style: TextStyle(color: colors.textSecondary, fontSize: 11.5),
+          style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(11.5)),
         ),
       ],
     );
@@ -718,9 +719,9 @@ class _ProofGallery extends StatelessWidget {
       children: [
         ListView.separated(
           scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.all(10),
+          padding: EdgeInsets.all(context.rr(10)),
           itemCount: photos.length,
-          separatorBuilder: (_, __) => const SizedBox(width: 10),
+          separatorBuilder: (_, __) => SizedBox(width: context.rw(10)),
           itemBuilder: (context, index) => ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: AspectRatio(
@@ -741,17 +742,17 @@ class _ProofGallery extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(
+                Icon(
                   Icons.add_a_photo_rounded,
                   color: Colors.white,
-                  size: 13,
+                  size: context.rr(13),
                 ),
-                const SizedBox(width: 5),
+                SizedBox(width: context.rw(5)),
                 Text(
                   '${photos.length}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white,
-                    fontSize: 11.5,
+                    fontSize: context.rsp(11.5),
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -797,13 +798,13 @@ class _CheckInBottomBar extends StatelessWidget {
               Text(
                 hint!,
                 textAlign: TextAlign.center,
-                style: TextStyle(color: colors.textSecondary, fontSize: 11.5),
+                style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(11.5)),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: context.rh(8)),
             ],
             SizedBox(
               width: double.infinity,
-              height: 52,
+              height: context.rh(52),
               child: ElevatedButton.icon(
                 onPressed: enabled ? onTap : null,
                 icon: submitting
@@ -819,12 +820,12 @@ class _CheckInBottomBar extends StatelessWidget {
                         enabled
                             ? Icons.check_circle_rounded
                             : Icons.lock_rounded,
-                        size: 20,
+                        size: context.rr(20),
                       ),
                 label: Text(
                   'my_visits.flow.checkin_continue'.tr,
-                  style: const TextStyle(
-                    fontSize: 15,
+                  style: TextStyle(
+                    fontSize: context.rsp(15),
                     fontWeight: FontWeight.w800,
                     letterSpacing: -0.2,
                   ),
@@ -883,7 +884,7 @@ class _PulseIndicatorState extends State<_PulseIndicator>
           'REQUIRED',
           style: TextStyle(
             color: primary.withValues(alpha: 0.75 + (_controller.value * 0.25)),
-            fontSize: 9.5,
+            fontSize: context.rsp(9.5),
             fontWeight: FontWeight.w900,
             letterSpacing: 0.5,
           ),
@@ -918,15 +919,15 @@ class _MapExpandButton extends StatelessWidget {
                 children: [
                   Icon(
                     Icons.open_in_full_rounded,
-                    size: 13,
+                    size: context.rr(13),
                     color: colors.textPrimary,
                   ),
-                  const SizedBox(width: 6),
+                  SizedBox(width: context.rw(6)),
                   Text(
                     'my_visits.route_info.expand_map'.tr,
                     style: TextStyle(
                       color: colors.textPrimary,
-                      fontSize: 11.5,
+                      fontSize: context.rsp(11.5),
                       fontWeight: FontWeight.w800,
                     ),
                   ),
@@ -957,7 +958,7 @@ class _FullScreenTransitMap extends StatelessWidget {
           'my_visits.route_info.route_map'.tr,
           style: TextStyle(
             color: colors.textPrimary,
-            fontSize: 16,
+            fontSize: context.rsp(16),
             fontWeight: FontWeight.w800,
           ),
         ),

@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/sync/pending_sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/sync/pending_sync_state.dart';
 import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/sync/pending_sync_sheet.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// A gold-framed "Pending Sync" pill badge with dual-ring avatar styling.
 class PendingSyncBadge extends StatelessWidget {
@@ -26,18 +26,18 @@ class PendingSyncBadge extends StatelessWidget {
 
         return InkWell(
           onTap: () => showPendingSyncSheet(context),
-          borderRadius: BorderRadius.circular(24.r),
+          borderRadius: BorderRadius.circular(context.rr(24)),
           child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+            padding: EdgeInsets.symmetric(horizontal: context.rw(10), vertical: context.rh(6)),
             decoration: BoxDecoration(
               color: scheme.surface,
-              borderRadius: BorderRadius.circular(24.r),
+              borderRadius: BorderRadius.circular(context.rr(24)),
               border: Border.all(color: _goldBorderColor, width: 1.2),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.06),
                   blurRadius: 8.r,
-                  offset: Offset(0, 3.h),
+                  offset: Offset(0, context.rh(3)),
                 ),
               ],
             ),
@@ -46,7 +46,7 @@ class PendingSyncBadge extends StatelessWidget {
               children: [
                 // Dual-Bordered Icon Container
                 Container(
-                  padding: EdgeInsets.all(5.r),
+                  padding: EdgeInsets.all(context.rr(5)),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: accent.withValues(alpha: 0.12),
@@ -57,25 +57,25 @@ class PendingSyncBadge extends StatelessWidget {
                   ),
                   child: state.isSyncing
                       ? SizedBox(
-                          width: 14.r,
-                          height: 14.r,
+                          width: context.rr(14),
+                          height: context.rr(14),
                           child: CircularProgressIndicator(
                               strokeWidth: 2, color: accent),
                         )
-                      : Icon(Icons.sync_rounded, size: 14.sp, color: accent),
+                      : Icon(Icons.sync_rounded, size: context.rsp(14), color: accent),
                 ),
-                SizedBox(width: 8.w),
+                SizedBox(width: context.rw(8)),
                 Text(
                   'sync.pending_badge'.trParams({'count': outstanding}),
                   style: TextStyle(
                     color: accent,
-                    fontSize: 12.5.sp,
+                    fontSize: context.rsp(12.5),
                     fontWeight: FontWeight.w800,
                   ),
                 ),
                 if (hasProblems) ...[
-                  SizedBox(width: 6.w),
-                  Icon(Icons.error_rounded, size: 15.sp, color: scheme.error),
+                  SizedBox(width: context.rw(6)),
+                  Icon(Icons.error_rounded, size: context.rsp(15), color: scheme.error),
                 ],
               ],
             ),

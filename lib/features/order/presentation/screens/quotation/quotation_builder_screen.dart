@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/usecase/usecase.dart';
@@ -33,6 +32,7 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quota
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/quotation_bottom_bar.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/quotation_preview_section.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/back_to_home.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// Quotation builder — a guided product finder rather than a catalog dump.
 ///
@@ -197,7 +197,7 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                   icon: Icon(
                     Icons.chevron_left_rounded,
                     color: colorScheme.primary,
-                    size: 28.sp,
+                    size: context.rsp(28),
                   ),
                   onPressed: () => Navigator.of(context).pop(),
                 ),
@@ -208,7 +208,7 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                         'orders.quotation.builder_title'.tr,
                     style: TextStyle(
                       color: colorScheme.primary,
-                      fontSize: 17.sp,
+                      fontSize: context.rsp(17),
                       fontWeight: FontWeight.bold,
                     ),
                     overflow: TextOverflow.ellipsis,
@@ -218,7 +218,7 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
             ),
             actions: [
               Padding(
-                padding: EdgeInsets.only(right: 16.w),
+                padding: EdgeInsets.only(right: context.rw(16)),
                 child: const BackToHomeButton(),
               ),
             ],
@@ -258,7 +258,7 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                       onImageSearch: () => sl<ImageSearchService>()
                           .matchQuery(ImageSearchSource.gallery),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: context.rh(16)),
                     const CartPreviewSection(),
                     BlocBuilder<CartCubit, CartState>(
                       builder: (context, cartState) {
@@ -312,7 +312,7 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                         );
                       },
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: context.rh(16)),
                   ],
                 ),
               ),

@@ -81,13 +81,22 @@ class AppBottomSheet extends StatelessWidget {
   /// rather than as a full-screen route the user can't dismiss.
   static const double defaultHeightFactor = 0.9;
 
-  /// Above this the sheet stops stretching and centres (applied by
-  /// [showAppBottomSheet] via `showModalBottomSheet`'s `constraints`).
+  /// Width cap for every sheet in the app — deliberately **unbounded**, so
+  /// sheets span the full window.
   ///
-  /// A full-width sheet on a tablet or unfolded foldable puts its Cancel and
-  /// Save buttons ~700px apart, which is unusable one-handed. Phones are
-  /// unaffected — they never reach this width.
-  static const double maxWidth = 560;
+  /// This was 560 on the reasoning that a full-width sheet on a tablet puts its
+  /// Cancel and Save buttons ~700px apart. That objection only holds when the
+  /// sheet contains a *single narrow column* of fields stretched across the
+  /// screen. The decision here is the other half of that trade: sheets go full
+  /// width **and** their content lays out in multiple columns to fill it (see
+  /// `add_customer_bottom_sheet.dart`, which shows two or three form steps at
+  /// once above `compact`). A wide sheet with wide content is not stretched —
+  /// it is denser, which is the point of a tablet.
+  ///
+  /// Kept as a named constant, not deleted: it is referenced by ~27 call sites,
+  /// and one constant is what makes reversing this decision a one-line change
+  /// rather than another 27-file sweep.
+  static const double maxWidth = double.infinity;
 
   @override
   Widget build(BuildContext context) {

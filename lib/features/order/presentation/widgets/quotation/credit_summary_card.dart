@@ -3,6 +3,7 @@ import 'package:isi_steel_sales_mobile/core/localization/localization_services.d
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/credit_note_debit_note.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/credit_summary.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 class CreditSummaryCard extends StatelessWidget {
   const CreditSummaryCard({
@@ -20,7 +21,7 @@ class CreditSummaryCard extends StatelessWidget {
     final remaining = creditLimit - summary.outstandingBalance;
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: EdgeInsets.all(context.rr(14)),
       decoration: BoxDecoration(
         color: colors.card,
         borderRadius: BorderRadius.circular(14),
@@ -39,15 +40,15 @@ class CreditSummaryCard extends StatelessWidget {
                       'orders.shop.credit_remaining'.tr,
                       style: TextStyle(
                         color: colors.textSecondary,
-                        fontSize: 11,
+                        fontSize: context.rsp(11),
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    SizedBox(height: context.rh(2)),
                     Text(
                       '\$${remaining.toStringAsFixed(2)}',
                       style: TextStyle(
                         color: colors.textPrimary,
-                        fontSize: 16,
+                        fontSize: context.rsp(16),
                         fontWeight: FontWeight.w900,
                       ),
                     ),
@@ -62,11 +63,11 @@ class CreditSummaryCard extends StatelessWidget {
               'orders.quotation_extra.outstanding_notes'.tr,
               style: TextStyle(
                 color: colors.textPrimary,
-                fontSize: 11,
+                fontSize: context.rsp(11),
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 6),
+            SizedBox(height: context.rh(6)),
             for (final note in summary.notes) _NoteRow(note: note),
           ],
         ],
@@ -99,12 +100,12 @@ class _NoteRow extends StatelessWidget {
               isCredit ? 'CN' : 'DN',
               style: TextStyle(
                 color: statusColor,
-                fontSize: 10,
+                fontSize: context.rsp(10),
                 fontWeight: FontWeight.w800,
               ),
             ),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: context.rw(8)),
           Expanded(
             child: Text(
               '${note.reference} · ${note.reason}',
@@ -112,7 +113,7 @@ class _NoteRow extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: colors.textPrimary,
-                fontSize: 11.5,
+                fontSize: context.rsp(11.5),
               ),
             ),
           ),
@@ -120,7 +121,7 @@ class _NoteRow extends StatelessWidget {
             '\$${note.amount.toStringAsFixed(2)}',
             style: TextStyle(
               color: colors.textSecondary,
-              fontSize: 11.5,
+              fontSize: context.rsp(11.5),
             ),
           ),
         ],

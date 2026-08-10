@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/off_visit_reason.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/app_bottom_sheet.dart';
 
 extension OffVisitReasonL10n on OffVisitReason {
   String get localizedLabel => switch (this) {
@@ -19,6 +21,7 @@ Future<OffVisitReason?> showOffVisitReasonSheet(
   final colors = Theme.of(context).extension<AppThemeColors>()!;
 
   return showModalBottomSheet<OffVisitReason>(
+    constraints: const BoxConstraints(maxWidth: AppBottomSheet.maxWidth),
     context: context,
     backgroundColor: colors.surfaceSoft,
     isScrollControlled: true,
@@ -38,9 +41,9 @@ Future<OffVisitReason?> showOffVisitReasonSheet(
                 Text('orders.shop.off_visit_warning'.tr,
                     style: TextStyle(
                         color: colors.textPrimary,
-                        fontSize: 16,
+                        fontSize: context.rsp(16),
                         fontWeight: FontWeight.w800)),
-                const SizedBox(height: 14),
+                SizedBox(height: context.rh(14)),
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
@@ -53,7 +56,7 @@ Future<OffVisitReason?> showOffVisitReasonSheet(
                       ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: context.rh(16)),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(

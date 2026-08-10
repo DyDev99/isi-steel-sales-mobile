@@ -9,6 +9,8 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/sync/con
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/sync/pending_sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/quotation_detail_screen.dart';
 import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/sync/continue_work_resolver.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/app_bottom_sheet.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// Floating card featuring gold accent framing, dual-bordered icon badge,
 /// subtle corner watermarks, and tactile 3D action controls.
@@ -54,27 +56,27 @@ class _ContinueWorkingCardSkeleton extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 20.r,
-                height: 20.r,
+                width: context.rr(20),
+                height: context.rr(20),
                 decoration: BoxDecoration(
                   color: skeletonColor,
                   shape: BoxShape.circle,
                 ),
               ),
-              SizedBox(width: 8.w),
+              SizedBox(width: context.rw(8)),
               Expanded(
                 child: Container(
-                  height: 14.h,
+                  height: context.rh(14),
                   decoration: BoxDecoration(
                     color: skeletonColor,
-                    borderRadius: BorderRadius.circular(4.r),
+                    borderRadius: BorderRadius.circular(context.rr(4)),
                   ),
                 ),
               ),
-              SizedBox(width: 32.w),
+              SizedBox(width: context.rw(32)),
               Container(
-                width: 20.r,
-                height: 20.r,
+                width: context.rr(20),
+                height: context.rr(20),
                 decoration: BoxDecoration(
                   color: skeletonColor,
                   shape: BoxShape.circle,
@@ -82,43 +84,43 @@ class _ContinueWorkingCardSkeleton extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: context.rh(12)),
           Container(
-            width: 120.w,
-            height: 12.h,
+            width: context.rw(120),
+            height: context.rh(12),
             decoration: BoxDecoration(
               color: skeletonColor,
-              borderRadius: BorderRadius.circular(4.r),
+              borderRadius: BorderRadius.circular(context.rr(4)),
             ),
           ),
-          SizedBox(height: 6.h),
+          SizedBox(height: context.rh(6)),
           Container(
-            width: 190.w,
-            height: 12.h,
+            width: context.rw(190),
+            height: context.rh(12),
             decoration: BoxDecoration(
               color: skeletonColor,
-              borderRadius: BorderRadius.circular(4.r),
+              borderRadius: BorderRadius.circular(context.rr(4)),
             ),
           ),
-          SizedBox(height: 16.h),
+          SizedBox(height: context.rh(16)),
           Row(
             children: [
               Expanded(
                 child: Container(
-                  height: 40.h,
+                  height: context.rh(40),
                   decoration: BoxDecoration(
                     color: skeletonColor,
-                    borderRadius: BorderRadius.circular(10.r),
+                    borderRadius: BorderRadius.circular(context.rr(10)),
                   ),
                 ),
               ),
-              SizedBox(width: 10.w),
+              SizedBox(width: context.rw(10)),
               Expanded(
                 child: Container(
-                  height: 40.h,
+                  height: context.rh(40),
                   decoration: BoxDecoration(
                     color: skeletonColor,
-                    borderRadius: BorderRadius.circular(10.r),
+                    borderRadius: BorderRadius.circular(context.rr(10)),
                   ),
                 ),
               ),
@@ -149,7 +151,7 @@ class _DraftCard extends StatelessWidget {
             children: [
               // Dual-Bordered Icon Avatar Badge
               Container(
-                padding: EdgeInsets.all(6.r),
+                padding: EdgeInsets.all(context.rr(6)),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: scheme.primary.withValues(alpha: 0.1),
@@ -161,22 +163,22 @@ class _DraftCard extends StatelessWidget {
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.04),
                       blurRadius: 4.r,
-                      offset: Offset(0, 2.h),
+                      offset: Offset(0, context.rh(2)),
                     ),
                   ],
                 ),
                 child: Icon(
                   Icons.history_rounded,
-                  size: 18.sp,
+                  size: context.rsp(18),
                   color: scheme.primary,
                 ),
               ),
-              SizedBox(width: 10.w),
+              SizedBox(width: context.rw(10)),
               Expanded(
                 child: Text(
                   'sync.continue_previous'.tr,
                   style: TextStyle(
-                    fontSize: 14.sp,
+                    fontSize: context.rsp(14),
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.2,
                     color: scheme.onSurface,
@@ -186,13 +188,13 @@ class _DraftCard extends StatelessWidget {
               _DiscardButton(draft: draft),
             ],
           ),
-          SizedBox(height: 10.h),
+          SizedBox(height: context.rh(10)),
           // Traditional framed sub-container
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
+            padding: EdgeInsets.symmetric(horizontal: context.rw(10), vertical: context.rh(8)),
             decoration: BoxDecoration(
               color: scheme.surface,
-              borderRadius: BorderRadius.circular(8.r),
+              borderRadius: BorderRadius.circular(context.rr(8)),
               border: Border.all(
                 color: scheme.primary.withValues(alpha: 0.15),
                 width: 1,
@@ -204,25 +206,25 @@ class _DraftCard extends StatelessWidget {
                 Text(
                   'sync.quotation_n'.trParams({'id': draft.id}),
                   style: TextStyle(
-                    fontSize: 13.sp,
+                    fontSize: context.rsp(13),
                     fontWeight: FontWeight.w800,
                     color: scheme.primary,
                   ),
                 ),
-                SizedBox(height: 3.h),
+                SizedBox(height: context.rh(3)),
                 Text(
                   _subtitle(draft),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 12.sp,
+                    fontSize: context.rsp(12),
                     color: colors.textSecondary,
                   ),
                 ),
               ],
             ),
           ),
-          SizedBox(height: 14.h),
+          SizedBox(height: context.rh(14)),
           Row(
             children: [
               Expanded(
@@ -231,7 +233,7 @@ class _DraftCard extends StatelessWidget {
                   onPressed: () => _submit(context, draft),
                 ),
               ),
-              SizedBox(width: 10.w),
+              SizedBox(width: context.rw(10)),
               Expanded(
                 child: _ThreeDFilledButton(
                   label: 'common.continue'.tr,
@@ -259,12 +261,12 @@ class _MultiDraftCard extends StatelessWidget {
     return _CardShell(
       child: InkWell(
         onTap: () => _openDraftsSheet(context),
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(context.rr(12)),
         child: Row(
           children: [
             // Dual-Bordered Icon Avatar Badge
             Container(
-              padding: EdgeInsets.all(8.r),
+              padding: EdgeInsets.all(context.rr(8)),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: scheme.primary.withValues(alpha: 0.1),
@@ -276,17 +278,17 @@ class _MultiDraftCard extends StatelessWidget {
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.04),
                     blurRadius: 4.r,
-                    offset: Offset(0, 2.h),
+                    offset: Offset(0, context.rh(2)),
                   ),
                 ],
               ),
               child: Icon(
                 Icons.history_rounded,
-                size: 20.sp,
+                size: context.rsp(20),
                 color: scheme.primary,
               ),
             ),
-            SizedBox(width: 12.w),
+            SizedBox(width: context.rw(12)),
             Expanded(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -295,16 +297,16 @@ class _MultiDraftCard extends StatelessWidget {
                   Text(
                     'sync.continue_working'.trParams({'count': count}),
                     style: TextStyle(
-                      fontSize: 14.sp,
+                      fontSize: context.rsp(14),
                       fontWeight: FontWeight.w800,
                       color: scheme.onSurface,
                     ),
                   ),
-                  SizedBox(height: 2.h),
+                  SizedBox(height: context.rh(2)),
                   Text(
                     'sync.unfinished_drafts'.tr,
                     style: TextStyle(
-                      fontSize: 12.sp,
+                      fontSize: context.rsp(12),
                       color: colors.textSecondary,
                     ),
                   ),
@@ -313,7 +315,7 @@ class _MultiDraftCard extends StatelessWidget {
             ),
             Icon(
               Icons.chevron_right_rounded,
-              size: 22.sp,
+              size: context.rsp(22),
               color: colors.textSecondary,
             ),
           ],
@@ -336,7 +338,7 @@ class _CardShell extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: scheme.surface,
-        borderRadius: BorderRadius.circular(18.r),
+        borderRadius: BorderRadius.circular(context.rr(18)),
         border: Border.all(
           color: _goldBorderColor,
           width: 1.2,
@@ -345,21 +347,21 @@ class _CardShell extends StatelessWidget {
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 12.r,
-            offset: Offset(0, 6.h),
+            offset: Offset(0, context.rh(6)),
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(17.r),
+        borderRadius: BorderRadius.circular(context.rr(17)),
         child: Stack(
           children: [
             // Top-Left Corner Decorative Circle Watermark
             Positioned(
-              top: -22.r,
-              left: -22.r,
+              top: -context.rr(22),
+              left: -context.rr(22),
               child: Container(
-                width: 55.r,
-                height: 55.r,
+                width: context.rr(55),
+                height: context.rr(55),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
@@ -371,11 +373,11 @@ class _CardShell extends StatelessWidget {
             ),
             // Bottom-Right Corner Decorative Circle Watermark
             Positioned(
-              bottom: -22.r,
-              right: -22.r,
+              bottom: -context.rr(22),
+              right: -context.rr(22),
               child: Container(
-                width: 55.r,
-                height: 55.r,
+                width: context.rr(55),
+                height: context.rr(55),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
@@ -387,7 +389,7 @@ class _CardShell extends StatelessWidget {
             ),
             // Card Content
             Padding(
-              padding: EdgeInsets.all(14.r),
+              padding: EdgeInsets.all(context.rr(14)),
               child: child,
             ),
           ],
@@ -402,23 +404,21 @@ class _ThreeDFilledButton extends StatelessWidget {
   const _ThreeDFilledButton({
     required this.label,
     required this.onPressed,
-    this.color,
   });
   final String label;
   final VoidCallback onPressed;
-  final Color? color;
 
   @override
   Widget build(BuildContext context) {
-    final themeColor = color ?? Theme.of(context).colorScheme.primary;
+    final themeColor = Theme.of(context).colorScheme.primary;
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10.r),
+        borderRadius: BorderRadius.circular(context.rr(10)),
         boxShadow: [
           BoxShadow(
             color: themeColor.withValues(alpha: 0.35),
             blurRadius: 6.r,
-            offset: Offset(0, 3.h),
+            offset: Offset(0, context.rh(3)),
           ),
         ],
       ),
@@ -426,9 +426,9 @@ class _ThreeDFilledButton extends StatelessWidget {
         onPressed: onPressed,
         style: FilledButton.styleFrom(
           backgroundColor: themeColor,
-          padding: EdgeInsets.symmetric(vertical: 10.h),
+          padding: EdgeInsets.symmetric(vertical: context.rh(10)),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10.r),
+            borderRadius: BorderRadius.circular(context.rr(10)),
             side: BorderSide(
               color: Colors.white.withValues(alpha: 0.25),
               width: 1,
@@ -438,7 +438,7 @@ class _ThreeDFilledButton extends StatelessWidget {
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 12.5.sp,
+            fontSize: context.rsp(12.5),
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -452,24 +452,22 @@ class _ThreeDOutlinedButton extends StatelessWidget {
   const _ThreeDOutlinedButton({
     required this.label,
     required this.onPressed,
-    this.color,
   });
   final String label;
   final VoidCallback onPressed;
-  final Color? color;
 
   @override
   Widget build(BuildContext context) {
-    final themeColor = color ?? Theme.of(context).colorScheme.primary;
+    final themeColor = Theme.of(context).colorScheme.primary;
     final scheme = Theme.of(context).colorScheme;
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10.r),
+        borderRadius: BorderRadius.circular(context.rr(10)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 4.r,
-            offset: Offset(0, 2.h),
+            offset: Offset(0, context.rh(2)),
           ),
         ],
       ),
@@ -482,15 +480,15 @@ class _ThreeDOutlinedButton extends StatelessWidget {
             color: themeColor.withValues(alpha: 0.8),
             width: 1.2,
           ),
-          padding: EdgeInsets.symmetric(vertical: 10.h),
+          padding: EdgeInsets.symmetric(vertical: context.rh(10)),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10.r),
+            borderRadius: BorderRadius.circular(context.rr(10)),
           ),
         ),
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 12.5.sp,
+            fontSize: context.rsp(12.5),
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -507,16 +505,16 @@ class _DiscardButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () => _confirmDiscard(context, draft),
-      borderRadius: BorderRadius.circular(20.r),
+      borderRadius: BorderRadius.circular(context.rr(20)),
       child: Container(
-        padding: EdgeInsets.all(4.r),
+        padding: EdgeInsets.all(context.rr(4)),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: context.appColors.textSecondary.withValues(alpha: 0.08),
         ),
         child: Icon(
           Icons.close_rounded,
-          size: 16.sp,
+          size: context.rsp(16),
           color: context.appColors.textSecondary,
         ),
       ),
@@ -592,6 +590,7 @@ void _openDraftsSheet(BuildContext context) {
   final continueCubit = context.read<ContinueWorkCubit>();
   final pendingCubit = context.read<PendingSyncCubit>();
   showModalBottomSheet<void>(
+    constraints: const BoxConstraints(maxWidth: AppBottomSheet.maxWidth),
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
@@ -617,12 +616,12 @@ class _DraftsSheet extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: scheme.surface,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(context.rr(24))),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.15),
               blurRadius: 20.r,
-              offset: Offset(0, -4.h),
+              offset: Offset(0, -context.rh(4)),
             ),
           ],
         ),
@@ -637,35 +636,35 @@ class _DraftsSheet extends StatelessWidget {
               }
 
               return Padding(
-                padding: EdgeInsets.fromLTRB(16.w, 14.h, 16.w, 16.h),
+                padding: EdgeInsets.fromLTRB(context.rw(16), context.rh(14), context.rw(16), context.rh(16)),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Center(
                       child: Container(
-                        width: 44.w,
-                        height: 5.h,
+                        width: context.rw(44),
+                        height: context.rh(5),
                         decoration: BoxDecoration(
                           color: colors.border,
-                          borderRadius: BorderRadius.circular(2.5.r),
+                          borderRadius: BorderRadius.circular(context.rr(2.5)),
                         ),
                       ),
                     ),
-                    SizedBox(height: 14.h),
+                    SizedBox(height: context.rh(14)),
                     Text(
                       'sync.continue_working'
                           .trParams({'count': state.drafts.length}),
                       style: TextStyle(
-                        fontSize: 17.sp,
+                        fontSize: context.rsp(17),
                         fontWeight: FontWeight.w800,
                         color: scheme.onSurface,
                       ),
                     ),
-                    SizedBox(height: 12.h),
+                    SizedBox(height: context.rh(12)),
                     if (state.drafts.isEmpty)
                       Padding(
-                        padding: EdgeInsets.symmetric(vertical: 30.h),
+                        padding: EdgeInsets.symmetric(vertical: context.rh(30)),
                         child: Center(
                           child: Text(
                             'sync.no_drafts_left'.tr,
@@ -679,7 +678,7 @@ class _DraftsSheet extends StatelessWidget {
                           shrinkWrap: true,
                           physics: const BouncingScrollPhysics(),
                           itemCount: state.drafts.length,
-                          separatorBuilder: (_, __) => SizedBox(height: 10.h),
+                          separatorBuilder: (_, __) => SizedBox(height: context.rh(10)),
                           itemBuilder: (context, i) =>
                               _DraftRow(draft: state.drafts[i]),
                         ),
@@ -705,39 +704,39 @@ class _DraftsSheetSkeleton extends StatelessWidget {
     final skeletonColor = scheme.onSurface.withValues(alpha: 0.12);
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(16.w, 14.h, 16.w, 24.h),
+      padding: EdgeInsets.fromLTRB(context.rw(16), context.rh(14), context.rw(16), context.rh(24)),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Center(
             child: Container(
-              width: 44.w,
-              height: 5.h,
+              width: context.rw(44),
+              height: context.rh(5),
               decoration: BoxDecoration(
                 color: colors.border,
-                borderRadius: BorderRadius.circular(2.5.r),
+                borderRadius: BorderRadius.circular(context.rr(2.5)),
               ),
             ),
           ),
-          SizedBox(height: 16.h),
+          SizedBox(height: context.rh(16)),
           Container(
-            width: 160.w,
-            height: 18.h,
+            width: context.rw(160),
+            height: context.rh(18),
             decoration: BoxDecoration(
               color: skeletonColor,
-              borderRadius: BorderRadius.circular(4.r),
+              borderRadius: BorderRadius.circular(context.rr(4)),
             ),
           ),
-          SizedBox(height: 16.h),
+          SizedBox(height: context.rh(16)),
           ...List.generate(
             2,
             (index) => Container(
-              margin: EdgeInsets.only(bottom: 10.h),
-              height: 70.h,
+              margin: EdgeInsets.only(bottom: context.rh(10)),
+              height: context.rh(70),
               decoration: BoxDecoration(
                 color: skeletonColor,
-                borderRadius: BorderRadius.circular(14.r),
+                borderRadius: BorderRadius.circular(context.rr(14)),
               ),
             ),
           ),
@@ -758,16 +757,16 @@ class _DraftRow extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final colors = context.appColors;
     return Container(
-      padding: EdgeInsets.all(12.r),
+      padding: EdgeInsets.all(context.rr(12)),
       decoration: BoxDecoration(
         color: scheme.surface,
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(context.rr(12)),
         border: Border.all(color: _goldBorderColor.withValues(alpha: 0.5)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 6.r,
-            offset: Offset(0, 3.h),
+            offset: Offset(0, context.rh(3)),
           ),
         ],
       ),
@@ -779,18 +778,18 @@ class _DraftRow extends StatelessWidget {
             'sync.quotation_n'.trParams({'id': draft.id}),
             style: TextStyle(
               fontWeight: FontWeight.w800,
-              fontSize: 13.5.sp,
+              fontSize: context.rsp(13.5),
               color: scheme.primary,
             ),
           ),
-          SizedBox(height: 2.h),
+          SizedBox(height: context.rh(2)),
           Text(
             _subtitle(draft),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 11.5.sp, color: colors.textSecondary),
+            style: TextStyle(fontSize: context.rsp(11.5), color: colors.textSecondary),
           ),
-          SizedBox(height: 10.h),
+          SizedBox(height: context.rh(10)),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
@@ -799,17 +798,17 @@ class _DraftRow extends StatelessWidget {
                 child: Text(
                   'common.discard'.tr,
                   style: TextStyle(
-                    fontSize: 12.sp,
+                    fontSize: context.rsp(12),
                     color: colors.textSecondary,
                   ),
                 ),
               ),
-              SizedBox(width: 4.w),
+              SizedBox(width: context.rw(4)),
               _ThreeDOutlinedButton(
                 label: 'common.submit'.tr,
                 onPressed: () => _submit(context, draft),
               ),
-              SizedBox(width: 8.w),
+              SizedBox(width: context.rw(8)),
               _ThreeDFilledButton(
                 label: 'common.continue'.tr,
                 onPressed: () {

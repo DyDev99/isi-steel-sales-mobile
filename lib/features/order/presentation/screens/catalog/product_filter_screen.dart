@@ -17,6 +17,7 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/product_
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/product_filter_flow/product_filter_flow_state.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/cart_line_binding.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/guided_product_filter_view.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// Standalone guided product configurator.
 ///
@@ -120,7 +121,7 @@ class _ProductFilterScreenState extends State<ProductFilterScreen> {
                   'orders.filter.title'.tr,
               style: TextStyle(
                 color: colors.textPrimary,
-                fontSize: 17,
+                fontSize: context.rsp(17),
                 fontWeight: FontWeight.w800,
               ),
             ),

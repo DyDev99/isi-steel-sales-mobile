@@ -14,6 +14,7 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/screens/catal
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/quotation_detail_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/territory/territory_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/order_skeletons.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 enum _OrderStatusFilter {
   all,
@@ -85,7 +86,7 @@ class _OrderScreenState extends State<OrderScreen> {
                               onTap: () => setState(() =>
                                   _selectedFilter = _OrderStatusFilter.all),
                             ),
-                            const SizedBox(width: 8),
+                            SizedBox(width: context.rw(8)),
                             _FilterSegment(
                               label: 'orders.sales_order.title'.tr,
                               selected: _selectedFilter ==
@@ -93,7 +94,7 @@ class _OrderScreenState extends State<OrderScreen> {
                               onTap: () => setState(() => _selectedFilter =
                                   _OrderStatusFilter.salesOrder),
                             ),
-                            const SizedBox(width: 8),
+                            SizedBox(width: context.rw(8)),
                             _FilterSegment(
                               label: 'orders.tabs.quotations'.tr,
                               selected: _selectedFilter ==
@@ -101,7 +102,7 @@ class _OrderScreenState extends State<OrderScreen> {
                               onTap: () => setState(() => _selectedFilter =
                                   _OrderStatusFilter.quotations),
                             ),
-                            const SizedBox(width: 8),
+                            SizedBox(width: context.rw(8)),
                             _FilterSegment(
                               label: 'orders.pending_sync'.tr,
                               selected: _selectedFilter ==
@@ -109,7 +110,7 @@ class _OrderScreenState extends State<OrderScreen> {
                               onTap: () => setState(() => _selectedFilter =
                                   _OrderStatusFilter.pendingSyncing),
                             ),
-                            const SizedBox(width: 8),
+                            SizedBox(width: context.rw(8)),
                             _FilterSegment(
                               label: 'orders.status.completed'.tr,
                               selected: _selectedFilter ==
@@ -121,7 +122,7 @@ class _OrderScreenState extends State<OrderScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    SizedBox(width: context.rw(10)),
                   ],
                 ),
               ),
@@ -132,9 +133,9 @@ class _OrderScreenState extends State<OrderScreen> {
                     Text('orders.recent'.tr,
                         style: TextStyle(
                             color: colors.textPrimary,
-                            fontSize: 15,
+                            fontSize: context.rsp(15),
                             fontWeight: FontWeight.w800)),
-                    const SizedBox(height: 10),
+                    SizedBox(height: context.rh(10)),
                     StreamBuilder<List<Quotation>>(
                       stream: _quotationsStream,
                       builder: (context, quotationSnapshot) {
@@ -248,7 +249,7 @@ class _FilterSegment extends StatelessWidget {
           label,
           style: TextStyle(
             color: selected ? scheme.onPrimary : colors.textPrimary,
-            fontSize: 12.5,
+            fontSize: context.rsp(12.5),
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -322,12 +323,12 @@ class _OrderTile extends StatelessWidget {
                             .replaceAll('{count}', '${entry.itemCount}'),
                         style: TextStyle(
                             color: colors.textPrimary,
-                            fontSize: 13.5,
+                            fontSize: context.rsp(13.5),
                             fontWeight: FontWeight.w800)),
-                    const SizedBox(height: 2),
+                    SizedBox(height: context.rh(2)),
                     Text(_formatDate(entry.date),
                         style: TextStyle(
-                            color: colors.textSecondary, fontSize: 11.5)),
+                            color: colors.textSecondary, fontSize: context.rsp(11.5))),
                   ],
                 ),
               ),
@@ -340,14 +341,14 @@ class _OrderTile extends StatelessWidget {
                 child: Text(entry.statusLabel,
                     style: TextStyle(
                         color: colors.warning,
-                        fontSize: 10.5,
+                        fontSize: context.rsp(10.5),
                         fontWeight: FontWeight.w700)),
               ),
-              const SizedBox(width: 10),
+              SizedBox(width: context.rw(10)),
               Text('\$${entry.total.toStringAsFixed(2)}',
                   style: TextStyle(
                       color: scheme.primary,
-                      fontSize: 14,
+                      fontSize: context.rsp(14),
                       fontWeight: FontWeight.w800)),
             ],
           ),

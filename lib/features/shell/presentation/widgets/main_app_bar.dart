@@ -6,7 +6,6 @@ import 'package:isi_steel_sales_mobile/core/animations/app_animations.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
-import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/presentation/services/coach_keys.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/usecases/lead_usecase.dart';
 import 'package:isi_steel_sales_mobile/features/localization/presentation/bloc/language_cubit.dart';
@@ -40,7 +39,6 @@ class MainAppBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool isHome = currentTabIndex == 0;
     final scheme = Theme.of(context).colorScheme;
-    final colors = context.appColors;
 
     return AnimatedContainer(
       duration: AppDurations.medium,

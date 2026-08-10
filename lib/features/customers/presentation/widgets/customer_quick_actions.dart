@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// Quick-action row on the customer detail screen. Purely presentational — the
 /// actual navigation/side-effects live in the parent callbacks; this widget
@@ -33,19 +34,19 @@ class CustomerQuickActions extends StatelessWidget {
             onTap: onCreateOpportunity,
           ),
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: context.rw(8)),
         _IconAction(
           icon: Icons.call_rounded,
           label: 'customers.call'.tr,
           onTap: onCall,
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: context.rw(8)),
         _IconAction(
           icon: Icons.pin_drop_rounded,
           label: 'customers.visit'.tr,
           onTap: onLogVisit,
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: context.rw(8)),
         _IconAction(
           icon: Icons.note_add_rounded,
           label: 'customers.note'.tr,
@@ -99,8 +100,8 @@ class _PrimaryAction extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 18, color: scheme.onPrimary),
-            const SizedBox(width: 6),
+            Icon(icon, size: context.rr(18), color: scheme.onPrimary),
+            SizedBox(width: context.rw(6)),
             Flexible(
               child: Text(
                 label,
@@ -109,7 +110,7 @@ class _PrimaryAction extends StatelessWidget {
                 style: TextStyle(
                   color: scheme.onPrimary,
                   fontWeight: FontWeight.w800,
-                  fontSize: 12.5,
+                  fontSize: context.rsp(12.5),
                 ),
               ),
             ),
@@ -162,14 +163,14 @@ class _IconAction extends StatelessWidget {
                 scale: pressed ? 1.12 : 1.0,
                 duration: const Duration(milliseconds: 160),
                 curve: Curves.easeOut,
-                child: Icon(icon, color: scheme.primary, size: 18),
+                child: Icon(icon, color: scheme.primary, size: context.rr(18)),
               ),
-              const SizedBox(height: 3),
+              SizedBox(height: context.rh(3)),
               AnimatedDefaultTextStyle(
                 duration: const Duration(milliseconds: 160),
                 style: TextStyle(
                   color: accent,
-                  fontSize: 9.5,
+                  fontSize: context.rsp(9.5),
                   fontWeight: FontWeight.w700,
                 ),
                 child: Text(label),

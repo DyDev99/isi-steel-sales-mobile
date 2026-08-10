@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/core/animations/shimmer_loading.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// Placeholder for one route tile — mirrors `RegionCard` / `_RouteTile`'s exact
 /// metrics so the swap from skeleton -> data doesn't shift layout.
@@ -11,30 +11,30 @@ class RouteCardSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 10.h),
+      padding: EdgeInsets.only(bottom: context.rh(10)),
       child: Container(
-        padding: EdgeInsets.all(14.w),
+        padding: EdgeInsets.all(context.rw(14)),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(context.rr(16)),
           border: Border.all(color: context.appColors.border),
         ),
         child: Shimmer(
           child: Row(
             children: [
-              ShimmerBox(width: 40.w, height: 40.w, radius: 12.r),
-              SizedBox(width: 12.w),
+              ShimmerBox(width: context.rw(40), height: context.rw(40), radius: context.rr(12)),
+              SizedBox(width: context.rw(12)),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ShimmerBox(width: 140.w, height: 13.h, radius: 6.r),
-                    SizedBox(height: 8.h),
-                    ShimmerBox(width: 180.w, height: 11.h, radius: 6.r),
+                    ShimmerBox(width: context.rw(140), height: context.rh(13), radius: context.rr(6)),
+                    SizedBox(height: context.rh(8)),
+                    ShimmerBox(width: context.rw(180), height: context.rh(11), radius: context.rr(6)),
                   ],
                 ),
               ),
-              SizedBox(width: 12.w),
-              ShimmerBox(width: 20.w, height: 20.w, radius: 6.r),
+              SizedBox(width: context.rw(12)),
+              ShimmerBox(width: context.rw(20), height: context.rw(20), radius: context.rr(6)),
             ],
           ),
         ),
@@ -53,62 +53,62 @@ class RouteDashboardSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 20.h),
+      padding: EdgeInsets.fromLTRB(context.rw(20), context.rh(12), context.rw(20), context.rh(20)),
       physics: const NeverScrollableScrollPhysics(),
       children: [
         // 1. Calendar section skeleton
         Container(
-          padding: EdgeInsets.all(14.w),
+          padding: EdgeInsets.all(context.rw(14)),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18.r),
+            borderRadius: BorderRadius.circular(context.rr(18)),
             border: Border.all(color: context.appColors.border),
           ),
           child: Shimmer(
             child: Row(
               children: [
-                ShimmerBox(width: 40.w, height: 40.w, radius: 12.r),
-                SizedBox(width: 12.w),
+                ShimmerBox(width: context.rw(40), height: context.rw(40), radius: context.rr(12)),
+                SizedBox(width: context.rw(12)),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      ShimmerBox(width: 160.w, height: 14.h, radius: 6.r),
-                      SizedBox(height: 6.h),
-                      ShimmerBox(width: 100.w, height: 10.h, radius: 6.r),
+                      ShimmerBox(width: context.rw(160), height: context.rh(14), radius: context.rr(6)),
+                      SizedBox(height: context.rh(6)),
+                      ShimmerBox(width: context.rw(100), height: context.rh(10), radius: context.rr(6)),
                     ],
                   ),
                 ),
-                ShimmerBox(width: 20.w, height: 20.w, radius: 6.r),
+                ShimmerBox(width: context.rw(20), height: context.rw(20), radius: context.rr(6)),
               ],
             ),
           ),
         ),
-        SizedBox(height: 12.h),
+        SizedBox(height: context.rh(12)),
 
         // 2. Activity history ribbon skeleton
         Container(
-          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
+          padding: EdgeInsets.symmetric(horizontal: context.rw(14), vertical: context.rh(14)),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10.r),
+            borderRadius: BorderRadius.circular(context.rr(10)),
             border: Border.all(color: context.appColors.border),
           ),
           child: Shimmer(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                ShimmerBox(width: 130.w, height: 13.h, radius: 6.r),
-                ShimmerBox(width: 14.w, height: 14.w, radius: 4.r),
+                ShimmerBox(width: context.rw(130), height: context.rh(13), radius: context.rr(6)),
+                ShimmerBox(width: context.rw(14), height: context.rw(14), radius: context.rr(4)),
               ],
             ),
           ),
         ),
-        SizedBox(height: 20.h),
+        SizedBox(height: context.rh(20)),
 
         // 3. Day header skeleton
         Shimmer(
-          child: ShimmerBox(width: 80.w, height: 14.h, radius: 6.r),
+          child: ShimmerBox(width: context.rw(80), height: context.rh(14), radius: context.rr(6)),
         ),
-        SizedBox(height: 10.h),
+        SizedBox(height: context.rh(10)),
 
         // 4. Route card skeletons
         for (var i = 0; i < itemCount; i++) const RouteCardSkeleton(),
@@ -125,10 +125,10 @@ class InventoryLineSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(bottom: 10.h),
-      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
+      margin: EdgeInsets.only(bottom: context.rh(10)),
+      padding: EdgeInsets.symmetric(horizontal: context.rw(14), vertical: context.rh(10)),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14.r),
+        borderRadius: BorderRadius.circular(context.rr(14)),
         border: Border.all(color: context.appColors.border),
       ),
       child: Shimmer(
@@ -138,17 +138,17 @@ class InventoryLineSkeleton extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ShimmerBox(width: 120.w, height: 14.h, radius: 6.r),
-                  SizedBox(height: 6.h),
-                  ShimmerBox(width: 60.w, height: 10.h, radius: 6.r),
+                  ShimmerBox(width: context.rw(120), height: context.rh(14), radius: context.rr(6)),
+                  SizedBox(height: context.rh(6)),
+                  ShimmerBox(width: context.rw(60), height: context.rh(10), radius: context.rr(6)),
                 ],
               ),
             ),
-            ShimmerBox(width: 48.w, height: 48.w, radius: 12.r),
-            SizedBox(width: 12.w),
-            ShimmerBox(width: 22.w, height: 18.h, radius: 6.r),
-            SizedBox(width: 12.w),
-            ShimmerBox(width: 48.w, height: 48.w, radius: 12.r),
+            ShimmerBox(width: context.rw(48), height: context.rw(48), radius: context.rr(12)),
+            SizedBox(width: context.rw(12)),
+            ShimmerBox(width: context.rw(22), height: context.rh(18), radius: context.rr(6)),
+            SizedBox(width: context.rw(12)),
+            ShimmerBox(width: context.rw(48), height: context.rw(48), radius: context.rr(12)),
           ],
         ),
       ),

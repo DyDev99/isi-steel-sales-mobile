@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// Restarts product selection without touching the cart.
 ///
@@ -41,13 +42,13 @@ class FindNewProductButton extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.add_rounded, size: 19, color: scheme.primary),
-                  const SizedBox(width: 8),
+                  Icon(Icons.add_rounded, size: context.rr(19), color: scheme.primary),
+                  SizedBox(width: context.rw(8)),
                   Text(
                     'orders.guided_filter.find_new_product'.tr,
                     style: TextStyle(
                       color: scheme.primary,
-                      fontSize: 14,
+                      fontSize: context.rsp(14),
                       fontWeight: FontWeight.w800,
                     ),
                   ),
@@ -79,13 +80,13 @@ class FindNewProductButton extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.add_rounded, size: 15, color: scheme.primary),
-            const SizedBox(width: 5),
+            Icon(Icons.add_rounded, size: context.rr(15), color: scheme.primary),
+            SizedBox(width: context.rw(5)),
             Text(
               'orders.guided_filter.find_new_product'.tr,
               style: TextStyle(
                 color: scheme.primary,
-                fontSize: 12,
+                fontSize: context.rsp(12),
                 fontWeight: FontWeight.w700,
               ),
             ),

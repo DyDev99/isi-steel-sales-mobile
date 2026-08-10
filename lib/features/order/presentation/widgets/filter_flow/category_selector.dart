@@ -4,6 +4,7 @@ import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/category.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/filter_flow_transition.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// 4-column grid selector featuring a 3D tactile card design with dual ambient shadows,
 /// bevel gradients, and a premium "Read More" expander button.
@@ -45,12 +46,12 @@ class _CategorySelectorState extends State<CategorySelector> {
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 4.h),
+          padding: EdgeInsets.symmetric(horizontal: context.rw(2), vertical: context.rh(4)),
           itemCount: visibleCategories.length,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 4,
-            mainAxisSpacing: 10.h,
-            crossAxisSpacing: 10.w,
+            mainAxisSpacing: context.rh(10),
+            crossAxisSpacing: context.rw(10),
             childAspectRatio: 0.80,
           ),
           itemBuilder: (context, index) {
@@ -66,34 +67,34 @@ class _CategorySelectorState extends State<CategorySelector> {
           },
         ),
         if (hasMore) ...[
-          SizedBox(height: 8.h),
+          SizedBox(height: context.rh(8)),
           Center(
             child: Material(
               color: Colors.transparent,
               child: InkWell(
                 onTap: () => setState(() => _isExpanded = !_isExpanded),
-                borderRadius: BorderRadius.circular(20.r),
+                borderRadius: BorderRadius.circular(context.rr(20)),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   padding:
-                      EdgeInsets.symmetric(horizontal: 16.w, vertical: 6.h),
+                      EdgeInsets.symmetric(horizontal: context.rw(16), vertical: context.rh(6)),
                   decoration: BoxDecoration(
                     color: colors.card,
-                    borderRadius: BorderRadius.circular(20.r),
+                    borderRadius: BorderRadius.circular(context.rr(20)),
                     border: Border.all(
                       color: scheme.primary.withValues(alpha: 0.25),
-                      width: 1.w,
+                      width: context.rw(1),
                     ),
                     boxShadow: [
                       BoxShadow(
                         color: scheme.primary.withValues(alpha: 0.08),
                         blurRadius: 8.r,
-                        offset: Offset(0, 3.h),
+                        offset: Offset(0, context.rh(3)),
                       ),
                       BoxShadow(
                         color: Colors.white.withValues(alpha: 0.9),
                         blurRadius: 1.r,
-                        offset: Offset(0, -1.h),
+                        offset: Offset(0, -context.rh(1)),
                       ),
                     ],
                   ),
@@ -104,17 +105,17 @@ class _CategorySelectorState extends State<CategorySelector> {
                         _isExpanded ? 'Show Less' : 'Read More',
                         style: TextStyle(
                           color: scheme.primary,
-                          fontSize: 11.5.sp,
+                          fontSize: context.rsp(11.5),
                           fontWeight: FontWeight.w800,
                           letterSpacing: -0.1,
                         ),
                       ),
-                      SizedBox(width: 4.w),
+                      SizedBox(width: context.rw(4)),
                       Icon(
                         _isExpanded
                             ? Icons.keyboard_arrow_up_rounded
                             : Icons.keyboard_arrow_down_rounded,
-                        size: 16.sp,
+                        size: context.rsp(16),
                         color: scheme.primary,
                       ),
                     ],
@@ -149,7 +150,7 @@ class _CategoryTile extends StatelessWidget {
       duration: FilterFlowTransition.duration,
       curve: FilterFlowTransition.curve,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14.r),
+        borderRadius: BorderRadius.circular(context.rr(14)),
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -166,31 +167,31 @@ class _CategoryTile extends StatelessWidget {
         border: Border.all(
           color:
               selected ? scheme.primary : colors.border.withValues(alpha: 0.8),
-          width: selected ? 1.5.w : 1.w,
+          width: selected ? context.rw(1.5) : context.rw(1),
         ),
         boxShadow: selected
             ? [
                 BoxShadow(
                   color: scheme.primary.withValues(alpha: 0.22),
                   blurRadius: 10.r,
-                  offset: Offset(0, 4.h),
+                  offset: Offset(0, context.rh(4)),
                 ),
                 BoxShadow(
                   color: Colors.white.withValues(alpha: 0.8),
                   blurRadius: 2.r,
-                  offset: Offset(0, -1.h),
+                  offset: Offset(0, -context.rh(1)),
                 ),
               ]
             : [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.06),
                   blurRadius: 6.r,
-                  offset: Offset(0, 3.h),
+                  offset: Offset(0, context.rh(3)),
                 ),
                 BoxShadow(
                   color: Colors.white.withValues(alpha: 0.9),
                   blurRadius: 1.r,
-                  offset: Offset(0, -1.h),
+                  offset: Offset(0, -context.rh(1)),
                 ),
               ],
       ),
@@ -198,15 +199,15 @@ class _CategoryTile extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(14.r),
+          borderRadius: BorderRadius.circular(context.rr(14)),
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 8.h),
+            padding: EdgeInsets.symmetric(horizontal: context.rw(4), vertical: context.rh(8)),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // 3D Embossed Icon Badge
                 Container(
-                  padding: EdgeInsets.all(7.r),
+                  padding: EdgeInsets.all(context.rr(7)),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: LinearGradient(
@@ -226,23 +227,23 @@ class _CategoryTile extends StatelessWidget {
                       color: selected
                           ? scheme.primary.withValues(alpha: 0.4)
                           : colors.border.withValues(alpha: 0.5),
-                      width: 1.w,
+                      width: context.rw(1),
                     ),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.05),
                         blurRadius: 4.r,
-                        offset: Offset(0, 2.h),
+                        offset: Offset(0, context.rh(2)),
                       ),
                     ],
                   ),
                   child: Icon(
                     _iconFor(category.icon ?? category.code),
-                    size: 20.sp,
+                    size: context.rsp(20),
                     color: selected ? scheme.primary : colors.iconMuted,
                   ),
                 ),
-                SizedBox(height: 6.h),
+                SizedBox(height: context.rh(6)),
                 // Category Text Label
                 Text(
                   context.localized(category.name),
@@ -251,7 +252,7 @@ class _CategoryTile extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: selected ? scheme.primary : colors.textPrimary,
-                    fontSize: 10.5.sp,
+                    fontSize: context.rsp(10.5),
                     fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
                     height: 1.15,
                   ),

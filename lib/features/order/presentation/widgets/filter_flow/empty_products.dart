@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// The guided flow's placeholder for "there is nothing here *yet*, and here is
 /// what to do about it".
@@ -111,7 +112,7 @@ class EmptyProducts extends StatelessWidget {
             ),
           ),
           if (message != null) ...[
-            const SizedBox(height: 6),
+            SizedBox(height: context.rh(6)),
             Text(
               message!,
               textAlign: TextAlign.center,
@@ -123,7 +124,7 @@ class EmptyProducts extends StatelessWidget {
             ),
           ],
           if (action != null) ...[
-            const SizedBox(height: 16),
+            SizedBox(height: context.rh(16)),
             action!,
           ],
         ],

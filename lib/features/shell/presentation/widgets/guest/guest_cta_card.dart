@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// A 3D-embossed call-to-action card infused with traditional golden motifs,
 /// featuring corner frame flourishes, central Lottie animation, and a tactile button.
@@ -159,7 +160,7 @@ class GuestCtaCard extends StatelessWidget {
                       // --- 3D Raised Action Button ---
                       Container(
                         width: double.infinity,
-                        height: 52,
+                        height: context.rh(52),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(16),
                           // 3D Shadow underneath the button

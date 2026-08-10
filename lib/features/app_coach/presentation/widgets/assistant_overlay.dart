@@ -1,12 +1,12 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/domain/entities/coach_step.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/presentation/services/coach_anchor_registry.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/presentation/widgets/assistant_bubble.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/presentation/widgets/highlight_painter.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/presentation/widgets/pointer_animation.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// Full-screen coaching layer: a dimming, gently blurred scrim with a
 /// spotlight cutout around the current target, a glow ring + tap-pointer, and
@@ -160,8 +160,8 @@ class _AssistantOverlayState extends State<AssistantOverlay>
         // 4. Tap-pointer over the target.
         if (hole != null)
           Positioned(
-            left: hole.center.dx - 22.r,
-            top: hole.bottom - 6.h,
+            left: hole.center.dx - context.rr(22),
+            top: hole.bottom - context.rh(6),
             child: IgnorePointer(
               child: PointerAnimation(
                 color: scheme.primary,
@@ -243,9 +243,9 @@ class _AssistantOverlayState extends State<AssistantOverlay>
       child: bubble,
     );
 
-    final hMargin = 16.w;
-    final safeTop = media.padding.top + 8.h;
-    final safeBottom = media.padding.bottom + 8.h;
+    final hMargin = context.rw(16);
+    final safeTop = media.padding.top + context.rh(8);
+    final safeBottom = media.padding.bottom + context.rh(8);
     final moveDuration =
         widget.reduceMotion ? Duration.zero : const Duration(milliseconds: 260);
 

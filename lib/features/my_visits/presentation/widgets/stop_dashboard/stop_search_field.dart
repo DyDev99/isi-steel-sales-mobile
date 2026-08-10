@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// Debounced search box for the Stop Dashboard. Emits [onChanged] 300 ms after
 /// the last keystroke so filtering doesn't run on every character.
@@ -39,18 +39,18 @@ class _StopSearchFieldState extends State<StopSearchField> {
       controller: _controller,
       onChanged: _onChanged,
       textInputAction: TextInputAction.search,
-      style: TextStyle(color: colors.textPrimary, fontSize: 13.sp),
+      style: TextStyle(color: colors.textPrimary, fontSize: context.rsp(13)),
       decoration: InputDecoration(
         isDense: true,
         hintText: 'my_visits.stop_dashboard.search_hint'.tr,
-        hintStyle: TextStyle(color: colors.textHint, fontSize: 13.sp),
+        hintStyle: TextStyle(color: colors.textHint, fontSize: context.rsp(13)),
         prefixIcon:
-            Icon(Icons.search_rounded, size: 18.w, color: colors.textSecondary),
+            Icon(Icons.search_rounded, size: context.rw(18), color: colors.textSecondary),
         suffixIcon: _controller.text.isEmpty
             ? null
             : IconButton(
                 icon: Icon(Icons.close_rounded,
-                    size: 16.w, color: colors.textSecondary),
+                    size: context.rw(16), color: colors.textSecondary),
                 onPressed: () {
                   _controller.clear();
                   _debounce?.cancel();
@@ -60,17 +60,17 @@ class _StopSearchFieldState extends State<StopSearchField> {
               ),
         filled: true,
         fillColor: colors.surfaceSoft,
-        contentPadding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 12.w),
+        contentPadding: EdgeInsets.symmetric(vertical: context.rh(12), horizontal: context.rw(12)),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(context.rr(12)),
           borderSide: BorderSide(color: colors.border),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(context.rr(12)),
           borderSide: BorderSide(color: colors.border),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(context.rr(12)),
           borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
         ),
       ),

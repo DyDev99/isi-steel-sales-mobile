@@ -8,6 +8,7 @@ import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_state.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 class CartPreviewSection extends StatelessWidget {
   const CartPreviewSection({super.key});
@@ -27,7 +28,7 @@ class CartPreviewSection extends StatelessWidget {
           child: items.isEmpty
               ? const SizedBox(width: double.infinity)
               : Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(context.rr(16)),
                   decoration: BoxDecoration(
                     color: colors.card,
                     border: Border(
@@ -41,11 +42,11 @@ class CartPreviewSection extends StatelessWidget {
                         'orders.quotation.cart_preview_title'.tr,
                         style: TextStyle(
                           color: colors.textPrimary,
-                          fontSize: 14,
+                          fontSize: context.rsp(14),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      SizedBox(height: context.rh(12)),
                       ListView.separated(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
@@ -115,15 +116,15 @@ class _CartPreviewRow extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
             child: Container(
               width: 40,
-              height: 40,
+              height: context.rh(40),
               color: colors.surfaceSoft,
               child: _hasDrawing
                   ? localFileImage((item.drawingImagePath!), fit: BoxFit.cover)
                   : Icon(Icons.tune_rounded,
-                      size: 18, color: colors.accentPurple),
+                      size: context.rr(18), color: colors.accentPurple),
             ),
           ),
-          const SizedBox(width: 10),
+          SizedBox(width: context.rw(10)),
         ],
         Expanded(
           child: Column(
@@ -138,38 +139,38 @@ class _CartPreviewRow extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: colors.textPrimary,
-                        fontSize: 13,
+                        fontSize: context.rsp(13),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
                   if (item.isCustomized) ...[
-                    const SizedBox(width: 6),
+                    SizedBox(width: context.rw(6)),
                     Text('✏️',
                         style: TextStyle(
-                            fontSize: 11, color: colors.accentPurple)),
+                            fontSize: context.rsp(11), color: colors.accentPurple)),
                   ],
                 ],
               ),
               if (specs != null) ...[
-                const SizedBox(height: 2),
+                SizedBox(height: context.rh(2)),
                 Text(
                   specs,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: colors.textSecondary,
-                    fontSize: 11,
+                    fontSize: context.rsp(11),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
-              const SizedBox(height: 2),
+              SizedBox(height: context.rh(2)),
               Text(
                 '\$${item.lineTotal.toStringAsFixed(2)}',
                 style: TextStyle(
                   color: colors.accentPurple,
-                  fontSize: 12,
+                  fontSize: context.rsp(12),
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -195,7 +196,7 @@ class _CartPreviewRow extends StatelessWidget {
                   item.quantity.toStringAsFixed(0),
                   style: TextStyle(
                     color: colors.textPrimary,
-                    fontSize: 12,
+                    fontSize: context.rsp(12),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -208,17 +209,17 @@ class _CartPreviewRow extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: context.rw(8)),
         Material(
           color: Colors.transparent,
           child: InkWell(
             onTap: onRemove,
             borderRadius: BorderRadius.circular(20),
             child: Padding(
-              padding: const EdgeInsets.all(6),
+              padding: EdgeInsets.all(context.rr(6)),
               child: Icon(
                 Icons.close_rounded,
-                size: 16,
+                size: context.rr(16),
                 color: colors.textHint,
               ),
             ),
@@ -251,14 +252,14 @@ class _QtyButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(6),
         child: Container(
           width: 24,
-          height: 24,
+          height: context.rh(24),
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: colors.card,
             borderRadius: BorderRadius.circular(6),
             boxShadow: colors.cardShadow,
           ),
-          child: Icon(icon, size: 14, color: iconColor),
+          child: Icon(icon, size: context.rr(14), color: iconColor),
         ),
       ),
     );

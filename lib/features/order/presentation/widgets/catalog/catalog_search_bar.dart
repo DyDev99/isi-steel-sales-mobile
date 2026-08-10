@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 class CatalogSearchBar extends StatelessWidget {
   const CatalogSearchBar({
@@ -30,7 +31,7 @@ class CatalogSearchBar extends StatelessWidget {
       children: [
         Expanded(
           child: Container(
-            height: 44,
+            height: context.rh(44),
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
               color: scheme.surface,
@@ -41,21 +42,21 @@ class CatalogSearchBar extends StatelessWidget {
               children: [
                 Icon(Icons.search_rounded,
                     color: scheme.onSurface.withValues(alpha: 0.5), size: 20),
-                const SizedBox(width: 8),
+                SizedBox(width: context.rw(8)),
                 Expanded(
                   child: TextField(
                     controller: controller,
                     onChanged: onSearchChanged,
                     textInputAction: TextInputAction.search,
                     onSubmitted: onSearchChanged,
-                    style: TextStyle(color: scheme.onSurface, fontSize: 13.5),
+                    style: TextStyle(color: scheme.onSurface, fontSize: context.rsp(13.5)),
                     decoration: InputDecoration(
                       isDense: true,
                       border: InputBorder.none,
                       hintText: 'orders.catalog.search_hint'.tr,
                       hintStyle: TextStyle(
                           color: scheme.onSurface.withValues(alpha: 0.4),
-                          fontSize: 13.5),
+                          fontSize: context.rsp(13.5)),
                     ),
                   ),
                 ),
@@ -71,7 +72,7 @@ class CatalogSearchBar extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(width: 10),
+        SizedBox(width: context.rw(10)),
         _SquareButton(
             icon: Icons.tune_rounded,
             highlighted: hasActiveFilters,
@@ -94,7 +95,7 @@ class _InlineIcon extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(10),
       child: Padding(
-        padding: const EdgeInsets.all(4),
+        padding: EdgeInsets.all(context.rr(4)),
         child: Tooltip(
           message: tooltip,
           child: Icon(icon,
@@ -102,7 +103,7 @@ class _InlineIcon extends StatelessWidget {
                   .colorScheme
                   .onSurface
                   .withValues(alpha: 0.5),
-              size: 20),
+              size: context.rr(20)),
         ),
       ),
     );
@@ -126,7 +127,7 @@ class _SquareButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(14),
       child: Container(
         width: 44,
-        height: 44,
+        height: context.rh(44),
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: highlighted
@@ -137,7 +138,7 @@ class _SquareButton extends StatelessWidget {
               color: highlighted ? scheme.primary : context.appColors.border),
         ),
         child: Icon(icon,
-            color: highlighted ? scheme.primary : scheme.onSurface, size: 20),
+            color: highlighted ? scheme.primary : scheme.onSurface, size: context.rr(20)),
       ),
     );
   }

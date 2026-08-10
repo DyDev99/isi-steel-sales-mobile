@@ -3,6 +3,7 @@ import 'package:isi_steel_sales_mobile/core/platform/local_files.dart';
 import 'package:flutter/material.dart';
 
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 class QuotationItemCard extends StatelessWidget {
   final CartItem item;
@@ -35,7 +36,7 @@ class QuotationItemCard extends StatelessWidget {
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: EdgeInsets.all(context.rr(12)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -47,7 +48,7 @@ class QuotationItemCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                   child: Container(
                     width: 60,
-                    height: 60,
+                    height: context.rh(60),
                     color: colorScheme.surfaceContainerHigh,
                     child: hasDrawing
                         ? localFileImage(
@@ -60,7 +61,7 @@ class QuotationItemCard extends StatelessWidget {
                           ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: context.rw(12)),
 
                 // Details
                 Expanded(
@@ -101,7 +102,7 @@ class QuotationItemCard extends StatelessWidget {
                           ],
                         ],
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: context.rh(4)),
                       Text(
                         '${item.quantity.toStringAsFixed(0)} ${item.unit} × \$${item.unitPrice.toStringAsFixed(2)}',
                         style: theme.textTheme.bodyMedium?.copyWith(
@@ -115,7 +116,7 @@ class QuotationItemCard extends StatelessWidget {
                 if (onRemove != null)
                   IconButton(
                     icon: Icon(Icons.close_rounded,
-                        size: 20, color: colorScheme.error),
+                        size: context.rr(20), color: colorScheme.error),
                     onPressed: onRemove,
                   ),
               ],
@@ -125,7 +126,7 @@ class QuotationItemCard extends StatelessWidget {
             if (item.isCustomized && item.measurements != null) ...[
               const Divider(height: 16),
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: EdgeInsets.all(context.rr(8)),
                 decoration: BoxDecoration(
                   color: colorScheme.surfaceContainerLowest,
                   borderRadius: BorderRadius.circular(8),
@@ -133,8 +134,8 @@ class QuotationItemCard extends StatelessWidget {
                 child: Row(
                   children: [
                     Icon(Icons.straighten_rounded,
-                        size: 16, color: colorScheme.primary),
-                    const SizedBox(width: 6),
+                        size: context.rr(16), color: colorScheme.primary),
+                    SizedBox(width: context.rw(6)),
                     Text(
                       item.measurements!.toSummaryString(),
                       style: theme.textTheme.bodySmall?.copyWith(
@@ -148,12 +149,12 @@ class QuotationItemCard extends StatelessWidget {
             ],
 
             if (item.appearance != null && item.appearance!.isNotEmpty) ...[
-              const SizedBox(height: 6),
+              SizedBox(height: context.rh(6)),
               Row(
                 children: [
                   Icon(Icons.palette_outlined,
-                      size: 16, color: colorScheme.onSurfaceVariant),
-                  const SizedBox(width: 6),
+                      size: context.rr(16), color: colorScheme.onSurfaceVariant),
+                  SizedBox(width: context.rw(6)),
                   Expanded(
                     child: Text(
                       'Finish: ${item.appearance}',
@@ -168,7 +169,7 @@ class QuotationItemCard extends StatelessWidget {
 
             if (item.customizationDescription != null &&
                 item.customizationDescription!.isNotEmpty) ...[
-              const SizedBox(height: 4),
+              SizedBox(height: context.rh(4)),
               Text(
                 'Note: ${item.customizationDescription}',
                 style: theme.textTheme.bodySmall?.copyWith(

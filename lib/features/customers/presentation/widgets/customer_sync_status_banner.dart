@@ -4,6 +4,7 @@ import 'package:isi_steel_sales_mobile/core/localization/localization_services.d
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customer_sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customer_sync_state.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 class CustomerSyncStatusBanner extends StatelessWidget {
   const CustomerSyncStatusBanner({super.key});
@@ -30,7 +31,7 @@ class CustomerSyncStatusBanner extends StatelessWidget {
           CustomerSyncFailed(:final message) => _Banner(
               color: scheme.error,
               icon:
-                  Icon(Icons.cloud_off_rounded, size: 16, color: scheme.error),
+                  Icon(Icons.cloud_off_rounded, size: context.rr(16), color: scheme.error),
               text: message,
             ),
           CustomerSyncSucceeded(:final upserted, :final deleted)
@@ -38,7 +39,7 @@ class CustomerSyncStatusBanner extends StatelessWidget {
             _Banner(
               color: colors.success,
               icon: Icon(Icons.check_circle_rounded,
-                  size: 16, color: colors.success),
+                  size: context.rr(16), color: colors.success),
               text: 'customers.sync_updated'
                       .tr
                       .replaceAll('{count}', '$upserted') +
@@ -74,12 +75,12 @@ class _Banner extends StatelessWidget {
       child: Row(
         children: [
           icon,
-          const SizedBox(width: 8),
+          SizedBox(width: context.rw(8)),
           Expanded(
               child: Text(text,
                   style: TextStyle(
                       color: color,
-                      fontSize: 12,
+                      fontSize: context.rsp(12),
                       fontWeight: FontWeight.w600))),
         ],
       ),

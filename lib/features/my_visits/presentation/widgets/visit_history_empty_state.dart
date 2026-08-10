@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// Shown when the visit history list has no records. UI only — the caller
 /// decides when this applies.
@@ -19,26 +20,26 @@ class VisitHistoryEmptyState extends StatelessWidget {
           children: [
             Container(
               width: 72,
-              height: 72,
+              height: context.rh(72),
               alignment: Alignment.center,
               decoration: BoxDecoration(
                   color: colors.surfaceStrong,
                   borderRadius: BorderRadius.circular(20)),
-              child: Icon(Icons.map_outlined, size: 34, color: primary),
+              child: Icon(Icons.map_outlined, size: context.rr(34), color: primary),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: context.rh(16)),
             Text(
               'my_visits.history.empty_title'.tr,
               style: TextStyle(
                   color: colors.textPrimary,
-                  fontSize: 15,
+                  fontSize: context.rsp(15),
                   fontWeight: FontWeight.w800),
             ),
-            const SizedBox(height: 6),
+            SizedBox(height: context.rh(6)),
             Text(
               'my_visits.history.empty_subtitle'.tr,
               textAlign: TextAlign.center,
-              style: TextStyle(color: colors.textSecondary, fontSize: 13),
+              style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(13)),
             ),
           ],
         ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/animations/shimmer_loading.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// Shimmer placeholder mirroring [StopCard]'s metrics so the swap from loading
 /// to data doesn't shift layout. Shown while the first GPS fix / stop stream is
@@ -13,11 +13,11 @@ class StopCardSkeleton extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     return Padding(
-      padding: EdgeInsets.only(bottom: 12.h),
+      padding: EdgeInsets.only(bottom: context.rh(12)),
       child: Container(
-        padding: EdgeInsets.fromLTRB(14.w, 14.h, 14.w, 12.h),
+        padding: EdgeInsets.fromLTRB(context.rw(14), context.rh(14), context.rw(14), context.rh(12)),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(18.r),
+          borderRadius: BorderRadius.circular(context.rr(18)),
           border: Border.all(color: colors.border),
         ),
         child: Shimmer(
@@ -26,28 +26,28 @@ class StopCardSkeleton extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  ShimmerBox(width: 62.w, height: 40.h, radius: 12.r),
-                  SizedBox(width: 12.w),
+                  ShimmerBox(width: context.rw(62), height: context.rh(40), radius: context.rr(12)),
+                  SizedBox(width: context.rw(12)),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        ShimmerBox(width: 150.w, height: 14.h, radius: 6.r),
-                        SizedBox(height: 8.h),
-                        ShimmerBox(width: 190.w, height: 11.h, radius: 6.r),
+                        ShimmerBox(width: context.rw(150), height: context.rh(14), radius: context.rr(6)),
+                        SizedBox(height: context.rh(8)),
+                        ShimmerBox(width: context.rw(190), height: context.rh(11), radius: context.rr(6)),
                       ],
                     ),
                   ),
-                  SizedBox(width: 8.w),
-                  ShimmerBox(width: 54.w, height: 20.h, radius: 20.r),
+                  SizedBox(width: context.rw(8)),
+                  ShimmerBox(width: context.rw(54), height: context.rh(20), radius: context.rr(20)),
                 ],
               ),
-              SizedBox(height: 12.h),
+              SizedBox(height: context.rh(12)),
               Row(
                 children: [
-                  ShimmerBox(width: 90.w, height: 12.h, radius: 6.r),
-                  SizedBox(width: 12.w),
-                  ShimmerBox(width: 110.w, height: 12.h, radius: 6.r),
+                  ShimmerBox(width: context.rw(90), height: context.rh(12), radius: context.rr(6)),
+                  SizedBox(width: context.rw(12)),
+                  ShimmerBox(width: context.rw(110), height: context.rh(12), radius: context.rr(6)),
                 ],
               ),
             ],
@@ -68,27 +68,27 @@ class StopDashboardSkeleton extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     return ListView(
-      padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 20.h),
+      padding: EdgeInsets.fromLTRB(context.rw(20), context.rh(12), context.rw(20), context.rh(20)),
       physics: const NeverScrollableScrollPhysics(),
       children: [
         Container(
-          height: 96.h,
+          height: context.rh(96),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18.r),
+            borderRadius: BorderRadius.circular(context.rr(18)),
             border: Border.all(color: colors.border),
           ),
-          padding: EdgeInsets.all(14.w),
+          padding: EdgeInsets.all(context.rw(14)),
           child: Shimmer(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 for (var i = 0; i < 4; i++)
-                  ShimmerBox(width: 48.w, height: 40.h, radius: 8.r),
+                  ShimmerBox(width: context.rw(48), height: context.rh(40), radius: context.rr(8)),
               ],
             ),
           ),
         ),
-        SizedBox(height: 16.h),
+        SizedBox(height: context.rh(16)),
         for (var i = 0; i < itemCount; i++) const StopCardSkeleton(),
       ],
     );

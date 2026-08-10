@@ -4,6 +4,7 @@ import 'package:isi_steel_sales_mobile/core/localization/localization_services.d
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/lead.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/opportunity_info.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/app_bottom_sheet.dart';
 
 const _valueChips = <(String, double)>[
   ('\$10k', 10000),
@@ -21,6 +22,7 @@ Future<OpportunityInfo?> showConvertToOpportunitySheet({
   required Lead lead,
 }) {
   return showModalBottomSheet<OpportunityInfo>(
+    constraints: const BoxConstraints(maxWidth: AppBottomSheet.maxWidth),
     context: context,
     backgroundColor: context.appColors.surfaceSoft,
     shape: const RoundedRectangleBorder(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// Animated segmented control for the sales unit (Pc / Ton / Kg / Bundle).
 class UnitSelector extends StatelessWidget {
@@ -40,8 +41,8 @@ class UnitSelector extends StatelessWidget {
     return Opacity(
       opacity: enabled ? 1.0 : 0.5,
       child: Container(
-        height: 46,
-        padding: const EdgeInsets.all(4),
+        height: context.rh(46),
+        padding: EdgeInsets.all(context.rr(4)),
         decoration: BoxDecoration(
           color: theme.brightness == Brightness.dark
               ? theme.colorScheme.surfaceContainerHighest
@@ -59,7 +60,7 @@ class UnitSelector extends StatelessWidget {
                   curve: Curves.easeInOut,
                   left: selectedIndex * segmentWidth,
                   width: segmentWidth,
-                  height: 38,
+                  height: context.rh(38),
                   child: Container(
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.primary,
@@ -119,7 +120,7 @@ class _Segment extends StatelessWidget {
         child: AnimatedDefaultTextStyle(
           duration: const Duration(milliseconds: 220),
           style: TextStyle(
-            fontSize: 13,
+            fontSize: context.rsp(13),
             fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
             color: selected
                 ? Colors.white

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// The small floating assistant shown while the coach is paused. Tapping it
 /// resumes the walkthrough; it stays clear of the bottom inset and is fully
@@ -50,7 +50,7 @@ class _FloatingAssistantButtonState extends State<FloatingAssistantButton>
     return Align(
       alignment: Alignment.bottomRight,
       child: Padding(
-        padding: EdgeInsets.only(right: 16.w, bottom: 16.h + bottomInset),
+        padding: EdgeInsets.only(right: context.rw(16), bottom: context.rh(16) + bottomInset),
         child: Semantics(
           button: true,
           label: 'coach.resume_hint'.tr,
@@ -69,8 +69,8 @@ class _FloatingAssistantButtonState extends State<FloatingAssistantButton>
                   children: [
                     // Breathing halo — a quiet "look here" cue while idle.
                     Container(
-                      width: 56.r + 12 * t,
-                      height: 56.r + 12 * t,
+                      width: context.rr(56) + 12 * t,
+                      height: context.rr(56) + 12 * t,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: scheme.primary.withValues(alpha: 0.16 * (1 - t)),
@@ -97,11 +97,11 @@ class _FloatingAssistantButtonState extends State<FloatingAssistantButton>
                     },
                     onHighlightChanged: (v) => setState(() => _pressed = v),
                     child: Padding(
-                      padding: EdgeInsets.all(14.r),
+                      padding: EdgeInsets.all(context.rr(14)),
                       child: Icon(
                         Icons.auto_awesome_rounded,
                         color: scheme.onPrimary,
-                        size: 24.r,
+                        size: context.rr(24),
                       ),
                     ),
                   ),

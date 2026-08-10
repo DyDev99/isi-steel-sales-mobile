@@ -8,6 +8,7 @@ import 'package:isi_steel_sales_mobile/features/lead/domain/entities/lead_docume
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/onboarding_status.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/shop_type.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/won_info.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/app_bottom_sheet.dart';
 
 /// The SAP onboarding step, framed as "confirm what's already known, fill
 /// in what's missing" rather than a fresh intake form — everything already
@@ -16,6 +17,7 @@ import 'package:isi_steel_sales_mobile/features/lead/domain/entities/won_info.da
 Future<Lead?> showSendToHqSheet(
     {required BuildContext context, required Lead lead}) {
   return showModalBottomSheet<Lead>(
+    constraints: const BoxConstraints(maxWidth: AppBottomSheet.maxWidth),
     context: context,
     backgroundColor: context.appColors.surfaceSoft,
     isScrollControlled: true,

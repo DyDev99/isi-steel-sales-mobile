@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/core/animations/shimmer_loading.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// Placeholder for one `VisitHistoryCard` — mirrors its exact box metrics
 /// (100 map height, 14 padding, r16 border) so the swap from skeleton to
@@ -11,7 +12,7 @@ class VisitHistoryCardSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.only(bottom: 12),
       child: Container(
         decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
@@ -20,17 +21,17 @@ class VisitHistoryCardSkeleton extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const ShimmerBox(height: 100, radius: 0),
+              ShimmerBox(height: 100, radius: 0),
               Padding(
-                padding: const EdgeInsets.all(14),
+                padding: EdgeInsets.all(context.rr(14)),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    ShimmerBox(width: 160, height: 13, radius: 6),
-                    SizedBox(height: 8),
-                    ShimmerBox(width: 200, height: 11, radius: 6),
-                    SizedBox(height: 10),
-                    ShimmerBox(width: 120, height: 11, radius: 6),
+                  children: [
+                    const ShimmerBox(width: 160, height: 13, radius: 6),
+                    SizedBox(height: context.rh(8)),
+                    const ShimmerBox(width: 200, height: 11, radius: 6),
+                    SizedBox(height: context.rh(10)),
+                    const ShimmerBox(width: 120, height: 11, radius: 6),
                   ],
                 ),
               ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/filter/filter_option.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/filter_flow_transition.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// The family step (Palm 50 / Palm 70 / Palm 100), rendered as rows rather than
 /// chips.
@@ -99,17 +100,17 @@ class _FamilyRow extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: selected ? scheme.primary : colors.textPrimary,
-                          fontSize: 14,
+                          fontSize: context.rsp(14),
                           fontWeight: FontWeight.w800,
                         ),
                       ),
                       if (countLabel != null) ...[
-                        const SizedBox(height: 2),
+                        SizedBox(height: context.rh(2)),
                         Text(
                           countLabel!,
                           style: TextStyle(
                             color: colors.textSecondary,
-                            fontSize: 11.5,
+                            fontSize: context.rsp(11.5),
                           ),
                         ),
                       ],

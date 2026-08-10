@@ -24,6 +24,7 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filte
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/product_family_selector.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/product_result_grid.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/product_search_bar.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// The product finder, assembled from the flow's reusable parts.
 ///
@@ -177,9 +178,9 @@ class _GuidedProductFilterViewState extends State<GuidedProductFilterView> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               header,
-              const SizedBox(height: 14),
+              SizedBox(height: context.rh(14)),
               content,
-              const SizedBox(height: 14),
+              SizedBox(height: context.rh(14)),
               footer,
             ],
           );
@@ -301,7 +302,7 @@ class _BackButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
             border: Border.all(color: colors.border),
           ),
-          child: Icon(Icons.undo_rounded, size: 16, color: colors.textPrimary),
+          child: Icon(Icons.undo_rounded, size: context.rr(16), color: colors.textPrimary),
         ),
       ),
     );
@@ -393,7 +394,7 @@ class _CategoryStage extends StatelessWidget {
           title: 'orders.guided_filter.choose_category'.tr,
           subtitle: 'orders.guided_filter.choose_category_hint'.tr,
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: context.rh(12)),
         CategorySelector(
           categories: state.categories,
           selectedCategoryId: state.category?.id,
@@ -462,7 +463,7 @@ class _StepStage extends StatelessWidget {
             'total': state.totalSteps,
           }),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: context.rh(12)),
         selector,
       ],
     );
@@ -516,7 +517,7 @@ class _ProductStage extends StatelessWidget {
             FindNewProductButton.compact(context, onTap: onFindNewProduct),
           ],
         ),
-        const SizedBox(height: 10),
+        SizedBox(height: context.rh(10)),
         if (loadingFirstPage)
           LoadingProducts.products()
         else if (state.productStatus == ProductListStatus.failure)
@@ -527,7 +528,7 @@ class _ProductStage extends StatelessWidget {
             message: 'orders.guided_filter.no_results_message'.tr,
             action: TextButton.icon(
               onPressed: () => bloc.add(const FilterFlowBackRequested()),
-              icon: const Icon(Icons.arrow_back_rounded, size: 16),
+              icon: Icon(Icons.arrow_back_rounded, size: context.rr(16)),
               label: Text('orders.guided_filter.change_filters'.tr),
             ),
           )
@@ -551,8 +552,8 @@ class _ProductStage extends StatelessWidget {
           if (state.hasMore)
             Center(
               child: state.productStatus == ProductListStatus.loadingMore
-                  ? const Padding(
-                      padding: EdgeInsets.all(12),
+                  ? Padding(
+                      padding: EdgeInsets.all(context.rr(12)),
                       child: SizedBox(
                         width: 20,
                         height: 20,
@@ -617,7 +618,7 @@ class _CartFooter extends StatelessWidget {
             // Only offered once something is in the quotation and products are
             // on screen — before that there is nothing to move on from.
             if (showFindNew) ...[
-              const SizedBox(height: 10),
+              SizedBox(height: context.rh(10)),
               FindNewProductButton(onPressed: onFindNewProduct),
             ],
           ],
@@ -646,15 +647,15 @@ class _StageHeader extends StatelessWidget {
           title,
           style: TextStyle(
             color: colors.textPrimary,
-            fontSize: 16,
+            fontSize: context.rsp(16),
             fontWeight: FontWeight.w800,
           ),
         ),
         if (subtitle != null) ...[
-          const SizedBox(height: 3),
+          SizedBox(height: context.rh(3)),
           Text(
             subtitle!,
-            style: TextStyle(color: colors.textSecondary, fontSize: 12),
+            style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(12)),
           ),
         ],
       ],

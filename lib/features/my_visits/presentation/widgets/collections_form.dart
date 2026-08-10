@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_collection.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/app_bottom_sheet.dart';
 
 Future<VisitCollection?> showCollectionsSheet(
     {required BuildContext context, required String stopId}) {
@@ -11,6 +13,7 @@ Future<VisitCollection?> showCollectionsSheet(
   var method = CollectionMethod.cash;
 
   return showModalBottomSheet<VisitCollection>(
+    constraints: const BoxConstraints(maxWidth: AppBottomSheet.maxWidth),
     context: context,
     backgroundColor: context.appColors.surfaceSoft,
     isScrollControlled: true,
@@ -30,9 +33,9 @@ Future<VisitCollection?> showCollectionsSheet(
                 Text('my_visits.forms.record_collection'.tr,
                     style: TextStyle(
                         color: context.appColors.textPrimary,
-                        fontSize: 17,
+                        fontSize: context.rsp(17),
                         fontWeight: FontWeight.w800)),
-                const SizedBox(height: 12),
+                SizedBox(height: context.rh(12)),
                 TextField(
                   controller: amountController,
                   keyboardType:
@@ -40,7 +43,7 @@ Future<VisitCollection?> showCollectionsSheet(
                   decoration: const InputDecoration(
                       hintText: 'Amount', prefixText: '\$ '),
                 ),
-                const SizedBox(height: 10),
+                SizedBox(height: context.rh(10)),
                 Wrap(
                   spacing: 8,
                   children: [
@@ -52,17 +55,17 @@ Future<VisitCollection?> showCollectionsSheet(
                       ),
                   ],
                 ),
-                const SizedBox(height: 10),
+                SizedBox(height: context.rh(10)),
                 TextField(
                     controller: referenceController,
                     decoration: InputDecoration(
                         hintText: 'my_visits.forms.reference_optional'.tr)),
-                const SizedBox(height: 10),
+                SizedBox(height: context.rh(10)),
                 TextField(
                     controller: notesController,
                     decoration:
                         InputDecoration(hintText: 'common.notes_optional'.tr)),
-                const SizedBox(height: 16),
+                SizedBox(height: context.rh(16)),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(

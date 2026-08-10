@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/lead_document.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/app_bottom_sheet.dart';
 
 class DocumentsSection extends StatelessWidget {
   const DocumentsSection(
@@ -125,6 +126,7 @@ class DocumentsSection extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final colors = context.appColors;
     showModalBottomSheet<void>(
+      constraints: const BoxConstraints(maxWidth: AppBottomSheet.maxWidth),
       context: context,
       backgroundColor: colors.surfaceSoft,
       shape: const RoundedRectangleBorder(

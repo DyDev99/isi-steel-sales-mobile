@@ -8,6 +8,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_stop.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_status.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/geofence_service.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// Dashboard route-summary card — one per [RoutePlan]. Answers "which route
 /// should I start?" with a glanceable summary only (name, territory, status,
@@ -64,21 +65,21 @@ class RouteSummaryCard extends StatelessWidget {
     final status = _statusStyle(context);
 
     return Padding(
-      padding: EdgeInsets.only(bottom: 12.h),
+      padding: EdgeInsets.only(bottom: context.rh(12)),
       child: Material(
         color: colors.card,
-        borderRadius: BorderRadius.circular(18.r),
+        borderRadius: BorderRadius.circular(context.rr(18)),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onTap,
           child: Ink(
             decoration: BoxDecoration(
               color: colors.card,
-              borderRadius: BorderRadius.circular(18.r),
+              borderRadius: BorderRadius.circular(context.rr(18)),
               border: Border.all(color: colors.border, width: 1.w),
               boxShadow: colors.cardShadow,
             ),
-            padding: EdgeInsets.fromLTRB(16.w, 14.h, 14.w, 14.h),
+            padding: EdgeInsets.fromLTRB(context.rw(16), context.rh(14), context.rw(14), context.rh(14)),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -101,18 +102,18 @@ class RouteSummaryCard extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               color: colors.textPrimary,
-                              fontSize: 16.sp,
+                              fontSize: context.rsp(16),
                               fontWeight: FontWeight.w900,
                             ),
                           ),
                         ),
                       ),
                     ),
-                    SizedBox(width: 8.w),
+                    SizedBox(width: context.rw(8)),
                     _Pill(label: status.label, color: status.color),
                   ],
                 ),
-                SizedBox(height: 4.h),
+                SizedBox(height: context.rh(4)),
 
                 // Territory · date subline.
                 Text(
@@ -120,42 +121,42 @@ class RouteSummaryCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style:
-                      TextStyle(color: colors.textSecondary, fontSize: 12.sp),
+                      TextStyle(color: colors.textSecondary, fontSize: context.rsp(12)),
                 ),
-                SizedBox(height: 12.h),
+                SizedBox(height: context.rh(12)),
 
                 // Progress bar + completed/total.
                 Row(
                   children: [
                     Expanded(
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(6.r),
+                        borderRadius: BorderRadius.circular(context.rr(6)),
                         child: LinearProgressIndicator(
                           value: route.progress,
-                          minHeight: 7.h,
+                          minHeight: context.rh(7),
                           backgroundColor: colors.surfaceStrong,
                           valueColor:
                               AlwaysStoppedAnimation<Color>(scheme.primary),
                         ),
                       ),
                     ),
-                    SizedBox(width: 10.w),
+                    SizedBox(width: context.rw(10)),
                     Text(
                       '${route.completedStops}/${route.totalStops}',
                       style: TextStyle(
                         color: colors.textPrimary,
-                        fontSize: 12.sp,
+                        fontSize: context.rsp(12),
                         fontWeight: FontWeight.w800,
                       ),
                     ),
                   ],
                 ),
-                SizedBox(height: 12.h),
+                SizedBox(height: context.rh(12)),
 
                 // Metric chips: stops · remaining · distance/ETA · priority.
                 Wrap(
-                  spacing: 8.w,
-                  runSpacing: 8.h,
+                  spacing: context.rw(8),
+                  runSpacing: context.rh(8),
                   children: [
                     _MetricChip(
                       icon: Icons.storefront_rounded,
@@ -276,22 +277,22 @@ class _MetricChip extends StatelessWidget {
     final colors = context.appColors;
     final fg = color ?? colors.textSecondary;
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+      padding: EdgeInsets.symmetric(horizontal: context.rw(10), vertical: context.rh(6)),
       decoration: BoxDecoration(
         color: colors.surfaceSoft,
-        borderRadius: BorderRadius.circular(10.r),
+        borderRadius: BorderRadius.circular(context.rr(10)),
         border: Border.all(color: colors.border),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 13.w, color: fg),
-          SizedBox(width: 5.w),
+          Icon(icon, size: context.rw(13), color: fg),
+          SizedBox(width: context.rw(5)),
           Text(
             label,
             style: TextStyle(
                 color: colors.textPrimary,
-                fontSize: 11.sp,
+                fontSize: context.rsp(11),
                 fontWeight: FontWeight.w700),
           ),
         ],
@@ -308,15 +309,15 @@ class _Pill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
+      padding: EdgeInsets.symmetric(horizontal: context.rw(10), vertical: context.rh(5)),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.14),
-        borderRadius: BorderRadius.circular(20.r),
+        borderRadius: BorderRadius.circular(context.rr(20)),
       ),
       child: Text(
         label,
         style: TextStyle(
-            color: color, fontSize: 10.5.sp, fontWeight: FontWeight.w800),
+            color: color, fontSize: context.rsp(10.5), fontWeight: FontWeight.w800),
       ),
     );
   }

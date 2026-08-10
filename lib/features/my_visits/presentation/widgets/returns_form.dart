@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_return.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/app_bottom_sheet.dart';
 
 Future<VisitReturn?> showReturnsSheet(
     {required BuildContext context, required String stopId}) {
@@ -10,6 +12,7 @@ Future<VisitReturn?> showReturnsSheet(
   final reasonController = TextEditingController();
 
   return showModalBottomSheet<VisitReturn>(
+    constraints: const BoxConstraints(maxWidth: AppBottomSheet.maxWidth),
     context: context,
     backgroundColor: context.appColors.surfaceSoft,
     isScrollControlled: true,
@@ -28,25 +31,25 @@ Future<VisitReturn?> showReturnsSheet(
               Text('my_visits.forms.capture_return'.tr,
                   style: TextStyle(
                       color: context.appColors.textPrimary,
-                      fontSize: 17,
+                      fontSize: context.rsp(17),
                       fontWeight: FontWeight.w800)),
-              const SizedBox(height: 12),
+              SizedBox(height: context.rh(12)),
               TextField(
                   controller: productController,
                   decoration: InputDecoration(
                       hintText: 'my_visits.forms.product_name'.tr)),
-              const SizedBox(height: 10),
+              SizedBox(height: context.rh(10)),
               TextField(
                 controller: qtyController,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                     hintText: 'my_visits.forms.quantity_returned'.tr),
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: context.rh(10)),
               TextField(
                   controller: reasonController,
                   decoration: const InputDecoration(hintText: 'Reason')),
-              const SizedBox(height: 16),
+              SizedBox(height: context.rh(16)),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(

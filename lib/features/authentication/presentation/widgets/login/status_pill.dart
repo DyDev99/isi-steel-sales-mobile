@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
 enum AuthVibeStatus { idle, verifying, error, success }
@@ -33,32 +34,38 @@ class StatusPill extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 14),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      margin: EdgeInsets.only(bottom: context.rh(14)),
+      padding: EdgeInsets.symmetric(
+        horizontal: context.rw(14),
+        vertical: context.rh(12),
+      ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.14),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(context.rr(14)),
         border: Border.all(color: color.withValues(alpha: 0.4)),
       ),
       child: Row(
         children: [
           if (status == AuthVibeStatus.verifying)
             SizedBox(
-              width: 16,
-              height: 16,
+              width: context.rr(16),
+              height: context.rr(16),
               child: CircularProgressIndicator(
                 strokeWidth: 2,
                 valueColor: AlwaysStoppedAnimation(color),
               ),
             )
           else if (icon != null)
-            Icon(icon, size: 18, color: color),
-          const SizedBox(width: 10),
+            Icon(icon, size: context.rr(18), color: color),
+          SizedBox(width: context.rw(10)),
           Expanded(
             child: Text(
               text,
               style: TextStyle(
-                  color: color, fontSize: 13, fontWeight: FontWeight.w600),
+                color: color,
+                fontSize: context.rsp(13),
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],

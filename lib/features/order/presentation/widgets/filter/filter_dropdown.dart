@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/app_bottom_sheet.dart';
 
 /// A dropdown-style filter field that opens a searchable bottom-sheet picker.
 class FilterDropdown extends StatelessWidget {
@@ -32,6 +34,7 @@ class FilterDropdown extends StatelessWidget {
   Future<void> _open(BuildContext context) async {
     if (_isDisabled) return;
     final result = await showModalBottomSheet<_PickResult>(
+      constraints: const BoxConstraints(maxWidth: AppBottomSheet.maxWidth),
       context: context,
       isScrollControlled: true,
       backgroundColor: Theme.of(context).colorScheme.surface,
@@ -62,17 +65,17 @@ class FilterDropdown extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            fontSize: 13,
+            fontSize: context.rsp(13),
             fontWeight: FontWeight.w700,
             color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
           ),
         ),
-        const SizedBox(height: 6),
+        SizedBox(height: context.rh(6)),
         InkWell(
           onTap: () => _open(context),
           borderRadius: BorderRadius.circular(14),
           child: Container(
-            height: 48,
+            height: context.rh(48),
             padding: const EdgeInsets.symmetric(horizontal: 14),
             decoration: BoxDecoration(
               color: _isDisabled
@@ -91,12 +94,12 @@ class FilterDropdown extends StatelessWidget {
                 if (icon != null) ...[
                   Icon(
                     icon,
-                    size: 20,
+                    size: context.rr(20),
                     color: hasValue
                         ? theme.colorScheme.primary
                         : theme.colorScheme.onSurface.withValues(alpha: 0.4),
                   ),
-                  const SizedBox(width: 10),
+                  SizedBox(width: context.rw(10)),
                 ],
                 Expanded(
                   child: Text(
@@ -106,7 +109,7 @@ class FilterDropdown extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: context.rsp(14),
                       fontWeight: hasValue ? FontWeight.w700 : FontWeight.w500,
                       color: hasValue
                           ? theme.colorScheme.onSurface
@@ -124,13 +127,13 @@ class FilterDropdown extends StatelessWidget {
                   GestureDetector(
                     onTap: () => onChanged(null),
                     child: Icon(Icons.close_rounded,
-                        size: 18,
+                        size: context.rr(18),
                         color:
                             theme.colorScheme.onSurface.withValues(alpha: 0.5)),
                   )
                 else
                   Icon(Icons.keyboard_arrow_down_rounded,
-                      size: 20,
+                      size: context.rr(20),
                       color:
                           theme.colorScheme.onSurface.withValues(alpha: 0.4)),
               ],
@@ -198,8 +201,8 @@ class _PickerSheetState extends State<_PickerSheet> {
                   Expanded(
                     child: Text(
                       'orders.filter.select'.trParams({'label': widget.label}),
-                      style: const TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.w800),
+                      style: TextStyle(
+                          fontSize: context.rsp(16), fontWeight: FontWeight.w800),
                     ),
                   ),
                   IconButton(
@@ -239,7 +242,7 @@ class _PickerSheetState extends State<_PickerSheet> {
                           title: Text(
                             option,
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: context.rsp(14),
                               fontWeight: isSelected
                                   ? FontWeight.w800
                                   : FontWeight.w500,
@@ -250,7 +253,7 @@ class _PickerSheetState extends State<_PickerSheet> {
                           ),
                           trailing: isSelected
                               ? Icon(Icons.check_rounded,
-                                  color: theme.colorScheme.primary, size: 20)
+                                  color: theme.colorScheme.primary, size: context.rr(20))
                               : null,
                           onTap: () =>
                               Navigator.of(context).pop(_PickResult(option)),
@@ -278,14 +281,14 @@ class _EmptyOptions extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.search_off_rounded,
-                size: 36,
+                size: context.rr(36),
                 color: theme.colorScheme.onSurface.withValues(alpha: 0.4)),
-            const SizedBox(height: 8),
+            SizedBox(height: context.rh(8)),
             Text(
               'orders.filter.no_matching_options'.tr,
               style: TextStyle(
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
-                  fontSize: 13),
+                  fontSize: context.rsp(13)),
             ),
           ],
         ),

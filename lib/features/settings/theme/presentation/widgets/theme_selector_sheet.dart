@@ -5,6 +5,8 @@ import 'package:isi_steel_sales_mobile/features/settings/theme/domain/entities/a
 import 'package:isi_steel_sales_mobile/features/settings/theme/presentation/cubit/theme_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/settings/theme/presentation/cubit/theme_state.dart';
 import 'package:isi_steel_sales_mobile/features/settings/theme/presentation/widgets/theme_option_meta.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/app_bottom_sheet.dart';
 
 /// Opens the Material 3 theme picker. Selecting an option applies the theme
 /// instantly (the whole app restyles with no restart), persists it, and closes
@@ -13,6 +15,7 @@ import 'package:isi_steel_sales_mobile/features/settings/theme/presentation/widg
 Future<void> showThemeSelectorSheet(BuildContext context) {
   final themeCubit = context.read<ThemeCubit>();
   return showModalBottomSheet<void>(
+    constraints: const BoxConstraints(maxWidth: AppBottomSheet.maxWidth),
     context: context,
     showDragHandle: true,
     isScrollControlled: true,
@@ -49,7 +52,7 @@ class _ThemeSelectorSheet extends StatelessWidget {
                 color: theme.colorScheme.onSurface,
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: context.rh(16)),
             BlocBuilder<ThemeCubit, ThemeState>(
               builder: (context, state) => Column(
                 children: [
@@ -103,7 +106,7 @@ class _ThemeOptionTile extends StatelessWidget {
               children: [
                 Container(
                   width: 40,
-                  height: 40,
+                  height: context.rh(40),
                   decoration: BoxDecoration(
                     color: selected
                         ? scheme.primary.withValues(alpha: 0.16)
@@ -112,11 +115,11 @@ class _ThemeOptionTile extends StatelessWidget {
                   ),
                   child: Icon(
                     mode.icon,
-                    size: 22,
+                    size: context.rr(22),
                     color: selected ? scheme.primary : scheme.onSurfaceVariant,
                   ),
                 ),
-                const SizedBox(width: 14),
+                SizedBox(width: context.rw(14)),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,7 +131,7 @@ class _ThemeOptionTile extends StatelessWidget {
                           color: scheme.onSurface,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      SizedBox(height: context.rh(2)),
                       Text(
                         mode.descriptionKey.tr,
                         style: textTheme.bodySmall?.copyWith(
@@ -138,13 +141,13 @@ class _ThemeOptionTile extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: context.rw(8)),
                 Icon(
                   selected
                       ? Icons.radio_button_checked_rounded
                       : Icons.radio_button_unchecked_rounded,
                   color: selected ? scheme.primary : scheme.outline,
-                  size: 22,
+                  size: context.rr(22),
                   semanticLabel: selected ? 'Selected' : null,
                 ),
               ],

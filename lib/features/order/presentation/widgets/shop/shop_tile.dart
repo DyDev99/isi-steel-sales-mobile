@@ -4,6 +4,7 @@ import 'package:isi_steel_sales_mobile/features/customers/domain/entities/custom
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer_status.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_status_badge.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/credit_summary.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// Shop selection card for the Territory -> Shop flow. Deliberately a new,
 /// lighter widget rather than reusing `CustomerCard` (shared with the live
@@ -39,7 +40,7 @@ class ShopTile extends StatelessWidget {
             onTap: _isActive ? onTap : null,
             borderRadius: BorderRadius.circular(16),
             child: Container(
-              padding: const EdgeInsets.all(14),
+              padding: EdgeInsets.all(context.rr(14)),
               decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: colors.border)),
@@ -48,7 +49,7 @@ class ShopTile extends StatelessWidget {
                 children: [
                   Container(
                     width: 40,
-                    height: 40,
+                    height: context.rh(40),
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                         color: colors.surfaceSoft,
@@ -56,7 +57,7 @@ class ShopTile extends StatelessWidget {
                     child: Icon(Icons.storefront_rounded,
                         color: colors.accentPurple),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: context.rw(12)),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -69,30 +70,30 @@ class ShopTile extends StatelessWidget {
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
                                       color: colors.textPrimary,
-                                      fontSize: 14,
+                                      fontSize: context.rsp(14),
                                       fontWeight: FontWeight.w800)),
                             ),
-                            const SizedBox(width: 6),
+                            SizedBox(width: context.rw(6)),
                             CustomerStatusBadge(status: customer.status),
                           ],
                         ),
-                        const SizedBox(height: 2),
+                        SizedBox(height: context.rh(2)),
                         Text('${customer.address}, ${customer.district}',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                                color: colors.textSecondary, fontSize: 12)),
-                        const SizedBox(height: 6),
+                                color: colors.textSecondary, fontSize: context.rsp(12))),
+                        SizedBox(height: context.rh(6)),
                         Row(
                           children: [
                             Text(
                                 '\$${customer.creditLimit.toStringAsFixed(0)} limit',
                                 style: TextStyle(
                                     color: colors.textPrimary,
-                                    fontSize: 12,
+                                    fontSize: context.rsp(12),
                                     fontWeight: FontWeight.w700)),
                             if (hasNotes) ...[
-                              const SizedBox(width: 8),
+                              SizedBox(width: context.rw(8)),
                               Container(
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 6, vertical: 2),
@@ -104,7 +105,7 @@ class ShopTile extends StatelessWidget {
                                     '${creditSummary!.notes.length} CN/DN',
                                     style: TextStyle(
                                         color: colors.warning,
-                                        fontSize: 10,
+                                        fontSize: context.rsp(10),
                                         fontWeight: FontWeight.w700)),
                               ),
                             ],

@@ -4,6 +4,7 @@ import 'package:isi_steel_sales_mobile/core/localization/localization_services.d
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_state.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 class QuotationBottomBar extends StatelessWidget {
   const QuotationBottomBar({
@@ -50,7 +51,7 @@ class QuotationBottomBar extends StatelessWidget {
                       style: TextStyle(fontWeight: FontWeight.w700),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: context.rw(12)),
                   Expanded(
                     child: ElevatedButton(
                       onPressed: items.isEmpty ? null : onSave,

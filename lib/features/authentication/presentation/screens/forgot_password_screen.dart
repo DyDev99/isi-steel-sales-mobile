@@ -6,6 +6,9 @@ import 'package:isi_steel_sales_mobile/shared/widgets/glass_card.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/gradient_button.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/forgot_password/identifier_field.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/status_pill.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
+// Note: Ensure your breakpoints file is imported if needed by context.responsive
+// import 'package:isi_steel_sales_mobile/core/responsive/breakpoints.dart';
 
 /// Outcome of a forgot-password request, returned by [ForgotPasswordScreen.onSubmit].
 class ForgotPasswordResult {
@@ -16,27 +19,6 @@ class ForgotPasswordResult {
   final String? message;
 }
 
-/// Step 1 of the forgot-password flow: the person enters the email or phone
-/// tied to their account and requests a reset.
-///
-/// This screen is deliberately decoupled from AuthBloc — since this repo's
-/// auth_event.dart / auth_state.dart weren't available while building this,
-/// it takes a plain [onSubmit] callback instead of guessing at Bloc event
-/// names. Wire it up from the navigation layer, e.g.:
-///
-///   ForgotPasswordScreen(
-///     onSubmit: (identifier) async {
-///       final result = await /* your reset-request call */;
-///       if (result.isSuccess) {
-///         Navigator.of(context).pushNamed(Static.verifyOtp, arguments: identifier);
-///       }
-///       return result;
-///     },
-///   )
-///
-/// If this screen should instead run through AuthBloc/BlocListener the same
-/// way LoginScreen does, that's a straightforward follow-up once the event/
-/// state classes exist — ping back and it can be wired the same way.
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({
     super.key,
@@ -44,11 +26,7 @@ class ForgotPasswordScreen extends StatefulWidget {
     this.onBackToLogin,
   });
 
-  /// Called with the submitted email or E.164-ish phone number. Return a
-  /// [ForgotPasswordResult] describing whether the request succeeded.
-  /// See the wiring example in the class doc comment above.
   final Future<ForgotPasswordResult> Function(String identifier) onSubmit;
-
   final VoidCallback? onBackToLogin;
 
   @override
@@ -91,6 +69,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Determine max width based on the viewport size class
+    final maxCardWidth = context.responsive(
+      compact: 420.0,
+      medium: 520.0,
+      expanded: 600.0,
+    );
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       body: Stack(
@@ -103,10 +88,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 Expanded(
                   child: Center(
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 16),
+                      // FIXED: Applied dynamic EdgeInsets based on context.pagePadding
+                      padding: EdgeInsets.all(context.pagePadding),
                       child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 420),
+                        // FIXED: Replaced hardcoded 420 with responsive constraint
+                        constraints: BoxConstraints(maxWidth: maxCardWidth),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
@@ -117,11 +103,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                   _status == AuthVibeStatus.success
                                       ? Icons.mark_email_read_outlined
                                       : Icons.lock_reset_outlined,
-                                  size: 40,
-                                  color:
-                                      Theme.of(context).colorScheme.secondary,
+                                  size: context.rr(40),
+                                  color: Theme.of(context).colorScheme.secondary,
                                 ),
-                                const SizedBox(height: 18),
+                                SizedBox(height: context.rh(18)),
                                 Text(
                                   _status == AuthVibeStatus.success
                                       ? 'auth.check_your_inbox'.tr
@@ -130,12 +115,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                   style: TextStyle(
                                     color:
                                         Theme.of(context).colorScheme.onSurface,
-                                    fontSize: 26,
+                                    fontSize: context.rsp(26),
                                     fontWeight: FontWeight.w900,
                                     height: 1.15,
                                   ),
                                 ),
-                                const SizedBox(height: 8),
+                                SizedBox(height: context.rh(8)),
                                 Text(
                                   _status == AuthVibeStatus.success
                                       ? 'auth.reset_instructions_sent'
@@ -144,11 +129,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                       color: context.appColors.textSecondary,
-                                      fontSize: 15),
+                                      fontSize: context.rsp(15)),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 24),
+                            SizedBox(height: context.rh(24)),
                             GlassCard(
                               child: _status == AuthVibeStatus.success
                                   ? _SuccessActions(
@@ -183,7 +168,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             required: true,
             textInputAction: TextInputAction.done,
           ),
-          const SizedBox(height: 6),
+          SizedBox(height: context.rh(6)),
           StatusPill(
             status: _status,
             message: _errorMessage,
@@ -199,7 +184,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 }
 
-/// Shown inside the glass card once the reset request succeeds.
 class _SuccessActions extends StatelessWidget {
   const _SuccessActions({this.onBackToLogin, this.onResend});
 
@@ -215,7 +199,7 @@ class _SuccessActions extends StatelessWidget {
           label: 'auth.back_to_login'.tr,
           onPressed: onBackToLogin,
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: context.rh(12)),
         Center(
           child: TextButton(
             onPressed: onResend,
@@ -239,12 +223,13 @@ class _BackButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(left: 8, top: 4),
+      // FIXED: Applied responsive relative constraints to the back button padding
+      padding: EdgeInsets.only(left: context.rw(8), top: context.rh(4)),
       child: Align(
         alignment: Alignment.centerLeft,
         child: IconButton(
           onPressed: onPressed,
-          icon: const Icon(Icons.arrow_back_ios_new, size: 18),
+          icon: Icon(Icons.arrow_back_ios_new, size: context.rr(18)),
           color: Theme.of(context).colorScheme.onSurface,
         ),
       ),

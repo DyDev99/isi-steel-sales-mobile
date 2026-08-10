@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// The quantity control that *is* the add-to-cart action.
 ///
@@ -124,7 +125,7 @@ class _CartQuantityStepperState extends State<CartQuantityStepper> {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: inCart ? scheme.primary : colors.textSecondary,
-                  fontSize: 14,
+                  fontSize: context.rsp(14),
                   fontWeight: FontWeight.w800,
                 ),
               ),
@@ -174,7 +175,7 @@ class _StepButton extends StatelessWidget {
           child: AnimatedOpacity(
             duration: const Duration(milliseconds: 180),
             opacity: enabled ? 1 : 0.3,
-            child: Icon(icon, size: 17, color: colors.textPrimary),
+            child: Icon(icon, size: context.rr(17), color: colors.textPrimary),
           ),
         ),
       ),

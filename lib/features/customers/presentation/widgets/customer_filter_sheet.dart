@@ -9,6 +9,8 @@ import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/cust
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customer_filter_state.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_status_badge.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/filter_option_group.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/app_bottom_sheet.dart';
 
 /// Opens the customer filter sheet.
 ///
@@ -29,7 +31,10 @@ void showCustomerFilterSheet({
     // The sheet can grow tall on small phones once a group is expanded, so it
     // must be able to scroll rather than overflow.
     constraints: BoxConstraints(
-      maxHeight: MediaQuery.of(context).size.height * 0.85,
+      // sizeOf, not of(): `.of` subscribes to every metric change, so the sheet
+      // rebuilt on each frame of the keyboard animation (FS-PRF-4).
+      maxHeight: MediaQuery.sizeOf(context).height * 0.85,
+      maxWidth: AppBottomSheet.maxWidth,
     ),
     builder: (_) => BlocProvider(
       create: (_) => CustomerFilterCubit(filter),
@@ -76,13 +81,13 @@ class _CustomerFilterSheet extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
               children: [
                 const _StatusGroup(),
-                const SizedBox(height: 10),
+                SizedBox(height: context.rh(10)),
                 _TerritoryGroup(territories: territories),
                 if (productCategories.isNotEmpty) ...[
-                  const SizedBox(height: 10),
+                  SizedBox(height: context.rh(10)),
                   _ProductCategoryGroup(categories: productCategories),
                 ],
-                const SizedBox(height: 10),
+                SizedBox(height: context.rh(10)),
                 const _SortGroup(),
               ],
             ),
@@ -131,7 +136,7 @@ class _Header extends StatelessWidget {
               'customers.filter_sort'.tr,
               style: TextStyle(
                 color: colors.textPrimary,
-                fontSize: 17,
+                fontSize: context.rsp(17),
                 fontWeight: FontWeight.w800,
               ),
             ),
@@ -159,7 +164,7 @@ class _Header extends StatelessWidget {
                         '$count',
                         style: TextStyle(
                           color: scheme.onPrimary,
-                          fontSize: 11,
+                          fontSize: context.rsp(11),
                           fontWeight: FontWeight.w900,
                         ),
                       ),
@@ -265,7 +270,7 @@ class _TerritoryGroup extends StatelessWidget {
                   initialValue: query,
                   onChanged: cubit.searchTerritory,
                 ),
-                const SizedBox(height: 10),
+                SizedBox(height: context.rh(10)),
               ],
               AnimatedSwitcher(
                 duration: AppDurations.medium,
@@ -407,13 +412,13 @@ class _SearchFieldState extends State<_SearchField> {
     return TextField(
       controller: _controller,
       onChanged: widget.onChanged,
-      style: TextStyle(fontSize: 13, color: colors.textPrimary),
+      style: TextStyle(fontSize: context.rsp(13), color: colors.textPrimary),
       decoration: InputDecoration(
         isDense: true,
         hintText: 'customers.search_filter_hint'.tr,
-        hintStyle: TextStyle(fontSize: 13, color: colors.textHint),
+        hintStyle: TextStyle(fontSize: context.rsp(13), color: colors.textHint),
         prefixIcon:
-            Icon(Icons.search_rounded, size: 18, color: colors.iconMuted),
+            Icon(Icons.search_rounded, size: context.rr(18), color: colors.iconMuted),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         filled: true,
@@ -441,7 +446,7 @@ class _NoMatches extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 14),
       child: Text(
         'customers.no_matches'.tr,
-        style: TextStyle(fontSize: 12.5, color: colors.textSecondary),
+        style: TextStyle(fontSize: context.rsp(12.5), color: colors.textSecondary),
       ),
     );
   }

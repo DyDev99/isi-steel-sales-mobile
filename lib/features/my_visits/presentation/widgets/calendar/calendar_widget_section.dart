@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/calendar/calendar_month_view.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/calendar/calendar_toggle_button.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// Compact-by-default, expandable monthly stop calendar for the My Visit Dashboard.
 class StopCalendarSection extends StatefulWidget {
@@ -46,10 +46,14 @@ class _StopCalendarSectionState extends State<StopCalendarSection> {
     final today = DateTime.now();
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(
+        horizontal: context.rw(14),
+        vertical: context.rh(14),
+      ),
       decoration: BoxDecoration(
         color: colors.card,
-        borderRadius: BorderRadius.circular(18.r),
+        borderRadius: BorderRadius.circular(context.rr(18)),
         boxShadow: colors.cardShadow,
       ),
       child: Column(
@@ -69,7 +73,7 @@ class _StopCalendarSectionState extends State<StopCalendarSection> {
               child: _expanded
                   ? Padding(
                       key: const ValueKey('calendar-expanded'),
-                      padding: EdgeInsets.only(top: 16.h),
+                      padding: EdgeInsets.only(top: context.rh(16)),
                       child: CalendarMonthView(
                         focusedMonth: widget.focusedMonth,
                         selectedDate: widget.selectedDate,

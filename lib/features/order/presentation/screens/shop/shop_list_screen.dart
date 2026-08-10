@@ -12,6 +12,7 @@ import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_credit
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/shop/shop_order_entry_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/order_skeletons.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/shop/shop_tile.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 class ShopListScreen extends StatefulWidget {
   const ShopListScreen({
@@ -74,7 +75,7 @@ class _ShopListScreenState extends State<ShopListScreen> {
         title: Text(widget.territory,
             style: TextStyle(
                 color: colors.textPrimary,
-                fontSize: 17,
+                fontSize: context.rsp(17),
                 fontWeight: FontWeight.w800)),
       ),
       body: FutureBuilder<List<Customer>>(
@@ -84,7 +85,7 @@ class _ShopListScreenState extends State<ShopListScreen> {
             return ListView(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
               physics: const NeverScrollableScrollPhysics(),
-              children: const [
+              children: [
                 OrderTileSkeleton(),
                 OrderTileSkeleton(),
                 OrderTileSkeleton()

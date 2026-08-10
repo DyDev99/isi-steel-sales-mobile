@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:flutter/services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 class DiscountSection extends StatefulWidget {
   const DiscountSection({
@@ -65,7 +66,7 @@ class _DiscountSectionState extends State<DiscountSection> {
           ],
         ),
         if (_isCustomActive) ...[
-          const SizedBox(height: 12),
+          SizedBox(height: context.rh(12)),
           SizedBox(
             width: 140,
             child: TextField(
@@ -75,7 +76,7 @@ class _DiscountSectionState extends State<DiscountSection> {
               onChanged: _onCustomValuesChanged,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               style: TextStyle(
-                fontSize: 13,
+                fontSize: context.rsp(13),
                 fontWeight: FontWeight.bold,
                 color: colors.textPrimary,
               ),
@@ -83,7 +84,7 @@ class _DiscountSectionState extends State<DiscountSection> {
                 contentPadding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 hintText: 'orders.quotation_extra.enter_value'.tr,
-                hintStyle: TextStyle(fontSize: 12, color: colors.textHint),
+                hintStyle: TextStyle(fontSize: context.rsp(12), color: colors.textHint),
                 suffixText: '%',
                 suffixStyle: TextStyle(
                   fontWeight: FontWeight.bold,

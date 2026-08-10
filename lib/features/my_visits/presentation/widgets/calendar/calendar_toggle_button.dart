@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/calendar/stops_indicator_dots.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// The calendar's compact header: today's date and a dot summary of today's stops.
 class CalendarToggleButton extends StatelessWidget {
@@ -27,23 +27,27 @@ class CalendarToggleButton extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16.r),
+      borderRadius: BorderRadius.circular(context.rr(16)),
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
+        padding: EdgeInsets.symmetric(horizontal: context.rw(4), vertical: context.rh(2)),
         child: Row(
           children: [
             Container(
-              width: 40.w,
-              height: 40.w,
+              // FIXED: Converted width, height, and icon size to context.rr
+              width: context.rr(40),
+              height: context.rr(40),
               decoration: BoxDecoration(
                 color: scheme.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12.r),
+                borderRadius: BorderRadius.circular(context.rr(12)),
               ),
               alignment: Alignment.center,
-              child: Icon(Icons.calendar_today_rounded,
-                  color: scheme.primary, size: 18.w),
+              child: Icon(
+                Icons.calendar_today_rounded,
+                color: scheme.primary,
+                size: context.rr(18),
+              ),
             ),
-            SizedBox(width: 12.w),
+            SizedBox(width: context.rw(12)),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -53,13 +57,13 @@ class CalendarToggleButton extends StatelessWidget {
                     DateFormat('EEEE, d MMMM yyyy').format(now),
                     style: TextStyle(
                       color: colors.textPrimary,
-                      fontSize: 14.sp,
+                      fontSize: context.rsp(14),
                       fontWeight: FontWeight.w800,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  SizedBox(height: 4.h),
+                  SizedBox(height: context.rh(4)),
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -67,11 +71,11 @@ class CalendarToggleButton extends StatelessWidget {
                         'my_visits.calendar.todays_stops'.tr,
                         style: TextStyle(
                           color: colors.textSecondary,
-                          fontSize: 11.sp,
+                          fontSize: context.rsp(11),
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      SizedBox(width: 8.w),
+                      SizedBox(width: context.rw(8)),
                       StopIndicatorDots(
                         count: todayStopCount,
                         maxVisible: 8,
@@ -86,8 +90,11 @@ class CalendarToggleButton extends StatelessWidget {
               turns: expanded ? 0.5 : 0,
               duration: const Duration(milliseconds: 220),
               curve: Curves.easeOut,
-              child: Icon(Icons.keyboard_arrow_down_rounded,
-                  color: colors.iconMuted, size: 24.w),
+              child: Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: colors.iconMuted,
+                size: context.rr(24),
+              ),
             ),
           ],
         ),

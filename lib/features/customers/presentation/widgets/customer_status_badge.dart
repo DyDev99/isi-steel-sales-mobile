@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer_status.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// Localized display label for a [CustomerStatus]. Kept here (presentation)
 /// rather than on the domain enum so the entity stays free of any `.tr`/l10n
@@ -36,7 +37,7 @@ class CustomerStatusBadge extends StatelessWidget {
       child: Text(
         status.localizedLabel,
         style:
-            TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w700),
+            TextStyle(color: color, fontSize: context.rsp(11), fontWeight: FontWeight.w700),
       ),
     );
   }

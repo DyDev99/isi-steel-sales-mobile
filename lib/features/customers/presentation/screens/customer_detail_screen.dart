@@ -21,6 +21,8 @@ import 'package:isi_steel_sales_mobile/features/lead/domain/usecases/create_lead
 import 'package:isi_steel_sales_mobile/features/lead/presentation/bloc/pipeline_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/lead/presentation/bloc/pipeline_event.dart';
 import 'package:isi_steel_sales_mobile/features/lead/presentation/screens/pipeline_screen.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/app_bottom_sheet.dart';
 
 /// Read-mostly profile of an approved SAP customer. SAP-controlled fields
 /// (Overview, SAP Information) render with a muted/locked visual language;
@@ -62,6 +64,7 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
   Future<void> _createOpportunity(
       BuildContext context, Customer customer) async {
     final estimatedValue = await showModalBottomSheet<double>(
+      constraints: const BoxConstraints(maxWidth: AppBottomSheet.maxWidth),
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
@@ -122,6 +125,7 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
     final scheme = Theme.of(context).colorScheme;
     final colors = context.appColors;
     showModalBottomSheet(
+      constraints: const BoxConstraints(maxWidth: AppBottomSheet.maxWidth),
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
@@ -141,9 +145,9 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
               Text('common.add_note'.tr,
                   style: TextStyle(
                       color: colors.textPrimary,
-                      fontSize: 16,
+                      fontSize: context.rsp(16),
                       fontWeight: FontWeight.w800)),
-              const SizedBox(height: 12),
+              SizedBox(height: context.rh(12)),
               TextField(
                 controller: _noteController,
                 maxLines: 4,
@@ -157,7 +161,7 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
                       borderSide: BorderSide(color: colors.border)),
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: context.rh(16)),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -203,7 +207,7 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
                   : 'customers.customer_fallback'.tr,
               style: TextStyle(
                   color: context.appColors.textPrimary,
-                  fontSize: 16,
+                  fontSize: context.rsp(16),
                   fontWeight: FontWeight.w800),
             ),
           ),
@@ -281,14 +285,14 @@ class _Loaded extends StatelessWidget {
             );
           },
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: context.rh(12)),
         //  CustomerQuickActions(
         //   onCall: onCall,
         //   onCreateOpportunity: onCreateOpportunity,
         // onLogVisit: onLogVisit,
         //  onAddNote: onAddNote,
         //  ),
-        const SizedBox(height: 16),
+        SizedBox(height: context.rh(16)),
         _SectionCard(
           title: 'customers.overview'.tr,
           locked: true,
@@ -301,13 +305,13 @@ class _Loaded extends StatelessWidget {
                     child: Text(customer.ownerName,
                         style: TextStyle(
                             color: colors.textPrimary,
-                            fontSize: 14,
+                            fontSize: context.rsp(14),
                             fontWeight: FontWeight.w700)),
                   ),
                   CustomerStatusBadge(status: customer.status),
                 ],
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: context.rh(8)),
               _InfoRow(
                   icon: Icons.badge_outlined,
                   label: 'customers.customer_code'.tr,
@@ -338,7 +342,7 @@ class _Loaded extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: context.rh(12)),
         if (customer.contacts.isNotEmpty)
           _SectionCard(
             title: 'customers.contacts'.tr,
@@ -353,8 +357,8 @@ class _Loaded extends StatelessWidget {
                             radius: 16,
                             backgroundColor: colors.surfaceStrong,
                             child: Icon(Icons.person,
-                                size: 16, color: scheme.primary)),
-                        const SizedBox(width: 10),
+                                size: context.rr(16), color: scheme.primary)),
+                        SizedBox(width: context.rw(10)),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -362,12 +366,12 @@ class _Loaded extends StatelessWidget {
                               Text(contact.name,
                                   style: TextStyle(
                                       color: colors.textPrimary,
-                                      fontSize: 13,
+                                      fontSize: context.rsp(13),
                                       fontWeight: FontWeight.w700)),
                               Text('${contact.role} · ${contact.phone}',
                                   style: TextStyle(
                                       color: colors.textSecondary,
-                                      fontSize: 11.5)),
+                                      fontSize: context.rsp(11.5))),
                             ],
                           ),
                         ),
@@ -377,7 +381,7 @@ class _Loaded extends StatelessWidget {
               ],
             ),
           ),
-        const SizedBox(height: 12),
+        SizedBox(height: context.rh(12)),
         _SectionCard(
           title: 'customers.sales_history'.tr,
           locked: true,
@@ -410,7 +414,7 @@ class _Loaded extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: context.rh(12)),
         _SectionCard(
           title: 'customers.sap_info'.tr,
           locked: true,
@@ -432,12 +436,12 @@ class _Loaded extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: context.rh(12)),
         _SectionCard(
           title: 'customers.timeline'.tr,
           child: state.activities.isEmpty && state.notes.isEmpty
               ? Text('customers.no_activity'.tr,
-                  style: TextStyle(color: colors.textSecondary, fontSize: 12.5))
+                  style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(12.5)))
               : Column(
                   children: [
                     for (final activity in state.activities)
@@ -504,9 +508,9 @@ class _EstimatedValueSheetState extends State<_EstimatedValueSheet> {
                     {'shop': context.localized(widget.customer.displayName)}),
                 style: TextStyle(
                     color: colors.textPrimary,
-                    fontSize: 16,
+                    fontSize: context.rsp(16),
                     fontWeight: FontWeight.w800)),
-            const SizedBox(height: 12),
+            SizedBox(height: context.rh(12)),
             TextField(
               controller: _controller,
               keyboardType: TextInputType.number,
@@ -520,7 +524,7 @@ class _EstimatedValueSheetState extends State<_EstimatedValueSheet> {
                     borderSide: BorderSide(color: colors.border)),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: context.rh(16)),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -567,7 +571,7 @@ class _SalesInsightsSection extends StatelessWidget {
     ];
 
     return GlassCard(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(context.rr(16)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -577,16 +581,16 @@ class _SalesInsightsSection extends StatelessWidget {
                 'customers.sales_history_insights'.tr,
                 style: TextStyle(
                   color: colors.textPrimary,
-                  fontSize: 14,
+                  fontSize: context.rsp(14),
                   fontWeight: FontWeight.w800,
                 ),
               ),
-              const SizedBox(width: 6),
+              SizedBox(width: context.rw(6)),
               Icon(Icons.lock_outline_rounded,
-                  size: 13, color: colors.textSecondary),
+                  size: context.rr(13), color: colors.textSecondary),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: context.rh(12)),
 
           // Row 1: Key Performance Metrics
           Row(
@@ -598,7 +602,7 @@ class _SalesInsightsSection extends StatelessWidget {
                   value: '\$${customer.lifetimeValue.toStringAsFixed(0)}',
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: context.rw(12)),
               Expanded(
                 child: _MetricTile(
                   icon: Icons.event_outlined,
@@ -610,18 +614,18 @@ class _SalesInsightsSection extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: context.rh(16)),
 
           // Row 2: Currently Purchased Lines
           Text(
             'customers.active_product_mix'.tr,
             style: TextStyle(
               color: colors.textSecondary,
-              fontSize: 11.5,
+              fontSize: context.rsp(11.5),
               fontWeight: FontWeight.w700,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: context.rh(8)),
           if (customer.productsPurchased.isNotEmpty)
             Wrap(
               spacing: 6,
@@ -634,21 +638,21 @@ class _SalesInsightsSection extends StatelessWidget {
           else
             Text(
               'customers.no_active_product_lines'.tr,
-              style: TextStyle(color: colors.textSecondary, fontSize: 12),
+              style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(12)),
             ),
 
-          const SizedBox(height: 16),
+          SizedBox(height: context.rh(16)),
 
           // Row 3: Gap Analysis / White Spaces
           Text(
             'customers.cross_sell_gaps'.tr,
             style: TextStyle(
               color: colors.textSecondary,
-              fontSize: 11.5,
+              fontSize: context.rsp(11.5),
               fontWeight: FontWeight.w700,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: context.rh(8)),
           Wrap(
             spacing: 6,
             runSpacing: 6,
@@ -685,7 +689,7 @@ class _MetricTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     return Container(
-      padding: const EdgeInsets.all(10),
+      padding: EdgeInsets.all(context.rr(10)),
       decoration: BoxDecoration(
         color: colors.surfaceSoft,
         borderRadius: BorderRadius.circular(10),
@@ -696,20 +700,20 @@ class _MetricTile extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, size: 13, color: colors.textSecondary),
-              const SizedBox(width: 4),
+              Icon(icon, size: context.rr(13), color: colors.textSecondary),
+              SizedBox(width: context.rw(4)),
               Text(
                 label,
-                style: TextStyle(color: colors.textSecondary, fontSize: 11),
+                style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(11)),
               ),
             ],
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: context.rh(4)),
           Text(
             value,
             style: TextStyle(
               color: colors.textPrimary,
-              fontSize: 14,
+              fontSize: context.rsp(14),
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -751,14 +755,14 @@ class _InsightChip extends StatelessWidget {
           children: [
             if (!isPurchased) ...[
               Icon(Icons.add_circle_outline_rounded,
-                  size: 12, color: themeColor),
-              const SizedBox(width: 4),
+                  size: context.rr(12), color: themeColor),
+              SizedBox(width: context.rw(4)),
             ],
             Text(
               label,
               style: TextStyle(
                 color: isPurchased ? themeColor : colors.textPrimary,
-                fontSize: 11,
+                fontSize: context.rsp(11),
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -779,7 +783,7 @@ class _SectionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GlassCard(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(context.rr(16)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -788,16 +792,16 @@ class _SectionCard extends StatelessWidget {
               Text(title,
                   style: TextStyle(
                       color: context.appColors.textPrimary,
-                      fontSize: 14,
+                      fontSize: context.rsp(14),
                       fontWeight: FontWeight.w800)),
               if (locked) ...[
-                const SizedBox(width: 6),
+                SizedBox(width: context.rw(6)),
                 Icon(Icons.lock_outline_rounded,
-                    size: 13, color: context.appColors.textSecondary),
+                    size: context.rr(13), color: context.appColors.textSecondary),
               ],
             ],
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: context.rh(10)),
           child,
         ],
       ),
@@ -820,17 +824,17 @@ class _InfoRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 14, color: colors.textSecondary),
-          const SizedBox(width: 8),
+          Icon(icon, size: context.rr(14), color: colors.textSecondary),
+          SizedBox(width: context.rw(8)),
           SizedBox(
               width: 110,
               child: Text(label,
-                  style: TextStyle(color: colors.textSecondary, fontSize: 12))),
+                  style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(12)))),
           Expanded(
               child: Text(value,
                   style: TextStyle(
                       color: colors.textPrimary,
-                      fontSize: 12.5,
+                      fontSize: context.rsp(12.5),
                       fontWeight: FontWeight.w600))),
         ],
       ),
@@ -852,7 +856,7 @@ class _ProductChip extends StatelessWidget {
           borderRadius: BorderRadius.circular(20)),
       child: Text(label,
           style: TextStyle(
-              color: info, fontSize: 11, fontWeight: FontWeight.w700)),
+              color: info, fontSize: context.rsp(11), fontWeight: FontWeight.w700)),
     );
   }
 }
@@ -873,8 +877,8 @@ class _TimelineRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 15, color: scheme.primary),
-          const SizedBox(width: 10),
+          Icon(icon, size: context.rr(15), color: scheme.primary),
+          SizedBox(width: context.rw(10)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -882,11 +886,11 @@ class _TimelineRow extends StatelessWidget {
                 Text(text,
                     style: TextStyle(
                         color: colors.textPrimary,
-                        fontSize: 12.5,
+                        fontSize: context.rsp(12.5),
                         fontWeight: FontWeight.w600)),
                 Text(_formatDateTime(at),
                     style:
-                        TextStyle(color: colors.textSecondary, fontSize: 11)),
+                        TextStyle(color: colors.textSecondary, fontSize: context.rsp(11))),
               ],
             ),
           ),

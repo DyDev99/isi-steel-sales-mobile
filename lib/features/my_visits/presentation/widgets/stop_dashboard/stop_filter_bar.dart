@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/state/stop_dashboard_state.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// Horizontally-scrollable status filter chips for the Stop Dashboard.
 class StopFilterBar extends StatelessWidget {
@@ -26,11 +26,11 @@ class StopFilterBar extends StatelessWidget {
     final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
     return SizedBox(
-      height: 34.h,
+      height: context.rh(34),
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: StopFilter.values.length,
-        separatorBuilder: (_, __) => SizedBox(width: 8.w),
+        separatorBuilder: (_, __) => SizedBox(width: context.rw(8)),
         itemBuilder: (context, i) {
           final filter = StopFilter.values[i];
           final isSelected = filter == selected;
@@ -43,10 +43,10 @@ class StopFilterBar extends StatelessWidget {
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 180),
               alignment: Alignment.center,
-              padding: EdgeInsets.symmetric(horizontal: 14.w),
+              padding: EdgeInsets.symmetric(horizontal: context.rw(14)),
               decoration: BoxDecoration(
                 color: isSelected ? scheme.primary : colors.surfaceSoft,
-                borderRadius: BorderRadius.circular(20.r),
+                borderRadius: BorderRadius.circular(context.rr(20)),
                 border: Border.all(
                     color: isSelected ? scheme.primary : colors.border),
               ),
@@ -54,7 +54,7 @@ class StopFilterBar extends StatelessWidget {
                 _labelKeys[filter]!.tr,
                 style: TextStyle(
                   color: isSelected ? scheme.onPrimary : colors.textSecondary,
-                  fontSize: 12.sp,
+                  fontSize: context.rsp(12),
                   fontWeight: FontWeight.w700,
                 ),
               ),

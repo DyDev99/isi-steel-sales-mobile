@@ -4,6 +4,7 @@ import 'package:isi_steel_sales_mobile/core/localization/localization_services.d
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/cart_quantity_stepper.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// One matched SKU, and the only place a product enters the quotation.
 ///
@@ -135,31 +136,31 @@ class ProductResultCard extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               color: colors.textPrimary,
-                              fontSize: 14,
+                              fontSize: context.rsp(14),
                               fontWeight: FontWeight.w800,
                               height: 1.15,
                             ),
                           ),
-                          const SizedBox(height: 3),
+                          SizedBox(height: context.rh(3)),
                           Text(
                             product.materialCode,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               color: colors.textSecondary,
-                              fontSize: 11,
+                              fontSize: context.rsp(11),
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                           if (specLine != null && specLine!.isNotEmpty) ...[
-                            const SizedBox(height: 4),
+                            SizedBox(height: context.rh(4)),
                             Text(
                               specLine!,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 color: scheme.primary,
-                                fontSize: 11.5,
+                                fontSize: context.rsp(11.5),
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
@@ -174,13 +175,13 @@ class ProductResultCard extends StatelessWidget {
                         isFavorite
                             ? Icons.favorite_rounded
                             : Icons.favorite_border_rounded,
-                        size: 18,
+                        size: context.rr(18),
                         color: isFavorite ? scheme.error : colors.iconMuted,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 10),
+                SizedBox(height: context.rh(10)),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
@@ -202,12 +203,12 @@ class ProductResultCard extends StatelessWidget {
                               stockStatus.label,
                               style: TextStyle(
                                 color: stockStatus.color,
-                                fontSize: 10.5,
+                                fontSize: context.rsp(10.5),
                                 fontWeight: FontWeight.w800,
                               ),
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          SizedBox(height: context.rh(4)),
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.baseline,
                             textBaseline: TextBaseline.alphabetic,
@@ -216,16 +217,16 @@ class ProductResultCard extends StatelessWidget {
                                 '\$${product.effectivePrice.toStringAsFixed(2)}',
                                 style: TextStyle(
                                   color: colors.textPrimary,
-                                  fontSize: 16,
+                                  fontSize: context.rsp(16),
                                   fontWeight: FontWeight.w800,
                                 ),
                               ),
-                              const SizedBox(width: 4),
+                              SizedBox(width: context.rw(4)),
                               Text(
                                 '/ ${product.unit}',
                                 style: TextStyle(
                                   color: colors.textSecondary,
-                                  fontSize: 11,
+                                  fontSize: context.rsp(11),
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -241,14 +242,14 @@ class ProductResultCard extends StatelessWidget {
                         foreground: scheme.primary,
                         onTap: onCustomize!,
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: context.rw(8)),
                     ],
                     CartQuantityStepper(
                       quantity: quantity,
                       enabled: available,
                       onChanged: onQuantityChanged,
                     ),
-                    const SizedBox(width: 4),
+                    SizedBox(width: context.rw(4)),
                   ],
                 ),
                 AnimatedSize(
@@ -262,15 +263,15 @@ class ProductResultCard extends StatelessWidget {
                             children: [
                               Icon(
                                 Icons.check_circle_rounded,
-                                size: 14,
+                                size: context.rr(14),
                                 color: scheme.primary,
                               ),
-                              const SizedBox(width: 6),
+                              SizedBox(width: context.rw(6)),
                               Text(
                                 lineTotalLabel!,
                                 style: TextStyle(
                                   color: scheme.primary,
-                                  fontSize: 12,
+                                  fontSize: context.rsp(12),
                                   fontWeight: FontWeight.w800,
                                 ),
                               ),
@@ -316,7 +317,7 @@ class _SquareAction extends StatelessWidget {
           borderRadius: BorderRadius.circular(10),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
-            child: Icon(icon, size: 17, color: foreground),
+            child: Icon(icon, size: context.rr(17), color: foreground),
           ),
         ),
       );

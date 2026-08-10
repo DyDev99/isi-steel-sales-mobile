@@ -4,6 +4,7 @@ import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/glass_card.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/catalog/promotion_badge.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 class ProductCard extends StatelessWidget {
   const ProductCard({
@@ -35,7 +36,7 @@ class ProductCard extends StatelessWidget {
     final appColors = context.appColors;
 
     return GlassCard(
-      padding: const EdgeInsets.all(8),
+      padding: EdgeInsets.all(context.rr(8)),
       onTap: onTap,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -55,7 +56,7 @@ class ProductCard extends StatelessWidget {
                       color: appColors.surfaceSoft,
                       child: Icon(Icons.inventory_2_outlined,
                           color: scheme.onSurface.withValues(alpha: 0.4),
-                          size: 24),
+                          size: context.rr(24)),
                     ),
                   ),
                 ),
@@ -66,7 +67,7 @@ class ProductCard extends StatelessWidget {
                 child: InkWell(
                   onTap: onFavoriteToggle,
                   child: Container(
-                    padding: const EdgeInsets.all(3),
+                    padding: EdgeInsets.all(context.rr(3)),
                     decoration: BoxDecoration(
                       color: scheme.surface.withValues(alpha: 0.8),
                       shape: BoxShape.circle,
@@ -75,7 +76,7 @@ class ProductCard extends StatelessWidget {
                       isFavorite
                           ? Icons.favorite_rounded
                           : Icons.favorite_border_rounded,
-                      size: 14,
+                      size: context.rr(14),
                       color: isFavorite
                           ? scheme.error
                           : scheme.onSurface.withValues(alpha: 0.4),
@@ -88,7 +89,7 @@ class ProductCard extends StatelessWidget {
                     top: 2, left: 2, child: PromotionBadge(label: 'Sale')),
             ],
           ),
-          const SizedBox(width: 10),
+          SizedBox(width: context.rw(10)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -99,7 +100,7 @@ class ProductCard extends StatelessWidget {
                     product.code,
                     style: TextStyle(
                         color: scheme.onSurface.withValues(alpha: 0.5),
-                        fontSize: 10,
+                        fontSize: context.rsp(10),
                         fontWeight: FontWeight.w600),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -110,21 +111,21 @@ class ProductCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: scheme.onSurface,
-                    fontSize: 12.5,
+                    fontSize: context.rsp(12.5),
                     fontWeight: FontWeight.w700,
                     height: 1.1,
                   ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: context.rh(4)),
                 Text(
                   '${product.subCategory} · ${product.unit}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                       color: scheme.onSurface.withValues(alpha: 0.5),
-                      fontSize: 10.5),
+                      fontSize: context.rsp(10.5)),
                 ),
-                const SizedBox(height: 6),
+                SizedBox(height: context.rh(6)),
                 Row(
                   children: [
                     Expanded(
@@ -132,7 +133,7 @@ class ProductCard extends StatelessWidget {
                         '\$${product.effectivePrice.toStringAsFixed(2)}',
                         style: TextStyle(
                           color: scheme.primary,
-                          fontSize: 13.5,
+                          fontSize: context.rsp(13.5),
                           fontWeight: FontWeight.w800,
                         ),
                       ),
@@ -149,10 +150,10 @@ class ProductCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Icon(Icons.tune_rounded,
-                              size: 16, color: scheme.primary),
+                              size: context.rr(16), color: scheme.primary),
                         ),
                       ),
-                      const SizedBox(width: 6),
+                      SizedBox(width: context.rw(6)),
                     ],
                     InkWell(
                       onTap: onAddToCart,
@@ -165,7 +166,7 @@ class ProductCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Icon(Icons.add_shopping_cart_rounded,
-                            size: 16, color: scheme.onPrimary),
+                            size: context.rr(16), color: scheme.onPrimary),
                       ),
                     ),
                   ],

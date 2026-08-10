@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/category.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// Horizontal, single-select category rail with icon tiles, an animated
 /// active state, a ripple, and automatic scroll-to-reveal of
@@ -65,7 +66,7 @@ class _FilterCategorySelectorState extends State<FilterCategorySelector> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 78,
+      height: context.rh(78),
       child: ListView(
         controller: _controller,
         scrollDirection: Axis.horizontal,
@@ -151,18 +152,18 @@ class _Tile extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon,
-                size: 22,
+                size: context.rr(22),
                 color: selected
                     ? Colors.white
                     : theme.colorScheme.onSurface.withValues(alpha: 0.4)),
-            const SizedBox(height: 6),
+            SizedBox(height: context.rh(6)),
             Text(
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 10.5,
+                fontSize: context.rsp(10.5),
                 fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
                 color: selected ? Colors.white : theme.colorScheme.onSurface,
               ),

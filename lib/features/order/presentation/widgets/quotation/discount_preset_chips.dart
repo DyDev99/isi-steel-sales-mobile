@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 const discountPresets = [0.0, 5.0, 10.0, 15.0];
 
@@ -24,7 +25,7 @@ class DiscountPresetChips extends StatelessWidget {
           ChoiceChip(
             label: Text(
               '${preset.toStringAsFixed(0)}%',
-              style: const TextStyle(fontSize: 11),
+              style: TextStyle(fontSize: context.rsp(11)),
             ),
             selected: selected == preset,
             visualDensity: VisualDensity.compact,

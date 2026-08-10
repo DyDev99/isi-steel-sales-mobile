@@ -16,8 +16,15 @@ class LanguageSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final colors = context.appColors;
+    final isTablet = MediaQuery.sizeOf(context).width >= 600;
+
     return GlassCard(
-      padding: const EdgeInsets.fromLTRB(18, 16, 12, 8),
+      padding: EdgeInsets.fromLTRB(
+        isTablet ? 24 : 18,
+        isTablet ? 20 : 16,
+        isTablet ? 18 : 12,
+        isTablet ? 12 : 8,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -25,11 +32,11 @@ class LanguageSection extends StatelessWidget {
             'settings.language_title'.tr,
             style: TextStyle(
               color: scheme.onSurface,
-              fontSize: 14.5,
+              fontSize: isTablet ? 18 : 14.5,
               fontWeight: FontWeight.w800,
             ),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: isTablet ? 8 : 4),
           BlocBuilder<LanguageCubit, Locale>(
             builder: (context, locale) {
               final supported =
@@ -42,34 +49,45 @@ class LanguageSection extends StatelessWidget {
                 onTap: () => showLanguageSelectorSheet(context),
                 borderRadius: BorderRadius.circular(12),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  padding: EdgeInsets.symmetric(
+                    vertical: isTablet ? 14 : 10,
+                  ),
                   child: Row(
                     children: [
-                      Icon(Icons.translate_rounded,
-                          size: 20, color: scheme.primary),
-                      const SizedBox(width: 12),
+                      Icon(
+                        Icons.translate_rounded,
+                        size: isTablet ? 24 : 20,
+                        color: scheme.primary,
+                      ),
+                      SizedBox(width: isTablet ? 16 : 12),
                       Text(
                         'settings.language'.tr,
                         style: TextStyle(
                           color: scheme.onSurface,
-                          fontSize: 13.5,
+                          fontSize: isTablet ? 16 : 13.5,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                       const Spacer(),
-                      Text(language.flag, style: const TextStyle(fontSize: 14)),
-                      const SizedBox(width: 6),
+                      Text(
+                        language.flag,
+                        style: TextStyle(fontSize: isTablet ? 18 : 14),
+                      ),
+                      SizedBox(width: isTablet ? 8 : 6),
                       Text(
                         language.nameKey.tr,
                         style: TextStyle(
                           color: colors.textSecondary,
-                          fontSize: 13,
+                          fontSize: isTablet ? 15 : 13,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const SizedBox(width: 4),
-                      Icon(Icons.chevron_right_rounded,
-                          size: 20, color: colors.textSecondary),
+                      SizedBox(width: isTablet ? 6 : 4),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        size: isTablet ? 24 : 20,
+                        color: colors.textSecondary,
+                      ),
                     ],
                   ),
                 ),
