@@ -113,7 +113,7 @@ class AppPages {
                 await Future.delayed(const Duration(seconds: 1));
                 const result = ForgotPasswordResult.success();
 
-                if (result.isSuccess) {
+                if (result.isSuccess && context.mounted) {
                   // 👉 this is what gets you to the 6-box verify screen
                   Navigator.of(context).pushNamed(
                     Static.verifyOtp,

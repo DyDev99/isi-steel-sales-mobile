@@ -11,11 +11,16 @@ import 'package:pdf/widgets.dart' as pw;
 /// to call before each generation.
 ///
 /// Font strategy — bilingual rendering:
-/// - Latin (English UI) is drawn with **Inter**.
-/// - Khmer Unicode has no glyphs in Inter, so **Kantumruy** is supplied as a
-///   [pw.ThemeData.fontFallback]; the PDF engine automatically falls back
+/// - Latin (English UI) is drawn with **ABC Ginto**.
+/// - Khmer Unicode has no glyphs in ABC Ginto, so **MiSans Khmer** is supplied
+///   as a [pw.ThemeData.fontFallback]; the PDF engine automatically falls back
 ///   glyph-by-glyph, which is what makes mixed "ISI Steel / ខ្មែរ" strings
 ///   render correctly in a single run.
+///
+/// Both families are loaded from the `.ttf` conversions rather than the vendor
+/// drops (`.woff2` for Ginto, CFF `.otf` for MiSans): [pw.Font.ttf] parses the
+/// `glyf` table only, so neither original format can be read here. See the
+/// `fonts:` note in `pubspec.yaml`.
 class PdfAssets {
   PdfAssets();
 
@@ -41,18 +46,16 @@ class PdfAssets {
     if (_loaded) return;
 
     _base = pw.Font.ttf(
-      await rootBundle.load('assets/fonts/Inter/static/Inter_18pt-Regular.ttf'),
+      await rootBundle.load('assets/fonts/ABCGinto-Regular.ttf'),
     );
     _bold = pw.Font.ttf(
-      await rootBundle.load('assets/fonts/Inter/static/Inter_18pt-Bold.ttf'),
+      await rootBundle.load('assets/fonts/ABCGinto-Bold.ttf'),
     );
     _khmer = pw.Font.ttf(
-      await rootBundle.load(
-          'assets/fonts/kantumruy_5.2.5/ttf/kantumruy-khmer-400-normal.ttf'),
+      await rootBundle.load('assets/fonts/khmer/MiSansKhmer-Regular.ttf'),
     );
     _khmerBold = pw.Font.ttf(
-      await rootBundle.load(
-          'assets/fonts/kantumruy_5.2.5/ttf/kantumruy-khmer-700-normal.ttf'),
+      await rootBundle.load('assets/fonts/khmer/MiSansKhmer-Bold.ttf'),
     );
 
     try {
@@ -66,8 +69,8 @@ class PdfAssets {
     _loaded = true;
   }
 
-  /// The base document theme: Inter for Latin, Kantumruy as glyph fallback for
-  /// Khmer across both regular and bold weights.
+  /// The base document theme: ABC Ginto for Latin, MiSans Khmer as glyph
+  /// fallback for Khmer across both regular and bold weights.
   pw.ThemeData buildTheme() => pw.ThemeData.withFont(
         base: _base!,
         bold: _bold!,

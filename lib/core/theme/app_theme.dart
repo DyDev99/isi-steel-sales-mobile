@@ -32,6 +32,10 @@ class AppTheme {
 
   static ThemeData _build(Brightness brightness, String fontFamily) {
     final isDark = brightness == Brightness.dark;
+    // The counterpart script family. ABC Ginto carries no Khmer glyphs and
+    // MiSans Khmer no Latin ones, so every style built here needs the fallback
+    // or the other script renders as tofu — see AppTypography's class doc.
+    final fontFamilyFallback = AppTypography.fallbackFor(fontFamily);
     final tokens = isDark ? const _DarkTokens() : const _LightTokens();
     final extension = isDark ? AppThemeColors.dark : AppThemeColors.light;
 
@@ -62,8 +66,12 @@ class AppTheme {
       // Global font family — every screen, dialog, and Material widget inherits
       // it from here unless a widget explicitly overrides fontFamily.
       fontFamily: fontFamily,
-      textTheme:
-          AppTypography.textTheme(tokens.textPrimary, fontFamily: fontFamily),
+      fontFamilyFallback: fontFamilyFallback,
+      textTheme: AppTypography.textTheme(
+        tokens.textPrimary,
+        fontFamily: fontFamily,
+        fontFamilyFallback: fontFamilyFallback,
+      ),
       colorScheme: colorScheme,
       scaffoldBackgroundColor: tokens.scaffoldBackground,
       // Semantic tokens for the app's custom surfaces (used by the theme UI now,
@@ -85,6 +93,7 @@ class AppTheme {
           fontSize: 18,
           fontWeight: FontWeight.w700,
           fontFamily: fontFamily,
+          fontFamilyFallback: fontFamilyFallback,
         ),
       ),
       cardTheme: CardThemeData(
@@ -113,8 +122,11 @@ class AppTheme {
       dividerTheme: DividerThemeData(color: tokens.border),
       snackBarTheme: SnackBarThemeData(
         backgroundColor: tokens.snackBarBackground,
-        contentTextStyle:
-            TextStyle(color: tokens.snackBarText, fontFamily: fontFamily),
+        contentTextStyle: TextStyle(
+          color: tokens.snackBarText,
+          fontFamily: fontFamily,
+          fontFamilyFallback: fontFamilyFallback,
+        ),
         behavior: SnackBarBehavior.floating,
       ),
       // Only touch hint/label/error text colors — no `border`/`filled`
@@ -141,6 +153,7 @@ class AppTheme {
             fontSize: 11,
             fontWeight: FontWeight.w600,
             fontFamily: fontFamily,
+            fontFamilyFallback: fontFamilyFallback,
             color: states.contains(WidgetState.selected)
                 ? tokens.selected
                 : tokens.unselected,

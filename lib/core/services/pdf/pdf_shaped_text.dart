@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:isi_steel_sales_mobile/core/theme/app_typography.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
@@ -27,7 +28,7 @@ import 'package:pdf/widgets.dart' as pw;
 class PdfShapedText {
   PdfShapedText({
     this.scale = 6.0,
-    this.fontFamily = 'Kantumruy',
+    this.fontFamily = AppTypography.khmerFontFamily,
   });
 
   /// Raster supersampling factor: glyphs render at `fontSize × scale` px and
@@ -35,7 +36,7 @@ class PdfShapedText {
   final double scale;
 
   /// Flutter-registered font family used to shape/rasterize (must ship the
-  /// script's glyphs — Kantumruy for Khmer, per pubspec `fonts:`).
+  /// script's glyphs — MiSans Khmer for Khmer, per pubspec `fonts:`).
   final String fontFamily;
 
   static final RegExp _khmer = RegExp(r'[ក-៿᧠-᧿]');
@@ -113,7 +114,7 @@ class PdfShapedText {
         color: _uiColor(r.color),
         fontSize: pxSize,
         fontFamily: fontFamily,
-        fontFamilyFallback: const ['Inter'],
+        fontFamilyFallback: const [AppTypography.latinFontFamily],
         fontWeight: r.bold ? ui.FontWeight.w700 : ui.FontWeight.w400,
         letterSpacing: r.letterSpacing * scale,
         // Approximates pdf's `lineSpacing` (extra pts between lines).

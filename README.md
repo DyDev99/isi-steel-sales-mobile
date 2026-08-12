@@ -107,7 +107,7 @@ Local mutation and its sync-queue entry are written **inside the same transactio
 | **Location & maps** | `geolocator` · `geocoding` · `google_maps_flutter` |
 | **Capture** | `mobile_scanner` · `image_picker` · `speech_to_text` · `file_picker` |
 | **Documents** | `pdf` · `printing` · `open_filex` |
-| **UI** | Material 3 · `flutter_screenutil` · `fl_chart` · `lottie` · `cached_network_image` · Inter + Kantumruy |
+| **UI** | Material 3 · `flutter_screenutil` · `fl_chart` · `lottie` · `cached_network_image` · ABC Ginto (Latin) + MiSans Khmer |
 | **Testing** | `flutter_test` · `bloc_test` · `mocktail` |
 | **Codegen** | `build_runner` · `drift_dev` · `json_serializable` · `envied_generator` |
 
@@ -206,7 +206,7 @@ assets/  docs/  test/  tool/  web/
 
 ## Localization
 
-Two locales ship: `en` and `km`, defined in [app.dart](lib/app.dart) as `kSupportedLocales` and backed by `assets/lang/*.json`. Khmer renders in **Kantumruy**, Latin in **Inter**, selected per locale. Master data is stored bilingually so a language switch does not degrade catalog content — guarded by tests such as [product_delta_preserves_khmer_test.dart](test/features/order/product_delta_preserves_khmer_test.dart). See [docs/localization/LOCALIZATION.md](docs/localization/LOCALIZATION.md).
+Two locales ship: `en` and `km`, defined in [app.dart](lib/app.dart) as `kSupportedLocales` and backed by `assets/lang/*.json`. Khmer renders in **MiSans Khmer**, Latin in **ABC Ginto**; the locale picks the primary family and the other is always registered as its glyph fallback, since neither font covers the other's script. Master data is stored bilingually so a language switch does not degrade catalog content — guarded by tests such as [product_delta_preserves_khmer_test.dart](test/features/order/product_delta_preserves_khmer_test.dart). See [docs/localization/LOCALIZATION.md](docs/localization/LOCALIZATION.md).
 
 ---
 

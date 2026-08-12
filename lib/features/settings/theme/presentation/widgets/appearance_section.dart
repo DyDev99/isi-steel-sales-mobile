@@ -1,82 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
-import 'package:isi_steel_sales_mobile/shared/widgets/glass_card.dart';
 import 'package:isi_steel_sales_mobile/features/settings/theme/presentation/cubit/theme_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/settings/theme/presentation/cubit/theme_state.dart';
 import 'package:isi_steel_sales_mobile/features/settings/theme/presentation/widgets/theme_option_meta.dart';
 import 'package:isi_steel_sales_mobile/features/settings/theme/presentation/widgets/theme_selector_sheet.dart';
-import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/settings_section_card.dart';
 
 /// "Appearance" block for the Profile screen — a single **Theme** row that opens
 /// the [showThemeSelectorSheet] picker and reflects the active selection live
 /// via [ThemeCubit].
 ///
-/// Styled with the same [GlassCard] as [ProfileInfoSection] and fully
-/// theme-aware, so it renders correctly in both light and dark. The theme it
-/// controls, of course, applies app-wide instantly.
+/// Layout, padding, and type come from [SettingsSectionCard] / [SettingsRow],
+/// which this shares with `LanguageSection` — see that widget's doc for why the
+/// two are no longer allowed to define their own metrics.
 class AppearanceSection extends StatelessWidget {
   const AppearanceSection({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final colors = context.appColors;
-    return GlassCard(
-      padding: const EdgeInsets.fromLTRB(18, 16, 12, 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'appearance.title'.tr,
-            style: TextStyle(
-              color: scheme.onSurface,
-              fontSize: context.rsp(14.5),
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          SizedBox(height: context.rh(4)),
-          BlocBuilder<ThemeCubit, ThemeState>(
-            builder: (context, state) {
-              final mode = state.mode;
-              return InkWell(
-                onTap: () => showThemeSelectorSheet(context),
-                borderRadius: BorderRadius.circular(12),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: Row(
-                    children: [
-                      Icon(mode.icon, size: context.rr(20), color: scheme.primary),
-                      SizedBox(width: context.rw(12)),
-                      Text(
-                        'appearance.theme'.tr,
-                        style: TextStyle(
-                          color: scheme.onSurface,
-                          fontSize: context.rsp(13.5),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const Spacer(),
-                      Text(
-                        mode.labelKey.tr,
-                        style: TextStyle(
-                          color: colors.textSecondary,
-                          fontSize: context.rsp(13),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      SizedBox(width: context.rw(4)),
-                      Icon(Icons.chevron_right_rounded,
-                          size: context.rr(20), color: colors.textSecondary),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
+    return SettingsSectionCard(
+      title: 'appearance.title'.tr,
+      children: [
+        BlocBuilder<ThemeCubit, ThemeState>(
+          builder: (context, state) {
+            final mode = state.mode;
+            return SettingsRow(
+              icon: mode.icon,
+              label: 'appearance.theme'.tr,
+              value: mode.labelKey.tr,
+              onTap: () => showThemeSelectorSheet(context),
+            );
+          },
+        ),
+      ],
     );
   }
 }

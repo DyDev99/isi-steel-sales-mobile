@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/app_theme.dart';
+import 'package:isi_steel_sales_mobile/core/theme/app_typography.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product_pricing.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product_status.dart';
@@ -77,7 +78,7 @@ void main() {
         ScreenUtilInit(
           designSize: const Size(390, 844),
           builder: (context, _) => MaterialApp(
-            theme: AppTheme.light('Inter'),
+            theme: AppTheme.light(AppTypography.latinFontFamily),
             home: Scaffold(
               body: ProductResultCard(
                 product: product,

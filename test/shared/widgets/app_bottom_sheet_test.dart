@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isi_steel_sales_mobile/core/device/device_insets.dart';
 import 'package:isi_steel_sales_mobile/core/theme/app_theme.dart';
+import 'package:isi_steel_sales_mobile/core/theme/app_typography.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/app_bottom_sheet.dart';
 
 /// Verifies the device behaviour [AppBottomSheet] centralises — the logic that
@@ -45,7 +46,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        theme: AppTheme.light('Inter'),
+        theme: AppTheme.light(AppTypography.latinFontFamily),
         // bottomCenter mimics the loose vertical constraints a real modal route
         // gives its child. Under Material's tight constraints the sheet's
         // maxHeight cap could never take effect and the test would prove nothing.
@@ -71,7 +72,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        theme: AppTheme.light('Inter'),
+        theme: AppTheme.light(AppTypography.latinFontFamily),
         home: Scaffold(
           body: Builder(
             builder: (context) => ElevatedButton(

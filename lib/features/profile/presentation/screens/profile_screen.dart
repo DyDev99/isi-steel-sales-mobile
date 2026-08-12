@@ -70,66 +70,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
     context.read<AuthBloc>().add(const LogoutRequested());
   }
 
-  List<Widget> _actionSection(BuildContext context, ProfileLoaded state,
-      bool isTablet, ColorScheme scheme) {
+  /// Settings blocks + account actions, in one list shared by both layouts.
+  ///
+  /// Sizing is deliberately *not* branched on `isTablet` here: the responsive
+  /// helpers (`context.rh`/`rr`/`rsp`) already scale per window size class, and
+  /// running a second hand-tuned ladder alongside them is what made this screen
+  /// render at two different scales at once — the hardcoded tablet values were
+  /// also *smaller* than what the helpers resolve to at `medium`, so type
+  /// shrank on the wider screen. `isTablet` now decides structure only (see
+  /// [_buildTabletLayout]), never dimensions.
+  List<Widget> _actionSection(
+      BuildContext context, ProfileLoaded state, ColorScheme scheme) {
     return [
       const AppearanceSection(),
-      SizedBox(height: isTablet ? 24 : context.rh(16)),
+      SizedBox(height: context.rh(16)),
       const LanguageSection(),
-      SizedBox(height: isTablet ? 28 : context.rh(20)),
-      SizedBox(
-        width: double.infinity,
-        child: OutlinedButton.icon(
-          style: OutlinedButton.styleFrom(
-            padding: EdgeInsets.symmetric(vertical: isTablet ? 18 : 12),
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14)),
-          ),
-          onPressed: state.isSaving ? null : () => _edit(context, state),
-          icon: Icon(Icons.edit_rounded, size: isTablet ? 22 : context.rr(18)),
-          label: Text(
-            'profile.edit_profile'.tr,
-            style: TextStyle(fontSize: isTablet ? 16 : context.rsp(14)),
-          ),
-        ),
+      SizedBox(height: context.rh(20)),
+      _ActionButton(
+        icon: Icons.edit_rounded,
+        label: 'profile.edit_profile'.tr,
+        onPressed: state.isSaving ? null : () => _edit(context, state),
       ),
-      SizedBox(height: isTablet ? 14 : context.rh(10)),
-      SizedBox(
-        width: double.infinity,
-        child: OutlinedButton.icon(
-          style: OutlinedButton.styleFrom(
-            padding: EdgeInsets.symmetric(vertical: isTablet ? 18 : 12),
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14)),
-          ),
-          onPressed: () => Navigator.of(context).pushNamed(Static.forgotPassword),
-          icon: Icon(Icons.lock_reset_rounded,
-              size: isTablet ? 22 : context.rr(18)),
-          label: Text(
-            'profile.change_password'.tr,
-            style: TextStyle(fontSize: isTablet ? 16 : context.rsp(14)),
-          ),
-        ),
+      SizedBox(height: context.rh(10)),
+      _ActionButton(
+        icon: Icons.lock_reset_rounded,
+        label: 'profile.change_password'.tr,
+        onPressed: () => Navigator.of(context).pushNamed(Static.forgotPassword),
       ),
-      SizedBox(height: isTablet ? 28 : context.rh(20)),
-      SizedBox(
-        width: double.infinity,
-        child: TextButton.icon(
-          style: TextButton.styleFrom(
-            padding: EdgeInsets.symmetric(vertical: isTablet ? 18 : 12),
-          ),
-          onPressed: () => _confirmLogout(context),
-          icon: Icon(Icons.logout_rounded,
-              size: isTablet ? 22 : context.rr(18), color: scheme.error),
-          label: Text(
-            'profile.logout'.tr,
-            style: TextStyle(
-              color: scheme.error,
-              fontSize: isTablet ? 16 : context.rsp(14),
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
+      SizedBox(height: context.rh(20)),
+      _ActionButton(
+        icon: Icons.logout_rounded,
+        label: 'profile.logout'.tr,
+        color: scheme.error,
+        outlined: false,
+        onPressed: () => _confirmLogout(context),
       ),
     ];
   }
@@ -151,7 +125,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               'profile.title'.tr,
               style: TextStyle(
                 color: scheme.onSurface,
-                fontSize: isTablet ? 22 : context.rsp(17),
+                fontSize: context.rsp(17),
                 fontWeight: FontWeight.w800,
                 letterSpacing: -0.2,
               ),
@@ -207,7 +181,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         SizedBox(height: context.rh(24)),
         ProfileInfoSection(profile: state.profile),
         SizedBox(height: context.rh(16)),
-        ..._actionSection(context, state, false, scheme),
+        ..._actionSection(context, state, scheme),
       ],
     );
   }
@@ -242,12 +216,71 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 ProfileInfoSection(profile: state.profile, isTablet: true),
                 const SizedBox(height: 24),
-                ..._actionSection(context, state, true, scheme),
+                ..._actionSection(context, state, scheme),
               ],
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+/// A full-width account action. One widget for all three so the row of buttons
+/// keeps a single height, radius, icon size, and type scale — previously the
+/// two outlined buttons and the logout button each declared their own, and the
+/// logout button silently lost the 14pt corner radius the others had.
+///
+/// [outlined] is the only visual variant: logout is a low-emphasis text button
+/// so it does not compete with the two actions above it.
+class _ActionButton extends StatelessWidget {
+  const _ActionButton({
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+    this.color,
+    this.outlined = true,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback? onPressed;
+
+  /// Overrides the foreground colour — the error tone, for logout.
+  final Color? color;
+
+  final bool outlined;
+
+  @override
+  Widget build(BuildContext context) {
+    final padding = EdgeInsets.symmetric(vertical: context.rh(12));
+    final shape =
+        RoundedRectangleBorder(borderRadius: BorderRadius.circular(14));
+    final iconWidget = Icon(icon, size: context.rr(18), color: color);
+    final labelWidget = Text(
+      label,
+      style: TextStyle(
+        color: color,
+        fontSize: context.rsp(14),
+        fontWeight: FontWeight.w700,
+      ),
+    );
+
+    return SizedBox(
+      width: double.infinity,
+      child: outlined
+          ? OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(padding: padding, shape: shape),
+              onPressed: onPressed,
+              icon: iconWidget,
+              label: labelWidget,
+            )
+          : TextButton.icon(
+              style: TextButton.styleFrom(padding: padding, shape: shape),
+              onPressed: onPressed,
+              icon: iconWidget,
+              label: labelWidget,
+            ),
     );
   }
 }

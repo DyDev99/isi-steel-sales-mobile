@@ -36,35 +36,30 @@ class ProfileInfoSection extends StatelessWidget {
             Text('profile.details'.tr,
                 style: TextStyle(
                     color: scheme.onSurface,
-                    fontSize: isTablet ? 16 : context.rsp(14.5),
+                    fontSize: context.rsp(14.5),
                     fontWeight: FontWeight.w800,
                     letterSpacing: -0.1)),
-            SizedBox(height: isTablet ? 16 : context.rh(12)),
+            SizedBox(height: context.rh(12)),
             _InfoTile(
                 icon: Icons.email_rounded,
                 label: 'profile.email'.tr,
-                value: profile.email,
-                isTablet: isTablet),
+                value: profile.email),
             _InfoTile(
                 icon: Icons.phone_rounded,
                 label: 'profile.phone'.tr,
-                value: profile.phone,
-                isTablet: isTablet),
+                value: profile.phone),
             _InfoTile(
                 icon: Icons.map_rounded,
                 label: 'profile.territory'.tr,
-                value: profile.territory,
-                isTablet: isTablet),
+                value: profile.territory),
             _InfoTile(
                 icon: Icons.public_rounded,
                 label: 'profile.region'.tr,
-                value: profile.region,
-                isTablet: isTablet),
+                value: profile.region),
             _InfoTile(
                 icon: Icons.event_rounded,
                 label: 'profile.joined'.tr,
-                value: _formatDate(context, profile.joinedAt),
-                isTablet: isTablet),
+                value: _formatDate(context, profile.joinedAt)),
             _InfoTile(
               icon: profile.isActive
                   ? Icons.check_circle_rounded
@@ -77,7 +72,6 @@ class ProfileInfoSection extends StatelessWidget {
                   profile.isActive ? colors.success : colors.textSecondary,
               iconColor: profile.isActive ? colors.success : null,
               showDivider: false,
-              isTablet: isTablet,
             ),
           ],
         ),
@@ -94,7 +88,6 @@ class _InfoTile extends StatelessWidget {
     this.valueColor,
     this.iconColor,
     this.showDivider = true,
-    this.isTablet = false,
   });
 
   final IconData icon;
@@ -103,7 +96,6 @@ class _InfoTile extends StatelessWidget {
   final Color? valueColor;
   final Color? iconColor;
   final bool showDivider;
-  final bool isTablet;
 
   @override
   Widget build(BuildContext context) {
@@ -114,30 +106,30 @@ class _InfoTile extends StatelessWidget {
     return Column(
       children: [
         Padding(
-          padding: EdgeInsets.symmetric(vertical: isTablet ? 12 : 10),
+          padding: EdgeInsets.symmetric(vertical: context.rh(10)),
           child: Row(
             children: [
               Container(
-                width: isTablet ? 38 : 32,
-                height: isTablet ? 38 : 32,
+                width: context.rr(32),
+                height: context.rr(32),
                 decoration: BoxDecoration(
                   color: accent.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(icon, size: isTablet ? 19 : context.rr(16), color: accent),
+                child: Icon(icon, size: context.rr(16), color: accent),
               ),
-              SizedBox(width: isTablet ? 14 : context.rw(12)),
+              SizedBox(width: context.rw(12)),
               Expanded(
                 child: Text(label,
                     style: TextStyle(
                         color: colors.textSecondary,
-                        fontSize: isTablet ? 14 : context.rsp(13))),
+                        fontSize: context.rsp(13))),
               ),
               Text(value,
                   textAlign: TextAlign.right,
                   style: TextStyle(
                       color: valueColor ?? scheme.onSurface,
-                      fontSize: isTablet ? 14 : context.rsp(13),
+                      fontSize: context.rsp(13),
                       fontWeight: FontWeight.w700)),
             ],
           ),

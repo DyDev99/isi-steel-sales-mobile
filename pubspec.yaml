@@ -75,31 +75,49 @@ flutter:
     - assets/images/
     - assets/lang/
 
+  # Font families are declared here and resolved in `core/theme/app_typography.dart`.
+  # The two families are strictly complementary — ABC Ginto has no Khmer glyphs
+  # and MiSans Khmer has no Latin glyphs — so each is registered as the other's
+  # `fontFamilyFallback`. Never ship one without the other.
+  #
+  # Only .ttf/.otf/.ttc can be loaded by Flutter's font engine. ABC Ginto was
+  # delivered as .woff/.woff2 (web formats) and MiSans Khmer as CFF .otf (which
+  # the `pdf` package cannot parse), so both were converted to .ttf; the original
+  # drops are kept alongside as the source of truth. Re-run the conversion if the
+  # vendor ships new weights.
   fonts:
-    - family: Kantumruy
+    # Latin/English UI. Three weights only — Flutter snaps a requested weight to
+    # the nearest one declared, so w600 renders Medium and w800/w900 render Bold.
+    - family: ABC Ginto
       fonts:
-        - asset: assets/fonts/kantumruy_5.2.5/ttf/kantumruy-khmer-300-normal.ttf
-          weight: 300
-        - asset: assets/fonts/kantumruy_5.2.5/ttf/kantumruy-khmer-400-normal.ttf
+        - asset: assets/fonts/ABCGinto-Regular.ttf
           weight: 400
-        - asset: assets/fonts/kantumruy_5.2.5/ttf/kantumruy-khmer-700-normal.ttf
-          weight: 700
-    # Latin UI font used for the English locale (Khmer uses Kantumruy above).
-    - family: Inter
-      fonts:
-        - asset: assets/fonts/Inter/static/Inter_18pt-Light.ttf
-          weight: 300
-        - asset: assets/fonts/Inter/static/Inter_18pt-Regular.ttf
-          weight: 400
-        - asset: assets/fonts/Inter/static/Inter_18pt-Medium.ttf
+        - asset: assets/fonts/ABCGinto-Medium.ttf
           weight: 500
-        - asset: assets/fonts/Inter/static/Inter_18pt-SemiBold.ttf
-          weight: 600
-        - asset: assets/fonts/Inter/static/Inter_18pt-Bold.ttf
+        - asset: assets/fonts/ABCGinto-Bold.ttf
           weight: 700
-        - asset: assets/fonts/Inter/static/Inter_18pt-ExtraBold.ttf
-          weight: 800
-        - asset: assets/fonts/Inter/static/Inter_18pt-Black.ttf
+    # Khmer UI (U+1780–U+17FF, incl. Khmer numerals). MiSans ships ten optical
+    # weights against Flutter's nine slots; weights are mapped by *name* rather
+    # than by the font's own usWeightClass so a given slot renders visually equal
+    # across both families (Bold pairs with Bold at w700). MiSansKhmer-Normal and
+    # -Demibold have no distinct slot and are intentionally not registered.
+    - family: MiSans Khmer
+      fonts:
+        - asset: assets/fonts/khmer/MiSansKhmer-Thin.ttf
+          weight: 100
+        - asset: assets/fonts/khmer/MiSansKhmer-ExtraLight.ttf
+          weight: 200
+        - asset: assets/fonts/khmer/MiSansKhmer-Light.ttf
+          weight: 300
+        - asset: assets/fonts/khmer/MiSansKhmer-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/khmer/MiSansKhmer-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/khmer/MiSansKhmer-Semibold.ttf
+          weight: 600
+        - asset: assets/fonts/khmer/MiSansKhmer-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/khmer/MiSansKhmer-Heavy.ttf
           weight: 900
 
 # 3. Added configuration for Android and iOS asset generation

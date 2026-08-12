@@ -606,14 +606,6 @@
     "cross_sell_gaps": "Cross-Sell Gaps (Tap to target)",
     "creating_opportunity": "Creating opportunity for {product}…"
   },
-  "notification": {
-    "title": "Notifications",
-    "mark_all_read": "Mark all as read",
-    "empty": "No new notifications",
-    "welcome_title": "Welcome!",
-    "welcome_body": "Please log in to view your notifications and get the full app experience.",
-    "login": "Log in"
-  },
   "my_visits": {
     "title": "My Visits",
     "list": "Visit List",
@@ -972,18 +964,18 @@
     "login": "Login",
     "welcome_title": "Welcome!",
     "welcome_body": "Please login to view notifications and get the full experience.",
-   
     "status": {
       "read": "Read",
       "unread": "Unread"
     },
-    "filter": { 
+    "filter": {
       "all": "All",
       "approved": "Approved",
       "assigned": "Assigned",
       "opportunity": "Opportunity",
       "pending": "Pending",
-      "followup": "Follow-up Due"
+      "followup": "Follow-up Due",
+      "no_results": "No notifications match this filter."
     }
   },
   "add_customer": {
@@ -1305,5 +1297,4 @@
     "stage_quotation": "Quotation",
     "stage_won": "Won"
   }
-  
 }

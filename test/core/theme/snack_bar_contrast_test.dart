@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isi_steel_sales_mobile/core/theme/app_theme.dart';
+import 'package:isi_steel_sales_mobile/core/theme/app_typography.dart';
 
 /// Guards the defect that produced the phantom "white widget" on Home and the
 /// Route Dashboard.
@@ -28,8 +29,8 @@ void main() {
   }
 
   for (final (name, theme) in [
-    ('light', AppTheme.light('Inter')),
-    ('dark', AppTheme.dark('Inter')),
+    ('light', AppTheme.light(AppTypography.latinFontFamily)),
+    ('dark', AppTheme.dark(AppTypography.latinFontFamily)),
   ]) {
     group('$name theme SnackBar', () {
       late Color background;
