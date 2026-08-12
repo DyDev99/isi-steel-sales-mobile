@@ -26,7 +26,14 @@ Future<WorkerProfile?> showEditProfileSheet({
               width: 560,
               decoration: BoxDecoration(
                 color: context.appColors.surfaceSoft,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.18),
+                    blurRadius: 40,
+                    offset: const Offset(0, 16),
+                  ),
+                ],
               ),
               child: _EditProfileSheet(profile: profile, isTablet: true),
             ),
@@ -36,7 +43,7 @@ Future<WorkerProfile?> showEditProfileSheet({
       transitionBuilder: (context, anim1, anim2, child) {
         return ScaleTransition(
           scale: CurvedAnimation(parent: anim1, curve: Curves.easeOutCubic),
-          child: child,
+          child: FadeTransition(opacity: anim1, child: child),
         );
       },
     );
@@ -48,7 +55,7 @@ Future<WorkerProfile?> showEditProfileSheet({
     backgroundColor: context.appColors.surfaceSoft,
     isScrollControlled: true,
     shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
     builder: (_) => _EditProfileSheet(profile: profile, isTablet: false),
   );
 }
@@ -98,9 +105,38 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
     return widget.isTablet ? basePhoneSize * 1.15 : context.rsp(basePhoneSize);
   }
 
+  InputDecoration _fieldDecoration(BuildContext context, String label) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
+    return InputDecoration(
+      labelText: label,
+      labelStyle: TextStyle(fontSize: _fontSize(14), color: colors.textSecondary),
+      filled: true,
+      fillColor: colors.surfaceStrong.withValues(alpha: 0.35),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: colors.border.withValues(alpha: 0.5)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: scheme.primary, width: 1.6),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: scheme.error),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     final textColor = TextStyle(
       color: scheme.onSurface,
       fontSize: _fontSize(15),
@@ -112,13 +148,32 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
               ? 0
               : MediaQuery.of(context).viewInsets.bottom),
       child: Padding(
-        padding: EdgeInsets.all(widget.isTablet ? 32.0 : 20.0),
+        padding: EdgeInsets.fromLTRB(
+          widget.isTablet ? 32 : 20,
+          widget.isTablet ? 28 : 12,
+          widget.isTablet ? 32 : 20,
+          widget.isTablet ? 32 : 24,
+        ),
         child: Form(
           key: _formKey,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Drag handle — a small, familiar "this is casual, relax" cue
+              // on the phone-sized bottom sheet.
+              if (!widget.isTablet)
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 18),
+                    decoration: BoxDecoration(
+                      color: colors.border,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                  ),
+                ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -126,8 +181,9 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
                     'profile.edit_profile'.tr,
                     style: TextStyle(
                       color: scheme.onSurface,
-                      fontSize: _fontSize(18),
+                      fontSize: _fontSize(19),
                       fontWeight: FontWeight.w800,
+                      letterSpacing: -0.2,
                     ),
                   ),
                   if (widget.isTablet)
@@ -137,61 +193,66 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
                     ),
                 ],
               ),
-              SizedBox(height: widget.isTablet ? 20 : context.rh(16)),
+              SizedBox(height: widget.isTablet ? 24 : context.rh(18)),
               TextFormField(
                 controller: _nameController,
                 style: textColor,
-                decoration: InputDecoration(
-                  labelText: 'profile.full_name'.tr,
-                  labelStyle: TextStyle(fontSize: _fontSize(14)),
-                ),
+                decoration: _fieldDecoration(context, 'profile.full_name'.tr),
                 validator: (v) => (v == null || v.trim().isEmpty)
                     ? 'profile.required'.tr
                     : null,
               ),
-              SizedBox(height: widget.isTablet ? 16 : context.rh(12)),
+              SizedBox(height: widget.isTablet ? 16 : context.rh(14)),
               TextFormField(
                 controller: _phoneController,
                 style: textColor,
                 keyboardType: TextInputType.phone,
-                decoration: InputDecoration(
-                  labelText: 'profile.phone'.tr,
-                  labelStyle: TextStyle(fontSize: _fontSize(14)),
-                ),
+                decoration: _fieldDecoration(context, 'profile.phone'.tr),
                 validator: (v) => (v == null || v.trim().isEmpty)
                     ? 'profile.required'.tr
                     : null,
               ),
-              SizedBox(height: widget.isTablet ? 16 : context.rh(12)),
+              SizedBox(height: widget.isTablet ? 16 : context.rh(14)),
               TextFormField(
                 controller: _territoryController,
                 style: textColor,
-                decoration: InputDecoration(
-                  labelText: 'profile.territory'.tr,
-                  labelStyle: TextStyle(fontSize: _fontSize(14)),
-                ),
+                decoration: _fieldDecoration(context, 'profile.territory'.tr),
                 validator: (v) => (v == null || v.trim().isEmpty)
                     ? 'profile.required'.tr
                     : null,
               ),
-              SizedBox(height: widget.isTablet ? 28 : context.rh(20)),
+              SizedBox(height: widget.isTablet ? 28 : context.rh(24)),
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _save,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: scheme.primary,
-                    foregroundColor: scheme.onPrimary,
-                    padding: EdgeInsets.symmetric(
-                        vertical: widget.isTablet ? 18 : 14),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14)),
+                height: widget.isTablet ? 56 : 50,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(14),
+                    gradient: LinearGradient(
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      colors: [
+                        scheme.primary,
+                        scheme.primary.withValues(alpha: 0.82),
+                      ],
+                    ),
                   ),
-                  child: Text(
-                    'profile.save_changes'.tr,
-                    style: TextStyle(
-                      fontSize: _fontSize(15),
-                      fontWeight: FontWeight.bold,
+                  child: ElevatedButton(
+                    onPressed: _save,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      foregroundColor: scheme.onPrimary,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
+                    ),
+                    child: Text(
+                      'profile.save_changes'.tr,
+                      style: TextStyle(
+                        fontSize: _fontSize(15),
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.2,
+                      ),
                     ),
                   ),
                 ),

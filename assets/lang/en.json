@@ -967,13 +967,23 @@
   },
   "notifications": {
     "title": "Notifications",
-    "no_notifications": "No notifications",
-    "kinds": {
-      "creditApproved": "Credit Approved",
-      "leadAssigned": "New Lead Assigned",
-      "opportunityMoved": "Pipeline Deal Updated",
-      "creditPending": "Credit Status Pending",
-      "followUpDue": "Follow-up Due Reminder"
+    "mark_all_read": "Mark all as read",
+    "empty": "No new notifications",
+    "login": "Login",
+    "welcome_title": "Welcome!",
+    "welcome_body": "Please login to view notifications and get the full experience.",
+   
+    "status": {
+      "read": "Read",
+      "unread": "Unread"
+    },
+    "filter": { 
+      "all": "All",
+      "approved": "Approved",
+      "assigned": "Assigned",
+      "opportunity": "Opportunity",
+      "pending": "Pending",
+      "followup": "Follow-up Due"
     }
   },
   "add_customer": {
@@ -1295,4 +1305,5 @@
     "stage_quotation": "Quotation",
     "stage_won": "Won"
   }
+  
 }

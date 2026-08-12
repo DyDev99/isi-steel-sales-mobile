@@ -1,18 +1,13 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/animations/app_animations.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
-import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/presentation/services/coach_keys.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/usecases/lead_usecase.dart';
-import 'package:isi_steel_sales_mobile/features/localization/presentation/bloc/language_cubit.dart';
-import 'package:isi_steel_sales_mobile/features/localization/presentation/widgets/language_reload_dialog.dart';
 import 'package:isi_steel_sales_mobile/features/notification/domain/usecases/fetch_notifications.dart';
 import 'package:isi_steel_sales_mobile/features/notification/presentation/screen/notifications_sheet.dart';
-import 'package:isi_steel_sales_mobile/routes/app_routes.dart';
 
 class MainAppBar extends StatelessWidget {
   const MainAppBar({
@@ -133,111 +128,7 @@ class MainAppBar extends StatelessWidget {
               ),
               SizedBox(width: context.rw(12)),
 
-              // 3. Language Selector Popup Menu — 3D Medallion
-              CoachKeys.wrap(
-                CoachKeys.language,
-                child: PopupMenuButton<String>(
-                  offset: const Offset(0, 42),
-                  elevation: 8,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16.r),
-                    side: BorderSide(
-                      color: _goldPrimary.withValues(alpha: 0.5),
-                      width: 1.2,
-                    ),
-                  ),
-                  color: scheme.surface,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  style: const ButtonStyle(
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  onSelected: (code) async {
-                    final languageCubit = context.read<LanguageCubit>();
-                    final currentLang = languageCubit.state.languageCode;
-                    if (code == currentLang) return;
-
-                    final target = languageCubit.supportedLanguages.firstWhere(
-                      (l) => l.code == code,
-                      orElse: () => languageCubit.supportedLanguages.first,
-                    );
-
-                    final confirmed =
-                        await showLanguageReloadConfirmDialog(context, target);
-                    if (!confirmed || !context.mounted) return;
-
-                    await languageCubit.changeLanguage(code);
-                    navigatorKey.currentState?.pushNamedAndRemoveUntil(
-                      Static.main,
-                      (route) => false,
-                    );
-                  },
-                  itemBuilder: (menuContext) {
-                    final languageCubit = context.read<LanguageCubit>();
-                    final currentLang = languageCubit.state.languageCode;
-
-                    return languageCubit.supportedLanguages.map((language) {
-                      final isSelected = currentLang == language.code;
-                      return PopupMenuItem<String>(
-                        value: language.code,
-                        height: context.rh(48),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              language.flag,
-                              style: TextStyle(fontSize: context.rsp(18)),
-                            ),
-                            SizedBox(width: context.rw(10)),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  language.nameKey.tr,
-                                  style: TextStyle(
-                                    color: scheme.onSurface,
-                                    fontSize: context.rsp(13),
-                                    fontWeight: isSelected
-                                        ? FontWeight.w800
-                                        : FontWeight.w500,
-                                  ),
-                                ),
-                                Text(
-                                  language.regionKey.tr,
-                                  style: TextStyle(
-                                    color:
-                                        scheme.onSurface.withValues(alpha: 0.5),
-                                    fontSize: context.rsp(10),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(width: context.rw(16)),
-                            if (isSelected)
-                              Icon(
-                                Icons.check_circle_rounded,
-                                size: context.rr(16),
-                                color: _goldPrimary,
-                              ),
-                          ],
-                        ),
-                      );
-                    }).toList();
-                  },
-                  child: _AppBarMedallionButton(
-                    isHome: isHome,
-                    child: Icon(
-                      Icons.language,
-                      color: isHome ? Colors.white : scheme.onSurface,
-                      size: context.rr(18),
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(width: context.rw(10)),
-
-              // 4. Notification Bell — 3D Medallion
+              // 3. Notification Bell — 3D Medallion
               CoachKeys.wrap(
                 CoachKeys.notification,
                 child: _NotificationBell(
@@ -247,7 +138,7 @@ class MainAppBar extends StatelessWidget {
               ),
               SizedBox(width: context.rw(10)),
 
-              // 5. User Avatar — 3D Traditional Gold Frame
+              // 4. User Avatar — 3D Traditional Gold Frame
               CoachKeys.wrap(
                 CoachKeys.profile,
                 child: GestureDetector(

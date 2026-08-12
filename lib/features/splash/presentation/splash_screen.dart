@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/database/hive/app_preferences.dart';
 import 'package:isi_steel_sales_mobile/core/utils/version.dart';
@@ -103,7 +102,7 @@ class _SplashScreenState extends State<SplashScreen>
                       // "SteelForce" in both bundles; brand names are not
                       // translated (LOCALIZATION.md §9), but they *are* keyed
                       // so a rebrand is a bundle edit, not a code hunt.
-                      'splash.brand'.tr,
+                      'STEEL360',
                       style: const TextStyle(
                         fontSize: 26,
                         fontWeight: FontWeight.w900,
@@ -115,7 +114,7 @@ class _SplashScreenState extends State<SplashScreen>
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'splash.group_line'.tr,
+                      'ISI STEEL - MEMBERS OF ISI GROUP',
                       style: const TextStyle(
                         color: Colors.grey, // Changed from Vibe.muted
                         fontSize: 13,

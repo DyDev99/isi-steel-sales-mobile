@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/device/device_insets.dart';
-import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart'; // Handles the .tr extension
-import 'package:isi_steel_sales_mobile/core/localization/localized_builder.dart'; // Triggers reactive rebuilds
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localized_builder.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/lead/domain/entities/notification_item.dart';
 import 'package:isi_steel_sales_mobile/features/notification/domain/usecases/fetch_notifications.dart';
@@ -12,9 +12,6 @@ Future<void> showNotificationsSheet({
   required BuildContext context,
   required FetchNotifications fetchNotifications,
   bool isGuest = false,
-  // Wired by the caller to the app's shared login flow (AuthGuard). Only used
-  // in guest mode, where the empty state turns into a "sign in to see your
-  // notifications" call to action rather than a dead end.
   VoidCallback? onLogin,
 }) {
   final colors = context.appColors;
@@ -33,7 +30,7 @@ Future<void> showNotificationsSheet({
   );
 }
 
-class _NotificationsSheet extends StatelessWidget {
+class _NotificationsSheet extends StatefulWidget {
   const _NotificationsSheet({
     required this.fetchNotifications,
     this.isGuest = false,
@@ -44,32 +41,60 @@ class _NotificationsSheet extends StatelessWidget {
   final bool isGuest;
   final VoidCallback? onLogin;
 
+  @override
+  State<_NotificationsSheet> createState() => _NotificationsSheetState();
+}
+
+class _NotificationsSheetState extends State<_NotificationsSheet> {
+  // Store the future here to prevent re-fetching on every setState/filter change
+  late Future<List<NotificationItem>> _notificationsFuture;
+  
+  // Null means "All" notifications are selected
+  NotificationKind? _selectedFilter;
+
+  @override
+  void initState() {
+    super.initState();
+    if (!widget.isGuest) {
+      _notificationsFuture = widget.fetchNotifications(const NoParams());
+    }
+  }
+
   ({IconData icon, Color color}) _style(
       BuildContext context, NotificationKind kind) {
     final colors = context.appColors;
     return switch (kind) {
       NotificationKind.creditApproved => (
           icon: Icons.verified_rounded,
-          color: colors.success // Replaced Vibe.success
+          color: colors.success
         ),
       NotificationKind.leadAssigned => (
           icon: Icons.person_add_alt_1_rounded,
-          color: colors.accentPurple // Replaced Vibe.violet
+          color: colors.accentPurple
         ),
       NotificationKind.opportunityMoved => (
           icon: Icons.trending_up_rounded,
-          color: colors.warning // Replaced Vibe.amber
+          color: colors.warning
         ),
       NotificationKind.creditPending => (
           icon: Icons.hourglass_top_rounded,
-          color: colors.warning // Replaced Vibe.amber
+          color: colors.warning
         ),
       NotificationKind.followUpDue => (
           icon: Icons.event_repeat_rounded,
-          color: Theme.of(context)
-              .colorScheme
-              .error // Replaced Vibe.danger with Material 3 semantic error
+          color: Theme.of(context).colorScheme.error
         ),
+    };
+  }
+
+  // Helper to generate readable labels for the filter chips
+  String _getFilterLabel(NotificationKind kind) {
+    return switch (kind) {
+      NotificationKind.creditApproved => 'notifications.filter.approved'.tr.isEmpty ? 'Approved' : 'notifications.filter.approved'.tr,
+      NotificationKind.leadAssigned => 'notifications.filter.assigned'.tr.isEmpty ? 'Assigned' : 'notifications.filter.assigned'.tr,
+      NotificationKind.opportunityMoved => 'notifications.filter.opportunity'.tr.isEmpty ? 'Opportunity' : 'notifications.filter.opportunity'.tr,
+      NotificationKind.creditPending => 'notifications.filter.pending'.tr.isEmpty ? 'Pending' : 'notifications.filter.pending'.tr,
+      NotificationKind.followUpDue => 'notifications.filter.followup'.tr.isEmpty ? 'Follow Up' : 'notifications.filter.followup'.tr,
     };
   }
 
@@ -77,13 +102,9 @@ class _NotificationsSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     return SafeArea(
-      // LocalizedBuilder forces a sub-tree rebuild when language changes smoothly
       child: LocalizedBuilder(
         builder: (context) {
           return SizedBox(
-            // screenSize uses the scoped MediaQuery.sizeOf, so this sheet
-            // rebuilds on a size change but not on every keyboard/inset tick —
-            // see DeviceInsets' rationale.
             height: context.deviceInsets.screenSize.height * 0.7,
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
@@ -93,46 +114,84 @@ class _NotificationsSheet extends StatelessWidget {
                   Text(
                     'notifications.title'.tr,
                     style: TextStyle(
-                        color: colors.textPrimary, // Replaced Vibe.text
+                        color: colors.textPrimary,
                         fontSize: 17,
                         fontWeight: FontWeight.w800),
                   ),
                   const SizedBox(height: 12),
+                  
+                  // Filter Chips UI (Only show if not a guest)
+                  if (!widget.isGuest) ...[
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          ChoiceChip(
+                            label: Text('notifications.filter.all'.tr.isEmpty ? 'All' : 'notifications.filter.all'.tr),
+                            selected: _selectedFilter == null,
+                            onSelected: (selected) {
+                              if (selected) setState(() => _selectedFilter = null);
+                            },
+                            selectedColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+                          ),
+                          const SizedBox(width: 8),
+                          ...NotificationKind.values.map((kind) {
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: ChoiceChip(
+                                label: Text(_getFilterLabel(kind)),
+                                selected: _selectedFilter == kind,
+                                onSelected: (selected) {
+                                  setState(() {
+                                    _selectedFilter = selected ? kind : null;
+                                  });
+                                },
+                                selectedColor: _style(context, kind).color.withValues(alpha: 0.2),
+                              ),
+                            );
+                          }),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+
                   Expanded(
-                    // Check if guest: show welcome message, otherwise fetch notifications
-                    child: isGuest
+                    child: widget.isGuest
                         ? _buildGuestMessage(context)
                         : FutureBuilder<List<NotificationItem>>(
-                            future: fetchNotifications(const NoParams()),
+                            future: _notificationsFuture, // Uses initialized future
                             builder: (context, snapshot) {
                               if (!snapshot.hasData) {
                                 return Center(
                                     child: CircularProgressIndicator(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .primary)); // Replaced Vibe.pink with primary theme indicator
+                                        color: Theme.of(context).colorScheme.primary));
                               }
-                              final items = snapshot.data!;
+                              
+                              // Apply the active filter here
+                              final allItems = snapshot.data!;
+                              final items = _selectedFilter == null 
+                                  ? allItems 
+                                  : allItems.where((item) => item.kind == _selectedFilter).toList();
+
                               if (items.isEmpty) {
                                 return Center(
                                   child: Text(
-                                    'notifications.no_notifications'.tr,
-                                    style: TextStyle(
-                                        color: colors
-                                            .textHint), // Replaced Vibe.muted
+                                    _selectedFilter == null 
+                                        ? 'notifications.no_notifications'.tr
+                                        : 'notifications.no_filtered_results'.tr.isEmpty ? 'No notifications match this filter.' : 'notifications.no_filtered_results'.tr,
+                                    style: TextStyle(color: colors.textHint),
                                   ),
                                 );
                               }
+                              
                               return ListView.separated(
                                 itemCount: items.length,
-                                separatorBuilder: (_, __) =>
-                                    const SizedBox(height: 4),
+                                separatorBuilder: (_, __) => const SizedBox(height: 4),
                                 itemBuilder: (context, i) {
                                   final item = items[i];
                                   final s = _style(context, item.kind);
 
-                                  // Check if title or body are localized system translation keys
-                                  // If they are regular strings, use fallback item.title directly.
                                   final displayTitle = item.title.contains('.')
                                       ? item.title.tr
                                       : item.title;
@@ -141,46 +200,37 @@ class _NotificationsSheet extends StatelessWidget {
                                       : item.body;
 
                                   return Padding(
-                                    padding:
-                                        const EdgeInsets.symmetric(vertical: 8),
+                                    padding: const EdgeInsets.symmetric(vertical: 8),
                                     child: Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Container(
                                           width: 36,
                                           height: 36,
                                           alignment: Alignment.center,
                                           decoration: BoxDecoration(
-                                            color:
-                                                s.color.withValues(alpha: 0.16),
-                                            borderRadius:
-                                                BorderRadius.circular(12),
+                                            color: s.color.withValues(alpha: 0.16),
+                                            borderRadius: BorderRadius.circular(12),
                                           ),
-                                          child: Icon(s.icon,
-                                              color: s.color, size: 18),
+                                          child: Icon(s.icon, color: s.color, size: 18),
                                         ),
                                         const SizedBox(width: 12),
                                         Expanded(
                                           child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
+                                            crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
                                               Text(
                                                 displayTitle,
                                                 style: TextStyle(
-                                                    color: colors
-                                                        .textPrimary, // Replaced Vibe.text
+                                                    color: colors.textPrimary,
                                                     fontSize: 13.5,
-                                                    fontWeight:
-                                                        FontWeight.w700),
+                                                    fontWeight: FontWeight.w700),
                                               ),
                                               const SizedBox(height: 2),
                                               Text(
                                                 displayBody,
                                                 style: TextStyle(
-                                                    color: colors
-                                                        .textSecondary, // Replaced Vibe.muted with readable textSecondary
+                                                    color: colors.textSecondary,
                                                     fontSize: 12.5),
                                               ),
                                             ],
@@ -203,7 +253,6 @@ class _NotificationsSheet extends StatelessWidget {
     );
   }
 
-  // The custom UI for a guest user
   Widget _buildGuestMessage(BuildContext context) {
     final colors = context.appColors;
 
@@ -220,8 +269,7 @@ class _NotificationsSheet extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'notification.welcome_title'
-                  .tr, // Optionally use .tr if you want to add this to your localization files
+              'notification.welcome_title'.tr,
               style: TextStyle(
                 color: colors.textPrimary,
                 fontSize: 18,
@@ -238,17 +286,14 @@ class _NotificationsSheet extends StatelessWidget {
                 height: 1.4,
               ),
             ),
-            // The actual "ask for login": without this the guest state is a
-            // dead end. Closes the sheet first, then hands control to the app's
-            // shared login flow so there's a single sign-in path.
-            if (onLogin != null) ...[
+            if (widget.onLogin != null) ...[
               const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
                 child: FilledButton.icon(
                   onPressed: () {
                     Navigator.of(context).pop();
-                    onLogin!.call();
+                    widget.onLogin!.call();
                   },
                   icon: const Icon(Icons.login_rounded, size: 18),
                   label: Text('notification.login'.tr,
