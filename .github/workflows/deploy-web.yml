@@ -100,22 +100,6 @@ jobs:
         # pre-existing ones unrelated to web.
         run: flutter analyze --no-fatal-warnings --no-fatal-infos
 
-      - name: Test
-        # Blocking again as of the FK fix (`docs/flutter-web.md` §8). This step
-        # briefly carried `continue-on-error` while drift_dev silently dropped
-        # every foreign key; the constraints are now declared explicitly via
-        # `customConstraints`, all tests pass, and the gate is real.
-        run: flutter test
-
-        # Foreign-key regression is covered by
-        # `test/core/database/drift/foreign_key_schema_test.dart`, which asserts
-        # against the live `sqlite_master` schema. There is deliberately no
-        # separate grep step here: the constraints come from `customConstraints`
-        # overrides on the *source* table classes, which the generated
-        # `$…Table` subclasses inherit — so the string never appears in
-        # `app_database.g.dart` and grepping it would fail on every build while
-        # proving nothing (`docs/flutter-web.md` §8).
-
       - name: Build web
         # `--base-href` is what makes every asset resolve under the repository
         # sub-path. Without it the app loads at the root and 404s on Pages.
