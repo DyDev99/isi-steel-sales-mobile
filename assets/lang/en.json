@@ -4,10 +4,16 @@
     "title": "Sign In",
     "sign_in_subtitle": "Please sign in to access your sales dashboard.",
     "username_or_phone": "Username or Phone Number",
+    "username": "Username",
+    "username_hint": "Employee ID, email or phone number",
+    "username_required": "Please enter your employee ID, email or phone number",
     "password": "Password",
     "forgot_password": "Forgot Password?",
     "email": "Email",
     "phone_number": "Phone Number",
+    "phone_hint": "12 345 201",
+    "phone_required": "Please enter your phone number",
+    "phone_invalid": "Enter a valid phone number",
     "send_reset_link": "Continue",
     "resend_code_in": "Resend code in {seconds}s",
     "resend_code": "Resend Code",
@@ -18,7 +24,7 @@
     "invalid_code": "That code isn't right. Please try again.",
     "otp_incomplete": "Please enter the full 6-digit code",
     "forgot_password_title": "Reset Password",
-    "forgot_password_subtitle": "Enter your email address or phone number to receive a verification code.",
+    "forgot_password_subtitle": "Enter your phone number to receive a verification code.",
     "check_your_inbox": "Check Your Inbox",
     "reset_instructions_sent": "We've sent a verification code to {target}",
     "back_to_login": "Back to Login",
@@ -64,6 +70,7 @@
     "offline": "You're offline — showing saved data",
     "generic_error": "Something went wrong. Please try again.",
     "no_connection": "No internet connection. Changes are saved on your device.",
+    "server_unreachable": "Can't reach the ISI server. Check the API address, VPN, or whether the backend is running.",
     "view_details": "View Details",
     "cancel": "Cancel",
     "save": "Save",
@@ -102,11 +109,13 @@
     "reset": "Reset",
     "search_button": "Search",
     "done": "Done",
-    "back_to_home": "Back to Home"
+    "back_to_home": "Back to Home",
+    "next": "Next"
   },
   "home": {
     "title": "Home Dashboard",
     "welcome": "Welcome Back",
+    "view_kpi": "View KPI",
     "achieved": "Achieved",
     "target": "Target",
     "quick_access": {
@@ -144,6 +153,42 @@
     "products": "Products"
   },
   "orders": {
+    "sku_key_in": {
+      "entry_point": "Key-in Order (SKU)",
+      "title": "Key-in Order",
+      "step_select_sku": "Select SKU",
+      "step_check_stock": "Check Stock",
+      "step_confirm_pricing": "Pricing & Discount",
+      "step_shipment": "Shipment",
+      "sku_search_hint": "Search by SKU or product name…",
+      "sku_search_empty": "No matching products. Try a different SKU or name.",
+      "stock_check_failed": "Couldn't check stock level. Please try again.",
+      "stock_out": "Out of Stock",
+      "stock_low": "Low Stock",
+      "stock_available": "In Stock",
+      "stock_out_hint": "This SKU is currently out of stock. Choose a different product or check again later.",
+      "quantity": "Quantity",
+      "unit_price": "Unit Price",
+      "discount_percent": "Discount %",
+      "line_total": "Line Total",
+      "pickup": "Pick Up",
+      "delivery": "Delivery",
+      "pickup_factory": "Factory",
+      "pickup_factory_hint": "Collect directly from the factory",
+      "pickup_branch": "Branch",
+      "pickup_branch_hint": "Collect from a branch depot",
+      "delivery_default": "Default Address (SAP)",
+      "no_default_address": "No default address on file",
+      "delivery_new": "Enter New Address & Phone Number",
+      "new_address": "Delivery Address",
+      "new_phone": "Contact Phone Number",
+      "add_to_cart": "Add to Cart",
+      "stock_as_of_sync": "As of last sync — not reserved in SAP",
+      "no_results_offline": "Showing products from your last sync.",
+      "quick_add_title": "Quick add by SKU",
+      "quick_add_subtitle": "Know the SKU? Search it here to check stock and price without browsing.",
+      "tap_to_add": "Tap a SKU to check stock and pricing"
+    },
     "title": "Orders",
     "new": "Create New Order",
     "new_order": "New Order",
@@ -354,7 +399,17 @@
       "clear_dependents_note": "Clearing a filter also clears the ones that depend on it.",
       "find_new_product": "Find new product",
       "cart_lines": "{count} line(s) in quotation",
-      "cart_units": "{count} unit(s) total"
+      "cart_units": "{count} unit(s) total",
+      "stock_location": "Stock location",
+      "stock_location_any": "All locations",
+      "sku_count": "({count})"
+    },
+    "order_line": {
+      "error_quantity_positive": "Enter a quantity of at least 1.",
+      "error_sku_unavailable": "This SKU cannot be sold right now. Choose another location or product.",
+      "error_exceeds_stock": "Only {available} {unit} available at {location}. Lower the quantity or pick another location.",
+      "stock_as_of_sync": "Stock as of last sync",
+      "price_locked": "Price locked for this quotation"
     }
   },
   "leads": {
@@ -590,7 +645,11 @@
     "sync_updated": "{count} updated",
     "sync_removed": ", {count} removed",
     "status": {
+      "draft": "Draft",
+      "pending_approval": "Pending approval",
       "active": "Active",
+      "suspended": "Suspended",
+      "closed": "Closed",
       "dormant": "Dormant",
       "credit_hold": "Credit Hold"
     },
@@ -1017,13 +1076,22 @@
     "tax_paper_attached": "Tax document attached",
     "tax_paper_hint": "Attach tax document",
     "telemetry": "GPS Location",
-    "title": "Add customer"
+    "title": "Add customer",
+    "customer_code": "Customer code",
+    "customer_code_hint": "e.g. ISI-PP0099",
+    "address": "Address",
+    "address_hint": "Street and sangkat",
+    "city": "City / province",
+    "city_hint": "e.g. Phnom Penh",
+    "gps_failed": "No GPS fix was captured. Move to an open area and try again, or save without a location."
   },
   "add_customer.shop_types": {
     "hardware_shop": "Hardware Shop",
     "retailer": "Retailer",
     "wholesaler": "Wholesaler",
-    "project_contractor": "Project Contractor"
+    "project_contractor": "Project Contractor",
+    "distributor": "Distributor",
+    "key_account": "Key account"
   },
   "add_customer.roles": {
     "owner": "Owner",
@@ -1114,25 +1182,9 @@
       "title": "Monthly target",
       "message": "Track your sales progress against this month's goal."
     },
-    "quick_actions": {
-      "title": "Quick actions",
-      "message": "Start a quote or lead in a single tap."
-    },
-    "new_lead": {
-      "title": "Create a lead",
-      "message": "Tap “New lead” to add your first customer."
-    },
-    "add_customer": {
-      "title": "Add customer",
-      "message": "Turn a won lead into a customer account here."
-    },
     "my_work": {
       "title": "My Work Section",
       "message": "Manage your daily tasks, leads, and customer details directly from this central hub."
-    },
-    "my_leads": {
-      "title": "My Leads",
-      "message": "Tap “My Leads” to manage your pipeline."
     },
     "my_visits": {
       "title": "My Visits",
@@ -1145,18 +1197,6 @@
     "orders": {
       "title": "Quotes & Orders",
       "message": "Tap “Quotes & Orders” to manage your deals."
-    },
-    "new_quote": {
-      "title": "New quote",
-      "message": "Build a price quote for a customer in seconds."
-    },
-    "depot_stock": {
-      "title": "Depot stock",
-      "message": "Check live stock at your depots before you quote."
-    },
-    "language": {
-      "title": "Switch language",
-      "message": "Tap here anytime to switch between English and Khmer."
     },
     "notification": {
       "title": "Notifications",

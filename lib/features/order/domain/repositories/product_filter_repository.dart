@@ -33,4 +33,16 @@ abstract interface class ProductFilterRepository {
     required FilterStep step,
     required FilterSelection selection,
   });
+
+  /// The stock locations that still hold something matching [selection], with
+  /// how many SKUs each one keeps alive.
+  ///
+  /// Separate from [getStepOptions] because location is not a step: the rep
+  /// answers it *after* seeing the matched SKUs, to pick which plant to quote
+  /// from. Same bounded facet read as every other level — a few short strings,
+  /// never a product row.
+  ResultFuture<List<FilterOption>> getStockLocationOptions({
+    required String? categoryId,
+    required FilterSelection selection,
+  });
 }

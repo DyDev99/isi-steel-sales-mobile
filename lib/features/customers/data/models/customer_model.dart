@@ -1,3 +1,4 @@
+import 'package:isi_steel_sales_mobile/core/utils/enum_parse.dart';
 import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/models/customer_contact_model.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer.dart';
@@ -9,7 +10,7 @@ import 'package:isi_steel_sales_mobile/features/customers/domain/entities/custom
 class CustomerModel extends Customer {
   const CustomerModel({
     required super.id,
-    required super.sapCustomerId,
+    super.sapCustomerId,
     required super.customerCode,
     required super.shopName,
     required super.ownerName,
@@ -53,7 +54,7 @@ class CustomerModel extends Customer {
 
   factory CustomerModel.fromJson(DataMap json) => CustomerModel(
         id: json['id'] as String,
-        sapCustomerId: json['sapCustomerId'] as String,
+        sapCustomerId: json['sapCustomerId'] as String?,
         customerCode: json['customerCode'] as String,
         shopName: json['shopName'] as String,
         ownerName: json['ownerName'] as String,
@@ -67,7 +68,8 @@ class CustomerModel extends Customer {
         latitude: (json['latitude'] as num).toDouble(),
         longitude: (json['longitude'] as num).toDouble(),
         creditLimit: (json['creditLimit'] as num).toDouble(),
-        status: CustomerStatus.values.byName(json['status'] as String),
+        status: CustomerStatus.values.byNameOr(json['status'] as String?,
+            CustomerStatus.draft, context: 'customer.json.status'),
         assignedRepId: json['assignedRepId'] as String,
         assignedRepName: json['assignedRepName'] as String,
         updatedAt: DateTime.parse(json['updatedAt'] as String),
@@ -111,7 +113,7 @@ class CustomerModel extends Customer {
           {List<CustomerContactModel> contacts = const []}) =>
       CustomerModel(
         id: row['id'] as String,
-        sapCustomerId: row['sap_customer_id'] as String,
+        sapCustomerId: row['sap_customer_id'] as String?,
         customerCode: row['customer_code'] as String,
         shopName: row['shop_name'] as String,
         ownerName: row['owner_name'] as String,
@@ -125,7 +127,8 @@ class CustomerModel extends Customer {
         latitude: (row['latitude'] as num).toDouble(),
         longitude: (row['longitude'] as num).toDouble(),
         creditLimit: (row['credit_limit'] as num).toDouble(),
-        status: CustomerStatus.values.byName(row['status'] as String),
+        status: CustomerStatus.values.byNameOr(row['status'] as String?,
+            CustomerStatus.draft, context: 'customer.row.status'),
         assignedRepId: row['assigned_rep_id'] as String,
         assignedRepName: row['assigned_rep_name'] as String,
         updatedAt: DateTime.parse(row['updated_at'] as String),

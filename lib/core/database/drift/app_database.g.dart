@@ -246,9 +246,9 @@ class $CustomersTable extends Customers
       const VerificationMeta('sapCustomerId');
   @override
   late final GeneratedColumn<String> sapCustomerId = GeneratedColumn<String>(
-      'sap_customer_id', aliasedName, false,
+      'sap_customer_id', aliasedName, true,
       type: DriftSqlType.string,
-      requiredDuringInsert: true,
+      requiredDuringInsert: false,
       defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'));
   static const VerificationMeta _customerCodeMeta =
       const VerificationMeta('customerCode');
@@ -561,8 +561,6 @@ class $CustomersTable extends Customers
           _sapCustomerIdMeta,
           sapCustomerId.isAcceptableOrUnknown(
               data['sap_customer_id']!, _sapCustomerIdMeta));
-    } else if (isInserting) {
-      context.missing(_sapCustomerIdMeta);
     }
     if (data.containsKey('customer_code')) {
       context.handle(
@@ -795,8 +793,8 @@ class $CustomersTable extends Customers
     return Customer(
       id: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
-      sapCustomerId: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}sap_customer_id'])!,
+      sapCustomerId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}sap_customer_id']),
       customerCode: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}customer_code'])!,
       shopName: attachedDatabase.typeMapping
@@ -887,7 +885,12 @@ class $CustomersTable extends Customers
 
 class Customer extends DataClass implements Insertable<Customer> {
   final String id;
-  final String sapCustomerId;
+
+  /// Nullable *and* unique, deliberately: SQLite counts every NULL as
+  /// distinct, so this reads as "at most one row per SAP id, and rows without
+  /// one never conflict" — which is exactly the rule for field-created
+  /// customers awaiting approval.
+  final String? sapCustomerId;
   final String customerCode;
   final String shopName;
   final String ownerName;
@@ -957,7 +960,7 @@ class Customer extends DataClass implements Insertable<Customer> {
   final String syncState;
   const Customer(
       {required this.id,
-      required this.sapCustomerId,
+      this.sapCustomerId,
       required this.customerCode,
       required this.shopName,
       required this.ownerName,
@@ -1001,7 +1004,9 @@ class Customer extends DataClass implements Insertable<Customer> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
-    map['sap_customer_id'] = Variable<String>(sapCustomerId);
+    if (!nullToAbsent || sapCustomerId != null) {
+      map['sap_customer_id'] = Variable<String>(sapCustomerId);
+    }
     map['customer_code'] = Variable<String>(customerCode);
     map['shop_name'] = Variable<String>(shopName);
     map['owner_name'] = Variable<String>(ownerName);
@@ -1080,7 +1085,9 @@ class Customer extends DataClass implements Insertable<Customer> {
   CustomersCompanion toCompanion(bool nullToAbsent) {
     return CustomersCompanion(
       id: Value(id),
-      sapCustomerId: Value(sapCustomerId),
+      sapCustomerId: sapCustomerId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sapCustomerId),
       customerCode: Value(customerCode),
       shopName: Value(shopName),
       ownerName: Value(ownerName),
@@ -1157,7 +1164,7 @@ class Customer extends DataClass implements Insertable<Customer> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Customer(
       id: serializer.fromJson<String>(json['id']),
-      sapCustomerId: serializer.fromJson<String>(json['sapCustomerId']),
+      sapCustomerId: serializer.fromJson<String?>(json['sapCustomerId']),
       customerCode: serializer.fromJson<String>(json['customerCode']),
       shopName: serializer.fromJson<String>(json['shopName']),
       ownerName: serializer.fromJson<String>(json['ownerName']),
@@ -1207,7 +1214,7 @@ class Customer extends DataClass implements Insertable<Customer> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
-      'sapCustomerId': serializer.toJson<String>(sapCustomerId),
+      'sapCustomerId': serializer.toJson<String?>(sapCustomerId),
       'customerCode': serializer.toJson<String>(customerCode),
       'shopName': serializer.toJson<String>(shopName),
       'ownerName': serializer.toJson<String>(ownerName),
@@ -1253,7 +1260,7 @@ class Customer extends DataClass implements Insertable<Customer> {
 
   Customer copyWith(
           {String? id,
-          String? sapCustomerId,
+          Value<String?> sapCustomerId = const Value.absent(),
           String? customerCode,
           String? shopName,
           String? ownerName,
@@ -1295,7 +1302,8 @@ class Customer extends DataClass implements Insertable<Customer> {
           String? syncState}) =>
       Customer(
         id: id ?? this.id,
-        sapCustomerId: sapCustomerId ?? this.sapCustomerId,
+        sapCustomerId:
+            sapCustomerId.present ? sapCustomerId.value : this.sapCustomerId,
         customerCode: customerCode ?? this.customerCode,
         shopName: shopName ?? this.shopName,
         ownerName: ownerName ?? this.ownerName,
@@ -1565,7 +1573,7 @@ class Customer extends DataClass implements Insertable<Customer> {
 
 class CustomersCompanion extends UpdateCompanion<Customer> {
   final Value<String> id;
-  final Value<String> sapCustomerId;
+  final Value<String?> sapCustomerId;
   final Value<String> customerCode;
   final Value<String> shopName;
   final Value<String> ownerName;
@@ -1652,7 +1660,7 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
   });
   CustomersCompanion.insert({
     required String id,
-    required String sapCustomerId,
+    this.sapCustomerId = const Value.absent(),
     required String customerCode,
     required String shopName,
     required String ownerName,
@@ -1694,7 +1702,6 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
     this.syncState = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
-        sapCustomerId = Value(sapCustomerId),
         customerCode = Value(customerCode),
         shopName = Value(shopName),
         ownerName = Value(ownerName),
@@ -1805,7 +1812,7 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
 
   CustomersCompanion copyWith(
       {Value<String>? id,
-      Value<String>? sapCustomerId,
+      Value<String?>? sapCustomerId,
       Value<String>? customerCode,
       Value<String>? shopName,
       Value<String>? ownerName,
@@ -7470,6 +7477,18 @@ class $CartItemsTable extends CartItems
   late final GeneratedColumn<String> customizationJson =
       GeneratedColumn<String>('customization_json', aliasedName, true,
           type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _unitPriceMeta =
+      const VerificationMeta('unitPrice');
+  @override
+  late final GeneratedColumn<double> unitPrice = GeneratedColumn<double>(
+      'unit_price', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _fulfillmentJsonMeta =
+      const VerificationMeta('fulfillmentJson');
+  @override
+  late final GeneratedColumn<String> fulfillmentJson = GeneratedColumn<String>(
+      'fulfillment_json', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _createdAtMeta =
       const VerificationMeta('createdAt');
   @override
@@ -7487,6 +7506,8 @@ class $CartItemsTable extends CartItems
         customerId,
         editingQuotationId,
         customizationJson,
+        unitPrice,
+        fulfillmentJson,
         createdAt
       ];
   @override
@@ -7550,6 +7571,16 @@ class $CartItemsTable extends CartItems
           customizationJson.isAcceptableOrUnknown(
               data['customization_json']!, _customizationJsonMeta));
     }
+    if (data.containsKey('unit_price')) {
+      context.handle(_unitPriceMeta,
+          unitPrice.isAcceptableOrUnknown(data['unit_price']!, _unitPriceMeta));
+    }
+    if (data.containsKey('fulfillment_json')) {
+      context.handle(
+          _fulfillmentJsonMeta,
+          fulfillmentJson.isAcceptableOrUnknown(
+              data['fulfillment_json']!, _fulfillmentJsonMeta));
+    }
     if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
@@ -7583,6 +7614,10 @@ class $CartItemsTable extends CartItems
           DriftSqlType.string, data['${effectivePrefix}editing_quotation_id']),
       customizationJson: attachedDatabase.typeMapping.read(
           DriftSqlType.string, data['${effectivePrefix}customization_json']),
+      unitPrice: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}unit_price']),
+      fulfillmentJson: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}fulfillment_json']),
       createdAt: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}created_at'])!,
     );
@@ -7609,6 +7644,22 @@ class CartItem extends DataClass implements Insertable<CartItem> {
   /// customization shape can evolve without a schema change — see
   /// `ProductCustomizationSpec.encode`.
   final String? customizationJson;
+
+  /// The unit price agreed when the line was added, frozen against later
+  /// catalog deltas.
+  ///
+  /// Nullable, and null means "no snapshot — price this line from the live
+  /// `prices` row", which is precisely what every row did before this column
+  /// existed. That is what lets the v17 migration add it without rewriting a
+  /// single existing cart line.
+  final double? unitPrice;
+
+  /// JSON blob of the line's pickup/delivery terms, or null for a line added
+  /// straight off the product grid. Free-form for the same reason
+  /// [customizationJson] is: the shape is a commercial agreement that will
+  /// grow (delivery windows, vehicle type) and must not need a schema change
+  /// to do it. See `ShipmentSelection.encode`.
+  final String? fulfillmentJson;
   final String createdAt;
   const CartItem(
       {required this.id,
@@ -7620,6 +7671,8 @@ class CartItem extends DataClass implements Insertable<CartItem> {
       this.customerId,
       this.editingQuotationId,
       this.customizationJson,
+      this.unitPrice,
+      this.fulfillmentJson,
       required this.createdAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -7640,6 +7693,12 @@ class CartItem extends DataClass implements Insertable<CartItem> {
     }
     if (!nullToAbsent || customizationJson != null) {
       map['customization_json'] = Variable<String>(customizationJson);
+    }
+    if (!nullToAbsent || unitPrice != null) {
+      map['unit_price'] = Variable<double>(unitPrice);
+    }
+    if (!nullToAbsent || fulfillmentJson != null) {
+      map['fulfillment_json'] = Variable<String>(fulfillmentJson);
     }
     map['created_at'] = Variable<String>(createdAt);
     return map;
@@ -7663,6 +7722,12 @@ class CartItem extends DataClass implements Insertable<CartItem> {
       customizationJson: customizationJson == null && nullToAbsent
           ? const Value.absent()
           : Value(customizationJson),
+      unitPrice: unitPrice == null && nullToAbsent
+          ? const Value.absent()
+          : Value(unitPrice),
+      fulfillmentJson: fulfillmentJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(fulfillmentJson),
       createdAt: Value(createdAt),
     );
   }
@@ -7682,6 +7747,8 @@ class CartItem extends DataClass implements Insertable<CartItem> {
           serializer.fromJson<String?>(json['editingQuotationId']),
       customizationJson:
           serializer.fromJson<String?>(json['customizationJson']),
+      unitPrice: serializer.fromJson<double?>(json['unitPrice']),
+      fulfillmentJson: serializer.fromJson<String?>(json['fulfillmentJson']),
       createdAt: serializer.fromJson<String>(json['createdAt']),
     );
   }
@@ -7698,6 +7765,8 @@ class CartItem extends DataClass implements Insertable<CartItem> {
       'customerId': serializer.toJson<String?>(customerId),
       'editingQuotationId': serializer.toJson<String?>(editingQuotationId),
       'customizationJson': serializer.toJson<String?>(customizationJson),
+      'unitPrice': serializer.toJson<double?>(unitPrice),
+      'fulfillmentJson': serializer.toJson<String?>(fulfillmentJson),
       'createdAt': serializer.toJson<String>(createdAt),
     };
   }
@@ -7712,6 +7781,8 @@ class CartItem extends DataClass implements Insertable<CartItem> {
           Value<String?> customerId = const Value.absent(),
           Value<String?> editingQuotationId = const Value.absent(),
           Value<String?> customizationJson = const Value.absent(),
+          Value<double?> unitPrice = const Value.absent(),
+          Value<String?> fulfillmentJson = const Value.absent(),
           String? createdAt}) =>
       CartItem(
         id: id ?? this.id,
@@ -7727,6 +7798,10 @@ class CartItem extends DataClass implements Insertable<CartItem> {
         customizationJson: customizationJson.present
             ? customizationJson.value
             : this.customizationJson,
+        unitPrice: unitPrice.present ? unitPrice.value : this.unitPrice,
+        fulfillmentJson: fulfillmentJson.present
+            ? fulfillmentJson.value
+            : this.fulfillmentJson,
         createdAt: createdAt ?? this.createdAt,
       );
   CartItem copyWithCompanion(CartItemsCompanion data) {
@@ -7747,6 +7822,10 @@ class CartItem extends DataClass implements Insertable<CartItem> {
       customizationJson: data.customizationJson.present
           ? data.customizationJson.value
           : this.customizationJson,
+      unitPrice: data.unitPrice.present ? data.unitPrice.value : this.unitPrice,
+      fulfillmentJson: data.fulfillmentJson.present
+          ? data.fulfillmentJson.value
+          : this.fulfillmentJson,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -7763,6 +7842,8 @@ class CartItem extends DataClass implements Insertable<CartItem> {
           ..write('customerId: $customerId, ')
           ..write('editingQuotationId: $editingQuotationId, ')
           ..write('customizationJson: $customizationJson, ')
+          ..write('unitPrice: $unitPrice, ')
+          ..write('fulfillmentJson: $fulfillmentJson, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -7779,6 +7860,8 @@ class CartItem extends DataClass implements Insertable<CartItem> {
       customerId,
       editingQuotationId,
       customizationJson,
+      unitPrice,
+      fulfillmentJson,
       createdAt);
   @override
   bool operator ==(Object other) =>
@@ -7793,6 +7876,8 @@ class CartItem extends DataClass implements Insertable<CartItem> {
           other.customerId == this.customerId &&
           other.editingQuotationId == this.editingQuotationId &&
           other.customizationJson == this.customizationJson &&
+          other.unitPrice == this.unitPrice &&
+          other.fulfillmentJson == this.fulfillmentJson &&
           other.createdAt == this.createdAt);
 }
 
@@ -7806,6 +7891,8 @@ class CartItemsCompanion extends UpdateCompanion<CartItem> {
   final Value<String?> customerId;
   final Value<String?> editingQuotationId;
   final Value<String?> customizationJson;
+  final Value<double?> unitPrice;
+  final Value<String?> fulfillmentJson;
   final Value<String> createdAt;
   final Value<int> rowid;
   const CartItemsCompanion({
@@ -7818,6 +7905,8 @@ class CartItemsCompanion extends UpdateCompanion<CartItem> {
     this.customerId = const Value.absent(),
     this.editingQuotationId = const Value.absent(),
     this.customizationJson = const Value.absent(),
+    this.unitPrice = const Value.absent(),
+    this.fulfillmentJson = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -7831,6 +7920,8 @@ class CartItemsCompanion extends UpdateCompanion<CartItem> {
     this.customerId = const Value.absent(),
     this.editingQuotationId = const Value.absent(),
     this.customizationJson = const Value.absent(),
+    this.unitPrice = const Value.absent(),
+    this.fulfillmentJson = const Value.absent(),
     required String createdAt,
     this.rowid = const Value.absent(),
   })  : id = Value(id),
@@ -7848,6 +7939,8 @@ class CartItemsCompanion extends UpdateCompanion<CartItem> {
     Expression<String>? customerId,
     Expression<String>? editingQuotationId,
     Expression<String>? customizationJson,
+    Expression<double>? unitPrice,
+    Expression<String>? fulfillmentJson,
     Expression<String>? createdAt,
     Expression<int>? rowid,
   }) {
@@ -7862,6 +7955,8 @@ class CartItemsCompanion extends UpdateCompanion<CartItem> {
       if (editingQuotationId != null)
         'editing_quotation_id': editingQuotationId,
       if (customizationJson != null) 'customization_json': customizationJson,
+      if (unitPrice != null) 'unit_price': unitPrice,
+      if (fulfillmentJson != null) 'fulfillment_json': fulfillmentJson,
       if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -7877,6 +7972,8 @@ class CartItemsCompanion extends UpdateCompanion<CartItem> {
       Value<String?>? customerId,
       Value<String?>? editingQuotationId,
       Value<String?>? customizationJson,
+      Value<double?>? unitPrice,
+      Value<String?>? fulfillmentJson,
       Value<String>? createdAt,
       Value<int>? rowid}) {
     return CartItemsCompanion(
@@ -7889,6 +7986,8 @@ class CartItemsCompanion extends UpdateCompanion<CartItem> {
       customerId: customerId ?? this.customerId,
       editingQuotationId: editingQuotationId ?? this.editingQuotationId,
       customizationJson: customizationJson ?? this.customizationJson,
+      unitPrice: unitPrice ?? this.unitPrice,
+      fulfillmentJson: fulfillmentJson ?? this.fulfillmentJson,
       createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
     );
@@ -7924,6 +8023,12 @@ class CartItemsCompanion extends UpdateCompanion<CartItem> {
     if (customizationJson.present) {
       map['customization_json'] = Variable<String>(customizationJson.value);
     }
+    if (unitPrice.present) {
+      map['unit_price'] = Variable<double>(unitPrice.value);
+    }
+    if (fulfillmentJson.present) {
+      map['fulfillment_json'] = Variable<String>(fulfillmentJson.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<String>(createdAt.value);
     }
@@ -7945,6 +8050,8 @@ class CartItemsCompanion extends UpdateCompanion<CartItem> {
           ..write('customerId: $customerId, ')
           ..write('editingQuotationId: $editingQuotationId, ')
           ..write('customizationJson: $customizationJson, ')
+          ..write('unitPrice: $unitPrice, ')
+          ..write('fulfillmentJson: $fulfillmentJson, ')
           ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -18814,7 +18921,7 @@ typedef $$AppMetadataTableProcessedTableManager = ProcessedTableManager<
     PrefetchHooks Function()>;
 typedef $$CustomersTableCreateCompanionBuilder = CustomersCompanion Function({
   required String id,
-  required String sapCustomerId,
+  Value<String?> sapCustomerId,
   required String customerCode,
   required String shopName,
   required String ownerName,
@@ -18858,7 +18965,7 @@ typedef $$CustomersTableCreateCompanionBuilder = CustomersCompanion Function({
 });
 typedef $$CustomersTableUpdateCompanionBuilder = CustomersCompanion Function({
   Value<String> id,
-  Value<String> sapCustomerId,
+  Value<String?> sapCustomerId,
   Value<String> customerCode,
   Value<String> shopName,
   Value<String> ownerName,
@@ -19344,7 +19451,7 @@ class $$CustomersTableTableManager extends RootTableManager<
               $$CustomersTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
-            Value<String> sapCustomerId = const Value.absent(),
+            Value<String?> sapCustomerId = const Value.absent(),
             Value<String> customerCode = const Value.absent(),
             Value<String> shopName = const Value.absent(),
             Value<String> ownerName = const Value.absent(),
@@ -19432,7 +19539,7 @@ class $$CustomersTableTableManager extends RootTableManager<
           ),
           createCompanionCallback: ({
             required String id,
-            required String sapCustomerId,
+            Value<String?> sapCustomerId = const Value.absent(),
             required String customerCode,
             required String shopName,
             required String ownerName,
@@ -22241,6 +22348,8 @@ typedef $$CartItemsTableCreateCompanionBuilder = CartItemsCompanion Function({
   Value<String?> customerId,
   Value<String?> editingQuotationId,
   Value<String?> customizationJson,
+  Value<double?> unitPrice,
+  Value<String?> fulfillmentJson,
   required String createdAt,
   Value<int> rowid,
 });
@@ -22254,6 +22363,8 @@ typedef $$CartItemsTableUpdateCompanionBuilder = CartItemsCompanion Function({
   Value<String?> customerId,
   Value<String?> editingQuotationId,
   Value<String?> customizationJson,
+  Value<double?> unitPrice,
+  Value<String?> fulfillmentJson,
   Value<String> createdAt,
   Value<int> rowid,
 });
@@ -22295,6 +22406,13 @@ class $$CartItemsTableFilterComposer
 
   ColumnFilters<String> get customizationJson => $composableBuilder(
       column: $table.customizationJson,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get unitPrice => $composableBuilder(
+      column: $table.unitPrice, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get fulfillmentJson => $composableBuilder(
+      column: $table.fulfillmentJson,
       builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get createdAt => $composableBuilder(
@@ -22340,6 +22458,13 @@ class $$CartItemsTableOrderingComposer
       column: $table.customizationJson,
       builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<double> get unitPrice => $composableBuilder(
+      column: $table.unitPrice, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get fulfillmentJson => $composableBuilder(
+      column: $table.fulfillmentJson,
+      builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnOrderings(column));
 }
@@ -22380,6 +22505,12 @@ class $$CartItemsTableAnnotationComposer
   GeneratedColumn<String> get customizationJson => $composableBuilder(
       column: $table.customizationJson, builder: (column) => column);
 
+  GeneratedColumn<double> get unitPrice =>
+      $composableBuilder(column: $table.unitPrice, builder: (column) => column);
+
+  GeneratedColumn<String> get fulfillmentJson => $composableBuilder(
+      column: $table.fulfillmentJson, builder: (column) => column);
+
   GeneratedColumn<String> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 }
@@ -22416,6 +22547,8 @@ class $$CartItemsTableTableManager extends RootTableManager<
             Value<String?> customerId = const Value.absent(),
             Value<String?> editingQuotationId = const Value.absent(),
             Value<String?> customizationJson = const Value.absent(),
+            Value<double?> unitPrice = const Value.absent(),
+            Value<String?> fulfillmentJson = const Value.absent(),
             Value<String> createdAt = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -22429,6 +22562,8 @@ class $$CartItemsTableTableManager extends RootTableManager<
             customerId: customerId,
             editingQuotationId: editingQuotationId,
             customizationJson: customizationJson,
+            unitPrice: unitPrice,
+            fulfillmentJson: fulfillmentJson,
             createdAt: createdAt,
             rowid: rowid,
           ),
@@ -22442,6 +22577,8 @@ class $$CartItemsTableTableManager extends RootTableManager<
             Value<String?> customerId = const Value.absent(),
             Value<String?> editingQuotationId = const Value.absent(),
             Value<String?> customizationJson = const Value.absent(),
+            Value<double?> unitPrice = const Value.absent(),
+            Value<String?> fulfillmentJson = const Value.absent(),
             required String createdAt,
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -22455,6 +22592,8 @@ class $$CartItemsTableTableManager extends RootTableManager<
             customerId: customerId,
             editingQuotationId: editingQuotationId,
             customizationJson: customizationJson,
+            unitPrice: unitPrice,
+            fulfillmentJson: fulfillmentJson,
             createdAt: createdAt,
             rowid: rowid,
           ),

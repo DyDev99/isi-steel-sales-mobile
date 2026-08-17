@@ -89,6 +89,31 @@ class ProductFilterRepositoryImpl implements ProductFilterRepository {
     }
   }
 
+  @override
+  ResultFuture<List<FilterOption>> getStockLocationOptions({
+    required String? categoryId,
+    required FilterSelection selection,
+  }) async {
+    try {
+      // Deliberately resolved against the selection *without* a warehouse
+      // narrowing: the options have to keep showing every location the rep
+      // could switch to, not just the one they are already on.
+      final values = await _local.facetValues(
+        facet: 'warehouse',
+        filter: selection.toProductFilter(categoryId),
+      );
+      return Success(values
+          .map((v) => FilterOption(
+                value: v.value,
+                label: v.label,
+                matchCount: v.matchCount,
+              ))
+          .toList());
+    } on CacheException catch (e) {
+      return Failed(CacheFailure(message: e.message));
+    }
+  }
+
   Future<Map<String, CategoryFilterSchemaModel>> _loadSchemas() async {
     final cached = _schemasById;
     if (cached != null) return cached;
@@ -100,6 +125,7 @@ class ProductFilterRepositoryImpl implements ProductFilterRepository {
   /// Kept here (data layer) so the domain never learns a storage vocabulary.
   static String _facetKey(ProductAttribute attribute) => switch (attribute) {
         ProductAttribute.family => 'family',
+        ProductAttribute.warehouse => 'warehouse',
         ProductAttribute.subCategory => 'subCategory',
         ProductAttribute.brand => 'brand',
         ProductAttribute.size => 'size',

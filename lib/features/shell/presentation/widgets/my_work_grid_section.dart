@@ -8,7 +8,6 @@ import 'package:isi_steel_sales_mobile/core/localization/localization_services.d
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/presentation/services/coach_keys.dart';
 import 'package:isi_steel_sales_mobile/features/home/presentation/bloc/home_cubit.dart';
-import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/add_customer_bottom_sheet.dart';
 
 class MyWorkGridSection extends StatelessWidget {
   const MyWorkGridSection({super.key});
@@ -28,49 +27,26 @@ class MyWorkGridSection extends StatelessWidget {
           children: [
             _SectionHeader('shell.my_work'.tr, letterSpacing: 1.6),
 
-            // Row 1
-            Row(
-              children: [
-                Expanded(
-                  child: FadeSlideIn(
-                    delay: FadeSlideIn.staggerDelay(0),
-                    child: CoachKeys.wrap(
-                      CoachKeys.addCustomer,
-                      child: _MyWorkCard(
-                        label: 'shell.add_customer'.tr,
-                        icon: Icons.person_add_outlined,
-                        accent: const Color(0xFF3B82F6),
-                        isActive: false,
-                        onTap: () {
-                          showAddCustomerSheet(context, wonLeads: []);
-                        },
-                      ),
-                    ),
-                  ),
+            // Row 1: Remove Expanded from top level Column
+            FadeSlideIn(
+              delay: FadeSlideIn.staggerDelay(1),
+              child: CoachKeys.wrap(
+                CoachKeys.myVisits,
+                child: _MyWorkCard(
+                  label: 'shell.my_visits'.tr,
+                  icon: Icons.assignment_turned_in_outlined,
+                  accent: const Color(0xFF10B981),
+                  badgeText: 'shell.badge_today'.trParams({'count': 3}),
+                  isActive: true,
+                  onTap: () =>
+                      sl<ShellTabController>().goTo(ShellTab.myVisits),
                 ),
-                SizedBox(width: context.rw(12)),
-                Expanded(
-                  child: FadeSlideIn(
-                    delay: FadeSlideIn.staggerDelay(1),
-                    child: CoachKeys.wrap(
-                      CoachKeys.myVisits,
-                      child: _MyWorkCard(
-                        label: 'shell.my_visits'.tr,
-                        icon: Icons.assignment_turned_in_outlined,
-                        accent: const Color(0xFF10B981),
-                        badgeText: 'shell.badge_today'.trParams({'count': 3}),
-                        isActive: true,
-                        onTap: () =>
-                            sl<ShellTabController>().goTo(ShellTab.myVisits),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
+
             SizedBox(height: context.rh(12)),
 
-            // Row 2
+            // Row 2: Expanded is valid inside Row (horizontal sizing)
             Row(
               children: [
                 Expanded(
@@ -114,7 +90,6 @@ class MyWorkGridSection extends StatelessWidget {
     );
   }
 }
-
 class _MyWorkCard extends StatefulWidget {
   const _MyWorkCard({
     required this.label,

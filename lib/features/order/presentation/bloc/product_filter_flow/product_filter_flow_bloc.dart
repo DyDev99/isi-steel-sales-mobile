@@ -11,6 +11,7 @@ import 'package:isi_steel_sales_mobile/features/order/domain/usecases/catalog_pa
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/fetch_filter_categories.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_category_filter_schema.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_filter_step_options.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_stock_location_options.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/product_filter_flow/product_filter_flow_event.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/product_filter_flow/product_filter_flow_state.dart';
 
@@ -41,10 +42,12 @@ class ProductFilterFlowBloc
     required FetchFilterCategories fetchFilterCategories,
     required GetCategoryFilterSchema getCategoryFilterSchema,
     required GetFilterStepOptions getFilterStepOptions,
+    required GetStockLocationOptions getStockLocationOptions,
     required BrowseProducts browseProducts,
   })  : _fetchFilterCategories = fetchFilterCategories,
         _getCategoryFilterSchema = getCategoryFilterSchema,
         _getFilterStepOptions = getFilterStepOptions,
+        _getStockLocationOptions = getStockLocationOptions,
         _browseProducts = browseProducts,
         super(const ProductFilterFlowState()) {
     // Flow mutations run sequentially: each one leaves the selection in a state
@@ -63,11 +66,17 @@ class ProductFilterFlowBloc
         transformer: restartable());
     on<FilterProductsRefreshed>(_onRefreshed, transformer: droppable());
     on<FilterProductsLoadMoreRequested>(_onLoadMore, transformer: droppable());
+    // Sequential like the other narrowing events: it re-runs the product query,
+    // and two locations in flight at once would let the slower response
+    // overwrite the newer selection's results.
+    on<FilterStockLocationChanged>(_onStockLocationChanged,
+        transformer: sequential());
   }
 
   final FetchFilterCategories _fetchFilterCategories;
   final GetCategoryFilterSchema _getCategoryFilterSchema;
   final GetFilterStepOptions _getFilterStepOptions;
+  final GetStockLocationOptions _getStockLocationOptions;
   final BrowseProducts _browseProducts;
 
   // ── Entry ───────────────────────────────────────────────────────────
@@ -107,6 +116,8 @@ class ProductFilterFlowBloc
       page: 0,
       hasMore: false,
       errorMessage: () => null,
+      stockLocations: const [],
+      stockLocationCode: () => null,
     ));
 
     final result =
@@ -148,6 +159,11 @@ class ProductFilterFlowBloc
       // alternative to them.
       products: const [],
       productStatus: ProductListStatus.idle,
+      // A different answer matches a different set of SKUs, which may not be
+      // held at the location the rep had pinned. Keeping it would silently
+      // filter the new results down to nothing.
+      stockLocations: const [],
+      stockLocationCode: () => null,
     ));
     await _advance(emit);
   }
@@ -164,6 +180,8 @@ class ProductFilterFlowBloc
           _skipsAbove(schema, state.skippedStepKeys, entry.sortOrder),
       products: const [],
       productStatus: ProductListStatus.idle,
+      stockLocations: const [],
+      stockLocationCode: () => null,
     ));
     await _advance(emit);
   }
@@ -203,6 +221,9 @@ class ProductFilterFlowBloc
         hasMore: false,
         query: '',
         errorMessage: () => null,
+        stockLocations: const [],
+        stockLocationCode: () => null,
+        stockLocationsLoading: false,
       );
 
   Future<void> _onPreferencesChanged(FilterPreferencesChanged event,
@@ -350,6 +371,39 @@ class ProductFilterFlowBloc
     await _loadProducts(emit, page: 0);
   }
 
+  Future<void> _onStockLocationChanged(FilterStockLocationChanged event,
+      Emitter<ProductFilterFlowState> emit) async {
+    if (event.warehouseCode == state.stockLocationCode) return;
+    emit(state.copyWith(
+      stockLocationCode: () => event.warehouseCode,
+      products: const [],
+      page: 0,
+      hasMore: false,
+    ));
+    await _maybeLoadProducts(emit);
+  }
+
+  /// Resolves which locations can supply the current match.
+  ///
+  /// Runs alongside the first page of results, never per page: the answer
+  /// depends on the selection, not on how far the rep has scrolled. A failure
+  /// is swallowed on purpose — losing the location chips must not turn a
+  /// working product list into an error screen.
+  Future<void> _loadStockLocations(Emitter<ProductFilterFlowState> emit) async {
+    emit(state.copyWith(stockLocationsLoading: true));
+    final result = await _getStockLocationOptions(StockLocationOptionsParams(
+      categoryId: state.category?.id,
+      selection: state.selection,
+    ));
+    emit(state.copyWith(
+      stockLocations: result.when(
+        success: (options) => options,
+        failure: (_) => const [],
+      ),
+      stockLocationsLoading: false,
+    ));
+  }
+
   Future<void> _onLoadMore(FilterProductsLoadMoreRequested event,
       Emitter<ProductFilterFlowState> emit) async {
     if (!state.hasMore ||
@@ -391,5 +445,11 @@ class ProductFilterFlowBloc
         errorMessage: () => f.message,
       )),
     );
+
+    // After the results, so the list paints first — the chips refine what is
+    // already on screen and are never worth delaying it for.
+    if (page == 0 && state.productStatus == ProductListStatus.loaded) {
+      await _loadStockLocations(emit);
+    }
   }
 }

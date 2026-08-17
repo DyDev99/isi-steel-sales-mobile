@@ -14,19 +14,17 @@ import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/core/utils/offline_banner.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_stop.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_photo.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_workflow.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/proof_photo_service.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/update_workflow_step.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/active_route_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/location_tracking_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/visit_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/events/active_route_event.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/state/active_route_state.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/state/location_tracking_state.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/state/visit_state.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/navigation/open_quotation.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/navigation/open_inventory_visibility.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/stop_information/stop_information_screen.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/transit_map.dart';
-import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/quotation_builder_screen.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 const bool kDebugForceInsideGeofence = true;
@@ -161,6 +159,11 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen>
     try {
       HapticFeedback.mediumImpact();
     } catch (_) {}
+    // Fire-and-forget, like every other workflow write in this flow: a
+    // slow/blocked validation surfaces on the next rebuild via
+    // `blockedCheckInReason` (the geo-status banner already renders it), it
+    // just doesn't hold up the guided flow here.
+    _resolveBloc<ActiveRouteBloc>(context).add(const CheckInRequested());
     _goToVisit(context, stop);
   }
 
@@ -189,19 +192,14 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen>
   void _goToVisit(BuildContext context, RouteStop stop) {
     final navigator = Navigator.of(context);
 
-    unawaited(sl<UpdateWorkflowStep>()(UpdateWorkflowStepParams(
-      VisitWorkflow.quotation,
-      screen: QuotationBuilderScreen.routeName,
-      navigationArguments: {
-        'customerId': stop.customer.id,
-        'customerName': stop.customer.name,
-      },
-    )));
-
+    // No explicit workflow write here: the `CheckInRequested` dispatched in
+    // `_submit` already seeds it — `ActiveRouteBloc._writeWorkflowPointer`
+    // sets the baseline resume pointer to the Inventory Visibility step as
+    // soon as the check-in lands.
     navigator
         .popUntil((r) => r.settings.name == StopInformationScreen.routeName);
 
-    openQuotationForCustomer(
+    openInventoryVisibilityForCustomer(
       navigator.context,
       customerId: stop.customer.id,
       customerName: context.localized(stop.customer.displayName),

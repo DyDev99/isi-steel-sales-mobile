@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localized_builder.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_content_frame.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/core/utils/page_transitions.dart';
-import 'package:isi_steel_sales_mobile/features/customers/presentation/screens/customer_detail_screen.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_stop.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/geofence_service.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/active_route_bloc.dart';
@@ -15,7 +18,6 @@ import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubi
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/visit_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/state/location_tracking_state.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/stops_check_in_screen.dart';
-import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 class StopInformationScreen extends StatelessWidget {
   const StopInformationScreen({
@@ -34,7 +36,6 @@ class StopInformationScreen extends StatelessWidget {
   void _startVisit(BuildContext context) {
     HapticFeedback.mediumImpact();
 
-    // Look up blocs/cubits from context or fallback to Service Locator (sl)
     final ActiveRouteBloc activeRouteBloc =
         _resolveBloc<ActiveRouteBloc>(context);
     final VisitCubit visitCubit = _resolveBloc<VisitCubit>(context);
@@ -64,25 +65,63 @@ class StopInformationScreen extends StatelessWidget {
     }
   }
 
-  void _openProfile(BuildContext context) {
-    HapticFeedback.selectionClick();
-    Navigator.of(context).push(MaterialPageRoute(
-      settings: const RouteSettings(name: CustomerDetailScreen.routeName),
-      builder: (_) => LocalizedBuilder(
-        builder: (_) => CustomerDetailScreen(customerId: stop.customer.id),
-      ),
-    ));
+  Future<void> _openPhoneOrTelegram(String rawPhoneNumber) async {
+    String cleanNumber = rawPhoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
+
+    if (cleanNumber.startsWith('0')) {
+      cleanNumber = '+855${cleanNumber.substring(1)}';
+    } else if (!cleanNumber.startsWith('+')) {
+      cleanNumber = '+$cleanNumber';
+    }
+
+    final Uri telegramTgUri = Uri.parse('tg://resolve?phone=$cleanNumber');
+    final Uri telegramWebUri = Uri.parse('https://t.me/$cleanNumber');
+    final Uri callUri = Uri.parse('tel:$cleanNumber');
+
+    try {
+      bool launched = await launchUrl(
+        telegramTgUri,
+        mode: LaunchMode.externalApplication,
+      );
+
+      if (!launched) {
+        launched = await launchUrl(
+          telegramWebUri,
+          mode: LaunchMode.externalApplication,
+        );
+      }
+
+      if (!launched) {
+        await launchUrl(
+          callUri,
+          mode: LaunchMode.externalApplication,
+        );
+      }
+    } catch (e) {
+      try {
+        await launchUrl(
+          callUri,
+          mode: LaunchMode.externalApplication,
+        );
+      } catch (err) {
+        debugPrint('Could not launch phone app: $err');
+      }
+    }
   }
 
-  void _comingSoon(BuildContext context) {
-    HapticFeedback.selectionClick();
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(
-        behavior: SnackBarBehavior.floating,
-        content: Text('my_visits.route_info.action_coming_soon'.tr),
-        duration: const Duration(seconds: 2),
-      ));
+  Future<void> _openGoogleMaps(double latitude, double longitude) async {
+    final Uri googleMapsUri = Uri.parse(
+      'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude',
+    );
+
+    try {
+      await launchUrl(
+        googleMapsUri,
+        mode: LaunchMode.externalApplication,
+      );
+    } catch (e) {
+      debugPrint('Could not launch Google Maps: $e');
+    }
   }
 
   @override
@@ -90,6 +129,8 @@ class StopInformationScreen extends StatelessWidget {
 
   Widget _build(BuildContext context) {
     final colors = context.appColors;
+    final isWide = !context.isCompactWindow;
+
     return Scaffold(
       backgroundColor: colors.canvas,
       appBar: AppBar(
@@ -98,38 +139,100 @@ class StopInformationScreen extends StatelessWidget {
         scrolledUnderElevation: 0,
         iconTheme: IconThemeData(color: colors.textPrimary),
         title: Text(
-          'my_visits.stop_info.title'.tr,
+          'Outlet Information',
           style: TextStyle(
             color: colors.textPrimary,
-            fontSize: context.rsp(17),
+            fontSize: 17,
             fontWeight: FontWeight.w800,
           ),
         ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.edit_outlined, color: colors.textPrimary),
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Edit Outlet Info coming soon')),
+              );
+            },
+          ),
+        ],
       ),
       body: SafeArea(
-        top: false,
-        child: ListView(
-          padding: EdgeInsets.fromLTRB(context.rw(16), context.rh(8), context.rw(16), context.rh(20)),
-          children: [
-            _StaggeredEntrance(
-              delayMs: 0,
-              child:
-                  _HeroCard(stop: stop, index: index, totalStops: totalStops),
+        child: ResponsiveContentFrame(
+          child: ListView(
+            padding: EdgeInsets.fromLTRB(
+              context.pagePadding,
+              12,
+              context.pagePadding,
+              24,
             ),
-            SizedBox(height: context.rh(14)),
-            _StaggeredEntrance(
-              delayMs: 80,
-              child: _DetailsCard(stop: stop),
-            ),
-            SizedBox(height: context.rh(14)),
-            _StaggeredEntrance(
-              delayMs: 160,
-              child: _QuickActions(
-                onProfile: () => _openProfile(context),
-                onComingSoon: () => _comingSoon(context),
+            children: [
+              _StaggeredEntrance(
+                delayMs: 0,
+                child: _HeroCard(stop: stop),
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              if (isWide)
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      flex: 6,
+                      child: _StaggeredEntrance(
+                        delayMs: 80,
+                        child: _OutletInfoCard(
+                          stop: stop,
+                          onPhoneTap: (phone) => _openPhoneOrTelegram(phone),
+                          onLocationTap: (lat, lng) =>
+                              _openGoogleMaps(lat, lng),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      flex: 5,
+                      child: Column(
+                        children: [
+                          _StaggeredEntrance(
+                            delayMs: 120,
+                            child: const _PromoListCard(),
+                          ),
+                          const SizedBox(height: 16),
+                          _StaggeredEntrance(
+                            delayMs: 160,
+                            child: const _SalesHistoryDetailCard(),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                )
+              else
+                Column(
+                  children: [
+                    _StaggeredEntrance(
+                      delayMs: 80,
+                      child: _OutletInfoCard(
+                        stop: stop,
+                        onPhoneTap: (phone) => _openPhoneOrTelegram(phone),
+                        onLocationTap: (lat, lng) =>
+                            _openGoogleMaps(lat, lng),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    _StaggeredEntrance(
+                      delayMs: 120,
+                      child: const _PromoListCard(),
+                    ),
+                    const SizedBox(height: 14),
+                    _StaggeredEntrance(
+                      delayMs: 160,
+                      child: const _SalesHistoryDetailCard(),
+                    ),
+                  ],
+                ),
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: _StartVisitBar(onStart: () => _startVisit(context)),
@@ -137,127 +240,113 @@ class StopInformationScreen extends StatelessWidget {
   }
 }
 
-class _StaggeredEntrance extends StatefulWidget {
-  const _StaggeredEntrance({required this.child, required this.delayMs});
+class _StaggeredEntrance extends StatelessWidget {
+  const _StaggeredEntrance({
+    required this.child,
+    required this.delayMs,
+  });
+
   final Widget child;
   final int delayMs;
 
   @override
-  State<_StaggeredEntrance> createState() => _StaggeredEntranceState();
-}
-
-class _StaggeredEntranceState extends State<_StaggeredEntrance>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 380),
-  );
-  late final Animation<double> _fade =
-      CurvedAnimation(parent: _c, curve: Curves.easeOut);
-  late final Animation<Offset> _slide =
-      Tween<Offset>(begin: const Offset(0, 0.05), end: Offset.zero)
-          .animate(CurvedAnimation(parent: _c, curve: Curves.easeOutCubic));
-
-  @override
-  void initState() {
-    super.initState();
-    Future.delayed(Duration(milliseconds: widget.delayMs), () {
-      if (mounted) _c.forward();
-    });
+  Widget build(BuildContext context) {
+    // Keep the content always visible. The previous implementation used
+    // delayed Stateful animation state, which could leave the widget with
+    // uninitialized animation fields and make the entire screen disappear.
+    // The delay is intentionally retained as an API-compatible field so
+    // existing call sites do not need to change.
+    return child;
   }
-
-  @override
-  void dispose() {
-    _c.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) => FadeTransition(
-        opacity: _fade,
-        child: SlideTransition(position: _slide, child: widget.child),
-      );
 }
 
 class _HeroCard extends StatelessWidget {
-  const _HeroCard(
-      {required this.stop, required this.index, required this.totalStops});
+  const _HeroCard({required this.stop});
   final RouteStop stop;
-  final int index;
-  final int totalStops;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
     final c = stop.customer;
+
     return Container(
-      padding: EdgeInsets.all(context.rw(16)),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: colors.card,
-        borderRadius: BorderRadius.circular(context.rr(18)),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: colors.border),
         boxShadow: colors.cardShadow,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Row(
-            children: [
-              Container(
-                width: context.rw(48),
-                height: context.rw(48),
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: scheme.primary.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(context.rr(14)),
+          Container(
+            width: 52,
+            height: 52,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: scheme.primary.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              Icons.storefront_rounded,
+              color: scheme.primary,
+              size: 26,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  context.localized(c.displayName),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: colors.textPrimary,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
-                child: Icon(Icons.storefront_rounded,
-                    color: scheme.primary, size: context.rw(24)),
-              ),
-              SizedBox(width: context.rw(12)),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                const SizedBox(height: 4),
+                Row(
                   children: [
-                    Text(
-                      context.localized(c.displayName),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: colors.textPrimary,
-                        fontSize: context.rsp(17),
-                        fontWeight: FontWeight.w900,
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: scheme.primary.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        'CUS CODE',
+                        style: TextStyle(
+                          color: scheme.primary,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                    SizedBox(height: context.rh(2)),
-                    Text(
-                      c.code,
-                      style: TextStyle(
-                          color: colors.textSecondary, fontSize: context.rsp(12.5)),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        c.code,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: colors.textSecondary,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                   ],
                 ),
-              ),
-              _StatusPill(label: stop.status.name.toUpperCase()),
-            ],
-          ),
-          SizedBox(height: context.rh(14)),
-          Row(
-            children: [
-              Icon(Icons.route_rounded,
-                  size: context.rw(15), color: colors.textSecondary),
-              SizedBox(width: context.rw(6)),
-              Text(
-                'my_visits.stop_info.stop_of'
-                    .trParams({'current': index + 1, 'total': totalStops}),
-                style: TextStyle(
-                  color: colors.textSecondary,
-                  fontSize: context.rsp(12),
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
@@ -265,97 +354,131 @@ class _HeroCard extends StatelessWidget {
   }
 }
 
-class _StatusPill extends StatelessWidget {
-  const _StatusPill({required this.label});
-  final String label;
+class _OutletInfoCard extends StatelessWidget {
+  const _OutletInfoCard({
+    required this.stop,
+    required this.onPhoneTap,
+    required this.onLocationTap,
+  });
 
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: context.rw(10), vertical: context.rh(4)),
-      decoration: BoxDecoration(
-        color: scheme.primary.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(context.rr(20)),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: scheme.primary,
-          fontSize: context.rsp(10.5),
-          fontWeight: FontWeight.w800,
-        ),
-      ),
-    );
-  }
-}
-
-class _DetailsCard extends StatelessWidget {
-  const _DetailsCard({required this.stop});
   final RouteStop stop;
+  final Function(String) onPhoneTap;
+  final Function(double, double) onLocationTap;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final c = stop.customer;
 
-    final locationCubit =
-        StopInformationScreen._resolveBloc<LocationTrackingCubit>(context);
+    LocationTrackingCubit? locationCubit;
+    try {
+      locationCubit = context.read<LocationTrackingCubit>();
+    } catch (_) {}
 
-    return BlocBuilder<LocationTrackingCubit, LocationTrackingState>(
-      bloc: locationCubit,
-      buildWhen: (a, b) => a.current != b.current,
-      builder: (context, locationState) {
-        final pos = locationState.current;
-        final distanceLabel = pos == null
-            ? null
-            : _formatDistance(GeofenceService.distanceMeters(
-                pos.latitude, pos.longitude, c.latitude, c.longitude));
+    Widget buildCard(LocationTrackingState? locationState) {
+      final pos = locationState?.current;
+      final distanceLabel = pos == null
+          ? null
+          : _formatDistance(GeofenceService.distanceMeters(
+              pos.latitude, pos.longitude, c.latitude, c.longitude));
 
-        return Container(
-          padding: EdgeInsets.symmetric(horizontal: context.rw(16), vertical: context.rh(6)),
-          decoration: BoxDecoration(
-            color: colors.card,
-            borderRadius: BorderRadius.circular(context.rr(18)),
-            border: Border.all(color: colors.border),
-          ),
-          child: Column(
-            children: [
+      final phoneNum = c.phone.isEmpty ? '026 407 480' : c.phone;
+
+      return Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 8,
+        ),
+        decoration: BoxDecoration(
+          color: colors.card,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: colors.border),
+          boxShadow: colors.cardShadow,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const _SectionHeader(title: 'Outlet Details & Location'),
+            _InfoRow(
+              icon: Icons.tag_rounded,
+              label: 'Outlet ID (BP SAP)',
+              value: c.code.isNotEmpty ? c.code : 'BP-884920',
+            ),
+            const _InfoRow(
+              icon: Icons.store_outlined,
+              label: 'Outlet Type',
+              value: 'WHS / Retail',
+            ),
+            const _InfoRow(
+              icon: Icons.workspace_premium_outlined,
+              label: 'Outlet Tier',
+              value: 'Diamond',
+            ),
+            const _InfoRow(
+              icon: Icons.alt_route_rounded,
+              label: 'Outlet Action',
+              value: 'Attack',
+            ),
+            _InfoRow(
+              icon: Icons.person_outline_rounded,
+              label: 'Owner / Contact Person (SAP)',
+              value: c.contact.isEmpty ? 'Yim Vithou' : c.contact,
+            ),
+            _InfoRow(
+              icon: Icons.call_outlined,
+              label: 'Phone Number (SAP)',
+              value: phoneNum,
+              onTap: () => onPhoneTap(phoneNum),
+              actionWidget: _ActionIconButton(
+                icon: Icons.phone_forwarded_rounded,
+                color: Colors.green,
+                onPressed: () => onPhoneTap(phoneNum),
+              ),
+            ),
+            const _InfoRow(
+              icon: Icons.send_rounded,
+              label: 'Telegram',
+              value: '@phnom_penh_steel_outlet',
+            ),
+            _InfoRow(
+              icon: Icons.location_on_outlined,
+              label: 'Address Line (SAP)',
+              value: c.address.isEmpty ? 'St. 218, Mean Chey' : c.address,
+            ),
+            _InfoRow(
+              icon: Icons.my_location_rounded,
+              label: 'Lat & Long (SAP)',
+              value:
+                  '${c.latitude.toStringAsFixed(5)}, ${c.longitude.toStringAsFixed(5)}',
+              last: distanceLabel == null,
+              onTap: () => onLocationTap(c.latitude, c.longitude),
+              actionWidget: _ActionIconButton(
+                icon: Icons.map_rounded,
+                color: Colors.blue,
+                onPressed: () => onLocationTap(c.latitude, c.longitude),
+              ),
+            ),
+            if (distanceLabel != null)
               _InfoRow(
-                  icon: Icons.location_on_outlined,
-                  label: 'customers.address'.tr,
-                  value: c.address),
-              _InfoRow(
-                  icon: Icons.person_outline_rounded,
-                  label: 'my_visits.stop_info.contact_person'.tr,
-                  value: c.contact.isEmpty ? '—' : c.contact),
-              _InfoRow(
-                  icon: Icons.call_outlined,
-                  label: 'customers.phone'.tr,
-                  value: c.phone.isEmpty ? '—' : c.phone),
-              _InfoRow(
-                  icon: Icons.map_outlined,
-                  label: 'customers.territory'.tr,
-                  value: c.territory.isEmpty
-                      ? c.territoryType.label
-                      : c.territory),
-              _InfoRow(
-                  icon: Icons.my_location_rounded,
-                  label: 'my_visits.stop_info.gps_location'.tr,
-                  value:
-                      '${c.latitude.toStringAsFixed(5)}, ${c.longitude.toStringAsFixed(5)}',
-                  last: distanceLabel == null),
-              if (distanceLabel != null)
-                _InfoRow(
-                    icon: Icons.straighten_rounded,
-                    label: 'my_visits.stop_info.distance'.tr,
-                    value: distanceLabel,
-                    last: true),
-            ],
-          ),
-        );
-      },
-    );
+                icon: Icons.straighten_rounded,
+                label: 'Distance',
+                value: distanceLabel,
+                last: true,
+              ),
+          ],
+        ),
+      );
+    }
+
+    if (locationCubit != null) {
+      return BlocBuilder<LocationTrackingCubit, LocationTrackingState>(
+        bloc: locationCubit,
+        buildWhen: (a, b) => a.current != b.current,
+        builder: (context, state) => buildCard(state),
+      );
+    }
+
+    return buildCard(null);
   }
 
   static String _formatDistance(double meters) {
@@ -364,53 +487,179 @@ class _DetailsCard extends StatelessWidget {
   }
 }
 
-class _InfoRow extends StatelessWidget {
-  const _InfoRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-    this.last = false,
-  });
-
-  final IconData icon;
-  final String label;
-  final String value;
-  final bool last;
+class _PromoListCard extends StatelessWidget {
+  const _PromoListCard();
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+
     return Container(
-      padding: EdgeInsets.symmetric(vertical: context.rh(12)),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        border: last
-            ? null
-            : Border(bottom: BorderSide(color: colors.border, width: 0.6)),
+        color: colors.card,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colors.border),
+        boxShadow: colors.cardShadow,
       ),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: context.rw(18), color: colors.textSecondary),
-          SizedBox(width: context.rw(12)),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style:
-                      TextStyle(color: colors.textSecondary, fontSize: context.rsp(11.5)),
-                ),
-                SizedBox(height: context.rh(2)),
-                Text(
-                  value,
-                  style: TextStyle(
-                    color: colors.textPrimary,
-                    fontSize: context.rsp(13.5),
-                    fontWeight: FontWeight.w600,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.local_offer_outlined,
+                      size: 20, color: colors.textPrimary),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Promotions',
+                    style: TextStyle(
+                      color: colors.textPrimary,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: colors.border,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Text(
+                      '25',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              Icon(Icons.chevron_right_rounded, color: colors.textSecondary),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _PromoBadge(
+                  label: 'ON-INVOICE (20)',
+                  color: Colors.blue.shade100,
+                  textColor: Colors.blue.shade900),
+              _PromoBadge(
+                  label: 'OFF-INVOICE (0)',
+                  color: Colors.grey.shade200,
+                  textColor: Colors.grey.shade700),
+              _PromoBadge(
+                  label: 'CONTRACT (5)',
+                  color: Colors.teal.shade100,
+                  textColor: Colors.teal.shade900),
+            ],
+          )
+        ],
+      ),
+    );
+  }
+}
+
+class _PromoBadge extends StatelessWidget {
+  const _PromoBadge({
+    required this.label,
+    required this.color,
+    required this.textColor,
+  });
+
+  final String label;
+  final Color color;
+  final Color textColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 150),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 12,
+        vertical: 6,
+      ),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: textColor,
+          fontSize: 11,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
+}
+
+class _SalesHistoryDetailCard extends StatelessWidget {
+  const _SalesHistoryDetailCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 8,
+      ),
+      decoration: BoxDecoration(
+        color: colors.card,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colors.border),
+        boxShadow: colors.cardShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const _SectionHeader(title: 'Sales History Detail'),
+          const _InfoRow(
+            icon: Icons.verified_user_outlined,
+            label: 'Payment/Credit Status',
+            value: 'Good Standing',
+          ),
+          const _InfoRow(
+            icon: Icons.account_balance_wallet_outlined,
+            label: 'Credit Limit (SAP)',
+            value: '\$50,000',
+          ),
+          const _InfoRow(
+            icon: Icons.calendar_month_outlined,
+            label: 'Payment Term (SAP)',
+            value: '30 Days Net',
+          ),
+          const _InfoRow(
+            icon: Icons.trending_up_rounded,
+            label: 'Avg Rev per Order',
+            value: '\$12,500',
+          ),
+          const _InfoRow(
+            icon: Icons.history_toggle_off_rounded,
+            label: 'Latest Order Date (SAP)',
+            value: '12 Aug 2026',
+          ),
+          _InfoRow(
+            icon: Icons.receipt_long_rounded,
+            label: 'Order History (SAP)',
+            value: 'Tap to view outlet orders history',
+            last: true,
+            actionWidget: Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 14,
+              color: colors.textSecondary,
             ),
           ),
         ],
@@ -419,102 +668,173 @@ class _InfoRow extends StatelessWidget {
   }
 }
 
-class _QuickActions extends StatelessWidget {
-  const _QuickActions({required this.onProfile, required this.onComingSoon});
-  final VoidCallback onProfile;
-  final VoidCallback onComingSoon;
-
-  @override
-  Widget build(BuildContext context) {
-    final actions = <(IconData, String, VoidCallback)>[
-      (
-        Icons.person_rounded,
-        'my_visits.stop_info.action_profile'.tr,
-        onProfile
-      ),
-      (Icons.call_rounded, 'my_visits.stop_info.action_call'.tr, onComingSoon),
-      (
-        Icons.directions_rounded,
-        'my_visits.stop_info.action_maps'.tr,
-        onComingSoon
-      ),
-      (
-        Icons.receipt_long_rounded,
-        'my_visits.stop_info.action_orders'.tr,
-        onComingSoon
-      ),
-      (
-        Icons.history_rounded,
-        'my_visits.stop_info.action_history'.tr,
-        onComingSoon
-      ),
-    ];
-    return Wrap(
-      spacing: context.rw(10),
-      runSpacing: context.rh(10),
-      children: [for (final a in actions) _ActionChip(a.$1, a.$2, a.$3)],
-    );
-  }
-}
-
-class _ActionChip extends StatefulWidget {
-  const _ActionChip(this.icon, this.label, this.onTap);
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  State<_ActionChip> createState() => _ActionChipState();
-}
-
-class _ActionChipState extends State<_ActionChip> {
-  double _scale = 1.0;
-
-  void _onTapDown(TapDownDetails _) => setState(() => _scale = 0.95);
-  void _onTapCancel() => setState(() => _scale = 1.0);
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.title});
+  final String title;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Text(
+        title,
+        style: TextStyle(
+          color: colors.textPrimary,
+          fontSize: 14.5,
+          fontWeight: FontWeight.w800,
+          letterSpacing: -0.2,
+        ),
+      ),
+    );
+  }
+}
 
-    return AnimatedScale(
-      scale: _scale,
-      duration: const Duration(milliseconds: 100),
-      curve: Curves.easeOutCubic,
-      child: Material(
-        color: colors.card,
-        borderRadius: BorderRadius.circular(context.rr(14)),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTapDown: _onTapDown,
-          onTapCancel: _onTapCancel,
-          onTap: () {
-            setState(() => _scale = 1.0);
-            widget.onTap();
-          },
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: context.rw(14), vertical: context.rh(10)),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(context.rr(14)),
-              border: Border.all(color: colors.border),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(widget.icon, size: context.rw(17), color: scheme.primary),
-                SizedBox(width: context.rw(8)),
-                Text(
-                  widget.label,
-                  style: TextStyle(
-                    color: colors.textPrimary,
-                    fontSize: context.rsp(12.5),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
+class _InfoRow extends StatefulWidget {
+  const _InfoRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.last = false,
+    this.actionWidget,
+    this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+  final bool last;
+  final Widget? actionWidget;
+  final VoidCallback? onTap;
+
+  @override
+  State<_InfoRow> createState() => _InfoRowState();
+}
+
+class _InfoRowState extends State<_InfoRow> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final isInteractive = widget.onTap != null;
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      cursor: isInteractive ? SystemMouseCursors.click : SystemMouseCursors.basic,
+      child: InkWell(
+        onTap: widget.onTap != null
+            ? () {
+                HapticFeedback.selectionClick();
+                widget.onTap!();
+              }
+            : null,
+        borderRadius: BorderRadius.circular(10),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeInOut,
+          padding: EdgeInsets.symmetric(
+            vertical: 10,
+            horizontal: _isHovered ? 8 : 0,
           ),
+          decoration: BoxDecoration(
+            color: _isHovered && isInteractive
+                ? colors.border.withValues(alpha: 0.3)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+            border: widget.last
+                ? null
+                : Border(
+                    bottom: BorderSide(
+                      color: colors.border,
+                      width: 0.6,
+                    ),
+                  ),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              AnimatedScale(
+                scale: _isHovered ? 1.15 : 1.0,
+                duration: const Duration(milliseconds: 150),
+                child: Icon(
+                  widget.icon,
+                  size: 20,
+                  color: widget.onTap != null
+                      ? Theme.of(context).colorScheme.primary
+                      : colors.textSecondary,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: colors.textSecondary,
+                        fontSize: 11.5,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      widget.value,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: colors.textPrimary,
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (widget.actionWidget != null) widget.actionWidget!,
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ActionIconButton extends StatefulWidget {
+  const _ActionIconButton({
+    required this.icon,
+    required this.color,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final Color color;
+  final VoidCallback onPressed;
+
+  @override
+  State<_ActionIconButton> createState() => _ActionIconButtonState();
+}
+
+class _ActionIconButtonState extends State<_ActionIconButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: AnimatedScale(
+        scale: _isHovered ? 1.15 : 1.0,
+        duration: const Duration(milliseconds: 150),
+        child: IconButton(
+          icon: Icon(widget.icon, color: widget.color, size: 22),
+          onPressed: () {
+            HapticFeedback.lightImpact();
+            widget.onPressed();
+          },
         ),
       ),
     );
@@ -530,37 +850,47 @@ class _StartVisitBar extends StatelessWidget {
     final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: colors.card,
-        border: Border(top: BorderSide(color: colors.border)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, -4),
-          )
-        ],
-      ),
-      padding: EdgeInsets.fromLTRB(context.rw(20), context.rh(12), context.rw(20), context.rh(12)),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          width: double.infinity,
-          height: context.rh(50),
-          child: ElevatedButton.icon(
-            onPressed: onStart,
-            icon: Icon(Icons.play_arrow_rounded, size: context.rw(22)),
-            label: Text(
-              'my_visits.stop_info.start_visit'.tr,
-              style: TextStyle(fontSize: context.rsp(15), fontWeight: FontWeight.w800),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: scheme.primary,
-              foregroundColor: scheme.onPrimary,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(context.rr(14)),
+    return ResponsiveContentFrame(
+      child: Container(
+        decoration: BoxDecoration(
+          color: colors.card,
+          border: Border(top: BorderSide(color: colors.border)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 10,
+              offset: const Offset(0, -4),
+            )
+          ],
+        ),
+        padding: EdgeInsets.fromLTRB(
+          context.pagePadding,
+          12,
+          context.pagePadding,
+          12,
+        ),
+        child: SafeArea(
+          top: false,
+          child: SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: ElevatedButton.icon(
+              onPressed: onStart,
+              icon: const Icon(Icons.play_arrow_rounded, size: 22),
+              label: Text(
+                'my_visits.stop_info.start_visit'.tr,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: scheme.primary,
+                foregroundColor: scheme.onPrimary,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
               ),
             ),
           ),

@@ -10,7 +10,7 @@ import 'package:isi_steel_sales_mobile/features/app_coach/presentation/services/
 /// whenever the script changes materially so persisted progress migrates.
 abstract final class CoachStepCatalog {
   /// Schema version — increment when steps are added/removed/reordered.
-  static const int coachVersion = 8;
+  static const int coachVersion = 10;
 
   static const List<CoachStep> steps = [
     CoachStep(
@@ -52,23 +52,13 @@ abstract final class CoachStepCatalog {
       order: 4,
     ),
     CoachStep(
-      id: 'add_customer',
-      titleKey: 'coach.add_customer.title',
-      messageKey: 'coach.add_customer.message',
-      ctaKey: 'coach.cta.next',
-      requiredAction: CoachAction.none,
-      advanceOnCta: true,
-      targetKeyId: CoachKeys.addCustomer,
-      order: 5,
-    ),
-    CoachStep(
       id: 'my_visits',
       titleKey: 'coach.my_visits.title',
       messageKey: 'coach.my_visits.message',
       ctaKey: 'coach.cta.skip_step',
       requiredAction: CoachAction.openMyVisits,
       targetKeyId: CoachKeys.myVisits,
-      order: 6,
+      order: 5,
     ),
     CoachStep(
       id: 'my_customers',
@@ -77,7 +67,7 @@ abstract final class CoachStepCatalog {
       ctaKey: 'coach.cta.skip_step',
       requiredAction: CoachAction.openCustomers,
       targetKeyId: CoachKeys.myCustomers,
-      order: 7,
+      order: 6,
     ),
     CoachStep(
       id: 'orders',
@@ -86,17 +76,7 @@ abstract final class CoachStepCatalog {
       ctaKey: 'coach.cta.skip_step',
       requiredAction: CoachAction.openOrders,
       targetKeyId: CoachKeys.orders,
-      order: 8,
-    ),
-    CoachStep(
-      id: 'language',
-      titleKey: 'coach.language.title',
-      messageKey: 'coach.language.message',
-      ctaKey: 'coach.cta.next',
-      requiredAction: CoachAction.none,
-      advanceOnCta: true,
-      targetKeyId: CoachKeys.language,
-      order: 9,
+      order: 7,
     ),
     CoachStep(
       id: 'notification',
@@ -106,7 +86,7 @@ abstract final class CoachStepCatalog {
       requiredAction: CoachAction.none,
       advanceOnCta: true,
       targetKeyId: CoachKeys.notification,
-      order: 10,
+      order: 8,
     ),
     CoachStep(
       id: 'profile',
@@ -116,7 +96,7 @@ abstract final class CoachStepCatalog {
       requiredAction: CoachAction.none,
       advanceOnCta: true,
       targetKeyId: CoachKeys.profile,
-      order: 11,
+      order: 9,
     ),
     CoachStep(
       id: 'completed',
@@ -126,7 +106,7 @@ abstract final class CoachStepCatalog {
       requiredAction: CoachAction.none,
       advanceOnCta: true,
       canSkip: false,
-      order: 12,
+      order: 10,
     ),
   ];
 }

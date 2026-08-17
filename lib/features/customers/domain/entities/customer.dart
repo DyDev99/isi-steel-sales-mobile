@@ -10,12 +10,14 @@ import 'package:isi_steel_sales_mobile/features/customers/domain/entities/custom
 /// ([CustomerRemoteDataSource]/`upsertFromSapPayload`). There is no local
 /// constructor path for a rep to hand-create one; that would violate the
 /// Won -> Submitted -> HQ Approved -> SAP-created entry rule.
-/// [sapCustomerId] is non-nullable by design: a record cannot exist here
-/// without a SAP identity.
+/// [sapCustomerId] is **nullable**: a customer registered in the field has no
+/// SAP identity until it is approved and pushed to the ERP. It was non-null
+/// while customers could only arrive by sync from SAP; now that a rep can
+/// create one, `Draft` and `PendingApproval` records legitimately have none.
 class Customer extends Equatable {
   const Customer({
     required this.id,
-    required this.sapCustomerId,
+    this.sapCustomerId,
     required this.customerCode,
     required this.shopName,
     required this.ownerName,
@@ -55,7 +57,8 @@ class Customer extends Equatable {
   });
 
   final String id;
-  final String sapCustomerId;
+  /// The ERP's identifier, once it has one. Null until SAP creates the record.
+  final String? sapCustomerId;
   final String customerCode;
   final String shopName;
   final String ownerName;
@@ -119,6 +122,19 @@ class Customer extends Equatable {
   /// When SAP created the record ([updatedAt] covers modification).
   final DateTime? createdAt;
 
+  /// Whether this customer has a usable position.
+  ///
+  /// `(0, 0)` encodes "no GPS fix was ever captured". It is a real point in the
+  /// Gulf of Guinea, which is precisely why the API rejects it on write and
+  /// sends null instead — but the local schema declares both columns non-null,
+  /// so that pair is what a coordinate-less customer stores.
+  ///
+  /// **Every geographic consumer must check this first.** A distance sorter or
+  /// geofence that skips the check will happily measure the 10 000 km to the
+  /// Atlantic and rank an unlocated shop as impossibly far, or fail a check-in
+  /// the rep is standing inside.
+  bool get hasCoordinates => latitude != 0 || longitude != 0;
+
   /// The customer's name in both languages, for rendering.
   ///
   /// English resolves to [shopName] rather than [enName] deliberately:
@@ -150,7 +166,9 @@ class Customer extends Equatable {
       yield enName!;
     }
     yield customerCode;
-    yield sapCustomerId;
+    // Searchable only once it exists — an unsynced customer has no SAP number
+    // to match against, and yielding null would poison the token set.
+    if (sapCustomerId case final sapId?) yield sapId;
     yield ownerName;
     yield phone;
   }

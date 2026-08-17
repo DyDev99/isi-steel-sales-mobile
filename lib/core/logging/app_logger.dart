@@ -112,16 +112,40 @@ class ConsoleAppLogger implements AppLogger {
           safeFields.entries.map((e) => '${e.key}=${e.value}').join(' '));
     }
 
+    final message = buffer.toString();
+
+    // The exception *type* is diagnostic; its message may embed PII (a failed
+    // request body, a customer name), so it is redacted like any other value.
+    final safeError =
+        error == null ? null : _redactor.redactValue('error', error);
+
     developer.log(
-      buffer.toString(),
+      message,
       name: 'isi.${level.name}',
       level: _severity(level),
-      // The exception *type* is diagnostic; its message may embed PII (a failed
-      // request body, a customer name), so it is redacted like any other value.
-      error: error == null ? null : _redactor.redactValue('error', error),
+      error: safeError,
       // §10: stack traces are development-only.
       stackTrace: _verbose ? stackTrace : null,
     );
+
+    // `developer.log` reaches the VM service — DevTools' Logging view and the
+    // IDE — but **not** the `flutter run` terminal, which only shows stdout.
+    // Mirroring to [debugPrint] is what makes these records visible where
+    // people actually watch them while debugging a device.
+    //
+    // Same redacted string, so the terminal copy can never leak more than the
+    // structured one, and only in verbose (non-release) builds, keeping
+    // SECURITY.md §11 intact.
+    if (_verbose) {
+      debugPrint('[isi.${level.name}] $message'
+          '${safeError == null ? '' : ' error=$safeError'}');
+      // Only for errors, and only in development: a stack trace is the whole
+      // reason an unexpected failure is diagnosable at all, but it is noise
+      // everywhere else.
+      if (stackTrace != null && level == LogLevel.error) {
+        debugPrint(stackTrace.toString());
+      }
+    }
   }
 
   /// Maps to `dart:developer` levels, which follow `package:logging` values.
@@ -159,7 +183,30 @@ class LogRedactor {
     r'|customer|owner|shop|address|province|district'
     r'|revenue|price|amount|total|credit|balance|salary|discount'
     r'|lat|lng|longitude|latitude|geo|coord'
+    // Personnel identifiers. An employee ID is the sign-in identifier printed
+    // on a badge and a payslip: it names a specific person, and its short
+    // digit run (`ADM000001`) slips under the value-shape rules, so only the
+    // key check catches it.
+    r'|employee|personnel|staff|badge'
     r'|name|user|account|session|device_id|deviceid)',
+    caseSensitive: false,
+  );
+
+  /// Keys whose values are correlation identifiers: opaque, server-minted, and
+  /// tied to a request rather than to a person.
+  ///
+  /// These skip the *value-shape* pass only. They have to, because a trace id
+  /// like `0HNNOE4PB87QD:00000001` trips [_longDigitRun] and comes out as
+  /// `***REDACTED***` — which defeats the entire point of emitting it. §10
+  /// allows these for the same reason it allows response and error codes: the
+  /// id identifies a request in a server log, and support cannot find the call
+  /// behind a bug report without it.
+  ///
+  /// Anchored and exhaustive, so this widens nothing by accident: a key must be
+  /// exactly one of these to qualify, and the sensitive-key pass still runs
+  /// first.
+  static final RegExp _correlationKey = RegExp(
+    r'^(correlationid|correlation_id|traceid|trace_id|requestid|request_id)$',
     caseSensitive: false,
   );
 
@@ -190,7 +237,15 @@ class LogRedactor {
   /// bare exception object get the same value-shape protection.
   Object? redactValue(String key, Object? value) {
     if (value == null) return null;
-    if (_sensitiveKey.hasMatch(key)) return placeholder;
+
+    // The correlation allowlist is checked *before* the sensitive-key pass,
+    // not after, because `correlationId` matches that pass by accident: it
+    // contains "lat", the fragment meant for `latitude`. Ordering it second
+    // would silently mask the field regardless of the exemption — which is
+    // exactly what happened first time round.
+    final isCorrelationId = _correlationKey.hasMatch(key);
+
+    if (!isCorrelationId && _sensitiveKey.hasMatch(key)) return placeholder;
 
     // Recurse so nested payloads can't smuggle PII past the key check.
     if (value is Map) {
@@ -208,6 +263,17 @@ class LogRedactor {
     if (value is bool) return value;
 
     final text = value.toString();
+
+    // Correlation ids are exempt from the digit-run rule, but never from the
+    // token and address rules — if something that looks like a JWT or an
+    // e-mail arrives under `traceId`, that is a bug worth redacting, not an
+    // identifier worth printing.
+    if (isCorrelationId) {
+      return _jwtValue.hasMatch(text) || _emailValue.hasMatch(text)
+          ? placeholder
+          : value;
+    }
+
     if (_jwtValue.hasMatch(text)) return placeholder;
     if (_emailValue.hasMatch(text)) return placeholder;
     if (_longDigitRun.hasMatch(text)) return placeholder;

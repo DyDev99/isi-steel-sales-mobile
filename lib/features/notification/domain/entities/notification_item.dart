@@ -1,20 +1,23 @@
-// package:isi_steel_sales_mobile/features/lead/domain/entities/notification_item.dart
-
+/// What a notification is about. Purely a display category — the label and
+/// colour are resolved from it, nothing branches on it for behaviour.
 enum NotificationKind {
   creditApproved,
-  leadAssigned,
+
+  /// A customer was assigned to this rep. Was `leadAssigned` while the lead
+  /// feature owned this type; notifications are customer-driven now.
+  customerAssigned,
+
   opportunityMoved,
   creditPending,
   followUpDue,
 }
 
+/// A single item in the notifications sheet.
+///
+/// This entity used to live in `features/lead`, which is why the notification
+/// feature had no domain of its own. It owns it now, so nothing here depends
+/// on a pipeline that no longer exists.
 class NotificationItem {
-  final String id;
-  final NotificationKind kind;
-  final String title; // Can be a localization key or raw text from server
-  final String body; // Can be a localization key or raw text from server
-  final DateTime createdAt;
-
   const NotificationItem({
     required this.id,
     required this.kind,
@@ -22,4 +25,13 @@ class NotificationItem {
     required this.body,
     required this.createdAt,
   });
+
+  final String id;
+  final NotificationKind kind;
+
+  /// A localisation key or raw text from the server.
+  final String title;
+  final String body;
+
+  final DateTime createdAt;
 }

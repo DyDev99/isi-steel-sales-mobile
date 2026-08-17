@@ -105,21 +105,31 @@ class FilterSelection extends Equatable {
   /// [sortBy] and [availableOnly] come from the Filter sheet rather than the
   /// guided steps: they are presentation preferences over the result set, not
   /// answers that narrow the hierarchy, so they never invalidate a selection.
+  /// [warehouseCode] narrows to one stock location. It is passed in rather than
+  /// answered as a step because location is chosen *after* the rep sees which
+  /// SKUs matched — it refines the result set, like sort and availability, and
+  /// so must never invalidate an answered step.
   ProductFilter toProductFilter(
     String? categoryId, {
     ProductSortBy sortBy = ProductSortBy.relevance,
     bool availableOnly = false,
+    String? warehouseCode,
   }) {
     var filter = ProductFilter(
       categoryId: categoryId,
       sortBy: sortBy,
       availableOnly: availableOnly,
+      warehouseCode: warehouseCode,
     );
     for (final entry in entries) {
       final value = entry.option.value;
       final number = entry.attribute.isNumeric ? double.tryParse(value) : null;
       filter = switch (entry.attribute) {
         ProductAttribute.family => filter.copyWith(familyId: () => value),
+        // A schema that publishes location as a step still lands on the same
+        // column the chip row sets, so the two can never disagree.
+        ProductAttribute.warehouse =>
+          filter.copyWith(warehouseCode: () => value),
         ProductAttribute.subCategory =>
           filter.copyWith(subCategory: () => value),
         ProductAttribute.brand => filter.copyWith(brand: () => value),

@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
-import 'package:isi_steel_sales_mobile/core/config/env.dart';
+import 'package:isi_steel_sales_mobile/core/config/app_config.dart';
 import 'package:isi_steel_sales_mobile/core/logging/app_logger.dart';
 
 /// Application-wide connectivity state.
@@ -21,7 +21,7 @@ abstract interface class ReachabilityProbe {
   Future<bool> isReachable();
 }
 
-/// Probes the app's **own** API gateway ([Env.sapApiUrl]).
+/// Probes the app's **own** API gateway ([AppConfig.sapApiUrl]).
 ///
 /// ADR-005 is explicit that the probe must target our own infrastructure rather
 /// than a third-party endpoint, so "reachable" means "reachable enough to sync"
@@ -38,7 +38,20 @@ class HttpReachabilityProbe implements ReachabilityProbe {
     Duration timeout = const Duration(seconds: 5),
   })  : _dio = dio,
         _logger = logger,
-        _timeout = timeout;
+        _timeout = timeout {
+    // Bounds the connect phase, which the per-request `Options` cannot: Dio
+    // exposes `connectTimeout` only on `BaseOptions`, and defaults it to null,
+    // meaning *no limit*.
+    //
+    // Without this, a host that blackholes SYN packets — a dead tunnel, or a
+    // firewall that drops rather than refuses — hung this probe indefinitely
+    // instead of for [timeout]. That is not a theoretical concern: bootstrap
+    // awaited the probe before `runApp`, so the hang meant the app never
+    // rendered a first frame and simply sat on the launch screen.
+    //
+    // `??=` so a caller supplying a pre-configured client keeps its own value.
+    _dio.options.connectTimeout ??= timeout;
+  }
 
   final Dio _dio;
   final AppLogger _logger;
@@ -47,19 +60,37 @@ class HttpReachabilityProbe implements ReachabilityProbe {
   @override
   Future<bool> isReachable() async {
     try {
-      final response = await _dio.head<void>(
-        Env.sapApiUrl,
-        options: Options(
-          sendTimeout: _timeout,
-          receiveTimeout: _timeout,
-          // Any HTTP answer proves the network path works. A 401/404 still means
-          // we reached the gateway, which is what "online" must mean here — the
-          // alternative (requiring 2xx) would report offline whenever the token
-          // is stale, and ADR-002 forbids coupling connectivity to auth.
-          validateStatus: (_) => true,
-        ),
-      );
+      final response = await _dio
+          .head<void>(
+            AppConfig.sapApiUrl,
+            options: Options(
+              // These two only start counting once a connection exists, so
+              // they cannot bound the connect phase. `connectTimeout` covers
+              // that and lives on `BaseOptions` rather than `Options` — which
+              // is exactly how it came to be missing; it is set in the
+              // constructor.
+              sendTimeout: _timeout,
+              receiveTimeout: _timeout,
+              // Any HTTP answer proves the network path works. A 401/404 still
+              // means we reached the gateway, which is what "online" must mean
+              // here — the alternative (requiring 2xx) would report offline
+              // whenever the token is stale, and ADR-002 forbids coupling
+              // connectivity to auth.
+              validateStatus: (_) => true,
+            ),
+          )
+          // The outer, unconditional bound. Dio's own timeouts are enforced by
+          // the HTTP adapter, so they are only as good as the adapter in play
+          // — a custom or mocked one enforces nothing, and this probe sits on
+          // the path to first frame. A wall-clock timeout here makes "the
+          // probe always answers within [_timeout]" a property of this class
+          // rather than a hope about its transport.
+          .timeout(_timeout);
+
       return response.statusCode != null;
+    } on TimeoutException {
+      _logger.debug('connectivity.probe_failed', fields: {'reason': 'timeout'});
+      return false;
     } on DioException catch (e) {
       // §10: log the failure type only — never the request or response body.
       _logger

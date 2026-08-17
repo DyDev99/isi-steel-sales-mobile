@@ -8,6 +8,18 @@ import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// One matched SKU, and the only place a product enters the quotation.
 ///
+/// ## Why the SKU line exists
+///
+/// A `products` row is a sellable SKU: its id is `{code}-{warehouseCode}`, so
+/// the same material stocked at three warehouses is three rows. They share a
+/// name, a material code and a spec — everything this card used to show — and
+/// differed only in an id the rep never saw. Three identical-looking cards, and
+/// picking the wrong one meant a quotation that shipped from the wrong plant.
+///
+/// [Product.sku] and [Product.warehouseCode] are therefore rendered as the
+/// card's identity line. It is not decoration; it is the whole difference
+/// between the rows.
+///
 /// The stock badge is *categorical*, never a raw number: the quantity is the
 /// condition, the label is a status. A rep deciding whether to quote needs
 /// "can I sell this", not an inventory readout — and an exact count on a card
@@ -142,16 +154,11 @@ class ProductResultCard extends StatelessWidget {
                             ),
                           ),
                           SizedBox(height: context.rh(3)),
-                          Text(
-                            product.materialCode,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: colors.textSecondary,
-                              fontSize: context.rsp(11),
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                          // SKU code · stock location. The material code alone
+                          // is shared by every warehouse row of this material,
+                          // so on its own it cannot tell two result cards
+                          // apart — see the class doc.
+                          _SkuIdentityLine(product: product),
                           if (specLine != null && specLine!.isNotEmpty) ...[
                             SizedBox(height: context.rh(4)),
                             Text(
@@ -247,6 +254,14 @@ class ProductResultCard extends StatelessWidget {
                     CartQuantityStepper(
                       quantity: quantity,
                       enabled: available,
+                      // Capped at what this SKU's own warehouse can back, so
+                      // the `+` stops rather than the rep discovering the
+                      // limit only after tapping. A made-to-order SKU is
+                      // produced against the order, so stock is not its
+                      // constraint and it stays unbounded.
+                      max: product.isMto
+                          ? null
+                          : product.availableQuantity.floor(),
                       onChanged: onQuantityChanged,
                     ),
                     SizedBox(width: context.rw(4)),
@@ -293,6 +308,73 @@ class _StockStatus {
   const _StockStatus({required this.label, required this.color});
   final String label;
   final Color color;
+}
+
+/// The SKU code and the warehouse holding it — the two facts that separate one
+/// result card from its siblings for the same material.
+///
+/// The warehouse is a chip rather than more grey text because "which location"
+/// is a decision the rep makes, not a reference number they read. Falls back to
+/// the material code when SAP publishes no distinct SKU string, so the line is
+/// never blank.
+class _SkuIdentityLine extends StatelessWidget {
+  const _SkuIdentityLine({required this.product});
+
+  final Product product;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
+    final skuLabel =
+        product.sku.trim().isNotEmpty ? product.sku : product.materialCode;
+
+    return Row(
+      children: [
+        Flexible(
+          child: Text(
+            skuLabel,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: colors.textSecondary,
+              fontSize: context.rsp(11),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        if (product.warehouseCode.trim().isNotEmpty) ...[
+          SizedBox(width: context.rw(6)),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: scheme.primary.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.warehouse_rounded,
+                  size: context.rr(11),
+                  color: scheme.primary,
+                ),
+                SizedBox(width: context.rw(3)),
+                Text(
+                  product.warehouseCode,
+                  style: TextStyle(
+                    color: scheme.primary,
+                    fontSize: context.rsp(10.5),
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
 }
 
 class _SquareAction extends StatelessWidget {

@@ -24,7 +24,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/save_a
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/update_route_status.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/update_stop_status.dart';
 import 'package:isi_steel_sales_mobile/core/usecase/usecase.dart';
-import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/quotation_builder_screen.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/inventory_visible/inventory_visible_screen.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/events/active_route_event.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/state/active_route_state.dart';
 
@@ -33,7 +33,7 @@ const _policy = FraudPolicy();
 /// The full-workday state machine: Start Day -> Navigate -> Arrive ->
 /// Geofence Validation -> Check In -> Visit -> Check Out -> Next Stop ->
 /// End Day. Mirrors `PipelineBloc`'s optimistic-update / single-current-
-/// state shape from `lib/features/lead`.
+/// state shape used elsewhere in the app.
 class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
   ActiveRouteBloc({
     required GetRoute getRoute,
@@ -102,12 +102,12 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
     final isActive = stop != null && stop.status == VisitStatus.checkedIn;
     final now = DateTime.now();
 
-    // Baseline for a live visit: the Quotation task. The guided Stock Count
-    // step was removed from the visit flow (check-in now advances straight to
-    // the Quotation Builder), so the resume pointer written at check-in must
-    // target Quotation, not the retired stock-count screen.
-    var workflow = isActive ? VisitWorkflow.quotation : null;
-    String? screen = isActive ? QuotationBuilderScreen.routeName : null;
+    // Baseline for a live visit: the guided Stock Count step, which now sits
+    // between check-in and the Quotation Builder. A fresh check-in with no
+    // further progress resumes here; [UpdateWorkflowStep] overwrites this once
+    // the rep advances into a business task (see the guard below).
+    var workflow = isActive ? VisitWorkflow.stockCount : null;
+    String? screen = isActive ? InventoryVisibilityScreen.routeName : null;
     Map<String, dynamic>? args = isActive
         ? {
             'stopId': stop.id,

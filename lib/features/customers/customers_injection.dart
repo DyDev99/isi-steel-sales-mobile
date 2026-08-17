@@ -1,11 +1,16 @@
+import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
+import 'package:isi_steel_sales_mobile/core/config/data_source_mode.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
 import 'package:isi_steel_sales_mobile/core/database/hive/hive_service.dart';
 import 'package:isi_steel_sales_mobile/core/database/hive/local_cache.dart';
+import 'package:isi_steel_sales_mobile/core/logging/app_logger.dart';
 import 'package:isi_steel_sales_mobile/core/network/network_info.dart';
+import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/local/customer_drift_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/local/customer_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/local/master_data_cache.dart';
+import 'package:isi_steel_sales_mobile/features/customers/data/remote/api_customer_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/remote/customer_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/remote/master_data_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/remote/mock_customer_remote_data_source.dart';
@@ -18,6 +23,7 @@ import 'package:isi_steel_sales_mobile/features/customers/domain/repositories/cu
 import 'package:isi_steel_sales_mobile/features/customers/domain/repositories/master_data_repository.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/add_customer_activity.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/add_customer_note.dart';
+import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/create_customer.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/browse_customers.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/fetch_customer_activities.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/fetch_customer_notes.dart';
@@ -43,7 +49,10 @@ Future<void> registerCustomerFeature(GetIt sl) async {
   sl.registerLazySingleton<CustomerLocalDataSource>(
       () => CustomerDriftLocalDataSource(sl<AppDatabase>().customerDao));
   sl.registerLazySingleton<CustomerRemoteDataSource>(
-      () => MockCustomerRemoteDataSource());
+    () => DataSourceMode.useLiveApi
+        ? ApiCustomerRemoteDataSource(sl<Dio>())
+        : MockCustomerRemoteDataSource(),
+  );
 
   // SAP Customer Helper master data (ADR-009). Cached in Hive rather than
   // Drift because these are regenerable lookups, not business records
@@ -58,7 +67,11 @@ Future<void> registerCustomerFeature(GetIt sl) async {
       () => CustomerRepositoryImpl(sl()));
   sl.registerLazySingleton<CustomerSyncRepository>(
     () => CustomerSyncRepositoryImpl(
-        remote: sl(), local: sl(), network: sl<NetworkInfo>()),
+      remote: sl(),
+      local: sl(),
+      network: sl<NetworkInfo>(),
+      logger: sl<AppLogger>(),
+    ),
   );
   sl.registerLazySingleton<MasterDataRepository>(
     () => MasterDataRepositoryImpl(
@@ -67,6 +80,7 @@ Future<void> registerCustomerFeature(GetIt sl) async {
 
   // ── Use cases ───────────────────────────────────────────────────────
   sl.registerLazySingleton(() => BrowseCustomers(sl()));
+  sl.registerLazySingleton(() => CreateCustomer(sl()));
   sl.registerLazySingleton(() => GetCustomerById(sl()));
   sl.registerLazySingleton(() => ToggleFavoriteCustomer(sl()));
   sl.registerLazySingleton(() => FetchFavoriteCustomers(sl()));
@@ -100,5 +114,7 @@ Future<void> registerCustomerFeature(GetIt sl) async {
         runInitialSync: sl(),
         runDeltaSync: sl(),
         getLastSyncedAt: sl(),
+        session: sl<SessionManager>(),
+        logger: sl<AppLogger>(),
       ));
 }

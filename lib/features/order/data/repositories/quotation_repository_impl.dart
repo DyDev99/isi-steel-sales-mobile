@@ -1,11 +1,11 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:math';
 
 import 'package:isi_steel_sales_mobile/core/error/exceptions.dart';
 import 'package:isi_steel_sales_mobile/core/error/failures.dart';
 import 'package:isi_steel_sales_mobile/core/utils/result.dart';
 import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
+import 'package:isi_steel_sales_mobile/features/order/data/local/order_line_codec.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/local/product_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/local/quotation_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
@@ -13,7 +13,6 @@ import 'package:isi_steel_sales_mobile/features/order/domain/entities/off_visit_
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/quotation.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/quotation_status.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/repositories/quotation_repository.dart';
-import 'package:isi_steel_sales_mobile/features/order/domain/services/product_customization_spec.dart';
 
 const _validityDays = 14;
 
@@ -25,10 +24,13 @@ class QuotationRepositoryImpl implements QuotationRepository {
       {required QuotationLocalDataSource local,
       required ProductLocalDataSource productLocal})
       : _local = local,
-        _productLocal = productLocal;
+        _lines = OrderLineCodec(productLocal);
 
   final QuotationLocalDataSource _local;
-  final ProductLocalDataSource _productLocal;
+
+  /// Shared with [SalesOrderRepositoryImpl] so a quotation and the sales order
+  /// it becomes can never disagree about what a line contains.
+  final OrderLineCodec _lines;
 
   final StreamController<List<Quotation>> _controller =
       StreamController<List<Quotation>>.broadcast();
@@ -250,39 +252,11 @@ class QuotationRepositoryImpl implements QuotationRepository {
     );
   }
 
-  String _encodeLines(List<CartItem> items) => jsonEncode(items
-      .map((i) => {
-            'productId': i.product.id,
-            'quantity': i.quantity,
-            'unit': i.unit,
-            'discountPercent': i.discountPercent,
-            // Customization travels as a nested JSON string (null for plain
-            // lines) so quotations + their PDF keep the exact customized spec.
-            'customization': ProductCustomizationSpec.encode(i),
-          })
-      .toList());
+  String _encodeLines(List<CartItem> items) => _lines.encode(items);
 
   Future<List<CartItem>> _decodeLines(String json,
-      {String? customerId, String? leadId}) async {
-    final rawItems = (jsonDecode(json) as List).cast<DataMap>();
-    final items = <CartItem>[];
-    for (final raw in rawItems) {
-      final product = await _productLocal.getById(raw['productId'] as String);
-      if (product == null) continue;
-      final base = CartItem(
-        id: '${raw['productId']}-${items.length}',
-        product: product,
-        quantity: (raw['quantity'] as num).toDouble(),
-        unit: raw['unit'] as String,
-        discountPercent: (raw['discountPercent'] as num).toDouble(),
-        leadId: leadId,
-        customerId: customerId,
-      );
-      items.add(ProductCustomizationSpec.applyEncoded(
-          base, raw['customization'] as String?));
-    }
-    return items;
-  }
+          {String? customerId, String? leadId}) =>
+      _lines.decode(json, customerId: customerId, leadId: leadId);
 
   static String _newId(String prefix) =>
       '$prefix-${(DateTime.now().microsecondsSinceEpoch + Random().nextInt(99999)) % 1000000}';

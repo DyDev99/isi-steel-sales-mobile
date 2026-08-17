@@ -22,8 +22,11 @@ class MonthlyTargetCard extends StatefulWidget {
   State<MonthlyTargetCard> createState() => _MonthlyTargetCardState();
 }
 
-class _MonthlyTargetCardState extends State<MonthlyTargetCard> {
+class _MonthlyTargetCardState extends State<MonthlyTargetCard>
+    with SingleTickerProviderStateMixin {
   bool _isPressed = false;
+  late final AnimationController _pulseController;
+  late final Animation<double> _slideAnimation;
 
   // Traditional Gold Palette
   static const Color _goldLight = Color(0xFFF3E5AB);
@@ -35,6 +38,28 @@ class _MonthlyTargetCardState extends State<MonthlyTargetCard> {
       : 0.0;
 
   int get _percentage => (_progress * 100).round();
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    )..repeat(reverse: true);
+
+    _slideAnimation = Tween<double>(begin: 0.0, end: 4.0).animate(
+      CurvedAnimation(
+        parent: _pulseController,
+        curve: Curves.easeInOut,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +90,6 @@ class _MonthlyTargetCardState extends State<MonthlyTargetCard> {
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20.r),
-            // 3D Depth Shadows
             boxShadow: [
               BoxShadow(
                 color: scheme.primary.withValues(alpha: isDark ? 0.30 : 0.18),
@@ -80,7 +104,7 @@ class _MonthlyTargetCardState extends State<MonthlyTargetCard> {
             ],
           ),
           child: Container(
-            // 1. Outer Gold Frame Gradient
+            // Outer Gold Frame Gradient
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20.r),
               gradient: LinearGradient(
@@ -93,7 +117,7 @@ class _MonthlyTargetCardState extends State<MonthlyTargetCard> {
                 ],
               ),
             ),
-            padding: EdgeInsets.all(2.r), // Gold Border Trim Thickness
+            padding: EdgeInsets.all(2.r),
             child: Container(
               padding: EdgeInsets.all(context.rw(18)),
               decoration: BoxDecoration(
@@ -112,7 +136,7 @@ class _MonthlyTargetCardState extends State<MonthlyTargetCard> {
                 borderRadius: BorderRadius.circular(18.r),
                 child: Stack(
                   children: [
-                    // Traditional Corner Decorative Accents
+                    // Corner Decorative Accents
                     Positioned(
                       top: -16.r,
                       left: -16.r,
@@ -132,70 +156,137 @@ class _MonthlyTargetCardState extends State<MonthlyTargetCard> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // 1. Header: 3D Calendar Medallion + Title & 3D Percentage Badge
+                        // Header with Title & Animated View KPI Tag
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Row(
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  // Embossed Calendar Medallion
+                                  Container(
+                                    width: 36.r,
+                                    height: 36.r,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                        colors: [
+                                          scheme.primary
+                                              .withValues(alpha: 0.22),
+                                          scheme.primary
+                                              .withValues(alpha: 0.06),
+                                        ],
+                                      ),
+                                      border: Border.all(
+                                        color: _goldPrimary
+                                            .withValues(alpha: 0.7),
+                                        width: 1.2,
+                                      ),
+                                    ),
+                                    child: Center(
+                                      child: Icon(
+                                        Icons.calendar_today_rounded,
+                                        size: 16.sp,
+                                        color: scheme.primary,
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(width: 10.w),
+                                  Flexible(
+                                    child: Text(
+                                      'shell.monthly_target'.trParams(
+                                          {'month': widget.monthName}),
+                                      style: TextStyle(
+                                        color: scheme.onSurface,
+                                        fontSize: context.rsp(14),
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: -0.2,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            SizedBox(width: 8.w),
+
+                           Row(
                               children: [
-                                // 3D Embossed Icon Medallion
-                                Container(
-                                  width: 36.r,
-                                  height: 36.r,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                      colors: [
-                                        scheme.primary.withValues(alpha: 0.22),
-                                        scheme.primary.withValues(alpha: 0.06),
-                                      ],
-                                    ),
-                                    border: Border.all(
-                                      color:
-                                          _goldPrimary.withValues(alpha: 0.7),
-                                      width: 1.2,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: scheme.primary
-                                            .withValues(alpha: 0.2),
-                                        offset: const Offset(0, 2),
-                                        blurRadius: 4,
+                                   Icon(
+                                          Icons.bar_chart_rounded,
+                                          size: 14.sp,
+                                          color: scheme.primary,
+                                        ),
+                                        SizedBox(width: 4.w),
+                                        Text(
+                                          'home.view_kpi'.tr,
+                                          style: TextStyle(
+                                            color: scheme.primary,
+                                            fontSize: context.rsp(11),
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                        ),
+                                        Transform.translate(
+                                          offset: Offset(
+                                              _slideAnimation.value, 0),
+                                          child: Icon(
+                                            Icons.arrow_forward_ios_rounded,
+                                            size: 10.sp,
+                                            color: scheme.primary,
+                                          ),
+                                        ),
+                              ],
+                            ),
+                          ],
+                        ),
+
+                        SizedBox(height: context.rh(14)),
+
+                        // Values Display & Clickable Visual Hint
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                                  textBaseline: TextBaseline.alphabetic,
+                                  children: [
+                                    Text(
+                                      '\$${widget.achievedAmount.toInt()}',
+                                      style: TextStyle(
+                                        color: scheme.onSurface,
+                                        fontSize: context.rsp(24),
+                                        fontWeight: FontWeight.w900,
+                                        letterSpacing: -0.5,
                                       ),
-                                      BoxShadow(
-                                        color: Colors.white.withValues(
-                                            alpha: isDark ? 0.05 : 0.6),
-                                        offset: const Offset(-1, -1),
-                                        blurRadius: 2,
-                                      ),
-                                    ],
-                                  ),
-                                  child: Center(
-                                    child: Icon(
-                                      Icons.calendar_today_rounded,
-                                      size: 16.sp,
-                                      color: scheme.primary,
                                     ),
-                                  ),
-                                ),
-                                SizedBox(width: 10.w),
-                                Text(
-                                  'shell.monthly_target'
-                                      .trParams({'month': widget.monthName}),
-                                  style: TextStyle(
-                                    color: scheme.onSurface,
-                                    fontSize: context.rsp(14),
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: -0.2,
-                                  ),
+                                    SizedBox(width: 6.w),
+                                    Text(
+                                      '/ \$${widget.targetAmount.toInt()}',
+                                      style: TextStyle(
+                                        color: scheme.onSurface
+                                            .withValues(alpha: 0.5),
+                                        fontSize: context.rsp(14),
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
 
-                            // 3D Percentage Chip with Gold/Success Gradient
-                            Container(
+                            // Explicit "View KPI" interactive affordance pill
+                            if (widget.onTap != null)
+                              AnimatedBuilder(
+                                animation: _pulseController,
+                                builder: (context, child) {
+                                  return   Container(
                               padding: EdgeInsets.symmetric(
                                 horizontal: 12.w,
                                 vertical: 4.h,
@@ -229,49 +320,15 @@ class _MonthlyTargetCardState extends State<MonthlyTargetCard> {
                                   fontWeight: FontWeight.w900,
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-
-                        SizedBox(height: context.rh(16)),
-
-                        // 2. Large Value Display with 3D Depth Style
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
-                          children: [
-                            Text(
-                              '\$${widget.achievedAmount.toInt()}',
-                              style: TextStyle(
-                                color: scheme.onSurface,
-                                fontSize: context.rsp(24),
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: -0.5,
-                                shadows: [
-                                  Shadow(
-                                    color: Colors.black
-                                        .withValues(alpha: isDark ? 0.5 : 0.12),
-                                    offset: const Offset(0, 2),
-                                    blurRadius: 4,
-                                  ),
-                                ],
+                            );
+                                },
                               ),
-                            ),
-                            SizedBox(width: 6.w),
-                            Text(
-                              '/ \$${widget.targetAmount.toInt()}',
-                              style: TextStyle(
-                                color: scheme.onSurface.withValues(alpha: 0.5),
-                                fontSize: context.rsp(14),
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
                           ],
                         ),
 
                         SizedBox(height: context.rh(14)),
 
-                        // 3. Carved 3D Progress Track
+                        // Progress Track
                         Container(
                           height: context.rh(12),
                           decoration: BoxDecoration(
@@ -281,14 +338,6 @@ class _MonthlyTargetCardState extends State<MonthlyTargetCard> {
                               color: _goldPrimary.withValues(alpha: 0.25),
                               width: 1,
                             ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black
-                                    .withValues(alpha: isDark ? 0.4 : 0.08),
-                                offset: const Offset(0, 2),
-                                blurRadius: 2,
-                              ),
-                            ],
                           ),
                           child: Stack(
                             children: [
@@ -312,14 +361,6 @@ class _MonthlyTargetCardState extends State<MonthlyTargetCard> {
                                       ],
                                     ),
                                     borderRadius: BorderRadius.circular(10.r),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: appColors.success
-                                            .withValues(alpha: 0.4),
-                                        blurRadius: 6,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
                                   ),
                                 ),
                               ),
@@ -339,7 +380,6 @@ class _MonthlyTargetCardState extends State<MonthlyTargetCard> {
   }
 }
 
-/// Traditional geometric motif corner decoration
 class _TraditionalCornerOrnament extends StatelessWidget {
   const _TraditionalCornerOrnament({required this.color});
 

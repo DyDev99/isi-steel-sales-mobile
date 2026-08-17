@@ -4,8 +4,10 @@ import 'package:isi_steel_sales_mobile/features/customers/presentation/screens/c
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/active_workflow.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_plan.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_workflow.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/navigation/open_inventory_visibility.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/navigation/open_quotation.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/navigation/open_stop_information.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/inventory_visible/inventory_visible_screen.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/stop_information/stop_information_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/quotation_builder_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/shop/shop_list_screen.dart';
@@ -32,6 +34,21 @@ final Map<String, ResumeBuilder> _navigationRegistry = {
       stop: route.stops[index],
       index: index,
       totalStops: route.stops.length,
+    );
+  },
+
+  // Stock count task — resume straight into the Inventory Visibility step for
+  // the checked-in customer. The baseline pointer `_writeWorkflowPointer`
+  // writes at check-in, before the rep advances into a business task.
+  InventoryVisibilityScreen.routeName: (context, route, w) {
+    final customerId = w.navigationArguments?['customerId'] as String?;
+    if (customerId == null) return null;
+    final customerName =
+        w.navigationArguments?['customerName'] as String? ?? w.shopName ?? '';
+    return openInventoryVisibilityForCustomer(
+      context,
+      customerId: customerId,
+      customerName: customerName,
     );
   },
 

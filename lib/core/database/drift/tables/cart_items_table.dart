@@ -22,6 +22,23 @@ class CartItems extends Table {
   /// customization shape can evolve without a schema change — see
   /// `ProductCustomizationSpec.encode`.
   TextColumn get customizationJson => text().nullable()();
+
+  /// The unit price agreed when the line was added, frozen against later
+  /// catalog deltas.
+  ///
+  /// Nullable, and null means "no snapshot — price this line from the live
+  /// `prices` row", which is precisely what every row did before this column
+  /// existed. That is what lets the v17 migration add it without rewriting a
+  /// single existing cart line.
+  RealColumn get unitPrice => real().nullable()();
+
+  /// JSON blob of the line's pickup/delivery terms, or null for a line added
+  /// straight off the product grid. Free-form for the same reason
+  /// [customizationJson] is: the shape is a commercial agreement that will
+  /// grow (delivery windows, vehicle type) and must not need a schema change
+  /// to do it. See `ShipmentSelection.encode`.
+  TextColumn get fulfillmentJson => text().nullable()();
+
   TextColumn get createdAt => text()();
 
   @override

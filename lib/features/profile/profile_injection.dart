@@ -1,4 +1,8 @@
 import 'package:get_it/get_it.dart';
+import 'package:isi_steel_sales_mobile/core/logging/app_logger.dart';
+import 'package:isi_steel_sales_mobile/features/authentication/data/datasources/auth_local_data_source.dart';
+import 'package:isi_steel_sales_mobile/features/authentication/data/datasources/auth_remote_data_source.dart';
+import 'package:isi_steel_sales_mobile/features/profile/data/datasources/auth_backed_profile_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/profile/data/datasources/profile_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/profile/data/repositories/profile_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/profile/domain/repositories/profile_repository.dart';
@@ -12,8 +16,17 @@ import 'package:isi_steel_sales_mobile/features/profile/presentation/bloc/profil
 /// change, and logout. Mirrors `registerMyVisitsFeature`.
 void registerProfileFeature(GetIt sl) {
   // ── Data sources ────────────────────────────────────────────────────
+  // Backed by the auth layer rather than a profile service of its own: the
+  // signed-in employee is `GET /auth/me`, and a second fetch path would be a
+  // second answer to "who is signed in". The mock served the same hardcoded
+  // "Alex Morgan" to every user.
   sl.registerLazySingleton<ProfileRemoteDataSource>(
-      () => MockProfileRemoteDataSource());
+    () => AuthBackedProfileDataSource(
+      remote: sl<AuthRemoteDataSource>(),
+      local: sl<AuthLocalDataSource>(),
+      logger: sl<AppLogger>(),
+    ),
+  );
 
   // ── Repositories ────────────────────────────────────────────────────
   sl.registerLazySingleton<ProfileRepository>(

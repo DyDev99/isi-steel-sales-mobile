@@ -4,7 +4,7 @@ import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
 /// The single source of truth for the encrypted database's schema version.
 /// Bump this by exactly one whenever a schema change ships, and add the matching
 /// step to [_stepwiseMigrations].
-const int kCurrentSchemaVersion = 15;
+const int kCurrentSchemaVersion = 17;
 
 /// Keys under which the migrator records bookkeeping in `app_metadata`, so the
 /// on-device schema history is auditable and a failed/partial upgrade is
@@ -303,7 +303,78 @@ final Map<int, SchemaMigrationStep> _stepwiseMigrations =
     // populated — a delta would only touch rows SAP happens to have changed.
     await db.customStatement('DELETE FROM catalog_sync_meta;');
   },
+  // v16: `customers.sap_customer_id` becomes nullable.
+  //
+  // The column was `text().unique()` and the API mapper collapsed a missing
+  // SAP id to `''`. SQLite treats every NULL as distinct but `''` as one
+  // value, so the *second* customer without a SAP id violated the constraint
+  // and aborted the entire sync batch with
+  // `UNIQUE constraint failed: customers.sap_customer_id`. That is the normal
+  // case, not an edge one: a customer registered in the field has no SAP
+  // identity until it is approved and pushed, so a fresh territory is mostly
+  // `PendingApproval` rows with none.
+  //
+  // `alterTable` recreates the table with the current definition and copies
+  // the data across, because SQLite cannot drop a NOT NULL constraint in
+  // place.
+  16: (m, db) async {
+    await m.alterTable(TableMigration(db.customers));
+
+    // Existing placeholders become real absences, so they stop competing for
+    // the single `''` slot the old constraint allowed.
+    await db
+        .customSelect(
+          "UPDATE customers SET sap_customer_id = NULL "
+          "WHERE sap_customer_id = '';",
+        )
+        .get();
+  },
+
+  // v17: cart lines carry their own agreed price and fulfillment terms.
+  //
+  // Both columns are additive and nullable, so this is a pure `addColumn` with
+  // no data rewrite and no destructive step. Existing rows stay NULL, which the
+  // repository reads as "price this line from the live catalog row" — exactly
+  // the behaviour those rows already had. A rep who upgrades mid-visit finds
+  // their cart unchanged.
+  //
+  // Why a snapshot at all: `prices` is SAP-controlled and replaced wholesale on
+  // sync, so a quotation saved on Monday re-priced itself on Tuesday. The
+  // stored `quotations.total` then disagreed with the lines rendered under it,
+  // and the PDF the customer was holding disagreed with both.
+  17: (m, db) async {
+    await _addColumnIfMissing(m, db, db.cartItems, db.cartItems.unitPrice);
+    await _addColumnIfMissing(
+        m, db, db.cartItems, db.cartItems.fulfillmentJson);
+  },
 };
+
+/// `addColumn`, skipped when the column is already there.
+///
+/// [SchemaMigrationStep] requires every step to be idempotent-safe, and a bare
+/// `addColumn` is not: SQLite fails the whole upgrade with
+/// `duplicate column name`, which on a real device leaves the user on a
+/// database that will not open.
+///
+/// That is not hypothetical. The migration fixtures build the *current* schema
+/// with Drift's own DDL and then rewind `user_version` — deliberately, so the
+/// fixture cannot drift from reality — which means every replayed step meets
+/// columns that already exist. Any additive migration has to tolerate that, or
+/// each new one silently breaks every fixture before it.
+Future<void> _addColumnIfMissing(
+  Migrator m,
+  AppDatabase db,
+  TableInfo<Table, dynamic> table,
+  GeneratedColumn<Object> column,
+) async {
+  final existing = await db
+      .customSelect('PRAGMA table_info(${table.actualTableName});')
+      .get();
+  final present =
+      existing.any((row) => row.read<String>('name') == column.name);
+  if (present) return;
+  await m.addColumn(table, column);
+}
 
 /// Builds the [MigrationStrategy] for [db]: creates the schema on first run,
 /// walks stepwise migrations on upgrade, records the version registry after

@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/calendar/stops_indicator_dots.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// The calendar's compact header: today's date and a dot summary of today's stops.
@@ -63,26 +62,7 @@ class CalendarToggleButton extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  SizedBox(height: context.rh(4)),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'my_visits.calendar.todays_stops'.tr,
-                        style: TextStyle(
-                          color: colors.textSecondary,
-                          fontSize: context.rsp(11),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      SizedBox(width: context.rw(8)),
-                      StopIndicatorDots(
-                        count: todayStopCount,
-                        maxVisible: 8,
-                        dotSize: 5,
-                      ),
-                    ],
-                  ),
+                  
                 ],
               ),
             ),

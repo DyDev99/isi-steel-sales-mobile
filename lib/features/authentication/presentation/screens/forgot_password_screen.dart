@@ -1,14 +1,14 @@
+import 'package:isi_steel_sales_mobile/routes/app_routes.dart';
+import 'package:isi_steel_sales_mobile/features/authentication/presentation/screens/verify_otp_args.dart';
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/aurora_background.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/glass_card.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/gradient_button.dart';
-import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/forgot_password/identifier_field.dart';
+import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/phone_number_field.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/status_pill.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
-// Note: Ensure your breakpoints file is imported if needed by context.responsive
-// import 'package:isi_steel_sales_mobile/core/responsive/breakpoints.dart';
 
 /// Outcome of a forgot-password request, returned by [ForgotPasswordScreen.onSubmit].
 class ForgotPasswordResult {
@@ -35,7 +35,7 @@ class ForgotPasswordScreen extends StatefulWidget {
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _identifierKey = GlobalKey<IdentifierFieldState>();
+  final _phoneKey = GlobalKey<PhoneNumberFieldState>();
 
   AuthVibeStatus _status = AuthVibeStatus.idle;
   String? _errorMessage;
@@ -43,10 +43,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   Future<void> _submit() async {
     final formOk = _formKey.currentState?.validate() ?? false;
-    final identifierOk = _identifierKey.currentState?.validate() ?? false;
-    if (!formOk || !identifierOk) return;
+    final phoneOk = _phoneKey.currentState?.validate() ?? false;
+    if (!formOk || !phoneOk) return;
 
-    final identifier = _identifierKey.currentState!.value;
+    final identifier = _phoneKey.currentState!.value;
 
     setState(() {
       _status = AuthVibeStatus.verifying;
@@ -65,6 +65,19 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         _errorMessage = result.message ?? 'auth.something_went_wrong'.tr;
       }
     });
+
+    // Straight to the code screen, tagged as the reset journey so it routes on
+    // to "create new password" rather than into the app.
+    //
+    // `forgot-password` always reports success whether or not the address
+    // exists — otherwise the endpoint becomes an account-enumeration oracle —
+    // so this navigates on success without implying the address was found.
+    if (result.isSuccess && mounted) {
+      await Navigator.of(context).pushNamed(
+        Static.verifyOtp,
+        arguments: VerifyOtpArgs.passwordReset(target: identifier),
+      );
+    }
   }
 
   @override
@@ -163,8 +176,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          IdentifierField(
-            key: _identifierKey,
+          // Phone only, matching the sign-in screen: the sales app has no
+          // e-mail-based identity path, and offering one here would be a
+          // second door into a reset flow that only takes phone numbers.
+          PhoneNumberField(
+            key: _phoneKey,
             required: true,
             textInputAction: TextInputAction.done,
           ),

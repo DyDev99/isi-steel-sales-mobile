@@ -4,24 +4,81 @@ class AppConstants {
 
   // ── API ────────────────────────────────────────────────────────────
   // NOTE: there is deliberately no `baseUrl` constant here. The gateway host is
-  // environment-specific and comes from `Env.apiBaseUrl` (see `AppNetwork`).
-  // A hardcoded literal previously lived here and pinned every build —
-  // including QA and staging — to the production host.
-  static const String apiPrefix = '/v1';
+  // environment-specific and comes from `AppConfig.apiBaseUrl` (see
+  // `AppNetwork`). A hardcoded literal previously lived here and pinned every
+  // build — including QA and staging — to the production host.
+  /// Every documented route is rooted at `https://<host>/api/v1`
+  /// (`docs/Authentication-guild-integratemobile.md`, "Base URL"). Only the
+  /// host varies per environment, and that half comes from
+  /// `AppConfig.apiBaseUrl`.
+  static const String apiPrefix = '/api/v1';
 
   static const Duration connectTimeout = Duration(seconds: 15);
   static const Duration receiveTimeout = Duration(seconds: 20);
 
-  // ── Endpoints ──────────────────────────────────────────────────────
+  // ── Auth endpoints ─────────────────────────────────────────────────
+  // `login`, `refresh` and `token` are OAuth 2.0 endpoints: they answer with
+  // `{error, error_description}` at HTTP 400, *not* with a problem document
+  // and not with 401. Everything else answers RFC 9457. See `ApiError`.
   static const String loginEndpoint = '$apiPrefix/auth/login';
+
+  // ── Phone sign-in with OTP (sales reps) ────────────────────────────
+  //
+  // Three requests in order: send-otp checks the password and returns a
+  // `verificationId`; verify-otp confirms the code and issues **no token**;
+  // mobileLogin exchanges the spent id for the token pair.
+  //
+  // Note the format split — steps 1, 2 and resend answer problem+json, but
+  // `mobileLoginEndpoint` is an OAuth token endpoint and answers
+  // `{error, error_description, error_uri}`. One flow, two parsers.
+  static const String sendOtpEndpoint = '$apiPrefix/mobile/auth/send-otp';
+  static const String verifyOtpEndpoint = '$apiPrefix/mobile/auth/verify-otp';
+  static const String resendOtpEndpoint = '$apiPrefix/mobile/auth/resend-otp';
+  static const String mobileLoginEndpoint = '$apiPrefix/mobile/auth/login';
   static const String refreshEndpoint = '$apiPrefix/auth/refresh';
+  static const String tokenEndpoint = '$apiPrefix/auth/token';
   static const String logoutEndpoint = '$apiPrefix/auth/logout';
   static const String currentUserEndpoint = '$apiPrefix/auth/me';
+  static const String sessionsEndpoint = '$apiPrefix/auth/sessions';
+  static const String changePasswordEndpoint = '$apiPrefix/auth/change-password';
+  static const String forgotPasswordEndpoint = '$apiPrefix/auth/forgot-password';
+  static const String resetPasswordEndpoint = '$apiPrefix/auth/reset-password';
+  static const String verifyEmailEndpoint = '$apiPrefix/auth/verify-email';
+  static const String resendVerificationEndpoint =
+      '$apiPrefix/auth/resend-verification';
+
+  /// Routes that must never trigger the interceptor's refresh-and-replay: a
+  /// 401 from one of these is the answer, not a stale-token symptom.
+  static const Set<String> authRoutes = {
+    loginEndpoint,
+    refreshEndpoint,
+    tokenEndpoint,
+    // The phone flow establishes a session; a 401 from any of these is the
+    // answer, not a stale-token symptom.
+    sendOtpEndpoint,
+    verifyOtpEndpoint,
+    resendOtpEndpoint,
+    mobileLoginEndpoint,
+  };
+
+  // ── Mobile customer endpoints ──────────────────────────────────────
+  static const String customersEndpoint = '$apiPrefix/mobile/customers';
+
+  /// The server clamps `pageSize` to this rather than rejecting a larger
+  /// value, so the real size must be read back from `metadata.pageSize`.
+  static const int maxPageSize = 200;
+
+  /// Minimum accepted by `POST /auth/change-password` and `/auth/reset-password`.
+  static const int minPasswordLength = 12;
 
   // ── Secure storage keys ────────────────────────────────────────────
   static const String kAccessToken = 'isi.access_token';
   static const String kRefreshToken = 'isi.refresh_token';
   static const String kCachedUser = 'isi.cached_user';
+
+  /// Per-installation device identifier sent with login and refresh. Survives
+  /// restarts, may change on reinstall, never used for authorisation.
+  static const String kDeviceId = 'isi.device_id';
 
   // ── Encrypted database (Blueprint §3) ──────────────────────────────
   /// Secure-storage key holding the hardware-sealed 256-bit device key. This

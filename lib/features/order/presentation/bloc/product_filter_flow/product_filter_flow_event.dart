@@ -90,3 +90,18 @@ final class FindNewProductRequested extends ProductFilterFlowEvent {
 final class FilterProductsRefreshed extends ProductFilterFlowEvent {
   const FilterProductsRefreshed();
 }
+
+/// Narrows the matched SKUs to one stock location, or back to all of them with
+/// a null [warehouseCode].
+///
+/// Deliberately *not* a [FilterStepAnswered]. A step answer invalidates every
+/// answer below it, which is right for "thickness changed, so length must be
+/// re-asked" and wrong here: location is chosen after the SKUs are on screen
+/// and changes only which of them are listed. Sending it as its own event is
+/// what keeps the guided hierarchy untouched.
+final class FilterStockLocationChanged extends ProductFilterFlowEvent {
+  const FilterStockLocationChanged(this.warehouseCode);
+  final String? warehouseCode;
+  @override
+  List<Object?> get props => [warehouseCode];
+}

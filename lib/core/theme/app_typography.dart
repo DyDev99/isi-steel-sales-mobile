@@ -36,6 +36,21 @@ class AppTypography {
   /// Back-compat alias — defaults to the Latin family.
   static const String fontFamily = latinFontFamily;
 
+  /// Line height for text in a tight box — a field label, a chip, a badge.
+  ///
+  /// Khmer stacks diacritics both above and below the base glyph
+  /// (U+17B6–17D3), so a line of Khmer needs materially more vertical room
+  /// than the same point size of Latin. Flutter's default height comes from
+  /// the font's own metrics, and MiSans Khmer's are tight enough that a
+  /// floating `InputDecoration` label sized to them gets **clipped** — the
+  /// login screen showed the top of ឈ្មោះអ្នកប្រើ sheared off inside the
+  /// border gap.
+  ///
+  /// Applied **unconditionally**, not only for `km`. A height that changed
+  /// with the active language would resize every field on a language switch,
+  /// which is a worse artefact than slightly airy Latin labels.
+  static const double compactLineHeight = 1.45;
+
   /// Picks the primary font family for [locale]: MiSans Khmer for Khmer (`km`),
   /// ABC Ginto for English and any other Latin-script locale.
   static String fontFamilyForLocale(Locale locale) =>

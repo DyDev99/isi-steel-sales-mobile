@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/core/usecase/usecase.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
@@ -31,19 +32,10 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quota
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/credit_summary_card.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/quotation_bottom_bar.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/quotation_preview_section.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/shipment_widget_section.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/back_to_home.dart';
-import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// Quotation builder — a guided product finder rather than a catalog dump.
-///
-/// Entering no longer fires a product query. The rep searches by code, or
-/// picks a category and walks that category's SAP-defined filter hierarchy;
-/// only then are products fetched, and the quantity stepper on each card
-/// writes them straight into the cart.
-///
-/// Below the finder: cart preview, quotation preview, save. The header
-/// discount picker is gone — per-line discounts (`CartItem.discountPercent`)
-/// are unaffected and still reach the totals through the cart subtotal.
 class QuotationBuilderScreen extends StatefulWidget {
   const QuotationBuilderScreen({
     super.key,
@@ -73,11 +65,17 @@ class QuotationBuilderScreen extends StatefulWidget {
 class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
   Future<CreditSummary?>? _summaryFuture;
 
-  /// Unchanged from before the discount picker was removed — it was never a
-  /// property of the picker, just applied after it.
   static const double _taxRate = 0.10;
 
   Set<String> _favoriteIds = {};
+
+  // Shipment selection states
+  ShipmentMethod _shipmentMethod = ShipmentMethod.pickup;
+  PickupLocation? _pickupLocation = PickupLocation.factory;
+  DeliveryAddressOption? _deliveryOption;
+
+  final TextEditingController _newAddressController = TextEditingController();
+  final TextEditingController _newPhoneController = TextEditingController();
 
   @override
   void initState() {
@@ -93,6 +91,13 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
         (result) => result.when(success: (s) => s, failure: (_) => null),
       );
     }
+  }
+
+  @override
+  void dispose() {
+    _newAddressController.dispose();
+    _newPhoneController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadFavorites() async {
@@ -112,17 +117,12 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
     await sl<ToggleFavorite>()(ProductIdParams(product.id));
   }
 
-  /// The quantity stepper on each product card is the only way a plain line
-  /// enters this quotation now — there is no separate "add" step to get out of
-  /// sync with.
   CartLineBinding get _cartLines => CartLineBinding(
         cart: context.read<CartCubit>(),
         leadId: widget.leadId,
         customerId: widget.customer?.id,
       );
 
-  /// Opens the category-aware customization form, carrying the live [CartCubit]
-  /// so the customized line lands in this same cart.
   void _openCustomize(Product product) {
     final cartCubit = context.read<CartCubit>();
     Navigator.of(context).push(
@@ -137,6 +137,21 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _setLineQuantity(Product product, int quantity) async {
+    final verdict = await _cartLines.setQuantity(product, quantity);
+    if (verdict.isValid || !mounted) return;
+
+    final key = verdict.messageKey;
+    if (key == null) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(key.trParams({
+        'available': verdict.availableQuantity.toStringAsFixed(0),
+        'unit': product.unit,
+        'location': product.warehouseCode,
+      })),
+    ));
   }
 
   Future<void> _saveQuotation() async {
@@ -169,17 +184,10 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // Provided here rather than at every call site so the four navigation
-    // entry points into this screen don't each have to know about the
-    // configurator's bloc.
     return BlocProvider<ProductFilterFlowBloc>(
       create: (_) =>
           sl<ProductFilterFlowBloc>()..add(const FilterFlowStarted()),
       child: BlocListener<SyncCubit, SyncState>(
-        // `syncIfNeeded()` fires in initState, so on a device with an empty
-        // catalog the flow reads "no categories" before the pull finishes.
-        // Reloading on success is what turns that into a brief empty state
-        // instead of a dead end.
         listenWhen: (a, b) => b is SyncSucceeded,
         listener: (context, _) => context
             .read<ProductFilterFlowBloc>()
@@ -249,8 +257,7 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                       favoriteIds: _favoriteIds,
                       onToggleFavorite: _toggleFavorite,
                       quantityFor: (product) => _cartLines.quantityFor(product),
-                      onQuantityChanged: (product, quantity) =>
-                          _cartLines.setQuantity(product, quantity),
+                      onQuantityChanged: _setLineQuantity,
                       lineTotalFor: (product, quantity) =>
                           _cartLines.lineTotalLabel(product, quantity),
                       onCustomize: _openCustomize,
@@ -259,6 +266,40 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                           .matchQuery(ImageSearchSource.gallery),
                     ),
                     SizedBox(height: context.rh(16)),
+                    
+                    // Shipment selection section
+                    ShipmentSelectionWidget(
+                      method: _shipmentMethod,
+                      pickupLocation: _pickupLocation,
+                      deliveryOption: _deliveryOption,
+                      defaultAddress: widget.customer?.address,
+                      newAddressController: _newAddressController,
+                      newPhoneController: _newPhoneController,
+                      onMethodChanged: (method) {
+                        setState(() {
+                          _shipmentMethod = method;
+                          if (method == ShipmentMethod.pickup) {
+                            _pickupLocation ??= PickupLocation.factory;
+                            _deliveryOption = null;
+                          } else {
+                            _deliveryOption ??= DeliveryAddressOption.defaultAddress;
+                            _pickupLocation = null;
+                          }
+                        });
+                      },
+                      onPickupLocationChanged: (location) {
+                        setState(() {
+                          _pickupLocation = location;
+                        });
+                      },
+                      onDeliveryOptionChanged: (option) {
+                        setState(() {
+                          _deliveryOption = option;
+                        });
+                      },
+                    ),
+
+                    SizedBox(height: context.rh(12)),
                     const CartPreviewSection(),
                     BlocBuilder<CartCubit, CartState>(
                       builder: (context, cartState) {
@@ -269,9 +310,6 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                             cartState is CartLoaded ? cartState.subtotal : 0.0;
                         final int totalItemsCount = cartItems.length;
 
-                        // No header discount: the preset-percentage picker is
-                        // gone. Per-line discounts (`CartItem.discountPercent`)
-                        // are untouched and still flow through `subtotal`.
                         const double discountAmount = 0;
                         final double taxAmount = subtotal * _taxRate;
                         final double finalTotal = subtotal + taxAmount;

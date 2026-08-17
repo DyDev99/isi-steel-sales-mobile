@@ -1,3 +1,4 @@
+import 'package:isi_steel_sales_mobile/core/utils/enum_parse.dart';
 import 'package:drift/drift.dart' show Value;
 import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart'
     as db;
@@ -37,7 +38,8 @@ extension CustomerRowMapper on db.Customer {
       latitude: latitude,
       longitude: longitude,
       creditLimit: creditLimit,
-      status: CustomerStatus.values.byName(status),
+      status: CustomerStatus.values
+          .byNameOr(status, CustomerStatus.draft, context: 'customers.status'),
       assignedRepId: assignedRepId,
       assignedRepName: assignedRepName,
       updatedAt: updatedAt,
@@ -72,7 +74,7 @@ extension CustomerModelMapper on CustomerModel {
   db.CustomersCompanion toCompanion() {
     return db.CustomersCompanion.insert(
       id: id,
-      sapCustomerId: sapCustomerId,
+      sapCustomerId: Value(sapCustomerId),
       customerCode: customerCode,
       shopName: shopName,
       ownerName: ownerName,

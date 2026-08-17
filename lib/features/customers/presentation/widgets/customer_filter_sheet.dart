@@ -215,7 +215,10 @@ class _StatusGroup extends StatelessWidget {
                 selected: status == null,
                 onTap: () => cubit.selectStatus(null),
               ),
-              for (final value in CustomerStatus.values)
+              // `selectable`, not `values`: the two legacy statuses are
+              // local-only and sending one as a `status` filter would ask the
+              // server for a lifecycle state it does not have.
+              for (final value in CustomerStatus.selectable)
                 FilterChoiceChip(
                   label: value.localizedLabel,
                   selected: status == value,

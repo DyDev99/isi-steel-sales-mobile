@@ -22,19 +22,9 @@ class LocalizationService extends ChangeNotifier {
   Future<void> load(String languageCode) async {
     _currentLanguageCode = languageCode;
     try {
-      String jsonString;
-      Map<String, dynamic> jsonMap;
-
-      // Try the expected assets path first, then fall back to the repo-level
-      // `lang/` directory (some tests or builds reference this layout).
-      try {
-        jsonString = await rootBundle.loadString('assets/lang/$languageCode.json');
-        jsonMap = json.decode(jsonString);
-      } catch (_) {
-        // Fallback to top-level `lang/` folder which some environments use.
-        jsonString = await rootBundle.loadString('lang/$languageCode.json');
-        jsonMap = json.decode(jsonString);
-      }
+      final String jsonString =
+          await rootBundle.loadString('assets/lang/$languageCode.json');
+      final Map<String, dynamic> jsonMap = json.decode(jsonString);
 
       _localizedStrings = {};
       _flatten(jsonMap, ''); // Recursively flattens maps

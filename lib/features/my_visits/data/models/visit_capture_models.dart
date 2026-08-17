@@ -1,3 +1,4 @@
+import 'package:isi_steel_sales_mobile/core/utils/enum_parse.dart';
 import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_collection.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_note.dart';
@@ -136,7 +137,8 @@ class VisitCollectionModel extends VisitCollection {
         id: row['id'] as String,
         stopId: row['stop_id'] as String,
         amount: (row['amount'] as num).toDouble(),
-        method: CollectionMethod.values.byName(row['method'] as String),
+        method: CollectionMethod.values.byNameOr(row['method'] as String?,
+            CollectionMethod.values.first, context: 'capture.row.method'),
         reference: row['reference'] as String,
         notes: row['notes'] as String,
       );
@@ -163,7 +165,8 @@ class VisitNoteModel extends VisitNote {
   factory VisitNoteModel.fromRow(DataMap row) => VisitNoteModel(
         id: row['id'] as String,
         stopId: row['stop_id'] as String,
-        type: VisitNoteType.values.byName(row['type'] as String),
+        type: VisitNoteType.values.byNameOr(row['type'] as String?,
+            VisitNoteType.values.first, context: 'note.row.type'),
         text: row['text'] as String,
         createdAt: DateTime.parse(row['created_at'] as String),
       );

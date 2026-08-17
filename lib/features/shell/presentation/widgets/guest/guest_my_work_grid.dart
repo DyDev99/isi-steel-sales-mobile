@@ -56,15 +56,7 @@ class GuestMyWorkGrid extends StatelessWidget {
           // 2x2 Grid Layout
           Row(
             children: [
-              Expanded(
-                child: _WorkCard(
-                  label: 'Add customer',
-                  icon: Icons.person_add_alt_1_outlined,
-                  tint: const Color(0xFF4285F4),
-                  onTap: onRequireLogin,
-                ),
-              ),
-              SizedBox(width: context.rw(12)),
+
               Expanded(
                 child: _WorkCard(
                   label: 'shell.my_visits'.tr,

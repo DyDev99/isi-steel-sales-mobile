@@ -29,8 +29,14 @@ class StopDistanceSorter {
       for (final s in stops)
         RankedStop(
           stop: s,
-          distanceMeters: GeofenceService.distanceMeters(
-              latitude, longitude, s.customer.latitude, s.customer.longitude),
+          // A stop with no captured fix gets a null distance and sorts last,
+          // rather than being measured against (0, 0) — which would put it
+          // 10 000 km away in the Gulf of Guinea and bury a shop the rep may
+          // be standing next to.
+          distanceMeters: s.customer.hasCoordinates
+              ? GeofenceService.distanceMeters(latitude, longitude,
+                  s.customer.latitude, s.customer.longitude)
+              : null,
         ),
     ];
     ranked.sort((a, b) => (a.distanceMeters ?? double.infinity)

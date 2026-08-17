@@ -56,10 +56,14 @@ class ProfileInfoSection extends StatelessWidget {
                 icon: Icons.public_rounded,
                 label: 'profile.region'.tr,
                 value: profile.region),
-            _InfoTile(
-                icon: Icons.event_rounded,
-                label: 'profile.joined'.tr,
-                value: _formatDate(context, profile.joinedAt)),
+            // Only when the server actually supplied a date. `/auth/me` does
+            // not return one today, and an empty or invented "Joined" row on
+            // an employee record reads as a data error.
+            if (profile.joinedAt case final joinedAt?)
+              _InfoTile(
+                  icon: Icons.event_rounded,
+                  label: 'profile.joined'.tr,
+                  value: _formatDate(context, joinedAt)),
             _InfoTile(
               icon: profile.isActive
                   ? Icons.check_circle_rounded

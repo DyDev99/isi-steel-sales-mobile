@@ -1,3 +1,4 @@
+import 'package:isi_steel_sales_mobile/core/utils/enum_parse.dart';
 import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/customer_stop_info.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_stop.dart';
@@ -54,7 +55,8 @@ class RouteStopModel extends RouteStop {
         sequence: (row['sequence'] as num).toInt(),
         plannedArrival: DateTime.parse(row['planned_arrival'] as String),
         plannedDeparture: DateTime.parse(row['planned_departure'] as String),
-        status: VisitStatus.values.byName(row['status'] as String),
+        status: VisitStatus.values.byNameOr(row['status'] as String?,
+            VisitStatus.values.first, context: 'stop.row.status'),
         actualArrival: row['actual_arrival'] == null
             ? null
             : DateTime.parse(row['actual_arrival'] as String),

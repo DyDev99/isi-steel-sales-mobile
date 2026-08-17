@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:phone_form_field/phone_form_field.dart';
@@ -5,22 +6,17 @@ import 'package:phone_form_field/phone_form_field.dart';
 import 'package:isi_steel_sales_mobile/core/device/device_insets.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/home/presentation/bloc/add_customer_bloc.dart';
-import 'package:isi_steel_sales_mobile/features/lead/domain/entities/lead.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/services/order_location_service.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/app_bottom_sheet.dart';
 
-void showAddCustomerSheet(
-  BuildContext context, {
-  required List<Lead> wonLeads,
-}) {
+void showAddCustomerSheet(BuildContext context) {
   final screenWidth = MediaQuery.sizeOf(context).width;
   final isTablet = screenWidth >= 600;
 
   if (isTablet) {
-    // showGeneralDialog completely overrides bottom sheet max-width constraints
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
@@ -33,17 +29,9 @@ void showAddCustomerSheet(
           child: Material(
             color: Colors.transparent,
             child: SizedBox(
-              // Was `double.infinity`, which is what the comment above means by
-              // overriding the sheet's max width — on a 1032pt iPad this form
-              // spanned the whole screen and put Cancel and Save ~700pt apart.
-              // Capped to the same measure every other sheet uses; `Align`
-              // above centres it (FS-UX-3, FS-RSP-5).
               width: AppBottomSheet.maxWidth,
               height: MediaQuery.sizeOf(context).height * 0.9,
-              child: AddCustomerBottomSheet(
-                wonLeads: wonLeads,
-                isTablet: true,
-              ),
+              child: const AddCustomerBottomSheet(isTablet: true),
             ),
           ),
         );
@@ -66,13 +54,9 @@ void showAddCustomerSheet(
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       useSafeArea: true,
-      // Was `double.infinity` on both axes, which spanned the whole 1032pt of
-      // an iPad and left this form's Cancel and Save ~700pt apart. Capped and
-      // centred like every other sheet (FS-UX-3, FS-RSP-5).
       constraints: const BoxConstraints(maxWidth: AppBottomSheet.maxWidth),
       builder: (BuildContext modalContext) {
-        return AddCustomerBottomSheet(
-          wonLeads: wonLeads,
+        return const AddCustomerBottomSheet(
           isTablet: false,
         );
       },
@@ -81,14 +65,9 @@ void showAddCustomerSheet(
 }
 
 class AddCustomerBottomSheet extends StatefulWidget {
-  final List<Lead> wonLeads;
   final bool isTablet;
 
-  const AddCustomerBottomSheet({
-    super.key,
-    required this.wonLeads,
-    this.isTablet = false,
-  });
+  const AddCustomerBottomSheet({super.key, this.isTablet = false});
 
   @override
   State<AddCustomerBottomSheet> createState() => _AddCustomerBottomSheetState();
@@ -98,20 +77,32 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
   final _formKey1 = GlobalKey<FormState>();
   final _formKey2 = GlobalKey<FormState>();
 
-  late TextEditingController _shopNameCtrl;
-  late TextEditingController _ownerNameCtrl;
+  // --- Form Controllers ---
+  late TextEditingController _customerCodeCtrl;
+  late TextEditingController _outletNameKhCtrl; // Outlet Name (KH)
+  late TextEditingController _shopNameCtrl;     // Outlet Name (EN)
+  late TextEditingController _ownerNameCtrl;    // Owner Name
   late TextEditingController _contactNameCtrl;
-  late PhoneController _phoneCtrl;
+  late TextEditingController _addressCtrl;      // Address
+  late TextEditingController _cityCtrl;
+  late PhoneController _phoneCtrl;              // Phone Number
 
-  Lead? _selectedLead;
   String? _selectedShopType;
   String? _selectedRole;
 
+  /// Display string for captured location fix (Lat/Long)
   String _gpsCoords = "";
-  String _licenceFile = "";
-  String _patentFile = "";
 
-  // Helper to ensure text and dimensions remain legible on larger screens
+  double? _latitude;
+  double? _longitude;
+  bool _capturingGps = false;
+
+  // --- Photo Attachment Files ---
+  String _outletPhotoFront = "";  // Photo of outlet (Front)
+  String _outletPhotoInside = ""; // Photo of outlet (Inside)
+  String _idCardPhoto = "";       // Photo of ID card
+  String _patentTaxPhoto = "";    // Photo of Patent Tax (optional)
+
   double _fontSize(double basePhoneSize) {
     return widget.isTablet ? basePhoneSize * 1.25 : context.rsp(basePhoneSize);
   }
@@ -123,20 +114,55 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
   @override
   void initState() {
     super.initState();
+    _customerCodeCtrl = TextEditingController();
+    _outletNameKhCtrl = TextEditingController();
     _shopNameCtrl = TextEditingController();
     _ownerNameCtrl = TextEditingController();
     _contactNameCtrl = TextEditingController();
+    _addressCtrl = TextEditingController();
+    _cityCtrl = TextEditingController();
 
     _phoneCtrl = PhoneController(
       initialValue: const PhoneNumber(isoCode: IsoCode.KH, nsn: ''),
     );
   }
 
+  Future<void> _captureGps() async {
+    if (_capturingGps) return;
+    setState(() => _capturingGps = true);
+    final fix = await sl<OrderLocationService>().captureOnce();
+    if (!mounted) return;
+
+    setState(() {
+      _capturingGps = false;
+      if (fix == null) {
+        _latitude = null;
+        _longitude = null;
+        _gpsCoords = "";
+        return;
+      }
+      _latitude = fix.lat;
+      _longitude = fix.lng;
+      _gpsCoords =
+          '${fix.lat.toStringAsFixed(5)}, ${fix.lng.toStringAsFixed(5)}';
+    });
+
+    if (fix == null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('add_customer.gps_failed'.tr),
+      ));
+    }
+  }
+
   @override
   void dispose() {
+    _customerCodeCtrl.dispose();
+    _outletNameKhCtrl.dispose();
     _shopNameCtrl.dispose();
     _ownerNameCtrl.dispose();
     _contactNameCtrl.dispose();
+    _addressCtrl.dispose();
+    _cityCtrl.dispose();
     _phoneCtrl.dispose();
     super.dispose();
   }
@@ -168,9 +194,9 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
               ),
             ),
             padding: EdgeInsets.fromLTRB(
-              widget.isTablet ? 36 : context.rw(24),
+              widget.isTablet ? 36 : context.rw(16),
               widget.isTablet ? 24 : context.rh(16),
-              widget.isTablet ? 36 : context.rw(24),
+              widget.isTablet ? 36 : context.rw(16),
               widget.isTablet
                   ? 32
                   : context.deviceInsets.sheetBottomInset(
@@ -252,9 +278,6 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
       stepNumber = 3;
     }
 
-    // With every step on screen there is no "current" step to name, and a
-    // "Step 1 of 3" counter next to three visible steps is actively confusing.
-    // Each column carries its own heading instead (see _buildAllStepsBody).
     if (_showsAllSteps) {
       title = 'add_customer.title'.tr;
     }
@@ -267,66 +290,66 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 250),
-              child: Text(
-                title,
-                key: ValueKey(title),
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface,
-                  fontSize: _fontSize(24),
-                  fontWeight: FontWeight.w900,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 250),
+                child: Text(
+                  title,
+                  key: ValueKey(title),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: _fontSize(22),
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
               ),
+              const SizedBox(height: 4),
+              Text(
+                'add_customer.subtitle'.tr,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.5),
+                  fontSize: _fontSize(13),
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (!_showsAllSteps) ...[
+          const SizedBox(width: 8),
+          Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: widget.isTablet ? 20 : context.rw(12),
+              vertical: widget.isTablet ? 10 : context.rh(6),
             ),
-            SizedBox(height: 4),
-            Text(
-              'add_customer.subtitle'.tr,
+            decoration: BoxDecoration(
+              color: context.appColors.surfaceSoft,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: context.appColors.border),
+            ),
+            child: Text(
+              stepText,
               style: TextStyle(
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withValues(alpha: 0.5),
-                fontSize: _fontSize(14),
+                color: Theme.of(context).colorScheme.secondary,
+                fontSize: _fontSize(13),
+                fontWeight: FontWeight.w800,
               ),
             ),
-          ],
-        ),
-        if (!_showsAllSteps)
-        Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: widget.isTablet ? 20 : context.rw(16),
-            vertical: widget.isTablet ? 10 : context.rh(8),
           ),
-          decoration: BoxDecoration(
-            color: context.appColors.surfaceSoft,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: context.appColors.border),
-          ),
-          child: Text(
-            stepText,
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.secondary,
-              fontSize: _fontSize(14),
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        )
+        ],
       ],
     );
   }
 
-  /// How many form steps are shown at once.
-  ///
-  /// The form has three steps. On a phone they are a stepper — one at a time —
-  /// which is unchanged. A tablet has the width to show them together, so the
-  /// rep fills the whole customer record on one surface instead of paging
-  /// through it three times. Column count follows available width, not device
-  /// type (FS-RSP-1); at `medium` the third step wraps onto a second row, so
-  /// every step is still visible, just in two columns rather than three.
   int get _stepColumns => context.responsive(compact: 1, medium: 2, expanded: 3);
 
   bool get _showsAllSteps => _stepColumns > 1;
@@ -342,57 +365,46 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildInputLabel('shell.select_won_lead'.tr, required: true),
-              _buildLeadDropdownField(),
-              if (_selectedLead != null) ...[
-                SizedBox(height: _spacing(6)),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.edit_outlined,
-                      size: _fontSize(16),
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.4),
-                    ),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'add_customer.prefilled_editable_hint'.tr,
-                        style: TextStyle(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withValues(alpha: 0.4),
-                          fontSize: _fontSize(13),
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+              _buildInputLabel('add_customer.customer_code'.tr, required: true),
+              _buildTextField(_customerCodeCtrl, 'add_customer.customer_code_hint'.tr),
               SizedBox(height: _spacing(18)),
-              _buildInputLabel('add_customer.shop_name'.tr, required: true),
+
+              // Outlet Name (KH)
+              _buildInputLabel('Outlet Name (KH)', required: true),
+              _buildTextField(_outletNameKhCtrl, 'Enter outlet name in Khmer'),
+              SizedBox(height: _spacing(18)),
+
+              // Outlet Name (EN)
+              _buildInputLabel('Outlet Name (EN)', required: true),
               _buildTextField(_shopNameCtrl, 'add_customer.shop_name_hint'.tr),
               SizedBox(height: _spacing(18)),
+
               _buildInputLabel('add_customer.shop_type'.tr, required: true),
               _buildDropdownField(
                 value: _selectedShopType,
                 hint: 'add_customer.pick_one'.tr,
                 items: {
-                  'hardware_shop': 'add_customer.shop_types.hardware_shop'.tr,
-                  'retailer': 'add_customer.shop_types.retailer'.tr,
-                  'wholesaler': 'add_customer.shop_types.wholesaler'.tr,
-                  'project_contractor':
-                      'add_customer.shop_types.project_contractor'.tr,
+                  'Retailer': 'add_customer.shop_types.retailer'.tr,
+                  'Wholesaler': 'add_customer.shop_types.wholesaler'.tr,
+                  'Distributor': 'add_customer.shop_types.distributor'.tr,
+                  'KeyAccount': 'add_customer.shop_types.key_account'.tr,
                 },
                 onChanged: (val) => setState(() => _selectedShopType = val),
               ),
               SizedBox(height: _spacing(18)),
-              _buildInputLabel('add_customer.owner_name'.tr, required: true),
+
+              // Owner Name
+              _buildInputLabel('Owner Name', required: true),
               _buildTextField(_ownerNameCtrl, 'add_customer.owner_name_hint'.tr),
+              SizedBox(height: _spacing(18)),
+
+              // Address
+              _buildInputLabel('Address', required: true),
+              _buildTextField(_addressCtrl, 'add_customer.address_hint'.tr),
+              SizedBox(height: _spacing(18)),
+
+              _buildInputLabel('add_customer.city'.tr, required: true),
+              _buildTextField(_cityCtrl, 'add_customer.city_hint'.tr),
             ],
           ),
         );
@@ -404,9 +416,9 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildInputLabel('add_customer.contact_name'.tr, required: true),
-              _buildTextField(
-                  _contactNameCtrl, 'add_customer.contact_name_hint'.tr),
+              _buildTextField(_contactNameCtrl, 'add_customer.contact_name_hint'.tr),
               SizedBox(height: _spacing(18)),
+
               _buildInputLabel('add_customer.role'.tr, required: true),
               _buildDropdownField(
                 value: _selectedRole,
@@ -419,7 +431,9 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
                 onChanged: (val) => setState(() => _selectedRole = val),
               ),
               SizedBox(height: _spacing(18)),
-              _buildInputLabel('add_customer.phone'.tr, required: true),
+
+              // Phone Number
+              _buildInputLabel('Phone Number', required: true),
               _buildPhoneField(_phoneCtrl, 'add_customer.phone_hint'.tr),
             ],
           ),
@@ -429,7 +443,8 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildInputLabel('add_customer.telemetry'.tr),
+            // Lat / Long Location Fix
+            _buildInputLabel('Lat / Long', required: true),
             _buildActionTriggerTile(
               label: _gpsCoords.isEmpty
                   ? 'add_customer.gps_save'.tr
@@ -437,33 +452,63 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
               sub: _gpsCoords.isEmpty ? 'add_customer.gps_hint'.tr : _gpsCoords,
               icon: Icons.location_on_rounded,
               completed: _gpsCoords.isNotEmpty,
-              onTap: () =>
-                  setState(() => _gpsCoords = "11.5564° N, 104.9282° E"),
+              onTap: () => unawaited(_captureGps()),
             ),
             SizedBox(height: _spacing(18)),
-            _buildInputLabel('add_customer.compliance'.tr),
+
+            // Photos & Documents
+            _buildInputLabel('Photos & Documents', required: true),
+
+            // Photo of Outlet (Front)
             _buildActionTriggerTile(
-              label: 'add_customer.licence'.tr,
-              sub: _licenceFile.isEmpty
-                  ? 'add_customer.licence_hint'.tr
-                  : 'add_customer.licence_attached'.tr,
-              icon: Icons.assignment_rounded,
-              completed: _licenceFile.isNotEmpty,
-              onTap: () => setState(() => _licenceFile = "lic_reg_corp.jpg"),
+              label: 'Photo of Outlet (Front)',
+              sub: _outletPhotoFront.isEmpty
+                  ? 'Tap to capture front view'
+                  : 'front_outlet.jpg attached',
+              icon: Icons.storefront_rounded,
+              completed: _outletPhotoFront.isNotEmpty,
+              onTap: () => setState(() => _outletPhotoFront = "front_outlet.jpg"),
             ),
             SizedBox(height: _spacing(12)),
+
+            // Photo of Outlet (Inside)
             _buildActionTriggerTile(
-              label: 'add_customer.tax_paper'.tr,
-              sub: _patentFile.isEmpty
-                  ? 'add_customer.tax_paper_hint'.tr
-                  : 'add_customer.tax_paper_attached'.tr,
+              label: 'Photo of Outlet (Inside)',
+              sub: _outletPhotoInside.isEmpty
+                  ? 'Tap to capture interior view'
+                  : 'inside_outlet.jpg attached',
+              icon: Icons.store_rounded,
+              completed: _outletPhotoInside.isNotEmpty,
+              onTap: () => setState(() => _outletPhotoInside = "inside_outlet.jpg"),
+            ),
+            SizedBox(height: _spacing(12)),
+
+            // Photo of ID Card
+            _buildActionTriggerTile(
+              label: 'Photo of ID Card',
+              sub: _idCardPhoto.isEmpty
+                  ? 'Tap to capture owner ID'
+                  : 'owner_id.jpg attached',
+              icon: Icons.badge_rounded,
+              completed: _idCardPhoto.isNotEmpty,
+              onTap: () => setState(() => _idCardPhoto = "owner_id.jpg"),
+            ),
+            SizedBox(height: _spacing(12)),
+
+            // Photo of Patent Tax (Optional)
+            _buildActionTriggerTile(
+              label: 'Photo of Patent Tax (Optional)',
+              sub: _patentTaxPhoto.isEmpty
+                  ? 'Tap to capture tax document'
+                  : 'patent_tax.jpg attached',
               icon: Icons.receipt_long_rounded,
-              completed: _patentFile.isNotEmpty,
-              onTap: () => setState(() => _patentFile = "national_patent.jpg"),
+              completed: _patentTaxPhoto.isNotEmpty,
+              onTap: () => setState(() => _patentTaxPhoto = "patent_tax.jpg"),
             ),
             SizedBox(height: _spacing(20)),
+
             Container(
-              padding: EdgeInsets.all(widget.isTablet ? 20 : context.rw(16)),
+              padding: EdgeInsets.all(widget.isTablet ? 20 : context.rw(14)),
               decoration: BoxDecoration(
                 color: context.appColors.warningAlt.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(14),
@@ -476,17 +521,17 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
                   Icon(
                     Icons.shield_outlined,
                     color: context.appColors.warningAlt,
-                    size: _fontSize(24),
+                    size: _fontSize(22),
                   ),
-                  SizedBox(width: 14),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       'add_customer.credit_notice'.tr,
                       style: TextStyle(
                         color: context.appColors.warningAlt,
-                        fontSize: _fontSize(14),
+                        fontSize: _fontSize(13),
                         fontWeight: FontWeight.w600,
-                        height: 1.4,
+                        height: 1.3,
                       ),
                     ),
                   ),
@@ -505,13 +550,6 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
           'add_customer.steps.location_papers'.tr,
       };
 
-  /// All three steps at once, in [_stepColumns] columns.
-  ///
-  /// `Wrap` rather than a fixed `Row`: at two columns the third step needs to
-  /// fall onto a second line, and Wrap does that without a second layout path.
-  /// The item width is computed from the real constraints instead of a
-  /// fraction of the screen, so this stays correct inside a sheet that is
-  /// itself inset by the keyboard.
   Widget _buildAllStepsBody() {
     const steps = CustomerFormStep.values;
     final gap = context.rw(24);
@@ -534,6 +572,8 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
                   children: [
                     Text(
                       _stepTitle(step),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: _fontSize(16),
                         fontWeight: FontWeight.w800,
@@ -551,12 +591,6 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
     );
   }
 
-  /// Validates and commits every step, for the all-steps-visible layout.
-  ///
-  /// The stepper path commits each step as the rep advances past it; with all
-  /// steps on screen there is no "advance", so the same three events fire
-  /// together on submit. Returns false if either form fails, leaving the
-  /// inline validation messages to explain why.
   bool _commitAllSteps(AddCustomerBloc bloc) {
     final valid = (_formKey1.currentState?.validate() ?? false) &&
         (_formKey2.currentState?.validate() ?? false) &&
@@ -565,9 +599,12 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
     if (!valid) return false;
 
     bloc.add(UpdateShopDetails(
+      customerCode: _customerCodeCtrl.text,
       shopName: _shopNameCtrl.text,
       shopType: _selectedShopType!,
       ownerName: _ownerNameCtrl.text,
+      addressLine1: _addressCtrl.text,
+      city: _cityCtrl.text,
     ));
     bloc.add(UpdateContactDetails(
       name: _contactNameCtrl.text,
@@ -576,8 +613,10 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
     ));
     bloc.add(UpdateLocationAndPapers(
       gpsLocation: _gpsCoords,
-      businessLicencePath: _licenceFile,
-      taxPaperPath: _patentFile,
+      latitude: _latitude,
+      longitude: _longitude,
+      businessLicencePath: _outletPhotoFront,
+      taxPaperPath: _patentTaxPhoto,
     ));
     return true;
   }
@@ -585,8 +624,6 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
   Widget _buildFormNavigationActionButtons(
       BuildContext context, AddCustomerState state) {
     final bloc = context.read<AddCustomerBloc>();
-    // With every step visible there is nothing to page through: the Back arrow
-    // has no meaning and the primary action always submits.
     final isFirstStep =
         _showsAllSteps || state.currentStep == CustomerFormStep.shopDetails;
     final isLastStep = _showsAllSteps ||
@@ -594,7 +631,7 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
 
     final btnPadding = widget.isTablet
         ? const EdgeInsets.symmetric(vertical: 22)
-        : EdgeInsets.symmetric(vertical: context.rh(18));
+        : EdgeInsets.symmetric(vertical: context.rh(16));
 
     return Row(
       children: [
@@ -613,11 +650,11 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
               child: Icon(
                 Icons.arrow_back,
                 color: Theme.of(context).colorScheme.onSurface,
-                size: _fontSize(24),
+                size: _fontSize(22),
               ),
             ),
           ),
-          SizedBox(width: 12),
+          const SizedBox(width: 12),
         ],
         Expanded(
           flex: 2,
@@ -639,9 +676,12 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
                 if (_formKey1.currentState!.validate() &&
                     _selectedShopType != null) {
                   bloc.add(UpdateShopDetails(
+                    customerCode: _customerCodeCtrl.text,
                     shopName: _shopNameCtrl.text,
                     shopType: _selectedShopType!,
                     ownerName: _ownerNameCtrl.text,
+                    addressLine1: _addressCtrl.text,
+                    city: _cityCtrl.text,
                   ));
                   bloc.add(NextStep());
                 }
@@ -658,8 +698,10 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
               } else if (isLastStep) {
                 bloc.add(UpdateLocationAndPapers(
                   gpsLocation: _gpsCoords,
-                  businessLicencePath: _licenceFile,
-                  taxPaperPath: _patentFile,
+                  latitude: _latitude,
+                  longitude: _longitude,
+                  businessLicencePath: _outletPhotoFront,
+                  taxPaperPath: _patentTaxPhoto,
                 ));
                 bloc.add(SubmitToHQ());
               }
@@ -668,11 +710,13 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
               isLastStep
                   ? 'add_customer.send_to_hq'.tr
                   : 'add_customer.next_step'.tr,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: isLastStep
                     ? Colors.white
                     : Theme.of(context).colorScheme.surface,
-                fontSize: _fontSize(16),
+                fontSize: _fontSize(15),
                 fontWeight: FontWeight.w900,
               ),
             ),
@@ -682,69 +726,11 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
     );
   }
 
-  Widget _buildLeadDropdownField() {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: widget.isTablet ? 20 : context.rw(16),
-        vertical: widget.isTablet ? 12 : context.rh(6),
-      ),
-      decoration: BoxDecoration(
-        color: context.appColors.surfaceSoft,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: context.appColors.border),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<Lead>(
-          value: _selectedLead,
-          hint: Text(
-            'add_customer.pick_one'.tr,
-            style: TextStyle(
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurface
-                  .withValues(alpha: 0.3),
-              fontSize: _fontSize(15),
-            ),
-          ),
-          dropdownColor: context.appColors.surfaceSoft,
-          icon: Icon(
-            Icons.keyboard_arrow_down_rounded,
-            color: Theme.of(context).colorScheme.onSurface,
-            size: _fontSize(24),
-          ),
-          isExpanded: true,
-          items: widget.wonLeads.map((lead) {
-            return DropdownMenuItem<Lead>(
-              value: lead,
-              child: Text(
-                context.localized(lead.displayName),
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface,
-                  fontSize: _fontSize(15),
-                ),
-              ),
-            );
-          }).toList(),
-          onChanged: (Lead? lead) {
-            setState(() {
-              _selectedLead = lead;
-              if (lead != null) {
-                _shopNameCtrl.text = lead.companyName;
-                _ownerNameCtrl.text = lead.ownerName;
-                _contactNameCtrl.text = lead.ownerName;
-                _selectedShopType = 'hardware_shop';
-                _selectedRole = 'owner';
-              }
-            });
-          },
-        ),
-      ),
-    );
-  }
-
   Widget _buildInputLabel(String label, {bool required = false}) => Padding(
-        padding: EdgeInsets.only(bottom: 8, left: 2),
+        padding: const EdgeInsets.only(bottom: 8, left: 2),
         child: RichText(
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           text: TextSpan(
             text: label,
             style: TextStyle(
@@ -799,8 +785,8 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
               ? context.appColors.border.withValues(alpha: 0.2)
               : context.appColors.surfaceSoft,
           contentPadding: EdgeInsets.symmetric(
-            horizontal: widget.isTablet ? 20 : context.rw(16),
-            vertical: widget.isTablet ? 20 : context.rh(16),
+            horizontal: widget.isTablet ? 20 : context.rw(14),
+            vertical: widget.isTablet ? 20 : context.rh(14),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
@@ -869,8 +855,8 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
               ? context.appColors.border.withValues(alpha: 0.2)
               : context.appColors.surfaceSoft,
           contentPadding: EdgeInsets.symmetric(
-            horizontal: widget.isTablet ? 20 : context.rw(16),
-            vertical: widget.isTablet ? 20 : context.rh(16),
+            horizontal: widget.isTablet ? 20 : context.rw(14),
+            vertical: widget.isTablet ? 20 : context.rh(14),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
@@ -906,7 +892,7 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
   }) {
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: widget.isTablet ? 20 : context.rw(16),
+        horizontal: widget.isTablet ? 20 : context.rw(14),
         vertical: widget.isTablet ? 12 : context.rh(6),
       ),
       decoration: BoxDecoration(
@@ -921,6 +907,7 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
           value: value,
           hint: Text(
             hint,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               color: Theme.of(context)
                   .colorScheme
@@ -937,22 +924,13 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
           ),
           isExpanded: true,
           items: isDisabled
-              ? (_selectedLead != null && value != null
-                  ? [
-                      DropdownMenuItem(
-                        value: value,
-                        child: Text(
-                          items[value] ?? '',
-                          style: TextStyle(fontSize: _fontSize(15)),
-                        ),
-                      )
-                    ]
-                  : null)
+              ? null
               : items.entries
                   .map((entry) => DropdownMenuItem<String>(
                         value: entry.key,
                         child: Text(
                           entry.value,
+                          overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             color: Theme.of(context).colorScheme.onSurface,
                             fontSize: _fontSize(15),
@@ -978,7 +956,7 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
       borderRadius: BorderRadius.circular(14),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: EdgeInsets.all(widget.isTablet ? 22 : context.rw(18)),
+        padding: EdgeInsets.all(widget.isTablet ? 22 : context.rw(14)),
         decoration: BoxDecoration(
           color: completed
               ? context.appColors.success.withValues(alpha: 0.05)
@@ -995,7 +973,7 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
           children: [
             Icon(
               icon,
-              size: _fontSize(24),
+              size: _fontSize(22),
               color: completed
                   ? context.appColors.success
                   : Theme.of(context)
@@ -1003,33 +981,38 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
                       .onSurface
                       .withValues(alpha: 0.6),
             ),
-            SizedBox(width: 16),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.onSurface,
-                      fontSize: _fontSize(16),
+                      fontSize: _fontSize(15),
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  SizedBox(height: 2),
+                  const SizedBox(height: 2),
                   Text(
                     sub,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: Theme.of(context)
                           .colorScheme
                           .onSurface
                           .withValues(alpha: 0.4),
-                      fontSize: _fontSize(13),
+                      fontSize: _fontSize(12),
                     ),
                   ),
                 ],
               ),
             ),
+            const SizedBox(width: 8),
             Icon(
               completed
                   ? Icons.check_circle_rounded
@@ -1037,7 +1020,7 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
               color: completed
                   ? context.appColors.success
                   : Theme.of(context).colorScheme.onSurface,
-              size: _fontSize(24),
+              size: _fontSize(22),
             ),
           ],
         ),

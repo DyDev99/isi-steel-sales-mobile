@@ -35,6 +35,15 @@ class CustomerStopInfo extends Equatable {
   /// needs *something* to match against the signage.
   final String nameKh;
 
+  /// Whether this stop has a usable position.
+  ///
+  /// `(0, 0)` encodes "no GPS fix was ever captured" — it is a real point in
+  /// the Gulf of Guinea, roughly 10 000 km away, which is why the customer API
+  /// rejects it on write and sends null instead. Distance ranking and geofence
+  /// evaluation must both check this before measuring anything; see
+  /// `Customer.hasCoordinates`, which this mirrors.
+  bool get hasCoordinates => latitude != 0 || longitude != 0;
+
   final String code;
   final String contact;
   final String phone;

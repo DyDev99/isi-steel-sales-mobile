@@ -15,14 +15,9 @@ import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/c
 import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_filter_sheet.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_search_bar.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_sync_status_banner.dart';
-import 'package:isi_steel_sales_mobile/features/lead/domain/entities/pipeline_stage.dart';
-import 'package:isi_steel_sales_mobile/features/lead/presentation/bloc/pipeline_bloc.dart';
-import 'package:isi_steel_sales_mobile/features/lead/presentation/bloc/pipeline_event.dart';
-import 'package:isi_steel_sales_mobile/features/lead/presentation/bloc/pipeline_state.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/navigation/open_quotation.dart';
 import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/add_customer_bottom_sheet.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
-import 'package:isi_steel_sales_mobile/shared/widgets/app_bottom_sheet.dart';
 
 enum _QuickAccess {
   all,
@@ -73,9 +68,6 @@ class CustomersScreen extends StatelessWidget {
             create: (_) =>
                 sl<CustomersBloc>()..add(const CustomersLoadRequested())),
         BlocProvider(create: (_) => sl<CustomerSyncCubit>()..syncIfNeeded()),
-        BlocProvider(
-          create: (_) => sl<PipelineBloc>()..add(const PipelineLoadRequested()),
-        ),
       ],
       child: const _CustomersView(),
     );
@@ -239,7 +231,7 @@ class _Loaded extends StatelessWidget {
         slivers: [
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              padding: const EdgeInsets.fromLTRB(16, 26, 16, 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -259,26 +251,10 @@ class _Loaded extends StatelessWidget {
                           .read<CustomersBloc>()
                           .add(CustomersFilterChanged(f)),
                     ),
-                    onAddTap: () {
-                      final pipelineState = context.read<PipelineBloc>().state;
-                      if (pipelineState is PipelineLoaded) {
-                        final wonLeads =
-                            pipelineState.columns[PipelineStage.won] ?? [];
-
-                        showModalBottomSheet(
-                          constraints: const BoxConstraints(maxWidth: AppBottomSheet.maxWidth),
-                          context: context,
-                          backgroundColor: context.appColors.surfaceSoft,
-                          isScrollControlled: true,
-                          shape: const RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.vertical(top: Radius.circular(22)),
-                          ),
-                          builder: (_) =>
-                              AddCustomerBottomSheet(wonLeads: wonLeads),
-                        );
-                      }
-                    },
+                    // Registers a shop directly. This used to require picking
+                    // a won lead first, which meant a rep standing in a shop
+                    // that was never in the pipeline could not add it at all.
+                    onAddTap: () => showAddCustomerSheet(context),
                   ),
                   SizedBox(height: context.rh(12)),
                   _QuickAccessRow(

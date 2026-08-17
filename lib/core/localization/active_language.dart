@@ -31,6 +31,16 @@ class ActiveLanguage {
 
   static bool get isKhmer => code == 'km';
 
+  /// The active language as a BCP 47 tag, for the `Accept-Language` header
+  /// every API request carries.
+  ///
+  /// The server localises `shopName`, `statusDisplay` and every `message`
+  /// against this, so it is what decides whether a Khmer-speaking rep reads
+  /// Khmer. Region subtags are included because the API documents `km-KH` and
+  /// `en-US` specifically; a bare `km` falls through its resolution chain to
+  /// the platform default.
+  static String get acceptLanguageTag => isKhmer ? 'km-KH' : 'en-US';
+
   /// [text] in the active language. The context-free twin of
   /// `context.localized(text)`.
   static String resolve(LocalizedText text) => text.resolve(code);

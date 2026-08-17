@@ -21,7 +21,11 @@ class Customers extends Table {
   String get tableName => 'customers';
 
   TextColumn get id => text()();
-  TextColumn get sapCustomerId => text().unique()();
+  /// Nullable *and* unique, deliberately: SQLite counts every NULL as
+  /// distinct, so this reads as "at most one row per SAP id, and rows without
+  /// one never conflict" — which is exactly the rule for field-created
+  /// customers awaiting approval.
+  TextColumn get sapCustomerId => text().nullable().unique()();
   TextColumn get customerCode => text()();
   TextColumn get shopName => text()();
   TextColumn get ownerName => text()();

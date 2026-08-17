@@ -7,7 +7,6 @@ import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_event.dart';
 import 'package:isi_steel_sales_mobile/features/profile/presentation/bloc/profile_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/profile/presentation/bloc/profile_state.dart';
-import 'package:isi_steel_sales_mobile/features/profile/presentation/widgets/edit_profile_sheet.dart';
 import 'package:isi_steel_sales_mobile/features/profile/presentation/widgets/profile_header.dart';
 import 'package:isi_steel_sales_mobile/features/profile/presentation/widgets/profile_info_section.dart';
 import 'package:isi_steel_sales_mobile/features/localization/presentation/widgets/language_section.dart';
@@ -27,22 +26,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     context.read<ProfileCubit>().load();
-  }
-
-  Future<void> _edit(BuildContext context, ProfileLoaded state) async {
-    final updated =
-        await showEditProfileSheet(context: context, profile: state.profile);
-    if (updated == null || !context.mounted) return;
-    final ok = await context.read<ProfileCubit>().updateProfile(updated);
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          content: Text(ok
-              ? 'profile.updated_success'.tr
-              : 'profile.updated_failure'.tr)),
-    );
   }
 
   Future<void> _confirmLogout(BuildContext context) async {
@@ -86,12 +69,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
       SizedBox(height: context.rh(16)),
       const LanguageSection(),
       SizedBox(height: context.rh(20)),
-      _ActionButton(
-        icon: Icons.edit_rounded,
-        label: 'profile.edit_profile'.tr,
-        onPressed: state.isSaving ? null : () => _edit(context, state),
-      ),
-      SizedBox(height: context.rh(10)),
+      // "Edit profile" is deliberately absent.
+      //
+      // The API exposes no profile-update endpoint — `/auth/me` is read-only,
+      // and employee records are HR-owned, arriving through the directory. An
+      // edit form here would either discard the change silently or be
+      // overwritten by the system of record on the next sign-in, which is a
+      // worse experience than not offering it. See
+      // `AuthBackedProfileDataSource.updateProfile`.
+      //
+      // `showEditProfileSheet` and `ProfileCubit.updateProfile` are left in
+      // place for when a real endpoint exists; restoring the button and its
+      // handler is then the whole change.
       _ActionButton(
         icon: Icons.lock_reset_rounded,
         label: 'profile.change_password'.tr,

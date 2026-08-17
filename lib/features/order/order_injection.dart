@@ -63,6 +63,7 @@ import 'package:isi_steel_sales_mobile/features/order/domain/usecases/fetch_rece
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_category_filter_schema.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_credit_summary.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_filter_step_options.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_stock_location_options.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_last_synced_at.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_pricing.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_product_by_barcode.dart';
@@ -82,6 +83,7 @@ import 'package:isi_steel_sales_mobile/features/order/domain/usecases/save_quota
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/toggle_favorite.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/update_cart_item.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/update_quotation.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/usecases/validate_order_line.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/watch_quotations.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/watch_sales_orders.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_cubit.dart';
@@ -193,6 +195,7 @@ Future<void> registerOrderFeature(GetIt sl) async {
   sl.registerLazySingleton(() => FetchFilterCategories(sl()));
   sl.registerLazySingleton(() => GetCategoryFilterSchema(sl()));
   sl.registerLazySingleton(() => GetFilterStepOptions(sl()));
+  sl.registerLazySingleton(() => GetStockLocationOptions(sl()));
 
   sl.registerLazySingleton(() => FetchCart(sl()));
   sl.registerLazySingleton(() => AddToCart(sl()));
@@ -200,6 +203,7 @@ Future<void> registerOrderFeature(GetIt sl) async {
   sl.registerLazySingleton(() => RemoveFromCart(sl()));
   sl.registerLazySingleton(() => ClearCart(sl()));
   sl.registerLazySingleton(() => ReplaceCart(sl()));
+  sl.registerLazySingleton(() => ValidateOrderLine(sl()));
 
   sl.registerLazySingleton(() => SaveQuotation(sl()));
   sl.registerLazySingleton(() => UpdateQuotation(sl()));
@@ -223,6 +227,7 @@ Future<void> registerOrderFeature(GetIt sl) async {
         fetchFilterCategories: sl(),
         getCategoryFilterSchema: sl(),
         getFilterStepOptions: sl(),
+        getStockLocationOptions: sl(),
         browseProducts: sl(),
       ));
   sl.registerFactory(() => ProductDetailCubit(

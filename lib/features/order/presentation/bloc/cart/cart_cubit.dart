@@ -5,6 +5,7 @@ import 'package:isi_steel_sales_mobile/core/usecase/usecase.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/data_domain.dart'
     show CustomizationMeasurement;
+import 'package:isi_steel_sales_mobile/features/order/domain/entities/fulfillment.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/off_visit_reason.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/quotation.dart';
@@ -63,20 +64,34 @@ class CartCubit extends Cubit<CartState> {
     );
   }
 
+  /// Adds [product] — one exact SKU, warehouse included, since a `products`
+  /// row *is* a SKU — to the cart.
+  ///
+  /// [unitPrice] freezes what this line was sold at; leaving it null prices the
+  /// line from the live catalog, which is what the product-grid stepper does.
+  /// [fulfillment] carries the pickup/delivery terms when the line came through
+  /// the key-in sheet.
   Future<void> addProduct(Product product,
       {double quantity = 1,
       String? unit,
       String? leadId,
-      String? customerId}) async {
-    // Duplicate lines merge only when the same product is added in the same
-    // unit/context — a different sales unit (Pc vs Ton) is a distinct line.
+      String? customerId,
+      double? unitPrice,
+      double discountPercent = 0,
+      ShipmentSelection? fulfillment}) async {
+    // Duplicate lines merge only when the same SKU is added on the same
+    // commercial terms. Unit was already part of that rule (Pc vs Ton is a
+    // distinct line); fulfillment now is too, because the same SKU picked up
+    // at the factory and delivered to site are two order lines with different
+    // logistics, not one line with twice the quantity.
     final lineUnit = unit ?? product.unit;
     CartItem? existing;
     for (final item in _items) {
       if (item.product.id == product.id &&
           item.unit == lineUnit &&
           item.leadId == leadId &&
-          item.customerId == customerId) {
+          item.customerId == customerId &&
+          item.fulfillment == fulfillment) {
         existing = item;
       }
     }
@@ -94,9 +109,11 @@ class CartCubit extends Cubit<CartState> {
         product: product,
         quantity: quantity,
         unit: lineUnit,
-        discountPercent: 0,
+        discountPercent: discountPercent,
         leadId: leadId,
         customerId: customerId,
+        unitPriceOverride: unitPrice,
+        fulfillment: fulfillment,
       );
       emit(CartLoaded(items: [..._items, newItem]));
       await _addToCart(newItem);

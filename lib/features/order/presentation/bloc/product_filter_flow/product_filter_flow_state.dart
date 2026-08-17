@@ -44,6 +44,9 @@ class ProductFilterFlowState extends Equatable {
     this.query = '',
     this.sortBy = ProductSortBy.relevance,
     this.availableOnly = false,
+    this.stockLocations = const [],
+    this.stockLocationCode,
+    this.stockLocationsLoading = false,
   });
 
   final FilterFlowStatus status;
@@ -79,6 +82,24 @@ class ProductFilterFlowState extends Equatable {
   /// query but never invalidate a [selection].
   final ProductSortBy sortBy;
   final bool availableOnly;
+
+  /// Stock locations that can supply the currently matched SKUs, with a count
+  /// each. Resolved once the flow reaches products — before that there is no
+  /// meaningful set to offer.
+  final List<FilterOption> stockLocations;
+
+  /// The selected location, or null for "any". Narrows the result set to one
+  /// warehouse; like [sortBy] and [availableOnly] it never invalidates an
+  /// answered step, because it is a refinement of the results rather than an
+  /// answer about the article.
+  final String? stockLocationCode;
+
+  final bool stockLocationsLoading;
+
+  /// Whether choosing a location would actually change anything. One location
+  /// means every matched SKU ships from the same place, so offering the choice
+  /// would be a control that does nothing.
+  bool get hasStockLocationChoice => stockLocations.length > 1;
 
   /// A query long enough to be worth a catalog round-trip. One character
   /// matches most of the catalog, which is the unbounded read this flow exists
@@ -137,6 +158,9 @@ class ProductFilterFlowState extends Equatable {
     String? query,
     ProductSortBy? sortBy,
     bool? availableOnly,
+    List<FilterOption>? stockLocations,
+    String? Function()? stockLocationCode,
+    bool? stockLocationsLoading,
   }) {
     return ProductFilterFlowState(
       status: status ?? this.status,
@@ -156,6 +180,12 @@ class ProductFilterFlowState extends Equatable {
       query: query ?? this.query,
       sortBy: sortBy ?? this.sortBy,
       availableOnly: availableOnly ?? this.availableOnly,
+      stockLocations: stockLocations ?? this.stockLocations,
+      stockLocationCode: stockLocationCode != null
+          ? stockLocationCode()
+          : this.stockLocationCode,
+      stockLocationsLoading:
+          stockLocationsLoading ?? this.stockLocationsLoading,
     );
   }
 
@@ -165,6 +195,7 @@ class ProductFilterFlowState extends Equatable {
         category?.id,
         sortBy: sortBy,
         availableOnly: availableOnly,
+        warehouseCode: stockLocationCode,
       );
 
   /// Anything the rep can clear from the Filter sheet.
@@ -173,6 +204,7 @@ class ProductFilterFlowState extends Equatable {
       selection.isNotEmpty ||
       query.isNotEmpty ||
       availableOnly ||
+      stockLocationCode != null ||
       sortBy != ProductSortBy.relevance;
 
   @override
@@ -194,5 +226,8 @@ class ProductFilterFlowState extends Equatable {
         query,
         sortBy,
         availableOnly,
+        stockLocations,
+        stockLocationCode,
+        stockLocationsLoading,
       ];
 }

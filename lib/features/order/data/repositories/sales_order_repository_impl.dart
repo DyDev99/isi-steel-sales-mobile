@@ -1,11 +1,11 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:math';
 
 import 'package:isi_steel_sales_mobile/core/error/exceptions.dart';
 import 'package:isi_steel_sales_mobile/core/error/failures.dart';
 import 'package:isi_steel_sales_mobile/core/utils/result.dart';
 import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
+import 'package:isi_steel_sales_mobile/features/order/data/local/order_line_codec.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/local/product_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/local/sales_order_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
@@ -20,10 +20,10 @@ class SalesOrderRepositoryImpl implements SalesOrderRepository {
       {required SalesOrderLocalDataSource local,
       required ProductLocalDataSource productLocal})
       : _local = local,
-        _productLocal = productLocal;
+        _lines = OrderLineCodec(productLocal);
 
   final SalesOrderLocalDataSource _local;
-  final ProductLocalDataSource _productLocal;
+  final OrderLineCodec _lines;
 
   final StreamController<List<SalesOrder>> _controller =
       StreamController<List<SalesOrder>>.broadcast();
@@ -143,34 +143,15 @@ class SalesOrderRepositoryImpl implements SalesOrderRepository {
     );
   }
 
-  String _encodeLines(List<CartItem> items) => jsonEncode(items
-      .map((i) => {
-            'productId': i.product.id,
-            'quantity': i.quantity,
-            'unit': i.unit,
-            'discountPercent': i.discountPercent,
-          })
-      .toList());
+  /// Shared with the quotation repository. Before this, the two encoders had
+  /// diverged: this one omitted `customization`, so converting a customized
+  /// quotation into a sales order silently discarded the measurements and the
+  /// drawing the customer had signed off on.
+  String _encodeLines(List<CartItem> items) => _lines.encode(items);
 
   Future<List<CartItem>> _decodeLines(String json,
-      {String? customerId, String? leadId}) async {
-    final rawItems = (jsonDecode(json) as List).cast<DataMap>();
-    final items = <CartItem>[];
-    for (final raw in rawItems) {
-      final product = await _productLocal.getById(raw['productId'] as String);
-      if (product == null) continue;
-      items.add(CartItem(
-        id: '${raw['productId']}-${items.length}',
-        product: product,
-        quantity: (raw['quantity'] as num).toDouble(),
-        unit: raw['unit'] as String,
-        discountPercent: (raw['discountPercent'] as num).toDouble(),
-        leadId: leadId,
-        customerId: customerId,
-      ));
-    }
-    return items;
-  }
+          {String? customerId, String? leadId}) =>
+      _lines.decode(json, customerId: customerId, leadId: leadId);
 
   static String _newId(String prefix) =>
       '$prefix-${(DateTime.now().microsecondsSinceEpoch + Random().nextInt(99999)) % 1000000}';

@@ -32,9 +32,9 @@ import 'package:isi_steel_sales_mobile/features/localization/localization_inject
 import 'package:isi_steel_sales_mobile/features/customers/customers_injection.dart';
 import 'package:isi_steel_sales_mobile/features/home/presentation/bloc/home_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/home/home_injection.dart';
-import 'package:isi_steel_sales_mobile/features/lead/lead_injection.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/my_visits_injection.dart';
 import 'package:isi_steel_sales_mobile/features/order/order_injection.dart';
+import 'package:isi_steel_sales_mobile/features/notification/notification_injection.dart';
 import 'package:isi_steel_sales_mobile/features/profile/profile_injection.dart';
 import 'package:isi_steel_sales_mobile/features/settings/theme/theme_injection.dart';
 
@@ -113,9 +113,11 @@ Future<void> initDependencies() async {
   // ── Features ───────────────────────────────────────────────────────
   registerAuthFeature(sl);
   registerHomeFeature(sl);
-  registerLeadFeature(sl);
   await registerOrderFeature(sl);
   await registerCustomerFeature(sl);
+  // After customers: the notification feed is derived from the customer cache
+  // now that the lead feature — which used to own it — is gone.
+  registerNotificationFeature(sl);
   await registerMyVisitsFeature(sl);
   registerProfileFeature(sl);
   registerAppCoachFeature(sl);

@@ -24,6 +24,7 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filte
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/product_family_selector.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/product_result_grid.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/product_search_bar.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/stock_location_chips.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// The product finder, assembled from the flow's reusable parts.
@@ -302,7 +303,8 @@ class _BackButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
             border: Border.all(color: colors.border),
           ),
-          child: Icon(Icons.undo_rounded, size: context.rr(16), color: colors.textPrimary),
+          child: Icon(Icons.undo_rounded,
+              size: context.rr(16), color: colors.textPrimary),
         ),
       ),
     );
@@ -517,6 +519,17 @@ class _ProductStage extends StatelessWidget {
             FindNewProductButton.compact(context, onTap: onFindNewProduct),
           ],
         ),
+        // Between the header and the results: the rep has the material, and
+        // this is where they choose which plant supplies it. Renders itself
+        // away when there is only one.
+        if (state.hasStockLocationChoice) ...[
+          SizedBox(height: context.rh(4)),
+          StockLocationChips(
+            options: state.stockLocations,
+            selectedCode: state.stockLocationCode,
+            onSelect: (code) => bloc.add(FilterStockLocationChanged(code)),
+          ),
+        ],
         SizedBox(height: context.rh(10)),
         if (loadingFirstPage)
           LoadingProducts.products()
@@ -655,7 +668,8 @@ class _StageHeader extends StatelessWidget {
           SizedBox(height: context.rh(3)),
           Text(
             subtitle!,
-            style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(12)),
+            style: TextStyle(
+                color: colors.textSecondary, fontSize: context.rsp(12)),
           ),
         ],
       ],

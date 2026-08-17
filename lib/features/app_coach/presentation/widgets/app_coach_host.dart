@@ -43,7 +43,6 @@ class _AppCoachHostState extends State<AppCoachHost> {
       ShellTab.home: CoachAction.openHome,
       ShellTab.customers: CoachAction.openCustomers,
       ShellTab.myVisits: CoachAction.openMyVisits,
-      ShellTab.leads: CoachAction.openMyLeads,
       ShellTab.orders: CoachAction.openOrders,
     };
     final action = map[_tabs.value];
@@ -156,6 +155,40 @@ class _AppCoachHostState extends State<AppCoachHost> {
           reduceMotion ? Duration.zero : const Duration(milliseconds: 220),
       switchInCurve: Curves.easeOut,
       switchOutCurve: Curves.easeIn,
+      // Explicit `layoutBuilder`, not the default.
+      //
+      // This switcher crossfades between three very differently sized
+      // children: an empty `SizedBox.shrink()` (0×0), a 120×120 `Align`ed
+      // Lottie bubble when paused, and the full-screen `AssistantOverlay`
+      // when running. `AnimatedSwitcher.defaultLayoutBuilder` stacks the
+      // outgoing and incoming child as plain (non-`Positioned`) `Stack`
+      // children, so during a crossfade — both mounted and laid out at once —
+      // their sizes diverge wildly and the `Stack` around them, plus
+      // everything below it, is asked to relayout every frame of the 220ms
+      // transition.
+      //
+      // The correlation was exact: `[coach] tutorial_resume` (the paused →
+      // running transition, exercising precisely this size jump) preceded
+      // every occurrence of a render-pipeline assertion flood
+      // (`!semantics.parentDataDirty`, `RenderBox was not laid out`) logged
+      // during this work. Both assertions are debug-only — `assert()` is
+      // compiled out of release — so this was not corrupting a shipped build,
+      // but the size-mismatched crossfade generating a real layout storm on
+      // every transition is a genuine defect independent of that.
+      //
+      // Constraining every child to fill the available space, exactly as the
+      // `AnimatedSwitcher` docs recommend for children of different sizes,
+      // removes the size jump without changing how anything looks: each child
+      // already positions its own visible content (the Lottie bubble via its
+      // own `Align`, the overlay via its own scrim) inside the space it is
+      // given.
+      layoutBuilder: (currentChild, previousChildren) => Stack(
+        fit: StackFit.expand,
+        children: [
+          for (final child in previousChildren) Positioned.fill(child: child),
+          if (currentChild != null) Positioned.fill(child: currentChild),
+        ],
+      ),
       child: KeyedSubtree(key: key, child: child),
     );
   }

@@ -8,10 +8,11 @@ import 'package:isi_steel_sales_mobile/core/utils/version.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_event.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_state.dart';
-import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/forgot_password/identifier_field.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/gradient_button.dart';
+import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/phone_number_field.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/status_pill.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/vibe_field.dart';
+import 'package:isi_steel_sales_mobile/features/authentication/presentation/screens/verify_otp_args.dart';
 import 'package:isi_steel_sales_mobile/routes/app_routes.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/glass_card.dart';
 
@@ -29,7 +30,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _identifierKey = GlobalKey<IdentifierFieldState>();
+  final _phoneKey = GlobalKey<PhoneNumberFieldState>();
   final _password = TextEditingController();
   bool _obscure = true;
 
@@ -41,12 +42,15 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _submit() {
     final formOk = _formKey.currentState?.validate() ?? false;
-    final identifierOk = _identifierKey.currentState?.validate() ?? false;
-    if (!formOk || !identifierOk) return;
+    final phoneOk = _phoneKey.currentState?.validate() ?? false;
+    if (!formOk || !phoneOk) return;
 
+    // Step 1 of three. This is the only point at which the password leaves the
+    // form — `send-otp` is the only call that accepts it, and it is never
+    // re-sent at verify or login.
     context.read<AuthBloc>().add(
-          LoginSubmittedEvent(
-            email: _identifierKey.currentState!.value,
+          PhoneLoginSubmitted(
+            phoneNumber: _phoneKey.currentState!.value,
             password: _password.text,
           ),
         );
@@ -71,9 +75,25 @@ class _LoginScreenState extends State<LoginScreen> {
     );
 
     return BlocListener<AuthBloc, AuthState>(
-      listenWhen: (prev, curr) => curr is AuthenticatedState,
+      listenWhen: (prev, curr) =>
+          curr is AuthenticatedState || curr is AuthOtpRequiredState,
       listener: (context, state) {
         if (!context.mounted) return;
+
+        // A one-time code is outstanding. The session is *not* established yet
+        // — `SessionManager` is deliberately un-set — so this pushes rather
+        // than replacing the stack: backing out of the verify screen has to
+        // land somewhere, and abandoning the challenge signs the user out.
+        if (state is AuthOtpRequiredState) {
+          // Tagged as the sign-in journey, so the code screen routes to the
+          // shell rather than to the reset-password screen it also serves.
+          Navigator.of(context).pushNamed(
+            Static.verifyOtp,
+            arguments: VerifyOtpArgs.login(state),
+          );
+          return;
+        }
+
         Navigator.of(context)
             .pushNamedAndRemoveUntil(Static.main, (route) => false);
       },
@@ -156,8 +176,12 @@ class _LoginScreenState extends State<LoginScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          IdentifierField(
-            key: _identifierKey,
+          // Phone only. The sales app signs in with phone + password + OTP;
+          // employee ID / e-mail is the admin-portal route on the same
+          // backend, so offering it here would give a rep three doors into a
+          // flow that supports one.
+          PhoneNumberField(
+            key: _phoneKey,
             required: true,
             textInputAction: TextInputAction.next,
           ),
@@ -211,7 +235,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     message: state is AuthFailureState ? state.message : null,
                   ),
                   GradientButton(
-                    label: "auth.lets_go".tr,
+                    // `auth.login_btn` ("Sign In"), not `auth.lets_go`.
+                    // "Let's Go" belongs to the reset-password success screen;
+                    // on a sign-in form it reads like an onboarding CTA and
+                    // does not say what the button does.
+                    label: 'auth.login_btn'.tr,
                     loading: status == AuthVibeStatus.verifying,
                     onPressed: _submit,
                   ),

@@ -426,6 +426,10 @@ class CatalogDao extends DatabaseAccessor<AppDatabase> with _$CatalogDaoMixin {
   /// `(value column, label column or null when identical, is numeric)`.
   static const Map<String, (String, String?, bool)> facetColumns = {
     'family': ('family_id', 'family_name', false),
+    // Which plants/warehouses still hold something matching. A product row is
+    // a SKU at one warehouse, so this is the facet that separates otherwise
+    // identical result rows.
+    'warehouse': ('warehouse_code', null, false),
     'subCategory': ('sub_category', null, false),
     'brand': ('brand', null, false),
     'size': ('size', null, false),

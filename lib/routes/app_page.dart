@@ -1,12 +1,17 @@
+import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_state.dart';
+import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_event.dart';
+import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localized_builder.dart';
+import 'package:isi_steel_sales_mobile/features/authentication/domain/repositories/auth_repository.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/screens/create_new_password_screen.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/screens/forgot_password_screen.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/screens/success_screen.dart';
+import 'package:isi_steel_sales_mobile/features/authentication/presentation/screens/verify_otp_args.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/screens/verify_screen.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/active_route_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/events/active_route_event.dart';
@@ -24,10 +29,6 @@ import 'package:isi_steel_sales_mobile/features/shell/presentation/main_shell.da
 import 'package:isi_steel_sales_mobile/features/home/presentation/screens/home_screen.dart';
 import 'package:isi_steel_sales_mobile/features/home/presentation/bloc/home_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/home/data/home_repository.dart';
-import 'package:isi_steel_sales_mobile/features/lead/domain/entities/pipeline_stage.dart';
-import 'package:isi_steel_sales_mobile/features/lead/presentation/bloc/pipeline_bloc.dart';
-import 'package:isi_steel_sales_mobile/features/lead/presentation/bloc/pipeline_event.dart';
-import 'package:isi_steel_sales_mobile/features/lead/presentation/screens/pipeline_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/order_screen.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/screens/login_screen.dart';
 
@@ -60,15 +61,7 @@ class AppPages {
           settings,
         );
 
-      case Static.lead:
-        return _page(
-          BlocProvider(
-            create: (_) => GetIt.instance<PipelineBloc>()
-              ..add(const PipelineLoadRequested()),
-            child: const PipelineScreen(initialStage: PipelineStage.leads),
-          ),
-          settings,
-        );
+     
 
       case Static.order:
         return _page(const OrderScreen(), settings);
@@ -108,19 +101,31 @@ class AppPages {
         return _page(
           Builder(
             builder: (context) => ForgotPasswordScreen(
+              // `POST /auth/forgot-password { email }`. The field is
+              // documented as taking an e-mail address; this app now sends a
+              // phone number into it. `AuthRepositoryImpl.forgotPassword`
+              // forwards the value untouched under the `email` key rather
+              // than reinterpreting it, so whether the backend resolves a
+              // phone number the way `/auth/login`'s `employeeId` resolves
+              // an ID-or-e-mail is a question for the API team, not a claim
+              // this client makes for itself.
+              //
+              // Deliberately does **not** navigate: `ForgotPasswordScreen`
+              // already pushes `Static.verifyOtp` itself, tagged
+              // `VerifyOtpArgs.passwordReset`, once this returns success. A
+              // second push here — with a bare `String` argument the route no
+              // longer accepts — double-navigated and crashed on the
+              // `as VerifyOtpArgs?` cast.
               onSubmit: (identifier) async {
-                // TODO: replace with your real reset-request call
-                await Future.delayed(const Duration(seconds: 1));
-                const result = ForgotPasswordResult.success();
-
-                if (result.isSuccess && context.mounted) {
-                  // 👉 this is what gets you to the 6-box verify screen
-                  Navigator.of(context).pushNamed(
-                    Static.verifyOtp,
-                    arguments: identifier,
-                  );
-                }
-                return result;
+                final result =
+                    await GetIt.instance<AuthRepository>().forgotPassword(identifier);
+                return result.when(
+                  // `forgot-password` always answers success, whether or not
+                  // the address exists — reporting otherwise turns the
+                  // endpoint into an account-enumeration oracle.
+                  success: (_) => const ForgotPasswordResult.success(),
+                  failure: (f) => ForgotPasswordResult.failure(f.message),
+                );
               },
               onBackToLogin: () => Navigator.of(context).pop(),
             ),
@@ -128,15 +133,26 @@ class AppPages {
           settings,
         );
       case Static.createNewPassword:
+        // Carried from VerifyScreen: {'target': phoneNumber, 'code': otp}.
+        // `code` is the value the user typed on the verify screen — it is
+        // sent to `/auth/reset-password` as `token`. There is no separate
+        // "confirm the code" step for this flow the way sign-in has
+        // `verify-otp`: the code and the new password are submitted together,
+        // and a wrong code fails this single call.
+        final resetArgs = settings.arguments as Map<String, dynamic>? ?? const {};
         return _page(
           Builder(
             builder: (context) => CreateNewPasswordScreen(
               onSubmit: (newPassword) async {
-                // TODO: call your actual reset endpoint with
-                // args['target'], args['code'], newPassword
-
-                await Future.delayed(const Duration(seconds: 1));
-                return const ResetPasswordResult.success();
+                final result = await GetIt.instance<AuthRepository>().resetPassword(
+                  email: resetArgs['target'] as String? ?? '',
+                  token: resetArgs['code'] as String? ?? '',
+                  newPassword: newPassword,
+                );
+                return result.when(
+                  success: (_) => const ResetPasswordResult.success(),
+                  failure: (f) => ResetPasswordResult.failure(f.message),
+                );
               },
               onSuccess: () => Navigator.of(context).pushReplacementNamed(
                 Static.resetPasswordSuccess,
@@ -161,32 +177,98 @@ class AppPages {
           settings,
         );
       case Static.verifyOtp:
-        final target = settings.arguments as String? ?? '';
+        // `VerifyScreen` serves two journeys that look identical to the user
+        // and differ completely underneath, so the origin is passed
+        // explicitly. Inferring it from the stack would break the first time
+        // anything deep-links here.
+        final args = settings.arguments as VerifyOtpArgs?;
+
+        // Password reset. The code *is* the reset token and cannot be checked
+        // on its own — `/auth/reset-password` takes `{email, token,
+        // newPassword}` together — so this screen only collects it and hands
+        // it to the new-password screen, which submits both.
+        if (args != null && !args.isLogin) {
+          return _page(
+            Builder(
+              builder: (context) => VerifyScreen(
+                target: args.target,
+                // No `onVerify` round trip to the server here: unlike sign-in,
+                // this flow has no separate "confirm the code" endpoint. The
+                // code is submitted together with the new password at
+                // `/auth/reset-password`, on the next screen — see
+                // `Static.createNewPassword`. A wrong code fails that single
+                // call rather than this one.
+                onVerify: (_) async => const VerifyResult.success(),
+                // `/auth/forgot-password` has no dedicated resend — sending
+                // another request is the same call as the first one, and the
+                // guide's "always answers success" rule applies here exactly
+                // as it did to the original request.
+                onResend: () async {
+                  await GetIt.instance<AuthRepository>()
+                      .forgotPassword(args.target);
+                },
+                onBackToLogin: () => Navigator.of(context).maybePop(),
+              ),
+            ),
+            settings,
+          );
+        }
+
+        // Sign-in.
         return _page(
           Builder(
-            builder: (context) => VerifyScreen(
-              target: target,
-              onVerify: (code) async {
-                // TODO: wire this to your actual OTP verification call —
-                // e.g. context.read<AuthBloc>().add(VerifyOtpRequestedEvent(target, code))
-                // and await/convert the resulting state, or call a repository
-                // method directly. Placeholder below just simulates a network call
-                // and accepts the mock token 111111 for UI testing.
-                await Future.delayed(const Duration(seconds: 1));
-                if (code == '111111') {
-                  return const VerifyResult.success();
-                }
-                return VerifyResult.failure('auth.invalid_code'.tr);
-              },
-              // No onVerified: falls back to VerifyScreen's built-in navigation to
-              // CreateNewPasswordScreen. Provide onVerified here once AuthBloc/reset
-              // routing exists to override that behaviour.
-              onResend: () async {
-                // TODO: re-trigger the forgot-password request for `target`.
-                await Future.delayed(const Duration(seconds: 1));
-              },
-              onBackToLogin: () => Navigator.of(context).pop(),
-            ),
+            builder: (context) {
+              final auth = context.read<AuthBloc>();
+
+              return BlocListener<AuthBloc, AuthState>(
+                // Routing is driven by the bloc: a session exists only once
+                // step 3 has run, and `AuthenticatedState` is that fact.
+                listenWhen: (prev, curr) => curr is AuthenticatedState,
+                listener: (context, _) => Navigator.of(context)
+                    .pushNamedAndRemoveUntil(Static.main, (route) => false),
+                child: VerifyScreen(
+                  target: args?.target ?? '',
+                  // Server configuration, not constants.
+                  codeLength: args?.challenge?.challenge.otpLength ?? 6,
+                  resendCooldown: args?.challenge?.challenge.window ??
+                      const Duration(seconds: 30),
+                  // Supplied so the screen does *not* fall through to its
+                  // built-in password-reset navigation — sign-in goes to the
+                  // shell, and the BlocListener above owns that move.
+                  onVerified: (_) {},
+                  onVerify: (code) async {
+                    auth.add(OtpSubmitted(code));
+
+                    final settled = await auth.stream.firstWhere((s) =>
+                        s is AuthenticatedState || s is AuthOtpFailureState);
+
+                    return switch (settled) {
+                      // Five wrong codes, an expired window or a spent id all
+                      // mean the attempt is dead: start again at step 1.
+                      AuthOtpFailureState(
+                        :final message,
+                        attemptDead: true
+                      ) =>
+                        () {
+                          Navigator.of(context).pushNamedAndRemoveUntil(
+                              Static.login, (route) => false);
+                          return VerifyResult.failure(message);
+                        }(),
+                      AuthOtpFailureState(:final message) =>
+                        VerifyResult.failure(message),
+                      _ => const VerifyResult.success(),
+                    };
+                  },
+                  onResend: () async => auth.add(const OtpResendRequested()),
+                  // No token exists yet — step 3 never ran — so abandoning
+                  // leaves no credential behind.
+                  onBackToLogin: () {
+                    auth.add(const OtpAbandoned());
+                    Navigator.of(context).pop();
+                  },
+                ),
+              );
+            },
           ),
           settings,
         );

@@ -2,8 +2,28 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<!-- Allows cleartext HTTP to the local machine only, so a simulator can
+	     reach a backend running on the developer's Mac (http://localhost:5000)
+	     without a public tunnel.
+
+	     Deliberately NOT NSAllowsArbitraryLoads: that would disable App
+	     Transport Security for every host and let a shipped build talk to any
+	     server over plain HTTP. NSAllowsLocalNetworking covers loopback and
+	     link-local addresses and nothing else, so production traffic to
+	     https://<host> stays fully protected. -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+	<string>tg</string>
+	<string>tel</string>
+	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<!-- Without this the App Store lists the app as English-only, even though it

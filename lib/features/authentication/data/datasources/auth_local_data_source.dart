@@ -5,22 +5,41 @@ import 'package:isi_steel_sales_mobile/core/constants/app_constant.dart';
 import 'package:isi_steel_sales_mobile/core/error/exceptions.dart';
 import 'package:isi_steel_sales_mobile/core/middleware/app_middleware.dart';
 import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
+import 'package:isi_steel_sales_mobile/features/authentication/data/models/auth_profile_model.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/data/models/auth_token_model.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/data/models/user_model.dart';
 
 abstract interface class AuthLocalDataSource {
   Future<void> cacheSession({
     required AuthTokenModel token,
-    required UserModel user,
+    required AuthProfileModel profile,
   });
+
+  /// Persists the token pair alone. Sign-in needs this before it can fetch the
+  /// profile, because that call authenticates through the interceptor and so
+  /// requires the access token to already be readable.
+  ///
+  /// Implementations write the refresh token first — see [TokenStore].
+  Future<void> saveTokens({
+    required String accessToken,
+    required String refreshToken,
+  });
+
+  /// Refreshes the cached profile without touching the token pair — used when
+  /// `/auth/me` is re-read on resume.
+  Future<void> cacheProfile(AuthProfileModel profile);
+
+  Future<AuthProfileModel?> readProfile();
   Future<UserModel?> readUser();
   Future<AuthTokenModel?> readToken();
   Future<void> clear();
 }
 
-/// Backed by encrypted secure storage. Also implements [TokenStore] so the
-/// same instance can serve the network interceptor — one source of truth
-/// for tokens, no duplication or drift.
+/// Backed by encrypted secure storage — never `SharedPreferences`, which is
+/// plaintext on disk and readable on a rooted handset.
+///
+/// Also implements [TokenStore] so the same instance serves the network
+/// interceptor: one source of truth for tokens, no duplication and no drift.
 class AuthLocalDataSourceImpl implements AuthLocalDataSource, TokenStore {
   const AuthLocalDataSourceImpl(this._storage);
   final FlutterSecureStorage _storage;
@@ -28,31 +47,51 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource, TokenStore {
   @override
   Future<void> cacheSession({
     required AuthTokenModel token,
-    required UserModel user,
+    required AuthProfileModel profile,
   }) async {
     try {
-      await Future.wait([
-        _storage.write(
-            key: AppConstants.kAccessToken, value: token.accessToken),
-        _storage.write(
-            key: AppConstants.kRefreshToken, value: token.refreshToken),
-        _storage.write(
-            key: AppConstants.kCachedUser, value: jsonEncode(user.toMap())),
-      ]);
+      await saveTokens(
+        accessToken: token.accessToken,
+        refreshToken: token.refreshToken,
+      );
+      await _storage.write(
+        key: AppConstants.kCachedUser,
+        value: jsonEncode(profile.toJson()),
+      );
     } catch (_) {
       throw const CacheException(message: 'Failed to persist session.');
     }
   }
 
   @override
-  Future<UserModel?> readUser() async {
+  Future<void> cacheProfile(AuthProfileModel profile) async {
+    try {
+      await _storage.write(
+        key: AppConstants.kCachedUser,
+        value: jsonEncode(profile.toJson()),
+      );
+    } catch (_) {
+      throw const CacheException(message: 'Failed to persist profile.');
+    }
+  }
+
+  @override
+  Future<AuthProfileModel?> readProfile() async {
     try {
       final raw = await _storage.read(key: AppConstants.kCachedUser);
       if (raw == null) return null;
-      return UserModel.fromMap(jsonDecode(raw) as DataMap);
+      return AuthProfileModel.fromJson(jsonDecode(raw) as DataMap);
     } catch (_) {
+      // A cache we cannot decode is a cache we ignore — a schema change
+      // between releases must not brick sign-in.
       return null;
     }
+  }
+
+  @override
+  Future<UserModel?> readUser() async {
+    final profile = await readProfile();
+    return profile == null ? null : UserModel.fromEntity(profile.toUser());
   }
 
   @override
@@ -63,6 +102,9 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource, TokenStore {
     return AuthTokenModel(accessToken: access, refreshToken: refresh);
   }
 
+  /// Clears the session. The device id deliberately survives: it identifies
+  /// the installation, not the person, so the next sign-in should land on the
+  /// same session row rather than opening a duplicate.
   @override
   Future<void> clear() => Future.wait([
         _storage.delete(key: AppConstants.kAccessToken),
@@ -79,13 +121,22 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource, TokenStore {
   Future<String?> readRefreshToken() =>
       _storage.read(key: AppConstants.kRefreshToken);
 
+  /// Writes the refresh token **first**, then the access token — sequentially,
+  /// not with `Future.wait`.
+  ///
+  /// Refresh tokens are single-use and rotate on every use, so the moment the
+  /// new access token is in play the old refresh token is already dead. If the
+  /// process died between an access-token write and a refresh-token write, the
+  /// stored pair would be a live access token beside a retired refresh token:
+  /// the session would work for fifteen minutes and then force a re-login.
+  /// This ordering makes the worst case a redundant refresh instead.
   @override
   Future<void> saveTokens({
     required String accessToken,
     required String refreshToken,
-  }) =>
-      Future.wait([
-        _storage.write(key: AppConstants.kAccessToken, value: accessToken),
-        _storage.write(key: AppConstants.kRefreshToken, value: refreshToken),
-      ]);
+  }) async {
+    await _storage.write(
+        key: AppConstants.kRefreshToken, value: refreshToken);
+    await _storage.write(key: AppConstants.kAccessToken, value: accessToken);
+  }
 }

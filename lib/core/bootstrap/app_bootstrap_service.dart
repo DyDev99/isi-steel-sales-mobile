@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:isi_steel_sales_mobile/core/config/app_config.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/migrations/legacy_orders_importer.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/migrations/legacy_source_factory.dart';
@@ -49,7 +52,15 @@ class AppBootstrapService {
     // 1–2. Config + logger. The logger is constructed directly rather than
     // resolved from DI because it must be able to report a DI failure.
     const AppLogger logger = ConsoleAppLogger();
-    logger.info('bootstrap.started');
+
+    // The host is the single most useful thing to see first: almost every
+    // "the app cannot log in" report ends with the build pointing somewhere
+    // unexpected. `hostOverridden` distinguishes a `--dart-define` launch from
+    // the compiled `.env`, which is otherwise invisible.
+    logger.info('bootstrap.started', fields: {
+      'apiHost': Uri.tryParse(AppConfig.apiBaseUrl)?.host,
+      'hostOverridden': AppConfig.hasOverride,
+    });
 
     try {
       // 3. Key-value store. Must precede DI (see class doc).
@@ -81,14 +92,35 @@ class AppBootstrapService {
       //    background with zero network calls (OFFLINE_FIRST §2.1, §2.5).
 
       // 7. Connectivity. Started last so a slow reachability probe can never
-      //    delay first frame — start() kicks off an async probe and returns;
-      //    the initial state is `offline` until the probe proves otherwise.
+      //    delay first frame; the initial state is `offline` until the probe
+      //    proves otherwise.
+      //
+      //    Deliberately **not** awaited. `start()` awaits its first probe — a
+      //    contract its own tests rely on — so awaiting it here put a network
+      //    round trip on the path to `runApp`. Against an unreachable gateway
+      //    that stalled boot for the probe timeout, and before that timeout
+      //    was enforced (the probe had no `connectTimeout`, see
+      //    [HttpReachabilityProbe]) it stalled indefinitely: no first frame,
+      //    just the launch screen. That is precisely the "boot never blocks on
+      //    the network" rule in this class's doc comment, ADR-002 §3 and
+      //    OFFLINE_FIRST §2.6.
+      //
+      //    Fire-and-forget is safe because nothing here reads the result:
+      //    `ConnectivityService` publishes to a broadcast stream and every
+      //    consumer is already built to react to a transition rather than to
+      //    poll an initial value.
       final connectivity = sl<ConnectivityService>();
-      await connectivity.start();
-      logger.info('bootstrap.connectivity_started',
-          fields: {'status': connectivity.status.name});
+      unawaited(connectivity.start());
+      logger.info('bootstrap.connectivity_starting');
 
-      logger.info('bootstrap.completed');
+      // The host is repeated here, not only on `bootstrap.started`. That
+      // first line is emitted before the VM service attaches, so it is
+      // routinely missing from the `flutter run` console — and it carries the
+      // single most useful fact when nothing can connect.
+      logger.info('bootstrap.completed', fields: {
+        'apiHost': Uri.tryParse(AppConfig.apiBaseUrl)?.host,
+        'hostOverridden': AppConfig.hasOverride,
+      });
       return const BootstrapResult.success();
     } catch (error, stackTrace) {
       // A bootstrap failure is not recoverable here, but it must never surface

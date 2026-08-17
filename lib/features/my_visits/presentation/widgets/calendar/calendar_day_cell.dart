@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
-
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/calendar/stops_indicator_dots.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
-/// One cell in [CalendarMonthView]'s grid: a date number with wrapping stop
-/// dots (up to 4 columns) centered directly beneath it.
 class CalendarDayCell extends StatelessWidget {
   const CalendarDayCell({
     super.key,
@@ -58,11 +54,9 @@ class CalendarDayCell extends StatelessWidget {
           AnimatedContainer(
             duration: const Duration(milliseconds: 180),
             curve: Curves.easeOut,
-            // FIXED: Used context.rr for uniform radial scaling on circular container
-            width: context.rr(30),
-            height: context.rr(30),
-            decoration:
-                BoxDecoration(color: circleColor, shape: BoxShape.circle),
+            width: context.rr(32),
+            height: context.rr(32),
+            decoration: BoxDecoration(color: circleColor, shape: BoxShape.circle),
             alignment: Alignment.center,
             child: Text(
               '${date.day}',
@@ -73,15 +67,21 @@ class CalendarDayCell extends StatelessWidget {
               ),
             ),
           ),
-          SizedBox(height: context.rh(4)),
-          isCurrentMonth
-              ? StopIndicatorDots(
-                  count: stopCount,
-                  maxVisible: 8,
-                  columns: 4,
-                  activeColor: isToday ? scheme.primary : colors.iconMuted,
-                )
-              : const SizedBox.shrink(),
+          SizedBox(height: context.rh(2)),
+          
+          // Replaced dots with explicit visit counts
+          if (isCurrentMonth && stopCount > 0)
+            Padding(
+              padding: EdgeInsets.only(top: context.rh(2)),
+              child: Text(
+                '$stopCount Visits',
+                style: TextStyle(
+                  color: Colors.deepOrange.shade700,
+                  fontSize: context.rsp(9.5),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
         ],
       ),
     );

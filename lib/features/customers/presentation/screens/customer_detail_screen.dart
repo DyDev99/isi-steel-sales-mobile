@@ -11,16 +11,7 @@ import 'package:isi_steel_sales_mobile/features/customers/domain/entities/custom
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customer_detail_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customer_detail_state.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_status_badge.dart';
-import 'package:isi_steel_sales_mobile/features/lead/domain/entities/credit_status.dart';
-import 'package:isi_steel_sales_mobile/features/lead/domain/entities/lead.dart';
-import 'package:isi_steel_sales_mobile/features/lead/domain/entities/lead_source.dart';
-import 'package:isi_steel_sales_mobile/features/lead/domain/entities/opportunity_info.dart';
-import 'package:isi_steel_sales_mobile/features/lead/domain/entities/pipeline_stage.dart';
-import 'package:isi_steel_sales_mobile/features/lead/domain/entities/priority.dart';
-import 'package:isi_steel_sales_mobile/features/lead/domain/usecases/create_lead.dart';
-import 'package:isi_steel_sales_mobile/features/lead/presentation/bloc/pipeline_bloc.dart';
-import 'package:isi_steel_sales_mobile/features/lead/presentation/bloc/pipeline_event.dart';
-import 'package:isi_steel_sales_mobile/features/lead/presentation/screens/pipeline_screen.dart';
+
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/app_bottom_sheet.dart';
 
@@ -59,66 +50,6 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
   void dispose() {
     _noteController.dispose();
     super.dispose();
-  }
-
-  Future<void> _createOpportunity(
-      BuildContext context, Customer customer) async {
-    final estimatedValue = await showModalBottomSheet<double>(
-      constraints: const BoxConstraints(maxWidth: AppBottomSheet.maxWidth),
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) => _EstimatedValueSheet(customer: customer),
-    );
-    if (estimatedValue == null || !context.mounted) return;
-
-    final lead = Lead(
-      id: 'LEAD-${DateTime.now().microsecondsSinceEpoch}',
-      companyName: customer.shopName,
-      // Carries the customer's Khmer name onto the opportunity, so the lead
-      // renders in Khmer on the pipeline board exactly as it did in the
-      // directory rather than reverting to Latin at the hand-off.
-      companyNameKh: customer.khName ?? '',
-      ownerName: customer.ownerName,
-      phone: customer.phone,
-      email: customer.email ?? '',
-      address: customer.address,
-      province: customer.province,
-      district: customer.district,
-      latitude: customer.latitude,
-      longitude: customer.longitude,
-      storefrontImageUrl: '',
-      businessRegistrationNumber: '',
-      taxId: '',
-      leadSource: LeadSource.referral,
-      createdDate: DateTime.now(),
-      expectedRevenue: estimatedValue,
-      currentRevenue: 0,
-      assignedRepName: customer.assignedRepName,
-      creditLimit: customer.creditLimit,
-      creditStatus: CreditStatus.approved,
-      stage: PipelineStage.opportunities,
-      priority: Priority.medium,
-      industry: 'Steel & Hardware',
-      territory: customer.territory,
-      opportunityInfo: OpportunityInfo(estimatedValue: estimatedValue),
-    );
-
-    await sl<CreateLead>()(lead);
-    if (!context.mounted) return;
-
-    context.read<CustomerDetailCubit>().logActivity(
-          CustomerActivityType.opportunityCreated,
-          'customers.opportunity_opened'
-              .trParams({'value': estimatedValue.toStringAsFixed(0)}),
-        );
-
-    Navigator.of(context).push(MaterialPageRoute(
-      builder: (_) => BlocProvider(
-        create: (_) => sl<PipelineBloc>()..add(const PipelineLoadRequested()),
-        child: const PipelineScreen(initialStage: PipelineStage.opportunities),
-      ),
-    ));
   }
 
   void _addNote(BuildContext context) {
@@ -224,8 +155,6 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
                             .replaceAll('{phone}', state.customer.phone)),
                         duration: const Duration(seconds: 1)),
                   ),
-                  onCreateOpportunity: () =>
-                      _createOpportunity(context, state.customer),
                   onLogVisit: () {
                     context.read<CustomerDetailCubit>().logActivity(
                         CustomerActivityType.visit,
@@ -255,14 +184,12 @@ class _Loaded extends StatelessWidget {
   const _Loaded({
     required this.state,
     required this.onCall,
-    required this.onCreateOpportunity,
     required this.onLogVisit,
     required this.onAddNote,
   });
 
   final CustomerDetailLoaded state;
   final VoidCallback onCall;
-  final VoidCallback onCreateOpportunity;
   final VoidCallback onLogVisit;
   final VoidCallback onAddNote;
 
@@ -424,7 +351,10 @@ class _Loaded extends StatelessWidget {
               _InfoRow(
                   icon: Icons.fingerprint_rounded,
                   label: 'customers.sap_customer_id'.tr,
-                  value: customer.sapCustomerId),
+                  // Null until SAP creates the record, which is the normal
+                  // state for a customer the rep registered and nobody has
+                  // approved yet.
+                  value: customer.sapCustomerId ?? 'common.not_specified'.tr),
               _InfoRow(
                   icon: Icons.account_balance_wallet_outlined,
                   label: 'customers.credit_limit'.tr,
@@ -467,87 +397,6 @@ class _Loaded extends StatelessWidget {
 
   static String _formatDate(DateTime date) =>
       '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
-}
-
-class _EstimatedValueSheet extends StatefulWidget {
-  const _EstimatedValueSheet({required this.customer});
-  final Customer customer;
-
-  @override
-  State<_EstimatedValueSheet> createState() => _EstimatedValueSheetState();
-}
-
-class _EstimatedValueSheetState extends State<_EstimatedValueSheet> {
-  final _controller = TextEditingController();
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final colors = context.appColors;
-    return Padding(
-      padding:
-          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-        decoration: BoxDecoration(
-            color: scheme.surface,
-            borderRadius:
-                const BorderRadius.vertical(top: Radius.circular(24))),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-                'customers.new_opportunity'.trParams(
-                    {'shop': context.localized(widget.customer.displayName)}),
-                style: TextStyle(
-                    color: colors.textPrimary,
-                    fontSize: context.rsp(16),
-                    fontWeight: FontWeight.w800)),
-            SizedBox(height: context.rh(12)),
-            TextField(
-              controller: _controller,
-              keyboardType: TextInputType.number,
-              style: TextStyle(color: colors.textPrimary),
-              decoration: InputDecoration(
-                labelText: 'customers.estimated_value'.tr,
-                filled: true,
-                fillColor: colors.surfaceSoft,
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: colors.border)),
-              ),
-            ),
-            SizedBox(height: context.rh(16)),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  final value = double.tryParse(_controller.text) ?? 0;
-                  Navigator.pop(context, value);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: scheme.primary,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14)),
-                ),
-                child: Text('customers.create_opportunity'.tr,
-                    style: TextStyle(
-                        color: scheme.onPrimary, fontWeight: FontWeight.w800)),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 class _SalesInsightsSection extends StatelessWidget {

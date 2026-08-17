@@ -1,3 +1,4 @@
+import 'package:isi_steel_sales_mobile/core/utils/enum_parse.dart';
 import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_plan.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_stop.dart';
@@ -48,7 +49,8 @@ class RoutePlanModel extends RoutePlan {
         visitDate: DateTime.parse(row['visit_date'] as String),
         plannedStart: DateTime.parse(row['planned_start'] as String),
         plannedEnd: DateTime.parse(row['planned_end'] as String),
-        status: RouteStatus.values.byName(row['status'] as String),
+        status: RouteStatus.values.byNameOr(row['status'] as String?,
+            RouteStatus.values.first, context: 'route.row.status'),
         stops: stops,
       );
 

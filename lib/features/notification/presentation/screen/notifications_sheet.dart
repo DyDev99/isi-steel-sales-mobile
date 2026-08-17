@@ -3,9 +3,9 @@ import 'package:isi_steel_sales_mobile/core/localization/localization_services.d
 import 'package:isi_steel_sales_mobile/core/localization/localized_builder.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
-import 'package:isi_steel_sales_mobile/features/lead/domain/entities/notification_item.dart';
+import 'package:isi_steel_sales_mobile/core/usecase/usecase.dart';
+import 'package:isi_steel_sales_mobile/features/notification/domain/entities/notification_item.dart';
 import 'package:isi_steel_sales_mobile/features/notification/domain/usecases/fetch_notifications.dart';
-import 'package:isi_steel_sales_mobile/features/lead/domain/usecases/lead_usecase.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/app_bottom_sheet.dart';
 
 /// Opens the notifications sheet.
@@ -71,7 +71,7 @@ class _NotificationsSheetState extends State<_NotificationsSheet> {
           icon: Icons.verified_rounded,
           color: colors.success
         ),
-      NotificationKind.leadAssigned => (
+      NotificationKind.customerAssigned => (
           icon: Icons.person_add_alt_1_rounded,
           color: colors.accentPurple
         ),
@@ -99,7 +99,7 @@ class _NotificationsSheetState extends State<_NotificationsSheet> {
   /// keys are present in both bundles instead.
   String _filterLabel(NotificationKind kind) => switch (kind) {
         NotificationKind.creditApproved => 'notifications.filter.approved'.tr,
-        NotificationKind.leadAssigned => 'notifications.filter.assigned'.tr,
+        NotificationKind.customerAssigned => 'notifications.filter.assigned'.tr,
         NotificationKind.opportunityMoved =>
           'notifications.filter.opportunity'.tr,
         NotificationKind.creditPending => 'notifications.filter.pending'.tr,

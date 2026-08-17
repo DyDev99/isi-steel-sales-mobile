@@ -1,3 +1,4 @@
+import 'package:isi_steel_sales_mobile/core/utils/enum_parse.dart';
 import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/fraud_flag.dart';
 
@@ -16,7 +17,8 @@ class FraudFlagModel extends FraudFlag {
         id: row['id'] as String,
         routeId: row['route_id'] as String,
         stopId: row['stop_id'] as String?,
-        type: FraudFlagType.values.byName(row['type'] as String),
+        type: FraudFlagType.values.byNameOr(row['type'] as String?,
+            FraudFlagType.values.first, context: 'fraud.row.type'),
         detail: row['detail'] as String,
         timestamp: DateTime.parse(row['timestamp'] as String),
         blocked: (row['blocked'] as int) == 1,

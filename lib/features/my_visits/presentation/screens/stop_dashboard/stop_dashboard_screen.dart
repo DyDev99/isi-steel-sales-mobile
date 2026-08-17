@@ -11,6 +11,13 @@ import 'package:isi_steel_sales_mobile/features/customers/data/local/customer_lo
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/route_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/seed_isi_tower_test_route.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/seed_mock_routes_for_dates.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_note.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_photo.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_status.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/add_visit_note.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/add_visit_photo.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/routes_params.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/update_stop_status.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/route_sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/stop_dashboard_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/state/route_sync_state.dart';
@@ -20,8 +27,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/presentation/navigatio
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/calendar/calendar_widget_section.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/stop_card.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/stop_card_skeleton.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/stop_dashboard/stop_filter_bar.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/stop_dashboard/stop_search_field.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/today_visits_progress_cart.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// The primary My Visits entry point: today's stops, sorted nearest-first by
@@ -91,6 +97,44 @@ class _StopDashboardScreenState extends State<StopDashboardScreen> {
     );
   }
 
+  /// Marks a stop missed with the rep's reason (always) and proof photo (if
+  /// taken), then reloads so the card reflects it immediately — the dashboard
+  /// has no live `ActiveRouteBloc` for an arbitrary stop from this flattened
+  /// list, so this writes straight through the usecases, the same way
+  /// `CompleteVisitCheckOut` is triggered from contexts with no bloc.
+  Future<void> _skipStop(
+    BuildContext context,
+    TodayStop todayStop,
+    String reason,
+    String? photoPath,
+  ) async {
+    final stopId = todayStop.stop.id;
+    final now = DateTime.now();
+
+    await sl<UpdateStopStatus>()(
+        UpdateStopStatusParams(stopId: stopId, status: VisitStatus.missed));
+    await sl<AddVisitNote>()(VisitNote(
+      id: '${now.microsecondsSinceEpoch}',
+      stopId: stopId,
+      type: VisitNoteType.general,
+      text: 'Visit skipped: $reason',
+      createdAt: now,
+    ));
+    if (photoPath != null) {
+      await sl<AddVisitPhoto>()(VisitPhoto(
+        id: '${now.microsecondsSinceEpoch}-photo',
+        stopId: stopId,
+        url: photoPath,
+        caption: 'Skip proof: $reason',
+        takenAt: now,
+      ));
+    }
+
+    if (context.mounted) {
+      context.read<StopDashboardCubit>().reload();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
@@ -131,6 +175,8 @@ class _StopDashboardScreenState extends State<StopDashboardScreen> {
                   state: state,
                   onRefresh: () => _refresh(context),
                   onTapStop: (s) => _openStop(context, s, state.visibleStops),
+                  onSkipStop: (s, reason, photoPath) =>
+                      _skipStop(context, s, reason, photoPath),
                   onFilter: (f) =>
                       context.read<StopDashboardCubit>().setFilter(f),
                   onQuery: (q) =>
@@ -150,15 +196,18 @@ class _LoadedView extends StatefulWidget {
     required this.state,
     required this.onRefresh,
     required this.onTapStop,
+    required this.onSkipStop,
     required this.onFilter,
     required this.onQuery,
   });
 
   final StopDashboardLoaded state;
   final Future<void> Function() onRefresh;
-  final ValueChanged<TodayStop> onTapStop;
-  final ValueChanged<StopFilter> onFilter;
-  final ValueChanged<String> onQuery;
+  final void Function(TodayStop stop) onTapStop;
+  final void Function(TodayStop stop, String reason, String? photoPath)
+      onSkipStop;
+  final void Function(StopFilter filter) onFilter;
+  final void Function(String query) onQuery;
 
   @override
   State<_LoadedView> createState() => _LoadedViewState();
@@ -167,156 +216,86 @@ class _LoadedView extends StatefulWidget {
 class _LoadedViewState extends State<_LoadedView> {
   DateTime _focusedMonth = DateTime.now();
 
-  /// Per-day stop count for the calendar dots — across every synced day, from
-  /// the cubit's `allRoutes` (Today…+4 land here). Selecting a day filters the
-  /// list via the cubit.
   int _getStopCountForDate(DateTime date) => widget.state.stopCountForDay(date);
 
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-    final scheme = Theme.of(context).colorScheme;
-    final visible = widget.state.visibleStops;
+  // Inside _LoadedViewState in stop_dashboard_screen.dart
 
-    return RefreshIndicator(
-      color: scheme.primary,
-      backgroundColor: colors.surfaceSoft,
-      onRefresh: widget.onRefresh,
-      child: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(context.rw(20), context.rh(12), context.rw(20), 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  StopCalendarSection(
-                    focusedMonth: _focusedMonth,
-                    selectedDate: widget.state.selectedDate,
-                    onMonthChanged: (newMonth) =>
-                        setState(() => _focusedMonth = newMonth),
-                    onDateSelected: (newDate) => context
-                        .read<StopDashboardCubit>()
-                        .setSelectedDate(newDate),
-                    stopCountForDate: _getStopCountForDate,
-                  ),
-                  SizedBox(height: context.rh(14)),
-                  StopSearchField(onChanged: widget.onQuery),
-                  SizedBox(height: context.rh(10)),
-                  StopFilterBar(
-                    selected: widget.state.filter,
-                    onSelected: widget.onFilter,
-                  ),
-                  SizedBox(height: context.rh(6)),
-                  if (widget.state.locationUnavailable)
-                    _Hint(
-                      icon: Icons.location_off_rounded,
-                      text: 'my_visits.stop_dashboard.location_denied'.tr,
-                      color: colors.warning,
-                    )
-                  else if (widget.state.locating)
-                    _Hint(
-                      icon: Icons.my_location_rounded,
-                      text: 'my_visits.stop_dashboard.locating'.tr,
-                      color: colors.textSecondary,
-                    ),
-                  SizedBox(height: context.rh(6)),
-                ],
-              ),
+@override
+Widget build(BuildContext context) {
+  final colors = context.appColors;
+  final scheme = Theme.of(context).colorScheme;
+  final visible = widget.state.visibleStops;
+
+  // Check if the selected calendar date is TODAY
+  final isSelectedToday = DateUtils.isSameDay(
+    widget.state.selectedDate,
+    DateTime.now(),
+  );
+
+  // Count metrics for progress bar
+  final total = widget.state.stops.length;
+  final visited = widget.state.stops.where((s) => s.stop.status == VisitStatus.checkedOut).length;
+  final skipped = widget.state.stops.where((s) => s.stop.status == VisitStatus.missed).length;
+
+  return RefreshIndicator(
+    color: scheme.primary,
+    backgroundColor: colors.surfaceSoft,
+    onRefresh: widget.onRefresh,
+    child: CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(context.rw(20), context.rh(12), context.rw(20), 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                StopCalendarSection(
+                  focusedMonth: _focusedMonth,
+                  selectedDate: widget.state.selectedDate,
+                  onMonthChanged: (newMonth) => setState(() => _focusedMonth = newMonth),
+                  onDateSelected: (newDate) => context
+                      .read<StopDashboardCubit>()
+                      .setSelectedDate(newDate),
+                  stopCountForDate: _getStopCountForDate,
+                ),
+                SizedBox(height: context.rh(14)),
+                
+                TodayVisitProgressCard(
+                  totalVisits: total,
+                  visitedCount: visited,
+                  skippedCount: skipped,
+                ),
+                
+                SizedBox(height: context.rh(12)),
+              ],
             ),
           ),
-          if (visible.isEmpty)
-            SliverFillRemaining(
-              hasScrollBody: false,
-              child: _EmptyState(hasAnyStops: widget.state.stops.isNotEmpty),
-            )
-          else
-            SliverPadding(
-              padding: EdgeInsets.fromLTRB(context.rw(20), context.rh(4), context.rw(20), context.rh(24)),
-              sliver: SliverList.builder(
-                itemCount: visible.length,
-                itemBuilder: (context, index) {
-                  final todayStop = visible[index];
-                  return _FadeInItem(
-                    key: ValueKey(todayStop.stop.id),
-                    child: StopCard(
-                      todayStop: todayStop,
-                      onTap: () => widget.onTapStop(todayStop),
-                    ),
-                  );
-                },
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Gentle fade+rise as a card first appears — cheap enough for 500+ rows since
-/// it runs once per item build, not per frame.
-class _FadeInItem extends StatefulWidget {
-  const _FadeInItem({super.key, required this.child});
-  final Widget child;
-
-  @override
-  State<_FadeInItem> createState() => _FadeInItemState();
-}
-
-class _FadeInItemState extends State<_FadeInItem> {
-  double _opacity = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) setState(() => _opacity = 1);
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedOpacity(
-      opacity: _opacity,
-      duration: const Duration(milliseconds: 280),
-      curve: Curves.easeOut,
-      child: AnimatedSlide(
-        offset: Offset(0, _opacity == 1 ? 0 : 0.04),
-        duration: const Duration(milliseconds: 280),
-        curve: Curves.easeOut,
-        child: widget.child,
-      ),
-    );
-  }
-}
-
-class _Hint extends StatelessWidget {
-  const _Hint({required this.icon, required this.text, required this.color});
-  final IconData icon;
-  final String text;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(top: context.rh(4)),
-      child: Row(
-        children: [
-          Icon(icon, size: context.rw(14), color: color),
-          SizedBox(width: context.rw(6)),
-          Expanded(
-            child: Text(
-              text,
-              style: TextStyle(
-                color: color,
-                fontSize: context.rsp(11.5),
-                fontWeight: FontWeight.w600,
-              ),
+        ),
+        if (visible.isEmpty)
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: _EmptyState(hasAnyStops: widget.state.stops.isNotEmpty),
+          )
+        else
+          SliverPadding(
+            padding: EdgeInsets.fromLTRB(context.rw(20), context.rh(4), context.rw(20), context.rh(24)),
+            sliver: SliverList.builder(
+              itemCount: visible.length,
+              itemBuilder: (context, index) {
+                final todayStop = visible[index];
+                return StopCard(
+                  todayStop: todayStop,
+                  isToday: isSelectedToday, // 👈 CRITICAL: Pass whether selected date is today
+                  onTap: () => widget.onTapStop(todayStop),
+                  onSkipSubmitted: (reason, photoPath) =>
+                      widget.onSkipStop(todayStop, reason, photoPath),
+                );
+              },
             ),
           ),
-        ],
-      ),
-    );
+      ],
+    ),
+  );
   }
 }
 

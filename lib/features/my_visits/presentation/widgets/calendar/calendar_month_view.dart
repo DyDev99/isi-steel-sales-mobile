@@ -1,66 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'calendar_day_cell.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
-
-/// Prev/next chevrons around the "Month yyyy" label.
-class MonthNavigation extends StatelessWidget {
-  const MonthNavigation({
-    super.key,
-    required this.focusedMonth,
-    required this.onPrevious,
-    required this.onNext,
-  });
-
-  final DateTime focusedMonth;
-  final VoidCallback onPrevious;
-  final VoidCallback onNext;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        _NavButton(icon: Icons.chevron_left_rounded, onTap: onPrevious),
-        Text(
-          DateFormat.yMMMM().format(focusedMonth),
-          style: TextStyle(
-            color: colors.textPrimary,
-            fontSize: context.rsp(16),
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-        _NavButton(icon: Icons.chevron_right_rounded, onTap: onNext),
-      ],
-    );
-  }
-}
-
-class _NavButton extends StatelessWidget {
-  const _NavButton({required this.icon, required this.onTap});
-  final IconData icon;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(context.rr(20)),
-      child: Padding(
-        padding: EdgeInsets.all(context.rr(6)),
-        child: Icon(
-          icon,
-          color: colors.iconMuted,
-          size: context.rr(22),
-        ),
-      ),
-    );
-  }
-}
 
 class CalendarMonthView extends StatelessWidget {
   const CalendarMonthView({
@@ -78,43 +20,65 @@ class CalendarMonthView extends StatelessWidget {
   final ValueChanged<DateTime> onDateSelected;
   final int Function(DateTime date) stopCountForDate;
 
-  static const _swipeVelocityThreshold = 200.0;
-
   void _goToMonth(int offset) {
     onMonthChanged(DateTime(focusedMonth.year, focusedMonth.month + offset, 1));
+  }
+
+  /// Filter out Sunday dates for Mon-Sat display grid
+  List<DateTime> _generateMonToSatDates(DateTime month) {
+    final firstOfMonth = DateTime(month.year, month.month, 1);
+    
+    // Find nearest preceding Monday
+    int leadingDays = firstOfMonth.weekday - DateTime.monday;
+    if (leadingDays < 0) leadingDays += 7;
+    
+    final gridStart = firstOfMonth.subtract(Duration(days: leadingDays));
+    final List<DateTime> dates = [];
+
+    DateTime current = gridStart;
+    while (dates.length < 36) { // 6 weeks * 6 days (Mon-Sat)
+      if (current.weekday != DateTime.sunday) {
+        dates.add(current);
+      }
+      current = current.add(const Duration(days: 1));
+    }
+    return dates;
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final now = DateTime.now();
+    final monthDates = _generateMonToSatDates(focusedMonth);
 
-    final firstOfMonth = DateTime(focusedMonth.year, focusedMonth.month, 1);
-    final leadingOffset = firstOfMonth.weekday - 1;
-    final gridStart = firstOfMonth.subtract(Duration(days: leadingOffset));
-
-    final weekdayLabels = List.generate(7, (i) {
-      final d = gridStart.add(Duration(days: i));
-      final label = DateFormat.E().format(d);
-      return label.length > 2 ? label.substring(0, 2) : label;
-    });
-
-    // Adjusted childAspectRatio by / 1.15 to grant 15% extra height per cell
-    final dynamicChildAspectRatio = context.responsive<double>(
-      compact: 0.71,
-      medium: 1.30,
-      expanded: 1.74,
-    );
+    const weekdayLabels = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        MonthNavigation(
-          focusedMonth: focusedMonth,
-          onPrevious: () => _goToMonth(-1),
-          onNext: () => _goToMonth(1),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.chevron_left_rounded),
+              onPressed: () => _goToMonth(-1),
+            ),
+            Text(
+              DateFormat.yMMMM().format(focusedMonth),
+              style: TextStyle(
+                color: colors.textPrimary,
+                fontSize: context.rsp(16),
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.chevron_right_rounded),
+              onPressed: () => _goToMonth(1),
+            ),
+          ],
         ),
-        SizedBox(height: context.rh(16)),
+        SizedBox(height: context.rh(12)),
+        // Mon - Sat Row Header (6 Columns)
         Row(
           children: [
             for (final label in weekdayLabels)
@@ -125,7 +89,7 @@ class CalendarMonthView extends StatelessWidget {
                     style: TextStyle(
                       color: colors.textSecondary,
                       fontSize: context.rsp(12),
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
@@ -133,56 +97,32 @@ class CalendarMonthView extends StatelessWidget {
           ],
         ),
         SizedBox(height: context.rh(8)),
-        GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onHorizontalDragEnd: (details) {
-            final velocity = details.primaryVelocity ?? 0;
-            if (velocity < -_swipeVelocityThreshold) {
-              _goToMonth(1);
-            } else if (velocity > _swipeVelocityThreshold) {
-              _goToMonth(-1);
-            }
-          },
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 220),
-            transitionBuilder: (child, animation) => FadeTransition(
-              opacity: animation,
-              child: SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(0, 0.04),
-                  end: Offset.zero,
-                ).animate(animation),
-                child: child,
-              ),
-            ),
-            child: GridView.builder(
-              key: ValueKey('${focusedMonth.year}-${focusedMonth.month}'),
-              shrinkWrap: true,
-              padding: EdgeInsets.zero,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: 42,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 7,
-                mainAxisSpacing: context.rh(4),
-                crossAxisSpacing: context.rw(2),
-                childAspectRatio: dynamicChildAspectRatio,
-              ),
-              itemBuilder: (context, index) {
-                final date = gridStart.add(Duration(days: index));
-                final isCurrentMonth = date.month == focusedMonth.month;
-                final isToday = DateUtils.isSameDay(date, now);
-                final isSelected = DateUtils.isSameDay(date, selectedDate);
-                return CalendarDayCell(
-                  date: date,
-                  isCurrentMonth: isCurrentMonth,
-                  isToday: isToday,
-                  isSelected: isSelected,
-                  stopCount: isCurrentMonth ? stopCountForDate(date) : 0,
-                  onTap: () => onDateSelected(date),
-                );
-              },
-            ),
+        GridView.builder(
+          key: ValueKey('${focusedMonth.year}-${focusedMonth.month}'),
+          shrinkWrap: true,
+          padding: EdgeInsets.zero,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: monthDates.length,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 6, // 6 Days (Mon to Sat)
+            mainAxisSpacing: context.rh(6),
+            crossAxisSpacing: context.rw(4),
+            childAspectRatio: 0.8, // Enlarge day cells
           ),
+          itemBuilder: (context, index) {
+            final date = monthDates[index];
+            final isCurrentMonth = date.month == focusedMonth.month;
+            final isToday = DateUtils.isSameDay(date, now);
+            final isSelected = DateUtils.isSameDay(date, selectedDate);
+            return CalendarDayCell(
+              date: date,
+              isCurrentMonth: isCurrentMonth,
+              isToday: isToday,
+              isSelected: isSelected,
+              stopCount: isCurrentMonth ? stopCountForDate(date) : 0,
+              onTap: () => onDateSelected(date),
+            );
+          },
         ),
       ],
     );

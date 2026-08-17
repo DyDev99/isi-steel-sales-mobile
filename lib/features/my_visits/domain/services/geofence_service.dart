@@ -6,10 +6,21 @@ class GeofenceCheckResult {
   const GeofenceCheckResult(
       {required this.insideGeofence,
       required this.distanceMeters,
-      required this.radiusMeters});
+      required this.radiusMeters,
+      this.locationKnown = true});
   final bool insideGeofence;
   final double distanceMeters;
   final double radiusMeters;
+
+  /// False when the customer has no captured position, in which case
+  /// [insideGeofence] and [distanceMeters] mean nothing.
+  ///
+  /// This is a third outcome, not a failure: the rep is not outside the
+  /// geofence, there is simply no geofence to be outside of. A caller should
+  /// let the visit proceed and capture the shop's location while it is there,
+  /// rather than blocking a rep who is standing in the right place because
+  /// nobody has ever recorded where that is.
+  final bool locationKnown;
 }
 
 /// Pure, no I/O, unit-testable — mirrors `lead`'s `pipeline_rules.dart` shape
@@ -41,9 +52,20 @@ class GeofenceService {
     required double repLongitude,
     required CustomerStopInfo customer,
   }) {
+    final radius = customer.geofenceRadiusMeters;
+
+    // Measuring against (0, 0) would report ~10 000 km and fail every check-in
+    // at a shop nobody has geotagged yet.
+    if (!customer.hasCoordinates) {
+      return GeofenceCheckResult(
+          insideGeofence: false,
+          distanceMeters: double.nan,
+          radiusMeters: radius,
+          locationKnown: false);
+    }
+
     final distance = distanceMeters(
         repLatitude, repLongitude, customer.latitude, customer.longitude);
-    final radius = customer.geofenceRadiusMeters;
     return GeofenceCheckResult(
         insideGeofence: distance <= radius,
         distanceMeters: distance,

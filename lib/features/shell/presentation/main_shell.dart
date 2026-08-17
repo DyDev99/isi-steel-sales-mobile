@@ -14,15 +14,11 @@ import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/presentation/services/coach_anchor_registry.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/presentation/services/coach_keys.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/presentation/widgets/app_coach_host.dart';
-import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customer_sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/screens/customers_screen.dart';
 import 'package:isi_steel_sales_mobile/features/home/data/home_repository.dart';
 import 'package:isi_steel_sales_mobile/features/home/presentation/bloc/add_customer_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/home/presentation/bloc/home_cubit.dart';
-import 'package:isi_steel_sales_mobile/features/lead/domain/entities/pipeline_stage.dart';
-import 'package:isi_steel_sales_mobile/features/lead/presentation/bloc/pipeline_bloc.dart';
-import 'package:isi_steel_sales_mobile/features/lead/presentation/bloc/pipeline_event.dart';
-import 'package:isi_steel_sales_mobile/features/lead/presentation/screens/pipeline_screen.dart';
+
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/resumable_visit_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/route_sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/stop_dashboard_cubit.dart';
@@ -80,7 +76,14 @@ class _MainShellState extends State<MainShell> {
     _builtTabs.add(_index);
     _tabController.addListener(_onTabChanged);
     sl<ResumableVisitCubit>().refresh();
-    sl<CustomerSyncCubit>().syncIfNeeded();
+    // Customer sync is deliberately *not* kicked off here.
+    //
+    // `CustomersScreen` already does it (`sl<CustomerSyncCubit>()
+    // ..syncIfNeeded()`), and `CustomerSyncCubit` is a factory — so this line
+    // built a second, throwaway cubit and ran a second initial sync whose
+    // state no widget was watching. That is the duplicate
+    // `customers.sync.initial.start` visible in the logs: two full page runs
+    // on every cold start, for one set of rows.
   }
 
   @override
@@ -101,7 +104,6 @@ class _MainShellState extends State<MainShell> {
         NavTab(Icons.grid_view_rounded, 'home.title'.tr),
         NavTab(Icons.people_alt_rounded, 'customers.title'.tr),
         NavTab(Icons.location_on_rounded, 'my_visits.title'.tr),
-        NavTab(Icons.trending_up_rounded, 'leads.title'.tr),
         NavTab(Icons.receipt_long_rounded, 'orders.title'.tr),
       ];
 
@@ -109,7 +111,6 @@ class _MainShellState extends State<MainShell> {
         'home.title'.tr,
         'customers.title'.tr,
         'my_visits.title'.tr,
-        'leads.title'.tr,
         'orders.title'.tr,
       ];
 
@@ -194,7 +195,10 @@ class _MainShellState extends State<MainShell> {
                       ),
                       SizedBox(height: 1.h),
                       Text(
-                        'Sokha Novel',
+                        // The signed-in rep, not a fixture. This read
+                        // 'Sokha Novel' for every user — the same class of
+                        // bug as the profile screen's "Alex Morgan".
+                        _session.currentUser?.fullName ?? '',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: context.rsp(19),
@@ -238,9 +242,6 @@ class _MainShellState extends State<MainShell> {
           create: (_) => HomeCubit(const HomeRepositoryImpl())..load(),
         ),
         BlocProvider(create: (_) => sl<AddCustomerBloc>()),
-        BlocProvider(
-          create: (_) => sl<PipelineBloc>()..add(const PipelineLoadRequested()),
-        ),
       ],
       child: SizedBox.expand(
         child: Column(
@@ -364,10 +365,6 @@ class _MainShellState extends State<MainShell> {
           child: wrapWithTopSpacing(const StopDashboardScreen()),
         );
       case 3:
-        return wrapWithTopSpacing(
-          const PipelineScreen(initialStage: PipelineStage.leads),
-        );
-      case 4:
         return wrapWithTopSpacing(const OrderScreen());
       default:
         return _buildHomeTab();
@@ -412,10 +409,6 @@ class _MainShellState extends State<MainShell> {
           ),
           BlocProvider<ResumableVisitCubit>.value(
             value: sl<ResumableVisitCubit>(),
-          ),
-          BlocProvider<PipelineBloc>(
-            create: (_) =>
-                sl<PipelineBloc>()..add(const PipelineLoadRequested()),
           ),
         ],
         child: ReconnectSyncListener(
@@ -522,15 +515,47 @@ class _MainShellState extends State<MainShell> {
             ),
           ),
         ),
-        Theme(
-          data: Theme.of(context).copyWith(
-            scaffoldBackgroundColor: Colors.transparent,
-          ),
-          child: Positioned.fill(
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 350),
-              switchInCurve: Curves.easeOutQuad,
-              switchOutCurve: Curves.easeInQuad,
+        // `Positioned.fill` is the *direct* child of the Stack, with `Theme`
+        // inside it — not the other way round.
+        //
+        // `Positioned` is a `ParentDataWidget` that writes `StackParentData`
+        // onto the render object beneath it. Nesting it under `Theme` (which
+        // builds no render object) made that write land a level away from the
+        // child the `Stack` actually lays out, so the parent data was dirty
+        // when semantics ran — the `!semantics.parentDataDirty` assertion that
+        // flooded the console every frame.
+        Positioned.fill(
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              scaffoldBackgroundColor: Colors.transparent,
+            ),
+            // Nothing in the tab stack may claim the primary scroll
+            // controller.
+            //
+            // `Scaffold` binds a status-bar tap to
+            // `primaryScrollController.animateTo(0)`, and `animateTo` drives
+            // **every attached position**, not just the visible one.
+            // `IndexedStack` keeps every built tab in the tree, and the home
+            // tab's `AnimatedSwitcher` holds the guest and authenticated lists
+            // together for 500ms during a sign-in. A position that has not
+            // finished layout has a null `minScrollExtent`, which
+            // `BouncingScrollPhysics` then reads — "Null check operator used
+            // on a null value".
+            //
+            // Unconditional and applied once. Wrapping only the *hidden* tabs
+            // was worse than useless: it left the visible tab attached, and it
+            // changed tree depth on every switch, remounting the tab and
+            // discarding the state `IndexedStack` exists to preserve.
+            //
+            // The cost is that a status-bar tap no longer scrolls to top in
+            // the shell. That is an iOS convenience; this was a crash.
+            child: PrimaryScrollController.none(
+              // No `AnimatedSwitcher` here. It wrapped this `IndexedStack` and
+              // never once animated: a switcher transitions when its child's
+              // *type or key* changes, and an unkeyed `IndexedStack` is the
+              // same widget on every build — only its `index` moves, which the
+              // switcher cannot see. It bought nothing and cost an extra
+              // `Stack` layer re-parenting children on every tab change.
               child: IndexedStack(
                 index: _index,
                 children: List.generate(

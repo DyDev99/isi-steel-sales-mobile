@@ -17,25 +17,14 @@ import 'package:isi_steel_sales_mobile/features/app_coach/presentation/services/
 abstract final class CoachKeys {
   // ── Anchor ids (must match CoachStepCatalog.targetKeyId values) ──────────
   static const String monthlyTarget = 'monthly_target';
-
-  /// Whole-row anchors (kept for section-level overview steps).
-  static const String quickActions = 'quick_actions';
   static const String myWork = 'my_work';
 
-  // Quick-action items.
-  static const String newQuote = 'qa_new_quote';
-  static const String newLead = 'qa_new_lead';
-  static const String depotStock = 'qa_depot_stock';
-  static const String addCustomer = 'qa_add_customer';
-
   // My-work items.
-  static const String myLeads = 'mw_my_leads';
   static const String myVisits = 'mw_my_visits';
   static const String myCustomers = 'mw_my_customers';
   static const String orders = 'mw_orders';
 
   // App-bar items.
-  static const String language = 'ab_language';
   static const String notification = 'ab_notification';
   static const String profile = 'ab_profile';
 

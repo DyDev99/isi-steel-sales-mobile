@@ -1,3 +1,4 @@
+import 'package:isi_steel_sales_mobile/core/utils/enum_parse.dart';
 import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/customer_stop_info.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/territory_type.dart';
@@ -30,7 +31,8 @@ class CustomerStopInfoModel extends CustomerStopInfo {
         address: json['address'] as String,
         territory: json['territory'] as String,
         territoryType:
-            TerritoryType.values.byName(json['territoryType'] as String),
+            TerritoryType.values.byNameOr(json['territoryType'] as String?,
+                TerritoryType.values.first, context: 'stop.json.territory'),
         latitude: (json['latitude'] as num).toDouble(),
         longitude: (json['longitude'] as num).toDouble(),
         geofenceRadiusOverride:
@@ -47,7 +49,8 @@ class CustomerStopInfoModel extends CustomerStopInfo {
         address: row['address'] as String,
         territory: row['territory'] as String,
         territoryType:
-            TerritoryType.values.byName(row['territory_type'] as String),
+            TerritoryType.values.byNameOr(row['territory_type'] as String?,
+                TerritoryType.values.first, context: 'stop.row.territory'),
         latitude: (row['latitude'] as num).toDouble(),
         longitude: (row['longitude'] as num).toDouble(),
         geofenceRadiusOverride:

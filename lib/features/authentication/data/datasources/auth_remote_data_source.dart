@@ -1,123 +1,333 @@
 import 'package:dio/dio.dart';
 import 'package:isi_steel_sales_mobile/core/constants/app_constant.dart';
-import 'package:isi_steel_sales_mobile/core/error/exceptions.dart';
+import 'package:isi_steel_sales_mobile/core/device/device_identity.dart';
+import 'package:isi_steel_sales_mobile/core/network/api_envelope.dart';
+import 'package:isi_steel_sales_mobile/core/network/api_error.dart';
 import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
-import 'package:isi_steel_sales_mobile/features/authentication/data/models/auth_response_model.dart';
+import 'package:isi_steel_sales_mobile/features/authentication/data/models/auth_profile_model.dart';
+import 'package:isi_steel_sales_mobile/features/authentication/data/models/auth_session_model.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/data/models/auth_token_model.dart';
-import 'package:isi_steel_sales_mobile/features/authentication/data/models/user_model.dart';
+import 'package:isi_steel_sales_mobile/features/authentication/domain/entities/otp_challenge.dart';
 
 abstract interface class AuthRemoteDataSource {
-  Future<AuthResponseModel> login({
-    required String email,
+  /// Signs in with a personnel number **or** an e-mail address.
+  ///
+  /// The server resolves whichever arrives, which is why the login form has a
+  /// single field labelled "Employee ID or e-mail": field representatives know
+  /// their personnel number — it is on their badge and payslip — and often
+  /// have no company e-mail, while portal users keep using theirs.
+  Future<AuthTokenModel> login({
+    required String identifier,
+    required String password,
+    String? pushToken,
+    bool rememberDevice,
+  });
+
+  /// The signed-in employee's profile, including permissions and feature flags.
+  Future<AuthProfileModel> getProfile();
+
+  // ── Phone sign-in with OTP (three steps, in order) ─────────────────
+
+  /// Step 1. **The only call that sees the password.**
+  Future<OtpChallenge> sendOtp({
+    required String phoneNumber,
     required String password,
   });
-  Future<UserModel> getCurrentUser();
 
-  /// Revokes [accessToken] server-side.
-  ///
-  /// The credential is passed in rather than read from the token store,
-  /// because sign-out clears that store *first* — see
-  /// `AuthRepositoryImpl.logout`. Relying on [AuthInterceptor] here would send
-  /// the revocation unauthenticated and get a 401.
-  Future<void> logout({required String accessToken});
+  /// Step 2. Returns 204 and issues **no token** — it only moves the attempt
+  /// to `Verified`.
+  Future<void> verifyOtp({
+    required String verificationId,
+    required String otp,
+  });
+
+  /// Step 3. Exchanges the verified attempt for the token pair. Takes the id
+  /// only — the endpoint does not accept the password.
+  Future<AuthTokenModel> phoneLogin({required String verificationId});
+
+  /// A fresh code for an attempt in flight. Takes the id only.
+  Future<OtpChallenge> resendOtp({required String verificationId});
+
+  /// Ends this session, or every session when [allDevices] is true.
+  Future<void> logout({required String refreshToken, bool allDevices});
+
+  Future<List<AuthSessionModel>> listSessions();
+  Future<void> revokeSession(String sessionId);
+
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  });
+
+  Future<void> forgotPassword(String email);
+  Future<void> resetPassword({
+    required String email,
+    required String token,
+    required String newPassword,
+  });
+  Future<void> verifyEmail({required String userId, required String token});
+  Future<void> resendVerification(String email);
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
-  const AuthRemoteDataSourceImpl(this._client);
-  final Dio _client;
+  const AuthRemoteDataSourceImpl({
+    required Dio authedClient,
+    required Dio bareClient,
+    required DeviceIdentity device,
+  })  : _authed = authedClient,
+        _bare = bareClient,
+        _device = device;
+
+  /// Carries [AuthInterceptor]. Used for everything that needs a bearer token.
+  final Dio _authed;
+
+  /// No auth interceptor. Used for the endpoints that establish or recover a
+  /// session — sending a stale bearer token to `/auth/login` would at best be
+  /// pointless and at worst trip the refresh path on a 401 that is really
+  /// "wrong password".
+  final Dio _bare;
+
+  final DeviceIdentity _device;
 
   @override
+  Future<AuthTokenModel> login({
+    required String identifier,
+    required String password,
+    String? pushToken,
+    bool rememberDevice = true,
+  }) async {
+    try {
+      final res = await _bare.post<DataMap>(
+        AppConstants.loginEndpoint,
+        data: {
+          // `employeeId` accepts an e-mail address too; the server resolves it.
+          'employeeId': identifier.trim(),
+          'password': password,
+          // Optional, but always sent: it is what turns the session list into
+          // something a rep can act on when they lose a handset.
+          'device': await _device.describe(
+            pushToken: pushToken,
+            rememberDevice: rememberDevice,
+          ),
+        },
+      );
+
+      final token = AuthTokenModel.fromMap(res.data ?? const {});
+      if (!token.isUsable) {
+        throw const ApiException(ApiError(
+          code: ApiErrorCodes.unknown,
+          detail: 'Login succeeded but returned no usable token pair.',
+        ));
+      }
+      return token;
+    } on DioException catch (e) {
+      throw ApiException(ApiError.fromDio(e));
+    }
+  }
+
   @override
-  Future<AuthResponseModel> login({
-    required String email,
+  Future<OtpChallenge> sendOtp({
+    required String phoneNumber,
     required String password,
   }) async {
-    // --- MOCK LOGIN FOR TESTING ---
-    if (email == 'tester@gmail.com' && password == 'tester@12345') {
-      return AuthResponseModel(
-        user: const UserModel(
-          id: 'user_001',
-          email: 'tester@gmail.com',
-          fullName: 'Test Tester',
-          roles: {},
-        ),
-        token: const AuthTokenModel(
-          accessToken: 'mock_access_token_123',
-          refreshToken: 'mock_refresh_token_456',
-        ),
-      );
-    }
-    // ------------------------------
-
     try {
-      final res = await _client.post<DataMap>(
-        AppConstants.loginEndpoint,
-        data: {'email': email, 'password': password},
+      final res = await _bare.post<DataMap>(
+        AppConstants.sendOtpEndpoint,
+        data: {
+          // As the user typed it. The server matches on digits, so
+          // `012 345 201` and `+855 12 345 201` resolve to the same account —
+          // reformatting here would only risk breaking a form the server
+          // already accepts.
+          'phoneNumber': phoneNumber,
+          'password': password,
+          // Carried through to the session opened at step 3, which is why they
+          // are sent here rather than at login.
+          'deviceId': await _device.deviceId(),
+          'deviceName': (await _device.describe())['deviceName'],
+        },
       );
-      return AuthResponseModel.fromMap(res.data ?? const {});
+
+      // Wrapped, unlike step 3.
+      return OtpChallenge.fromJson(
+        ApiEnvelope.fromBody(res.data).data,
+      );
     } on DioException catch (e) {
-      throw _map(e);
+      // problem+json here — see `phoneLogin` for the other half.
+      throw ApiException(ApiError.fromDio(e));
     }
   }
 
   @override
-  Future<UserModel> getCurrentUser() async {
+  Future<void> verifyOtp({
+    required String verificationId,
+    required String otp,
+  }) async {
     try {
-      final res = await _client.get<DataMap>(AppConstants.currentUserEndpoint);
-      final map = res.data ?? const {};
-      return UserModel.fromMap((map['user'] as DataMap?) ?? map);
+      await _bare.post<void>(
+        AppConstants.verifyOtpEndpoint,
+        data: {'verificationId': verificationId, 'otp': otp},
+      );
     } on DioException catch (e) {
-      throw _map(e);
+      throw ApiException(ApiError.fromDio(e));
     }
   }
 
   @override
-  Future<void> logout({required String accessToken}) async {
+  Future<AuthTokenModel> phoneLogin({required String verificationId}) async {
     try {
-      await _client.post<void>(
+      final res = await _bare.post<DataMap>(
+        AppConstants.mobileLoginEndpoint,
+        // The password is deliberately absent: it was spent at step 1 and this
+        // endpoint does not accept it.
+        data: {'verificationId': verificationId},
+      );
+
+      // Raw OAuth payload — **not** wrapped, unlike steps 1 and 2. One flow,
+      // two parsers.
+      final token = AuthTokenModel.fromMap(res.data ?? const {});
+      if (!token.isUsable) {
+        throw const ApiException(ApiError(
+          code: ApiErrorCodes.unknown,
+          detail: 'Phone login returned no usable token pair.',
+        ));
+      }
+      return token;
+    } on DioException catch (e) {
+      throw ApiException(ApiError.fromDio(e));
+    }
+  }
+
+  @override
+  Future<OtpChallenge> resendOtp({required String verificationId}) async {
+    try {
+      final res = await _bare.post<DataMap>(
+        AppConstants.resendOtpEndpoint,
+        // Takes only the identifier — never ask for the password again.
+        data: {'verificationId': verificationId},
+      );
+      return OtpChallenge.fromJson(
+        ApiEnvelope.fromBody(res.data).data,
+      );
+    } on DioException catch (e) {
+      throw ApiException(ApiError.fromDio(e));
+    }
+  }
+
+  @override
+  Future<AuthProfileModel> getProfile() async {
+    try {
+      final res = await _authed.get<DataMap>(AppConstants.currentUserEndpoint);
+      // Wrapped, unlike the token endpoints above.
+      return AuthProfileModel.fromJson(ApiEnvelope.fromBody(res.data).data);
+    } on DioException catch (e) {
+      throw ApiException(ApiError.fromDio(e));
+    }
+  }
+
+  /// Server-side revocation. Returns 204.
+  ///
+  /// The caller clears secure storage regardless of the outcome here — a token
+  /// discarded locally is unusable whether or not the server was told.
+  @override
+  Future<void> logout({
+    required String refreshToken,
+    bool allDevices = false,
+  }) async {
+    try {
+      await _authed.post<void>(
         AppConstants.logoutEndpoint,
+        data: {'refreshToken': refreshToken, 'allDevices': allDevices},
         options: Options(
-          headers: {'Authorization': 'Bearer $accessToken'},
-          // The session is already gone locally by the time this runs, so a
-          // 401 here is expected and uninteresting — let it come back as a
-          // plain response instead of tripping the interceptor's refresh
-          // path, which would burn another connect timeout re-authenticating
-          // a session that no longer exists.
+          // By the time this runs the session may already be gone locally, so
+          // a 401 is expected and uninteresting. Letting it come back as a
+          // plain response keeps it out of the interceptor's refresh path,
+          // which would otherwise burn a connect timeout re-authenticating a
+          // session that no longer exists.
           validateStatus: (_) => true,
         ),
       );
     } on DioException catch (e) {
-      throw _map(e);
+      throw ApiException(ApiError.fromDio(e));
     }
   }
 
-  /// Normalises Dio failures into the app's typed exceptions.
-  Exception _map(DioException e) {
-    final code = e.response?.statusCode;
-
-    if (e.type == DioExceptionType.connectionError ||
-        e.type == DioExceptionType.connectionTimeout ||
-        e.type == DioExceptionType.receiveTimeout ||
-        e.type == DioExceptionType.sendTimeout) {
-      return const NetworkException();
+  @override
+  Future<List<AuthSessionModel>> listSessions() async {
+    try {
+      final res = await _authed.get<DataMap>(AppConstants.sessionsEndpoint);
+      final body = res.data ?? const <String, dynamic>{};
+      // `data` here is an array rather than an object, so this is the one
+      // wrapped endpoint ApiEnvelope cannot read directly.
+      final rows = (body['data'] as List<dynamic>? ?? const [])
+          .whereType<Map>()
+          .map((e) => AuthSessionModel.fromJson(e.cast<String, dynamic>()))
+          .toList();
+      return rows;
+    } on DioException catch (e) {
+      throw ApiException(ApiError.fromDio(e));
     }
-    if (code == 401 || code == 403) {
-      return AuthenticationException(
-        message: _serverMessage(e) ?? 'Invalid email or password.',
-        statusCode: code,
+  }
+
+  /// Revokes one session — this is "I lost my phone".
+  @override
+  Future<void> revokeSession(String sessionId) async {
+    try {
+      await _authed
+          .delete<void>('${AppConstants.sessionsEndpoint}/$sessionId');
+    } on DioException catch (e) {
+      throw ApiException(ApiError.fromDio(e));
+    }
+  }
+
+  /// Re-verifies [currentPassword] even though the caller is already
+  /// authenticated. That is deliberate on the server's part: it is what stops
+  /// a borrowed unlocked handset from becoming a permanent account takeover.
+  @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) =>
+      _post(
+        _authed,
+        AppConstants.changePasswordEndpoint,
+        {'currentPassword': currentPassword, 'newPassword': newPassword},
       );
-    }
-    return ServerException(
-      message: _serverMessage(e) ?? 'Something went wrong. Please try again.',
-      statusCode: code,
-    );
-  }
 
-  String? _serverMessage(DioException e) {
-    final data = e.response?.data;
-    if (data is Map && data['message'] is String) {
-      return data['message'] as String;
+  /// Always succeeds, whether or not the address exists.
+  ///
+  /// Do not "improve" the UX by reporting an unknown address — that turns the
+  /// endpoint into an account-enumeration oracle. Show "if that address is
+  /// registered, a link is on its way".
+  @override
+  Future<void> forgotPassword(String email) =>
+      _post(_bare, AppConstants.forgotPasswordEndpoint, {'email': email.trim()});
+
+  @override
+  Future<void> resetPassword({
+    required String email,
+    required String token,
+    required String newPassword,
+  }) =>
+      _post(_bare, AppConstants.resetPasswordEndpoint, {
+        'email': email.trim(),
+        'token': token,
+        'newPassword': newPassword,
+      });
+
+  @override
+  Future<void> verifyEmail({required String userId, required String token}) =>
+      _post(_bare, AppConstants.verifyEmailEndpoint,
+          {'userId': userId, 'token': token});
+
+  @override
+  Future<void> resendVerification(String email) => _post(
+      _bare, AppConstants.resendVerificationEndpoint, {'email': email.trim()});
+
+  Future<void> _post(Dio client, String path, DataMap body) async {
+    try {
+      await client.post<void>(path, data: body);
+    } on DioException catch (e) {
+      throw ApiException(ApiError.fromDio(e));
     }
-    return null;
   }
 }

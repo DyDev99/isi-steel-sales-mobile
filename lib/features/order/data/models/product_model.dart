@@ -1,3 +1,4 @@
+import 'package:isi_steel_sales_mobile/core/utils/enum_parse.dart';
 import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product_pricing.dart';
@@ -84,7 +85,8 @@ class ProductModel extends Product {
         businessUnit: json['businessUnit'] as String,
         imageUrl: json['imageUrl'] as String,
         isMto: json['isMto'] as bool,
-        status: ProductStatus.values.byName(json['status'] as String),
+        status: ProductStatus.values.byNameOr(json['status'] as String?,
+            ProductStatus.values.first, context: 'product.json.status'),
         updatedAt: DateTime.parse(json['updatedAt'] as String),
         deleted: json['deleted'] as bool? ?? false,
         pricing: _pricingFromJson(json['pricing'] as DataMap),
@@ -106,7 +108,8 @@ class ProductModel extends Product {
         promotionPrice: (json['promotionPrice'] as num?)?.toDouble(),
         promotionType: json['promotionType'] == null
             ? null
-            : PromotionType.values.byName(json['promotionType'] as String),
+            : PromotionType.values.byNameOr(json['promotionType'] as String?,
+                PromotionType.values.first, context: 'product.json.promo'),
         promotionLabel: json['promotionLabel'] as String?,
       );
 
@@ -142,7 +145,8 @@ class ProductModel extends Product {
         imageUrl: row['image_url'] as String,
         isMto: (row['is_mto'] as int) == 1,
         status:
-            ProductStatus.values.byName(row['status'] as String? ?? 'active'),
+            ProductStatus.values.byNameOr(row['status'] as String?,
+                ProductStatus.values.first, context: 'product.row.status'),
         updatedAt: DateTime.parse(row['updated_at'] as String),
         deleted: (row['deleted'] as int? ?? 0) == 1,
         pricing: ProductPricing(
@@ -157,7 +161,8 @@ class ProductModel extends Product {
           promotionPrice: (row['promotion_price'] as num?)?.toDouble(),
           promotionType: row['promotion_type'] == null
               ? null
-              : PromotionType.values.byName(row['promotion_type'] as String),
+              : PromotionType.values.byNameOr(row['promotion_type'] as String?,
+                  PromotionType.values.first, context: 'product.row.promo'),
           promotionLabel: row['promotion_label'] as String?,
         ),
         stockQuantity: (row['stock_quantity'] as num?)?.toDouble() ?? 0,
