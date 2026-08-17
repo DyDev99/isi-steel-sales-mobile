@@ -34,7 +34,17 @@ NotificationItem _item(String id, NotificationKind kind) => NotificationItem(
     );
 
 void main() {
-  setUpAll(() => TestWidgetsFlutterBinding.ensureInitialized());
+  // Localization is loaded from setUp/setUpAll, never from inside a
+  // `testWidgets` body. `LocalizationService.load` awaits
+  // `rootBundle.loadString` — real I/O, with no early-return even when the
+  // requested language is already current — and a `testWidgets` body runs
+  // against a fake clock that never lets that future complete. Awaiting it
+  // there does not fail fast; it hangs until the 10-minute test timeout, which
+  // is exactly how this file was failing in CI.
+  setUpAll(() async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    await LocalizationService.instance.load('en');
+  });
 
   const phone = Size(390, 844);
   const tablet = Size(834, 1112); // iPad Air portrait — `medium`
@@ -88,25 +98,26 @@ void main() {
       tester.widget<Text>(find.text(text)).style!.fontSize!;
 
   group('guest state', () {
-    testWidgets('renders translated Khmer copy, not raw keys', (tester) async {
-      // The regression this pins: the guest branch read the `notification.*`
-      // (singular) namespace, which existed only in en.json — so in Khmer every
-      // string here rendered as its own key. `translate()` returns the key on a
-      // miss, so nothing failed loudly.
-      await LocalizationService.instance.load('km');
-      addTearDown(() => LocalizationService.instance.load('en'));
+    group('in Khmer', () {
+      setUp(() => LocalizationService.instance.load('km'));
+      tearDown(() => LocalizationService.instance.load('en'));
 
-      await openSheet(tester, size: phone, isGuest: true);
+      testWidgets('renders translated Khmer copy, not raw keys',
+          (tester) async {
+        // The regression this pins: the guest branch read the `notification.*`
+        // (singular) namespace, which existed only in en.json — so in Khmer
+        // every string here rendered as its own key. `translate()` returns the
+        // key on a miss, so nothing failed loudly.
+        await openSheet(tester, size: phone, isGuest: true);
 
-      expect(find.text('notifications.welcome_title'), findsNothing);
-      expect(find.text('notifications.welcome_body'), findsNothing);
-      expect(find.text('notifications.login'), findsNothing);
-      expect(find.text('សូមស្វាគមន៍!'), findsOneWidget);
+        expect(find.text('notifications.welcome_title'), findsNothing);
+        expect(find.text('notifications.welcome_body'), findsNothing);
+        expect(find.text('notifications.login'), findsNothing);
+        expect(find.text('សូមស្វាគមន៍!'), findsOneWidget);
+      });
     });
 
     testWidgets('type is larger on a tablet than on a phone', (tester) async {
-      await LocalizationService.instance.load('en');
-
       await openSheet(tester, size: phone, isGuest: true);
       final phoneTitle = fontSizeOf(tester, 'Welcome!');
 
@@ -123,7 +134,6 @@ void main() {
 
     testWidgets('title, filters and rows render without overflow',
         (tester) async {
-      await LocalizationService.instance.load('en');
       await openSheet(tester, size: phone, isGuest: false, items: items);
 
       expect(find.text('Notifications'), findsOneWidget);
@@ -134,7 +144,6 @@ void main() {
     });
 
     testWidgets('row type scales up on a tablet', (tester) async {
-      await LocalizationService.instance.load('en');
 
       await openSheet(tester, size: phone, isGuest: false, items: items);
       final phoneSheetTitle = fontSizeOf(tester, 'Notifications');
@@ -151,7 +160,6 @@ void main() {
     });
 
     testWidgets('an empty filter result shows translated copy', (tester) async {
-      await LocalizationService.instance.load('en');
       await openSheet(
         tester,
         size: phone,

@@ -30,3 +30,19 @@ build/
 # iOS build artifacts
 ios/Pods/
 ios/Runner.xcworkspace
+.DS_Store
+
+# Graphify knowledge graph (rebuildable artifact: `graphify update .`)
+graphify-out/
+
+# Envied output. Deliberately the ONE generated file that is not committed:
+# unlike the drift *.g.dart files, it embeds the obfuscated SAP gateway URL and
+# the database salt. Obfuscation is defense-in-depth, not a secret store
+# (docs/SECURITY.md §4), so it is regenerated at build time instead.
+lib/core/config/env.g.dart
+
+# Machine-specific Claude Code settings: the graphify PreToolUse hooks embed an
+# ABSOLUTE path to the executable, which differs per OS and per user. Committing
+# them breaks every other developer's machine, so each developer generates their
+# own with `graphify claude install`. See docs/GRAPHIFY.md.
+.claude/settings.local.json
