@@ -76,7 +76,7 @@ jobs:
           APP_NAME=ISI STEEL SALES
           APP_ENV=web
           API_BASE_URL=${{ vars.WEB_API_BASE_URL || 'https://example.invalid' }}
-          SAP_API_URL=https://example.invalid/api/v2
+          SAP_API_URL=https://steelforce-demo.taile399ce.ts.net:8443
           API_TIMEOUT=30000
           ENABLE_LOGGING=false
           ENABLE_DEBUG=false
