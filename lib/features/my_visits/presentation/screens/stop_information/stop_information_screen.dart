@@ -19,6 +19,14 @@ import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubi
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/state/location_tracking_state.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/stops_check_in_screen.dart';
 
+/// Minimum width before the detail cards split into two columns.
+///
+/// Deliberately not the `medium` breakpoint (600): an info row is
+/// icon + label + value + action button, and a 6:5 split at 600-840pt leaves
+/// ~290pt columns where every value ellipsizes. A tablet in portrait (820pt
+/// and up) is the first size with genuine room for two columns.
+const double _twoColumnMinWidth = 840;
+
 class StopInformationScreen extends StatelessWidget {
   const StopInformationScreen({
     super.key,
@@ -129,7 +137,7 @@ class StopInformationScreen extends StatelessWidget {
 
   Widget _build(BuildContext context) {
     final colors = context.appColors;
-    final isWide = !context.isCompactWindow;
+    final isTwoColumn = MediaQuery.sizeOf(context).width >= _twoColumnMinWidth;
 
     return Scaffold(
       backgroundColor: colors.canvas,
@@ -137,18 +145,26 @@ class StopInformationScreen extends StatelessWidget {
         backgroundColor: colors.canvas,
         elevation: 0,
         scrolledUnderElevation: 0,
-        iconTheme: IconThemeData(color: colors.textPrimary),
+        toolbarHeight: context.rh(56),
+        iconTheme: IconThemeData(
+          color: colors.textPrimary,
+          size: context.rr(24),
+        ),
         title: Text(
           'Outlet Information',
           style: TextStyle(
             color: colors.textPrimary,
-            fontSize: 17,
+            fontSize: context.rsp(17),
             fontWeight: FontWeight.w800,
           ),
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.edit_outlined, color: colors.textPrimary),
+            icon: Icon(
+              Icons.edit_outlined,
+              color: colors.textPrimary,
+              size: context.rr(22),
+            ),
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Edit Outlet Info coming soon')),
@@ -162,46 +178,33 @@ class StopInformationScreen extends StatelessWidget {
           child: ListView(
             padding: EdgeInsets.fromLTRB(
               context.pagePadding,
-              12,
+              context.rh(12),
               context.pagePadding,
-              24,
+              context.rh(24),
             ),
             children: [
-              _StaggeredEntrance(
-                delayMs: 0,
-                child: _HeroCard(stop: stop),
-              ),
-              const SizedBox(height: 16),
-              if (isWide)
+              _HeroCard(stop: stop),
+              SizedBox(height: context.rh(16)),
+              if (isTwoColumn)
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
                       flex: 6,
-                      child: _StaggeredEntrance(
-                        delayMs: 80,
-                        child: _OutletInfoCard(
-                          stop: stop,
-                          onPhoneTap: (phone) => _openPhoneOrTelegram(phone),
-                          onLocationTap: (lat, lng) =>
-                              _openGoogleMaps(lat, lng),
-                        ),
+                      child: _OutletInfoCard(
+                        stop: stop,
+                        onPhoneTap: (phone) => _openPhoneOrTelegram(phone),
+                        onLocationTap: (lat, lng) => _openGoogleMaps(lat, lng),
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    SizedBox(width: context.rw(16)),
                     Expanded(
                       flex: 5,
                       child: Column(
                         children: [
-                          _StaggeredEntrance(
-                            delayMs: 120,
-                            child: const _PromoListCard(),
-                          ),
-                          const SizedBox(height: 16),
-                          _StaggeredEntrance(
-                            delayMs: 160,
-                            child: const _SalesHistoryDetailCard(),
-                          ),
+                          const _PromoListCard(),
+                          SizedBox(height: context.rh(16)),
+                          const _SalesHistoryDetailCard(),
                         ],
                       ),
                     ),
@@ -210,25 +213,15 @@ class StopInformationScreen extends StatelessWidget {
               else
                 Column(
                   children: [
-                    _StaggeredEntrance(
-                      delayMs: 80,
-                      child: _OutletInfoCard(
-                        stop: stop,
-                        onPhoneTap: (phone) => _openPhoneOrTelegram(phone),
-                        onLocationTap: (lat, lng) =>
-                            _openGoogleMaps(lat, lng),
-                      ),
+                    _OutletInfoCard(
+                      stop: stop,
+                      onPhoneTap: (phone) => _openPhoneOrTelegram(phone),
+                      onLocationTap: (lat, lng) => _openGoogleMaps(lat, lng),
                     ),
-                    const SizedBox(height: 14),
-                    _StaggeredEntrance(
-                      delayMs: 120,
-                      child: const _PromoListCard(),
-                    ),
-                    const SizedBox(height: 14),
-                    _StaggeredEntrance(
-                      delayMs: 160,
-                      child: const _SalesHistoryDetailCard(),
-                    ),
+                    SizedBox(height: context.rh(14)),
+                    const _PromoListCard(),
+                    SizedBox(height: context.rh(14)),
+                    const _SalesHistoryDetailCard(),
                   ],
                 ),
             ],
@@ -237,26 +230,6 @@ class StopInformationScreen extends StatelessWidget {
       ),
       bottomNavigationBar: _StartVisitBar(onStart: () => _startVisit(context)),
     );
-  }
-}
-
-class _StaggeredEntrance extends StatelessWidget {
-  const _StaggeredEntrance({
-    required this.child,
-    required this.delayMs,
-  });
-
-  final Widget child;
-  final int delayMs;
-
-  @override
-  Widget build(BuildContext context) {
-    // Keep the content always visible. The previous implementation used
-    // delayed Stateful animation state, which could leave the widget with
-    // uninitialized animation fields and make the entire screen disappear.
-    // The delay is intentionally retained as an API-compatible field so
-    // existing call sites do not need to change.
-    return child;
   }
 }
 
@@ -271,30 +244,30 @@ class _HeroCard extends StatelessWidget {
     final c = stop.customer;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(context.rr(16)),
       decoration: BoxDecoration(
         color: colors.card,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(context.rr(16)),
         border: Border.all(color: colors.border),
         boxShadow: colors.cardShadow,
       ),
       child: Row(
         children: [
           Container(
-            width: 52,
-            height: 52,
+            width: context.rr(52),
+            height: context.rr(52),
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: scheme.primary.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(context.rr(12)),
             ),
             child: Icon(
               Icons.storefront_rounded,
               color: scheme.primary,
-              size: 26,
+              size: context.rr(26),
             ),
           ),
-          const SizedBox(width: 14),
+          SizedBox(width: context.rw(14)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -305,32 +278,32 @@ class _HeroCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: colors.textPrimary,
-                    fontSize: 18,
+                    fontSize: context.rsp(18),
                     fontWeight: FontWeight.w900,
                   ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: context.rh(4)),
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: context.rw(6),
+                        vertical: context.rh(2),
                       ),
                       decoration: BoxDecoration(
                         color: scheme.primary.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(6),
+                        borderRadius: BorderRadius.circular(context.rr(6)),
                       ),
                       child: Text(
                         'CUS CODE',
                         style: TextStyle(
                           color: scheme.primary,
-                          fontSize: 10,
+                          fontSize: context.rsp(10),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    SizedBox(width: context.rw(6)),
                     Expanded(
                       child: Text(
                         c.code,
@@ -338,7 +311,7 @@ class _HeroCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: colors.textSecondary,
-                          fontSize: 13,
+                          fontSize: context.rsp(13),
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -385,13 +358,13 @@ class _OutletInfoCard extends StatelessWidget {
       final phoneNum = c.phone.isEmpty ? '026 407 480' : c.phone;
 
       return Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 8,
+        padding: EdgeInsets.symmetric(
+          horizontal: context.rr(16),
+          vertical: context.rh(8),
         ),
         decoration: BoxDecoration(
           color: colors.card,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(context.rr(16)),
           border: Border.all(color: colors.border),
           boxShadow: colors.cardShadow,
         ),
@@ -495,10 +468,10 @@ class _PromoListCard extends StatelessWidget {
     final colors = context.appColors;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(context.rr(16)),
       decoration: BoxDecoration(
         color: colors.card,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(context.rr(16)),
         border: Border.all(color: colors.border),
         boxShadow: colors.cardShadow,
       ),
@@ -508,46 +481,58 @@ class _PromoListCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Icon(Icons.local_offer_outlined,
-                      size: 20, color: colors.textPrimary),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Promotions',
-                    style: TextStyle(
-                      color: colors.textPrimary,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: colors.border,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Text(
-                      '25',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
+              // Flexible so the title block yields to the chevron rather than
+              // overflowing once the type scales up on a tablet.
+              Flexible(
+                child: Row(
+                  children: [
+                    Icon(Icons.local_offer_outlined,
+                        size: context.rr(20), color: colors.textPrimary),
+                    SizedBox(width: context.rw(8)),
+                    Flexible(
+                      child: Text(
+                        'Promotions',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: colors.textPrimary,
+                          fontSize: context.rsp(15),
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                    SizedBox(width: context.rw(8)),
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: context.rw(8),
+                        vertical: context.rh(2),
+                      ),
+                      decoration: BoxDecoration(
+                        color: colors.border,
+                        borderRadius: BorderRadius.circular(context.rr(10)),
+                      ),
+                      child: Text(
+                        '25',
+                        style: TextStyle(
+                          fontSize: context.rsp(11),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              Icon(Icons.chevron_right_rounded, color: colors.textSecondary),
+              Icon(
+                Icons.chevron_right_rounded,
+                size: context.rr(24),
+                color: colors.textSecondary,
+              ),
             ],
           ),
-          const SizedBox(height: 14),
+          SizedBox(height: context.rh(14)),
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: context.rw(8),
+            runSpacing: context.rh(8),
             children: [
               _PromoBadge(
                   label: 'ON-INVOICE (20)',
@@ -584,19 +569,19 @@ class _PromoBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 150),
-      padding: const EdgeInsets.symmetric(
-        horizontal: 12,
-        vertical: 6,
+      padding: EdgeInsets.symmetric(
+        horizontal: context.rw(12),
+        vertical: context.rh(6),
       ),
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(context.rr(8)),
       ),
       child: Text(
         label,
         style: TextStyle(
           color: textColor,
-          fontSize: 11,
+          fontSize: context.rsp(11),
           fontWeight: FontWeight.w800,
         ),
       ),
@@ -612,13 +597,13 @@ class _SalesHistoryDetailCard extends StatelessWidget {
     final colors = context.appColors;
 
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 8,
+      padding: EdgeInsets.symmetric(
+        horizontal: context.rr(16),
+        vertical: context.rh(8),
       ),
       decoration: BoxDecoration(
         color: colors.card,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(context.rr(16)),
         border: Border.all(color: colors.border),
         boxShadow: colors.cardShadow,
       ),
@@ -658,7 +643,7 @@ class _SalesHistoryDetailCard extends StatelessWidget {
             last: true,
             actionWidget: Icon(
               Icons.arrow_forward_ios_rounded,
-              size: 14,
+              size: context.rr(14),
               color: colors.textSecondary,
             ),
           ),
@@ -676,12 +661,12 @@ class _SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
+      padding: EdgeInsets.symmetric(vertical: context.rh(10)),
       child: Text(
         title,
         style: TextStyle(
           color: colors.textPrimary,
-          fontSize: 14.5,
+          fontSize: context.rsp(14.5),
           fontWeight: FontWeight.w800,
           letterSpacing: -0.2,
         ),
@@ -730,19 +715,19 @@ class _InfoRowState extends State<_InfoRow> {
                 widget.onTap!();
               }
             : null,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(context.rr(10)),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
           curve: Curves.easeInOut,
           padding: EdgeInsets.symmetric(
-            vertical: 10,
-            horizontal: _isHovered ? 8 : 0,
+            vertical: context.rh(10),
+            horizontal: _isHovered ? context.rw(8) : 0,
           ),
           decoration: BoxDecoration(
             color: _isHovered && isInteractive
                 ? colors.border.withValues(alpha: 0.3)
                 : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(context.rr(10)),
             border: widget.last
                 ? null
                 : Border(
@@ -760,13 +745,13 @@ class _InfoRowState extends State<_InfoRow> {
                 duration: const Duration(milliseconds: 150),
                 child: Icon(
                   widget.icon,
-                  size: 20,
+                  size: context.rr(20),
                   color: widget.onTap != null
                       ? Theme.of(context).colorScheme.primary
                       : colors.textSecondary,
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: context.rw(12)),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -777,17 +762,17 @@ class _InfoRowState extends State<_InfoRow> {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: colors.textSecondary,
-                        fontSize: 11.5,
+                        fontSize: context.rsp(11.5),
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    SizedBox(height: context.rh(2)),
                     Text(
                       widget.value,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: colors.textPrimary,
-                        fontSize: 13.5,
+                        fontSize: context.rsp(13.5),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -830,7 +815,12 @@ class _ActionIconButtonState extends State<_ActionIconButton> {
         scale: _isHovered ? 1.15 : 1.0,
         duration: const Duration(milliseconds: 150),
         child: IconButton(
-          icon: Icon(widget.icon, color: widget.color, size: 22),
+          icon: Icon(widget.icon, color: widget.color, size: context.rr(22)),
+          constraints: BoxConstraints(
+            minWidth: context.rr(40),
+            minHeight: context.rr(40),
+          ),
+          padding: EdgeInsets.all(context.rr(8)),
           onPressed: () {
             HapticFeedback.lightImpact();
             widget.onPressed();
@@ -850,46 +840,62 @@ class _StartVisitBar extends StatelessWidget {
     final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
 
-    return ResponsiveContentFrame(
-      child: Container(
-        decoration: BoxDecoration(
-          color: colors.card,
-          border: Border(top: BorderSide(color: colors.border)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 10,
-              offset: const Offset(0, -4),
-            )
-          ],
-        ),
-        padding: EdgeInsets.fromLTRB(
-          context.pagePadding,
-          12,
-          context.pagePadding,
-          12,
-        ),
-        child: SafeArea(
-          top: false,
-          child: SizedBox(
-            width: double.infinity,
-            height: 52,
-            child: ElevatedButton.icon(
-              onPressed: onStart,
-              icon: const Icon(Icons.play_arrow_rounded, size: 22),
-              label: Text(
-                'my_visits.stop_info.start_visit'.tr,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w800,
-                ),
+    // This bar MUST shrink-wrap vertically. Scaffold measures the
+    // `bottomNavigationBar` slot against loose *full-screen* constraints, so
+    // the previous bare `ResponsiveContentFrame` here — an `Align` with no
+    // `heightFactor` — grew to the entire screen height on every non-compact
+    // window, collapsed the body to zero, and painted itself over the AppBar.
+    // `heightFactor: 1` sizes to the child instead; the background stays
+    // full-bleed while only the button is clamped and centred.
+    return Container(
+      decoration: BoxDecoration(
+        color: colors.card,
+        border: Border(top: BorderSide(color: colors.border)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, -4),
+          )
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Align(
+          alignment: Alignment.center,
+          heightFactor: 1,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: Breakpoints.contentMaxWidth,
+            ),
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                context.pagePadding,
+                context.rh(12),
+                context.pagePadding,
+                context.rh(12),
               ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: scheme.primary,
-                foregroundColor: scheme.onPrimary,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+              child: SizedBox(
+                width: double.infinity,
+                height: context.rh(52),
+                child: ElevatedButton.icon(
+                  onPressed: onStart,
+                  icon: Icon(Icons.play_arrow_rounded, size: context.rr(22)),
+                  label: Text(
+                    'my_visits.stop_info.start_visit'.tr,
+                    style: TextStyle(
+                      fontSize: context.rsp(15),
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: scheme.primary,
+                    foregroundColor: scheme.onPrimary,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(context.rr(14)),
+                    ),
+                  ),
                 ),
               ),
             ),
