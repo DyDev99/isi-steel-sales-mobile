@@ -167,6 +167,14 @@ void main() {
         items: [_item('1', NotificationKind.creditApproved)],
       );
 
+      // The chips live in a horizontal SingleChildScrollView and 'Pending' is
+      // the 5th of six, so at 390pt it starts off-screen. `tap` would find the
+      // widget but hit-test empty space, silently do nothing (only a
+      // "warnIfMissed" warning), and the filter would never apply — which is
+      // exactly how this test was failing.
+      await tester.ensureVisible(find.text('Pending'));
+      await tester.pump();
+
       await tester.tap(find.text('Pending'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
