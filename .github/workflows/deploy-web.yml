@@ -28,6 +28,10 @@ on:
 # means changing this one value and nothing else.
 env:
   BASE_HREF: /isi-steel-sales-mobile/
+  # The browser Origin this app sends on every API call once deployed. A
+  # browser sends scheme+host+port only — never the /isi-steel-sales-mobile/
+  # path — so this is the bare github.io host, not the site URL.
+  PAGES_ORIGIN: https://dydev99.github.io
 
 permissions:
   contents: read
@@ -104,6 +108,51 @@ jobs:
             */api/v1*) echo "::error::API_BASE_URL must not include /api/v1: $URL"; exit 1 ;;
           esac
           echo "API base URL shape OK."
+
+      - name: Assert the Pages origin is on the API's CORS allowlist
+        # The deployed app is a *browser* client, so it is bound by CORS in a
+        # way the Android and iOS builds never are. If the API does not return
+        # `Access-Control-Allow-Origin` for PAGES_ORIGIN, every request fails
+        # before it leaves the browser, and Dio reports it as
+        # `status=null / connectionError` — which reads like the backend is
+        # down rather than like a policy rejection. That misdiagnosis is the
+        # expensive part, so catch it here instead of in a user's devtools.
+        #
+        # The allowlist lives in the API, not in this repo: a new deploy origin
+        # (custom domain, a fork's github.io, a preview host) has to be added
+        # there first, and this step is what says so out loud.
+        #
+        # Deliberately distinguishes the two failure modes: a *reachable* API
+        # that withholds the header is a real misconfiguration and fails the
+        # build; an unreachable API is more likely a CI network blip than a
+        # code problem, so it warns rather than blocking a deploy on it.
+        run: |
+          set -u
+          URL=$(grep '^API_BASE_URL=' .env | cut -d= -f2-)
+          echo "Preflighting $URL as Origin: $PAGES_ORIGIN"
+          HDRS=""
+          for attempt in 1 2 3; do
+            HDRS=$(curl -s -D - -o /dev/null -X OPTIONS \
+              "$URL/api/v1/mobile/auth/send-otp" \
+              -H "Origin: $PAGES_ORIGIN" \
+              -H "Access-Control-Request-Method: POST" \
+              -H "Access-Control-Request-Headers: content-type" \
+              --max-time 30 2>/dev/null | tr -d '\r') && [ -n "$HDRS" ] && break
+            echo "attempt $attempt: no response, retrying..."
+            sleep 5
+          done
+
+          if [ -z "$HDRS" ]; then
+            echo "::warning::Could not reach $URL to verify CORS after 3 attempts. Not failing the deploy — this is usually a CI network issue, but if the site cannot talk to the API once live, check this first."
+            exit 0
+          fi
+
+          if echo "$HDRS" | grep -iq '^access-control-allow-origin:'; then
+            echo "CORS OK: $(echo "$HDRS" | grep -i '^access-control-allow-origin:')"
+          else
+            echo "::error::$URL is reachable but did NOT return Access-Control-Allow-Origin for $PAGES_ORIGIN. The deployed site will fail every API call. Add $PAGES_ORIGIN to the API's CORS allowlist, then re-run this workflow."
+            exit 1
+          fi
 
       - run: flutter pub get
 
