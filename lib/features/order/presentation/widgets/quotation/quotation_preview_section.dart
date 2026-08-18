@@ -5,6 +5,7 @@ import 'package:isi_steel_sales_mobile/core/localization/localization_services.d
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
+import 'package:isi_steel_sales_mobile/shared/painters/dashed_rrect.dart';
 
 class QuotationPreviewSection extends StatelessWidget {
   const QuotationPreviewSection({
@@ -440,22 +441,10 @@ class _DottedBorderPainter extends CustomPainter {
       ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke;
 
-    final path = Path()..addRRect(rrect);
-    final dashedPath = Path();
-
-    for (final metric in path.computeMetrics()) {
-      double distance = 0.0;
-      while (distance < metric.length) {
-        dashedPath.addPath(
-          metric.extractPath(distance, distance + dashLength),
-          Offset.zero,
-        );
-        distance += dashLength + gap;
-      }
-    }
-
-    // 3. Draw the dotted border cleanly on top of the background edge
-    canvas.drawPath(dashedPath, borderPaint);
+    // 3. Draw the dotted border cleanly on top of the background edge.
+    //    Uses the polyline walker rather than PathMetrics.extractPath, which
+    //    overflows the stack on web — see drawDashedRRect's doc comment.
+    drawDashedRRect(canvas, rrect, borderPaint, dash: dashLength, gap: gap);
   }
 
   @override

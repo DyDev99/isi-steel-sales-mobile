@@ -26,6 +26,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/presentation/navigatio
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/stop_information/stop_information_screen.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/transit_map.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
+import 'package:isi_steel_sales_mobile/shared/painters/dashed_rrect.dart';
 
 const bool kDebugForceInsideGeofence = true;
 
@@ -986,17 +987,9 @@ class _DashedBorderPainter extends CustomPainter {
       ..style = PaintingStyle.stroke;
     final rrect =
         RRect.fromRectAndRadius(Offset.zero & size, Radius.circular(radius));
-    final path = Path()..addRRect(rrect);
-
-    const dash = 6.0;
-    const gap = 4.0;
-    for (final metric in path.computeMetrics()) {
-      var distance = 0.0;
-      while (distance < metric.length) {
-        canvas.drawPath(metric.extractPath(distance, distance + dash), paint);
-        distance += dash + gap;
-      }
-    }
+    // PathMetrics.extractPath per dash overflows the stack on web; the
+    // polyline walker draws the same border with no lazy Path involved.
+    drawDashedRRect(canvas, rrect, paint, dash: 6.0, gap: 4.0);
   }
 
   @override
