@@ -5,7 +5,7 @@ import 'package:isi_steel_sales_mobile/core/localization/localization_services.d
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
-import 'package:isi_steel_sales_mobile/shared/painters/dashed_rrect.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/painters/dashed_rrect.dart';
 
 class QuotationPreviewSection extends StatelessWidget {
   const QuotationPreviewSection({

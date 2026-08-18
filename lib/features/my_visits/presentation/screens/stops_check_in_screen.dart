@@ -26,7 +26,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/presentation/navigatio
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/stop_information/stop_information_screen.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/transit_map.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
-import 'package:isi_steel_sales_mobile/shared/painters/dashed_rrect.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/painters/dashed_rrect.dart';
 
 const bool kDebugForceInsideGeofence = true;
 

@@ -1,23 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localized_builder.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
-import 'package:isi_steel_sales_mobile/shared/widgets/glass_card.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer_activity_type.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customer_detail_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customer_detail_state.dart';
-import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_status_badge.dart';
-
-import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/app_bottom_sheet.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/outlet_information/outlet_info_view_data.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/outlet_information/outlet_information_view.dart';
 
-/// Read-mostly profile of an approved SAP customer. SAP-controlled fields
-/// (Overview, SAP Information) render with a muted/locked visual language;
-/// only Notes/Activities are ever written from here.
+/// Read-mostly profile of an approved SAP customer.
+///
+/// Renders [OutletInformationView] — the same body as the visit flow's stop
+/// information screen — so a shop looks identical whether the rep opened it
+/// from today's route or from the customer directory. Everything SAP owns is
+/// read-only here; only Notes/Activities are ever written from this screen, and
+/// they are appended as a trailing card below the shared sections.
 class CustomerDetailScreen extends StatelessWidget {
   const CustomerDetailScreen({super.key, required this.customerId});
 
@@ -50,6 +54,56 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
   void dispose() {
     _noteController.dispose();
     super.dispose();
+  }
+
+  /// Same escalation ladder as the visit flow: Telegram app, Telegram web, then
+  /// a plain dial. Reps reach shop owners on Telegram far more often than by
+  /// call, so trying `tel:` first would bury the channel they actually use.
+  Future<void> _openPhoneOrTelegram(String rawPhoneNumber) async {
+    String cleanNumber = rawPhoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
+
+    if (cleanNumber.startsWith('0')) {
+      cleanNumber = '+855${cleanNumber.substring(1)}';
+    } else if (!cleanNumber.startsWith('+')) {
+      cleanNumber = '+$cleanNumber';
+    }
+
+    final Uri telegramTgUri = Uri.parse('tg://resolve?phone=$cleanNumber');
+    final Uri telegramWebUri = Uri.parse('https://t.me/$cleanNumber');
+    final Uri callUri = Uri.parse('tel:$cleanNumber');
+
+    try {
+      bool launched = await launchUrl(
+        telegramTgUri,
+        mode: LaunchMode.externalApplication,
+      );
+      if (!launched) {
+        launched = await launchUrl(
+          telegramWebUri,
+          mode: LaunchMode.externalApplication,
+        );
+      }
+      if (!launched) {
+        await launchUrl(callUri, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      try {
+        await launchUrl(callUri, mode: LaunchMode.externalApplication);
+      } catch (err) {
+        debugPrint('Could not launch phone app: $err');
+      }
+    }
+  }
+
+  Future<void> _openGoogleMaps(double latitude, double longitude) async {
+    final Uri googleMapsUri = Uri.parse(
+      'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude',
+    );
+    try {
+      await launchUrl(googleMapsUri, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      debugPrint('Could not launch Google Maps: $e');
+    }
   }
 
   void _addNote(BuildContext context) {
@@ -125,166 +179,185 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
   @override
   Widget build(BuildContext context) {
     return LocalizedBuilder(
-      builder: (context) => Scaffold(
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        appBar: AppBar(
-          backgroundColor: Theme.of(context).colorScheme.surface,
-          elevation: 0,
-          iconTheme: IconThemeData(color: context.appColors.textPrimary),
-          title: BlocBuilder<CustomerDetailCubit, CustomerDetailState>(
-            builder: (context, state) => Text(
-              state is CustomerDetailLoaded
-                  ? context.localized(state.customer.displayName)
-                  : 'customers.customer_fallback'.tr,
+      builder: (context) {
+        final colors = context.appColors;
+        return Scaffold(
+          backgroundColor: colors.canvas,
+          appBar: AppBar(
+            backgroundColor: colors.canvas,
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            toolbarHeight: context.rh(56),
+            iconTheme: IconThemeData(
+              color: colors.textPrimary,
+              size: context.rr(24),
+            ),
+            title: Text(
+              'Outlet Information',
               style: TextStyle(
-                  color: context.appColors.textPrimary,
-                  fontSize: context.rsp(16),
-                  fontWeight: FontWeight.w800),
+                color: colors.textPrimary,
+                fontSize: context.rsp(17),
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            actions: [
+              BlocBuilder<CustomerDetailCubit, CustomerDetailState>(
+                builder: (context, state) => IconButton(
+                  tooltip: 'common.add_note'.tr,
+                  icon: Icon(
+                    Icons.note_add_outlined,
+                    color: colors.textPrimary,
+                    size: context.rr(22),
+                  ),
+                  onPressed: state is CustomerDetailLoaded
+                      ? () => _addNote(context)
+                      : null,
+                ),
+              ),
+            ],
+          ),
+          body: SafeArea(
+            child: BlocBuilder<CustomerDetailCubit, CustomerDetailState>(
+              builder: (context, state) {
+                return switch (state) {
+                  CustomerDetailLoaded() => OutletInformationView(
+                      data: _viewData(state.customer),
+                      onPhoneTap: state.customer.phone.isEmpty
+                          ? null
+                          : _openPhoneOrTelegram,
+                      onLocationTap: _openGoogleMaps,
+                      trailing: [
+                        if (state.customer.contacts.isNotEmpty)
+                          _ContactsCard(customer: state.customer),
+                        if (state.customer.productsPurchased.isNotEmpty)
+                          _ProductMixCard(customer: state.customer),
+                        _TimelineCard(state: state),
+                      ],
+                    ),
+                  CustomerDetailError(:final message) => Center(
+                      child: Text(message,
+                          style: TextStyle(color: colors.textSecondary)),
+                    ),
+                  _ => Center(
+                      child: CircularProgressIndicator(
+                          color: Theme.of(context).colorScheme.primary)),
+                };
+              },
             ),
           ),
-        ),
-        body: BlocBuilder<CustomerDetailCubit, CustomerDetailState>(
-          builder: (context, state) {
-            return switch (state) {
-              CustomerDetailLoaded() => _Loaded(
-                  state: state,
-                  onCall: () => ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                        content: Text('customers.calling'
-                            .tr
-                            .replaceAll('{phone}', state.customer.phone)),
-                        duration: const Duration(seconds: 1)),
-                  ),
-                  onLogVisit: () {
-                    context.read<CustomerDetailCubit>().logActivity(
-                        CustomerActivityType.visit,
-                        'customers.visit_logged'.tr);
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text('customers.visit_logged'.tr),
-                        duration: const Duration(seconds: 1)));
-                  },
-                  onAddNote: () => _addNote(context),
-                ),
-              CustomerDetailError(:final message) => Center(
-                  child: Text(message,
-                      style:
-                          TextStyle(color: context.appColors.textSecondary))),
-              _ => Center(
-                  child: CircularProgressIndicator(
-                      color: Theme.of(context).colorScheme.primary)),
-            };
-          },
-        ),
-      ),
+        );
+      },
     );
   }
 }
 
-class _Loaded extends StatelessWidget {
-  const _Loaded({
-    required this.state,
-    required this.onCall,
-    required this.onLogVisit,
-    required this.onAddNote,
-  });
+/// Maps the SAP customer master onto the shared view model.
+///
+/// Unlike the visit stop — which has only a lean [CustomerStopInfo] projection
+/// and falls back to placeholders — nearly every row here is real. Fields SAP
+/// has not populated are passed as null so the shared layout drops the row
+/// rather than printing "N/A" over a value a rep might act on.
+OutletInfoViewData _viewData(Customer c) {
+  final address = [c.address, c.district, c.province]
+      .where((part) => part.trim().isNotEmpty)
+      .join(', ');
 
-  final CustomerDetailLoaded state;
-  final VoidCallback onCall;
-  final VoidCallback onLogVisit;
-  final VoidCallback onAddNote;
+  // Only meaningful once there is an order to divide by; showing $0 for a
+  // customer who has never ordered reads as a real average of zero.
+  final averageRevenue = c.totalOrders > 0
+      ? '${_currencySymbol(c.currency)}${(c.lifetimeValue / c.totalOrders).toStringAsFixed(0)}'
+      : null;
+
+  return OutletInfoViewData(
+    displayName: c.displayName,
+    code: c.customerCode,
+    // The ERP number where it exists, else the local code — a field-registered
+    // customer has no SAP identity until HQ approves it.
+    outletId: c.sapCustomerId ?? (c.customerCode.isEmpty ? null : c.customerCode),
+    outletType: _blankToNull(c.customerGroup),
+    outletTier: _blankToNull(c.priceGroup),
+    // No SAP field maps to the visit flow's "Outlet Action" call plan.
+    outletAction: null,
+    contactPerson: _blankToNull(c.ownerName),
+    assignedRep: _blankToNull(c.assignedRepName),
+    phone: _blankToNull(c.phone),
+    telegram: _blankToNull(c.whatsapp),
+    email: _blankToNull(c.email),
+    address: address.isEmpty ? null : address,
+    taxNumber: _blankToNull(c.taxNumber),
+    // hasCoordinates guards the (0,0) "no fix captured" encoding; passing the
+    // pair through would put the shop in the Gulf of Guinea and offer a map
+    // link to it.
+    latitude: c.hasCoordinates ? c.latitude : null,
+    longitude: c.hasCoordinates ? c.longitude : null,
+    paymentStatus: c.status.name.isEmpty ? null : _statusLabel(c),
+    creditLimit:
+        '${_currencySymbol(c.currency)}${c.creditLimit.toStringAsFixed(0)}',
+    // SAP payment terms are not synced to the device yet.
+    paymentTerm: null,
+    lifetimeValue:
+        '${_currencySymbol(c.currency)}${c.lifetimeValue.toStringAsFixed(0)}',
+    totalOrders: c.totalOrders > 0 ? '${c.totalOrders}' : null,
+    averageRevenuePerOrder: averageRevenue,
+    latestOrderDate:
+        c.lastOrderDate == null ? null : _formatDate(c.lastOrderDate!),
+    openOpportunities:
+        c.openOpportunityCount > 0 ? '${c.openOpportunityCount}' : null,
+    lastSynced: _formatDate(c.updatedAt),
+    // Not synced for either source yet — the same demo counts the stop screen
+    // shows, so the two detail screens stay identical. See
+    // OutletPromotionSummary.placeholder.
+    promotions: OutletPromotionSummary.placeholder,
+  );
+}
+
+String _statusLabel(Customer c) {
+  final available = c.availableCredit;
+  final symbol = _currencySymbol(c.currency);
+  return '${c.status.apiValue} · $symbol${available.toStringAsFixed(0)} available';
+}
+
+String? _blankToNull(String? value) =>
+    (value == null || value.trim().isEmpty) ? null : value;
+
+String _currencySymbol(String currency) => currency == 'USD' ? '\$' : '$currency ';
+
+String _formatDate(DateTime date) =>
+    '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+
+/// The customer's named contacts. Has no counterpart on a route stop, which
+/// carries a single contact string — so it rides along as a trailing card in
+/// the shared card shell rather than being forced into the shared row list.
+class _ContactsCard extends StatelessWidget {
+  const _ContactsCard({required this.customer});
+
+  final Customer customer;
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     final colors = context.appColors;
-    final customer = state.customer;
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
-      children: [
-        _SalesInsightsSection(
-          customer: customer,
-          onCreateOpportunityForProduct: (productName) {
-            // This allows the rep to instantly convert a cross-sell insight into a workflow deal!
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                  content: Text('customers.creating_opportunity'
-                      .trParams({'product': productName}))),
-            );
-          },
-        ),
-        SizedBox(height: context.rh(12)),
-        //  CustomerQuickActions(
-        //   onCall: onCall,
-        //   onCreateOpportunity: onCreateOpportunity,
-        // onLogVisit: onLogVisit,
-        //  onAddNote: onAddNote,
-        //  ),
-        SizedBox(height: context.rh(16)),
-        _SectionCard(
-          title: 'customers.overview'.tr,
-          locked: true,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(customer.ownerName,
-                        style: TextStyle(
-                            color: colors.textPrimary,
-                            fontSize: context.rsp(14),
-                            fontWeight: FontWeight.w700)),
-                  ),
-                  CustomerStatusBadge(status: customer.status),
-                ],
-              ),
-              SizedBox(height: context.rh(8)),
-              _InfoRow(
-                  icon: Icons.badge_outlined,
-                  label: 'customers.customer_code'.tr,
-                  value: customer.customerCode),
-              _InfoRow(
-                  icon: Icons.call_outlined,
-                  label: 'customers.phone'.tr,
-                  value: customer.phone),
-              if (customer.email != null)
-                _InfoRow(
-                    icon: Icons.email_outlined,
-                    label: 'customers.email'.tr,
-                    value: customer.email!),
-              _InfoRow(
-                  icon: Icons.place_outlined,
-                  label: 'customers.address'.tr,
-                  value:
-                      '${customer.address}, ${customer.district}, ${customer.province}'),
-              _InfoRow(
-                  icon: Icons.person_pin_circle_outlined,
-                  label: 'customers.assigned_rep'.tr,
-                  value: customer.assignedRepName),
-              if (customer.openOpportunityCount > 0)
-                _InfoRow(
-                    icon: Icons.trending_up_rounded,
-                    label: 'customers.open_opportunities'.tr,
-                    value: '${customer.openOpportunityCount}'),
-            ],
-          ),
-        ),
-        SizedBox(height: context.rh(12)),
-        if (customer.contacts.isNotEmpty)
-          _SectionCard(
-            title: 'customers.contacts'.tr,
+    final scheme = Theme.of(context).colorScheme;
+
+    return OutletCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          OutletSectionHeader(title: 'customers.contacts'.tr),
+          Padding(
+            padding: EdgeInsets.only(bottom: context.rh(10)),
             child: Column(
               children: [
                 for (final contact in customer.contacts)
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
+                    padding: EdgeInsets.only(bottom: context.rh(8)),
                     child: Row(
                       children: [
                         CircleAvatar(
-                            radius: 16,
-                            backgroundColor: colors.surfaceStrong,
-                            child: Icon(Icons.person,
-                                size: context.rr(16), color: scheme.primary)),
+                          radius: context.rr(16),
+                          backgroundColor: colors.surfaceStrong,
+                          child: Icon(Icons.person,
+                              size: context.rr(16), color: scheme.primary),
+                        ),
                         SizedBox(width: context.rw(10)),
                         Expanded(
                           child: Column(
@@ -308,85 +381,105 @@ class _Loaded extends StatelessWidget {
               ],
             ),
           ),
-        SizedBox(height: context.rh(12)),
-        _SectionCard(
-          title: 'customers.sales_history'.tr,
-          locked: true,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _InfoRow(
-                  icon: Icons.payments_outlined,
-                  label: 'customers.lifetime_value'.tr,
-                  value: '\$${customer.lifetimeValue.toStringAsFixed(0)}'),
-              _InfoRow(
-                icon: Icons.event_outlined,
-                label: 'customers.last_order'.tr,
-                value: customer.lastOrderDate == null
-                    ? 'customers.no_orders'.tr
-                    : _formatDate(customer.lastOrderDate!),
-              ),
-              if (customer.productsPurchased.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    children: [
-                      for (final p in customer.productsPurchased)
-                        _ProductChip(label: p)
-                    ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Product lines this customer already buys.
+class _ProductMixCard extends StatelessWidget {
+  const _ProductMixCard({required this.customer});
+
+  final Customer customer;
+
+  @override
+  Widget build(BuildContext context) {
+    final info = context.appColors.info;
+
+    return OutletCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          OutletSectionHeader(title: 'customers.active_product_mix'.tr),
+          Padding(
+            padding: EdgeInsets.only(bottom: context.rh(10)),
+            child: Wrap(
+              spacing: context.rw(6),
+              runSpacing: context.rh(6),
+              children: [
+                for (final product in customer.productsPurchased)
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: context.rw(10),
+                      vertical: context.rh(5),
+                    ),
+                    decoration: BoxDecoration(
+                      color: info.withValues(alpha: 0.14),
+                      borderRadius: BorderRadius.circular(context.rr(20)),
+                    ),
+                    child: Text(product,
+                        style: TextStyle(
+                            color: info,
+                            fontSize: context.rsp(11),
+                            fontWeight: FontWeight.w700)),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
-        ),
-        SizedBox(height: context.rh(12)),
-        _SectionCard(
-          title: 'customers.sap_info'.tr,
-          locked: true,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _InfoRow(
-                  icon: Icons.fingerprint_rounded,
-                  label: 'customers.sap_customer_id'.tr,
-                  // Null until SAP creates the record, which is the normal
-                  // state for a customer the rep registered and nobody has
-                  // approved yet.
-                  value: customer.sapCustomerId ?? 'common.not_specified'.tr),
-              _InfoRow(
-                  icon: Icons.account_balance_wallet_outlined,
-                  label: 'customers.credit_limit'.tr,
-                  value: '\$${customer.creditLimit.toStringAsFixed(0)}'),
-              _InfoRow(
-                  icon: Icons.update_rounded,
-                  label: 'customers.last_synced'.tr,
-                  value: _formatDate(customer.updatedAt)),
-            ],
-          ),
-        ),
-        SizedBox(height: context.rh(12)),
-        _SectionCard(
-          title: 'customers.timeline'.tr,
-          child: state.activities.isEmpty && state.notes.isEmpty
-              ? Text('customers.no_activity'.tr,
-                  style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(12.5)))
-              : Column(
-                  children: [
-                    for (final activity in state.activities)
-                      _TimelineRow(
-                          icon: _iconFor(activity.type),
-                          text: activity.summary,
-                          at: activity.createdAt),
-                  ],
-                ),
-        ),
-      ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Notes and activities, in the same card shell as the shared sections.
+class _TimelineCard extends StatelessWidget {
+  const _TimelineCard({required this.state});
+
+  final CustomerDetailLoaded state;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final isEmpty = state.activities.isEmpty && state.notes.isEmpty;
+
+    return OutletCard(
+      padding: EdgeInsets.symmetric(
+        horizontal: context.rr(16),
+        vertical: context.rh(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          OutletSectionHeader(title: 'customers.timeline'.tr),
+          if (isEmpty)
+            Padding(
+              padding: EdgeInsets.only(bottom: context.rh(10)),
+              child: Text('customers.no_activity'.tr,
+                  style: TextStyle(
+                      color: colors.textSecondary,
+                      fontSize: context.rsp(12.5))),
+            )
+          else
+            Padding(
+              padding: EdgeInsets.only(bottom: context.rh(10)),
+              child: Column(
+                children: [
+                  for (final activity in state.activities)
+                    _TimelineRow(
+                        icon: _iconFor(activity.type),
+                        text: activity.summary,
+                        at: activity.createdAt),
+                ],
+              ),
+            ),
+        ],
+      ),
     );
   }
 
-  IconData _iconFor(CustomerActivityType type) => switch (type) {
+  static IconData _iconFor(CustomerActivityType type) => switch (type) {
         CustomerActivityType.call => Icons.call_rounded,
         CustomerActivityType.whatsapp => Icons.chat_rounded,
         CustomerActivityType.visit => Icons.pin_drop_rounded,
@@ -394,320 +487,6 @@ class _Loaded extends StatelessWidget {
         CustomerActivityType.opportunityCreated => Icons.trending_up_rounded,
         CustomerActivityType.order => Icons.shopping_bag_rounded,
       };
-
-  static String _formatDate(DateTime date) =>
-      '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
-}
-
-class _SalesInsightsSection extends StatelessWidget {
-  const _SalesInsightsSection({
-    required this.customer,
-    required this.onCreateOpportunityForProduct,
-  });
-
-  final Customer customer;
-  final Function(String productName) onCreateOpportunityForProduct;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-
-    // Derived or mocked sample cross-sell data based on your focus area
-    final crossSellOpportunities = [
-      'Galvanized Pipes',
-      'Roofing Screws',
-      'Steel Wire Mesh',
-    ];
-
-    return GlassCard(
-      padding: EdgeInsets.all(context.rr(16)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(
-                'customers.sales_history_insights'.tr,
-                style: TextStyle(
-                  color: colors.textPrimary,
-                  fontSize: context.rsp(14),
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              SizedBox(width: context.rw(6)),
-              Icon(Icons.lock_outline_rounded,
-                  size: context.rr(13), color: colors.textSecondary),
-            ],
-          ),
-          SizedBox(height: context.rh(12)),
-
-          // Row 1: Key Performance Metrics
-          Row(
-            children: [
-              Expanded(
-                child: _MetricTile(
-                  icon: Icons.payments_outlined,
-                  label: 'customers.lifetime_value'.tr,
-                  value: '\$${customer.lifetimeValue.toStringAsFixed(0)}',
-                ),
-              ),
-              SizedBox(width: context.rw(12)),
-              Expanded(
-                child: _MetricTile(
-                  icon: Icons.event_outlined,
-                  label: 'customers.last_order'.tr,
-                  value: customer.lastOrderDate == null
-                      ? 'customers.no_orders'.tr
-                      : _formatDate(customer.lastOrderDate!),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: context.rh(16)),
-
-          // Row 2: Currently Purchased Lines
-          Text(
-            'customers.active_product_mix'.tr,
-            style: TextStyle(
-              color: colors.textSecondary,
-              fontSize: context.rsp(11.5),
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          SizedBox(height: context.rh(8)),
-          if (customer.productsPurchased.isNotEmpty)
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: [
-                for (final product in customer.productsPurchased)
-                  _InsightChip(label: product, isPurchased: true),
-              ],
-            )
-          else
-            Text(
-              'customers.no_active_product_lines'.tr,
-              style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(12)),
-            ),
-
-          SizedBox(height: context.rh(16)),
-
-          // Row 3: Gap Analysis / White Spaces
-          Text(
-            'customers.cross_sell_gaps'.tr,
-            style: TextStyle(
-              color: colors.textSecondary,
-              fontSize: context.rsp(11.5),
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          SizedBox(height: context.rh(8)),
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: [
-              for (final opportunity in crossSellOpportunities)
-                _InsightChip(
-                  label: opportunity,
-                  isPurchased: false,
-                  onTap: () => onCreateOpportunityForProduct(opportunity),
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  static String _formatDate(DateTime date) =>
-      '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
-}
-
-class _MetricTile extends StatelessWidget {
-  const _MetricTile({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
-
-  final IconData icon;
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-    return Container(
-      padding: EdgeInsets.all(context.rr(10)),
-      decoration: BoxDecoration(
-        color: colors.surfaceSoft,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: colors.border.withValues(alpha: 0.4)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, size: context.rr(13), color: colors.textSecondary),
-              SizedBox(width: context.rw(4)),
-              Text(
-                label,
-                style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(11)),
-              ),
-            ],
-          ),
-          SizedBox(height: context.rh(4)),
-          Text(
-            value,
-            style: TextStyle(
-              color: colors.textPrimary,
-              fontSize: context.rsp(14),
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _InsightChip extends StatelessWidget {
-  const _InsightChip({
-    required this.label,
-    required this.isPurchased,
-    this.onTap,
-  });
-
-  final String label;
-  final bool isPurchased;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-    final themeColor = isPurchased ? colors.info : colors.textSecondary;
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        decoration: BoxDecoration(
-          color: themeColor.withValues(alpha: isPurchased ? 0.14 : 0.06),
-          borderRadius: BorderRadius.circular(20),
-          border:
-              isPurchased ? null : Border.all(color: colors.border, width: 0.5),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (!isPurchased) ...[
-              Icon(Icons.add_circle_outline_rounded,
-                  size: context.rr(12), color: themeColor),
-              SizedBox(width: context.rw(4)),
-            ],
-            Text(
-              label,
-              style: TextStyle(
-                color: isPurchased ? themeColor : colors.textPrimary,
-                fontSize: context.rsp(11),
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SectionCard extends StatelessWidget {
-  const _SectionCard(
-      {required this.title, required this.child, this.locked = false});
-  final String title;
-  final Widget child;
-  final bool locked;
-
-  @override
-  Widget build(BuildContext context) {
-    return GlassCard(
-      padding: EdgeInsets.all(context.rr(16)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(title,
-                  style: TextStyle(
-                      color: context.appColors.textPrimary,
-                      fontSize: context.rsp(14),
-                      fontWeight: FontWeight.w800)),
-              if (locked) ...[
-                SizedBox(width: context.rw(6)),
-                Icon(Icons.lock_outline_rounded,
-                    size: context.rr(13), color: context.appColors.textSecondary),
-              ],
-            ],
-          ),
-          SizedBox(height: context.rh(10)),
-          child,
-        ],
-      ),
-    );
-  }
-}
-
-class _InfoRow extends StatelessWidget {
-  const _InfoRow(
-      {required this.icon, required this.label, required this.value});
-  final IconData icon;
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: context.rr(14), color: colors.textSecondary),
-          SizedBox(width: context.rw(8)),
-          SizedBox(
-              width: 110,
-              child: Text(label,
-                  style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(12)))),
-          Expanded(
-              child: Text(value,
-                  style: TextStyle(
-                      color: colors.textPrimary,
-                      fontSize: context.rsp(12.5),
-                      fontWeight: FontWeight.w600))),
-        ],
-      ),
-    );
-  }
-}
-
-class _ProductChip extends StatelessWidget {
-  const _ProductChip({required this.label});
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final info = context.appColors.info;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-          color: info.withValues(alpha: 0.14),
-          borderRadius: BorderRadius.circular(20)),
-      child: Text(label,
-          style: TextStyle(
-              color: info, fontSize: context.rsp(11), fontWeight: FontWeight.w700)),
-    );
-  }
 }
 
 class _TimelineRow extends StatelessWidget {
@@ -738,8 +517,9 @@ class _TimelineRow extends StatelessWidget {
                         fontSize: context.rsp(12.5),
                         fontWeight: FontWeight.w600)),
                 Text(_formatDateTime(at),
-                    style:
-                        TextStyle(color: colors.textSecondary, fontSize: context.rsp(11))),
+                    style: TextStyle(
+                        color: colors.textSecondary,
+                        fontSize: context.rsp(11))),
               ],
             ),
           ),

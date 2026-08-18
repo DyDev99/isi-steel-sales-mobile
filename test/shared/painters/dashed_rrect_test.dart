@@ -1,7 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:isi_steel_sales_mobile/shared/painters/dashed_rrect.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/painters/dashed_rrect.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _RecordingCanvas extends Mock implements Canvas {}
