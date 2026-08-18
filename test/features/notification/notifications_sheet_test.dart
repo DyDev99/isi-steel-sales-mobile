@@ -159,6 +159,40 @@ void main() {
       expect(tabletRowTitle, greaterThan(phoneRowTitle));
     });
 
+    testWidgets('groups into status columns on a tablet, flat list on a phone',
+        (tester) async {
+      // The buckets are derived statically from NotificationKind — the entity
+      // has no status field — so this also pins that mapping: creditApproved
+      // belongs under "Approved", customerAssigned under "Updates".
+      await openSheet(tester, size: phone, isGuest: false, items: items);
+      expect(find.text('Approved'), findsOneWidget); // the filter chip only
+      expect(find.text('Updates'), findsNothing);
+      expect(find.text('Action needed'), findsNothing);
+
+      await openSheet(tester, size: tablet, isGuest: false, items: items);
+      // Column headings appear; 'Approved' now matches chip + heading.
+      expect(find.text('Updates'), findsOneWidget);
+      expect(find.text('Action needed'), findsOneWidget);
+      expect(find.text('Approved'), findsNWidgets(2));
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('an empty status column still renders, with a zero count',
+        (tester) async {
+      // Every bucket is drawn even when empty so the columns do not reshuffle
+      // as notifications arrive (FS-UX-2).
+      await openSheet(
+        tester,
+        size: tablet,
+        isGuest: false,
+        items: [_item('1', NotificationKind.creditApproved)],
+      );
+
+      expect(find.text('Action needed'), findsOneWidget);
+      expect(find.text('Nothing here'), findsNWidgets(2)); // updates + action
+      expect(find.text('0'), findsNWidgets(2));
+    });
+
     testWidgets('an empty filter result shows translated copy', (tester) async {
       await openSheet(
         tester,

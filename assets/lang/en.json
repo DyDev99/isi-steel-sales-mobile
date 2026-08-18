@@ -1017,16 +1017,7 @@
     }
   },
   "notifications": {
-    "title": "Notifications",
-    "mark_all_read": "Mark all as read",
     "empty": "No new notifications",
-    "login": "Login",
-    "welcome_title": "Welcome!",
-    "welcome_body": "Please login to view notifications and get the full experience.",
-    "status": {
-      "read": "Read",
-      "unread": "Unread"
-    },
     "filter": {
       "all": "All",
       "approved": "Approved",
@@ -1035,7 +1026,22 @@
       "pending": "Pending",
       "followup": "Follow-up Due",
       "no_results": "No notifications match this filter."
-    }
+    },
+    "group": {
+      "action_needed": "Action needed",
+      "approved": "Approved",
+      "none_here": "Nothing here",
+      "updates": "Updates"
+    },
+    "login": "Login",
+    "mark_all_read": "Mark all as read",
+    "status": {
+      "read": "Read",
+      "unread": "Unread"
+    },
+    "title": "Notifications",
+    "welcome_body": "Please login to view notifications and get the full experience.",
+    "welcome_title": "Welcome!"
   },
   "add_customer": {
     "compliance": "Compliance Documents",

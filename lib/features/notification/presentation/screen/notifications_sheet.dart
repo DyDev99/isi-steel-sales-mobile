@@ -179,12 +179,25 @@ class _NotificationsSheetState extends State<_NotificationsSheet> {
                             );
                           }
 
-                          return ListView.separated(
-                            itemCount: items.length,
-                            separatorBuilder: (_, __) =>
-                                SizedBox(height: context.rh(4)),
-                            itemBuilder: (context, i) =>
-                                _NotificationTile(item: items[i], style: _style),
+                          // Phone keeps the flat chronological list; a 390pt
+                          // column split three ways is unreadable. Wider
+                          // windows group by status instead, which is what
+                          // uses the width rather than just spanning it.
+                          if (context.windowSize.isCompact) {
+                            return ListView.separated(
+                              itemCount: items.length,
+                              separatorBuilder: (_, __) =>
+                                  SizedBox(height: context.rh(4)),
+                              itemBuilder: (context, i) => _NotificationTile(
+                                  item: items[i], style: _style),
+                            );
+                          }
+
+                          return SingleChildScrollView(
+                            child: _StatusColumns(
+                              items: items,
+                              styleFor: _style,
+                            ),
                           );
                         },
                       ),
@@ -404,6 +417,171 @@ class _NotificationTile extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Status columns (tablet)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// The status buckets the tablet layout groups notifications into.
+///
+/// Derived **statically** from [NotificationKind] rather than read from the
+/// server. `NotificationItem` carries no status field, and inventing a
+/// read/unread flag as mock data would be exactly the hardcoded-demo-data
+/// failure `docs/FEATURE_UI_STANDARD.md` FS-NN-5 forbids. This mapping is real
+/// information — it is the only thing that decides what "needs action" means —
+/// and it lives in the presentation layer because it is a display concern, not
+/// a domain one (FS-NN-6).
+///
+/// If the backend later grows a genuine status field, this enum is the single
+/// place to switch over to it.
+enum _NotificationGroup { actionNeeded, approved, updates }
+
+_NotificationGroup _groupOf(NotificationKind kind) => switch (kind) {
+      NotificationKind.creditPending ||
+      NotificationKind.followUpDue =>
+        _NotificationGroup.actionNeeded,
+      NotificationKind.creditApproved => _NotificationGroup.approved,
+      NotificationKind.customerAssigned ||
+      NotificationKind.opportunityMoved =>
+        _NotificationGroup.updates,
+    };
+
+String _groupLabel(_NotificationGroup group) => switch (group) {
+      _NotificationGroup.actionNeeded => 'notifications.group.action_needed'.tr,
+      _NotificationGroup.approved => 'notifications.group.approved'.tr,
+      _NotificationGroup.updates => 'notifications.group.updates'.tr,
+    };
+
+/// Lays the notification list out as one column per status.
+///
+/// Phone keeps the flat chronological list — a 390pt column split three ways is
+/// unreadable. Above `compact` the sheet is full width (see
+/// `AppBottomSheet.maxWidth`), and columns are what actually *use* that width
+/// rather than merely spanning it (FS-RSP-7).
+///
+/// `Wrap`, not a fixed `Row`: at two columns the third bucket has to fall onto a
+/// second line, and Wrap does that without a second layout path. Column widths
+/// come from the real constraints, so this stays correct inside a sheet that is
+/// itself inset by the keyboard.
+class _StatusColumns extends StatelessWidget {
+  const _StatusColumns({required this.items, required this.styleFor});
+
+  final List<NotificationItem> items;
+  final ({IconData icon, Color color}) Function(BuildContext, NotificationKind)
+      styleFor;
+
+  @override
+  Widget build(BuildContext context) {
+    final columns = context.responsive(compact: 1, medium: 2, expanded: 3);
+    final gap = context.rw(16);
+
+    // Every bucket is rendered even when empty, so the columns do not reshuffle
+    // as notifications arrive or a filter is applied (FS-UX-2).
+    final grouped = <_NotificationGroup, List<NotificationItem>>{
+      for (final group in _NotificationGroup.values)
+        group: items.where((i) => _groupOf(i.kind) == group).toList(),
+    };
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final itemWidth =
+            (constraints.maxWidth - gap * (columns - 1)) / columns;
+
+        return Wrap(
+          spacing: gap,
+          runSpacing: context.rh(16),
+          children: [
+            for (final entry in grouped.entries)
+              SizedBox(
+                width: itemWidth,
+                child: _StatusColumn(
+                  label: _groupLabel(entry.key),
+                  items: entry.value,
+                  styleFor: styleFor,
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _StatusColumn extends StatelessWidget {
+  const _StatusColumn({
+    required this.label,
+    required this.items,
+    required this.styleFor,
+  });
+
+  final String label;
+  final List<NotificationItem> items;
+  final ({IconData icon, Color color}) Function(BuildContext, NotificationKind)
+      styleFor;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: colors.textSecondary,
+                  fontSize: context.rsp(13),
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.6,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            // A count, not a colour alone — colour is never the sole carrier of
+            // meaning (FS-A11Y-3).
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: context.rw(8),
+                vertical: context.rh(2),
+              ),
+              decoration: BoxDecoration(
+                color: colors.surfaceSoft,
+                borderRadius: BorderRadius.circular(100),
+                border: Border.all(color: colors.border),
+              ),
+              child: Text(
+                '${items.length}',
+                style: TextStyle(
+                  color: colors.textSecondary,
+                  fontSize: context.rsp(11),
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: context.rh(8)),
+        if (items.isEmpty)
+          Text(
+            'notifications.group.none_here'.tr,
+            style: TextStyle(
+              color: colors.textHint,
+              fontSize: context.rsp(12.5),
+            ),
+          )
+        else
+          for (final item in items) ...[
+            _NotificationTile(item: item, style: styleFor),
+            SizedBox(height: context.rh(4)),
+          ],
+      ],
     );
   }
 }
