@@ -1,6 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:isi_steel_sales_mobile/core/animations/app_animations.dart';
+import 'package:isi_steel_sales_mobile/core/device/device_insets.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
@@ -67,6 +69,13 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    // Read through the shared extension rather than MediaQuery directly. It
+    // uses `viewInsetsOf`, so this screen rebuilds as the keyboard animates
+    // but not when unrelated metrics change — core/device/device_insets.dart.
+    final insets = context.deviceInsets;
+    final keyboard = insets.keyboard;
+    final keyboardOpen = insets.isKeyboardOpen;
+
     // Dynamically scale maximum card width for larger screens without splitting into rows
     final maxCardWidth = context.responsive(
       compact: 420.0,
@@ -98,156 +107,211 @@ class _LoginScreenState extends State<LoginScreen> {
             .pushNamedAndRemoveUntil(Static.main, (route) => false);
       },
       child: Scaffold(
+        // Deliberately false, and the content layer below compensates. Letting
+        // the Scaffold resize would shrink the whole body — including the
+        // full-bleed building photo and its gradient — so the backdrop would
+        // visibly squash every time the keyboard opened.
         resizeToAvoidBottomInset: false,
         backgroundColor: Theme.of(context).colorScheme.surface,
-        body: Stack(
-          children: [
-            // -------------------------------------------------------------
-            // 1. TRADITIONAL: Building Background Image
-            // -------------------------------------------------------------
-            Positioned.fill(
-              child: Image.asset(
-                'assets/images/isi_building.png',
-                fit: BoxFit.cover,
-                alignment: Alignment.center,
+        body: GestureDetector(
+          // Tap any gap to put the keyboard away. `translucent` so the fields,
+          // the reveal toggle, the forgot-password link and the submit button
+          // all still win their own taps; this only catches what they don't.
+          behavior: HitTestBehavior.translucent,
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: Stack(
+            children: [
+              // -------------------------------------------------------------
+              // 1. TRADITIONAL: Building Background Image
+              // -------------------------------------------------------------
+              Positioned.fill(
+                child: Image.asset(
+                  'assets/images/isi_building.png',
+                  fit: BoxFit.cover,
+                  alignment: Alignment.center,
+                ),
               ),
-            ),
 
-            // -------------------------------------------------------------
-            // 2. ADAPTIVE OVERLAY: Dark/Light Contrast Optimization
-            // -------------------------------------------------------------
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: isDark
-                        ? [
-                            Colors.black.withValues(alpha: 0.55),
-                            Colors.black.withValues(alpha: 0.85),
-                          ]
-                        : [
-                            Colors.white.withValues(alpha: 0.30),
-                            Colors.black.withValues(alpha: 0.70),
-                          ],
+              // -------------------------------------------------------------
+              // 2. ADAPTIVE OVERLAY: Dark/Light Contrast Optimization
+              // -------------------------------------------------------------
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: isDark
+                          ? [
+                              Colors.black.withValues(alpha: 0.55),
+                              Colors.black.withValues(alpha: 0.85),
+                            ]
+                          : [
+                              Colors.white.withValues(alpha: 0.30),
+                              Colors.black.withValues(alpha: 0.70),
+                            ],
+                    ),
                   ),
                 ),
               ),
-            ),
 
-            // -------------------------------------------------------------
-            // 3. GEN-Z UI LAYER: Centered Column Layout (Phone & Tablet)
-            // -------------------------------------------------------------
-            SafeArea(
-              child: Column(
-                children: [
-                  Expanded(
-                    child: Center(
-                      child: SingleChildScrollView(
-                        padding: EdgeInsets.all(context.pagePadding),
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(maxWidth: maxCardWidth),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              const _HeaderSection(),
-                              SizedBox(height: context.rh(24)),
-                              GlassCard(child: _form()),
-                            ],
+              // -------------------------------------------------------------
+              // 3. GEN-Z UI LAYER: Centered Column Layout (Phone & Tablet)
+              // -------------------------------------------------------------
+              // This padding is the whole keyboard fix. Because the Scaffold
+              // does not resize, the scrollable's viewport would otherwise still
+              // extend to the bottom of the screen — behind the keyboard. The
+              // form would sit centred underneath it, and Flutter's built-in
+              // "scroll the focused field into view" would do nothing, because
+              // as far as it could tell the field was already inside the
+              // viewport. Ending the viewport above the keyboard fixes both: the
+              // form re-centres in the space that is actually visible, and
+              // focusing a field now scrolls it into view on its own.
+              //
+              // `SafeArea` first, then this: `MediaQuery.padding` already drops
+              // to 0 while the keyboard covers the gesture bar, so the two never
+              // double-count.
+              //
+              // Plain `Padding`, not `AnimatedPadding` — the platform reports
+              // `viewInsets` frame by frame as the keyboard slides, so this
+              // tracks its edge exactly. Animating an already-animated value
+              // would trail behind it.
+              SafeArea(
+                child: Padding(
+                  padding: EdgeInsets.only(bottom: keyboard),
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: Center(
+                          child: SingleChildScrollView(
+                            padding: EdgeInsets.all(context.pagePadding),
+                            // Dragging over the form dismisses the keyboard —
+                            // the reliable one-handed escape for a rep holding
+                            // the phone in a warehouse aisle.
+                            keyboardDismissBehavior:
+                                ScrollViewKeyboardDismissBehavior.onDrag,
+                            child: ConstrainedBox(
+                              constraints:
+                                  BoxConstraints(maxWidth: maxCardWidth),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  const _HeaderSection(),
+                                  SizedBox(height: context.rh(24)),
+                                  GlassCard(child: _form()),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
                       ),
-                    ),
+                      // The footer is the first thing to give up its space when
+                      // the keyboard takes two thirds of a small screen. It
+                      // carries no action, so collapsing it costs the user
+                      // nothing and buys the form back a visible row.
+                      AnimatedSize(
+                        duration: AppDurations.fast,
+                        curve: AppCurves.standard,
+                        child: keyboardOpen
+                            ? const SizedBox(width: double.infinity)
+                            : const VersionFooter(),
+                      ),
+                    ],
                   ),
-                  const VersionFooter(),
-                ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _form() {
-    return Form(
-      key: _formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Phone only. The sales app signs in with phone + password + OTP;
-          // employee ID / e-mail is the admin-portal route on the same
-          // backend, so offering it here would give a rep three doors into a
-          // flow that supports one.
-          PhoneNumberField(
-            key: _phoneKey,
-            required: true,
-            textInputAction: TextInputAction.next,
-          ),
-          SizedBox(height: context.rh(14)),
-          VibeField(
-            controller: _password,
-            label: 'auth.password'.tr,
-            icon: Icons.lock_outline,
-            obscure: _obscure,
-            textInputAction: TextInputAction.done,
-            autofillHints: const [AutofillHints.password],
-            required: true,
-            onSubmitted: (_) => _submit(),
-            suffix: IconButton(
-              icon: Icon(
-                _obscure
-                    ? Icons.visibility_outlined
-                    : Icons.visibility_off_outlined,
-                color: context.appColors.textSecondary,
-                size: context.rr(20),
-              ),
-              onPressed: () => setState(() => _obscure = !_obscure),
+    // One autofill context for the phone + password pair, so iOS Keychain and
+    // Android Autofill can fill both from a single saved credential and offer
+    // to save the pair afterwards. The fields already carry the right
+    // `autofillHints`; without a group around them the platform treats each as
+    // an unrelated one-off.
+    return AutofillGroup(
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Phone only. The sales app signs in with phone + password + OTP;
+            // employee ID / e-mail is the admin-portal route on the same
+            // backend, so offering it here would give a rep three doors into a
+            // flow that supports one.
+            PhoneNumberField(
+              key: _phoneKey,
+              required: true,
+              textInputAction: TextInputAction.next,
             ),
-            validator: (v) => (v == null || v.length < 6)
-                ? 'auth.password_too_short'.tr
-                : null,
-          ),
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton(
-              onPressed: () =>
-                  Navigator.of(context).pushNamed(Static.forgotPassword),
-              child: Text(
-                'auth.forgot_password'.tr,
-                style: TextStyle(
-                  color: context.appColors.info,
-                  fontSize: context.rsp(14),
-                  fontWeight: FontWeight.w600,
+            SizedBox(height: context.rh(14)),
+            VibeField(
+              controller: _password,
+              label: 'auth.password'.tr,
+              icon: Icons.lock_outline,
+              obscure: _obscure,
+              textInputAction: TextInputAction.done,
+              autofillHints: const [AutofillHints.password],
+              required: true,
+              onSubmitted: (_) => _submit(),
+              suffix: IconButton(
+                icon: Icon(
+                  _obscure
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
+                  color: context.appColors.textSecondary,
+                  size: context.rr(20),
+                ),
+                onPressed: () => setState(() => _obscure = !_obscure),
+              ),
+              validator: (v) => (v == null || v.length < 6)
+                  ? 'auth.password_too_short'.tr
+                  : null,
+            ),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () =>
+                    Navigator.of(context).pushNamed(Static.forgotPassword),
+                child: Text(
+                  'auth.forgot_password'.tr,
+                  style: TextStyle(
+                    color: context.appColors.info,
+                    fontSize: context.rsp(14),
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),
-          ),
-          SizedBox(height: context.rh(6)),
-          BlocBuilder<AuthBloc, AuthState>(
-            builder: (context, state) {
-              final status = _statusFor(state);
-              return Column(
-                children: [
-                  StatusPill(
-                    status: status,
-                    message: state is AuthFailureState ? state.message : null,
-                  ),
-                  GradientButton(
-                    // `auth.login_btn` ("Sign In"), not `auth.lets_go`.
-                    // "Let's Go" belongs to the reset-password success screen;
-                    // on a sign-in form it reads like an onboarding CTA and
-                    // does not say what the button does.
-                    label: 'auth.login_btn'.tr,
-                    loading: status == AuthVibeStatus.verifying,
-                    onPressed: _submit,
-                  ),
-                ],
-              );
-            },
-          ),
-        ],
+            SizedBox(height: context.rh(6)),
+            BlocBuilder<AuthBloc, AuthState>(
+              builder: (context, state) {
+                final status = _statusFor(state);
+                return Column(
+                  children: [
+                    StatusPill(
+                      status: status,
+                      message: state is AuthFailureState ? state.message : null,
+                    ),
+                    GradientButton(
+                      // `auth.login_btn` ("Sign In"), not `auth.lets_go`.
+                      // "Let's Go" belongs to the reset-password success screen;
+                      // on a sign-in form it reads like an onboarding CTA and
+                      // does not say what the button does.
+                      label: 'auth.login_btn'.tr,
+                      loading: status == AuthVibeStatus.verifying,
+                      onPressed: _submit,
+                    ),
+                  ],
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
