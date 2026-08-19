@@ -74,6 +74,11 @@ flutter:
     - assets/mock/
     - assets/lotties/
     - assets/images/
+    # Flutter does not recurse into subdirectories: `assets/images/` bundles
+    # only the files directly inside it, so every nested folder needs its own
+    # line. Without this, `assets/images/icons/steelforce_splash.png` is
+    # silently absent at runtime and Image.asset falls through to errorBuilder.
+    - assets/images/icons/
     - assets/lang/
 
   # Font families are declared here and resolved in `core/theme/app_typography.dart`.
@@ -125,5 +130,5 @@ flutter:
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/logos/isi_app_logo.png"
+  image_path: "assets/logos/steelforce_app_logo.png"
   min_sdk_android: 21

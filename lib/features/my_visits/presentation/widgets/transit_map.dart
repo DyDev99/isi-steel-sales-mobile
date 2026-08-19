@@ -2,7 +2,9 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/services/navigation_launcher_service.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/location_sample.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_stop.dart';
 
@@ -47,6 +49,22 @@ class _TransitMapState extends State<TransitMap> {
     super.dispose();
   }
 
+  /// Hands the target shop to the device's map app for turn-by-turn driving
+  /// directions. Reached from the Navigate button and from the destination
+  /// marker's info window — never from a bare tap on the map itself, which
+  /// would fire an app switch every time a rep panned or zoomed.
+  Future<void> _openDirections() async {
+    final launched = await openDrivingDirections(
+      latitude: widget.target.customer.latitude,
+      longitude: widget.target.customer.longitude,
+    );
+    if (launched || !mounted) return;
+    // No map app took it. Say so rather than leave the button looking dead.
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('common.generic_error'.tr)),
+    );
+  }
+
   @override
   void didUpdateWidget(covariant TransitMap oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -87,8 +105,12 @@ class _TransitMapState extends State<TransitMap> {
         position: _targetLatLng,
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
         infoWindow: InfoWindow(
-            title: context.localized(widget.target.customer.displayName),
-            snippet: widget.target.customer.address),
+          title: context.localized(widget.target.customer.displayName),
+          snippet: widget.target.customer.address,
+          // Tapping the shop's callout is the idiom every map app uses for
+          // "take me here", so it costs no discovery on top of the button.
+          onTap: _openDirections,
+        ),
       ),
       if (current != null)
         Marker(
@@ -145,6 +167,18 @@ class _TransitMapState extends State<TransitMap> {
           myLocationEnabled: true,
           myLocationButtonEnabled: false,
           zoomControlsEnabled: false,
+        ),
+        Positioned(
+          left: 12,
+          bottom: 12,
+          child: FloatingActionButton.small(
+            heroTag: 'transit_map_navigate',
+            backgroundColor: scheme.primary,
+            // Named for screen readers; the icon alone carries no label.
+            tooltip: 'my_visits.route_info.action_navigate'.tr,
+            onPressed: _openDirections,
+            child: Icon(Icons.directions_rounded, color: scheme.onPrimary),
+          ),
         ),
         Positioned(
           right: 12,

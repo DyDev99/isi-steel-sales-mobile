@@ -37,6 +37,11 @@
 	<array>
 		<string>tg</string>
 		<string>tel</string>
+		<!-- Google Maps. iOS answers canLaunchUrl(comgooglemaps://) with false
+		     unless the scheme is declared here, so without this entry the
+		     directions launcher would silently skip Google Maps and always
+		     fall through to Apple Maps. -->
+		<string>comgooglemaps</string>
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
