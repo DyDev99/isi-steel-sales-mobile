@@ -69,7 +69,8 @@ class _SyncSheet extends StatelessWidget {
                       'failed': state.counts.failed,
                       'conflict': state.counts.conflict,
                     }),
-                    style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(12)),
+                    style: TextStyle(
+                        color: colors.textSecondary, fontSize: context.rsp(12)),
                   ),
                   SizedBox(height: context.rh(12)),
                   if (state.items.isEmpty)
@@ -79,7 +80,8 @@ class _SyncSheet extends StatelessWidget {
                       child: ListView.separated(
                         shrinkWrap: true,
                         itemCount: state.items.length,
-                        separatorBuilder: (_, __) => SizedBox(height: context.rh(10)),
+                        separatorBuilder: (_, __) =>
+                            SizedBox(height: context.rh(10)),
                         itemBuilder: (context, i) =>
                             _QueueTile(item: state.items[i]),
                       ),
@@ -176,7 +178,8 @@ class _QueueTile extends StatelessWidget {
               if (item.attemptCount > 0)
                 'sync.attempt'.trParams({'count': item.attemptCount}),
             ].join(' · '),
-            style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(11.5)),
+            style: TextStyle(
+                color: colors.textSecondary, fontSize: context.rsp(11.5)),
           ),
           if (item.sapDocumentNumber != null) ...[
             SizedBox(height: context.rh(6)),
@@ -277,7 +280,8 @@ class _InfoLine extends StatelessWidget {
         SizedBox(width: context.rw(6)),
         Expanded(
           child: Text(text,
-              style: TextStyle(color: color, fontSize: context.rsp(11.5), height: 1.3)),
+              style: TextStyle(
+                  color: color, fontSize: context.rsp(11.5), height: 1.3)),
         ),
       ],
     );
@@ -297,14 +301,16 @@ class _EmptyQueue extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.cloud_done_rounded, size: context.rr(40), color: colors.success),
+            Icon(Icons.cloud_done_rounded,
+                size: context.rr(40), color: colors.success),
             SizedBox(height: context.rh(10)),
             Text('sync.everything_synced'.tr,
                 style: TextStyle(
                     color: scheme.onSurface, fontWeight: FontWeight.w700)),
             SizedBox(height: context.rh(4)),
             Text('sync.none_waiting'.tr,
-                style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(12))),
+                style: TextStyle(
+                    color: colors.textSecondary, fontSize: context.rsp(12))),
           ],
         ),
       ),

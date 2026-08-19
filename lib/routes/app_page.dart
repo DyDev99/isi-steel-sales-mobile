@@ -20,6 +20,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubi
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/stop_dashboard/stop_dashboard_screen.dart';
 import 'package:isi_steel_sales_mobile/features/profile/presentation/bloc/profile_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/profile/presentation/screens/profile_screen.dart';
+import 'package:isi_steel_sales_mobile/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:isi_steel_sales_mobile/features/splash/presentation/language_selection_screen.dart';
 import 'package:isi_steel_sales_mobile/routes/app_routes.dart';
 
@@ -61,8 +62,6 @@ class AppPages {
           settings,
         );
 
-     
-
       case Static.order:
         return _page(const OrderScreen(), settings);
 
@@ -88,6 +87,9 @@ class AppPages {
 
       case Static.chooseLanguage:
         return _page(const LanguageSelectionScreen(), settings);
+
+      case Static.onboarding:
+        return _page(const OnboardingScreen(), settings);
 
       case Static.profile:
         return _page(
@@ -117,8 +119,8 @@ class AppPages {
               // longer accepts — double-navigated and crashed on the
               // `as VerifyOtpArgs?` cast.
               onSubmit: (identifier) async {
-                final result =
-                    await GetIt.instance<AuthRepository>().forgotPassword(identifier);
+                final result = await GetIt.instance<AuthRepository>()
+                    .forgotPassword(identifier);
                 return result.when(
                   // `forgot-password` always answers success, whether or not
                   // the address exists — reporting otherwise turns the
@@ -139,12 +141,14 @@ class AppPages {
         // "confirm the code" step for this flow the way sign-in has
         // `verify-otp`: the code and the new password are submitted together,
         // and a wrong code fails this single call.
-        final resetArgs = settings.arguments as Map<String, dynamic>? ?? const {};
+        final resetArgs =
+            settings.arguments as Map<String, dynamic>? ?? const {};
         return _page(
           Builder(
             builder: (context) => CreateNewPasswordScreen(
               onSubmit: (newPassword) async {
-                final result = await GetIt.instance<AuthRepository>().resetPassword(
+                final result =
+                    await GetIt.instance<AuthRepository>().resetPassword(
                   email: resetArgs['target'] as String? ?? '',
                   token: resetArgs['code'] as String? ?? '',
                   newPassword: newPassword,
@@ -245,10 +249,7 @@ class AppPages {
                     return switch (settled) {
                       // Five wrong codes, an expired window or a spent id all
                       // mean the attempt is dead: start again at step 1.
-                      AuthOtpFailureState(
-                        :final message,
-                        attemptDead: true
-                      ) =>
+                      AuthOtpFailureState(:final message, attemptDead: true) =>
                         () {
                           Navigator.of(context).pushNamedAndRemoveUntil(
                               Static.login, (route) => false);

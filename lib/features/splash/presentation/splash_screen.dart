@@ -1,17 +1,31 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/database/hive/app_preferences.dart';
-import 'package:isi_steel_sales_mobile/core/utils/version.dart';
+import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
+import 'package:isi_steel_sales_mobile/core/utils/colors.dart';
+import 'package:isi_steel_sales_mobile/features/splash/presentation/animation/logo_reveal.dart';
+import 'package:isi_steel_sales_mobile/features/splash/presentation/animation/splash_timeline.dart';
 import 'package:isi_steel_sales_mobile/routes/app_routes.dart';
+import 'package:isi_steel_sales_mobile/shared/animations/steel_particle_field.dart';
 
-/// Splash: ISI Steel logo fades + scales in, then forwards based on onboarding
-/// status — the single decision point for the boot flow:
+/// The SteelForce launch screen: a steel field gathering into the brand mark.
 ///
-///   • onboarding **not** complete -> language selection (the onboarding step)
-///   • onboarding complete         -> main shell (auth is resolved in the
+/// ## Boot decision (unchanged)
+///
+/// Still the single decision point for the boot flow:
+///
+///   • onboarding **not** complete -> language selection, which now leads into
+///     the onboarding story
+///   • onboarding complete         -> main shell (auth resolves in the
 ///                                     background; guests and signed-in users
 ///                                     both land on the shell)
+///
+/// ## Why this is short now
+///
+/// This screen used to carry a ten-second, seven-scene story of a rep's day.
+/// That story was worth telling, but not on every launch — so it moved to
+/// onboarding, where it is shown once, at the only moment the user has a reason
+/// to watch it, and where they can page through it at their own speed. What is
+/// left here is under three seconds and still skippable.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -21,122 +35,110 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _fade;
-  late final Animation<double> _scale;
-  Timer? _navTimer;
+  late final AnimationController _story;
+
+  /// Navigation must happen exactly once: the controller finishing, a tap, and
+  /// the reduce-motion path can all race to it.
+  bool _left = false;
 
   @override
   void initState() {
     super.initState();
-
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 900),
-    );
-
-    _fade = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
-    _scale = Tween<double>(begin: 0.82, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
-    );
-
-    // Start animation immediately on first frame.
-    WidgetsBinding.instance.addPostFrameCallback((_) => _controller.forward());
-
-    // After a short brand hold, forward based on onboarding status. First-time
-    // users go through language selection (onboarding); everyone else drops
-    // straight into the app shell as a guest or signed-in user.
-    _navTimer = Timer(const Duration(seconds: 2), () {
-      if (!mounted) return;
-      final onboarded = sl<AppPreferences>().isOnboardingComplete;
-      Navigator.of(context).pushReplacementNamed(
-        onboarded ? Static.main : Static.chooseLanguage,
-      );
+    _story = AnimationController(vsync: this, duration: SplashTimeline.total)
+      ..addStatusListener((s) {
+        if (s == AnimationStatus.completed) _leave();
+      });
+    // Started from the first frame so the first paint is frame zero of the
+    // animation rather than a frame of its finished state.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _story.forward();
     });
   }
 
   @override
   void dispose() {
-    _controller.dispose();
-    _navTimer?.cancel();
+    _story.dispose();
     super.dispose();
+  }
+
+  void _leave() {
+    if (_left || !mounted) return;
+    _left = true;
+    final onboarded = sl<AppPreferences>().isOnboardingComplete;
+    Navigator.of(context).pushReplacementNamed(
+      onboarded ? Static.main : Static.chooseLanguage,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    // Honour reduce-motion: hold the brand briefly, then go. The animation is
+    // decoration; the destination is the product.
+    final reduceMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    if (reduceMotion) {
+      _story.stop();
+      Future.delayed(const Duration(milliseconds: 600), _leave);
+    }
+
     return Scaffold(
-      // 1. Changed background to white
       backgroundColor: Colors.white,
-      body: Stack(
-        children: [
-          // 2. Remove or hide this, as it is likely a dark-mode glow background
-          // const Positioned.fill(child: AuroraBackground()),
-
-          Center(
-            child: FadeTransition(
-              opacity: _fade,
-              child: ScaleTransition(
-                scale: _scale,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Image.asset(
-                      'assets/images/icons/steelforce_splash.png',
-                      width: 360,
-                      height: 360,
-                      fit: BoxFit.contain,
-                      errorBuilder: (context, error, stack) {
-                        // This callback returning an empty Container is what
-                        // made a never-bundled asset look like "the image just
-                        // doesn't work": nothing rendered and nothing was
-                        // reported. Keep the graceful fallback — a missing
-                        // asset must never crash or stall the boot path — but
-                        // make it say so in debug, and hold the same 360x360
-                        // footprint so the column below does not jump.
-                        assert(() {
-                          debugPrint(
-                            '[splash] asset failed to load: $error — is its '
-                            'directory declared under flutter/assets in '
-                            'pubspec.yaml? Subdirectories are not recursive.',
-                          );
-                          return true;
-                        }());
-                        return const SizedBox(width: 360, height: 360);
-                      },
+      body: GestureDetector(
+        // Tap anywhere to skip. Nothing here is worth making someone wait for.
+        behavior: HitTestBehavior.opaque,
+        onTap: _leave,
+        child: AnimatedBuilder(
+          animation: _story,
+          builder: (context, _) {
+            final p = reduceMotion ? 0.80 : _story.value;
+            return Stack(
+              fit: StackFit.expand,
+              children: [
+                // Near-white, with the faintest cool wash so the screen is not
+                // a dead flat field behind the motion.
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Color.lerp(
+                            Colors.white, AppColors.primary, 0.02 + 0.02 * p)!,
+                        Colors.white,
+                        Color.lerp(Colors.white, AppColors.slate, 0.035)!,
+                      ],
+                      stops: const [0.0, 0.55, 1.0],
                     ),
-              
-
-                   
-                  ],
+                  ),
                 ),
-              ),
-            ),
-          ),
 
-          const Positioned(
-            bottom: 100,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  // Change this to a dark color if necessary
-                  color: Colors.blueAccent,
+                SteelParticleField(
+                  progress: p,
+                  steel: AppColors.slate,
+                  highlight: AppColors.primary,
+                  convergeFrom: SplashTimeline.convergeFrom,
                 ),
-              ),
-            ),
-          ),
 
-          const Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: SafeArea(child: VersionFooter()),
-          ),
-        ],
+                Center(
+                  child: LogoReveal(
+                    t: SplashTimeline.logo.transform(p),
+                    settle: SplashTimeline.handoff.transform(p),
+                    highlight: AppColors.primary,
+                  ),
+                ),
+
+                // Washes out to white so the splash dissolves into the app
+                // rather than cutting to it.
+                IgnorePointer(
+                  child: Opacity(
+                    opacity: 0.55 * SplashTimeline.handoff.transform(p),
+                    child: const ColoredBox(color: Colors.white),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
-import 'package:isi_steel_sales_mobile/core/database/hive/app_preferences.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/auth_vibe.dart';
 import 'package:isi_steel_sales_mobile/core/utils/version.dart';
@@ -9,9 +7,6 @@ import 'package:isi_steel_sales_mobile/features/localization/domain/entities/lan
 import 'package:isi_steel_sales_mobile/features/localization/presentation/bloc/language_cubit.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/aurora_background.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/glass_card.dart';
-import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_bloc.dart';
-import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_event.dart';
-import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_state.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/gradient_button.dart';
 import 'package:isi_steel_sales_mobile/routes/app_routes.dart';
 
@@ -71,21 +66,18 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
   Future<void> _continue() async {
     setState(() => _saving = true);
 
-    // This screen *is* the onboarding step — completing it flips the persisted
-    // flag so subsequent launches skip straight to the shell.
-    await sl<AppPreferences>().setOnboardingComplete(value: true);
+    // Language first, then the tour — so the onboarding copy is already in the
+    // language the user just chose.
+    //
+    // This screen no longer completes onboarding. `OnboardingScreen` owns that
+    // flag now, and sets it whether the user finishes or skips; flipping it
+    // here as well would mean a user who backed out of the language step still
+    // never saw the tour.
+    //
+    // Guest-first setup also moved there, alongside the navigation it belongs
+    // to — see `OnboardingScreen._finish`.
     if (!mounted) return;
-
-    // Guest-first: nobody is forced through login here. A user who already has
-    // a restored session lands authenticated; everyone else enters the shell as
-    // a guest and is only prompted to sign in when they reach a protected
-    // feature (see AuthGuard). Either way the destination is the main shell.
-    final authBloc = context.read<AuthBloc>();
-    if (authBloc.state is! AuthenticatedState) {
-      authBloc.add(const AuthGuestRequested());
-    }
-    Navigator.of(context)
-        .pushNamedAndRemoveUntil(Static.main, (route) => false);
+    Navigator.of(context).pushReplacementNamed(Static.onboarding);
   }
 
   @override

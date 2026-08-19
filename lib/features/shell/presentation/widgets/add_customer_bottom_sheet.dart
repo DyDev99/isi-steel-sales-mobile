@@ -80,12 +80,12 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
   // --- Form Controllers ---
   late TextEditingController _customerCodeCtrl;
   late TextEditingController _outletNameKhCtrl; // Outlet Name (KH)
-  late TextEditingController _shopNameCtrl;     // Outlet Name (EN)
-  late TextEditingController _ownerNameCtrl;    // Owner Name
+  late TextEditingController _shopNameCtrl; // Outlet Name (EN)
+  late TextEditingController _ownerNameCtrl; // Owner Name
   late TextEditingController _contactNameCtrl;
-  late TextEditingController _addressCtrl;      // Address
+  late TextEditingController _addressCtrl; // Address
   late TextEditingController _cityCtrl;
-  late PhoneController _phoneCtrl;              // Phone Number
+  late PhoneController _phoneCtrl; // Phone Number
 
   String? _selectedShopType;
   String? _selectedRole;
@@ -98,10 +98,10 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
   bool _capturingGps = false;
 
   // --- Photo Attachment Files ---
-  String _outletPhotoFront = "";  // Photo of outlet (Front)
+  String _outletPhotoFront = ""; // Photo of outlet (Front)
   String _outletPhotoInside = ""; // Photo of outlet (Inside)
-  String _idCardPhoto = "";       // Photo of ID card
-  String _patentTaxPhoto = "";    // Photo of Patent Tax (optional)
+  String _idCardPhoto = ""; // Photo of ID card
+  String _patentTaxPhoto = ""; // Photo of Patent Tax (optional)
 
   double _fontSize(double basePhoneSize) {
     return widget.isTablet ? basePhoneSize * 1.25 : context.rsp(basePhoneSize);
@@ -222,6 +222,10 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
                 SizedBox(height: _spacing(24)),
                 Expanded(
                   child: SingleChildScrollView(
+// Dragging the form dismisses the keyboard — same gesture as every
+// other form in the app now.
+                    keyboardDismissBehavior:
+                        ScrollViewKeyboardDismissBehavior.onDrag,
                     physics: const BouncingScrollPhysics(),
                     child: AnimatedSwitcher(
                       duration: const Duration(milliseconds: 300),
@@ -233,7 +237,8 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
                               child: Padding(
                                 padding: EdgeInsets.all(_spacing(40)),
                                 child: CircularProgressIndicator(
-                                  color: Theme.of(context).colorScheme.secondary,
+                                  color:
+                                      Theme.of(context).colorScheme.secondary,
                                 ),
                               ),
                             )
@@ -350,7 +355,8 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
     );
   }
 
-  int get _stepColumns => context.responsive(compact: 1, medium: 2, expanded: 3);
+  int get _stepColumns =>
+      context.responsive(compact: 1, medium: 2, expanded: 3);
 
   bool get _showsAllSteps => _stepColumns > 1;
 
@@ -366,7 +372,8 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildInputLabel('add_customer.customer_code'.tr, required: true),
-              _buildTextField(_customerCodeCtrl, 'add_customer.customer_code_hint'.tr),
+              _buildTextField(
+                  _customerCodeCtrl, 'add_customer.customer_code_hint'.tr),
               SizedBox(height: _spacing(18)),
 
               // Outlet Name (KH)
@@ -395,7 +402,8 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
 
               // Owner Name
               _buildInputLabel('Owner Name', required: true),
-              _buildTextField(_ownerNameCtrl, 'add_customer.owner_name_hint'.tr),
+              _buildTextField(
+                  _ownerNameCtrl, 'add_customer.owner_name_hint'.tr),
               SizedBox(height: _spacing(18)),
 
               // Address
@@ -416,7 +424,8 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildInputLabel('add_customer.contact_name'.tr, required: true),
-              _buildTextField(_contactNameCtrl, 'add_customer.contact_name_hint'.tr),
+              _buildTextField(
+                  _contactNameCtrl, 'add_customer.contact_name_hint'.tr),
               SizedBox(height: _spacing(18)),
 
               _buildInputLabel('add_customer.role'.tr, required: true),
@@ -467,7 +476,8 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
                   : 'front_outlet.jpg attached',
               icon: Icons.storefront_rounded,
               completed: _outletPhotoFront.isNotEmpty,
-              onTap: () => setState(() => _outletPhotoFront = "front_outlet.jpg"),
+              onTap: () =>
+                  setState(() => _outletPhotoFront = "front_outlet.jpg"),
             ),
             SizedBox(height: _spacing(12)),
 
@@ -479,7 +489,8 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
                   : 'inside_outlet.jpg attached',
               icon: Icons.store_rounded,
               completed: _outletPhotoInside.isNotEmpty,
-              onTap: () => setState(() => _outletPhotoInside = "inside_outlet.jpg"),
+              onTap: () =>
+                  setState(() => _outletPhotoInside = "inside_outlet.jpg"),
             ),
             SizedBox(height: _spacing(12)),
 
@@ -545,7 +556,8 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
 
   String _stepTitle(CustomerFormStep step) => switch (step) {
         CustomerFormStep.shopDetails => 'add_customer.steps.shop_details'.tr,
-        CustomerFormStep.contactPerson => 'add_customer.steps.contact_person'.tr,
+        CustomerFormStep.contactPerson =>
+          'add_customer.steps.contact_person'.tr,
         CustomerFormStep.locationAndPapers =>
           'add_customer.steps.location_papers'.tr,
       };
@@ -774,10 +786,8 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: TextStyle(
-            color: Theme.of(context)
-                .colorScheme
-                .onSurface
-                .withValues(alpha: 0.3),
+            color:
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
             fontSize: _fontSize(15),
           ),
           filled: true,
@@ -844,10 +854,8 @@ class _AddCustomerBottomSheetState extends State<AddCustomerBottomSheet> {
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: TextStyle(
-            color: Theme.of(context)
-                .colorScheme
-                .onSurface
-                .withValues(alpha: 0.3),
+            color:
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
             fontSize: _fontSize(15),
           ),
           filled: true,

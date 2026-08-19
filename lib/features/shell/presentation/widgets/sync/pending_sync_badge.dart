@@ -28,7 +28,8 @@ class PendingSyncBadge extends StatelessWidget {
           onTap: () => showPendingSyncSheet(context),
           borderRadius: BorderRadius.circular(context.rr(24)),
           child: Container(
-            padding: EdgeInsets.symmetric(horizontal: context.rw(10), vertical: context.rh(6)),
+            padding: EdgeInsets.symmetric(
+                horizontal: context.rw(10), vertical: context.rh(6)),
             decoration: BoxDecoration(
               color: scheme.surface,
               borderRadius: BorderRadius.circular(context.rr(24)),
@@ -62,7 +63,8 @@ class PendingSyncBadge extends StatelessWidget {
                           child: CircularProgressIndicator(
                               strokeWidth: 2, color: accent),
                         )
-                      : Icon(Icons.sync_rounded, size: context.rsp(14), color: accent),
+                      : Icon(Icons.sync_rounded,
+                          size: context.rsp(14), color: accent),
                 ),
                 SizedBox(width: context.rw(8)),
                 Text(
@@ -75,7 +77,8 @@ class PendingSyncBadge extends StatelessWidget {
                 ),
                 if (hasProblems) ...[
                   SizedBox(width: context.rw(6)),
-                  Icon(Icons.error_rounded, size: context.rsp(15), color: scheme.error),
+                  Icon(Icons.error_rounded,
+                      size: context.rsp(15), color: scheme.error),
                 ],
               ],
             ),

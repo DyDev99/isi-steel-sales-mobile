@@ -191,7 +191,8 @@ class _DraftCard extends StatelessWidget {
           SizedBox(height: context.rh(10)),
           // Traditional framed sub-container
           Container(
-            padding: EdgeInsets.symmetric(horizontal: context.rw(10), vertical: context.rh(8)),
+            padding: EdgeInsets.symmetric(
+                horizontal: context.rw(10), vertical: context.rh(8)),
             decoration: BoxDecoration(
               color: scheme.surface,
               borderRadius: BorderRadius.circular(context.rr(8)),
@@ -616,7 +617,8 @@ class _DraftsSheet extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: scheme.surface,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(context.rr(24))),
+          borderRadius:
+              BorderRadius.vertical(top: Radius.circular(context.rr(24))),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.15),
@@ -636,7 +638,8 @@ class _DraftsSheet extends StatelessWidget {
               }
 
               return Padding(
-                padding: EdgeInsets.fromLTRB(context.rw(16), context.rh(14), context.rw(16), context.rh(16)),
+                padding: EdgeInsets.fromLTRB(context.rw(16), context.rh(14),
+                    context.rw(16), context.rh(16)),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -678,7 +681,8 @@ class _DraftsSheet extends StatelessWidget {
                           shrinkWrap: true,
                           physics: const BouncingScrollPhysics(),
                           itemCount: state.drafts.length,
-                          separatorBuilder: (_, __) => SizedBox(height: context.rh(10)),
+                          separatorBuilder: (_, __) =>
+                              SizedBox(height: context.rh(10)),
                           itemBuilder: (context, i) =>
                               _DraftRow(draft: state.drafts[i]),
                         ),
@@ -704,7 +708,8 @@ class _DraftsSheetSkeleton extends StatelessWidget {
     final skeletonColor = scheme.onSurface.withValues(alpha: 0.12);
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(context.rw(16), context.rh(14), context.rw(16), context.rh(24)),
+      padding: EdgeInsets.fromLTRB(
+          context.rw(16), context.rh(14), context.rw(16), context.rh(24)),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -787,7 +792,8 @@ class _DraftRow extends StatelessWidget {
             _subtitle(draft),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: context.rsp(11.5), color: colors.textSecondary),
+            style: TextStyle(
+                fontSize: context.rsp(11.5), color: colors.textSecondary),
           ),
           SizedBox(height: context.rh(10)),
           Row(

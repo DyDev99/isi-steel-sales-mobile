@@ -101,9 +101,8 @@ class _KpiScreenState extends State<KpiScreen> {
                             item,
                             style: TextStyle(
                               fontSize: context.rsp(14),
-                              fontWeight: isChecked
-                                  ? FontWeight.w700
-                                  : FontWeight.w400,
+                              fontWeight:
+                                  isChecked ? FontWeight.w700 : FontWeight.w400,
                             ),
                           ),
                           value: isChecked,
@@ -221,8 +220,7 @@ class _KpiScreenState extends State<KpiScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
-                      child:
-                          _buildCategoryBreakdown(scheme, appColors, theme),
+                      child: _buildCategoryBreakdown(scheme, appColors, theme),
                     ),
                     SizedBox(width: context.rw(16)),
                     Expanded(
@@ -517,10 +515,9 @@ class _KpiScreenState extends State<KpiScreen> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final columns =
-            (constraints.maxWidth / (targetTileWidth + spacing))
-                .floor()
-                .clamp(2, 6);
+        final columns = (constraints.maxWidth / (targetTileWidth + spacing))
+            .floor()
+            .clamp(2, 6);
         final tileWidth =
             (constraints.maxWidth - spacing * (columns - 1)) / columns;
 
@@ -528,8 +525,7 @@ class _KpiScreenState extends State<KpiScreen> {
           spacing: spacing,
           runSpacing: context.rh(12),
           children: [
-            for (final tile in tiles)
-              SizedBox(width: tileWidth, child: tile),
+            for (final tile in tiles) SizedBox(width: tileWidth, child: tile),
           ],
         );
       },
@@ -806,7 +802,8 @@ class _IncentiveCard extends StatelessWidget {
               Text(
                 achievedText,
                 style: TextStyle(
-                  fontSize: isCallCompliance ? context.rsp(11) : context.rsp(16),
+                  fontSize:
+                      isCallCompliance ? context.rsp(11) : context.rsp(16),
                   fontWeight: FontWeight.w800,
                   color: isCallCompliance
                       ? scheme.onSurface.withValues(alpha: 0.5)
@@ -925,9 +922,8 @@ class _MetricTile extends StatelessWidget {
                           style: TextStyle(
                             fontSize: context.rsp(10),
                             fontWeight: FontWeight.w700,
-                            color: isPositive
-                                ? appColors.success
-                                : scheme.error,
+                            color:
+                                isPositive ? appColors.success : scheme.error,
                           ),
                         ),
                       ),

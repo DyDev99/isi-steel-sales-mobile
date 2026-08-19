@@ -18,6 +18,10 @@ class Static {
   static const String home = '/home';
   static const String lead = '/lead';
   static const String chooseLanguage = '/choose-language';
+  // First-run only. Language selection leads here, and finishing or
+  // skipping it flips `isOnboardingComplete`, after which splash routes
+  // straight to the shell and this is never seen again.
+  static const String onboarding = '/onboarding';
   static const String customer = '/customer';
   static const String profile = '/profile';
   static const String myVisits = '/my-visits';

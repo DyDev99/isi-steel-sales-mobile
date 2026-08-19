@@ -180,8 +180,8 @@ class _MonthlyTargetCardState extends State<MonthlyTargetCard>
                                         ],
                                       ),
                                       border: Border.all(
-                                        color: _goldPrimary
-                                            .withValues(alpha: 0.7),
+                                        color:
+                                            _goldPrimary.withValues(alpha: 0.7),
                                         width: 1.2,
                                       ),
                                     ),
@@ -210,34 +210,31 @@ class _MonthlyTargetCardState extends State<MonthlyTargetCard>
                                 ],
                               ),
                             ),
-
                             SizedBox(width: 8.w),
-
-                           Row(
+                            Row(
                               children: [
-                                   Icon(
-                                          Icons.bar_chart_rounded,
-                                          size: 14.sp,
-                                          color: scheme.primary,
-                                        ),
-                                        SizedBox(width: 4.w),
-                                        Text(
-                                          'home.view_kpi'.tr,
-                                          style: TextStyle(
-                                            color: scheme.primary,
-                                            fontSize: context.rsp(11),
-                                            fontWeight: FontWeight.w800,
-                                          ),
-                                        ),
-                                        Transform.translate(
-                                          offset: Offset(
-                                              _slideAnimation.value, 0),
-                                          child: Icon(
-                                            Icons.arrow_forward_ios_rounded,
-                                            size: 10.sp,
-                                            color: scheme.primary,
-                                          ),
-                                        ),
+                                Icon(
+                                  Icons.bar_chart_rounded,
+                                  size: 14.sp,
+                                  color: scheme.primary,
+                                ),
+                                SizedBox(width: 4.w),
+                                Text(
+                                  'home.view_kpi'.tr,
+                                  style: TextStyle(
+                                    color: scheme.primary,
+                                    fontSize: context.rsp(11),
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                                Transform.translate(
+                                  offset: Offset(_slideAnimation.value, 0),
+                                  child: Icon(
+                                    Icons.arrow_forward_ios_rounded,
+                                    size: 10.sp,
+                                    color: scheme.primary,
+                                  ),
+                                ),
                               ],
                             ),
                           ],
@@ -254,7 +251,8 @@ class _MonthlyTargetCardState extends State<MonthlyTargetCard>
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
-                                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.baseline,
                                   textBaseline: TextBaseline.alphabetic,
                                   children: [
                                     Text(
@@ -286,41 +284,41 @@ class _MonthlyTargetCardState extends State<MonthlyTargetCard>
                               AnimatedBuilder(
                                 animation: _pulseController,
                                 builder: (context, child) {
-                                  return   Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 12.w,
-                                vertical: 4.h,
-                              ),
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    appColors.success,
-                                    Color.lerp(
-                                      appColors.success,
-                                      _goldDark,
-                                      0.25,
-                                    )!,
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(20.r),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: appColors.success
-                                        .withValues(alpha: 0.35),
-                                    offset: const Offset(0, 2),
-                                    blurRadius: 4,
-                                  ),
-                                ],
-                              ),
-                              child: Text(
-                                '$_percentage%',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: context.rsp(12),
-                                  fontWeight: FontWeight.w900,
-                                ),
-                              ),
-                            );
+                                  return Container(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 12.w,
+                                      vertical: 4.h,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          appColors.success,
+                                          Color.lerp(
+                                            appColors.success,
+                                            _goldDark,
+                                            0.25,
+                                          )!,
+                                        ],
+                                      ),
+                                      borderRadius: BorderRadius.circular(20.r),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: appColors.success
+                                              .withValues(alpha: 0.35),
+                                          offset: const Offset(0, 2),
+                                          blurRadius: 4,
+                                        ),
+                                      ],
+                                    ),
+                                    child: Text(
+                                      '$_percentage%',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: context.rsp(12),
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                    ),
+                                  );
                                 },
                               ),
                           ],

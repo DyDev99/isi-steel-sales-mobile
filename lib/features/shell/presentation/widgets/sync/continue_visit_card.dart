@@ -262,9 +262,11 @@ class _VisitCard extends StatelessWidget {
                             foregroundColor: colors.info,
                             side: BorderSide(
                                 color: colors.info.withValues(alpha: 0.5)),
-                            padding: EdgeInsets.symmetric(vertical: context.rh(10)),
+                            padding:
+                                EdgeInsets.symmetric(vertical: context.rh(10)),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(context.rr(10)),
+                              borderRadius:
+                                  BorderRadius.circular(context.rr(10)),
                             ),
                           ),
                           child: Text(
@@ -282,12 +284,15 @@ class _VisitCard extends StatelessWidget {
                           onPressed: () => _continue(context),
                           style: FilledButton.styleFrom(
                             backgroundColor: colors.info,
-                            padding: EdgeInsets.symmetric(vertical: context.rh(10)),
+                            padding:
+                                EdgeInsets.symmetric(vertical: context.rh(10)),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(context.rr(10)),
+                              borderRadius:
+                                  BorderRadius.circular(context.rr(10)),
                             ),
                           ),
-                          icon: Icon(Icons.play_arrow_rounded, size: context.rsp(18)),
+                          icon: Icon(Icons.play_arrow_rounded,
+                              size: context.rsp(18)),
                           label: Text(
                             'common.continue'.tr,
                             style: TextStyle(

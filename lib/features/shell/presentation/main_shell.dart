@@ -1,5 +1,6 @@
 // cspell:ignore Sokha
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/features/about/presentation/screens/about_hub_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/auth/auth_guard.dart';
@@ -264,7 +265,8 @@ class _MainShellState extends State<MainShell> {
                   _buildWelcomeSection(context),
                   SizedBox(height: context.rh(16)),
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: context.pagePadding),
+                    padding:
+                        EdgeInsets.symmetric(horizontal: context.pagePadding),
                     child: CoachKeys.wrap(
                       CoachKeys.monthlyTarget,
                       child: MonthlyTargetCard(
@@ -286,15 +288,18 @@ class _MainShellState extends State<MainShell> {
                   ),
                   SizedBox(height: context.rh(16)),
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: context.pagePadding),
+                    padding:
+                        EdgeInsets.symmetric(horizontal: context.pagePadding),
                     child: const ConnectivityBanner(),
                   ),
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: context.pagePadding),
+                    padding:
+                        EdgeInsets.symmetric(horizontal: context.pagePadding),
                     child: const ContinueVisitCard(),
                   ),
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: context.pagePadding),
+                    padding:
+                        EdgeInsets.symmetric(horizontal: context.pagePadding),
                     child: const ContinueWorkingCard(),
                   ),
                   SizedBox(height: 8.h),
@@ -574,6 +579,9 @@ class _MainShellState extends State<MainShell> {
           left: 0,
           right: 0,
           child: MainAppBar(
+            onLogoTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const AboutHubScreen()),
+            ),
             title: _titles[_index],
             currentTabIndex: _index,
             onBackToHomeTap: () => _tabController.goTo(0),

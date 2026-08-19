@@ -77,6 +77,9 @@ class _CustomerFilterSheet extends StatelessWidget {
           const _Header(),
           Flexible(
             child: ListView(
+// Dragging the form dismisses the keyboard — same gesture as every
+// other form in the app now.
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               shrinkWrap: true,
               padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
               children: [
@@ -420,8 +423,8 @@ class _SearchFieldState extends State<_SearchField> {
         isDense: true,
         hintText: 'customers.search_filter_hint'.tr,
         hintStyle: TextStyle(fontSize: context.rsp(13), color: colors.textHint),
-        prefixIcon:
-            Icon(Icons.search_rounded, size: context.rr(18), color: colors.iconMuted),
+        prefixIcon: Icon(Icons.search_rounded,
+            size: context.rr(18), color: colors.iconMuted),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         filled: true,
@@ -449,7 +452,8 @@ class _NoMatches extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 14),
       child: Text(
         'customers.no_matches'.tr,
-        style: TextStyle(fontSize: context.rsp(12.5), color: colors.textSecondary),
+        style:
+            TextStyle(fontSize: context.rsp(12.5), color: colors.textSecondary),
       ),
     );
   }

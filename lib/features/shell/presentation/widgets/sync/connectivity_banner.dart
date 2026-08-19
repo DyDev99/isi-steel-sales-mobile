@@ -74,8 +74,8 @@ class ConnectivityBanner extends StatelessWidget {
                 ),
                 // Main Banner Content
                 Padding(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: context.rw(14), vertical: context.rh(12)),
+                  padding: EdgeInsets.symmetric(
+                      horizontal: context.rw(14), vertical: context.rh(12)),
                   child: Row(
                     children: [
                       // Dual-Bordered Circular Icon Badge

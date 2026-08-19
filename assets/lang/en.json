@@ -1342,5 +1342,180 @@
     "stage_contacted": "Contacted",
     "stage_quotation": "Quotation",
     "stage_won": "Won"
+  },
+  "onboarding": {
+    "skip": "Skip",
+    "get_started": "Get started",
+    "steps": {
+      "route": {
+        "title": "Plan your day",
+        "body": "See your route, your stops and the distance between them before you leave the depot."
+      },
+      "visit": {
+        "title": "Check in on site",
+        "body": "Your location is verified at the customer, so every visit is recorded accurately."
+      },
+      "quotation": {
+        "title": "Quote on the spot",
+        "body": "Build a quotation from the catalogue, apply a discount and send it for approval."
+      },
+      "success": {
+        "title": "Confirm the order",
+        "body": "Stock is checked and the order is confirmed. It syncs to SAP as soon as you are back online."
+      }
+    }
+  },
+  "about": {
+    "title": "About & Information",
+    "subtitle": "Sales & Business Management Platform",
+    "version_label": "App Version",
+    "last_updated": "Last updated",
+    "copyright": "© 2026 SteelForce. All rights reserved.",
+    "stay_secure_title": "Stay secure",
+    "stay_secure_body": "Never share your password, verification codes, or authentication information with anyone.",
+    "topics": {
+      "about": {
+        "title": "About SteelForce",
+        "desc": "Learn more about SteelForce, our platform, and the purpose of the application."
+      },
+      "privacy": {
+        "title": "Privacy Policy",
+        "desc": "Learn how SteelForce collects, uses, stores, and protects your information."
+      },
+      "security": {
+        "title": "Security Guidelines",
+        "desc": "Important security practices for protecting your account and company information."
+      },
+      "terms": {
+        "title": "Terms & Conditions",
+        "desc": "Review the terms and conditions for using the SteelForce application."
+      },
+      "support": {
+        "title": "Help & Support",
+        "desc": "Need assistance? Contact the SteelForce support team."
+      }
+    },
+    "detail": {
+      "about": {
+        "s1": {
+          "title": "The application",
+          "b1": "SteelForce is the field sales application for ISI Steel, part of KIC Group. It gives sales representatives their routes, customers, catalogue, quotations and orders in one place."
+        },
+        "s2": {
+          "title": "Purpose",
+          "b1": "The application is built to work offline first. Every action you take is saved on your device immediately and synchronised when a connection is available, so a weak signal never stops you working."
+        },
+        "s3": {
+          "title": "Main features",
+          "b1": "Route planning and daily visit lists",
+          "b2": "Customer and lead management",
+          "b3": "Location-verified check-in at each stop",
+          "b4": "Product catalogue and stock information",
+          "b5": "Quotations, approvals and sales orders",
+          "b6": "Offline capture with automatic synchronisation"
+        },
+        "s4": {
+          "title": "Company",
+          "b1": "ISI Steel, a member of KIC Group, Phnom Penh, Cambodia."
+        },
+        "s5": {
+          "title": "Contact",
+          "b1": "For questions about the application, contact your sales manager or the ISI Steel IT team."
+        }
+      },
+      "privacy": {
+        "s1": {
+          "title": "Information we collect",
+          "b1": "Your account details, including name, phone number and assigned territory.",
+          "b2": "Your device location, collected only while you are checking in or out of a customer visit.",
+          "b3": "Business records you create: visits, stock counts, quotations and orders.",
+          "b4": "Basic device information used to keep your session secure."
+        },
+        "s2": {
+          "title": "How we use information",
+          "b1": "To show you your route, customers and daily work.",
+          "b2": "To verify that a visit took place at the customer's location.",
+          "b3": "To process quotations and orders through the approval and ordering system.",
+          "b4": "To protect your account against unauthorised access."
+        },
+        "s3": {
+          "title": "Data storage and protection",
+          "b1": "Business data is stored in an encrypted database on your device, so it stays protected even if the device is lost.",
+          "b2": "Sign-in credentials are held in the device's secure hardware store, never in ordinary application storage.",
+          "b3": "Data sent to our servers travels over an encrypted connection."
+        },
+        "s4": {
+          "title": "Information sharing",
+          "b1": "Your information is used inside ISI Steel and KIC Group for business operations. It is not sold, and it is not shared with third parties except where required to operate the service or by law."
+        },
+        "s5": {
+          "title": "Your rights",
+          "b1": "You may ask to see the personal information held about you, ask for corrections, or ask questions about how it is used. Contact your manager or the IT team to make a request."
+        },
+        "s6": {
+          "title": "Data retention",
+          "b1": "Business records are kept for as long as company policy and Cambodian law require. Location records are kept only as evidence of completed visits."
+        }
+      },
+      "security": {
+        "s1": {
+          "title": "Protect your account",
+          "b1": "Never share your password or verification codes with anyone, including colleagues and IT staff.",
+          "b2": "Use a password you do not use for any other service.",
+          "b3": "Change your password immediately if you think someone else knows it."
+        },
+        "s2": {
+          "title": "Protect your device",
+          "b1": "Lock your device with a PIN, pattern or biometric when you are not using it.",
+          "b2": "Keep the application and your device software up to date.",
+          "b3": "Avoid signing in over public or unsecured wireless networks.",
+          "b4": "Sign out when using a shared device."
+        },
+        "s3": {
+          "title": "Report a problem",
+          "b1": "If you notice activity you do not recognise, or you lose your device, tell your manager and the IT team straight away. Acting quickly limits what an attacker can reach."
+        }
+      },
+      "terms": {
+        "s1": {
+          "title": "Acceptance",
+          "b1": "By using the SteelForce application you agree to these terms and to the policies of ISI Steel and KIC Group."
+        },
+        "s2": {
+          "title": "Permitted use",
+          "b1": "The application is provided for the business of ISI Steel and may be used only by authorised employees and representatives, for company work."
+        },
+        "s3": {
+          "title": "Your responsibilities",
+          "b1": "Keep your credentials confidential.",
+          "b2": "Enter accurate customer, visit and order information.",
+          "b3": "Use customer data only for legitimate business purposes."
+        },
+        "s4": {
+          "title": "Company data",
+          "b1": "All customer, pricing and order information in the application is confidential company property and must not be copied, shared or kept after your employment ends."
+        },
+        "s5": {
+          "title": "Availability",
+          "b1": "The application works offline, but features that need a connection — approvals, synchronisation and live stock — depend on network and server availability."
+        }
+      },
+      "support": {
+        "s1": {
+          "title": "Contact support",
+          "b1": "Reach the ISI Steel IT support team during business hours for help with sign-in, synchronisation or data questions."
+        },
+        "s2": {
+          "title": "Report a problem",
+          "b1": "Describe what you were doing, what you expected, and what happened instead. Note the date, time and customer if it relates to a visit or order."
+        },
+        "s3": {
+          "title": "Common questions",
+          "b1": "Work saved while offline syncs automatically once you have a connection — you do not need to re-enter it.",
+          "b2": "If a visit will not check in, confirm that location permission is granted and that you are at the customer's site.",
+          "b3": "If prices or stock look out of date, allow the application to synchronise while connected."
+        }
+      }
+    }
   }
 }

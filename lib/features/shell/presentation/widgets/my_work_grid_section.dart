@@ -38,8 +38,7 @@ class MyWorkGridSection extends StatelessWidget {
                   accent: const Color(0xFF10B981),
                   badgeText: 'shell.badge_today'.trParams({'count': 3}),
                   isActive: true,
-                  onTap: () =>
-                      sl<ShellTabController>().goTo(ShellTab.myVisits),
+                  onTap: () => sl<ShellTabController>().goTo(ShellTab.myVisits),
                 ),
               ),
             ),
@@ -90,6 +89,7 @@ class MyWorkGridSection extends StatelessWidget {
     );
   }
 }
+
 class _MyWorkCard extends StatefulWidget {
   const _MyWorkCard({
     required this.label,
@@ -421,9 +421,9 @@ class MyWorkGridSkeleton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.symmetric(
-          horizontal: context.pagePadding,
-          vertical: context.rh(12),
-        ),
+        horizontal: context.pagePadding,
+        vertical: context.rh(12),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,

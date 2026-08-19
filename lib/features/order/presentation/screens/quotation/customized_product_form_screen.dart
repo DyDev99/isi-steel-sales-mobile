@@ -168,6 +168,10 @@ class __CustomizedProductFormViewState
             children: [
               Expanded(
                 child: SingleChildScrollView(
+// Dragging the form dismisses the keyboard — same gesture as every
+// other form in the app now.
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
                   padding: EdgeInsets.all(context.rr(16)),
                   child: Form(
                     key: _formKey,

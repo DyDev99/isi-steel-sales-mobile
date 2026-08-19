@@ -1,5 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
+import 'package:isi_steel_sales_mobile/core/animations/press_scale.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/animations/app_animations.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
@@ -17,6 +19,7 @@ class MainAppBar extends StatelessWidget {
     required this.currentTabIndex,
     this.onBackToHomeTap,
     this.onNotificationTap,
+    this.onLogoTap,
   });
 
   final String title;
@@ -24,6 +27,10 @@ class MainAppBar extends StatelessWidget {
   final int currentTabIndex;
   final VoidCallback? onBackToHomeTap;
   final VoidCallback? onNotificationTap;
+
+  /// Opens the About & Information centre. Only the home variant shows the
+  /// logo, so this is only reachable there.
+  final VoidCallback? onLogoTap;
 
   // Traditional Gold Palette
   static const Color _goldLight = Color(0xFFF3E5AB);
@@ -85,24 +92,23 @@ class MainAppBar extends StatelessWidget {
                 child: isHome
                     ? Align(
                         alignment: Alignment.centerLeft,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12.r),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.15),
-                                offset: const Offset(0, 2),
-                                blurRadius: 4,
+                        // The mark doubles as the entry point to About &
+                        // Information. Wrapped in Semantics because an image
+                        // alone gives a screen reader nothing to announce, and
+                        // this one is now a control.
+                        child: Semantics(
+                          button: true,
+                          label: 'about.title'.tr,
+                          child: PressScale(
+                            onTap: onLogoTap,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12.r),
+                              child: Image.asset(
+                                'assets/images/steelforce_home_logo.png',
+                                height: context.rh(50),
+                                width: context.rw(150),
+                                fit: BoxFit.cover,
                               ),
-                            ],
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(12.r),
-                            child: Image.asset(
-                              'assets/logos/isi_main_shell_logo.png',
-                              height: context.rh(40),
-                              width: context.rw(140),
-                              fit: BoxFit.cover,
                             ),
                           ),
                         ),

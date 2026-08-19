@@ -56,7 +56,6 @@ class GuestMyWorkGrid extends StatelessWidget {
           // 2x2 Grid Layout
           Row(
             children: [
-
               Expanded(
                 child: _WorkCard(
                   label: 'shell.my_visits'.tr,
