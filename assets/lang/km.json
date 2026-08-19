@@ -999,6 +999,18 @@
     },
     "tracking": {
       "notification_text": "កំពុងតាមដានផ្លូវរបស់អ្នក"
+    },
+    "inventory": {
+      "title": "ភាពមើលឃើញស្តុក",
+      "required": "ចាំបាច់",
+      "instruction": "ពិនិត្យមើលទំនិញនីមួយៗ ហើយជ្រើសរើសកម្រិតស្តុក។",
+      "unit": "ឯកតា",
+      "level_high": "ស្តុកច្រើន",
+      "level_medium": "ស្តុកមធ្យម",
+      "level_low": "ស្តុកតិច",
+      "not_assessed": "មិនទាន់វាយតម្លៃ",
+      "progress": "បានវាយតម្លៃ {done} ក្នុងចំណោម {total}",
+      "submit": "ដាក់ស្នើការត្រួតពិនិត្យស្តុក"
     }
   },
   "add_customer": {

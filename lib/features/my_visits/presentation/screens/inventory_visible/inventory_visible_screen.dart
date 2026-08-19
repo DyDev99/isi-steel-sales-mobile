@@ -1,28 +1,66 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/core/animations/app_animations.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
-/// Mock Model for Stock Visual Audit Item
+/// Mock model for a depot stock visual audit item.
 class DepotStockItem {
   DepotStockItem({
     required this.id,
     required this.nameKh,
     required this.nameEn,
     required this.unit,
-    this.visualCount = 0,
-    this.status = StockStatus.inStock,
+    this.status,
   });
 
   final String id;
   final String nameKh;
   final String nameEn;
   final String unit;
-  int visualCount;
-  StockStatus status;
+
+  /// The level the rep observed, or null until they have judged this item.
+  ///
+  /// Deliberately **not** defaulted. This screen is an audit: if every row
+  /// arrives pre-answered, a rep can submit a full stock check without having
+  /// looked at anything, and the record is indistinguishable from one that was
+  /// actually walked. Null forces a deliberate choice per item, which is the
+  /// only thing that makes the resulting data worth collecting.
+  StockStatus? status;
 }
 
-enum StockStatus { inStock, lowStock, outOfStock }
+/// How much of an item the depot is holding, judged by eye.
+///
+/// A three-way judgement rather than a counted quantity: a rep standing in a
+/// warehouse can tell a full rack from a nearly-empty one in a second, but
+/// counting 150 lengths of pipe by hand is slow and the number is wrong by the
+/// time it is typed. Three levels are what a visual sweep can actually support
+/// — and they are what the reorder decision downstream needs.
+enum StockStatus { high, medium, low }
+
+extension StockStatusView on StockStatus {
+  String get labelKey => switch (this) {
+        StockStatus.high => 'my_visits.inventory.level_high',
+        StockStatus.medium => 'my_visits.inventory.level_medium',
+        StockStatus.low => 'my_visits.inventory.level_low',
+      };
+
+  IconData get icon => switch (this) {
+        // A filled bar that empties as the level drops — readable at a glance
+        // without relying on colour alone, which matters both for colour-blind
+        // reps and in direct sunlight.
+        StockStatus.high => Icons.signal_cellular_alt_rounded,
+        StockStatus.medium => Icons.signal_cellular_alt_2_bar_rounded,
+        StockStatus.low => Icons.signal_cellular_alt_1_bar_rounded,
+      };
+
+  Color color(BuildContext context) => switch (this) {
+        StockStatus.high => context.appColors.success,
+        StockStatus.medium => context.appColors.warning,
+        StockStatus.low => Theme.of(context).colorScheme.error,
+      };
+}
 
 class InventoryVisibilityScreen extends StatefulWidget {
   const InventoryVisibilityScreen({
@@ -40,19 +78,37 @@ class InventoryVisibilityScreen extends StatefulWidget {
   final VoidCallback onSubmit;
 
   @override
-  State<InventoryVisibilityScreen> createState() => _InventoryVisibilityScreenState();
+  State<InventoryVisibilityScreen> createState() =>
+      _InventoryVisibilityScreenState();
 }
 
 class _InventoryVisibilityScreenState extends State<InventoryVisibilityScreen> {
-  final String _searchQuery = '';
-  
-  // Mock Depot Inventory Data
+  // Mock depot inventory data.
   final List<DepotStockItem> _items = [
-    DepotStockItem(id: '1', nameKh: 'ដែកទីបមូល (INP)', nameEn: 'Pipe Tube 2"', unit: 'Pcs', visualCount: 150, status: StockStatus.inStock),
-    DepotStockItem(id: '2', nameKh: 'ស័ង្កសីរលក C-Channel', nameEn: 'Zincalume Sheet 0.4mm', unit: 'Sheets', visualCount: 12, status: StockStatus.lowStock),
-    DepotStockItem(id: '3', nameKh: 'ដែកអក្សរ H (H-Beam)', nameEn: 'H-Beam 100x100', unit: 'Pcs', visualCount: 0, status: StockStatus.outOfStock),
-    DepotStockItem(id: '4', nameKh: 'ដែកប្រអប់ square', nameEn: 'Hollow Pipe 50x50', unit: 'Pcs', visualCount: 85, status: StockStatus.inStock),
+    DepotStockItem(
+        id: '1',
+        nameKh: 'ដែកទីបមូល (INP)',
+        nameEn: 'Pipe Tube 2"',
+        unit: 'Pcs'),
+    DepotStockItem(
+        id: '2',
+        nameKh: 'ស័ង្កសីរលក C-Channel',
+        nameEn: 'Zincalume Sheet 0.4mm',
+        unit: 'Sheets'),
+    DepotStockItem(
+        id: '3',
+        nameKh: 'ដែកអក្សរ H (H-Beam)',
+        nameEn: 'H-Beam 100x100',
+        unit: 'Pcs'),
+    DepotStockItem(
+        id: '4',
+        nameKh: 'ដែកប្រអប់ square',
+        nameEn: 'Hollow Pipe 50x50',
+        unit: 'Pcs'),
   ];
+
+  int get _assessed => _items.where((i) => i.status != null).length;
+  bool get _complete => _assessed == _items.length;
 
   @override
   Widget build(BuildContext context) {
@@ -66,12 +122,14 @@ class _InventoryVisibilityScreenState extends State<InventoryVisibilityScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Inventory Visibility (Required)',
-              style: TextStyle(fontSize: context.rsp(16), fontWeight: FontWeight.w800),
+              '${'my_visits.inventory.title'.tr} (${'my_visits.inventory.required'.tr})',
+              style: TextStyle(
+                  fontSize: context.rsp(16), fontWeight: FontWeight.w800),
             ),
             Text(
               widget.depotName,
-              style: TextStyle(fontSize: context.rsp(11.5), color: colors.textSecondary),
+              style: TextStyle(
+                  fontSize: context.rsp(11.5), color: colors.textSecondary),
             ),
           ],
         ),
@@ -79,26 +137,30 @@ class _InventoryVisibilityScreenState extends State<InventoryVisibilityScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Instruction banner for rep
+            // Instruction banner for the rep.
             Container(
               width: double.infinity,
-              padding: EdgeInsets.symmetric(horizontal: context.rw(16), vertical: context.rh(10)),
+              padding: EdgeInsets.symmetric(
+                  horizontal: context.rw(16), vertical: context.rh(10)),
               color: scheme.primary.withValues(alpha: 0.08),
               child: Row(
                 children: [
-                  Icon(Icons.visibility_rounded, color: scheme.primary, size: context.rr(20)),
+                  Icon(Icons.visibility_rounded,
+                      color: scheme.primary, size: context.rr(20)),
                   SizedBox(width: context.rw(10)),
                   Expanded(
                     child: Text(
-                      'Visually inspect and log available stock counts in depot.',
-                      style: TextStyle(fontSize: context.rsp(12), color: colors.textPrimary, fontWeight: FontWeight.w600),
+                      'my_visits.inventory.instruction'.tr,
+                      style: TextStyle(
+                          fontSize: context.rsp(12),
+                          color: colors.textPrimary,
+                          fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],
               ),
             ),
 
-            // Product List
             Expanded(
               child: ListView.separated(
                 padding: EdgeInsets.all(context.rw(16)),
@@ -108,10 +170,8 @@ class _InventoryVisibilityScreenState extends State<InventoryVisibilityScreen> {
                   final item = _items[index];
                   return _StockItemAuditCard(
                     item: item,
-                    onCountChanged: (newCount) {
-                      setState(() => item.visualCount = newCount);
-                    },
                     onStatusChanged: (status) {
+                      HapticFeedback.selectionClick();
                       setState(() => item.status = status);
                     },
                   );
@@ -119,7 +179,7 @@ class _InventoryVisibilityScreenState extends State<InventoryVisibilityScreen> {
               ),
             ),
 
-            // Bottom Sticky Submit Button
+            // Bottom sticky submit.
             Container(
               padding: EdgeInsets.all(context.rw(16)),
               decoration: BoxDecoration(
@@ -127,22 +187,50 @@ class _InventoryVisibilityScreenState extends State<InventoryVisibilityScreen> {
                 border: Border(top: BorderSide(color: colors.border)),
                 boxShadow: colors.cardShadow,
               ),
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  HapticFeedback.mediumImpact();
-                  widget.onSubmit();
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: scheme.primary,
-                  foregroundColor: scheme.onPrimary,
-                  minimumSize: Size(double.infinity, context.rh(48)),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(context.rr(12))),
-                ),
-                icon: const Icon(Icons.check_circle_rounded),
-                label: Text(
-                  'Submit Stock Check',
-                  style: TextStyle(fontSize: context.rsp(15), fontWeight: FontWeight.bold),
-                ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Progress, so an incomplete submit button explains itself
+                  // rather than just looking broken.
+                  Text(
+                    'my_visits.inventory.progress'.trParams({
+                      'done': _assessed,
+                      'total': _items.length,
+                    }),
+                    style: TextStyle(
+                      fontSize: context.rsp(11.5),
+                      fontWeight: FontWeight.w700,
+                      color: _complete ? colors.success : colors.textSecondary,
+                    ),
+                  ),
+                  SizedBox(height: context.rh(8)),
+                  ElevatedButton.icon(
+                    // Disabled until every item has been judged — see the note
+                    // on `DepotStockItem.status`.
+                    onPressed: _complete
+                        ? () {
+                            HapticFeedback.mediumImpact();
+                            widget.onSubmit();
+                          }
+                        : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: scheme.primary,
+                      foregroundColor: scheme.onPrimary,
+                      disabledBackgroundColor: colors.border,
+                      disabledForegroundColor: colors.textDisabled,
+                      minimumSize: Size(double.infinity, context.rh(48)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(context.rr(12))),
+                    ),
+                    icon: const Icon(Icons.check_circle_rounded),
+                    label: Text(
+                      'my_visits.inventory.submit'.tr,
+                      style: TextStyle(
+                          fontSize: context.rsp(15),
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -155,122 +243,138 @@ class _InventoryVisibilityScreenState extends State<InventoryVisibilityScreen> {
 class _StockItemAuditCard extends StatelessWidget {
   const _StockItemAuditCard({
     required this.item,
-    required this.onCountChanged,
     required this.onStatusChanged,
   });
 
   final DepotStockItem item;
-  final ValueChanged<int> onCountChanged;
   final ValueChanged<StockStatus> onStatusChanged;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final chosen = item.status;
 
     return Container(
       padding: EdgeInsets.all(context.rw(14)),
       decoration: BoxDecoration(
         color: colors.card,
         borderRadius: BorderRadius.circular(context.rr(14)),
-        border: Border.all(color: colors.border),
+        // An unjudged row carries a plain border; a judged one takes the tint
+        // of its level, so the rep can see what is still outstanding by
+        // scrolling rather than by reading every card.
+        border: Border.all(
+          color: chosen == null
+              ? colors.border
+              : chosen.color(context).withValues(alpha: 0.45),
+          width: chosen == null ? 1 : 1.4,
+        ),
         boxShadow: colors.cardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header: Item Name
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${item.nameKh} (${item.nameEn})',
-                      style: TextStyle(
-                        fontSize: context.rsp(14),
-                        fontWeight: FontWeight.w800,
-                        color: colors.textPrimary,
-                      ),
-                    ),
-                    Text(
-                      'Unit: ${item.unit}',
-                      style: TextStyle(fontSize: context.rsp(11), color: colors.textSecondary),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          Text(
+            '${item.nameKh} (${item.nameEn})',
+            style: TextStyle(
+              fontSize: context.rsp(14),
+              fontWeight: FontWeight.w800,
+              color: colors.textPrimary,
+            ),
+          ),
+          Text(
+            '${'my_visits.inventory.unit'.tr}: ${item.unit}',
+            style: TextStyle(
+                fontSize: context.rsp(11), color: colors.textSecondary),
           ),
           SizedBox(height: context.rh(12)),
-
-          // Stepper & Preset Count Buttons (Designed for fast field tap)
           Row(
             children: [
-              // Count Stepper
-              Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: colors.border),
-                  borderRadius: BorderRadius.circular(context.rr(10)),
-                ),
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.remove_rounded),
-                      onPressed: item.visualCount > 0 ? () => onCountChanged(item.visualCount - 1) : null,
-                    ),
-                    Container(
-                      constraints: BoxConstraints(minWidth: context.rw(40)),
-                      alignment: Alignment.center,
-                      child: Text(
-                        '${item.visualCount}',
-                        style: TextStyle(
-                          fontSize: context.rsp(16),
-                          fontWeight: FontWeight.w800,
-                          color: colors.textPrimary,
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.add_rounded),
-                      onPressed: () => onCountChanged(item.visualCount + 1),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(width: context.rw(10)),
-
-              // Quick presets (+5, +10, +50) for fast rep entry
-              Expanded(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [5, 10, 50].map((step) {
-                      return Padding(
-                        padding: EdgeInsets.only(right: context.rw(6)),
-                        child: InkWell(
-                          onTap: () => onCountChanged(item.visualCount + step),
-                          borderRadius: BorderRadius.circular(context.rr(8)),
-                          child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: context.rw(10), vertical: context.rh(8)),
-                            decoration: BoxDecoration(
-                              color: colors.border.withValues(alpha: 0.3),
-                              borderRadius: BorderRadius.circular(context.rr(8)),
-                            ),
-                            child: Text(
-                              '+$step',
-                              style: TextStyle(fontSize: context.rsp(11.5), fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ),
-                      );
-                    }).toList(),
+              for (final level in StockStatus.values) ...[
+                Expanded(
+                  child: _LevelOption(
+                    level: level,
+                    selected: chosen == level,
+                    onTap: () => onStatusChanged(level),
                   ),
                 ),
-              ),
+                if (level != StockStatus.values.last)
+                  SizedBox(width: context.rw(8)),
+              ],
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// One of the three level choices.
+class _LevelOption extends StatelessWidget {
+  const _LevelOption({
+    required this.level,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final StockStatus level;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final tint = level.color(context);
+
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: level.labelKey.tr,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(context.rr(10)),
+        child: AnimatedContainer(
+          duration: AppDurations.fast,
+          curve: AppCurves.standard,
+          // 52dp tall: this is tapped one-handed, often with gloves on, by
+          // someone standing in a depot aisle.
+          constraints: BoxConstraints(minHeight: context.rh(52)),
+          padding: EdgeInsets.symmetric(
+              horizontal: context.rw(6), vertical: context.rh(8)),
+          decoration: BoxDecoration(
+            color: selected
+                ? tint.withValues(alpha: 0.14)
+                : colors.canvas.withValues(alpha: 0.6),
+            borderRadius: BorderRadius.circular(context.rr(10)),
+            border: Border.all(
+              color: selected ? tint : colors.border,
+              width: selected ? 1.6 : 1,
+            ),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                level.icon,
+                size: context.rr(17),
+                color: selected ? tint : colors.iconMuted,
+              ),
+              SizedBox(height: context.rh(3)),
+              Text(
+                level.labelKey.tr,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: context.rsp(10.5),
+                  height: 1.15,
+                  fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                  color: selected ? tint : colors.textSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

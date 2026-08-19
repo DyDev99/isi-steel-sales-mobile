@@ -985,6 +985,18 @@
     },
     "tracking": {
       "notification_text": "Tracking your route"
+    },
+    "inventory": {
+      "title": "Inventory Visibility",
+      "required": "Required",
+      "instruction": "Visually inspect each item and select its stock level.",
+      "unit": "Unit",
+      "level_high": "High stock",
+      "level_medium": "Medium stock",
+      "level_low": "Low stock",
+      "not_assessed": "Not assessed",
+      "progress": "{done} of {total} assessed",
+      "submit": "Submit stock check"
     }
   },
   "language": {

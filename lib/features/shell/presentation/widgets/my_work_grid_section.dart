@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/shared/animations/work_icons.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/animations/app_animations.dart';
 import 'package:isi_steel_sales_mobile/core/animations/fade_slide_transition.dart';
@@ -11,6 +12,15 @@ import 'package:isi_steel_sales_mobile/features/home/presentation/bloc/home_cubi
 
 class MyWorkGridSection extends StatelessWidget {
   const MyWorkGridSection({super.key});
+
+  /// Height of the whole block: two stacked cards plus the gap between them.
+  ///
+  /// Derived rather than hardcoded so the single-card height stays the one
+  /// number to change, and the right-hand card can never drift out of step
+  /// with the pair it sits beside.
+  static double _cardHeight(BuildContext context) => context.rh(120);
+  static double _leftColumnHeight(BuildContext context) =>
+      _cardHeight(context) * 2 + context.rh(12);
 
   @override
   Widget build(BuildContext context) {
@@ -27,61 +37,89 @@ class MyWorkGridSection extends StatelessWidget {
           children: [
             _SectionHeader('shell.my_work'.tr, letterSpacing: 1.6),
 
-            // Row 1: Remove Expanded from top level Column
-            FadeSlideIn(
-              delay: FadeSlideIn.staggerDelay(1),
-              child: CoachKeys.wrap(
-                CoachKeys.myVisits,
-                child: _MyWorkCard(
-                  label: 'shell.my_visits'.tr,
-                  icon: Icons.assignment_turned_in_outlined,
-                  accent: const Color(0xFF10B981),
-                  badgeText: 'shell.badge_today'.trParams({'count': 3}),
-                  isActive: true,
-                  onTap: () => sl<ShellTabController>().goTo(ShellTab.myVisits),
-                ),
+            // Two columns: the two secondary destinations stack on the left,
+            // and My Visits takes the full height on the right.
+            //
+            // The asymmetry is the point. My Visits is where a rep spends the
+            // day and the only card carrying a live count, so it gets the
+            // larger, taller surface; Customers and Orders are places you go
+            // between visits. A three-equal-card grid would give the day's
+            // main task the same weight as its supporting ones.
+            SizedBox(
+              height: _leftColumnHeight(context),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // ── Left: Customers over Quotes & Orders ────────────────
+                  Expanded(
+                    child: Column(
+                      children: [
+                        Expanded(
+                          child: FadeSlideIn(
+                            delay: FadeSlideIn.staggerDelay(1),
+                            child: CoachKeys.wrap(
+                              CoachKeys.myCustomers,
+                              child: _MyWorkCard(
+                                label: 'shell.my_customers'.tr,
+                                icon: Icons.people_alt_outlined,
+                                kind: WorkIconKind.customers,
+                                accent: const Color(0xFFEC3F72),
+                                isActive: false,
+                                onTap: () => sl<ShellTabController>()
+                                    .goTo(ShellTab.customers),
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: context.rh(12)),
+                        Expanded(
+                          child: FadeSlideIn(
+                            delay: FadeSlideIn.staggerDelay(2),
+                            child: CoachKeys.wrap(
+                              CoachKeys.orders,
+                              child: _MyWorkCard(
+                                label: 'shell.my_quotes_orders'.tr,
+                                icon: Icons.description_outlined,
+                                kind: WorkIconKind.quotesOrders,
+                                accent: const Color(0xFFF5A623),
+                                isActive: false,
+                                onTap: () => sl<ShellTabController>()
+                                    .goTo(ShellTab.orders),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  SizedBox(width: context.rw(12)),
+
+                  // ── Right: My Visits, full height ───────────────────────
+                  Expanded(
+                    child: FadeSlideIn(
+                      delay: FadeSlideIn.staggerDelay(3),
+                      child: CoachKeys.wrap(
+                        CoachKeys.myVisits,
+                        child: _MyWorkCard(
+                          label: 'shell.my_visits'.tr,
+                          icon: Icons.assignment_turned_in_outlined,
+                          kind: WorkIconKind.visits,
+                          // Sampled from the artwork so the tile's drop-glow
+                          // matches the illustration it sits under. An accent
+                          // that disagrees with the art reads as a halo bug.
+                          accent: const Color(0xFF22C3D6),
+                          tileHeight: context.rr(96),
+                          badgeText: 'shell.badge_today'.trParams({'count': 3}),
+                          isActive: true,
+                          onTap: () =>
+                              sl<ShellTabController>().goTo(ShellTab.myVisits),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ),
-
-            SizedBox(height: context.rh(12)),
-
-            // Row 2: Expanded is valid inside Row (horizontal sizing)
-            Row(
-              children: [
-                Expanded(
-                  child: FadeSlideIn(
-                    delay: FadeSlideIn.staggerDelay(2),
-                    child: CoachKeys.wrap(
-                      CoachKeys.myCustomers,
-                      child: _MyWorkCard(
-                        label: 'shell.my_customers'.tr,
-                        icon: Icons.people_alt_outlined,
-                        accent: const Color(0xFFF97316),
-                        isActive: false,
-                        onTap: () =>
-                            sl<ShellTabController>().goTo(ShellTab.customers),
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(width: context.rw(12)),
-                Expanded(
-                  child: FadeSlideIn(
-                    delay: FadeSlideIn.staggerDelay(3),
-                    child: CoachKeys.wrap(
-                      CoachKeys.orders,
-                      child: _MyWorkCard(
-                        label: 'shell.my_quotes_orders'.tr,
-                        icon: Icons.description_outlined,
-                        accent: const Color(0xFFF59E0B),
-                        isActive: false,
-                        onTap: () =>
-                            sl<ShellTabController>().goTo(ShellTab.orders),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
             ),
           ],
         ),
@@ -98,6 +136,8 @@ class _MyWorkCard extends StatefulWidget {
     required this.onTap,
     this.badgeText,
     this.isActive = false,
+    required this.kind,
+    this.tileHeight,
   });
 
   final String label;
@@ -106,6 +146,14 @@ class _MyWorkCard extends StatefulWidget {
   final VoidCallback onTap;
   final String? badgeText;
   final bool isActive;
+
+  /// Which drawn, animated illustration this card shows.
+  final WorkIconKind kind;
+
+  /// Tile height override. The full-height card gets a larger tile so its
+  /// extra room is filled by the artwork rather than left as dead space above
+  /// and below a tile sized for a card half as tall.
+  final double? tileHeight;
 
   @override
   State<_MyWorkCard> createState() => _MyWorkCardState();
@@ -139,7 +187,9 @@ class _MyWorkCardState extends State<_MyWorkCard> {
         curve: Curves.easeOut,
         transform: Matrix4.translationValues(0, _isPressed ? 4.0 : 0.0, 0),
         child: Container(
-          height: context.rh(120),
+          // No fixed height: the card now fills whatever its column gives it,
+          // which is what lets the right-hand card stand two rows tall while
+          // the left pair stay one each.
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20.r),
             // 3D Extrusion Shadow + Traditional Ambient Glow
@@ -219,46 +269,11 @@ class _MyWorkCardState extends State<_MyWorkCard> {
                             mainAxisSize: MainAxisSize.min,
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              // 2. 3D Embossed Icon Medallion
-                              Container(
-                                width: context.rr(48),
-                                height: context.rr(48),
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      widget.accent.withValues(alpha: 0.25),
-                                      widget.accent.withValues(alpha: 0.08),
-                                    ],
-                                  ),
-                                  border: Border.all(
-                                    color: _goldPrimary.withValues(alpha: 0.6),
-                                    width: 1.5,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color:
-                                          widget.accent.withValues(alpha: 0.2),
-                                      offset: const Offset(0, 3),
-                                      blurRadius: 6,
-                                    ),
-                                    BoxShadow(
-                                      color: Colors.white.withValues(
-                                          alpha: isDark ? 0.05 : 0.6),
-                                      offset: const Offset(-2, -2),
-                                      blurRadius: 4,
-                                    ),
-                                  ],
-                                ),
-                                child: Center(
-                                  child: Icon(
-                                    widget.icon,
-                                    color: widget.accent,
-                                    size: context.rr(22),
-                                  ),
-                                ),
+                              // 2. Vivid icon tile
+                              WorkIcon(
+                                kind: widget.kind,
+                                accent: widget.accent,
+                                size: widget.tileHeight ?? context.rr(66),
                               ),
                               SizedBox(height: context.rh(10)),
                               Padding(

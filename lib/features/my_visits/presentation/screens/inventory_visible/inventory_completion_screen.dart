@@ -64,7 +64,7 @@ class InventoryCompletionScreen extends StatelessWidget {
                 ),
                 textAlign: TextAlign.center,
               ),
-              
+
               const Spacer(),
 
               // Decision Card
@@ -118,7 +118,8 @@ class InventoryCompletionScreen extends StatelessWidget {
                       onPressed: onEndVisit,
                       style: OutlinedButton.styleFrom(
                         foregroundColor: scheme.error,
-                        side: BorderSide(color: scheme.error.withValues(alpha: 0.5)),
+                        side: BorderSide(
+                            color: scheme.error.withValues(alpha: 0.5)),
                         padding: EdgeInsets.symmetric(vertical: context.rh(14)),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(context.rr(12)),
