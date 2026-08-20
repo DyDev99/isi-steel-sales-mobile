@@ -55,8 +55,9 @@ class RouteStopModel extends RouteStop {
         sequence: (row['sequence'] as num).toInt(),
         plannedArrival: DateTime.parse(row['planned_arrival'] as String),
         plannedDeparture: DateTime.parse(row['planned_departure'] as String),
-        status: VisitStatus.values.byNameOr(row['status'] as String?,
-            VisitStatus.values.first, context: 'stop.row.status'),
+        status: VisitStatus.values.byNameOr(
+            row['status'] as String?, VisitStatus.values.first,
+            context: 'stop.row.status'),
         actualArrival: row['actual_arrival'] == null
             ? null
             : DateTime.parse(row['actual_arrival'] as String),

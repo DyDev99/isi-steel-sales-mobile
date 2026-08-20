@@ -44,8 +44,8 @@ class _StopSearchFieldState extends State<StopSearchField> {
         isDense: true,
         hintText: 'my_visits.stop_dashboard.search_hint'.tr,
         hintStyle: TextStyle(color: colors.textHint, fontSize: context.rsp(13)),
-        prefixIcon:
-            Icon(Icons.search_rounded, size: context.rw(18), color: colors.textSecondary),
+        prefixIcon: Icon(Icons.search_rounded,
+            size: context.rw(18), color: colors.textSecondary),
         suffixIcon: _controller.text.isEmpty
             ? null
             : IconButton(
@@ -60,7 +60,8 @@ class _StopSearchFieldState extends State<StopSearchField> {
               ),
         filled: true,
         fillColor: colors.surfaceSoft,
-        contentPadding: EdgeInsets.symmetric(vertical: context.rh(12), horizontal: context.rw(12)),
+        contentPadding: EdgeInsets.symmetric(
+            vertical: context.rh(12), horizontal: context.rw(12)),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(context.rr(12)),
           borderSide: BorderSide(color: colors.border),

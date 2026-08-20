@@ -27,16 +27,17 @@ class CalendarMonthView extends StatelessWidget {
   /// Filter out Sunday dates for Mon-Sat display grid
   List<DateTime> _generateMonToSatDates(DateTime month) {
     final firstOfMonth = DateTime(month.year, month.month, 1);
-    
+
     // Find nearest preceding Monday
     int leadingDays = firstOfMonth.weekday - DateTime.monday;
     if (leadingDays < 0) leadingDays += 7;
-    
+
     final gridStart = firstOfMonth.subtract(Duration(days: leadingDays));
     final List<DateTime> dates = [];
 
     DateTime current = gridStart;
-    while (dates.length < 36) { // 6 weeks * 6 days (Mon-Sat)
+    while (dates.length < 36) {
+      // 6 weeks * 6 days (Mon-Sat)
       if (current.weekday != DateTime.sunday) {
         dates.add(current);
       }

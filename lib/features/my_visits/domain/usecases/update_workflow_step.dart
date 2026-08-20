@@ -48,7 +48,16 @@ class UpdateWorkflowStep extends UseCase<void, UpdateWorkflowStepParams> {
     return _repository.saveActiveWorkflow(workflow.copyWith(
       currentWorkflow: params.workflow,
       currentScreen: params.screen,
-      navigationArguments: params.navigationArguments,
+      // Merged, not replaced. A caller recording one step knows only about its
+      // own arguments; replacing the map would silently drop the keys written
+      // at check-in (`stopId`, `territory`) that the resume dispatcher's
+      // fallbacks depend on. Incoming keys win, everything else survives.
+      navigationArguments: params.navigationArguments == null
+          ? workflow.navigationArguments
+          : {
+              ...?workflow.navigationArguments,
+              ...params.navigationArguments!,
+            },
       workflowUpdatedAt: now,
       updatedAt: now,
     ));

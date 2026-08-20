@@ -700,7 +700,8 @@ class _DropzonePlaceholder extends StatelessWidget {
         SizedBox(height: context.rh(3)),
         Text(
           'my_visits.flow.fit_frame'.tr,
-          style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(11.5)),
+          style: TextStyle(
+              color: colors.textSecondary, fontSize: context.rsp(11.5)),
         ),
       ],
     );
@@ -797,7 +798,8 @@ class _CheckInBottomBar extends StatelessWidget {
               Text(
                 hint!,
                 textAlign: TextAlign.center,
-                style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(11.5)),
+                style: TextStyle(
+                    color: colors.textSecondary, fontSize: context.rsp(11.5)),
               ),
               SizedBox(height: context.rh(8)),
             ],

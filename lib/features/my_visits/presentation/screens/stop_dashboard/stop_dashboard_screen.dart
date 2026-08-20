@@ -220,82 +220,88 @@ class _LoadedViewState extends State<_LoadedView> {
 
   // Inside _LoadedViewState in stop_dashboard_screen.dart
 
-@override
-Widget build(BuildContext context) {
-  final colors = context.appColors;
-  final scheme = Theme.of(context).colorScheme;
-  final visible = widget.state.visibleStops;
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
+    final visible = widget.state.visibleStops;
 
-  // Check if the selected calendar date is TODAY
-  final isSelectedToday = DateUtils.isSameDay(
-    widget.state.selectedDate,
-    DateTime.now(),
-  );
+    // Check if the selected calendar date is TODAY
+    final isSelectedToday = DateUtils.isSameDay(
+      widget.state.selectedDate,
+      DateTime.now(),
+    );
 
-  // Count metrics for progress bar
-  final total = widget.state.stops.length;
-  final visited = widget.state.stops.where((s) => s.stop.status == VisitStatus.checkedOut).length;
-  final skipped = widget.state.stops.where((s) => s.stop.status == VisitStatus.missed).length;
+    // Count metrics for progress bar
+    final total = widget.state.stops.length;
+    final visited = widget.state.stops
+        .where((s) => s.stop.status == VisitStatus.checkedOut)
+        .length;
+    final skipped = widget.state.stops
+        .where((s) => s.stop.status == VisitStatus.missed)
+        .length;
 
-  return RefreshIndicator(
-    color: scheme.primary,
-    backgroundColor: colors.surfaceSoft,
-    onRefresh: widget.onRefresh,
-    child: CustomScrollView(
-      slivers: [
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(context.rw(20), context.rh(12), context.rw(20), 0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                StopCalendarSection(
-                  focusedMonth: _focusedMonth,
-                  selectedDate: widget.state.selectedDate,
-                  onMonthChanged: (newMonth) => setState(() => _focusedMonth = newMonth),
-                  onDateSelected: (newDate) => context
-                      .read<StopDashboardCubit>()
-                      .setSelectedDate(newDate),
-                  stopCountForDate: _getStopCountForDate,
-                ),
-                SizedBox(height: context.rh(14)),
-                
-                TodayVisitProgressCard(
-                  totalVisits: total,
-                  visitedCount: visited,
-                  skippedCount: skipped,
-                ),
-                
-                SizedBox(height: context.rh(12)),
-              ],
+    return RefreshIndicator(
+      color: scheme.primary,
+      backgroundColor: colors.surfaceSoft,
+      onRefresh: widget.onRefresh,
+      child: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                  context.rw(20), context.rh(12), context.rw(20), 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  StopCalendarSection(
+                    focusedMonth: _focusedMonth,
+                    selectedDate: widget.state.selectedDate,
+                    onMonthChanged: (newMonth) =>
+                        setState(() => _focusedMonth = newMonth),
+                    onDateSelected: (newDate) => context
+                        .read<StopDashboardCubit>()
+                        .setSelectedDate(newDate),
+                    stopCountForDate: _getStopCountForDate,
+                  ),
+                  SizedBox(height: context.rh(14)),
+                  TodayVisitProgressCard(
+                    totalVisits: total,
+                    visitedCount: visited,
+                    skippedCount: skipped,
+                  ),
+                  SizedBox(height: context.rh(12)),
+                ],
+              ),
             ),
           ),
-        ),
-        if (visible.isEmpty)
-          SliverFillRemaining(
-            hasScrollBody: false,
-            child: _EmptyState(hasAnyStops: widget.state.stops.isNotEmpty),
-          )
-        else
-          SliverPadding(
-            padding: EdgeInsets.fromLTRB(context.rw(20), context.rh(4), context.rw(20), context.rh(24)),
-            sliver: SliverList.builder(
-              itemCount: visible.length,
-              itemBuilder: (context, index) {
-                final todayStop = visible[index];
-                return StopCard(
-                  todayStop: todayStop,
-                  isToday: isSelectedToday, // 👈 CRITICAL: Pass whether selected date is today
-                  onTap: () => widget.onTapStop(todayStop),
-                  onSkipSubmitted: (reason, photoPath) =>
-                      widget.onSkipStop(todayStop, reason, photoPath),
-                );
-              },
+          if (visible.isEmpty)
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: _EmptyState(hasAnyStops: widget.state.stops.isNotEmpty),
+            )
+          else
+            SliverPadding(
+              padding: EdgeInsets.fromLTRB(context.rw(20), context.rh(4),
+                  context.rw(20), context.rh(24)),
+              sliver: SliverList.builder(
+                itemCount: visible.length,
+                itemBuilder: (context, index) {
+                  final todayStop = visible[index];
+                  return StopCard(
+                    todayStop: todayStop,
+                    isToday:
+                        isSelectedToday, // 👈 CRITICAL: Pass whether selected date is today
+                    onTap: () => widget.onTapStop(todayStop),
+                    onSkipSubmitted: (reason, photoPath) =>
+                        widget.onSkipStop(todayStop, reason, photoPath),
+                  );
+                },
+              ),
             ),
-          ),
-      ],
-    ),
-  );
+        ],
+      ),
+    );
   }
 }
 
@@ -337,7 +343,8 @@ class _EmptyState extends StatelessWidget {
                   ? 'my_visits.stop_dashboard.no_matches_hint'.tr
                   : 'my_visits.stop_dashboard.pull_to_sync'.tr,
               textAlign: TextAlign.center,
-              style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(12)),
+              style: TextStyle(
+                  color: colors.textSecondary, fontSize: context.rsp(12)),
             ),
           ],
         ),

@@ -10,6 +10,15 @@ class InventoryCompletionScreen extends StatelessWidget {
     required this.onEndVisit,
   });
 
+  /// `RouteSettings.name`, and the resume key for this step.
+  ///
+  /// Without an identity of its own this screen was invisible to the resume
+  /// dispatcher: the pointer still read "inventory audit", so a rep who
+  /// submitted the count and then left was sent back to walk the racks a
+  /// second time. Recording the completion step is what makes finished work
+  /// stay finished.
+  static const String routeName = 'my-visits-inventory-completion';
+
   final String outletName;
   final VoidCallback onCreateQuotation;
   final VoidCallback onEndVisit;

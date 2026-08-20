@@ -116,6 +116,69 @@ void main() {
     expect(submits, 1);
   });
 
+  testWidgets('restores a half-finished audit instead of starting blank',
+      (tester) async {
+    // The interruption case: a rep judged two items, got pulled away, and came
+    // back through "Continue Working". Re-opening blank would mean walking the
+    // racks twice.
+    useDeviceSurface(tester);
+    await tester.pumpWidget(
+      ScreenUtilInit(
+        designSize: const Size(390, 844),
+        builder: (context, _) => MaterialApp(
+          home: InventoryVisibilityScreen(
+            depotName: 'Phnom Penh Depot',
+            initialStatuses: const {
+              '1': StockStatus.high,
+              '3': StockStatus.low,
+            },
+            onSubmit: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('2 of 4 assessed'), findsOneWidget);
+    // Still incomplete, so submit stays shut — restoring progress must not be
+    // mistaken for finishing it.
+    expect(submitButton(tester).onPressed, isNull);
+  });
+
+  testWidgets('reports the whole picture on every judgement', (tester) async {
+    // Persisted on each tap, not on submit: an interruption never waits for
+    // the rep to reach the button.
+    final seen = <Map<String, StockStatus>>[];
+    useDeviceSurface(tester);
+    await tester.pumpWidget(
+      ScreenUtilInit(
+        designSize: const Size(390, 844),
+        builder: (context, _) => MaterialApp(
+          home: InventoryVisibilityScreen(
+            depotName: 'Phnom Penh Depot',
+            onProgressChanged: seen.add,
+            onSubmit: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    for (var i = 0; i < 2; i++) {
+      final option = find.text('High stock').at(i);
+      await tester.ensureVisible(option);
+      await tester.pumpAndSettle();
+      await tester.tap(option);
+      await tester.pumpAndSettle();
+    }
+
+    expect(seen.length, 2, reason: 'one report per judgement');
+    // Each report is a full snapshot, so the receiver never has to reassemble
+    // state it does not own.
+    expect(seen.last.length, 2);
+    expect(seen.last.values, everyElement(StockStatus.high));
+  });
+
   testWidgets('choosing a different level replaces the previous one',
       (tester) async {
     await pumpScreen(tester);

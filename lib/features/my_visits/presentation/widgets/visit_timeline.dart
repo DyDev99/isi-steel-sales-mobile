@@ -88,7 +88,8 @@ class VisitTimeline extends StatelessWidget {
     final colors = context.appColors;
     if (entries.isEmpty) {
       return Text('common.no_activity_yet'.tr,
-          style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(12.5)));
+          style: TextStyle(
+              color: colors.textSecondary, fontSize: context.rsp(12.5)));
     }
     return Column(
       children: [
@@ -105,7 +106,8 @@ class VisitTimeline extends StatelessWidget {
                   decoration: BoxDecoration(
                       color: colors.surfaceStrong,
                       borderRadius: BorderRadius.circular(8)),
-                  child: Icon(entry.icon, size: context.rr(14), color: scheme.primary),
+                  child: Icon(entry.icon,
+                      size: context.rr(14), color: scheme.primary),
                 ),
                 SizedBox(width: context.rw(10)),
                 Expanded(
@@ -116,8 +118,9 @@ class VisitTimeline extends StatelessWidget {
                           fontWeight: FontWeight.w600)),
                 ),
                 Text(_formatTime(entry.time),
-                    style:
-                        TextStyle(color: colors.textSecondary, fontSize: context.rsp(11))),
+                    style: TextStyle(
+                        color: colors.textSecondary,
+                        fontSize: context.rsp(11))),
               ],
             ),
           ),

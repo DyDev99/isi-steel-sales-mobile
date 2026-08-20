@@ -26,8 +26,8 @@ class VisitHistoryErrorState extends StatelessWidget {
               decoration: BoxDecoration(
                   color: scheme.error.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(20)),
-              child:
-                  Icon(Icons.cloud_off_rounded, size: context.rr(34), color: scheme.error),
+              child: Icon(Icons.cloud_off_rounded,
+                  size: context.rr(34), color: scheme.error),
             ),
             SizedBox(height: context.rh(16)),
             Text(
@@ -41,7 +41,8 @@ class VisitHistoryErrorState extends StatelessWidget {
             Text(
               'my_visits.history.error_message'.tr,
               textAlign: TextAlign.center,
-              style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(13)),
+              style: TextStyle(
+                  color: colors.textSecondary, fontSize: context.rsp(13)),
             ),
             SizedBox(height: context.rh(20)),
             ElevatedButton(

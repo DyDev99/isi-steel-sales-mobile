@@ -126,12 +126,27 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
       final existingResult = await _getActiveWorkflow(const NoParams());
       final existing =
           existingResult.when(success: (w) => w, failure: (_) => null);
-      if (existing != null &&
-          existing.currentStopId == stop.id &&
-          (existing.currentWorkflow?.isBusinessTask ?? false)) {
+      final sameStop = existing != null && existing.currentStopId == stop.id;
+
+      if (sameStop && (existing.currentWorkflow?.isBusinessTask ?? false)) {
         workflow = existing.currentWorkflow;
         screen = existing.currentScreen;
         args = existing.navigationArguments ?? args;
+      } else if (sameStop) {
+        // Same stop, still on a guided step: refresh the baseline keys but
+        // keep anything a step recorded for itself.
+        //
+        // This is what was destroying in-progress work. A guided step is not a
+        // "business task", so the branch above never protected it, and any
+        // later route event re-ran this write and replaced the whole argument
+        // map — taking the half-finished stock audit with it. The rep tapped
+        // four items, the app saved them, and the next route rebuild wiped
+        // them. Merging keeps the step's own state alive while the baseline
+        // stays authoritative for the keys it owns.
+        args = {...?existing.navigationArguments, ...?args};
+        // Keep a more advanced guided screen (e.g. the post-audit decision)
+        // rather than resetting to the audit the rep already finished.
+        screen = existing.currentScreen ?? screen;
       }
     }
 

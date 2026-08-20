@@ -28,7 +28,8 @@ class CalendarToggleButton extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(context.rr(16)),
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: context.rw(4), vertical: context.rh(2)),
+        padding: EdgeInsets.symmetric(
+            horizontal: context.rw(4), vertical: context.rh(2)),
         child: Row(
           children: [
             Container(
@@ -62,7 +63,6 @@ class CalendarToggleButton extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  
                 ],
               ),
             ),

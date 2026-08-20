@@ -7,6 +7,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/navigation/open_inventory_visibility.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/navigation/open_quotation.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/navigation/open_stop_information.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/inventory_visible/inventory_completion_screen.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/inventory_visible/inventory_visible_screen.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/stop_information/stop_information_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/quotation_builder_screen.dart';
@@ -46,6 +47,21 @@ final Map<String, ResumeBuilder> _navigationRegistry = {
     final customerName =
         w.navigationArguments?['customerName'] as String? ?? w.shopName ?? '';
     return openInventoryVisibilityForCustomer(
+      context,
+      customerId: customerId,
+      customerName: customerName,
+    );
+  },
+
+  // Stock count finished — resume onto the "what next" decision rather than
+  // back into the audit. The rep already walked the racks; sending them there
+  // again is how a resume feature teaches people not to trust it.
+  InventoryCompletionScreen.routeName: (context, route, w) {
+    final customerId = w.navigationArguments?['customerId'] as String?;
+    if (customerId == null) return null;
+    final customerName =
+        w.navigationArguments?['customerName'] as String? ?? w.shopName ?? '';
+    return openInventoryCompletion(
       context,
       customerId: customerId,
       customerName: customerName,

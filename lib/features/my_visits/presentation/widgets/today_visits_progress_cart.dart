@@ -18,9 +18,10 @@ class TodayVisitProgressCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
 
-    final remainingCount = (totalVisits - visitedCount - skippedCount).clamp(0, totalVisits);
-    final progressPercent = totalVisits > 0 
-        ? (((visitedCount + skippedCount) / totalVisits) * 100).round() 
+    final remainingCount =
+        (totalVisits - visitedCount - skippedCount).clamp(0, totalVisits);
+    final progressPercent = totalVisits > 0
+        ? (((visitedCount + skippedCount) / totalVisits) * 100).round()
         : 0;
 
     return Container(
@@ -66,7 +67,7 @@ class TodayVisitProgressCard extends StatelessWidget {
             ],
           ),
           SizedBox(height: context.rh(12)),
-          
+
           // Multi-segment progress bar
           ClipRRect(
             borderRadius: BorderRadius.circular(context.rr(6)),
@@ -77,7 +78,8 @@ class TodayVisitProgressCard extends StatelessWidget {
                   if (visitedCount > 0)
                     Expanded(
                       flex: visitedCount,
-                      child: Container(color: colors.success), // Visited - Green
+                      child:
+                          Container(color: colors.success), // Visited - Green
                     ),
                   if (skippedCount > 0)
                     Expanded(
@@ -87,14 +89,16 @@ class TodayVisitProgressCard extends StatelessWidget {
                   if (remainingCount > 0)
                     Expanded(
                       flex: remainingCount,
-                      child: Container(color: colors.border.withValues(alpha: 0.5)), // Remaining - Grey
+                      child: Container(
+                          color: colors.border
+                              .withValues(alpha: 0.5)), // Remaining - Grey
                     ),
                 ],
               ),
             ),
           ),
           SizedBox(height: context.rh(12)),
-          
+
           // Legends
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,

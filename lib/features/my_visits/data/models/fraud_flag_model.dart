@@ -17,8 +17,9 @@ class FraudFlagModel extends FraudFlag {
         id: row['id'] as String,
         routeId: row['route_id'] as String,
         stopId: row['stop_id'] as String?,
-        type: FraudFlagType.values.byNameOr(row['type'] as String?,
-            FraudFlagType.values.first, context: 'fraud.row.type'),
+        type: FraudFlagType.values.byNameOr(
+            row['type'] as String?, FraudFlagType.values.first,
+            context: 'fraud.row.type'),
         detail: row['detail'] as String,
         timestamp: DateTime.parse(row['timestamp'] as String),
         blocked: (row['blocked'] as int) == 1,

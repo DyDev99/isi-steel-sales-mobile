@@ -25,7 +25,8 @@ class VisitHistoryEmptyState extends StatelessWidget {
               decoration: BoxDecoration(
                   color: colors.surfaceStrong,
                   borderRadius: BorderRadius.circular(20)),
-              child: Icon(Icons.map_outlined, size: context.rr(34), color: primary),
+              child: Icon(Icons.map_outlined,
+                  size: context.rr(34), color: primary),
             ),
             SizedBox(height: context.rh(16)),
             Text(
@@ -39,7 +40,8 @@ class VisitHistoryEmptyState extends StatelessWidget {
             Text(
               'my_visits.history.empty_subtitle'.tr,
               textAlign: TextAlign.center,
-              style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(13)),
+              style: TextStyle(
+                  color: colors.textSecondary, fontSize: context.rsp(13)),
             ),
           ],
         ),

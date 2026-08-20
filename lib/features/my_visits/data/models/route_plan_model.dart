@@ -49,8 +49,9 @@ class RoutePlanModel extends RoutePlan {
         visitDate: DateTime.parse(row['visit_date'] as String),
         plannedStart: DateTime.parse(row['planned_start'] as String),
         plannedEnd: DateTime.parse(row['planned_end'] as String),
-        status: RouteStatus.values.byNameOr(row['status'] as String?,
-            RouteStatus.values.first, context: 'route.row.status'),
+        status: RouteStatus.values.byNameOr(
+            row['status'] as String?, RouteStatus.values.first,
+            context: 'route.row.status'),
         stops: stops,
       );
 

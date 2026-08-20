@@ -30,9 +30,9 @@ class CustomerStopInfoModel extends CustomerStopInfo {
         phone: json['phone'] as String,
         address: json['address'] as String,
         territory: json['territory'] as String,
-        territoryType:
-            TerritoryType.values.byNameOr(json['territoryType'] as String?,
-                TerritoryType.values.first, context: 'stop.json.territory'),
+        territoryType: TerritoryType.values.byNameOr(
+            json['territoryType'] as String?, TerritoryType.values.first,
+            context: 'stop.json.territory'),
         latitude: (json['latitude'] as num).toDouble(),
         longitude: (json['longitude'] as num).toDouble(),
         geofenceRadiusOverride:
@@ -48,9 +48,9 @@ class CustomerStopInfoModel extends CustomerStopInfo {
         phone: row['phone'] as String,
         address: row['address'] as String,
         territory: row['territory'] as String,
-        territoryType:
-            TerritoryType.values.byNameOr(row['territory_type'] as String?,
-                TerritoryType.values.first, context: 'stop.row.territory'),
+        territoryType: TerritoryType.values.byNameOr(
+            row['territory_type'] as String?, TerritoryType.values.first,
+            context: 'stop.row.territory'),
         latitude: (row['latitude'] as num).toDouble(),
         longitude: (row['longitude'] as num).toDouble(),
         geofenceRadiusOverride:

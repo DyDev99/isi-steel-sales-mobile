@@ -707,7 +707,8 @@ class _InfoRowState extends State<_InfoRow> {
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
-      cursor: isInteractive ? SystemMouseCursors.click : SystemMouseCursors.basic,
+      cursor:
+          isInteractive ? SystemMouseCursors.click : SystemMouseCursors.basic,
       child: InkWell(
         onTap: widget.onTap != null
             ? () {

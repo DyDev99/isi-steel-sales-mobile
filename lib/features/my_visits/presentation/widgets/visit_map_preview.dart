@@ -63,7 +63,8 @@ class VisitMapPreview extends StatelessWidget {
                     '${latitude.toStringAsFixed(5)}, ${longitude.toStringAsFixed(5)}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: Colors.white, fontSize: context.rsp(11.5)),
+                    style: TextStyle(
+                        color: Colors.white, fontSize: context.rsp(11.5)),
                   ),
                 ),
               ),

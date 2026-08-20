@@ -15,7 +15,8 @@ class StopCardSkeleton extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.only(bottom: context.rh(12)),
       child: Container(
-        padding: EdgeInsets.fromLTRB(context.rw(14), context.rh(14), context.rw(14), context.rh(12)),
+        padding: EdgeInsets.fromLTRB(
+            context.rw(14), context.rh(14), context.rw(14), context.rh(12)),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(context.rr(18)),
           border: Border.all(color: colors.border),
@@ -26,28 +27,46 @@ class StopCardSkeleton extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  ShimmerBox(width: context.rw(62), height: context.rh(40), radius: context.rr(12)),
+                  ShimmerBox(
+                      width: context.rw(62),
+                      height: context.rh(40),
+                      radius: context.rr(12)),
                   SizedBox(width: context.rw(12)),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        ShimmerBox(width: context.rw(150), height: context.rh(14), radius: context.rr(6)),
+                        ShimmerBox(
+                            width: context.rw(150),
+                            height: context.rh(14),
+                            radius: context.rr(6)),
                         SizedBox(height: context.rh(8)),
-                        ShimmerBox(width: context.rw(190), height: context.rh(11), radius: context.rr(6)),
+                        ShimmerBox(
+                            width: context.rw(190),
+                            height: context.rh(11),
+                            radius: context.rr(6)),
                       ],
                     ),
                   ),
                   SizedBox(width: context.rw(8)),
-                  ShimmerBox(width: context.rw(54), height: context.rh(20), radius: context.rr(20)),
+                  ShimmerBox(
+                      width: context.rw(54),
+                      height: context.rh(20),
+                      radius: context.rr(20)),
                 ],
               ),
               SizedBox(height: context.rh(12)),
               Row(
                 children: [
-                  ShimmerBox(width: context.rw(90), height: context.rh(12), radius: context.rr(6)),
+                  ShimmerBox(
+                      width: context.rw(90),
+                      height: context.rh(12),
+                      radius: context.rr(6)),
                   SizedBox(width: context.rw(12)),
-                  ShimmerBox(width: context.rw(110), height: context.rh(12), radius: context.rr(6)),
+                  ShimmerBox(
+                      width: context.rw(110),
+                      height: context.rh(12),
+                      radius: context.rr(6)),
                 ],
               ),
             ],
@@ -68,7 +87,8 @@ class StopDashboardSkeleton extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     return ListView(
-      padding: EdgeInsets.fromLTRB(context.rw(20), context.rh(12), context.rw(20), context.rh(20)),
+      padding: EdgeInsets.fromLTRB(
+          context.rw(20), context.rh(12), context.rw(20), context.rh(20)),
       physics: const NeverScrollableScrollPhysics(),
       children: [
         Container(
@@ -83,7 +103,10 @@ class StopDashboardSkeleton extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 for (var i = 0; i < 4; i++)
-                  ShimmerBox(width: context.rw(48), height: context.rh(40), radius: context.rr(8)),
+                  ShimmerBox(
+                      width: context.rw(48),
+                      height: context.rh(40),
+                      radius: context.rr(8)),
               ],
             ),
           ),

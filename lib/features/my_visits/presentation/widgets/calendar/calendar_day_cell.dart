@@ -56,7 +56,8 @@ class CalendarDayCell extends StatelessWidget {
             curve: Curves.easeOut,
             width: context.rr(32),
             height: context.rr(32),
-            decoration: BoxDecoration(color: circleColor, shape: BoxShape.circle),
+            decoration:
+                BoxDecoration(color: circleColor, shape: BoxShape.circle),
             alignment: Alignment.center,
             child: Text(
               '${date.day}',
@@ -68,7 +69,7 @@ class CalendarDayCell extends StatelessWidget {
             ),
           ),
           SizedBox(height: context.rh(2)),
-          
+
           // Replaced dots with explicit visit counts
           if (isCurrentMonth && stopCount > 0)
             Padding(

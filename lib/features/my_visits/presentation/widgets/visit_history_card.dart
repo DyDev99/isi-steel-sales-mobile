@@ -107,19 +107,22 @@ class VisitHistoryCard extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                            color: colors.textSecondary, fontSize: context.rsp(12)),
+                            color: colors.textSecondary,
+                            fontSize: context.rsp(12)),
                       ),
                       SizedBox(height: context.rh(8)),
                       Row(
                         children: [
                           Icon(Icons.calendar_today_rounded,
-                              size: context.rr(13), color: colors.textSecondary),
+                              size: context.rr(13),
+                              color: colors.textSecondary),
                           SizedBox(width: context.rw(6)),
                           Text(
                             DateFormat('MMM d, y · h:mm a')
                                 .format(visit.visitDate),
                             style: TextStyle(
-                                color: colors.textSecondary, fontSize: context.rsp(12)),
+                                color: colors.textSecondary,
+                                fontSize: context.rsp(12)),
                           ),
                           const Spacer(),
                           if (visit.orderPlaced)

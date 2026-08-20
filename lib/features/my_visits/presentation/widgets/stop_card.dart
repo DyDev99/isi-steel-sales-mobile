@@ -50,22 +50,29 @@ class StopCard extends StatelessWidget {
     // Display Name formatted as KH & EN e.g. ស្រី លី (Srey Ly)
     final khName = customer.nameKh;
     final enName = customer.name;
-    final formattedOutletName = khName.isNotEmpty ? '$khName ($enName)' : enName;
+    final formattedOutletName =
+        khName.isNotEmpty ? '$khName ($enName)' : enName;
 
     // Actions (Skip / Cart) are allowed ONLY on today's date
-    final isVisitedOrSkipped = _status == VisitStatus.checkedOut || _status == VisitStatus.missed;
-    final canSkip = isToday && _status != VisitStatus.checkedOut && _status != VisitStatus.missed;
+    final isVisitedOrSkipped =
+        _status == VisitStatus.checkedOut || _status == VisitStatus.missed;
+    final canSkip = isToday &&
+        _status != VisitStatus.checkedOut &&
+        _status != VisitStatus.missed;
     final hasActions = isToday && (isVisitedOrSkipped || canSkip);
 
     return Padding(
       padding: EdgeInsets.only(bottom: context.rh(12)),
       child: AbsorbPointer(
-        absorbing: !isToday, // 👈 Completely blocks all tap/click events if not today
+        absorbing:
+            !isToday, // 👈 Completely blocks all tap/click events if not today
         child: InkWell(
-          onTap: isToday ? onTap : null, // 👈 Disables tap to view detail screen
+          onTap:
+              isToday ? onTap : null, // 👈 Disables tap to view detail screen
           borderRadius: BorderRadius.circular(context.rr(16)),
           child: Opacity(
-            opacity: isToday ? 1.0 : 0.85, // Visual indicator that item is read-only
+            opacity:
+                isToday ? 1.0 : 0.85, // Visual indicator that item is read-only
             child: Container(
               padding: EdgeInsets.symmetric(
                 horizontal: context.rw(16),
@@ -111,7 +118,7 @@ class StopCard extends StatelessWidget {
                         ),
                       ),
                       SizedBox(width: context.rw(12)),
-                      
+
                       // Status Pill
                       Container(
                         padding: EdgeInsets.symmetric(
@@ -147,7 +154,9 @@ class StopCard extends StatelessWidget {
                           runSpacing: context.rh(4),
                           crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
-                            _TagChip(label: customer.territory, color: colors.border),
+                            _TagChip(
+                                label: customer.territory,
+                                color: colors.border),
                             _TagChip(
                               label: customer.territoryType.label,
                               color: Colors.amber.shade100,
@@ -167,7 +176,10 @@ class StopCard extends StatelessWidget {
                               _ActionButton(
                                 icon: Icons.shopping_basket_rounded,
                                 color: Theme.of(context).colorScheme.primary,
-                                backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
+                                backgroundColor: Theme.of(context)
+                                    .colorScheme
+                                    .primary
+                                    .withValues(alpha: 0.12),
                                 onTap: onQuotationTap,
                               ),
                               if (canSkip) SizedBox(width: context.rw(8)),
@@ -178,7 +190,10 @@ class StopCard extends StatelessWidget {
                               _ActionButton(
                                 icon: Icons.cancel_rounded,
                                 color: Theme.of(context).colorScheme.error,
-                                backgroundColor: Theme.of(context).colorScheme.error.withValues(alpha: 0.12),
+                                backgroundColor: Theme.of(context)
+                                    .colorScheme
+                                    .error
+                                    .withValues(alpha: 0.12),
                                 onTap: () async {
                                   HapticFeedback.mediumImpact();
                                   final result = await showSkipVisitDialog(

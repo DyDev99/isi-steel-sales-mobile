@@ -67,6 +67,8 @@ class InventoryVisibilityScreen extends StatefulWidget {
     super.key,
     required this.depotName,
     required this.onSubmit,
+    this.initialStatuses = const {},
+    this.onProgressChanged,
   });
 
   /// `RouteSettings.name` for this screen — the resume-dispatcher key that
@@ -76,6 +78,20 @@ class InventoryVisibilityScreen extends StatefulWidget {
 
   final String depotName;
   final VoidCallback onSubmit;
+
+  /// Judgements already recorded for this depot, keyed by item id.
+  ///
+  /// A half-finished audit is the normal case, not an edge case: a rep is
+  /// interrupted mid-aisle by a customer, backs out to take a call, or the app
+  /// is killed in the background. Re-opening to a blank sheet means walking the
+  /// racks twice, so "Continue Working" restores exactly what was judged.
+  final Map<String, StockStatus> initialStatuses;
+
+  /// Fires on every judgement with the complete current picture, so the caller
+  /// can persist it. Reported as a whole map rather than a delta because the
+  /// receiver stores a snapshot — sending deltas would make the caller
+  /// responsible for reassembling state it does not own.
+  final ValueChanged<Map<String, StockStatus>>? onProgressChanged;
 
   @override
   State<InventoryVisibilityScreen> createState() =>
@@ -107,8 +123,22 @@ class _InventoryVisibilityScreenState extends State<InventoryVisibilityScreen> {
         unit: 'Pcs'),
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    // Restore a partially-completed audit.
+    for (final item in _items) {
+      item.status = widget.initialStatuses[item.id];
+    }
+  }
+
   int get _assessed => _items.where((i) => i.status != null).length;
   bool get _complete => _assessed == _items.length;
+
+  Map<String, StockStatus> get _progress => {
+        for (final i in _items)
+          if (i.status != null) i.id: i.status!,
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -173,6 +203,10 @@ class _InventoryVisibilityScreenState extends State<InventoryVisibilityScreen> {
                     onStatusChanged: (status) {
                       HapticFeedback.selectionClick();
                       setState(() => item.status = status);
+                      // Persist on every tap rather than on submit: the whole
+                      // point is surviving an interruption, and an interruption
+                      // never waits for the rep to reach the submit button.
+                      widget.onProgressChanged?.call(_progress);
                     },
                   );
                 },

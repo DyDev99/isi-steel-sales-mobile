@@ -79,7 +79,8 @@ class RouteSummaryCard extends StatelessWidget {
               border: Border.all(color: colors.border, width: 1.w),
               boxShadow: colors.cardShadow,
             ),
-            padding: EdgeInsets.fromLTRB(context.rw(16), context.rh(14), context.rw(14), context.rh(14)),
+            padding: EdgeInsets.fromLTRB(
+                context.rw(16), context.rh(14), context.rw(14), context.rh(14)),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -120,8 +121,8 @@ class RouteSummaryCard extends StatelessWidget {
                   '${route.territory} · ${DateFormat('EEE, MMM d').format(route.visitDate)}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style:
-                      TextStyle(color: colors.textSecondary, fontSize: context.rsp(12)),
+                  style: TextStyle(
+                      color: colors.textSecondary, fontSize: context.rsp(12)),
                 ),
                 SizedBox(height: context.rh(12)),
 
@@ -277,7 +278,8 @@ class _MetricChip extends StatelessWidget {
     final colors = context.appColors;
     final fg = color ?? colors.textSecondary;
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: context.rw(10), vertical: context.rh(6)),
+      padding: EdgeInsets.symmetric(
+          horizontal: context.rw(10), vertical: context.rh(6)),
       decoration: BoxDecoration(
         color: colors.surfaceSoft,
         borderRadius: BorderRadius.circular(context.rr(10)),
@@ -309,7 +311,8 @@ class _Pill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: context.rw(10), vertical: context.rh(5)),
+      padding: EdgeInsets.symmetric(
+          horizontal: context.rw(10), vertical: context.rh(5)),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(context.rr(20)),
@@ -317,7 +320,9 @@ class _Pill extends StatelessWidget {
       child: Text(
         label,
         style: TextStyle(
-            color: color, fontSize: context.rsp(10.5), fontWeight: FontWeight.w800),
+            color: color,
+            fontSize: context.rsp(10.5),
+            fontWeight: FontWeight.w800),
       ),
     );
   }

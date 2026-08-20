@@ -62,8 +62,8 @@ class StockLevelSelector extends StatelessWidget {
         visualDensity: VisualDensity.compact,
         padding: const WidgetStatePropertyAll(
             EdgeInsets.symmetric(horizontal: 10, vertical: 6)),
-        textStyle: WidgetStatePropertyAll(
-            TextStyle(fontSize: context.rsp(12.5), fontWeight: FontWeight.w700)),
+        textStyle: WidgetStatePropertyAll(TextStyle(
+            fontSize: context.rsp(12.5), fontWeight: FontWeight.w700)),
         backgroundColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
             return selectedColor?.withValues(alpha: 0.14);
@@ -158,7 +158,8 @@ class StockLevelRow extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                            color: colors.textSecondary, fontSize: context.rsp(11)),
+                            color: colors.textSecondary,
+                            fontSize: context.rsp(11)),
                       ),
                     ],
                   ],
@@ -190,8 +191,8 @@ class _ProductThumb extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    final fallback =
-        Icon(Icons.inventory_2_outlined, size: context.rr(20), color: colors.iconMuted);
+    final fallback = Icon(Icons.inventory_2_outlined,
+        size: context.rr(20), color: colors.iconMuted);
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
       child: Container(
