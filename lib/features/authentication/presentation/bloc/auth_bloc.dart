@@ -91,7 +91,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         // Permissions travel with the restored session, so a feature gated on
         // `customers.read` knows the answer before its first request rather
         // than discovering it as a 403.
-        _session.setUser(user, permissions: profile.permissions);
+        _session.setUser(user,
+            permissions: profile.permissions,
+            territoryCode: profile.territoryCode);
         return AuthenticatedState(user);
       },
       failure: (_) {
@@ -132,7 +134,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       // guards and role checks read.
       success: (profile) {
         final user = profile.toUser();
-        _session.setUser(user, permissions: profile.permissions);
+        _session.setUser(user,
+            permissions: profile.permissions,
+            territoryCode: profile.territoryCode);
         return AuthenticatedState(user);
       },
       // Never retry a rejected password automatically: five failures lock the
@@ -219,14 +223,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
 
     // Step 3. The id is consumed here — a second exchange returns 400.
-    final result =
-        await _repo.completePhoneLogin(verificationId: challenge.verificationId);
+    final result = await _repo.completePhoneLogin(
+        verificationId: challenge.verificationId);
 
     emit(result.when(
       success: (profile) {
         _challenge = null;
         final user = profile.toUser();
-        _session.setUser(user, permissions: profile.permissions);
+        _session.setUser(user,
+            permissions: profile.permissions,
+            territoryCode: profile.territoryCode);
         return AuthenticatedState(user);
       },
       failure: (f) {
@@ -252,7 +258,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       success: (fresh) {
         // A fresh window and a reset guess counter.
         _challenge = fresh;
-        return AuthOtpRequiredState(challenge: fresh, destination: _destination);
+        return AuthOtpRequiredState(
+            challenge: fresh, destination: _destination);
       },
       failure: (f) => AuthOtpFailureState(
         message: _messageFor(f),

@@ -3,14 +3,23 @@ import 'package:isi_steel_sales_mobile/core/localization/localization_services.d
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/home/domain/dashboard_summary.dart';
 import 'package:isi_steel_sales_mobile/features/home/presentation/widgets/dashboard_kpi_card.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/sales_order/sales_order_list_state.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/screens/sales_order/sales_order_list_screen.dart';
 
 /// Orders summary card. Headline = total orders; badge calls out how many
 /// are still pending, since that's the actionable subset.
+///
+/// Tapping opens [SalesOrderListScreen]. [onTap] is optional and overrides
+/// that — pass one only when the card needs to go somewhere else.
 class OrderPieCard extends StatelessWidget {
-  const OrderPieCard({super.key, required this.summary, required this.onTap});
+  const OrderPieCard({super.key, required this.summary, this.onTap});
 
   final DashboardSummary summary;
-  final VoidCallback onTap;
+
+  /// Defaults to opening the sales-order list, filtered to pending when there
+  /// is a pending badge to act on: the badge is the reason the rep tapped, so
+  /// landing on the full list would make them filter again.
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +50,13 @@ class OrderPieCard extends StatelessWidget {
             value: pendingOrders,
             color: colors.warning),
       ],
-      onTap: onTap,
+      onTap: onTap ??
+          () => SalesOrderListScreen.open(
+                context,
+                initialFilter: pendingOrders > 0
+                    ? SalesOrderFilter.pending
+                    : SalesOrderFilter.all,
+              ),
     );
   }
 }

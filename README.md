@@ -168,7 +168,7 @@ flutter run --release              # release-mode profiling
 | Single test | `flutter test test/features/order/cart_drift_local_data_source_test.dart` |
 | Watch codegen | `dart run build_runner watch --delete-conflicting-outputs` |
 | App icons | `dart run flutter_launcher_icons` |
-| Mock data | `dart run tool/generate_mock_products.dart` · `dart run tool/generate_mock_routes.dart` |
+| Mock data | `dart run tool/generate_mock_products.dart` (catalog only — My Visits runs against the live API) |
 | Android release | `flutter build appbundle --release` |
 | iOS release | `dart run tool/generate_ios_env.dart && flutter build ipa --release` |
 

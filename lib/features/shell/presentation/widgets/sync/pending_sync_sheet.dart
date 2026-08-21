@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/features/order/presentation/l10n/order_labels.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/quotation_sync_status.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/sync_queue_item.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/sync/pending_sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/sync/pending_sync_state.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/l10n/quotation_sync_status_l10n.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/app_bottom_sheet.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
@@ -174,7 +176,10 @@ class _QueueTile extends StatelessWidget {
             [
               if (item.itemCount != null)
                 'sync.items'.trParams({'count': item.itemCount}),
-              if (item.total != null) '\$${item.total!.toStringAsFixed(2)}',
+              if (item.total != null)
+                NumberFormat.currency(
+                        locale: context.languageCode, symbol: r'$')
+                    .format(item.total),
               if (item.attemptCount > 0)
                 'sync.attempt'.trParams({'count': item.attemptCount}),
             ].join(' · '),
@@ -186,8 +191,16 @@ class _QueueTile extends StatelessWidget {
             _InfoLine(
               icon: Icons.check_circle_rounded,
               color: colors.success,
-              text: 'SAP ${item.sapDocumentNumber}'
-                  '${item.syncDurationMs != null ? ' · ${item.syncDurationMs}ms' : ''}',
+              // Two whole keys rather than one built by concatenation: the
+              // timed and untimed forms are different sentences, and gluing a
+              // ' · {n}ms' fragment on assumes an ordering Khmer need not share
+              // (FS-LOC-5).
+              text: item.syncDurationMs == null
+                  ? 'sync.sap_document'.trParams({'id': item.sapDocumentNumber})
+                  : 'sync.sap_document_timed'.trParams({
+                      'id': item.sapDocumentNumber,
+                      'ms': item.syncDurationMs,
+                    }),
             ),
           ],
           if (item.status.needsUserAction && item.lastError != null) ...[
@@ -255,10 +268,16 @@ class _StatusChip extends StatelessWidget {
         color: color.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(20),
       ),
+      // `status.label(context)` — the enum's `label` was a String getter, not a
+      // method, so this did not compile at all; the sheet could not build.
+      // Now read from `orders.sync_status.*`, which was already translated in
+      // both language files and had no caller.
       child: Text(
         status.localizedLabel,
         style: TextStyle(
-            color: color, fontSize: 10.5, fontWeight: FontWeight.w800),
+            color: color,
+            fontSize: context.rsp(10.5),
+            fontWeight: FontWeight.w800),
       ),
     );
   }

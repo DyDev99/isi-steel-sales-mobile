@@ -7,10 +7,12 @@ import 'package:isi_steel_sales_mobile/features/customers/data/local/customer_dr
 import 'package:isi_steel_sales_mobile/features/customers/data/remote/mock_customer_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/repositories/customer_sync_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/route_drift_local_data_source.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/data/remote/mock_route_remote_data_source.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/data/remote/api_route_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/repositories/route_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/repositories/route_sync_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_sync_scope.dart';
+
+import 'route_feed_fixture.dart';
 
 /// The whole Visit data pipeline, in the order the app runs it:
 ///
@@ -46,8 +48,18 @@ void main() {
       network: _AlwaysOnline(),
       logger: logger,
     );
+    // The feed reads the directory at request time rather than at
+    // construction: stage 1 has not run yet here, so the customer ids do not
+    // exist when this is wired up.
     routeSync = RouteSyncRepositoryImpl(
-      remote: MockRouteRemoteDataSource(customerLocal),
+      remote: ApiRouteRemoteDataSource(
+        scriptedRouteFeed(
+          customerIds: () async =>
+              (await customerLocal.browse(page: 0, pageSize: 12))
+                  .map((c) => c.id)
+                  .toList(),
+        ),
+      ),
       local: routeLocal,
       network: _AlwaysOnline(),
     );

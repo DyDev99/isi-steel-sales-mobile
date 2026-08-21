@@ -40,8 +40,10 @@ class AppConstants {
   static const String logoutEndpoint = '$apiPrefix/auth/logout';
   static const String currentUserEndpoint = '$apiPrefix/auth/me';
   static const String sessionsEndpoint = '$apiPrefix/auth/sessions';
-  static const String changePasswordEndpoint = '$apiPrefix/auth/change-password';
-  static const String forgotPasswordEndpoint = '$apiPrefix/auth/forgot-password';
+  static const String changePasswordEndpoint =
+      '$apiPrefix/auth/change-password';
+  static const String forgotPasswordEndpoint =
+      '$apiPrefix/auth/forgot-password';
   static const String resetPasswordEndpoint = '$apiPrefix/auth/reset-password';
   static const String verifyEmailEndpoint = '$apiPrefix/auth/verify-email';
   static const String resendVerificationEndpoint =
@@ -67,6 +69,27 @@ class AppConstants {
   /// The server clamps `pageSize` to this rather than rejecting a larger
   /// value, so the real size must be read back from `metadata.pageSize`.
   static const int maxPageSize = 200;
+
+  // ── Mobile visit endpoints (docs/backend-document.md) ──────────────
+  //
+  // Scope is always the signed-in rep: the server derives `repId` from the
+  // bearer token. The client sends `territory` to narrow the result set, never
+  // as an authorisation claim — a client-supplied rep identity is not trusted
+  // and is not sent.
+  /// `GET` — the rep's routes, paginated, with a flat de-duplicated
+  /// `customers` list each stop joins to by `customerId`.
+  static const String visitRoutesEndpoint = '$apiPrefix/mobile/visits/routes';
+
+  /// `GET` — same body shape as [visitRoutesEndpoint], narrowed by `since`.
+  /// Deliberately a full re-pull of the rep's current scoped set rather than a
+  /// row-level diff: a rep has a handful of routes a day, so the simplicity is
+  /// worth more than the bytes.
+  static const String visitRoutesDeltaEndpoint = '$visitRoutesEndpoint/delta';
+
+  /// `POST` — one batch carrying every pending capture of every kind.
+  /// Answers 200 with an accepted/rejected id split; a single bad row must
+  /// never fail the batch.
+  static const String visitPushEndpoint = '$apiPrefix/mobile/visits/push';
 
   /// Minimum accepted by `POST /auth/change-password` and `/auth/reset-password`.
   static const int minPasswordLength = 12;

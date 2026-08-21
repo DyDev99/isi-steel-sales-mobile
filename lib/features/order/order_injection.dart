@@ -5,6 +5,7 @@ import 'package:isi_steel_sales_mobile/core/services/pdf/pdf_file_service.dart';
 import 'package:isi_steel_sales_mobile/core/services/pdf/pdf_service.dart';
 import 'package:isi_steel_sales_mobile/core/services/pdf/pdf_share_service.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/pdf/pdf_generation_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/sales_order/sales_order_list_cubit.dart';
 import 'package:isi_steel_sales_mobile/core/database/hive/hive_service.dart';
 import 'package:isi_steel_sales_mobile/core/network/network_info.dart';
 import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
@@ -264,6 +265,10 @@ Future<void> registerOrderFeature(GetIt sl) async {
 
   // PDF export for quotation documents. Core PDF services are registered in
   // the root DI container (initDependencies) before this feature runs.
+  // Read-only sales-order list, driven by the WatchSalesOrders stream. A
+  // factory, not a singleton: it holds a live subscription that must be torn
+  // down with the screen.
+  sl.registerFactory(() => SalesOrderListCubit(watchSalesOrders: sl()));
   sl.registerFactory(() => PdfGenerationCubit(
         pdfService: sl<PdfService>(),
         fileService: sl<PdfFileService>(),

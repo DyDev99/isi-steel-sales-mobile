@@ -10,6 +10,7 @@ import 'package:isi_steel_sales_mobile/core/database/hive/hive_service.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/logging/app_logger.dart';
 import 'package:isi_steel_sales_mobile/core/network/connectivity_service.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 /// Prepares the application before any feature loads.
 ///
@@ -63,6 +64,24 @@ class AppBootstrapService {
     });
 
     try {
+      // 3a. `intl` locale data. Must precede any localised date/number
+      //     formatting, which means effectively any screen.
+      //
+      //     Without this, `DateFormat.yMMMd('km')` throws
+      //     `LocaleDataException` — the *explicit-locale* constructors are the
+      //     ones that need it; the no-argument ones fall back to `en_US` and
+      //     silently render English dates to a Khmer-reading rep. Both
+      //     failures were already in the tree: `profile_info_section.dart`
+      //     wraps its formatter in a try/catch and degrades to English rather
+      //     than initialising once, here, where it belongs.
+      //
+      //     Loading every locale is a few hundred KB and happens off the
+      //     network; the app ships exactly two languages and can switch
+      //     between them at runtime, so lazily loading one is not worth the
+      //     branch.
+      await initializeDateFormatting();
+      logger.info('bootstrap.intl_ready');
+
       // 3. Key-value store. Must precede DI (see class doc).
       await HiveService.init();
       logger.info('bootstrap.hive_ready');

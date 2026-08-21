@@ -1,9 +1,17 @@
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/quotation_sync_status.dart';
 
-/// Presentation-side localization for order domain enums — same pattern as
-/// `lead_labels.dart`: domain keeps its English `label` for logs/tests,
-/// UI renders the bundle-resolved `localizedLabel`.
+/// User-facing names for [QuotationSyncStatus], read from
+/// `orders.sync_status.*` in `assets/lang/{en,km}.json`.
+///
+/// Lives in presentation, not on the enum. The enum previously carried a
+/// `label` getter returning English literals, which put user-facing copy in the
+/// domain layer (`docs/FEATURE_UI_STANDARD.md` FS-NN-6, FS-LOC-1) and meant a
+/// Khmer-reading rep saw "Sync failed" on every chip. The translations for
+/// these nine states were already written in both language files and had no
+/// caller — this connects them.
+///
+/// Same shape as `OffVisitReasonL10n`.
 extension QuotationSyncStatusL10n on QuotationSyncStatus {
   String get localizedLabel => switch (this) {
         QuotationSyncStatus.draft => 'orders.sync_status.draft'.tr,

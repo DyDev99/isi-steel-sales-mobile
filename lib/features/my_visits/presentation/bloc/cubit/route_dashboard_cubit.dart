@@ -62,7 +62,7 @@ class RouteDashboardCubit extends Cubit<RouteDashboardState> {
   /// down before summarizing or the cards would silently aggregate every
   /// day's stats together. Compares against the UTC calendar day — `visitDate`
   /// is UTC-anchored throughout this feature (see `RouteDao.fetchRoutesForDay`,
-  /// `MockRouteRemoteDataSource._rebaseToToday`) — comparing local `y/m/d`
+  /// the route feed) — comparing local `y/m/d`
   /// instead would misclassify "today" in any positive-UTC-offset zone.
   List<RoutePlan> _todayOnly(List<RoutePlan> routes) {
     final nowUtc = DateTime.now().toUtc();

@@ -6,17 +6,21 @@ import 'package:isi_steel_sales_mobile/core/logging/app_logger.dart';
 import 'package:isi_steel_sales_mobile/core/network/network_info.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/local/customer_drift_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/route_drift_local_data_source.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/data/remote/mock_route_remote_data_source.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/data/remote/api_route_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/repositories/route_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/repositories/route_sync_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_sync_scope.dart';
+
+import 'route_feed_fixture.dart';
 
 /// End-to-end from the route feed to what the Visit dashboards actually read.
 ///
 /// Every other route test in this folder seeds the DAO directly, which skips
 /// the path that broke in the field: the rep opens My Visits and gets empty
 /// screens. A test that hands the database its rows can never catch that, so
-/// this one starts where the app does — at the remote feed.
+/// this one starts where the app does — at the remote feed, and drives the
+/// real [ApiRouteRemoteDataSource] over a scripted transport so the JSON the
+/// backend actually sends is parsed on the way through.
 class _AlwaysOnline implements NetworkInfo {
   @override
   Future<bool> get isConnected async => true;
@@ -36,8 +40,17 @@ void main() {
     db = AppDatabase(NativeDatabase.memory());
     customers = CustomerDriftLocalDataSource(db.customerDao);
     local = RouteDriftLocalDataSource(db.routeDao, logger);
+    // Resolved per request, so the feed names whatever customers the test
+    // seeded — `route_stops.customer_id` is a live FK.
     sync = RouteSyncRepositoryImpl(
-      remote: MockRouteRemoteDataSource(customers),
+      remote: ApiRouteRemoteDataSource(
+        scriptedRouteFeed(
+          customerIds: () async =>
+              (await customers.browse(page: 0, pageSize: 12))
+                  .map((c) => c.id)
+                  .toList(),
+        ),
+      ),
       local: local,
       network: _AlwaysOnline(),
     );
@@ -82,7 +95,13 @@ void main() {
     // surface as a failure the UI can render — not an exception escaping the
     // repository, and not a success that leaves the dashboards blank with no
     // explanation of why.
-    final result = await sync.runInitialSync(scope);
+    final unsatisfiable = RouteSyncRepositoryImpl(
+      remote: ApiRouteRemoteDataSource(unsatisfiableRouteFeed()),
+      local: local,
+      network: _AlwaysOnline(),
+    );
+
+    final result = await unsatisfiable.runInitialSync(scope);
 
     expect(result.when(success: (_) => false, failure: (_) => true), isTrue,
         reason: 'an unsatisfiable sync must report failure');

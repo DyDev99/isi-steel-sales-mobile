@@ -12,6 +12,7 @@ import 'package:isi_steel_sales_mobile/features/order/domain/usecases/watch_quot
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/watch_sales_orders.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/catalog/product_filter_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/quotation_detail_screen.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/screens/sales_order/sales_order_detail_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/territory/territory_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/order_skeletons.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
@@ -285,7 +286,10 @@ class _OrderEntry {
         isSalesOrder = true,
         isQuotationConverted = false,
         statusLabel = 'orders.sales_order.title'.tr,
-        onTap = null;
+        // Was `null`, which is why a sales-order row did nothing when tapped
+        // while a quotation row opened its detail: there was no sales-order
+        // detail screen to send it to. There is now.
+        onTap = ((context) => SalesOrderDetailScreen.open(context, o));
 
   final String id;
   final int itemCount;
@@ -328,7 +332,8 @@ class _OrderTile extends StatelessWidget {
                     SizedBox(height: context.rh(2)),
                     Text(_formatDate(entry.date),
                         style: TextStyle(
-                            color: colors.textSecondary, fontSize: context.rsp(11.5))),
+                            color: colors.textSecondary,
+                            fontSize: context.rsp(11.5))),
                   ],
                 ),
               ),

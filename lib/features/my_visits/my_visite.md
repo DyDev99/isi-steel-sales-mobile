@@ -23,7 +23,6 @@ my_visits/
 │   ├── screens/         # see workflow below
 │   ├── widgets/         # stop cards, maps, capture bottom sheets, timeline, etc.
 │   ├── models/          # VisitRecord (history UI model)
-│   ├── mock/            # visit history mock data
 │   └── services/        # CameraProofPhotoService (stamped proof photo)
 └── my_visits_injection.dart   # DI wiring
 ```
@@ -92,24 +91,24 @@ Ending the day (`EndDayRequested`, found in the legacy `ActiveRouteScreen`) mark
 ## 8. Sync
 
 - `RouteSyncRepositoryImpl` mirrors the Order feature's sync repository. Initial sync pages through the backend (`pageSize = 50`), upserting customers + routes each page. Delta sync fetches everything changed since the last-synced timestamp in one call (falls back to full initial sync if never synced).
-- Currently backed by `MockRouteRemoteDataSource`, generating in-memory data scoped to a hardcoded territory (`'Phnom Penh'`) since `User` has no territory field yet.
+- Backed by `ApiRouteRemoteDataSource` (`GET /api/v1/mobile/visits/routes` and `.../routes/delta`, see `docs/backend-document.md`) — **the only source of routes.** There is no mock route feed any more: the bundled fixtures were removed once the endpoints landed, because routes are rep- and day-scoped (a committed fixture set is wrong as soon as the calendar moves) and because a feed that always answers made a broken one look healthy. Territory comes from the signed-in rep's `AuthProfile.territoryCode` via `SessionManager` (was a hardcoded `'Phnom Penh'`, which returned an empty day for any rep not in that territory); `repId` is never sent, the server derives the rep from the bearer token.
 - Local DB is the single source of truth for the UI; `RouteDashboardCubit` reads from it via a live stream, and the dashboard re-subscribes whenever `RouteSyncSucceeded` fires.
 - **Hard cross-feature ordering dependency: customer sync must run before route sync.** `route_stops.customer_id` is a real foreign key into `customers` (`PRAGMA foreign_keys = ON`, `core/database/drift/migrations/schema_migrations.dart`), and `RouteDriftLocalDataSource.upsertCustomers` only *updates* an existing customer row (ADR-001 — Customers is SAP-owned, route sync may never invent one). If the customer directory hasn't synced yet, every stop's customer is unknown, the `route_stops` insert throws a FK violation, and the **entire** `upsertRoutesWithStops` transaction aborts — zero routes persist, not just the affected stops. `CustomerSyncCubit.syncIfNeeded()` is triggered at app-shell startup (`main_shell.dart`'s `initState`, alongside `ResumableVisitCubit.refresh()`) specifically to win this race as early as possible; a Customers-tab visit still runs its own `syncIfNeeded()` too (idempotent, checked against the persisted watermark).
-- **`visit_date` must be anchored to the UTC calendar day, not local time.** `RouteDao.fetchRoutesForDay`/`watchRoutesForDay` filter by `DateTime.utc(day.year, day.month, day.day)`. `MockRouteRemoteDataSource._rebaseToToday()` deliberately reinterprets asset dates as UTC before re-anchoring for exactly this reason — in a positive-UTC-offset zone (Cambodia, UTC+7), a naive local-midnight date lands on the *previous* UTC day and silently falls outside every "today" query. Any new sync/seed/test code touching `visitDate` must follow the same convention.
+- **`visit_date` must be anchored to the UTC calendar day, not local time.** `RouteDao.fetchRoutesForDay`/`watchRoutesForDay` filter by `DateTime.utc(day.year, day.month, day.day)`. This bit the deleted fixtures repeatedly, and still binds every sync and test path that writes a `visitDate` — in a positive-UTC-offset zone (Cambodia, UTC+7), a naive local-midnight date lands on the *previous* UTC day and silently falls outside every "today" query. Any new sync/seed/test code touching `visitDate` must follow the same convention.
 
 ## 9. Known dev-only shims (flag before release)
 
 - `kDebugForceInsideGeofence = true` in `route_transit_screen.dart` — forces "I've Arrived" unlocked regardless of real geofence. TODO in code to flip to `false`.
-- Debug-only FAB on the dashboard seeds two fixtures directly into the local DB for testing without traveling: `seedIsiTowerTestRoute` (one 3-stop route, today) and `seedMockRoutesForDates` (5 routes on 2026-07-20, 4 on 2026-07-21 — exercises the calendar's multi-day date filtering). Both borrow real, already-synced customer IDs so the `route_stops.customer_id` FK resolves, and both need at least that many customers already synced locally (throw a `StateError` otherwise). Any `visitDate` in these fixtures must be UTC-anchored (§8) — a local-midnight `DateTime` silently lands on the wrong day in Cambodia's UTC+7.
+- ~~Debug-only fixture seeding on the dashboard~~ — **removed.** `seedIsiTowerTestRoute` and `seedMockRoutesForDates` wrote hardcoded routes straight into the live Drift database on every debug launch. Once written, a seeded row is indistinguishable from a synced one, so the fixtures sat on top of real API data and made an empty or wrong route feed look populated. Mock routes now have exactly one entry point — `--dart-define=USE_MOCK_DATA=true`, which swaps the *remote* source and leaves the database honest about where its rows came from.
 - `FraudPolicy` defaults intentionally permissive (won't block on mock location / VPN).
-- Hardcoded `'routeId'` in the legacy `Static.myVisits` route, and hardcoded territory `'Phnom Penh'` in `RouteSyncScope.forCurrentUser`.
+- Hardcoded `'routeId'` in the legacy `Static.myVisits` route (`lib/routes/app_page.dart`) — it also provides the wrong blocs for the screen it renders, so entering it throws `ProviderNotFoundException`. Unreachable today; still a defect.
 
 ## 10. Known bugs fixed (root causes, for future reference)
 
 1. **Tab switch destroyed all tab state, including this feature's sync cubits.** Fix lives outside this folder (`lib/features/shell/presentation/main_shell.dart`) but explains why My Visits looked broken/reset on every tab switch: the shell's `IndexedStack` was wrapped in a `KeyedSubtree` keyed on the active tab index, so switching tabs gave Flutter a new widget identity and tore down + rebuilt *every* tab — including recreating the factory-registered `RouteDashboardCubit`/`RouteSyncCubit` from scratch, re-running sync each time. Fixed by dropping the per-tab key so `IndexedStack` actually preserves state as intended.
 2. **Check-in photo lost on rebuild/navigation/app kill.** `RouteCheckInScreen` stored the captured proof photo in a local `StatefulWidget` field (`_proof`), singular, only pushed into `VisitCubit`/persistence at final submit. Fixed by writing each capture straight into `VisitCubit` (already Drift-persisted, already list-based) as soon as it's taken — see §3/§5.
 3. **Route sync silently failing, dashboard permanently stuck on "No local data found."** Root cause: the customer/route sync FK ordering dependency described in §8, combined with the dashboard only listening for `RouteSyncSucceeded` and silently dropping `RouteSyncFailed`. Fixed by triggering customer sync at shell startup and surfacing sync failures via SnackBar.
-4. **Seeded test routes invisible to "today."** `seed_isi_tower_test_route.dart`'s `visitDate` was built from local midnight instead of UTC (the same class of bug §8's UTC day-window note describes). Fixed by anchoring to `DateTime.utc(...)`.
+4. **Seeded test routes invisible to "today."** The since-deleted `seed_isi_tower_test_route.dart` built `visitDate` from local midnight instead of UTC (the same class of bug §8's UTC day-window note describes). Fixed at the time by anchoring to `DateTime.utc(...)`; the seeders themselves are now gone (§9), but the UTC-anchoring rule still binds every sync and test path that touches `visitDate`.
 
 ## 11. Stop-centric dashboard (current primary flow)
 
@@ -118,14 +117,12 @@ route-centric dashboard. Flow: **Stop Dashboard → Stop Information → Check-I
 Quotation Builder** (the shelf/stock-count step was removed from the visit path; the
 depot stock-count feature still lives on the Home Quick Action).
 
-- **Mock daily schedule.** `RouteGenerator` (`data/mock/mock_route_data.dart`) now emits
-  **5 daily schedules — Today … Today+4, one route per day, 3–5 stops each** (not 18–30
-  routes of 8–15 stops). Today carries a realistic status mix (a couple checked-out, one
-  checked-in, rest pending, optionally one missed); future days are all pending. All routes
-  carry territory `'Phnom Penh'` (the sync scope); per-stop **province variety still shows**
-  because the displayed shop comes from the joined customer directory
-  (`CustomerRowStopInfoMapper.toStopInfo`), not `routes.json`. Regenerate with
-  `dart run tool/generate_mock_routes.dart`.
+- **Daily schedule comes from the API.** Whatever routes the backend returns for the
+  rep and day are what the dashboard shows — there is no generator and no committed
+  fixture to regenerate. Per-stop **province variety still shows** because the displayed
+  shop comes from the joined customer directory (`CustomerRowStopInfoMapper.toStopInfo`),
+  not from the route payload. An empty dashboard now means the feed is genuinely empty
+  (or failed, which surfaces as a SnackBar) rather than a stale asset.
 - **Multi-day + calendar.** `StopDashboardCubit` watches **all** routes (`WatchAllRoutes`)
   and holds a `selectedDate` (default today). The collapsible calendar shows **per-day
   STOP-count dots** (`StopDashboardLoaded.stopCountForDay`); picking a day calls

@@ -52,6 +52,7 @@ enum AuthenticationState {
 class SessionManager {
   User? _user;
   Set<String> _permissions = const {};
+  String? _territoryCode;
   AuthenticationState _state = AuthenticationState.initializing;
 
   User? get currentUser => _user;
@@ -64,6 +65,20 @@ class SessionManager {
   /// the server re-checks every one. Its job is to avoid firing a request that
   /// can only come back 403, and to hide a button the user cannot press.
   Set<String> get permissions => _permissions;
+
+  /// The rep's assigned territory from `GET /auth/me`, e.g. `PP-NORTH`.
+  ///
+  /// Held here for the same reason as [permissions]: a feature that scopes a
+  /// request by territory should not have to own a copy of the auth profile.
+  /// Null for a guest, and null when the server omits it — callers must have a
+  /// sensible answer for that rather than substituting a guess, because a
+  /// wrong territory returns somebody else's (or nobody's) rows and looks
+  /// exactly like an empty day.
+  ///
+  /// **This is a filter, never an authorisation claim.** The server derives
+  /// the rep from the bearer token; sending a territory only narrows what it
+  /// returns.
+  String? get territoryCode => _territoryCode;
 
   /// Whether the signed-in user holds [permission].
   ///
@@ -128,9 +143,11 @@ class SessionManager {
     }
   }
 
-  void setUser(User user, {Set<String> permissions = const {}}) {
+  void setUser(User user,
+      {Set<String> permissions = const {}, String? territoryCode}) {
     _user = user;
     _permissions = permissions;
+    _territoryCode = territoryCode;
     _users.add(user);
     _transition(AuthenticationState.authenticated);
   }
@@ -140,6 +157,7 @@ class SessionManager {
   void clear() {
     _user = null;
     _permissions = const {};
+    _territoryCode = null;
     _users.add(null);
     _transition(AuthenticationState.guest);
   }
@@ -153,6 +171,7 @@ class SessionManager {
   void expire() {
     _user = null;
     _permissions = const {};
+    _territoryCode = null;
     _users.add(null);
     _transition(AuthenticationState.sessionExpired);
   }

@@ -291,7 +291,27 @@
       "stock_low": "Low stock",
       "stock_out": "Out of stock",
       "create_in_sap": "Create Sales Order in SAP",
-      "sap_status": "SAP Status"
+      "sap_status": "SAP Status",
+      "list_title": "Sales Orders",
+      "detail_title": "Order Detail",
+      "status_pending": "Pending",
+      "status_confirmed": "Confirmed",
+      "filter_all": "All",
+      "order_total": "Order total",
+      "selected_total": "Total shown",
+      "subtotal": "Subtotal",
+      "discount": "Discount",
+      "tax": "Tax",
+      "section_items": "ITEMS",
+      "section_totals": "TOTALS",
+      "section_reference": "REFERENCE",
+      "customized": "Customized",
+      "unnamed_party": "No customer on record",
+      "no_lines": "This order has no line items.",
+      "empty_pending": "No pending orders. Everything you have raised is confirmed.",
+      "empty_confirmed": "No confirmed orders yet.",
+      "load_failed": "Could not load your orders. Pull down or retry.",
+      "status_label": "Status"
     },
     "success": {
       "title": "Order Complete",
@@ -1335,7 +1355,9 @@
     "checkout_title": "Check out of this visit?",
     "checkout_body": "This completes the visit and closes the current stop.",
     "check_out": "Check out",
-    "checkin_progress": "Check-in in progress · {done} of {total} stops done"
+    "checkin_progress": "Check-in in progress · {done} of {total} stops done",
+    "sap_document": "SAP {id}",
+    "sap_document_timed": "SAP {id} · {ms} ms"
   },
   "kpi": {
     "period_monthly": "Monthly",

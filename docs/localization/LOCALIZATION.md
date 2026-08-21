@@ -203,14 +203,13 @@ a defect, not correct locale handling.
 
 ### 8.6 Regenerating the mock assets — not optional
 
-`MockProductRemoteDataSource` / `MockRouteRemoteDataSource` serve the **committed asset**
+`MockProductRemoteDataSource` serves the **committed asset**
 and only fall back to the in-memory generator when the file is *missing*. Editing a
 generator without regenerating leaves the app serving the old data, which looks exactly
 like "my change didn't work":
 
 ```bash
 dart run tool/generate_mock_products.dart   # assets/mock/products.json
-dart run tool/generate_mock_routes.dart     # assets/mock/routes.json
 ```
 
 `test/core/localization/bilingual_mock_data_test.dart` fails if either committed asset has

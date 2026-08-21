@@ -378,3 +378,119 @@ flutter run --dart-define=USE_MOCK_DATA=true
 Useful for demos and offline UI work. A build that silently defaults to mocks is
 a build that looks like it works and ships nothing, which is why the default
 went the other way.
+
+**My Visits ignores this flag** — its fixtures were deleted when the real route
+and push endpoints landed, so it is always live. See the section below.
+
+## My Visits — routes and visit push
+
+Three endpoints, wired behind the two data-source interfaces the feature
+already had. `docs/backend-document.md` is the contract; this section records
+only what the *client* does with it.
+
+| Interface | Live implementation | Endpoint |
+|---|---|---|
+| `RouteRemoteDataSource` | `ApiRouteRemoteDataSource` | `GET /api/v1/mobile/visits/routes`, `…/routes/delta` |
+| `VisitSyncRemoteDataSource` | `ApiVisitSyncRemoteDataSource` | `POST /api/v1/mobile/visits/push` |
+
+Both went in behind the existing interfaces, so nothing above the data layer
+changed — `RouteSyncRepositoryImpl` and `VisitSyncRepositoryImpl` already
+implemented the pending-queue and partial-acceptance behaviour the contract
+asks for.
+
+**These are now the only implementations.** The fixture sources they replaced
+(`MockRouteRemoteDataSource`, `MockVisitSyncRemoteDataSource`,
+`assets/mock/routes.json`, `data/mock/mock_route_data.dart` and
+`tool/generate_mock_routes.dart`) have been deleted, and My Visits no longer
+reads `USE_MOCK_DATA` — that flag still switches the catalog and customer
+features, which keep their fixtures.
+
+Two reasons the route fixtures could not stay. Routes are **rep- and
+day-scoped**, so a committed fixture set is wrong the moment the calendar
+moves; the deleted mock papered over that by rebasing its baked dates onto
+today on every load. And the push mock accepted *every* row unconditionally —
+the one behaviour a push endpoint must never be assumed to have, since it hides
+the rejected/pending handling the whole offline queue depends on. Between them
+they could make a missing or misbehaving endpoint look perfectly healthy.
+
+Tests script the HTTP transport instead of substituting a fake feed
+(`test/features/my_visits/route_feed_fixture.dart`), which is strictly more
+coverage: the old mock built `RouteSyncPage` objects directly, so every test
+using it skipped the JSON parsing the real app has to do.
+
+### Paging is converted, not renumbered
+
+The interface is **0-based** — that contract was set by the mock, and
+`RouteSyncRepositoryImpl` counts from 0 to match. The API is **1-based**, like
+`/mobile/customers`. `ApiRouteRemoteDataSource` adds one when building the
+query and leaves both sides alone. This is not cosmetic: the customer endpoint
+silently treats page 0 as page 1, so an unconverted first call would fetch page
+one twice and never read the last page.
+
+### `repId` is never sent
+
+`RouteSyncScope` carries a `repId`, and it stays on the device. The server
+derives the rep from the bearer token and is required to refuse another rep's
+routes; sending a client-supplied rep id would only imply it were trusted.
+Only `territory` goes on the wire, as a filter.
+
+### Two encodings of the same models
+
+Every capture model has a `toRow()` — that is the **Drift** shape: snake_case,
+booleans as `0`/`1`. The wire shape is camelCase with real JSON booleans, and
+lives separately in `data/models/visit_api_mapper.dart`. Reusing `toRow()` for
+the request would send `stop_id` and `is_mocked: 1` to an endpoint documented to
+read `stopId` and `isMocked: true`.
+
+Timestamps go out through `formatIsoOffset` (`core/network/api_envelope.dart`),
+the inverse of `parseUtc`. `DateTime.toIso8601String()` alone is unsafe here:
+on a local `DateTime` — what every offline capture is stamped with — it emits
+no offset at all, and a server guessing UTC moves a Cambodian morning check-in
+(UTC+7) into the previous night. The client's own timestamp is never
+overwritten with server time.
+
+### What the client does with the response
+
+`acceptedIds` are marked synced; everything else stays pending, including ids
+that come back in neither list. That falls out of the existing repository
+rather than needing a special case — only ids present in `acceptedIds` are ever
+marked. A transport failure throws, so no row is marked at all, and re-posting
+the same batch is safe because the backend is idempotent on the
+client-generated row ids.
+
+### Photos do not sync (OPEN-1, blocking)
+
+`VisitPhoto.url` is a path on the device, and binary cannot travel in the JSON
+batch. There is no upload endpoint. `toPushJson()` therefore sends `photos` as
+an always-empty list and reports the held-back ids as rejected, so they stay
+pending on the device.
+
+This is deliberate and must not be "fixed" by sending the local path: the
+server would accept the row, the client would mark it synced, and the image
+would be lost the moment the app sandbox is cleared — a silent data-loss bug
+that looks like success. A batch containing *only* photos makes no request at
+all rather than posting eight empty arrays.
+
+Unblocking it needs a backend decision between a multipart
+`POST /mobile/visits/photos` and pre-signed upload URLs; the client change is
+then upload-first, rewrite `url`, include the rows.
+
+### Other open items carried in code
+
+- **OPEN-2** — `rejectedIds` means "retry later" and there is no "permanently
+  invalid" bucket, so a genuinely bad row retries forever. A `discardedIds`
+  addition needs a matching client change (TODO in
+  `api_visit_sync_remote_data_source.dart`).
+- **OPEN-5** — route and stop status (`updateStopStatus`, `updateRouteStatus`)
+  are written **locally only** and are not in the push contract. The client has
+  no field to send them in, so this implementation leaves that as-is and relies
+  on the server deriving the transitions from check-in/check-out, which is the
+  simpler of the two options the spec leaves open. Pushing them explicitly
+  would need a new payload section on both sides.
+- **OPEN-6 — resolved.** `RouteSyncScope.forCurrentUser` now reads
+  `AuthProfile.territoryCode` through `SessionManager.territoryCode`; the auth
+  payload does carry it (`auth.session.restored … territory=PP-NORTH`). The
+  old hardcoded `'Phnom Penh'` was correct only for the deleted fixture and
+  returned an empty day for every real rep. When the profile names no
+  territory the query key is omitted rather than sent empty, so the server
+  scopes from the token alone.

@@ -37,17 +37,12 @@ enum QuotationSyncStatus {
   /// Continue-Working card offers to resume.
   bool get isDraft => this == draft || this == readyToSubmit;
 
-  String get label => switch (this) {
-        draft => 'Draft',
-        readyToSubmit => 'Ready to submit',
-        pendingSync => 'Pending sync',
-        syncing => 'Syncing…',
-        submitted => 'Submitted',
-        accepted => 'SAP accepted',
-        rejected => 'SAP rejected',
-        failed => 'Sync failed',
-        conflict => 'Conflict',
-      };
+  // No `label` here. It used to return English literals — user-facing copy in
+  // the domain layer, which ADR-003/FS-NN-6 keep out and FS-LOC-1 forbids
+  // outright, and which rendered English status chips to Khmer readers.
+  // The localized names live in `QuotationSyncStatusL10n`
+  // (`presentation/l10n/quotation_sync_status_l10n.dart`), reading
+  // `orders.sync_status.*`.
 
   static QuotationSyncStatus fromName(String? name) =>
       values.asNameMap()[name] ?? draft;

@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/shared/animations/calendar_month_icon.dart';
 
 class MonthlyTargetCard extends StatefulWidget {
   const MonthlyTargetCard({
@@ -67,6 +68,10 @@ class _MonthlyTargetCardState extends State<MonthlyTargetCard>
     final scheme = theme.colorScheme;
     final appColors = context.appColors;
     final isDark = theme.brightness == Brightness.dark;
+    // FS-ANI-7. The new calendar icon honours this itself; the arrow's drift
+    // is driven from here, so it has to be read at this level too.
+    final reduceMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
 
     final depthOffset = _isPressed ? 2.0 : 6.0;
 
@@ -186,10 +191,17 @@ class _MonthlyTargetCardState extends State<MonthlyTargetCard>
                                       ),
                                     ),
                                     child: Center(
-                                      child: Icon(
-                                        Icons.calendar_today_rounded,
-                                        size: 16.sp,
-                                        color: scheme.primary,
+                                      // Drawn, not a glyph: the medallion now
+                                      // shows a month filling in and a day
+                                      // being marked, which is what the card
+                                      // is about. See CalendarMonthIcon.
+                                      child: CalendarMonthIcon(
+                                        size: 20.r,
+                                        accent: scheme.primary,
+                                        ink: scheme.onSurface
+                                            .withValues(alpha: 0.70),
+                                        muted: scheme.onSurface
+                                            .withValues(alpha: 0.30),
                                       ),
                                     ),
                                   ),
@@ -227,12 +239,33 @@ class _MonthlyTargetCardState extends State<MonthlyTargetCard>
                                     fontWeight: FontWeight.w800,
                                   ),
                                 ),
-                                Transform.translate(
-                                  offset: Offset(_slideAnimation.value, 0),
+                                // The AnimatedBuilder belongs here, on the
+                                // only thing that reads the animation. It used
+                                // to wrap the percentage pill — whose builder
+                                // never touched the value — so the pill
+                                // repainted a gradient and shadow every frame
+                                // for nothing while this arrow, sampling
+                                // `.value` with no listener, never moved at
+                                // all.
+                                AnimatedBuilder(
+                                  animation: _slideAnimation,
+                                  // The icon is identical every frame; only
+                                  // its offset changes. Built once and passed
+                                  // through, so the rebuild is a translation
+                                  // and not an Icon reconstruction.
                                   child: Icon(
                                     Icons.arrow_forward_ios_rounded,
                                     size: 10.sp,
                                     color: scheme.primary,
+                                  ),
+                                  builder: (context, child) =>
+                                      Transform.translate(
+                                    offset: Offset(
+                                        reduceMotion
+                                            ? 0
+                                            : _slideAnimation.value,
+                                        0),
+                                    child: child,
                                   ),
                                 ),
                               ],
@@ -281,45 +314,40 @@ class _MonthlyTargetCardState extends State<MonthlyTargetCard>
 
                             // Explicit "View KPI" interactive affordance pill
                             if (widget.onTap != null)
-                              AnimatedBuilder(
-                                animation: _pulseController,
-                                builder: (context, child) {
-                                  return Container(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 12.w,
-                                      vertical: 4.h,
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 12.w,
+                                  vertical: 4.h,
+                                ),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      appColors.success,
+                                      Color.lerp(
+                                        appColors.success,
+                                        _goldDark,
+                                        0.25,
+                                      )!,
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(20.r),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: appColors.success
+                                          .withValues(alpha: 0.35),
+                                      offset: const Offset(0, 2),
+                                      blurRadius: 4,
                                     ),
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          appColors.success,
-                                          Color.lerp(
-                                            appColors.success,
-                                            _goldDark,
-                                            0.25,
-                                          )!,
-                                        ],
-                                      ),
-                                      borderRadius: BorderRadius.circular(20.r),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: appColors.success
-                                              .withValues(alpha: 0.35),
-                                          offset: const Offset(0, 2),
-                                          blurRadius: 4,
-                                        ),
-                                      ],
-                                    ),
-                                    child: Text(
-                                      '$_percentage%',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: context.rsp(12),
-                                        fontWeight: FontWeight.w900,
-                                      ),
-                                    ),
-                                  );
-                                },
+                                  ],
+                                ),
+                                child: Text(
+                                  '$_percentage%',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: context.rsp(12),
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
                               ),
                           ],
                         ),

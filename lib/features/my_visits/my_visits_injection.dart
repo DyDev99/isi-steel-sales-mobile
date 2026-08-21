@@ -1,9 +1,9 @@
+import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
 import 'package:isi_steel_sales_mobile/core/database/hive/hive_service.dart';
 import 'package:isi_steel_sales_mobile/core/network/network_info.dart';
 import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
-import 'package:isi_steel_sales_mobile/features/customers/data/local/customer_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/depot_selection_store.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/location_sample_drift_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/location_sample_local_data_source.dart';
@@ -12,8 +12,8 @@ import 'package:isi_steel_sales_mobile/features/my_visits/data/local/route_local
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/visit_drift_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/visit_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/workflow_state_local_data_source.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/data/remote/mock_route_remote_data_source.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/data/remote/mock_visit_sync_remote_data_source.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/data/remote/api_route_remote_data_source.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/data/remote/api_visit_sync_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/remote/route_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/remote/visit_sync_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/repositories/active_workflow_repository_impl.dart';
@@ -80,8 +80,14 @@ import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubi
 /// awaited here any more — see the matching note on `registerOrderFeature`.
 Future<void> registerMyVisitsFeature(GetIt sl) async {
   // ── Data sources ────────────────────────────────────────────────────
+  // Live only. The bundled route fixtures (`assets/mock/routes.json`,
+  // `MockRouteRemoteDataSource` and its generator) were removed once the real
+  // endpoints landed: routes are rep- and day-scoped, so a fixture set is
+  // wrong the moment the calendar moves, and a mock that always answers made
+  // a broken feed look healthy. `USE_MOCK_DATA` still switches the *other*
+  // features; My Visits has one source of truth now.
   sl.registerLazySingleton<RouteRemoteDataSource>(
-      () => MockRouteRemoteDataSource(sl<CustomerLocalDataSource>()));
+      () => ApiRouteRemoteDataSource(sl<Dio>()));
   sl.registerLazySingleton<RouteLocalDataSource>(
       () => RouteDriftLocalDataSource(sl<AppDatabase>().routeDao, sl()));
   sl.registerLazySingleton<VisitLocalDataSource>(
@@ -96,8 +102,11 @@ Future<void> registerMyVisitsFeature(GetIt sl) async {
       LocationSampleDriftLocalDataSource(sl<AppDatabase>().routeTelemetryDao));
   sl.registerLazySingleton<WorkflowStateLocalDataSource>(() =>
       WorkflowStateLocalDataSourceImpl(sl<AppDatabase>().workflowStateDao));
+  // Likewise live only. The mock accepted every row unconditionally, which is
+  // the one behaviour a push endpoint must never be trusted to have — it hid
+  // exactly the rejected/pending handling this feature depends on.
   sl.registerLazySingleton<VisitSyncRemoteDataSource>(
-      () => const MockVisitSyncRemoteDataSource());
+      () => ApiVisitSyncRemoteDataSource(sl<Dio>()));
 
   // ── Services ────────────────────────────────────────────────────────
   sl.registerLazySingleton<LocationTrackingService>(

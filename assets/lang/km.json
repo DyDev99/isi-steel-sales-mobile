@@ -291,7 +291,27 @@
       "stock_low": "ស្តុកទាប",
       "stock_out": "អស់ស្តុក",
       "create_in_sap": "បង្កើតការបញ្ជាទិញលក់ក្នុង SAP",
-      "sap_status": "ស្ថានភាព SAP"
+      "sap_status": "ស្ថានភាព SAP",
+      "list_title": "ការបញ្ជាទិញលក់",
+      "detail_title": "ព័ត៌មានលម្អិតការបញ្ជាទិញ",
+      "status_pending": "កំពុងរង់ចាំ",
+      "status_confirmed": "បានបញ្ជាក់",
+      "filter_all": "ទាំងអស់",
+      "order_total": "សរុបការបញ្ជាទិញ",
+      "selected_total": "សរុបដែលបានបង្ហាញ",
+      "subtotal": "សរុបរង",
+      "discount": "បញ្ចុះតម្លៃ",
+      "tax": "ពន្ធ",
+      "section_items": "មុខទំនិញ",
+      "section_totals": "សរុប",
+      "section_reference": "ឯកសារយោង",
+      "customized": "កែតាមតម្រូវការ",
+      "unnamed_party": "គ្មានអតិថិជនក្នុងកំណត់ត្រា",
+      "no_lines": "ការបញ្ជាទិញនេះមិនមានមុខទំនិញទេ។",
+      "empty_pending": "គ្មានការបញ្ជាទិញកំពុងរង់ចាំទេ។ អ្វីៗដែលអ្នកបានធ្វើគឺបានបញ្ជាក់ហើយ។",
+      "empty_confirmed": "មិនទាន់មានការបញ្ជាទិញដែលបានបញ្ជាក់ទេ។",
+      "load_failed": "មិនអាចផ្ទុកការបញ្ជាទិញរបស់អ្នកបានទេ។ សូមទាញចុះ ឬព្យាយាមម្តងទៀត។",
+      "status_label": "ស្ថានភាព"
     },
     "success": {
       "title": "ការបញ្ជាទិញបានបញ្ចប់",
@@ -1349,7 +1369,9 @@
     "sync_now": "ធ្វើសមកាលកម្មឥឡូវនេះ",
     "syncing": "កំពុងធ្វើសមកាលកម្ម…",
     "syncing_data": "កំពុងធ្វើសមកាលកម្មទិន្នន័យ…",
-    "unfinished_drafts": "អ្នកមានសេចក្តីព្រាងមិនទាន់បញ្ចប់"
+    "unfinished_drafts": "អ្នកមានសេចក្តីព្រាងមិនទាន់បញ្ចប់",
+    "sap_document": "SAP {id}",
+    "sap_document_timed": "SAP {id} · {ms} ms"
   },
   "kpi": {
     "period_monthly": "ប្រចាំខែ",

@@ -61,8 +61,7 @@ class ApiEnvelope {
           .toList();
 
   /// The nested object under [key], for payloads like `data.customer`.
-  DataMap? object(String key) =>
-      (data[key] as Map?)?.cast<String, dynamic>();
+  DataMap? object(String key) => (data[key] as Map?)?.cast<String, dynamic>();
 }
 
 /// Paging and sync bookkeeping from the envelope's `metadata` block.
@@ -131,4 +130,39 @@ DateTime? parseUtc(Object? raw) {
   if (raw is DateTime) return raw.toUtc();
   if (raw is! String || raw.isEmpty) return null;
   return DateTime.tryParse(raw)?.toUtc();
+}
+
+/// The inverse of [parseUtc]: an ISO-8601 string that always carries an
+/// explicit UTC offset.
+///
+/// `DateTime.toIso8601String()` alone is not safe to put on the wire. On a
+/// **local** `DateTime` — which is what `DateTime.now()` returns, and what
+/// every offline visit capture is stamped with — it emits no offset at all
+/// (`2026-08-20T09:15:00.000`). A server reading that has to guess a zone, and
+/// in Cambodia (UTC+7) guessing UTC moves a morning check-in seven hours into
+/// the previous night. That is the same class of bug as the UTC-anchoring one
+/// the route fixtures already hit.
+///
+/// So: UTC instants keep the `Z` designator, and local instants are written
+/// with their real offset (`+07:00`). Both are valid ISO-8601 and both name
+/// the same instant unambiguously — which is the whole requirement.
+///
+/// Sub-second precision is dropped deliberately: the API's documented format
+/// is second-resolution, and no visit capture is meaningful below it.
+String formatIsoOffset(DateTime value) {
+  String two(int n) => n.toString().padLeft(2, '0');
+
+  final date = '${value.year.toString().padLeft(4, '0')}-'
+      '${two(value.month)}-${two(value.day)}';
+  final time = '${two(value.hour)}:${two(value.minute)}:${two(value.second)}';
+
+  if (value.isUtc) return '${date}T${time}Z';
+
+  final offset = value.timeZoneOffset;
+  final sign = offset.isNegative ? '-' : '+';
+  final absolute = offset.abs();
+  return '$date'
+      'T'
+      '$time$sign${two(absolute.inHours)}:'
+      '${two(absolute.inMinutes.remainder(60))}';
 }

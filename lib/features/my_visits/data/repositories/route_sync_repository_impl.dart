@@ -1,5 +1,6 @@
 import 'package:isi_steel_sales_mobile/core/error/exceptions.dart';
 import 'package:isi_steel_sales_mobile/core/error/failures.dart';
+import 'package:isi_steel_sales_mobile/core/network/api_error.dart';
 import 'package:isi_steel_sales_mobile/core/network/network_info.dart';
 import 'package:isi_steel_sales_mobile/core/utils/result.dart';
 import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
@@ -59,6 +60,8 @@ class RouteSyncRepositoryImpl implements RouteSyncRepository {
       await _local.setLastSyncedAt(_routesEntity, now);
       return Success(
           RouteSyncResult(upserted: total, deleted: 0, syncedAt: now));
+    } on ApiException catch (e) {
+      return Failed(_failure(e.error));
     } on ServerException catch (e) {
       return Failed(
           ServerFailure(message: e.message, statusCode: e.statusCode));
@@ -82,11 +85,42 @@ class RouteSyncRepositoryImpl implements RouteSyncRepository {
       await _local.setLastSyncedAt(_routesEntity, now);
       return Success(RouteSyncResult(
           upserted: delta.routes.length, deleted: 0, syncedAt: now));
+    } on ApiException catch (e) {
+      return Failed(_failure(e.error));
     } on ServerException catch (e) {
       return Failed(
           ServerFailure(message: e.message, statusCode: e.statusCode));
     } on CacheException catch (e) {
       return Failed(CacheFailure(message: e.message));
     }
+  }
+
+  /// Maps a transport/API failure onto the domain [Failure] the UI renders.
+  ///
+  /// **[ApiException] must be caught explicitly.** It is a sibling of
+  /// [ServerException], not a subtype — `on ServerException` does not catch it.
+  /// The data sources this repository calls throw [ApiException] exclusively,
+  /// so without this the exception escaped `runDeltaSync` entirely, past the
+  /// cubit, and surfaced as an uncaught zone error that took the app down on a
+  /// plain expired session. The fixture source this replaced happened to throw
+  /// [ServerException], which is why the gap only appeared against the live API.
+  Failure _failure(ApiError error) {
+    if (error.code == ApiErrorCodes.network) return const NetworkFailure();
+
+    // A 401 that survived the interceptor means the refresh was refused too,
+    // so the session is genuinely gone. Say so, rather than blaming the route
+    // feed for what is an authentication problem — the rep needs to sign in
+    // again, and "could not sync routes" would send them looking at the wrong
+    // thing. Signing them out is the interceptor's job, not this one's.
+    if (error.isUnauthenticated) {
+      return AuthenticationFailure(
+          message:
+              error.message ?? 'Your session expired. Please sign in again.');
+    }
+
+    return ServerFailure(
+      message: error.message ?? 'Could not sync routes. Please try again.',
+      statusCode: error.statusCode,
+    );
   }
 }

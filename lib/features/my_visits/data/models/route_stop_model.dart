@@ -17,9 +17,10 @@ class RouteStopModel extends RouteStop {
     super.actualDeparture,
   });
 
-  /// The mock remote payload only carries `customerId` — the caller
-  /// (`MockRouteRemoteDataSource`) resolves and passes the full customer
-  /// record in, so this model never needs its own lookup path.
+  /// The remote payload only carries `customerId`; `customers` arrives as a
+  /// flat de-duplicated list alongside it. The caller
+  /// (`ApiRouteRemoteDataSource`) resolves the join and passes the full
+  /// customer record in, so this model never needs its own lookup path.
   factory RouteStopModel.fromJson(DataMap json,
           {required CustomerStopInfo customer}) =>
       RouteStopModel(

@@ -1,16 +1,10 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
-import 'package:isi_steel_sales_mobile/core/error/exceptions.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
-import 'package:isi_steel_sales_mobile/features/customers/data/local/customer_local_data_source.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/data/local/route_local_data_source.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/data/local/seed_isi_tower_test_route.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/data/local/seed_mock_routes_for_dates.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_note.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_photo.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_status.dart';
@@ -35,8 +29,7 @@ import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 ///
 /// Reps see *stops* directly (not routes); the list re-sorts as they move.
 /// Offline-first — data is the local Drift stream; distance/sort/search are all
-/// local. Kicks route sync + (debug) fixture seeding on open; the live stream
-/// picks up whatever lands.
+/// local. Kicks route sync on open; the live stream picks up whatever lands.
 class StopDashboardScreen extends StatefulWidget {
   const StopDashboardScreen({super.key});
 
@@ -45,38 +38,20 @@ class StopDashboardScreen extends StatefulWidget {
 }
 
 class _StopDashboardScreenState extends State<StopDashboardScreen> {
-  /// Process-scoped latch — see the note in the old dashboard; seeding is
-  /// idempotent, this only avoids redundant disk work on re-entry.
-  static bool _debugFixturesSeeded = false;
-
   @override
   void initState() {
     super.initState();
     context.read<StopDashboardCubit>().start();
+    // The only source of routes: pull from the backend, push what's pending.
+    // Debug fixture seeding used to run here too, writing hardcoded routes
+    // straight into the live database on every launch. It has been removed —
+    // seeded rows are indistinguishable from synced ones once written, so they
+    // sat on top of real API data and made an empty or wrong route feed look
+    // populated. Mock data now has exactly one entry point:
+    // `--dart-define=USE_MOCK_DATA=true`, which swaps the *remote* source and
+    // leaves the database honest about where its rows came from.
     context.read<RouteSyncCubit>().syncIfNeeded();
     context.read<RouteSyncCubit>().pushPending();
-    if (kDebugMode) _autoSeedDebugFixtures();
-  }
-
-  /// TODO(release-gate): debug-only fixture seeding (docs/SECURITY.md §11).
-  /// Writes test routes/customers straight to the local DB; the cubit's live
-  /// stream re-emits automatically, so no manual reload is needed here.
-  Future<void> _autoSeedDebugFixtures() async {
-    if (_debugFixturesSeeded) return;
-    _debugFixturesSeeded = true;
-    try {
-      await seedIsiTowerTestRoute(
-          sl<RouteLocalDataSource>(), sl<CustomerLocalDataSource>());
-      await seedMockRoutesForDates(
-          sl<RouteLocalDataSource>(), sl<CustomerLocalDataSource>());
-    } on StateError catch (e) {
-      // Expected on a cold launch before customer sync lands — retry next open.
-      _debugFixturesSeeded = false;
-      debugPrint('Auto-seed skipped: ${e.message}');
-    } catch (e) {
-      _debugFixturesSeeded = false;
-      debugPrint('Auto-seed failed: ${e is CacheException ? e.message : e}');
-    }
   }
 
   Future<void> _refresh(BuildContext context) async {

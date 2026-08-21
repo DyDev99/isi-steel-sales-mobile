@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/mock/mock_customer_data.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/data/mock/mock_route_data.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/mock/mock_product_data.dart';
 
 /// Guards the single-source rule for mock master data: **every generated
@@ -45,28 +44,6 @@ void main() {
       expect(c.searchableValues, contains(c.customerCode));
     });
   });
-
-  group('route dataset', () {
-    final data = MockRouteData.generate(const ['cust-001', 'cust-002']);
-    final customers = (data['customers'] as List).cast<Map<String, dynamic>>();
-
-    test('every route customer carries a Khmer name', () {
-      final missing = customers
-          .where((c) => ((c['nameKh'] as String?) ?? '').trim().isEmpty)
-          .toList();
-      expect(missing, isEmpty);
-    });
-
-    // The plan name is UI chrome the mock happens to supply, so it travels as
-    // a translation key rather than an English label baked into the data.
-    test('route plan names are translation keys, not English labels', () {
-      final routes = (data['routes'] as List).cast<Map<String, dynamic>>();
-      for (final route in routes) {
-        expect(route['name'], startsWith('my_visits.route_info.plan_'));
-      }
-    });
-  });
-
 
   group('product catalog generator', () {
     final data = MockProductData.generate();
@@ -121,22 +98,6 @@ void main() {
             .length,
         0,
       );
-    });
-  });
-
-  group('committed assets/mock/routes.json', () {
-    test('is not stale: every customer row has a Khmer name', () {
-      final decoded =
-          json.decode(File('assets/mock/routes.json').readAsStringSync())
-              as Map<String, dynamic>;
-      final customers =
-          (decoded['customers'] as List).cast<Map<String, dynamic>>();
-      final missing = customers
-          .where((c) => ((c['nameKh'] as String?) ?? '').trim().isEmpty)
-          .length;
-      expect(missing, 0,
-          reason: '$missing of ${customers.length} rows have no nameKh — '
-              're-run `dart run tool/generate_mock_routes.dart`');
     });
   });
 }
