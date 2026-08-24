@@ -206,7 +206,7 @@ class _KpiScreenState extends State<KpiScreen> {
               ),
               SizedBox(height: context.rh(12)),
 
-              // 5. Updated Sales Performance Metrics Grid
+              // 5. Sales Performance Metrics Grid (2 columns top, full width bottom)
               _buildMetricsGrid(scheme, appColors, theme),
               SizedBox(height: context.rh(24)),
 
@@ -465,70 +465,70 @@ class _KpiScreenState extends State<KpiScreen> {
     );
   }
 
-  /// Updated metrics grid according to image requirements
+  /// Grid containing the 4 standard tiles in 2 columns + full-width Order Breakdown card
   Widget _buildMetricsGrid(
       ColorScheme scheme, dynamic appColors, ThemeData theme) {
-    final tiles = [
-      const _MetricTile(
-        title: '# of Active Outlets',
-        subtitle: 'PO within 3 months',
-        value: '124',
-        growth: '+8.2%',
-        isPositive: true,
-        icon: Icons.store_outlined,
-      ),
-      const _MetricTile(
-        title: '# of Inactive Outlets',
-        value: '18',
-        growth: '-2.1%',
-        isPositive: true,
-        icon: Icons.storefront_outlined,
-      ),
-      const _MetricTile(
-        title: '# of ASO',
-        value: '12',
-        growth: '0.0%',
-        isPositive: true,
-        icon: Icons.badge_outlined,
-      ),
-      const _MetricTile(
-        title: 'Conversion Rate',
-        subtitle: 'Strike Rate',
-        value: '34.8%',
-        growth: '+3.1%',
-        isPositive: true,
-        icon: Icons.pie_chart_outline_rounded,
-      ),
-      const _MetricTile(
-        title: 'Total Orders',
-        subtitle: 'In-visit vs Ad-hoc',
-        value: '142',
-        detailText: '110 In-visit / 32 Ad-hoc',
-        growth: '+12.4%',
-        isPositive: true,
-        icon: Icons.shopping_bag_outlined,
-      ),
-    ];
-
-    final spacing = context.rw(12);
-    final targetTileWidth = context.rw(160);
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final columns = (constraints.maxWidth / (targetTileWidth + spacing))
-            .floor()
-            .clamp(2, 6);
-        final tileWidth =
-            (constraints.maxWidth - spacing * (columns - 1)) / columns;
-
-        return Wrap(
-          spacing: spacing,
-          runSpacing: context.rh(12),
-          children: [
-            for (final tile in tiles) SizedBox(width: tileWidth, child: tile),
+    return Column(
+      children: [
+        Row(
+          children: const [
+            Expanded(
+              child: _MetricTile(
+                title: '# of Active Outlets',
+                subtitle: 'PO within 3 months',
+                value: '124',
+                growth: '+8.2%',
+                isPositive: true,
+                icon: Icons.store_outlined,
+              ),
+            ),
+            SizedBox(width: 12),
+            Expanded(
+              child: _MetricTile(
+                title: '# of Inactive Outlets',
+                value: '18',
+                growth: '-2.1%',
+                isPositive: true,
+                icon: Icons.storefront_outlined,
+              ),
+            ),
           ],
-        );
-      },
+        ),
+        SizedBox(height: context.rh(12)),
+        Row(
+          children: const [
+            Expanded(
+              child: _MetricTile(
+                title: '# of ASO',
+                value: '12',
+                growth: '0.0%',
+                isPositive: true,
+                icon: Icons.badge_outlined,
+              ),
+            ),
+            SizedBox(width: 12),
+            Expanded(
+              child: _MetricTile(
+                title: 'Conversion Rate',
+                subtitle: 'Strike Rate',
+                value: '34.8%',
+                growth: '+3.1%',
+                isPositive: true,
+                icon: Icons.pie_chart_outline_rounded,
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: context.rh(12)),
+        // In-visit vs Ad-hoc Orders Detailed Card
+        const _InVisitVsAdHocCard(
+          totalOrders: 74,
+          inVisitCount: 9,
+          inVisitPercentage: 12,
+          adHocCount: 65,
+          adHocPercentage: 88,
+        ),
+      ],
     );
   }
 
@@ -629,6 +629,255 @@ class _KpiScreenState extends State<KpiScreen> {
               count: '42',
               percent: '22%',
               isLast: true),
+        ],
+      ),
+    );
+  }
+}
+
+/// New Component matching the exact design from the reference image
+class _InVisitVsAdHocCard extends StatelessWidget {
+  const _InVisitVsAdHocCard({
+    required this.totalOrders,
+    required this.inVisitCount,
+    required this.inVisitPercentage,
+    required this.adHocCount,
+    required this.adHocPercentage,
+  });
+
+  final int totalOrders;
+  final int inVisitCount;
+  final int inVisitPercentage;
+  final int adHocCount;
+  final int adHocPercentage;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final appColors = context.appColors;
+
+    final inVisitRatio = (inVisitPercentage / 100).clamp(0.0, 1.0);
+
+    return Container(
+      padding: EdgeInsets.all(context.rw(16)),
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        borderRadius: BorderRadius.circular(context.rr(16)),
+        border: Border.all(color: appColors.border.withValues(alpha: 0.6)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'In-visit vs Ad-hoc Orders',
+            style: TextStyle(
+              fontSize: context.rsp(14),
+              fontWeight: FontWeight.w700,
+              color: scheme.onSurface,
+            ),
+          ),
+          SizedBox(height: context.rh(8)),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text(
+                '$totalOrders',
+                style: TextStyle(
+                  fontSize: context.rsp(20),
+                  fontWeight: FontWeight.w900,
+                  color: scheme.onSurface,
+                ),
+              ),
+              SizedBox(width: context.rw(6)),
+              Text(
+                'TOTAL ORDERS',
+                style: TextStyle(
+                  fontSize: context.rsp(11),
+                  fontWeight: FontWeight.w700,
+                  color: scheme.onSurface.withValues(alpha: 0.45),
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: context.rh(12)),
+          // Segmented Progress Bar
+          ClipRRect(
+            borderRadius: BorderRadius.circular(context.rr(6)),
+            child: SizedBox(
+              height: context.rh(8),
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: inVisitPercentage,
+                    child: Container(color: Colors.green.shade600),
+                  ),
+                  SizedBox(width: context.rw(4)),
+                  Expanded(
+                    flex: adHocPercentage,
+                    child: Container(color: const Color(0xFF5B4EFF)),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SizedBox(height: context.rh(14)),
+          // Sub-metrics Box
+          Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: context.rw(12),
+              vertical: context.rh(10),
+            ),
+            decoration: BoxDecoration(
+              color: appColors.surfaceSoft,
+              borderRadius: BorderRadius.circular(context.rr(12)),
+            ),
+            child: Row(
+              children: [
+                // In-visit Column
+                Expanded(
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(context.rw(6)),
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.arrow_forward_rounded,
+                          size: context.rr(14),
+                          color: Colors.green.shade700,
+                        ),
+                      ),
+                      SizedBox(width: context.rw(8)),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                '$inVisitCount',
+                                style: TextStyle(
+                                  fontSize: context.rsp(14),
+                                  fontWeight: FontWeight.w800,
+                                  color: scheme.onSurface,
+                                ),
+                              ),
+                              SizedBox(width: context.rw(4)),
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: context.rw(6),
+                                  vertical: context.rh(2),
+                                ),
+                                decoration: BoxDecoration(
+                                  color: scheme.onSurface
+                                      .withValues(alpha: 0.08),
+                                  borderRadius: BorderRadius.circular(
+                                    context.rr(10),
+                                  ),
+                                ),
+                                child: Text(
+                                  '$inVisitPercentage%',
+                                  style: TextStyle(
+                                    fontSize: context.rsp(10),
+                                    fontWeight: FontWeight.w700,
+                                    color: scheme.onSurface,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Text(
+                            'In-visit',
+                            style: TextStyle(
+                              fontSize: context.rsp(11),
+                              fontWeight: FontWeight.w500,
+                              color: scheme.onSurface.withValues(alpha: 0.5),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  height: context.rh(28),
+                  width: 1,
+                  color: scheme.onSurface.withValues(alpha: 0.12),
+                ),
+                SizedBox(width: context.rw(12)),
+                // Ad-hoc Column
+                Expanded(
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(context.rw(6)),
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.exit_to_app_rounded,
+                          size: context.rr(14),
+                          color: const Color(0xFF5B4EFF),
+                        ),
+                      ),
+                      SizedBox(width: context.rw(8)),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                '$adHocCount',
+                                style: TextStyle(
+                                  fontSize: context.rsp(14),
+                                  fontWeight: FontWeight.w800,
+                                  color: scheme.onSurface,
+                                ),
+                              ),
+                              SizedBox(width: context.rw(4)),
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: context.rw(6),
+                                  vertical: context.rh(2),
+                                ),
+                                decoration: BoxDecoration(
+                                  color: scheme.onSurface
+                                      .withValues(alpha: 0.08),
+                                  borderRadius: BorderRadius.circular(
+                                    context.rr(10),
+                                  ),
+                                ),
+                                child: Text(
+                                  '$adHocPercentage%',
+                                  style: TextStyle(
+                                    fontSize: context.rsp(10),
+                                    fontWeight: FontWeight.w700,
+                                    color: scheme.onSurface,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Text(
+                            'Ad-hoc',
+                            style: TextStyle(
+                              fontSize: context.rsp(11),
+                              fontWeight: FontWeight.w500,
+                              color: scheme.onSurface.withValues(alpha: 0.5),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );

@@ -17,23 +17,26 @@ class RouteWithStops {
   final List<RouteStopsCompanion> stops;
 }
 
-/// A stop joined to the customer it visits.
+/// A stop joined to the customer details the **route feed** supplied for it.
 ///
 /// The domain's `RouteStop` embeds the whole customer record, not an id, so the
-/// read has to join. Under the old split that join was impossible across
-/// database files — `routes.db` kept a denormalised copy of `customers` to fake
-/// it, which is exactly the duplication T1.5 removes. One database, one real
-/// join, one source of truth (ADR-001).
+/// read has to join. It joins [RouteCustomers] — the route feed's own flat
+/// mirror — rather than the customer directory, because the two feeds are
+/// separate endpoints with separate scopes and the directory routinely does not
+/// have a stop's customer yet (ADR-011).
 class RouteStopWithCustomer {
   const RouteStopWithCustomer(this.stop, this.customer);
 
   final RouteStopRow stop;
 
-  /// Drift's data class for `customers`, which predates the `Row` suffix
-  /// convention the T1.5 tables adopt. Renaming it would ripple through the
-  /// already-shipped T2 customer code for no functional gain — tracked as
-  /// follow-up naming drift, not fixed in passing (`playbook` §8).
-  final Customer customer;
+  /// Null when the route feed sent a stop without its customer row — rare, and
+  /// deliberately **not** filtered out.
+  ///
+  /// The join is a LEFT join for exactly this reason. An inner join would drop
+  /// the stop from the rep's day, which is the same data loss the foreign key
+  /// used to cause, just silent instead of loud. The caller renders what it has
+  /// (`docs/adr/ADR011localmirrornorelations.md`).
+  final RouteCustomerRow? customer;
 }
 
 /// Scoped accessor for the route aggregate: plans, stops, and the delta cursor.
@@ -42,7 +45,8 @@ class RouteStopWithCustomer {
 /// (ADR-004: generated DAOs give compile-time safety the raw-SQL version could
 /// not). Reads exclude soft-deleted rows — a row pending a delete-push is still
 /// on disk (`docs/DATABASE_GUIDE.md` §3.1) but must not be shown to the user.
-@DriftAccessor(tables: [Routes, RouteStops, RouteSyncMeta, Customers])
+@DriftAccessor(
+    tables: [Routes, RouteStops, RouteCustomers, RouteSyncMeta, Customers])
 class RouteDao extends DatabaseAccessor<AppDatabase> with _$RouteDaoMixin {
   RouteDao(super.db);
 
@@ -85,17 +89,24 @@ class RouteDao extends DatabaseAccessor<AppDatabase> with _$RouteDaoMixin {
         ..orderBy([(t) => OrderingTerm.asc(t.sequence)]))
       .get();
 
-  /// Stops joined to their customers, in visit order.
+  /// Stops joined to the route feed's customer rows, in visit order.
   ///
-  /// An `innerJoin` rather than N per-stop lookups: a route has dozens of stops
-  /// and the per-stop variant is the N+1 pattern `playbook` §9 rejects. The join
-  /// is safe to make inner because `customer_id` is a non-null FK — a stop
-  /// cannot exist without its customer.
+  /// One join rather than N per-stop lookups: a route has dozens of stops and
+  /// the per-stop variant is the N+1 pattern `playbook` §9 rejects.
+  ///
+  /// **A `leftOuterJoin`, and that matters.** It used to be an inner join
+  /// against the customer *directory*, justified by `customer_id` being a
+  /// non-null foreign key. That foreign key is gone (ADR-011) because it was
+  /// destroying whole routes, and an inner join would have quietly inherited
+  /// the same failure — a stop whose customer row had not arrived would vanish
+  /// from the rep's day with no error anywhere. A left join keeps the stop and
+  /// lets the caller decide how to render an unknown shop.
   Future<List<RouteStopWithCustomer>> fetchStopsWithCustomers(
     String routeId,
   ) async {
     final query = select(routeStops).join([
-      innerJoin(customers, customers.id.equalsExp(routeStops.customerId)),
+      leftOuterJoin(
+          routeCustomers, routeCustomers.id.equalsExp(routeStops.customerId)),
     ])
       ..where(routeStops.routeId.equals(routeId))
       ..where(routeStops.deleted.equals(false))
@@ -105,7 +116,7 @@ class RouteDao extends DatabaseAccessor<AppDatabase> with _$RouteDaoMixin {
     return rows
         .map((row) => RouteStopWithCustomer(
               row.readTable(routeStops),
-              row.readTable(customers),
+              row.readTableOrNull(routeCustomers),
             ))
         .toList();
   }
@@ -187,6 +198,24 @@ class RouteDao extends DatabaseAccessor<AppDatabase> with _$RouteDaoMixin {
         }
       }
     });
+  }
+
+  /// Stores the customer rows the route feed sent alongside the plans.
+  ///
+  /// Idempotent upsert keyed by customer id, so re-running a sync — which the
+  /// backend explicitly permits, since a delta may re-send the full current set
+  /// (`docs/backend-document.md` §5.2) — converges rather than duplicating.
+  ///
+  /// This deliberately does **not** touch the `customers` directory. The two
+  /// are different feeds with different scopes and different owners; writing
+  /// one from the other is what produced the ordering dependency ADR-011
+  /// removes, and `CLAUDE.md` §4 forbids a feature reaching into another
+  /// feature's data anyway.
+  Future<void> upsertRouteCustomers(
+    List<RouteCustomersCompanion> records,
+  ) async {
+    if (records.isEmpty) return;
+    await batch((b) => b.insertAllOnConflictUpdate(routeCustomers, records));
   }
 
   /// Applies the two route-execution attributes onto an **existing** customer.

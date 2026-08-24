@@ -117,7 +117,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                       ? Icons.mark_email_read_outlined
                                       : Icons.lock_reset_outlined,
                                   size: context.rr(40),
-                                  color: Theme.of(context).colorScheme.secondary,
+                                  color:
+                                      Theme.of(context).colorScheme.secondary,
                                 ),
                                 SizedBox(height: context.rh(18)),
                                 Text(

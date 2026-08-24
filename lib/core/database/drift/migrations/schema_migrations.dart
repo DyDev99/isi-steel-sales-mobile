@@ -4,7 +4,7 @@ import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
 /// The single source of truth for the encrypted database's schema version.
 /// Bump this by exactly one whenever a schema change ships, and add the matching
 /// step to [_stepwiseMigrations].
-const int kCurrentSchemaVersion = 17;
+const int kCurrentSchemaVersion = 18;
 
 /// Keys under which the migrator records bookkeeping in `app_metadata`, so the
 /// on-device schema history is auditable and a failed/partial upgrade is
@@ -346,6 +346,81 @@ final Map<int, SchemaMigrationStep> _stepwiseMigrations =
     await _addColumnIfMissing(m, db, db.cartItems, db.cartItems.unitPrice);
     await _addColumnIfMissing(
         m, db, db.cartItems, db.cartItems.fulfillmentJson);
+  },
+
+  // v18 (ADR-011): the local database becomes a flat mirror of what the
+  // backend sends, instead of re-enforcing relationships the backend already
+  // enforced before the row was ever transmitted.
+  //
+  // This removes constraints. Nothing is dropped, no column changes type, and
+  // every row is copied across — `alterTable` recreates each table from its
+  // current Dart definition (now without the foreign key) and moves the data.
+  //
+  // ## Why, concretely
+  //
+  // Two verified data-loss paths, both triggered by ordinary operation:
+  //
+  //   1. `route_stops.customer_id -> customers` aborted the *whole* route
+  //      transaction (`SqliteException(787)`) when a single stop referenced a
+  //      customer the directory had not pulled yet. The route feed and the
+  //      customer feed are separate, independently-paged endpoints, so this is
+  //      routine — and it cost the rep every stop of the day, not one.
+  //
+  //   2. The `visit_* -> route_stops ON DELETE CASCADE` chain silently deleted
+  //      captured check-ins, notes and photos whenever route sync refreshed a
+  //      route, because the refresh replaces a route's stops. The backend
+  //      documents re-sending the full set as expected behaviour
+  //      (`docs/backend-document.md` §5.2), so this fired on a normal delta and
+  //      destroyed first-hand field work that had not been pushed yet.
+  //
+  // The constraints that have no such path are deliberately kept — see the
+  // foreign-key test for the surviving set and the reason each one earns it.
+  18: (m, db) async {
+    // The route feed's own customer rows, so a stop renders without the
+    // customer directory having synced first.
+    await m.createTable(db.routeCustomers);
+
+    // Backfill from the directory for stops that already exist on this device,
+    // so an upgrading rep sees exactly what they saw before rather than a
+    // screen of blank stop cards until the next route sync lands.
+    //
+    // `territory_type` falls back to 'urban' to preserve the fail-closed
+    // geofence default documented on `kUnknownTerritoryFallback` — urban is the
+    // tightest radius, so an unknown territory blocks a check-in rather than
+    // waving it through.
+    await db.customStatement(
+      'INSERT OR IGNORE INTO route_customers '
+      '(id, name, name_kh, code, contact, phone, address, territory, '
+      'territory_type, latitude, longitude, geofence_radius_override) '
+      'SELECT c.id, c.shop_name, COALESCE(c.kh_name, \'\'), c.customer_code, '
+      'c.owner_name, c.phone, c.address, c.territory, '
+      "COALESCE(c.territory_type, 'urban'), c.latitude, c.longitude, "
+      'c.geofence_radius_override '
+      'FROM customers c '
+      'WHERE c.id IN (SELECT DISTINCT customer_id FROM route_stops);',
+    );
+
+    // Customer child tables — orphans here are invisible, not corrupting.
+    await m.alterTable(TableMigration(db.customerContacts));
+    await m.alterTable(TableMigration(db.customerNotes));
+    await m.alterTable(TableMigration(db.customerActivities));
+    await m.alterTable(TableMigration(db.customerFavorites));
+    await m.alterTable(TableMigration(db.customerRecent));
+
+    // Route stops (failure 1) and the fraud-flag -> stop cascade (failure 2,
+    // applied to compliance evidence).
+    await m.alterTable(TableMigration(db.routeStops));
+    await m.alterTable(TableMigration(db.fraudFlags));
+
+    // Visit captures (failure 2).
+    await m.alterTable(TableMigration(db.visitCheckIns));
+    await m.alterTable(TableMigration(db.visitCheckOuts));
+    await m.alterTable(TableMigration(db.visitOrderLines));
+    await m.alterTable(TableMigration(db.visitStockUpdates));
+    await m.alterTable(TableMigration(db.visitReturns));
+    await m.alterTable(TableMigration(db.visitCollections));
+    await m.alterTable(TableMigration(db.visitNotes));
+    await m.alterTable(TableMigration(db.visitPhotos));
   },
 };
 

@@ -5,11 +5,6 @@ import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/about/domain/info_topic.dart';
 
 /// The detail page behind every card on the About hub.
-///
-/// One screen serves all five topics rather than five near-identical screens.
-/// Privacy, Terms, Security, Support and About are the same shape — a stack of
-/// headed sections — and five copies of that shape is five places for the
-/// padding, the type scale and the dark-mode colours to drift apart.
 class InfoDetailScreen extends StatelessWidget {
   const InfoDetailScreen({super.key, required this.topic});
 
@@ -17,6 +12,9 @@ class InfoDetailScreen extends StatelessWidget {
 
   /// Security guidance carries a highlighted warning; nothing else does.
   bool get _hasSecurityCallout => topic.id == 'security';
+
+  /// Check if this is the support topic to show contact options & feedback form.
+  bool get _isSupport => topic.id == 'support' || topic.id == 'help';
 
   @override
   Widget build(BuildContext context) {
@@ -42,19 +40,8 @@ class InfoDetailScreen extends StatelessWidget {
       body: SafeArea(
         top: false,
         child: Center(
-          // Policy pages are long prose, and prose has an optimal measure:
-          // past roughly 75 characters a line the eye loses its place on the
-          // return sweep. On a tablet an unconstrained column runs to twice
-          // that, which is why the page felt hard to read rather than merely
-          // wide. 680 keeps the measure sane and centres the remainder.
           child: ConstrainedBox(
             constraints: BoxConstraints(
-              // Scaled with the type rather than held fixed. The constraint
-              // that matters is the *measure* — characters per line, not
-              // pixels — so a 1.5x larger font needs a proportionally wider
-              // column to keep the same comfortable ~75-character line.
-              // Holding 680 while the text grew would have squeezed the prose
-              // into a narrow strip instead of improving it.
               maxWidth: context.responsive(
                 compact: double.infinity,
                 medium: 880.0,
@@ -77,6 +64,13 @@ class InfoDetailScreen extends StatelessWidget {
                   _Section(topic: topic, section: section),
                   SizedBox(height: context.rh(22)),
                 ],
+
+                // Inject Support & Feedback options on the Help & Support page
+                if (_isSupport) ...[
+                  const _SupportContactSection(),
+                  SizedBox(height: context.rh(32)),
+                ],
+
                 SizedBox(height: context.rh(4)),
                 Center(
                   child: Text(
@@ -125,8 +119,6 @@ class _Section extends StatelessWidget {
           Padding(
             padding: EdgeInsets.only(bottom: single ? 0 : context.rh(9)),
             child: single
-                // A section with one entry is prose, not a list: a solitary
-                // bullet reads as a formatting error rather than as emphasis.
                 ? Text(
                     topic.bulletKey(section, i).tr,
                     style: TextStyle(
@@ -139,8 +131,6 @@ class _Section extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(
-                        // Nudged down to sit on the first line's baseline
-                        // rather than its ascender.
                         margin: EdgeInsets.only(
                             top: context.rh(8), right: context.rw(10)),
                         width: context.rw(5),
@@ -218,6 +208,342 @@ class _Callout extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Dedicated contact methods and Feedback trigger
+class _SupportContactSection extends StatelessWidget {
+  const _SupportContactSection();
+
+  void _openFeedbackSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const _FeedbackBottomSheet(),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Contact & Support',
+          style: TextStyle(
+            color: colors.textPrimary,
+            fontSize: context.rsp(16),
+            fontWeight: FontWeight.w800,
+            height: context.rh(1.3),
+          ),
+        ),
+        SizedBox(height: context.rh(12)),
+
+        // Mock Phone Call
+        _ContactMethodCard(
+          icon: Icons.phone_in_talk_rounded,
+          title: 'Phone Hotline',
+          subtitle: '+855 23 888 888 (Mon-Fri, 8AM - 5PM)',
+          onTap: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Calling +855 23 888 888...')),
+            );
+          },
+        ),
+        SizedBox(height: context.rh(10)),
+
+        // Mock Email
+        _ContactMethodCard(
+          icon: Icons.alternate_email_rounded,
+          title: 'Email Support',
+          subtitle: 'support@isisteel.com.kh',
+          onTap: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Opening mail client...')),
+            );
+          },
+        ),
+        SizedBox(height: context.rh(10)),
+
+        // Mock Telegram
+        _ContactMethodCard(
+          icon: Icons.send_rounded,
+          title: 'Telegram Support',
+          subtitle: '@isisteel_support',
+          onTap: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Opening Telegram channel...')),
+            );
+          },
+        ),
+        SizedBox(height: context.rh(10)),
+
+        // Feedback Form Launcher
+        _ContactMethodCard(
+          icon: Icons.rate_review_outlined,
+          title: 'Give App Feedback',
+          subtitle: 'Rate your experience and share thoughts',
+          onTap: () => _openFeedbackSheet(context),
+        ),
+      ],
+    );
+  }
+}
+
+/// Contact Option Tile
+class _ContactMethodCard extends StatelessWidget {
+  const _ContactMethodCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(context.rr(14)),
+        child: Ink(
+          padding: EdgeInsets.symmetric(
+              horizontal: context.rw(16), vertical: context.rh(14)),
+          decoration: BoxDecoration(
+            color: colors.card,
+            borderRadius: BorderRadius.circular(context.rr(14)),
+            border: Border.all(color: colors.border),
+            boxShadow: [
+              BoxShadow(
+                color: colors.shadowColor.withValues(alpha: 0.04),
+                blurRadius: context.rr(12),
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(context.rr(10)),
+                decoration: BoxDecoration(
+                  color: scheme.primary.withValues(alpha: 0.10),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  icon,
+                  size: context.rr(20),
+                  color: scheme.primary,
+                ),
+              ),
+              SizedBox(width: context.rw(14)),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        color: colors.textPrimary,
+                        fontSize: context.rsp(14.5),
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    SizedBox(height: context.rh(2)),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        color: colors.textSecondary,
+                        fontSize: context.rsp(12.5),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right_rounded,
+                size: context.rr(20),
+                color: colors.iconMuted,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Interactive Bottom Sheet Form with Star Rating & Free Text Field
+class _FeedbackBottomSheet extends StatefulWidget {
+  const _FeedbackBottomSheet();
+
+  @override
+  State<_FeedbackBottomSheet> createState() => _FeedbackBottomSheetState();
+}
+
+class _FeedbackBottomSheetState extends State<_FeedbackBottomSheet> {
+  int _rating = 5;
+  final TextEditingController _noteController = TextEditingController();
+
+  @override
+  void dispose() {
+    _noteController.dispose();
+    super.dispose();
+  }
+
+  void _submitFeedback() {
+    Navigator.of(context).pop();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Thank you for your feedback! ($_rating ★)'),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: Container(
+        padding: EdgeInsets.all(context.rr(20)),
+        decoration: BoxDecoration(
+          color: colors.card,
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(context.rr(24)),
+          ),
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: context.rw(40),
+                  height: context.rh(4),
+                  decoration: BoxDecoration(
+                    color: colors.border,
+                    borderRadius: BorderRadius.circular(context.rr(2)),
+                  ),
+                ),
+              ),
+              SizedBox(height: context.rh(16)),
+              Text(
+                'Send Us Feedback',
+                style: TextStyle(
+                  color: colors.textPrimary,
+                  fontSize: context.rsp(18),
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              SizedBox(height: context.rh(4)),
+              Text(
+                'How was your experience using the app?',
+                style: TextStyle(
+                  color: colors.textSecondary,
+                  fontSize: context.rsp(13),
+                ),
+              ),
+              SizedBox(height: context.rh(16)),
+
+              // Interactive Star Rating Widget
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(5, (index) {
+                  final starIndex = index + 1;
+                  return IconButton(
+                    onPressed: () => setState(() => _rating = starIndex),
+                    icon: Icon(
+                      starIndex <= _rating
+                          ? Icons.star_rounded
+                          : Icons.star_outline_rounded,
+                      color: starIndex <= _rating
+                          ? Colors.amber.shade600
+                          : colors.iconMuted,
+                      size: context.rr(32),
+                    ),
+                  );
+                }),
+              ),
+              SizedBox(height: context.rh(16)),
+
+              // Note / Free Text Field
+              TextField(
+                controller: _noteController,
+                maxLines: 4,
+                style: TextStyle(
+                  color: colors.textPrimary,
+                  fontSize: context.rsp(14),
+                ),
+                decoration: InputDecoration(
+                  hintText: 'Describe any technical issues or suggestions...',
+                  hintStyle: TextStyle(
+                    color: colors.textHint,
+                    fontSize: context.rsp(13.5),
+                  ),
+                  filled: true,
+                  fillColor: colors.surfaceSoft,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(context.rr(12)),
+                    borderSide: BorderSide(color: colors.border),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(context.rr(12)),
+                    borderSide: BorderSide(color: colors.border),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(context.rr(12)),
+                    borderSide: BorderSide(color: scheme.primary, width: 1.5),
+                  ),
+                ),
+              ),
+              SizedBox(height: context.rh(20)),
+
+              // Submit Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _submitFeedback,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: scheme.primary,
+                    foregroundColor: scheme.onPrimary,
+                    padding: EdgeInsets.symmetric(vertical: context.rh(14)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(context.rr(12)),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    'Submit Feedback',
+                    style: TextStyle(
+                      fontSize: context.rsp(15),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

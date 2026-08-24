@@ -94,37 +94,34 @@ class RouteDriftLocalDataSource implements RouteLocalDataSource {
     }
   }
 
-  /// Applies route-execution attributes to customers the directory already has.
+  /// Stores the customer rows the route feed sent with the plans.
   ///
-  /// **Behaviour change, made deliberately (T1.5).** The legacy implementation
-  /// inserted these rows into `routes.db`'s own `customers` table, so route sync
-  /// could invent a customer. It can no longer: `customers` in the encrypted
-  /// database is SAP-controlled and owned by the customer directory sync
-  /// (ADR-001, single source of truth), and `route_stops.customer_id` is a real
-  /// FK to it.
+  /// **Behaviour change (ADR-011), reversing the T1.5 decision.** T1.5 made
+  /// this method apply two attributes onto customers the *directory* already
+  /// had, and skip anything it did not — on the reasoning that `customers` is
+  /// the single source of truth and route sync must not invent a row.
   ///
-  /// The consequence is an ordering dependency — customer sync must run before
-  /// route sync — which is exactly the direction `docs/ARCHITECTURE.md` §4's
-  /// dependency graph already mandates (Customer sits above Route). An unknown
-  /// customer is logged and skipped rather than invented; the next customer sync
-  /// pulls it, and the following route sync attaches its stops.
+  /// That reasoning was right about ownership and wrong about availability. The
+  /// route feed and the customer feed are separate endpoints with separate
+  /// scopes, so "the directory has not pulled this customer yet" is the normal
+  /// case, not the exception — and the consequences were severe: the stop's
+  /// foreign key aborted the entire route write, and once that was removed an
+  /// inner join would have hidden the stop instead.
+  ///
+  /// The feed already carries everything a stop needs to render, so it is
+  /// stored as-is in its own flat table. Nothing is skipped, nothing is
+  /// invented, and the customer directory is left entirely alone.
   @override
   Future<void> upsertCustomers(List<CustomerStopInfoModel> customers) async {
     try {
-      var unknown = 0;
-      for (final customer in customers) {
-        final updated = await _dao.upsertRouteAttributesOnCustomer(
-          customer.id,
-          territoryType: customer.territoryType.name,
-          geofenceRadiusOverride: customer.geofenceRadiusOverride,
-        );
-        if (updated == 0) unknown++;
-      }
-      if (unknown > 0) {
-        // §10: a count, never an identifier.
-        _logger.warning('route_sync.customers_not_in_directory',
-            fields: {'count': unknown});
-      }
+      await _dao.upsertRouteCustomers(
+        customers.map((c) => c.toRouteCustomerCompanion()).toList(),
+      );
+      // A count, never an identifier (`docs/SECURITY.md` §10). Worth recording
+      // because a stop rendering as its bare customer id means this number came
+      // back short — the feed omitted a customer it is contracted to send.
+      _logger.debug('route_sync.customers_stored',
+          fields: {'count': customers.length});
     } catch (e) {
       throw CacheException(message: 'Failed to upsert route customers: $e');
     }

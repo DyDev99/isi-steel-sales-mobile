@@ -38,7 +38,8 @@ Widget vibeFieldLabel(
   );
 }
 
-OutlineInputBorder vibeFieldBorder(BuildContext context, Color c, [double w = 1]) =>
+OutlineInputBorder vibeFieldBorder(BuildContext context, Color c,
+        [double w = 1]) =>
     OutlineInputBorder(
       borderRadius: BorderRadius.circular(context.rr(AppColors.radius)),
       borderSide: BorderSide(color: c, width: w),
@@ -70,7 +71,7 @@ InputDecoration vibeFieldDecoration(
         : Icon(icon, color: colors.textSecondary, size: context.rr(20)),
     suffixIcon: suffix,
     filled: true,
-    // The fillColor here is set to transparent in the build method below 
+    // The fillColor here is set to transparent in the build method below
     // to allow the BackdropFilter to be visible.
     fillColor: colors.surfaceStrong,
     enabledBorder: vibeFieldBorder(context, colors.border),

@@ -13,15 +13,6 @@ import 'package:isi_steel_sales_mobile/features/home/presentation/bloc/home_cubi
 class MyWorkGridSection extends StatelessWidget {
   const MyWorkGridSection({super.key});
 
-  /// Height of the whole block: two stacked cards plus the gap between them.
-  ///
-  /// Derived rather than hardcoded so the single-card height stays the one
-  /// number to change, and the right-hand card can never drift out of step
-  /// with the pair it sits beside.
-  static double _cardHeight(BuildContext context) => context.rh(120);
-  static double _leftColumnHeight(BuildContext context) =>
-      _cardHeight(context) * 2 + context.rh(12);
-
   @override
   Widget build(BuildContext context) {
     return CoachKeys.wrap(
@@ -37,83 +28,71 @@ class MyWorkGridSection extends StatelessWidget {
           children: [
             _SectionHeader('shell.my_work'.tr, letterSpacing: 1.6),
 
-            // Two columns: the two secondary destinations stack on the left,
-            // and My Visits takes the full height on the right.
-            //
-            // The asymmetry is the point. My Visits is where a rep spends the
-            // day and the only card carrying a live count, so it gets the
-            // larger, taller surface; Customers and Orders are places you go
-            // between visits. A three-equal-card grid would give the day's
-            // main task the same weight as its supporting ones.
+            // ── Top: My Visits (Full Width) ──────────────────────────────
             SizedBox(
-              height: _leftColumnHeight(context),
+              height: context.rh(120),
+              width: double.infinity,
+              child: FadeSlideIn(
+                delay: FadeSlideIn.staggerDelay(1),
+                child: CoachKeys.wrap(
+                  CoachKeys.myVisits,
+                  child: _MyWorkCard(
+                    label: 'shell.my_visits'.tr,
+                    icon: Icons.assignment_turned_in_outlined,
+                    kind: WorkIconKind.visits,
+                    accent: const Color(0xFF22C3D6),
+                    tileHeight: context.rr(56),
+                    badgeText: 'shell.badge_today'.trParams({'count': 3}),
+                    isActive: true,
+                    onTap: () =>
+                        sl<ShellTabController>().goTo(ShellTab.myVisits),
+                  ),
+                ),
+              ),
+            ),
+
+            SizedBox(height: context.rh(12)),
+
+            // ── Bottom: Customers & Quotes/Orders ─────────────────────────
+            SizedBox(
+              height: context.rh(120),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // ── Left: Customers over Quotes & Orders ────────────────
+                  // Left: Customers
                   Expanded(
-                    child: Column(
-                      children: [
-                        Expanded(
-                          child: FadeSlideIn(
-                            delay: FadeSlideIn.staggerDelay(1),
-                            child: CoachKeys.wrap(
-                              CoachKeys.myCustomers,
-                              child: _MyWorkCard(
-                                label: 'shell.my_customers'.tr,
-                                icon: Icons.people_alt_outlined,
-                                kind: WorkIconKind.customers,
-                                accent: const Color(0xFFEC3F72),
-                                isActive: false,
-                                onTap: () => sl<ShellTabController>()
-                                    .goTo(ShellTab.customers),
-                              ),
-                            ),
-                          ),
+                    child: FadeSlideIn(
+                      delay: FadeSlideIn.staggerDelay(2),
+                      child: CoachKeys.wrap(
+                        CoachKeys.myCustomers,
+                        child: _MyWorkCard(
+                          label: 'shell.my_customers'.tr,
+                          icon: Icons.people_alt_outlined,
+                          kind: WorkIconKind.customers,
+                          accent: const Color(0xFFEC3F72),
+                          isActive: false,
+                          onTap: () => sl<ShellTabController>()
+                              .goTo(ShellTab.customers),
                         ),
-                        SizedBox(height: context.rh(12)),
-                        Expanded(
-                          child: FadeSlideIn(
-                            delay: FadeSlideIn.staggerDelay(2),
-                            child: CoachKeys.wrap(
-                              CoachKeys.orders,
-                              child: _MyWorkCard(
-                                label: 'shell.my_quotes_orders'.tr,
-                                icon: Icons.description_outlined,
-                                kind: WorkIconKind.quotesOrders,
-                                accent: const Color(0xFFF5A623),
-                                isActive: false,
-                                onTap: () => sl<ShellTabController>()
-                                    .goTo(ShellTab.orders),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
 
                   SizedBox(width: context.rw(12)),
 
-                  // ── Right: My Visits, full height ───────────────────────
+                  // Right: Quotes & Orders
                   Expanded(
                     child: FadeSlideIn(
                       delay: FadeSlideIn.staggerDelay(3),
                       child: CoachKeys.wrap(
-                        CoachKeys.myVisits,
+                        CoachKeys.orders,
                         child: _MyWorkCard(
-                          label: 'shell.my_visits'.tr,
-                          icon: Icons.assignment_turned_in_outlined,
-                          kind: WorkIconKind.visits,
-                          // Sampled from the artwork so the tile's drop-glow
-                          // matches the illustration it sits under. An accent
-                          // that disagrees with the art reads as a halo bug.
-                          accent: const Color(0xFF22C3D6),
-                          tileHeight: context.rr(96),
-                          badgeText: 'shell.badge_today'.trParams({'count': 3}),
-                          isActive: true,
+                          label: 'shell.my_quotes_orders'.tr,
+                          icon: Icons.description_outlined,
+                          kind: WorkIconKind.quotesOrders,
+                          accent: const Color(0xFFF5A623),
+                          isActive: false,
                           onTap: () =>
-                              sl<ShellTabController>().goTo(ShellTab.myVisits),
+                              sl<ShellTabController>().goTo(ShellTab.orders),
                         ),
                       ),
                     ),
@@ -150,9 +129,7 @@ class _MyWorkCard extends StatefulWidget {
   /// Which drawn, animated illustration this card shows.
   final WorkIconKind kind;
 
-  /// Tile height override. The full-height card gets a larger tile so its
-  /// extra room is filled by the artwork rather than left as dead space above
-  /// and below a tile sized for a card half as tall.
+  /// Tile height override.
   final double? tileHeight;
 
   @override
@@ -187,20 +164,14 @@ class _MyWorkCardState extends State<_MyWorkCard> {
         curve: Curves.easeOut,
         transform: Matrix4.translationValues(0, _isPressed ? 4.0 : 0.0, 0),
         child: Container(
-          // No fixed height: the card now fills whatever its column gives it,
-          // which is what lets the right-hand card stand two rows tall while
-          // the left pair stay one each.
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20.r),
-            // 3D Extrusion Shadow + Traditional Ambient Glow
             boxShadow: [
-              // Bottom Extrusion Shadow for 3D effect
               BoxShadow(
                 color: widget.accent.withValues(alpha: isDark ? 0.35 : 0.25),
                 offset: Offset(0, depthOffset),
                 blurRadius: _isPressed ? 2 : 6,
               ),
-              // Soft Base Depth Shadow
               BoxShadow(
                 color: Colors.black.withValues(alpha: isDark ? 0.40 : 0.08),
                 offset: Offset(0, depthOffset + 2),
@@ -224,7 +195,7 @@ class _MyWorkCardState extends State<_MyWorkCard> {
                     ],
                   ),
                 ),
-                padding: EdgeInsets.all(2.r), // Gold Rim Width
+                padding: EdgeInsets.all(2.r),
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(18.r),
@@ -246,7 +217,7 @@ class _MyWorkCardState extends State<_MyWorkCard> {
                     borderRadius: BorderRadius.circular(18.r),
                     child: Stack(
                       children: [
-                        // Traditional Subtle Corner Ornament Accents
+                        // Traditional Corner Ornaments
                         Positioned(
                           top: -12.r,
                           left: -12.r,
@@ -269,7 +240,6 @@ class _MyWorkCardState extends State<_MyWorkCard> {
                             mainAxisSize: MainAxisSize.min,
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              // 2. Vivid icon tile
                               WorkIcon(
                                 kind: widget.kind,
                                 accent: widget.accent,
@@ -392,11 +362,6 @@ class _SectionHeader extends StatelessWidget {
     final color = theme.textTheme.bodySmall?.color?.withValues(alpha: 0.8) ??
         theme.colorScheme.onSurface.withValues(alpha: 0.8);
 
-    // A section header has to outrank the card labels beneath it. On a phone
-    // 14pt against 13.5pt labels is enough separation, but once the type scale
-    // opens up on a tablet the labels reach ~23pt and an equal-sized header
-    // stops reading as a heading at all. Widening the base on larger windows —
-    // rather than raising it everywhere — keeps the phone baseline frozen.
     final double headerBase = context.responsive(compact: 14.0, medium: 16.0);
 
     return Padding(
@@ -444,12 +409,35 @@ class MyWorkGridSkeleton extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           _SectionHeader('shell.my_work'.tr, letterSpacing: 1.6),
-          Row(children: [
-            _skeletonCell(context),
-            SizedBox(width: context.rw(12)),
-            _skeletonCell(context)
-          ]),
+          
+          // Skeleton Top: Full width
+          Container(
+            height: context.rh(120),
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(20.r),
+            ),
+            alignment: Alignment.center,
+            child: Shimmer(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ShimmerBox(
+                    width: 48.r,
+                    height: 48.r,
+                    borderRadius: BorderRadius.circular(24.r),
+                  ),
+                  SizedBox(height: context.rh(12)),
+                  ShimmerBox(width: 72.w, height: 12.h),
+                ],
+              ),
+            ),
+          ),
+
           SizedBox(height: context.rh(12)),
+
+          // Skeleton Bottom: 2 Columns
           Row(children: [
             _skeletonCell(context),
             SizedBox(width: context.rw(12)),

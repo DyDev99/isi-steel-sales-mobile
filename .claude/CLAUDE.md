@@ -53,6 +53,7 @@ The codebase today (`demo/app01`) is a **UI-complete demo (~80%)** with a **holl
 - **Clean Architecture, inward dependencies only**: `presentation (BLoC) → domain (entities, usecases, repository interfaces) → data (repository impls, Drift DAOs, remote datasources)`. Domain code must never import Flutter, Drift, or `dio` types. See `docs/ARCHITECTURE.md` §2, ADR-003.
 - **Repository pattern**: all data access goes through a domain-defined repository interface; repository implementations return domain entities, never raw Drift rows or DTOs. See ADR-003.
 - **DAO pattern**: all local reads/writes go through generated Drift DAOs in `core/database/drift/daos/`. No feature holds a private database handle. See ADR-004, `docs/DATABASE_GUIDE.md` §4.
+- **Local tables that mirror backend state carry no foreign keys** (ADR-011). The backend enforces those relationships before sending the row; enforcing them again on-device turned normal conditions into data loss. Before adding any constraint, apply the table in `docs/DATABASE_GUIDE.md` §3.0.
 - **One usecase per business action.** No usecase branches on a "mode" parameter to do several unrelated things.
 - **Transactional writes**: any write to a syncable table must enqueue its sync-queue row in the *same* Drift transaction as the mutation. This is a hard correctness rule, not a style preference — see ADR-006, `docs/SYNC_ENGINE.md` §2.
 - **No feature imports another feature's `data/` layer.** Cross-feature flows go through domain interfaces or a shared orchestration layer.
@@ -117,6 +118,9 @@ Architecture Decision Records (`docs/adr/`):
 - **ADR-005** — connectivity service: real reachability, not interface-up
 - **ADR-006** — unified sync engine, server-authoritative conflict resolution
 - **ADR-007** — generalized, resumable `WorkflowSession`
+- **ADR-009** — customer filtering is flat; SAP master data is a cached lookup
+- **ADR-010** — web persistence
+- **ADR-011** — local mirror tables carry no foreign keys; the backend owns referential integrity
 
 When code and these documents disagree, the documents describe the *target* — flag the discrepancy rather than silently treating the code as correct, per `docs/ENGINEERING_STANDARD.md` §11.
 

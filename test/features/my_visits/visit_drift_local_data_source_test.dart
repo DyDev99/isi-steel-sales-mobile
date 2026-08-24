@@ -227,18 +227,25 @@ void main() {
       expect(await dataSource.fetchOrderLines('ghost'), isEmpty);
     });
 
-    test('a capture for a non-existent stop surfaces as CacheException',
+    test('a capture for a stop sync has not written yet is kept (ADR-011)',
         () async {
-      expect(
-        () => dataSource.insertNote(VisitNoteModel(
-          id: 'n-x',
-          stopId: 'ghost-stop',
-          type: VisitNoteType.general,
-          text: 'orphan',
-          createdAt: day,
-        )),
-        throwsA(isA<CacheException>()),
-      );
+      // This used to require a CacheException. Refusing the write meant the
+      // note was lost the moment it was typed, for a reason that has nothing
+      // to do with the rep: whether route sync had committed the stop row yet.
+      //
+      // The backend owns this relationship and the note is pushed by `stopId`,
+      // so the device stores it and lets the server reconcile.
+      await dataSource.insertNote(VisitNoteModel(
+        id: 'n-x',
+        stopId: 'ghost-stop',
+        type: VisitNoteType.general,
+        text: 'orphan',
+        createdAt: day,
+      ));
+
+      final notes = await dataSource.fetchNotes('ghost-stop');
+      expect(notes, hasLength(1));
+      expect(notes.single.text, 'orphan');
     });
   });
 

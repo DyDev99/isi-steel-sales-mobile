@@ -29,6 +29,47 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_
 /// accepted fraudulent check-in is neither.
 const TerritoryType kUnknownTerritoryFallback = TerritoryType.urban;
 
+extension RouteCustomerRowStopInfoMapper on RouteCustomerRow {
+  /// Projects the route feed's own customer row onto the stop entity.
+  ///
+  /// A straight field copy: this table was defined to mirror the feed's
+  /// `CustomerStopInfo` payload (`docs/backend-document.md` §7.1), so there is
+  /// no vocabulary translation to do and nothing to reconcile.
+  CustomerStopInfoModel toStopInfo() => CustomerStopInfoModel(
+        id: id,
+        name: name,
+        nameKh: nameKh,
+        code: code,
+        contact: contact,
+        phone: phone,
+        address: address,
+        territory: territory,
+        territoryType: TerritoryType.values.asNameMap()[territoryType] ??
+            kUnknownTerritoryFallback,
+        latitude: latitude,
+        longitude: longitude,
+        geofenceRadiusOverride: geofenceRadiusOverride,
+      );
+}
+
+extension CustomerStopInfoRouteCustomerMapper on CustomerStopInfoModel {
+  RouteCustomersCompanion toRouteCustomerCompanion() =>
+      RouteCustomersCompanion.insert(
+        id: id,
+        name: name,
+        nameKh: Value(nameKh),
+        code: code,
+        contact: contact,
+        phone: phone,
+        address: address,
+        territory: territory,
+        territoryType: territoryType.name,
+        latitude: latitude,
+        longitude: longitude,
+        geofenceRadiusOverride: Value(geofenceRadiusOverride),
+      );
+}
+
 extension CustomerRowStopInfoMapper on Customer {
   /// Projects the customer directory row onto the slice route execution needs.
   ///
@@ -59,10 +100,37 @@ extension CustomerRowStopInfoMapper on Customer {
 }
 
 extension RouteStopWithCustomerMapper on RouteStopWithCustomer {
+  /// Builds the stop, standing in for a customer row the feed did not send.
+  ///
+  /// The route feed is documented to include every stop's customer
+  /// (`docs/backend-document.md` §5.1), so [customer] being null means the
+  /// server broke its own contract. The stop is still rendered rather than
+  /// dropped — dropping it is the data loss ADR-011 exists to stop — using the
+  /// customer id as both name and code, which reads unmistakably as "details
+  /// missing" while staying actionable: the rep can still match the code, open
+  /// the stop and check in.
+  ///
+  /// The geofence falls back to [kUnknownTerritoryFallback] (urban, 50 m), the
+  /// tightest radius, so an unknown location fails closed.
+  CustomerStopInfoModel get _customerOrPlaceholder =>
+      customer?.toStopInfo() ??
+      CustomerStopInfoModel(
+        id: stop.customerId,
+        name: stop.customerId,
+        code: stop.customerId,
+        contact: '',
+        phone: '',
+        address: '',
+        territory: '',
+        territoryType: kUnknownTerritoryFallback,
+        latitude: 0,
+        longitude: 0,
+      );
+
   RouteStopModel toModel() => RouteStopModel(
         id: stop.id,
         routeId: stop.routeId,
-        customer: customer.toStopInfo(),
+        customer: _customerOrPlaceholder,
         sequence: stop.sequence,
         plannedArrival: stop.plannedArrival,
         plannedDeparture: stop.plannedDeparture,

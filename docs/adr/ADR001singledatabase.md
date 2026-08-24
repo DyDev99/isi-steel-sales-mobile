@@ -4,6 +4,19 @@
 - **Date**: 2026-07-15
 - **Deciders**: Solution / Flutter / DB / Security / DevOps architecture review
 - **Related**: `DATABASE_GUIDE.md`, `ARCHITECTURE.md` §3, `MIGRATION_PLAN.md` Sprint 1
+- **Partially superseded by**: ADR-011 — see the note below
+
+> **Note (2026-08-24, ADR-011).** This ADR listed on-device *referential
+> integrity* among the wins of a single database. That specific claim no longer
+> holds: the foreign keys on tables mirroring backend-owned state were removed in
+> schema v18 after they were shown to destroy data rather than protect it — one
+> unrecognised customer aborted a whole route write, and the visit cascade
+> deleted captured field work on a routine re-sync. See
+> `docs/adr/ADR011localmirrornorelations.md`.
+>
+> **Every other decision in this ADR stands**, and cross-table atomicity — also
+> impossible under the three-database split — is precisely what makes the
+> replacement write paths safe.
 
 ---
 

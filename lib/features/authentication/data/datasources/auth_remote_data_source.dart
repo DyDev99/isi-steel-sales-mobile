@@ -98,11 +98,21 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }) async {
     try {
       final res = await _bare.post<DataMap>(
-        AppConstants.loginEndpoint,
+        // `/mobile/auth/login`, not `/auth/login`. Both currently accept this
+        // body, but the mobile route is the one the backend team designates
+        // for this client — and it is the same URL the OTP exchange used, so
+        // this is a change of request body, not of routing.
+        AppConstants.mobileLoginEndpoint,
         data: {
           // `employeeId` accepts an e-mail address too; the server resolves it.
+          // It does **not** accept a phone number — verified against staging,
+          // where a phone identifier returns `invalid_grant`.
           'employeeId': identifier.trim(),
           'password': password,
+          // Sent flat as well as inside `device`: the mobile route reads the
+          // flat key, while the richer object is what makes the sessions list
+          // legible when a rep loses a handset.
+          'deviceId': await _device.deviceId(),
           // Optional, but always sent: it is what turns the session list into
           // something a rep can act on when they lose a handset.
           'device': await _device.describe(
@@ -272,8 +282,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<void> revokeSession(String sessionId) async {
     try {
-      await _authed
-          .delete<void>('${AppConstants.sessionsEndpoint}/$sessionId');
+      await _authed.delete<void>('${AppConstants.sessionsEndpoint}/$sessionId');
     } on DioException catch (e) {
       throw ApiException(ApiError.fromDio(e));
     }
@@ -299,8 +308,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   /// endpoint into an account-enumeration oracle. Show "if that address is
   /// registered, a link is on its way".
   @override
-  Future<void> forgotPassword(String email) =>
-      _post(_bare, AppConstants.forgotPasswordEndpoint, {'email': email.trim()});
+  Future<void> forgotPassword(String email) => _post(
+      _bare, AppConstants.forgotPasswordEndpoint, {'email': email.trim()});
 
   @override
   Future<void> resetPassword({

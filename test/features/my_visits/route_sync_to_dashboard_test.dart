@@ -89,22 +89,34 @@ void main() {
     }
   }
 
-  test('route sync with no customers fails loudly rather than silently empty',
+  test('a route whose customers are absent from the directory still syncs',
       () async {
-    // The feed cannot invent customers, so with an empty directory this has to
-    // surface as a failure the UI can render — not an exception escaping the
-    // repository, and not a success that leaves the dashboards blank with no
-    // explanation of why.
-    final unsatisfiable = RouteSyncRepositoryImpl(
+    // Reverses what this test used to assert (ADR-011).
+    //
+    // It previously required this sync to FAIL, because route stops carried a
+    // foreign key into the customer directory and the feed "cannot invent
+    // customers". That framing made an ordinary condition fatal: the route and
+    // customer endpoints are separate, independently-paged, and separately
+    // scoped, so a stop referencing a customer the directory has not pulled is
+    // routine — and failing meant the rep got no route at all.
+    //
+    // The feed carries its own customer rows, so it is self-sufficient. The
+    // directory is left empty here on purpose.
+    final independent = RouteSyncRepositoryImpl(
       remote: ApiRouteRemoteDataSource(unsatisfiableRouteFeed()),
       local: local,
       network: _AlwaysOnline(),
     );
 
-    final result = await unsatisfiable.runInitialSync(scope);
+    final result = await independent.runInitialSync(scope);
 
-    expect(result.when(success: (_) => false, failure: (_) => true), isTrue,
-        reason: 'an unsatisfiable sync must report failure');
+    expect(result.when(success: (_) => true, failure: (_) => false), isTrue,
+        reason: 'the rep must get their route regardless of directory state');
+
+    final today = (await routes.fetchTodayRoutes())
+        .when(success: (r) => r, failure: (_) => const []);
+    expect(today, isNotEmpty,
+        reason: 'and the route must actually reach the dashboard');
   });
 
   test('today routes reach the dashboard after a sync', () async {

@@ -153,7 +153,8 @@ class _VerifyScreenState extends State<VerifyScreen> {
                 Expanded(
                   child: Center(
                     child: SingleChildScrollView(
-                        padding: EdgeInsets.all(context.pagePadding),                      child: ConstrainedBox(
+                      padding: EdgeInsets.all(context.pagePadding),
+                      child: ConstrainedBox(
                         constraints: BoxConstraints(maxWidth: maxCardWidth),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -164,7 +165,8 @@ class _VerifyScreenState extends State<VerifyScreen> {
                                 Icon(
                                   Icons.mark_email_unread_outlined,
                                   size: context.rr(44),
-                                  color: Theme.of(context).colorScheme.secondary,
+                                  color:
+                                      Theme.of(context).colorScheme.secondary,
                                 ),
                                 SizedBox(height: context.rh(18)),
                                 Text(

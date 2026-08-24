@@ -285,9 +285,7 @@ class AuthRepositoryImpl implements AuthRepository {
   ResultFuture<AuthProfile> refreshProfile() async {
     if (!await _network.isConnected) {
       final cached = await _local.readProfile();
-      return cached != null
-          ? Success(cached)
-          : const Failed(NetworkFailure());
+      return cached != null ? Success(cached) : const Failed(NetworkFailure());
     }
     try {
       final profile = await _remote.getProfile();

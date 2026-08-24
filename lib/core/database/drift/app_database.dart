@@ -53,6 +53,9 @@ part 'app_database.g.dart';
     // Route domain (T1.5, v7) — ported from the plaintext `routes.db`.
     Routes,
     RouteStops,
+    // The route feed's own flat customer mirror (ADR-011, v18) — what a stop
+    // renders from, so stops no longer depend on the customer directory.
+    RouteCustomers,
     LocationSamples,
     FraudFlags,
     RouteSyncMeta,

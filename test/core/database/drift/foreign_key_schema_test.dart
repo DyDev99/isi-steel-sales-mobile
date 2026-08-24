@@ -2,20 +2,25 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
 
-/// Guards the referential integrity ADR-001 was adopted for.
+/// Guards the foreign keys the schema *deliberately keeps* — and, just as
+/// importantly, the ones it deliberately removed.
 ///
-/// ## Why this test exists
+/// ## Two separate hazards, one test file
 ///
-/// `drift_dev 2.31.0` + `analyzer 10.2.0` silently emit **no** foreign keys
-/// from `references()` — the reference resolves to nothing, no constraint is
-/// written, and no warning is printed (`docs/flutter-web.md` §8). Every
-/// constraint in the schema vanished on the next `build_runner` run, and the
-/// only symptom was a handful of failing behavioural tests that a reader in a
-/// hurry could plausibly dismiss as flaky.
+/// **Hazard 1 — codegen silently drops constraints.** `drift_dev 2.31.0` +
+/// `analyzer 10.2.0` emit **no** foreign keys from `references()`: the
+/// reference resolves to nothing, no constraint is written, and no warning is
+/// printed (`docs/flutter-web.md` §8). Every constraint vanished on the next
+/// `build_runner` run and the only symptom was a few behavioural tests a reader
+/// in a hurry could dismiss as flaky. The survivors are therefore declared via
+/// `customConstraints`, and the counts below are what stops that workaround
+/// being removed without anyone noticing.
 ///
-/// The constraints are now declared explicitly via `customConstraints`. This
-/// test is what stops that workaround from being removed, or the generator
-/// regressing further, without anyone noticing.
+/// **Hazard 2 — constraints creeping back onto mirror tables.** ADR-011 removed
+/// the foreign keys on tables that mirror backend state, because the backend
+/// enforces those relationships before the row is ever sent and re-enforcing
+/// them on-device destroyed data instead of protecting it. Re-adding one would
+/// silently restore that data loss, so the absences are asserted explicitly.
 ///
 /// ## Why it asserts on the live schema
 ///
@@ -40,7 +45,7 @@ void main() {
     };
   }
 
-  test('every declared foreign key reaches the schema', () async {
+  test('every foreign key the schema still declares reaches SQLite', () async {
     final sql = await tableSql();
     final total = sql.values.fold<int>(
       0,
@@ -49,33 +54,91 @@ void main() {
 
     expect(
       total,
-      22,
-      reason: 'Expected 22 foreign keys. Getting 0 means codegen dropped them '
-          'again (docs/flutter-web.md §8) and referential integrity is gone. '
-          'Do not weaken this test to make it pass.',
+      6,
+      reason: 'Expected 6 foreign keys after ADR-011. Getting 0 means codegen '
+          'dropped them again (docs/flutter-web.md §8). Getting more means a '
+          'constraint was re-added to a mirror table — read ADR-011 before '
+          'changing this number, and do not simply update it to make a build '
+          'pass.',
     );
   });
 
-  test('the specific relationships ADR-001 depends on are present', () async {
+  test('the constraints that still earn their place are present', () async {
     final sql = await tableSql();
 
-    // Spot-checked individually rather than only counting, so that swapping one
-    // constraint for another cannot keep the total at 22 while losing a
-    // relationship that matters.
-    expect(sql['route_stops'], contains('REFERENCES customers (id)'));
-    expect(sql['route_stops'], contains('REFERENCES routes (id)'));
-    expect(
-      sql['visit_check_ins'],
-      contains('REFERENCES route_stops (id) ON DELETE CASCADE'),
-    );
+    // Catalog children. Products and their prices/stock arrive in one payload
+    // from one endpoint, so a child can never reference a parent that has not
+    // been written — there is no ordering hazard and nothing to lose.
     expect(sql['prices'], contains('REFERENCES products (id)'));
-    expect(sql['customer_contacts'], contains('REFERENCES customers (id)'));
+    expect(sql['stock'], contains('REFERENCES products (id)'));
+    // Table is named 'favorites' (the class is ProductFavorites).
+    expect(sql['favorites'], contains('REFERENCES products (id)'));
+    expect(sql['recent_products'], contains('REFERENCES products (id)'));
+
+    // Route-scoped telemetry. Nothing hard-deletes a route (sync upserts), so
+    // these cascades never fire in normal operation, and they give correct
+    // cleanup if a route is ever purged.
+    expect(
+      sql['location_samples'],
+      contains('REFERENCES routes (id) ON DELETE CASCADE'),
+    );
+    expect(
+      sql['fraud_flags'],
+      contains('REFERENCES routes (id) ON DELETE CASCADE'),
+    );
   });
 
-  test('cascade deletes actually fire', () async {
-    // The constraint being in the DDL is necessary but not sufficient — it only
-    // does anything with `PRAGMA foreign_keys = ON`, which the migration
-    // strategy sets in `beforeOpen`. This asserts the two work together.
+  test('mirror tables carry no foreign keys (ADR-011)', () async {
+    final sql = await tableSql();
+
+    // Each of these caused, or would have caused, real data loss. The comment
+    // on each is the failure it prevents -- see ADR-011 for the evidence.
+
+    // Aborted the whole route write when one stop referenced a customer the
+    // directory had not pulled yet: the rep lost the entire day, not one stop.
+    expect(sql['route_stops'], isNot(contains('FOREIGN KEY')));
+
+    // Cascaded from route_stops, which route sync replaces on every run --
+    // silently deleting captured check-ins, notes and photos that had not been
+    // pushed yet.
+    for (final table in const [
+      'visit_check_ins',
+      'visit_check_outs',
+      'visit_order_lines',
+      'visit_stock_updates',
+      'visit_returns',
+      'visit_collections',
+      'visit_notes',
+      'visit_photos',
+    ]) {
+      expect(sql[table], isNot(contains('FOREIGN KEY')), reason: table);
+    }
+
+    // fraud_flags keeps route_id but must not regain stop_id: the same cascade
+    // deleted compliance evidence on a routine route refresh.
+    expect(sql['fraud_flags'], isNot(contains('REFERENCES route_stops')));
+
+    // Customer children: an orphan here is invisible and self-heals on the next
+    // sync, which is strictly better than failing the batch that carried it.
+    for (final table in const [
+      'customer_contacts',
+      'customer_notes',
+      'customer_activities',
+      'customer_favorites',
+      'customer_recent',
+    ]) {
+      expect(sql[table], isNot(contains('FOREIGN KEY')), reason: table);
+    }
+
+    // The route feed's own customer mirror is a leaf: nothing references it and
+    // it references nothing.
+    expect(sql['route_customers'], isNot(contains('FOREIGN KEY')));
+  });
+
+  test('enforcement is on, so the survivors are not decorative', () async {
+    // A constraint in the DDL only does anything with `PRAGMA foreign_keys =
+    // ON`, which the migration strategy sets in `beforeOpen`. This asserts the
+    // two work together.
     final fk = await db.customSelect('PRAGMA foreign_keys;').get();
     expect(
       fk.first.data['foreign_keys'],

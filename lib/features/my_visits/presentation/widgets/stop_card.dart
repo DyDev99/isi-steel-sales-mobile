@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_status.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/models/today_stop.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/skip_visit_dialog.dart';
-import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 class StopCard extends StatelessWidget {
   const StopCard({
@@ -41,178 +41,196 @@ class StopCard extends StatelessWidget {
     }
   }
 
+  /// Helper to get tier badge colors (Diamond/Gold/Silver/Bronze)
+  ({Color bg, Color text}) _getTierColors(String tier) {
+    switch (tier.toLowerCase()) {
+      case 'diamond':
+        return (bg: const Color(0xFFE0F7FA), text: const Color(0xFF006064));
+      case 'gold':
+        return (bg: const Color(0xFFFFF8E1), text: const Color(0xFFF57F17));
+      case 'silver':
+        return (bg: const Color(0xFFF5F5F5), text: const Color(0xFF616161));
+      case 'bronze':
+        return (bg: const Color(0xFFEFEBE9), text: const Color(0xFF4E342E));
+      default:
+        return (bg: const Color(0xFFF5F5F5), text: const Color(0xFF616161));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final statusStyle = _getVisitStatusStyle(context);
     final customer = todayStop.stop.customer;
 
-    // Display Name formatted as KH & EN e.g. ស្រី លី (Srey Ly)
+    // Display Name formatted as KH & EN
     final khName = customer.nameKh;
     final enName = customer.name;
     final formattedOutletName =
         khName.isNotEmpty ? '$khName ($enName)' : enName;
 
-    // Actions (Skip / Cart) are allowed ONLY on today's date
+    // Rules:
+    // 1. Can only start/view detail on today's call plan
+    // 2. Can only skip visits on today's call plan
+    // 3. Ad-Hoc order button is accessible anytime
     final isVisitedOrSkipped =
         _status == VisitStatus.checkedOut || _status == VisitStatus.missed;
-    final canSkip = isToday &&
-        _status != VisitStatus.checkedOut &&
-        _status != VisitStatus.missed;
-    final hasActions = isToday && (isVisitedOrSkipped || canSkip);
+    final canSkip = isToday && !isVisitedOrSkipped;
+    final canStartVisit = isToday && !isVisitedOrSkipped;
+
+    // Retrieve channel (Wholesale/Retail) and tier (Diamond/Gold/Silver/Bronze)
+    final channelTag = customer.territoryType.label; 
+    final tierTag = 'Silver'; // Fallback / mock field from customer entity
+
+    final tierColors = _getTierColors(tierTag);
 
     return Padding(
       padding: EdgeInsets.only(bottom: context.rh(12)),
-      child: AbsorbPointer(
-        absorbing:
-            !isToday, // 👈 Completely blocks all tap/click events if not today
-        child: InkWell(
-          onTap:
-              isToday ? onTap : null, // 👈 Disables tap to view detail screen
-          borderRadius: BorderRadius.circular(context.rr(16)),
-          child: Opacity(
-            opacity:
-                isToday ? 1.0 : 0.85, // Visual indicator that item is read-only
-            child: Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: context.rw(16),
-                vertical: context.rh(14),
-              ),
-              decoration: BoxDecoration(
-                color: colors.card,
-                borderRadius: BorderRadius.circular(context.rr(16)),
-                border: Border.all(color: colors.border),
-                boxShadow: colors.cardShadow,
-              ),
-              child: Column(
+      child: InkWell(
+        onTap: canStartVisit ? onTap : null,
+        borderRadius: BorderRadius.circular(context.rr(16)),
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: context.rw(16),
+            vertical: context.rh(14),
+          ),
+          decoration: BoxDecoration(
+            color: colors.card,
+            borderRadius: BorderRadius.circular(context.rr(16)),
+            border: Border.all(color: colors.border),
+            boxShadow: colors.cardShadow,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Top Row: Outlet Name, Address & Status Pill
+              Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Top Row: Outlet Name, Address & Status Pill
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              formattedOutletName,
-                              style: TextStyle(
-                                color: colors.textPrimary,
-                                fontSize: context.rsp(15),
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            SizedBox(height: context.rh(4)),
-                            Text(
-                              customer.address,
-                              style: TextStyle(
-                                color: colors.textSecondary,
-                                fontSize: context.rsp(11.5),
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(width: context.rw(12)),
-
-                      // Status Pill
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: context.rw(10),
-                          vertical: context.rh(4),
-                        ),
-                        decoration: BoxDecoration(
-                          color: statusStyle.color.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(context.rr(12)),
-                        ),
-                        child: Text(
-                          statusStyle.label,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          formattedOutletName,
                           style: TextStyle(
-                            color: statusStyle.color,
-                            fontSize: context.rsp(11),
+                            color: colors.textPrimary,
+                            fontSize: context.rsp(15),
                             fontWeight: FontWeight.w800,
                           ),
                         ),
-                      ),
-                    ],
+                        SizedBox(height: context.rh(4)),
+                        Text(
+                          customer.address,
+                          style: TextStyle(
+                            color: colors.textSecondary,
+                            fontSize: context.rsp(11.5),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
                   ),
-                  SizedBox(height: context.rh(10)),
+                  SizedBox(width: context.rw(12)),
 
-                  // Middle Row: Territory Chips + Action Buttons (Only for today)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      // Territory Chips
-                      Expanded(
-                        child: Wrap(
-                          spacing: context.rw(8),
-                          runSpacing: context.rh(4),
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: [
-                            _TagChip(
-                                label: customer.territory,
-                                color: colors.border),
-                            _TagChip(
-                              label: customer.territoryType.label,
-                              color: Colors.amber.shade100,
-                              textColor: Colors.amber.shade900,
-                            ),
-                          ],
+                  // Status Pill
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: context.rw(10),
+                      vertical: context.rh(4),
+                    ),
+                    decoration: BoxDecoration(
+                      color: statusStyle.color.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(context.rr(12)),
+                    ),
+                    child: Text(
+                      statusStyle.label,
+                      style: TextStyle(
+                        color: statusStyle.color,
+                        fontSize: context.rsp(11),
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: context.rh(10)),
+
+              // Middle Row: Territory + Channel + Tier Tags + Action Buttons
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Tagging Section: Territory, Wholesale/Retail, Diamond/Gold/Silver/Bronze
+                  Expanded(
+                    child: Wrap(
+                      spacing: context.rw(6),
+                      runSpacing: context.rh(4),
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        _TagChip(
+                          label: customer.territory,
+                          color: colors.border,
                         ),
+                        _TagChip(
+                          label: channelTag,
+                          color: Colors.amber.shade100,
+                          textColor: Colors.amber.shade900,
+                        ),
+                        _TagChip(
+                          label: tierTag,
+                          color: tierColors.bg,
+                          textColor: tierColors.text,
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Action Buttons Section
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Ad-Hoc / Basket Order Button (Allowed anytime)
+                      _ActionButton(
+                        icon: Icons.shopping_basket_rounded,
+                        color: Theme.of(context).colorScheme.primary,
+                        backgroundColor: Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withValues(alpha: 0.12),
+                        onTap: onQuotationTap,
                       ),
 
-                      // Action Buttons (Only rendered when viewing today's date)
-                      if (hasActions)
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            // Quotation/Basket Button
-                            if (isVisitedOrSkipped) ...[
-                              _ActionButton(
-                                icon: Icons.shopping_basket_rounded,
-                                color: Theme.of(context).colorScheme.primary,
-                                backgroundColor: Theme.of(context)
-                                    .colorScheme
-                                    .primary
-                                    .withValues(alpha: 0.12),
-                                onTap: onQuotationTap,
-                              ),
-                              if (canSkip) SizedBox(width: context.rw(8)),
-                            ],
-
-                            // Big Red Cross Skip Button ❌
-                            if (canSkip)
-                              _ActionButton(
-                                icon: Icons.cancel_rounded,
-                                color: Theme.of(context).colorScheme.error,
-                                backgroundColor: Theme.of(context)
-                                    .colorScheme
-                                    .error
-                                    .withValues(alpha: 0.12),
-                                onTap: () async {
-                                  HapticFeedback.mediumImpact();
-                                  final result = await showSkipVisitDialog(
-                                    context,
-                                    customer: customer,
-                                  );
-                                  if (result != null) {
-                                    onSkipSubmitted?.call(
-                                        result.reason, result.photoPath);
-                                  }
-                                },
-                              ),
-                          ],
+                      // Skip Visit Button (Allowed ONLY on today's call plan)
+                      if (canSkip) ...[
+                        SizedBox(width: context.rw(8)),
+                        _ActionButton(
+                          icon: Icons.cancel_rounded,
+                          color: Theme.of(context).colorScheme.error,
+                          backgroundColor: Theme.of(context)
+                              .colorScheme
+                              .error
+                              .withValues(alpha: 0.12),
+                          onTap: () async {
+                            HapticFeedback.mediumImpact();
+                            final result = await showSkipVisitDialog(
+                              context,
+                              customer: customer,
+                            );
+                            if (result != null) {
+                              onSkipSubmitted?.call(
+                                  result.reason, result.photoPath);
+                            }
+                          },
                         ),
+                      ],
                     ],
                   ),
                 ],
               ),
-            ),
+            ],
           ),
         ),
       ),

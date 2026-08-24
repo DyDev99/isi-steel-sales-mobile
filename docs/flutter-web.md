@@ -232,7 +232,8 @@ This is a real, accepted weakening of an anti-fraud control, tagged `// TODO(rel
 **Decide before any web release:** is that acceptable for what web exposes, or must location-sensitive actions (geofenced check-in, visit capture) stay mobile-only?
 
 ---
-## 8. ✅ Resolved — drift_dev silently dropped every foreign key
+
+## 8. ✅ Resolved — drift_dev silently dropped every foreign key
 
 **Fixed.** All 22 foreign keys are back, all 227 tests pass, and CI now guards
 against a recurrence. This section is kept because the defect is still live in
@@ -248,6 +249,14 @@ regenerating dropped all of them — silently, with no warning or error.
 Lost constraints included `route_stops.customer_id → customers(id)` and the nine
 `ON DELETE CASCADE` links from visit captures to `route_stops` — precisely the
 referential integrity ADR-001 was adopted to gain.
+
+> **Update (2026-08-24, ADR-011).** Those two particular constraints have since
+> been removed *deliberately*, in schema v18, because they destroyed data rather
+> than protecting it. That does not retire this section: the codegen bug is
+> real, it is still silent, and the six foreign keys the schema **does** still
+> declare rely on the `customConstraints` workaround described below. The guard
+> test now asserts both halves — that the survivors reach SQLite, and that the
+> removed ones do not creep back. See `docs/adr/ADR011localmirrornorelations.md`.
 
 ### Why it was not caused by the web work
 

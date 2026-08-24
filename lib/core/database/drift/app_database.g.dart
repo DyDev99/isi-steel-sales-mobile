@@ -9455,6 +9455,618 @@ class RouteStopsCompanion extends UpdateCompanion<RouteStopRow> {
   }
 }
 
+class $RouteCustomersTable extends RouteCustomers
+    with TableInfo<$RouteCustomersTable, RouteCustomerRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $RouteCustomersTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+      'name', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _nameKhMeta = const VerificationMeta('nameKh');
+  @override
+  late final GeneratedColumn<String> nameKh = GeneratedColumn<String>(
+      'name_kh', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(''));
+  static const VerificationMeta _codeMeta = const VerificationMeta('code');
+  @override
+  late final GeneratedColumn<String> code = GeneratedColumn<String>(
+      'code', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _contactMeta =
+      const VerificationMeta('contact');
+  @override
+  late final GeneratedColumn<String> contact = GeneratedColumn<String>(
+      'contact', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _phoneMeta = const VerificationMeta('phone');
+  @override
+  late final GeneratedColumn<String> phone = GeneratedColumn<String>(
+      'phone', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _addressMeta =
+      const VerificationMeta('address');
+  @override
+  late final GeneratedColumn<String> address = GeneratedColumn<String>(
+      'address', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _territoryMeta =
+      const VerificationMeta('territory');
+  @override
+  late final GeneratedColumn<String> territory = GeneratedColumn<String>(
+      'territory', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _territoryTypeMeta =
+      const VerificationMeta('territoryType');
+  @override
+  late final GeneratedColumn<String> territoryType = GeneratedColumn<String>(
+      'territory_type', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _latitudeMeta =
+      const VerificationMeta('latitude');
+  @override
+  late final GeneratedColumn<double> latitude = GeneratedColumn<double>(
+      'latitude', aliasedName, false,
+      type: DriftSqlType.double, requiredDuringInsert: true);
+  static const VerificationMeta _longitudeMeta =
+      const VerificationMeta('longitude');
+  @override
+  late final GeneratedColumn<double> longitude = GeneratedColumn<double>(
+      'longitude', aliasedName, false,
+      type: DriftSqlType.double, requiredDuringInsert: true);
+  static const VerificationMeta _geofenceRadiusOverrideMeta =
+      const VerificationMeta('geofenceRadiusOverride');
+  @override
+  late final GeneratedColumn<double> geofenceRadiusOverride =
+      GeneratedColumn<double>('geofence_radius_override', aliasedName, true,
+          type: DriftSqlType.double, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        name,
+        nameKh,
+        code,
+        contact,
+        phone,
+        address,
+        territory,
+        territoryType,
+        latitude,
+        longitude,
+        geofenceRadiusOverride
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'route_customers';
+  @override
+  VerificationContext validateIntegrity(Insertable<RouteCustomerRow> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('name_kh')) {
+      context.handle(_nameKhMeta,
+          nameKh.isAcceptableOrUnknown(data['name_kh']!, _nameKhMeta));
+    }
+    if (data.containsKey('code')) {
+      context.handle(
+          _codeMeta, code.isAcceptableOrUnknown(data['code']!, _codeMeta));
+    } else if (isInserting) {
+      context.missing(_codeMeta);
+    }
+    if (data.containsKey('contact')) {
+      context.handle(_contactMeta,
+          contact.isAcceptableOrUnknown(data['contact']!, _contactMeta));
+    } else if (isInserting) {
+      context.missing(_contactMeta);
+    }
+    if (data.containsKey('phone')) {
+      context.handle(
+          _phoneMeta, phone.isAcceptableOrUnknown(data['phone']!, _phoneMeta));
+    } else if (isInserting) {
+      context.missing(_phoneMeta);
+    }
+    if (data.containsKey('address')) {
+      context.handle(_addressMeta,
+          address.isAcceptableOrUnknown(data['address']!, _addressMeta));
+    } else if (isInserting) {
+      context.missing(_addressMeta);
+    }
+    if (data.containsKey('territory')) {
+      context.handle(_territoryMeta,
+          territory.isAcceptableOrUnknown(data['territory']!, _territoryMeta));
+    } else if (isInserting) {
+      context.missing(_territoryMeta);
+    }
+    if (data.containsKey('territory_type')) {
+      context.handle(
+          _territoryTypeMeta,
+          territoryType.isAcceptableOrUnknown(
+              data['territory_type']!, _territoryTypeMeta));
+    } else if (isInserting) {
+      context.missing(_territoryTypeMeta);
+    }
+    if (data.containsKey('latitude')) {
+      context.handle(_latitudeMeta,
+          latitude.isAcceptableOrUnknown(data['latitude']!, _latitudeMeta));
+    } else if (isInserting) {
+      context.missing(_latitudeMeta);
+    }
+    if (data.containsKey('longitude')) {
+      context.handle(_longitudeMeta,
+          longitude.isAcceptableOrUnknown(data['longitude']!, _longitudeMeta));
+    } else if (isInserting) {
+      context.missing(_longitudeMeta);
+    }
+    if (data.containsKey('geofence_radius_override')) {
+      context.handle(
+          _geofenceRadiusOverrideMeta,
+          geofenceRadiusOverride.isAcceptableOrUnknown(
+              data['geofence_radius_override']!, _geofenceRadiusOverrideMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  RouteCustomerRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return RouteCustomerRow(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      name: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      nameKh: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name_kh'])!,
+      code: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}code'])!,
+      contact: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}contact'])!,
+      phone: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}phone'])!,
+      address: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}address'])!,
+      territory: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}territory'])!,
+      territoryType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}territory_type'])!,
+      latitude: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}latitude'])!,
+      longitude: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}longitude'])!,
+      geofenceRadiusOverride: attachedDatabase.typeMapping.read(
+          DriftSqlType.double,
+          data['${effectivePrefix}geofence_radius_override']),
+    );
+  }
+
+  @override
+  $RouteCustomersTable createAlias(String alias) {
+    return $RouteCustomersTable(attachedDatabase, alias);
+  }
+}
+
+class RouteCustomerRow extends DataClass
+    implements Insertable<RouteCustomerRow> {
+  final String id;
+  final String name;
+
+  /// Khmer shop name. `''` is the documented "no Khmer name" value, so the
+  /// column defaults rather than being nullable — `LocalizedText` falls back
+  /// to [name] and a stop card is never blank.
+  final String nameKh;
+  final String code;
+  final String contact;
+  final String phone;
+  final String address;
+  final String territory;
+  final String territoryType;
+  final double latitude;
+  final double longitude;
+
+  /// Metres; falls back to the territory-type default when absent.
+  final double? geofenceRadiusOverride;
+  const RouteCustomerRow(
+      {required this.id,
+      required this.name,
+      required this.nameKh,
+      required this.code,
+      required this.contact,
+      required this.phone,
+      required this.address,
+      required this.territory,
+      required this.territoryType,
+      required this.latitude,
+      required this.longitude,
+      this.geofenceRadiusOverride});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['name'] = Variable<String>(name);
+    map['name_kh'] = Variable<String>(nameKh);
+    map['code'] = Variable<String>(code);
+    map['contact'] = Variable<String>(contact);
+    map['phone'] = Variable<String>(phone);
+    map['address'] = Variable<String>(address);
+    map['territory'] = Variable<String>(territory);
+    map['territory_type'] = Variable<String>(territoryType);
+    map['latitude'] = Variable<double>(latitude);
+    map['longitude'] = Variable<double>(longitude);
+    if (!nullToAbsent || geofenceRadiusOverride != null) {
+      map['geofence_radius_override'] =
+          Variable<double>(geofenceRadiusOverride);
+    }
+    return map;
+  }
+
+  RouteCustomersCompanion toCompanion(bool nullToAbsent) {
+    return RouteCustomersCompanion(
+      id: Value(id),
+      name: Value(name),
+      nameKh: Value(nameKh),
+      code: Value(code),
+      contact: Value(contact),
+      phone: Value(phone),
+      address: Value(address),
+      territory: Value(territory),
+      territoryType: Value(territoryType),
+      latitude: Value(latitude),
+      longitude: Value(longitude),
+      geofenceRadiusOverride: geofenceRadiusOverride == null && nullToAbsent
+          ? const Value.absent()
+          : Value(geofenceRadiusOverride),
+    );
+  }
+
+  factory RouteCustomerRow.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return RouteCustomerRow(
+      id: serializer.fromJson<String>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      nameKh: serializer.fromJson<String>(json['nameKh']),
+      code: serializer.fromJson<String>(json['code']),
+      contact: serializer.fromJson<String>(json['contact']),
+      phone: serializer.fromJson<String>(json['phone']),
+      address: serializer.fromJson<String>(json['address']),
+      territory: serializer.fromJson<String>(json['territory']),
+      territoryType: serializer.fromJson<String>(json['territoryType']),
+      latitude: serializer.fromJson<double>(json['latitude']),
+      longitude: serializer.fromJson<double>(json['longitude']),
+      geofenceRadiusOverride:
+          serializer.fromJson<double?>(json['geofenceRadiusOverride']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'name': serializer.toJson<String>(name),
+      'nameKh': serializer.toJson<String>(nameKh),
+      'code': serializer.toJson<String>(code),
+      'contact': serializer.toJson<String>(contact),
+      'phone': serializer.toJson<String>(phone),
+      'address': serializer.toJson<String>(address),
+      'territory': serializer.toJson<String>(territory),
+      'territoryType': serializer.toJson<String>(territoryType),
+      'latitude': serializer.toJson<double>(latitude),
+      'longitude': serializer.toJson<double>(longitude),
+      'geofenceRadiusOverride':
+          serializer.toJson<double?>(geofenceRadiusOverride),
+    };
+  }
+
+  RouteCustomerRow copyWith(
+          {String? id,
+          String? name,
+          String? nameKh,
+          String? code,
+          String? contact,
+          String? phone,
+          String? address,
+          String? territory,
+          String? territoryType,
+          double? latitude,
+          double? longitude,
+          Value<double?> geofenceRadiusOverride = const Value.absent()}) =>
+      RouteCustomerRow(
+        id: id ?? this.id,
+        name: name ?? this.name,
+        nameKh: nameKh ?? this.nameKh,
+        code: code ?? this.code,
+        contact: contact ?? this.contact,
+        phone: phone ?? this.phone,
+        address: address ?? this.address,
+        territory: territory ?? this.territory,
+        territoryType: territoryType ?? this.territoryType,
+        latitude: latitude ?? this.latitude,
+        longitude: longitude ?? this.longitude,
+        geofenceRadiusOverride: geofenceRadiusOverride.present
+            ? geofenceRadiusOverride.value
+            : this.geofenceRadiusOverride,
+      );
+  RouteCustomerRow copyWithCompanion(RouteCustomersCompanion data) {
+    return RouteCustomerRow(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      nameKh: data.nameKh.present ? data.nameKh.value : this.nameKh,
+      code: data.code.present ? data.code.value : this.code,
+      contact: data.contact.present ? data.contact.value : this.contact,
+      phone: data.phone.present ? data.phone.value : this.phone,
+      address: data.address.present ? data.address.value : this.address,
+      territory: data.territory.present ? data.territory.value : this.territory,
+      territoryType: data.territoryType.present
+          ? data.territoryType.value
+          : this.territoryType,
+      latitude: data.latitude.present ? data.latitude.value : this.latitude,
+      longitude: data.longitude.present ? data.longitude.value : this.longitude,
+      geofenceRadiusOverride: data.geofenceRadiusOverride.present
+          ? data.geofenceRadiusOverride.value
+          : this.geofenceRadiusOverride,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RouteCustomerRow(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('nameKh: $nameKh, ')
+          ..write('code: $code, ')
+          ..write('contact: $contact, ')
+          ..write('phone: $phone, ')
+          ..write('address: $address, ')
+          ..write('territory: $territory, ')
+          ..write('territoryType: $territoryType, ')
+          ..write('latitude: $latitude, ')
+          ..write('longitude: $longitude, ')
+          ..write('geofenceRadiusOverride: $geofenceRadiusOverride')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      id,
+      name,
+      nameKh,
+      code,
+      contact,
+      phone,
+      address,
+      territory,
+      territoryType,
+      latitude,
+      longitude,
+      geofenceRadiusOverride);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is RouteCustomerRow &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.nameKh == this.nameKh &&
+          other.code == this.code &&
+          other.contact == this.contact &&
+          other.phone == this.phone &&
+          other.address == this.address &&
+          other.territory == this.territory &&
+          other.territoryType == this.territoryType &&
+          other.latitude == this.latitude &&
+          other.longitude == this.longitude &&
+          other.geofenceRadiusOverride == this.geofenceRadiusOverride);
+}
+
+class RouteCustomersCompanion extends UpdateCompanion<RouteCustomerRow> {
+  final Value<String> id;
+  final Value<String> name;
+  final Value<String> nameKh;
+  final Value<String> code;
+  final Value<String> contact;
+  final Value<String> phone;
+  final Value<String> address;
+  final Value<String> territory;
+  final Value<String> territoryType;
+  final Value<double> latitude;
+  final Value<double> longitude;
+  final Value<double?> geofenceRadiusOverride;
+  final Value<int> rowid;
+  const RouteCustomersCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.nameKh = const Value.absent(),
+    this.code = const Value.absent(),
+    this.contact = const Value.absent(),
+    this.phone = const Value.absent(),
+    this.address = const Value.absent(),
+    this.territory = const Value.absent(),
+    this.territoryType = const Value.absent(),
+    this.latitude = const Value.absent(),
+    this.longitude = const Value.absent(),
+    this.geofenceRadiusOverride = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  RouteCustomersCompanion.insert({
+    required String id,
+    required String name,
+    this.nameKh = const Value.absent(),
+    required String code,
+    required String contact,
+    required String phone,
+    required String address,
+    required String territory,
+    required String territoryType,
+    required double latitude,
+    required double longitude,
+    this.geofenceRadiusOverride = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        name = Value(name),
+        code = Value(code),
+        contact = Value(contact),
+        phone = Value(phone),
+        address = Value(address),
+        territory = Value(territory),
+        territoryType = Value(territoryType),
+        latitude = Value(latitude),
+        longitude = Value(longitude);
+  static Insertable<RouteCustomerRow> custom({
+    Expression<String>? id,
+    Expression<String>? name,
+    Expression<String>? nameKh,
+    Expression<String>? code,
+    Expression<String>? contact,
+    Expression<String>? phone,
+    Expression<String>? address,
+    Expression<String>? territory,
+    Expression<String>? territoryType,
+    Expression<double>? latitude,
+    Expression<double>? longitude,
+    Expression<double>? geofenceRadiusOverride,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (nameKh != null) 'name_kh': nameKh,
+      if (code != null) 'code': code,
+      if (contact != null) 'contact': contact,
+      if (phone != null) 'phone': phone,
+      if (address != null) 'address': address,
+      if (territory != null) 'territory': territory,
+      if (territoryType != null) 'territory_type': territoryType,
+      if (latitude != null) 'latitude': latitude,
+      if (longitude != null) 'longitude': longitude,
+      if (geofenceRadiusOverride != null)
+        'geofence_radius_override': geofenceRadiusOverride,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  RouteCustomersCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? name,
+      Value<String>? nameKh,
+      Value<String>? code,
+      Value<String>? contact,
+      Value<String>? phone,
+      Value<String>? address,
+      Value<String>? territory,
+      Value<String>? territoryType,
+      Value<double>? latitude,
+      Value<double>? longitude,
+      Value<double?>? geofenceRadiusOverride,
+      Value<int>? rowid}) {
+    return RouteCustomersCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      nameKh: nameKh ?? this.nameKh,
+      code: code ?? this.code,
+      contact: contact ?? this.contact,
+      phone: phone ?? this.phone,
+      address: address ?? this.address,
+      territory: territory ?? this.territory,
+      territoryType: territoryType ?? this.territoryType,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      geofenceRadiusOverride:
+          geofenceRadiusOverride ?? this.geofenceRadiusOverride,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (nameKh.present) {
+      map['name_kh'] = Variable<String>(nameKh.value);
+    }
+    if (code.present) {
+      map['code'] = Variable<String>(code.value);
+    }
+    if (contact.present) {
+      map['contact'] = Variable<String>(contact.value);
+    }
+    if (phone.present) {
+      map['phone'] = Variable<String>(phone.value);
+    }
+    if (address.present) {
+      map['address'] = Variable<String>(address.value);
+    }
+    if (territory.present) {
+      map['territory'] = Variable<String>(territory.value);
+    }
+    if (territoryType.present) {
+      map['territory_type'] = Variable<String>(territoryType.value);
+    }
+    if (latitude.present) {
+      map['latitude'] = Variable<double>(latitude.value);
+    }
+    if (longitude.present) {
+      map['longitude'] = Variable<double>(longitude.value);
+    }
+    if (geofenceRadiusOverride.present) {
+      map['geofence_radius_override'] =
+          Variable<double>(geofenceRadiusOverride.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RouteCustomersCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('nameKh: $nameKh, ')
+          ..write('code: $code, ')
+          ..write('contact: $contact, ')
+          ..write('phone: $phone, ')
+          ..write('address: $address, ')
+          ..write('territory: $territory, ')
+          ..write('territoryType: $territoryType, ')
+          ..write('latitude: $latitude, ')
+          ..write('longitude: $longitude, ')
+          ..write('geofenceRadiusOverride: $geofenceRadiusOverride, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $LocationSamplesTable extends LocationSamples
     with TableInfo<$LocationSamplesTable, LocationSampleRow> {
   @override
@@ -18597,6 +19209,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $CartItemsTable cartItems = $CartItemsTable(this);
   late final $RoutesTable routes = $RoutesTable(this);
   late final $RouteStopsTable routeStops = $RouteStopsTable(this);
+  late final $RouteCustomersTable routeCustomers = $RouteCustomersTable(this);
   late final $LocationSamplesTable locationSamples =
       $LocationSamplesTable(this);
   late final $FraudFlagsTable fraudFlags = $FraudFlagsTable(this);
@@ -18723,6 +19336,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         cartItems,
         routes,
         routeStops,
+        routeCustomers,
         locationSamples,
         fraudFlags,
         routeSyncMeta,
@@ -23234,6 +23848,288 @@ typedef $$RouteStopsTableProcessedTableManager = ProcessedTableManager<
     ),
     RouteStopRow,
     PrefetchHooks Function()>;
+typedef $$RouteCustomersTableCreateCompanionBuilder = RouteCustomersCompanion
+    Function({
+  required String id,
+  required String name,
+  Value<String> nameKh,
+  required String code,
+  required String contact,
+  required String phone,
+  required String address,
+  required String territory,
+  required String territoryType,
+  required double latitude,
+  required double longitude,
+  Value<double?> geofenceRadiusOverride,
+  Value<int> rowid,
+});
+typedef $$RouteCustomersTableUpdateCompanionBuilder = RouteCustomersCompanion
+    Function({
+  Value<String> id,
+  Value<String> name,
+  Value<String> nameKh,
+  Value<String> code,
+  Value<String> contact,
+  Value<String> phone,
+  Value<String> address,
+  Value<String> territory,
+  Value<String> territoryType,
+  Value<double> latitude,
+  Value<double> longitude,
+  Value<double?> geofenceRadiusOverride,
+  Value<int> rowid,
+});
+
+class $$RouteCustomersTableFilterComposer
+    extends Composer<_$AppDatabase, $RouteCustomersTable> {
+  $$RouteCustomersTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get nameKh => $composableBuilder(
+      column: $table.nameKh, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get code => $composableBuilder(
+      column: $table.code, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get contact => $composableBuilder(
+      column: $table.contact, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get phone => $composableBuilder(
+      column: $table.phone, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get address => $composableBuilder(
+      column: $table.address, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get territory => $composableBuilder(
+      column: $table.territory, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get territoryType => $composableBuilder(
+      column: $table.territoryType, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get latitude => $composableBuilder(
+      column: $table.latitude, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get longitude => $composableBuilder(
+      column: $table.longitude, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get geofenceRadiusOverride => $composableBuilder(
+      column: $table.geofenceRadiusOverride,
+      builder: (column) => ColumnFilters(column));
+}
+
+class $$RouteCustomersTableOrderingComposer
+    extends Composer<_$AppDatabase, $RouteCustomersTable> {
+  $$RouteCustomersTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get nameKh => $composableBuilder(
+      column: $table.nameKh, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get code => $composableBuilder(
+      column: $table.code, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get contact => $composableBuilder(
+      column: $table.contact, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get phone => $composableBuilder(
+      column: $table.phone, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get address => $composableBuilder(
+      column: $table.address, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get territory => $composableBuilder(
+      column: $table.territory, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get territoryType => $composableBuilder(
+      column: $table.territoryType,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get latitude => $composableBuilder(
+      column: $table.latitude, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get longitude => $composableBuilder(
+      column: $table.longitude, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get geofenceRadiusOverride => $composableBuilder(
+      column: $table.geofenceRadiusOverride,
+      builder: (column) => ColumnOrderings(column));
+}
+
+class $$RouteCustomersTableAnnotationComposer
+    extends Composer<_$AppDatabase, $RouteCustomersTable> {
+  $$RouteCustomersTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get nameKh =>
+      $composableBuilder(column: $table.nameKh, builder: (column) => column);
+
+  GeneratedColumn<String> get code =>
+      $composableBuilder(column: $table.code, builder: (column) => column);
+
+  GeneratedColumn<String> get contact =>
+      $composableBuilder(column: $table.contact, builder: (column) => column);
+
+  GeneratedColumn<String> get phone =>
+      $composableBuilder(column: $table.phone, builder: (column) => column);
+
+  GeneratedColumn<String> get address =>
+      $composableBuilder(column: $table.address, builder: (column) => column);
+
+  GeneratedColumn<String> get territory =>
+      $composableBuilder(column: $table.territory, builder: (column) => column);
+
+  GeneratedColumn<String> get territoryType => $composableBuilder(
+      column: $table.territoryType, builder: (column) => column);
+
+  GeneratedColumn<double> get latitude =>
+      $composableBuilder(column: $table.latitude, builder: (column) => column);
+
+  GeneratedColumn<double> get longitude =>
+      $composableBuilder(column: $table.longitude, builder: (column) => column);
+
+  GeneratedColumn<double> get geofenceRadiusOverride => $composableBuilder(
+      column: $table.geofenceRadiusOverride, builder: (column) => column);
+}
+
+class $$RouteCustomersTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $RouteCustomersTable,
+    RouteCustomerRow,
+    $$RouteCustomersTableFilterComposer,
+    $$RouteCustomersTableOrderingComposer,
+    $$RouteCustomersTableAnnotationComposer,
+    $$RouteCustomersTableCreateCompanionBuilder,
+    $$RouteCustomersTableUpdateCompanionBuilder,
+    (
+      RouteCustomerRow,
+      BaseReferences<_$AppDatabase, $RouteCustomersTable, RouteCustomerRow>
+    ),
+    RouteCustomerRow,
+    PrefetchHooks Function()> {
+  $$RouteCustomersTableTableManager(
+      _$AppDatabase db, $RouteCustomersTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$RouteCustomersTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$RouteCustomersTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$RouteCustomersTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> name = const Value.absent(),
+            Value<String> nameKh = const Value.absent(),
+            Value<String> code = const Value.absent(),
+            Value<String> contact = const Value.absent(),
+            Value<String> phone = const Value.absent(),
+            Value<String> address = const Value.absent(),
+            Value<String> territory = const Value.absent(),
+            Value<String> territoryType = const Value.absent(),
+            Value<double> latitude = const Value.absent(),
+            Value<double> longitude = const Value.absent(),
+            Value<double?> geofenceRadiusOverride = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              RouteCustomersCompanion(
+            id: id,
+            name: name,
+            nameKh: nameKh,
+            code: code,
+            contact: contact,
+            phone: phone,
+            address: address,
+            territory: territory,
+            territoryType: territoryType,
+            latitude: latitude,
+            longitude: longitude,
+            geofenceRadiusOverride: geofenceRadiusOverride,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required String name,
+            Value<String> nameKh = const Value.absent(),
+            required String code,
+            required String contact,
+            required String phone,
+            required String address,
+            required String territory,
+            required String territoryType,
+            required double latitude,
+            required double longitude,
+            Value<double?> geofenceRadiusOverride = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              RouteCustomersCompanion.insert(
+            id: id,
+            name: name,
+            nameKh: nameKh,
+            code: code,
+            contact: contact,
+            phone: phone,
+            address: address,
+            territory: territory,
+            territoryType: territoryType,
+            latitude: latitude,
+            longitude: longitude,
+            geofenceRadiusOverride: geofenceRadiusOverride,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$RouteCustomersTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $RouteCustomersTable,
+    RouteCustomerRow,
+    $$RouteCustomersTableFilterComposer,
+    $$RouteCustomersTableOrderingComposer,
+    $$RouteCustomersTableAnnotationComposer,
+    $$RouteCustomersTableCreateCompanionBuilder,
+    $$RouteCustomersTableUpdateCompanionBuilder,
+    (
+      RouteCustomerRow,
+      BaseReferences<_$AppDatabase, $RouteCustomersTable, RouteCustomerRow>
+    ),
+    RouteCustomerRow,
+    PrefetchHooks Function()>;
 typedef $$LocationSamplesTableCreateCompanionBuilder = LocationSamplesCompanion
     Function({
   required String id,
@@ -27467,6 +28363,8 @@ class $AppDatabaseManager {
       $$RoutesTableTableManager(_db, _db.routes);
   $$RouteStopsTableTableManager get routeStops =>
       $$RouteStopsTableTableManager(_db, _db.routeStops);
+  $$RouteCustomersTableTableManager get routeCustomers =>
+      $$RouteCustomersTableTableManager(_db, _db.routeCustomers);
   $$LocationSamplesTableTableManager get locationSamples =>
       $$LocationSamplesTableTableManager(_db, _db.locationSamples);
   $$FraudFlagsTableTableManager get fraudFlags =>

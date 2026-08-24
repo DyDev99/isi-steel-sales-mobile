@@ -35,12 +35,12 @@ class AuthProfileModel extends AuthProfile {
         // the wrapped envelope examples in the guide use it. Reading only
         // `id` left every profile with an empty identifier.
         id: (json['userId'] ?? json['id'] ?? json['user_id'])?.toString() ?? '',
-        employeeId: (json['employeeId'] ?? json['employee_id'])?.toString() ??
-            '',
+        employeeId:
+            (json['employeeId'] ?? json['employee_id'])?.toString() ?? '',
         email: json['email'] as String? ?? '',
-        fullName:
-            (json['fullName'] ?? json['full_name'] ?? json['name']) as String? ??
-                '',
+        fullName: (json['fullName'] ?? json['full_name'] ?? json['name'])
+                as String? ??
+            '',
         roles: _roles(json['roles']),
         permissions: _stringSet(json['permissions']),
         // An absent map means "no flags", which `flag()` then reads as off.
@@ -53,9 +53,9 @@ class AuthProfileModel extends AuthProfile {
         passwordExpiresAt: parseUtc(json['passwordExpiresAt']),
         company: json['company'] as String?,
         avatarUrl: (json['avatarUrl'] ?? json['avatar_url']) as String?,
-        phoneNumber:
-            (json['phoneNumber'] ?? json['phone_number'] ?? json['phone'])
-                as String?,
+        phoneNumber: (json['phoneNumber'] ??
+            json['phone_number'] ??
+            json['phone']) as String?,
         position: json['position'] as String?,
         department: json['department'] as String?,
         lastLoginAt: parseUtc(json['lastLoginAt']),

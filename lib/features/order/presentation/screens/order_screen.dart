@@ -25,7 +25,7 @@ enum _OrderStatusFilter {
   completed
 }
 
-/// Entry point into the order flow.
+/// Entry point into the order flow[cite: 6].
 class OrderScreen extends StatefulWidget {
   const OrderScreen({super.key});
 
@@ -34,13 +34,13 @@ class OrderScreen extends StatefulWidget {
 }
 
 class _OrderScreenState extends State<OrderScreen> {
-  // Live streams for quotations and sales orders
+  // Live streams for quotations and sales orders[cite: 6]
   late final Stream<List<Quotation>> _quotationsStream =
       sl<WatchQuotations>()(const NoParams());
   late final Stream<List<SalesOrder>> _salesOrdersStream =
       sl<WatchSalesOrders>()(const NoParams());
 
-  // Track active filter state
+  // Track active filter state[cite: 6]
   _OrderStatusFilter _selectedFilter = _OrderStatusFilter.all;
 
   void _openProductFilter() {
@@ -53,15 +53,18 @@ class _OrderScreenState extends State<OrderScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
     final colors = context.appColors;
+    
+    // Determine screen width for responsive columns
+    final isTablet = MediaQuery.sizeOf(context).width >= 600;
+    
     return PopScope(
-      canPop: false, // Prevent default exit to handle custom tab switching
+      canPop: false, // Prevent default exit to handle custom tab switching[cite: 6]
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
 
         // When the system back button is pressed on the root of this tab,
-        // cleanly switch back to the Home tab.
+        // cleanly switch back to the Home tab[cite: 6].
         sl<ShellTabController>().goTo(ShellTab.home);
       },
       child: Scaffold(
@@ -69,7 +72,7 @@ class _OrderScreenState extends State<OrderScreen> {
         body: SafeArea(
           child: Column(
             children: [
-              // Fixed Filter Toolbar Header
+              // Fixed Filter Toolbar Header[cite: 6]
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
                 child: Row(
@@ -136,7 +139,7 @@ class _OrderScreenState extends State<OrderScreen> {
                             color: colors.textPrimary,
                             fontSize: context.rsp(15),
                             fontWeight: FontWeight.w800)),
-                    SizedBox(height: context.rh(10)),
+                    SizedBox(height: context.rh(14)),
                     StreamBuilder<List<Quotation>>(
                       stream: _quotationsStream,
                       builder: (context, quotationSnapshot) {
@@ -161,7 +164,7 @@ class _OrderScreenState extends State<OrderScreen> {
                               );
                             }
 
-                            // Map source arrays to UI abstraction union
+                            // Map source arrays to UI abstraction union[cite: 6]
                             var entries = <_OrderEntry>[
                               for (final q in quotationSnapshot.data ??
                                   const <Quotation>[])
@@ -171,7 +174,7 @@ class _OrderScreenState extends State<OrderScreen> {
                                 _OrderEntry.salesOrder(o),
                             ]..sort((a, b) => b.date.compareTo(a.date));
 
-                            // Filter client-side based on horizontal selector selection
+                            // Filter client-side based on horizontal selector selection[cite: 6]
                             if (_selectedFilter != _OrderStatusFilter.all) {
                               entries = entries.where((entry) {
                                 switch (_selectedFilter) {
@@ -184,7 +187,7 @@ class _OrderScreenState extends State<OrderScreen> {
                                     return !entry.isSalesOrder &&
                                         !entry.isQuotationConverted;
                                   case _OrderStatusFilter.completed:
-                                    // Complete states match items cleanly synced to a backend record (e.g. Sales Orders)
+                                    // Complete states match items cleanly synced to a backend record (e.g. Sales Orders)[cite: 6]
                                     return entry.isSalesOrder;
                                   default:
                                     return true;
@@ -202,10 +205,22 @@ class _OrderScreenState extends State<OrderScreen> {
                                             color: colors.textSecondary))),
                               );
                             }
-                            return Column(children: [
-                              for (final entry in entries)
-                                _OrderTile(entry: entry)
-                            ]);
+                            
+                            // Replaced Column with responsive GridView for square layout
+                            return GridView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: isTablet ? 4 : 2, // Responsive columns
+                                crossAxisSpacing: context.rw(12),
+                                mainAxisSpacing: context.rh(12),
+                                childAspectRatio: 1.0, // Strictly square proportion
+                              ),
+                              itemCount: entries.length,
+                              itemBuilder: (context, index) {
+                                return _OrderTile(entry: entries[index]);
+                              },
+                            );
                           },
                         );
                       },
@@ -260,7 +275,7 @@ class _FilterSegment extends StatelessWidget {
 }
 
 /// Lightweight display union so the dashboard can render Quotations and
-/// Sales Orders in one merged, date-sorted list without a shared entity.
+/// Sales Orders in one merged, date-sorted list without a shared entity[cite: 6].
 class _OrderEntry {
   _OrderEntry.quotation(Quotation q)
       : id = q.id,
@@ -286,9 +301,6 @@ class _OrderEntry {
         isSalesOrder = true,
         isQuotationConverted = false,
         statusLabel = 'orders.sales_order.title'.tr,
-        // Was `null`, which is why a sales-order row did nothing when tapped
-        // while a quotation row opened its detail: there was no sales-order
-        // detail screen to send it to. There is now.
         onTap = ((context) => SalesOrderDetailScreen.open(context, o));
 
   final String id;
@@ -309,54 +321,113 @@ class _OrderTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: InkWell(
-        onTap: entry.onTap == null ? null : () => entry.onTap!(context),
-        borderRadius: BorderRadius.circular(16),
-        child: GlassCard(
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                        'orders.items_count'
-                            .tr
-                            .replaceAll('{count}', '${entry.itemCount}'),
-                        style: TextStyle(
-                            color: colors.textPrimary,
-                            fontSize: context.rsp(13.5),
-                            fontWeight: FontWeight.w800)),
-                    SizedBox(height: context.rh(2)),
-                    Text(_formatDate(entry.date),
-                        style: TextStyle(
-                            color: colors.textSecondary,
-                            fontSize: context.rsp(11.5))),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: colors.warning.withValues(alpha: 0.16),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(entry.statusLabel,
-                    style: TextStyle(
-                        color: colors.warning,
-                        fontSize: context.rsp(10.5),
-                        fontWeight: FontWeight.w700)),
-              ),
-              SizedBox(width: context.rw(10)),
-              Text('\$${entry.total.toStringAsFixed(2)}',
-                  style: TextStyle(
-                      color: scheme.primary,
-                      fontSize: context.rsp(14),
-                      fontWeight: FontWeight.w800)),
-            ],
+    
+    // Determine icon and color based on whether it is a sales order or quotation
+    final isSO = entry.isSalesOrder;
+    final iconData = isSO ? Icons.local_mall_rounded : Icons.assignment_rounded;
+    final iconColor = isSO ? scheme.primary : colors.warning;
+    final iconBgColor = isSO ? scheme.primary.withValues(alpha: 0.1) : colors.warning.withValues(alpha: 0.1);
+
+    return InkWell(
+      onTap: entry.onTap == null ? null : () => entry.onTap!(context),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: EdgeInsets.all(context.rr(12)),
+        decoration: BoxDecoration(
+          color: colors.card,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+          border: Border.all(
+            color: colors.border.withValues(alpha: 0.4),
+            width: 0.5,
           ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Top Row: Icon and Status Pill
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: EdgeInsets.all(context.rr(8)),
+                  decoration: BoxDecoration(
+                    color: iconBgColor,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(iconData, color: iconColor, size: context.rr(18)),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: colors.warning.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    entry.statusLabel,
+                    style: TextStyle(
+                      color: colors.warning,
+                      fontSize: context.rsp(10),
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            
+            const Spacer(),
+            
+            // Middle: Items count and Date
+            Text(
+              'orders.items_count'
+                  .tr
+                  .replaceAll('{count}', '${entry.itemCount}'),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: colors.textPrimary,
+                fontSize: context.rsp(13),
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            SizedBox(height: context.rh(2)),
+            Row(
+              children: [
+                Icon(Icons.calendar_today_rounded, size: context.rr(10), color: colors.textSecondary),
+                SizedBox(width: context.rw(4)),
+                Text(
+                  _formatDate(entry.date),
+                  style: TextStyle(
+                    color: colors.textSecondary,
+                    fontSize: context.rsp(11),
+                  ),
+                ),
+              ],
+            ),
+            
+            SizedBox(height: context.rh(8)),
+            Divider(height: 1, color: colors.divider.withValues(alpha: 0.5)),
+            SizedBox(height: context.rh(8)),
+            
+            // Bottom: Total Price
+            Text(
+              '\$${entry.total.toStringAsFixed(2)}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: colors.accentPurple, // Utilizing accent for modern feel
+                fontSize: context.rsp(15.5),
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ],
         ),
       ),
     );

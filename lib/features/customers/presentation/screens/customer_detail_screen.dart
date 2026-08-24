@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localized_builder.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_content_frame.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer.dart';
@@ -12,23 +15,13 @@ import 'package:isi_steel_sales_mobile/features/customers/domain/entities/custom
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customer_detail_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customer_detail_state.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/app_bottom_sheet.dart';
-import 'package:isi_steel_sales_mobile/shared/widgets/outlet_information/outlet_info_view_data.dart';
-import 'package:isi_steel_sales_mobile/shared/widgets/outlet_information/outlet_information_view.dart';
 
-/// Read-mostly profile of an approved SAP customer.
-///
-/// Renders [OutletInformationView] — the same body as the visit flow's stop
-/// information screen — so a shop looks identical whether the rep opened it
-/// from today's route or from the customer directory. Everything SAP owns is
-/// read-only here; only Notes/Activities are ever written from this screen, and
-/// they are appended as a trailing card below the shared sections.
+const double _twoColumnMinWidth = 840;
+
 class CustomerDetailScreen extends StatelessWidget {
   const CustomerDetailScreen({super.key, required this.customerId});
 
-  /// Stable resume-target key persisted on [ActiveWorkflow.currentScreen] and
-  /// mapped back by the visit resume dispatcher.
   static const String routeName = 'customer-detail';
-
   final String customerId;
 
   @override
@@ -56,12 +49,8 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
     super.dispose();
   }
 
-  /// Same escalation ladder as the visit flow: Telegram app, Telegram web, then
-  /// a plain dial. Reps reach shop owners on Telegram far more often than by
-  /// call, so trying `tel:` first would bury the channel they actually use.
   Future<void> _openPhoneOrTelegram(String rawPhoneNumber) async {
     String cleanNumber = rawPhoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
-
     if (cleanNumber.startsWith('0')) {
       cleanNumber = '+855${cleanNumber.substring(1)}';
     } else if (!cleanNumber.startsWith('+')) {
@@ -73,15 +62,9 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
     final Uri callUri = Uri.parse('tel:$cleanNumber');
 
     try {
-      bool launched = await launchUrl(
-        telegramTgUri,
-        mode: LaunchMode.externalApplication,
-      );
+      bool launched = await launchUrl(telegramTgUri, mode: LaunchMode.externalApplication);
       if (!launched) {
-        launched = await launchUrl(
-          telegramWebUri,
-          mode: LaunchMode.externalApplication,
-        );
+        launched = await launchUrl(telegramWebUri, mode: LaunchMode.externalApplication);
       }
       if (!launched) {
         await launchUrl(callUri, mode: LaunchMode.externalApplication);
@@ -115,23 +98,25 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (sheetContext) => Padding(
-        padding: EdgeInsets.only(
-            bottom: MediaQuery.of(sheetContext).viewInsets.bottom),
+        padding: EdgeInsets.only(bottom: MediaQuery.of(sheetContext).viewInsets.bottom),
         child: Container(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
           decoration: BoxDecoration(
-              color: scheme.surface,
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(24))),
+            color: scheme.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('common.add_note'.tr,
-                  style: TextStyle(
-                      color: colors.textPrimary,
-                      fontSize: context.rsp(16),
-                      fontWeight: FontWeight.w800)),
+              Text(
+                'common.add_note'.tr,
+                style: TextStyle(
+                  color: colors.textPrimary,
+                  fontSize: context.rsp(16),
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
               SizedBox(height: context.rh(12)),
               TextField(
                 controller: _noteController,
@@ -142,8 +127,9 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
                   filled: true,
                   fillColor: colors.surfaceSoft,
                   border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: colors.border)),
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: colors.border),
+                  ),
                 ),
               ),
               SizedBox(height: context.rh(16)),
@@ -151,22 +137,19 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    context
-                        .read<CustomerDetailCubit>()
-                        .addNote(_noteController.text);
+                    context.read<CustomerDetailCubit>().addNote(_noteController.text);
                     _noteController.clear();
                     Navigator.pop(sheetContext);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: scheme.primary,
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
-                  child: Text('customers.save_note'.tr,
-                      style: TextStyle(
-                          color: scheme.onPrimary,
-                          fontWeight: FontWeight.w800)),
+                  child: Text(
+                    'customers.save_note'.tr,
+                    style: TextStyle(color: scheme.onPrimary, fontWeight: FontWeight.w800),
+                  ),
                 ),
               ),
             ],
@@ -181,6 +164,8 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
     return LocalizedBuilder(
       builder: (context) {
         final colors = context.appColors;
+        final isTwoColumn = MediaQuery.sizeOf(context).width >= _twoColumnMinWidth;
+
         return Scaffold(
           backgroundColor: colors.canvas,
           appBar: AppBar(
@@ -209,9 +194,7 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
                     color: colors.textPrimary,
                     size: context.rr(22),
                   ),
-                  onPressed: state is CustomerDetailLoaded
-                      ? () => _addNote(context)
-                      : null,
+                  onPressed: state is CustomerDetailLoaded ? () => _addNote(context) : null,
                 ),
               ),
             ],
@@ -220,27 +203,78 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
             child: BlocBuilder<CustomerDetailCubit, CustomerDetailState>(
               builder: (context, state) {
                 return switch (state) {
-                  CustomerDetailLoaded() => OutletInformationView(
-                      data: _viewData(state.customer),
-                      onPhoneTap: state.customer.phone.isEmpty
-                          ? null
-                          : _openPhoneOrTelegram,
-                      onLocationTap: _openGoogleMaps,
-                      trailing: [
-                        if (state.customer.contacts.isNotEmpty)
-                          _ContactsCard(customer: state.customer),
-                        if (state.customer.productsPurchased.isNotEmpty)
-                          _ProductMixCard(customer: state.customer),
-                        _TimelineCard(state: state),
-                      ],
+                  CustomerDetailLoaded() => ResponsiveContentFrame(
+                      child: ListView(
+                        padding: EdgeInsets.fromLTRB(
+                          context.pagePadding,
+                          context.rh(12),
+                          context.pagePadding,
+                          context.rh(24),
+                        ),
+                        children: [
+                          _HeroCard(customer: state.customer),
+                          SizedBox(height: context.rh(16)),
+                          if (isTwoColumn)
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  flex: 6,
+                                  child: _OutletDetailsCard(
+                                    customer: state.customer,
+                                    onPhoneTap: _openPhoneOrTelegram,
+                                    onLocationTap: _openGoogleMaps,
+                                  ),
+                                ),
+                                SizedBox(width: context.rw(16)),
+                                Expanded(
+                                  flex: 5,
+                                  child: Column(
+                                    children: [
+                                      if (state.customer.contacts.isNotEmpty)
+                                        _ContactsCard(customer: state.customer),
+                                      if (state.customer.productsPurchased.isNotEmpty) ...[
+                                        SizedBox(height: context.rh(16)),
+                                        _ProductMixCard(customer: state.customer),
+                                      ],
+                                      SizedBox(height: context.rh(16)),
+                                      _TimelineCard(state: state),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            )
+                          else
+                            Column(
+                              children: [
+                                _OutletDetailsCard(
+                                  customer: state.customer,
+                                  onPhoneTap: _openPhoneOrTelegram,
+                                  onLocationTap: _openGoogleMaps,
+                                ),
+                                if (state.customer.contacts.isNotEmpty) ...[
+                                  SizedBox(height: context.rh(14)),
+                                  _ContactsCard(customer: state.customer),
+                                ],
+                                if (state.customer.productsPurchased.isNotEmpty) ...[
+                                  SizedBox(height: context.rh(14)),
+                                  _ProductMixCard(customer: state.customer),
+                                ],
+                                SizedBox(height: context.rh(14)),
+                                _TimelineCard(state: state),
+                              ],
+                            ),
+                        ],
+                      ),
                     ),
                   CustomerDetailError(:final message) => Center(
-                      child: Text(message,
-                          style: TextStyle(color: colors.textSecondary)),
+                      child: Text(message, style: TextStyle(color: colors.textSecondary)),
                     ),
                   _ => Center(
                       child: CircularProgressIndicator(
-                          color: Theme.of(context).colorScheme.primary)),
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
                 };
               },
             ),
@@ -251,83 +285,378 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
   }
 }
 
-/// Maps the SAP customer master onto the shared view model.
-///
-/// Unlike the visit stop — which has only a lean [CustomerStopInfo] projection
-/// and falls back to placeholders — nearly every row here is real. Fields SAP
-/// has not populated are passed as null so the shared layout drops the row
-/// rather than printing "N/A" over a value a rep might act on.
-OutletInfoViewData _viewData(Customer c) {
-  final address = [c.address, c.district, c.province]
-      .where((part) => part.trim().isNotEmpty)
-      .join(', ');
+class _HeroCard extends StatelessWidget {
+  const _HeroCard({required this.customer});
+  final Customer customer;
 
-  // Only meaningful once there is an order to divide by; showing $0 for a
-  // customer who has never ordered reads as a real average of zero.
-  final averageRevenue = c.totalOrders > 0
-      ? '${_currencySymbol(c.currency)}${(c.lifetimeValue / c.totalOrders).toStringAsFixed(0)}'
-      : null;
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
 
-  return OutletInfoViewData(
-    displayName: c.displayName,
-    code: c.customerCode,
-    // The ERP number where it exists, else the local code — a field-registered
-    // customer has no SAP identity until HQ approves it.
-    outletId: c.sapCustomerId ?? (c.customerCode.isEmpty ? null : c.customerCode),
-    outletType: _blankToNull(c.customerGroup),
-    outletTier: _blankToNull(c.priceGroup),
-    // No SAP field maps to the visit flow's "Outlet Action" call plan.
-    outletAction: null,
-    contactPerson: _blankToNull(c.ownerName),
-    assignedRep: _blankToNull(c.assignedRepName),
-    phone: _blankToNull(c.phone),
-    telegram: _blankToNull(c.whatsapp),
-    email: _blankToNull(c.email),
-    address: address.isEmpty ? null : address,
-    taxNumber: _blankToNull(c.taxNumber),
-    // hasCoordinates guards the (0,0) "no fix captured" encoding; passing the
-    // pair through would put the shop in the Gulf of Guinea and offer a map
-    // link to it.
-    latitude: c.hasCoordinates ? c.latitude : null,
-    longitude: c.hasCoordinates ? c.longitude : null,
-    paymentStatus: c.status.name.isEmpty ? null : _statusLabel(c),
-    creditLimit:
-        '${_currencySymbol(c.currency)}${c.creditLimit.toStringAsFixed(0)}',
-    // SAP payment terms are not synced to the device yet.
-    paymentTerm: null,
-    lifetimeValue:
-        '${_currencySymbol(c.currency)}${c.lifetimeValue.toStringAsFixed(0)}',
-    totalOrders: c.totalOrders > 0 ? '${c.totalOrders}' : null,
-    averageRevenuePerOrder: averageRevenue,
-    latestOrderDate:
-        c.lastOrderDate == null ? null : _formatDate(c.lastOrderDate!),
-    openOpportunities:
-        c.openOpportunityCount > 0 ? '${c.openOpportunityCount}' : null,
-    lastSynced: _formatDate(c.updatedAt),
-    // Not synced for either source yet — the same demo counts the stop screen
-    // shows, so the two detail screens stay identical. See
-    // OutletPromotionSummary.placeholder.
-    promotions: OutletPromotionSummary.placeholder,
-  );
+    return Container(
+      padding: EdgeInsets.all(context.rr(16)),
+      decoration: BoxDecoration(
+        color: colors.card,
+        borderRadius: BorderRadius.circular(context.rr(16)),
+        border: Border.all(color: colors.border),
+        boxShadow: colors.cardShadow,
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: context.rr(52),
+            height: context.rr(52),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: scheme.primary.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(context.rr(12)),
+            ),
+            child: Icon(
+              Icons.storefront_rounded,
+              color: scheme.primary,
+              size: context.rr(26),
+            ),
+          ),
+          SizedBox(width: context.rw(14)),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  context.localized(customer.displayName),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: colors.textPrimary,
+                    fontSize: context.rsp(18),
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                SizedBox(height: context.rh(4)),
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: context.rw(6),
+                        vertical: context.rh(2),
+                      ),
+                      decoration: BoxDecoration(
+                        color: scheme.primary.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(context.rr(6)),
+                      ),
+                      child: Text(
+                        'CUS CODE',
+                        style: TextStyle(
+                          color: scheme.primary,
+                          fontSize: context.rsp(10),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: context.rw(6)),
+                    Expanded(
+                      child: Text(
+                        customer.customerCode,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: colors.textSecondary,
+                          fontSize: context.rsp(13),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
-String _statusLabel(Customer c) {
-  final available = c.availableCredit;
-  final symbol = _currencySymbol(c.currency);
-  return '${c.status.apiValue} · $symbol${available.toStringAsFixed(0)} available';
+class _OutletDetailsCard extends StatelessWidget {
+  const _OutletDetailsCard({
+    required this.customer,
+    required this.onPhoneTap,
+    required this.onLocationTap,
+  });
+
+  final Customer customer;
+  final Function(String) onPhoneTap;
+  final Function(double, double) onLocationTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final address = [customer.address, customer.district, customer.province]
+        .where((part) => part.trim().isNotEmpty)
+        .join(', ');
+
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: context.rr(16),
+        vertical: context.rh(8),
+      ),
+      decoration: BoxDecoration(
+        color: colors.card,
+        borderRadius: BorderRadius.circular(context.rr(16)),
+        border: Border.all(color: colors.border),
+        boxShadow: colors.cardShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const _SectionHeader(title: 'Outlet Details & Location'),
+          _InfoRow(
+            icon: Icons.tag_rounded,
+            label: 'Outlet ID (BP SAP)',
+            value: customer.sapCustomerId ?? customer.customerCode,
+          ),
+          _InfoRow(
+            icon: Icons.store_outlined,
+            label: 'Outlet Type',
+            value: (customer.customerGroup?.isNotEmpty ?? false)
+                ? customer.customerGroup!
+                : 'N/A',
+          ),
+          _InfoRow(
+            icon: Icons.workspace_premium_outlined,
+            label: 'Outlet Tier',
+            value: (customer.priceGroup?.isNotEmpty ?? false)
+                ? customer.priceGroup!
+                : 'N/A',
+          ),
+          _InfoRow(
+            icon: Icons.person_outline_rounded,
+            label: 'Owner / Contact Person (SAP)',
+            value: (customer.ownerName?.isNotEmpty ?? false)
+                ? customer.ownerName!
+                : 'N/A',
+          ),
+          if (customer.phone.isNotEmpty)
+            _InfoRow(
+              icon: Icons.call_outlined,
+              label: 'Phone Number (SAP)',
+              value: customer.phone,
+              onTap: () => onPhoneTap(customer.phone),
+              actionWidget: _ActionIconButton(
+                icon: Icons.phone_forwarded_rounded,
+                color: Colors.green,
+                onPressed: () => onPhoneTap(customer.phone),
+              ),
+            ),
+          if (customer.whatsapp?.isNotEmpty ?? false)
+            _InfoRow(
+              icon: Icons.send_rounded,
+              label: 'Telegram',
+              value: customer.whatsapp!,
+            ),
+          _InfoRow(
+            icon: Icons.location_on_outlined,
+            label: 'Address Line (SAP)',
+            value: address.isNotEmpty ? address : 'N/A',
+          ),
+          if (customer.hasCoordinates)
+            _InfoRow(
+              icon: Icons.my_location_rounded,
+              label: 'Lat & Long (SAP)',
+              value: '${customer.latitude.toStringAsFixed(5)}, ${customer.longitude.toStringAsFixed(5)}',
+              last: true,
+              onTap: () => onLocationTap(customer.latitude, customer.longitude),
+              actionWidget: _ActionIconButton(
+                icon: Icons.map_rounded,
+                color: Colors.blue,
+                onPressed: () => onLocationTap(customer.latitude, customer.longitude),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
 }
 
-String? _blankToNull(String? value) =>
-    (value == null || value.trim().isEmpty) ? null : value;
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.title});
+  final String title;
 
-String _currencySymbol(String currency) => currency == 'USD' ? '\$' : '$currency ';
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: context.rh(10)),
+      child: Text(
+        title,
+        style: TextStyle(
+          color: colors.textPrimary,
+          fontSize: context.rsp(14.5),
+          fontWeight: FontWeight.w800,
+          letterSpacing: -0.2,
+        ),
+      ),
+    );
+  }
+}
 
-String _formatDate(DateTime date) =>
-    '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+class _InfoRow extends StatefulWidget {
+  const _InfoRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.last = false,
+    this.actionWidget,
+    this.onTap,
+  });
 
-/// The customer's named contacts. Has no counterpart on a route stop, which
-/// carries a single contact string — so it rides along as a trailing card in
-/// the shared card shell rather than being forced into the shared row list.
+  final IconData icon;
+  final String label;
+  final String value;
+  final bool last;
+  final Widget? actionWidget;
+  final VoidCallback? onTap;
+
+  @override
+  State<_InfoRow> createState() => _InfoRowState();
+}
+
+class _InfoRowState extends State<_InfoRow> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final isInteractive = widget.onTap != null;
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      cursor: isInteractive ? SystemMouseCursors.click : SystemMouseCursors.basic,
+      child: InkWell(
+        onTap: widget.onTap != null
+            ? () {
+                HapticFeedback.selectionClick();
+                widget.onTap!();
+              }
+            : null,
+        borderRadius: BorderRadius.circular(context.rr(10)),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeInOut,
+          padding: EdgeInsets.symmetric(
+            vertical: context.rh(10),
+            horizontal: _isHovered ? context.rw(8) : 0,
+          ),
+          decoration: BoxDecoration(
+            color: _isHovered && isInteractive
+                ? colors.border.withValues(alpha: 0.3)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(context.rr(10)),
+            border: widget.last
+                ? null
+                : Border(
+                    bottom: BorderSide(
+                      color: colors.border,
+                      width: 0.6,
+                    ),
+                  ),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              AnimatedScale(
+                scale: _isHovered ? 1.15 : 1.0,
+                duration: const Duration(milliseconds: 150),
+                child: Icon(
+                  widget.icon,
+                  size: context.rr(20),
+                  color: widget.onTap != null
+                      ? Theme.of(context).colorScheme.primary
+                      : colors.textSecondary,
+                ),
+              ),
+              SizedBox(width: context.rw(12)),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: colors.textSecondary,
+                        fontSize: context.rsp(11.5),
+                      ),
+                    ),
+                    SizedBox(height: context.rh(2)),
+                    Text(
+                      widget.value,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: colors.textPrimary,
+                        fontSize: context.rsp(13.5),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (widget.actionWidget != null) widget.actionWidget!,
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ActionIconButton extends StatefulWidget {
+  const _ActionIconButton({
+    required this.icon,
+    required this.color,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final Color color;
+  final VoidCallback onPressed;
+
+  @override
+  State<_ActionIconButton> createState() => _ActionIconButtonState();
+}
+
+class _ActionIconButtonState extends State<_ActionIconButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: AnimatedScale(
+        scale: _isHovered ? 1.15 : 1.0,
+        duration: const Duration(milliseconds: 150),
+        child: IconButton(
+          icon: Icon(widget.icon, color: widget.color, size: context.rr(22)),
+          constraints: BoxConstraints(
+            minWidth: context.rr(40),
+            minHeight: context.rr(40),
+          ),
+          padding: EdgeInsets.all(context.rr(8)),
+          onPressed: () {
+            HapticFeedback.lightImpact();
+            widget.onPressed();
+          },
+        ),
+      ),
+    );
+  }
+}
+
 class _ContactsCard extends StatelessWidget {
   const _ContactsCard({required this.customer});
 
@@ -338,11 +667,21 @@ class _ContactsCard extends StatelessWidget {
     final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
 
-    return OutletCard(
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: context.rr(16),
+        vertical: context.rh(8),
+      ),
+      decoration: BoxDecoration(
+        color: colors.card,
+        borderRadius: BorderRadius.circular(context.rr(16)),
+        border: Border.all(color: colors.border),
+        boxShadow: colors.cardShadow,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          OutletSectionHeader(title: 'customers.contacts'.tr),
+          _SectionHeader(title: 'customers.contacts'.tr),
           Padding(
             padding: EdgeInsets.only(bottom: context.rh(10)),
             child: Column(
@@ -355,23 +694,28 @@ class _ContactsCard extends StatelessWidget {
                         CircleAvatar(
                           radius: context.rr(16),
                           backgroundColor: colors.surfaceStrong,
-                          child: Icon(Icons.person,
-                              size: context.rr(16), color: scheme.primary),
+                          child: Icon(Icons.person, size: context.rr(16), color: scheme.primary),
                         ),
                         SizedBox(width: context.rw(10)),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(contact.name,
-                                  style: TextStyle(
-                                      color: colors.textPrimary,
-                                      fontSize: context.rsp(13),
-                                      fontWeight: FontWeight.w700)),
-                              Text('${contact.role} · ${contact.phone}',
-                                  style: TextStyle(
-                                      color: colors.textSecondary,
-                                      fontSize: context.rsp(11.5))),
+                              Text(
+                                contact.name,
+                                style: TextStyle(
+                                  color: colors.textPrimary,
+                                  fontSize: context.rsp(13),
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              Text(
+                                '${contact.role} · ${contact.phone}',
+                                style: TextStyle(
+                                  color: colors.textSecondary,
+                                  fontSize: context.rsp(11.5),
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -387,7 +731,6 @@ class _ContactsCard extends StatelessWidget {
   }
 }
 
-/// Product lines this customer already buys.
 class _ProductMixCard extends StatelessWidget {
   const _ProductMixCard({required this.customer});
 
@@ -396,12 +739,23 @@ class _ProductMixCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final info = context.appColors.info;
+    final colors = context.appColors;
 
-    return OutletCard(
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: context.rr(16),
+        vertical: context.rh(8),
+      ),
+      decoration: BoxDecoration(
+        color: colors.card,
+        borderRadius: BorderRadius.circular(context.rr(16)),
+        border: Border.all(color: colors.border),
+        boxShadow: colors.cardShadow,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          OutletSectionHeader(title: 'customers.active_product_mix'.tr),
+          _SectionHeader(title: 'customers.active_product_mix'.tr),
           Padding(
             padding: EdgeInsets.only(bottom: context.rh(10)),
             child: Wrap(
@@ -418,11 +772,14 @@ class _ProductMixCard extends StatelessWidget {
                       color: info.withValues(alpha: 0.14),
                       borderRadius: BorderRadius.circular(context.rr(20)),
                     ),
-                    child: Text(product,
-                        style: TextStyle(
-                            color: info,
-                            fontSize: context.rsp(11),
-                            fontWeight: FontWeight.w700)),
+                    child: Text(
+                      product,
+                      style: TextStyle(
+                        color: info,
+                        fontSize: context.rsp(11),
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ),
               ],
             ),
@@ -433,7 +790,6 @@ class _ProductMixCard extends StatelessWidget {
   }
 }
 
-/// Notes and activities, in the same card shell as the shared sections.
 class _TimelineCard extends StatelessWidget {
   const _TimelineCard({required this.state});
 
@@ -444,22 +800,31 @@ class _TimelineCard extends StatelessWidget {
     final colors = context.appColors;
     final isEmpty = state.activities.isEmpty && state.notes.isEmpty;
 
-    return OutletCard(
+    return Container(
       padding: EdgeInsets.symmetric(
         horizontal: context.rr(16),
         vertical: context.rh(8),
       ),
+      decoration: BoxDecoration(
+        color: colors.card,
+        borderRadius: BorderRadius.circular(context.rr(16)),
+        border: Border.all(color: colors.border),
+        boxShadow: colors.cardShadow,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          OutletSectionHeader(title: 'customers.timeline'.tr),
+          _SectionHeader(title: 'customers.timeline'.tr),
           if (isEmpty)
             Padding(
               padding: EdgeInsets.only(bottom: context.rh(10)),
-              child: Text('customers.no_activity'.tr,
-                  style: TextStyle(
-                      color: colors.textSecondary,
-                      fontSize: context.rsp(12.5))),
+              child: Text(
+                'customers.no_activity'.tr,
+                style: TextStyle(
+                  color: colors.textSecondary,
+                  fontSize: context.rsp(12.5),
+                ),
+              ),
             )
           else
             Padding(
@@ -468,9 +833,10 @@ class _TimelineCard extends StatelessWidget {
                 children: [
                   for (final activity in state.activities)
                     _TimelineRow(
-                        icon: _iconFor(activity.type),
-                        text: activity.summary,
-                        at: activity.createdAt),
+                      icon: _iconFor(activity.type),
+                      text: activity.summary,
+                      at: activity.createdAt,
+                    ),
                 ],
               ),
             ),
@@ -490,8 +856,12 @@ class _TimelineCard extends StatelessWidget {
 }
 
 class _TimelineRow extends StatelessWidget {
-  const _TimelineRow(
-      {required this.icon, required this.text, required this.at});
+  const _TimelineRow({
+    required this.icon,
+    required this.text,
+    required this.at,
+  });
+
   final IconData icon;
   final String text;
   final DateTime at;
@@ -511,15 +881,21 @@ class _TimelineRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(text,
-                    style: TextStyle(
-                        color: colors.textPrimary,
-                        fontSize: context.rsp(12.5),
-                        fontWeight: FontWeight.w600)),
-                Text(_formatDateTime(at),
-                    style: TextStyle(
-                        color: colors.textSecondary,
-                        fontSize: context.rsp(11))),
+                Text(
+                  text,
+                  style: TextStyle(
+                    color: colors.textPrimary,
+                    fontSize: context.rsp(12.5),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  _formatDateTime(at),
+                  style: TextStyle(
+                    color: colors.textSecondary,
+                    fontSize: context.rsp(11),
+                  ),
+                ),
               ],
             ),
           ),

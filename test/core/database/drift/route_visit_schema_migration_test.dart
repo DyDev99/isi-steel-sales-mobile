@@ -63,7 +63,8 @@ void main() {
     });
   });
 
-  group('referential integrity — the win ADR-001 was adopted for', () {
+  group('referential integrity — what the schema does and does not enforce',
+      () {
     late AppDatabase db;
 
     setUp(() => db = AppDatabase(NativeDatabase.memory()));
@@ -83,43 +84,50 @@ void main() {
           ),
         );
 
-    test('a stop referencing an unknown customer is rejected', () async {
+    // ── ADR-011 reversed both of these ───────────────────────────────
+    //
+    // They used to assert that a stop referencing an unknown customer or an
+    // unknown route was rejected, as "the win ADR-001 was adopted for". In
+    // practice the rejection aborted the entire route-write transaction, so
+    // one unrecognised customer cost the rep every stop of their day rather
+    // than the one bad row. The backend validates these relationships before
+    // it sends the payload; the device's job is to store what arrived.
+
+    test('a stop whose customer has not synced yet is stored, not rejected',
+        () async {
       await insertRoute('route-1');
 
-      // Impossible to enforce under the old three-plaintext-database split:
-      // stops and customers lived in different files. The T1.5 import must
-      // therefore reconcile orphans rather than blind-copy.
-      expect(
-        () => db.into(db.routeStops).insert(
-              RouteStopsCompanion.insert(
-                id: 'stop-1',
-                routeId: 'route-1',
-                customerId: 'ghost-customer',
-                sequence: 1,
-                plannedArrival: DateTime.utc(2026, 7, 15, 9),
-                plannedDeparture: DateTime.utc(2026, 7, 15, 10),
-                status: 'pending',
-              ),
+      await db.into(db.routeStops).insert(
+            RouteStopsCompanion.insert(
+              id: 'stop-1',
+              routeId: 'route-1',
+              customerId: 'ghost-customer',
+              sequence: 1,
+              plannedArrival: DateTime.utc(2026, 7, 15, 9),
+              plannedDeparture: DateTime.utc(2026, 7, 15, 10),
+              status: 'pending',
             ),
-        throwsA(isA<SqliteException>()),
-      );
+          );
+
+      final stored = await db.select(db.routeStops).get();
+      expect(stored, hasLength(1));
+      expect(stored.single.customerId, 'ghost-customer');
     });
 
-    test('a stop referencing an unknown route is rejected', () async {
-      expect(
-        () => db.into(db.routeStops).insert(
-              RouteStopsCompanion.insert(
-                id: 'stop-1',
-                routeId: 'ghost-route',
-                customerId: 'ghost-customer',
-                sequence: 1,
-                plannedArrival: DateTime.utc(2026, 7, 15, 9),
-                plannedDeparture: DateTime.utc(2026, 7, 15, 10),
-                status: 'pending',
-              ),
+    test('a stop whose route has not been written yet is stored too', () async {
+      await db.into(db.routeStops).insert(
+            RouteStopsCompanion.insert(
+              id: 'stop-1',
+              routeId: 'ghost-route',
+              customerId: 'ghost-customer',
+              sequence: 1,
+              plannedArrival: DateTime.utc(2026, 7, 15, 9),
+              plannedDeparture: DateTime.utc(2026, 7, 15, 10),
+              status: 'pending',
             ),
-        throwsA(isA<SqliteException>()),
-      );
+          );
+
+      expect(await db.select(db.routeStops).get(), hasLength(1));
     });
 
     test('deleting a route cascades to its GPS trail', () async {

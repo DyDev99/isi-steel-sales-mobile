@@ -135,8 +135,7 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource, TokenStore {
     required String accessToken,
     required String refreshToken,
   }) async {
-    await _storage.write(
-        key: AppConstants.kRefreshToken, value: refreshToken);
+    await _storage.write(key: AppConstants.kRefreshToken, value: refreshToken);
     await _storage.write(key: AppConstants.kAccessToken, value: accessToken);
   }
 }

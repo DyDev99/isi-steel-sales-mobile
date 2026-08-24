@@ -82,10 +82,37 @@ NativeDatabase.createInBackground(
 
 ## 3. Schema conventions
 
-- `PRAGMA foreign_keys = ON` always.
+- `PRAGMA foreign_keys = ON` always — enforcement stays on for the constraints
+  the schema still declares (see §3.0 for which those are).
 - Primary keys are **UUID/text**, matching the rest of the app's ID scheme — do not introduce integer autoincrement IDs on syncable tables (this was a specific gap found in the current `ActiveWorkflow` table; do not repeat it).
 - Indexes exist on every foreign key and on every column used in a `WHERE`/`ORDER BY` in a hot-path query. The current per-feature databases have ad hoc indexing; a full index audit against real query plans is due before Phase 2 closes.
 - Full-text search (FTS4/FTS5) is used for catalog/product search, as it already is today — keep this pattern.
+
+### 3.0 Mirror tables carry no foreign keys (ADR-011)
+
+A table that mirrors backend-owned state **does not declare foreign keys**. The
+backend enforces those relationships before the row is transmitted; re-enforcing
+them on the device adds no correctness and turns ordinary conditions into data
+loss. The device stores what it was sent and renders it.
+
+Use this test when adding a table or a constraint:
+
+| Situation | Foreign key? |
+|---|---|
+| Parent and child arrive in the **same payload from one endpoint** | **Yes** — no ordering hazard exists (e.g. `prices → products`) |
+| Parent and child arrive from **different endpoints**, paged or scoped separately | **No** — the server never promised an arrival order (e.g. `route_stops → customers`) |
+| The child is a **rep-captured row** (check-in, note, photo, collection, fraud flag) | **No** — never let a sync-driven parent delete first-hand field work |
+| A cascade could fire during **normal sync** | **No** — sync must never be able to delete data as a side effect |
+
+Two failures motivated this, both reproduced on the v17 schema: one unrecognised
+customer aborted a whole route write (`SqliteException(787)`, zero stops
+persisted), and the `visit_* → route_stops` cascade deleted unsynced check-ins
+and notes whenever route sync refreshed a route. Full evidence and the surviving
+constraint list: `docs/adr/ADR011localmirrornorelations.md`.
+
+`test/core/database/drift/foreign_key_schema_test.dart` asserts both directions —
+that the six remaining constraints reach SQLite, and that the removed ones do not
+creep back. Read the ADR before changing the expected count.
 
 ### 3.1 Standard syncable-table columns
 

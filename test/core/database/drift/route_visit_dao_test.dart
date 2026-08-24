@@ -380,7 +380,21 @@ void main() {
       expect(await visitDao.countPendingVisitRecords(), 1);
     });
 
-    test('captures cascade away when their stop is deleted', () async {
+    // ── ADR-011: captures outlive the stop row ───────────────────────
+    //
+    // These two tests previously asserted the opposite — that a capture
+    // cascades away with its stop, and that a capture for an unknown stop is
+    // rejected. Both were reversed deliberately, because route sync *replaces*
+    // a route's stops on every run: the cascade meant a routine delta silently
+    // deleted a rep's unsynced check-ins, notes and collections, and the
+    // rejection meant a capture raced against sync was refused outright.
+    //
+    // A capture is first-hand field work the server has no competing version
+    // of (`docs/SYNC_ENGINE.md` §5). Losing one is the exact failure the
+    // offline design exists to prevent, so it now survives independently and
+    // is pushed by `stop_id`.
+
+    test('a capture survives its stop row being replaced by sync', () async {
       await visitDao.insertCollection(VisitCollectionsCompanion.insert(
         id: 'col-1',
         stopId: 's-1',
@@ -390,20 +404,33 @@ void main() {
 
       await (db.delete(db.routeStops)..where((t) => t.id.equals('s-1'))).go();
 
-      expect(await visitDao.fetchCollections('s-1'), isEmpty);
+      final survived = await visitDao.fetchCollections('s-1');
+      expect(
+        survived,
+        hasLength(1),
+        reason: 'A cash collection the rep took must not disappear because '
+            'the route refreshed. It is money that was handed over.',
+      );
+      expect(survived.single.amount, 250);
     });
 
-    test('a capture for an unknown stop is rejected', () async {
+    test('a capture for a stop sync has not written yet is accepted', () async {
+      await visitDao.insertReturn(VisitReturnsCompanion.insert(
+        id: 'ret-1',
+        stopId: 'ghost-stop',
+        productId: 'p-1',
+        productName: 'Rebar',
+        quantity: 1,
+        reason: 'damaged',
+      ));
+
+      final stored = await visitDao.fetchReturns('ghost-stop');
       expect(
-        () => visitDao.insertReturn(VisitReturnsCompanion.insert(
-          id: 'ret-1',
-          stopId: 'ghost-stop',
-          productId: 'p-1',
-          productName: 'Rebar',
-          quantity: 1,
-          reason: 'damaged',
-        )),
-        throwsA(isA<Exception>()),
+        stored,
+        hasLength(1),
+        reason: 'The rep is standing in the shop with the damaged goods. '
+            'Whether route sync has written the stop row yet is not their '
+            'problem, and refusing the capture loses it permanently.',
       );
     });
   });

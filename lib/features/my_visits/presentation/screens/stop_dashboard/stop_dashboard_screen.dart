@@ -193,15 +193,13 @@ class _LoadedViewState extends State<_LoadedView> {
 
   int _getStopCountForDate(DateTime date) => widget.state.stopCountForDay(date);
 
-  // Inside _LoadedViewState in stop_dashboard_screen.dart
-
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
     final visible = widget.state.visibleStops;
 
-    // Check if the selected calendar date is TODAY
+    // Check if the currently selected date is TODAY
     final isSelectedToday = DateUtils.isSameDay(
       widget.state.selectedDate,
       DateTime.now(),
@@ -265,9 +263,11 @@ class _LoadedViewState extends State<_LoadedView> {
                   final todayStop = visible[index];
                   return StopCard(
                     todayStop: todayStop,
-                    isToday:
-                        isSelectedToday, // 👈 CRITICAL: Pass whether selected date is today
+                    isToday: isSelectedToday,
                     onTap: () => widget.onTapStop(todayStop),
+                    onQuotationTap: () {
+                      // Navigate to Ad-Hoc order screen
+                    },
                     onSkipSubmitted: (reason, photoPath) =>
                         widget.onSkipStop(todayStop, reason, photoPath),
                   );
@@ -279,7 +279,6 @@ class _LoadedViewState extends State<_LoadedView> {
     );
   }
 }
-
 class _EmptyState extends StatelessWidget {
   const _EmptyState({required this.hasAnyStops});
   final bool hasAnyStops;

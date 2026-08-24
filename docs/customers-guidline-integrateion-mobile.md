@@ -17,12 +17,14 @@ Base URL `https://<host>/api/v1` · All examples verified against the running AP
 6. [Offline sync](#offline-sync)
 7. [Reading one customer](#reading-one-customer)
 8. [Creating and updating](#creating-and-updating)
-9. [Contacts](#contacts)
-10. [Money](#money)
-11. [Metrics are a cache](#metrics-are-a-cache)
-12. [Error codes](#error-codes)
-13. [Dart model](#dart-model)
-14. [Checklist](#checklist)
+9. [Registering a business partner for SAP](#registering-a-business-partner-for-sap)
+10. [Looking a customer up by code](#looking-a-customer-up-by-code)
+11. [Contacts](#contacts)
+12. [Money](#money)
+13. [Metrics are a cache](#metrics-are-a-cache)
+14. [Error codes](#error-codes)
+15. [Dart model](#dart-model)
+16. [Checklist](#checklist)
 
 ---
 
@@ -47,6 +49,9 @@ final delta = await api.get('/mobile/customers',
     queryParameters: {'modifiedSince': watermark, 'pageSize': 200});
 ```
 
+Registering a shop that must reach SAP is a different endpoint - see
+[Registering a business partner for SAP](#registering-a-business-partner-for-sap).
+
 Two rules that prevent the classic offline bugs:
 
 1. **Store `metadata.syncTimestamp` from the server. Never the device clock.**
@@ -64,6 +69,30 @@ Two rules that prevent the classic offline bugs:
 | `POST` | `/mobile/customers` | `customers.create` | Created customer (201) |
 | `PUT` | `/mobile/customers/{id}` | `customers.update` | Updated customer |
 | `DELETE` | `/mobile/customers/{id}` | `customers.delete` | 204 |
+| `POST` | `/mobile/customers/business-partner` | `customers.create` | SAP registration status |
+| `GET` | `/customers/by-code/{code}` | `customers.read` | One customer, fetched from SAP if unknown |
+
+The last two are new. See [Registering a business partner for SAP](#registering-a-business-partner-for-sap)
+and [Looking a customer up by code](#looking-a-customer-up-by-code).
+
+### What the app cannot do
+
+Everything under `/customers/sap/*` — trigger a sync, push registrations, retry
+failures, read sync totals — requires **`customers.sync`**, which sales
+representatives deliberately do not hold. A rep calling one gets a bare 403:
+
+```json
+{ "title": "Forbidden", "status": 403,
+  "instance": "/api/v1/customers/sap/status",
+  "correlationId": "0HNO1GJO3S25N:00000001" }
+```
+
+Note there is no `errorCode` on a 403 — the pipeline rejects it before a handler
+runs. Branch on the status code.
+
+**Do not build a "sync now" button into the field app.** Delivery to SAP is an
+operator action from the admin portal, or a scheduled job. The rep's job ends when
+the record is safely on the server.
 
 Read the caller's permissions from `GET /auth/me` and hide actions they lack — a
 usability measure only, since the server re-checks every one.
@@ -337,6 +366,16 @@ page of fifty customers costs one round trip, not fifty.
 
 ## Creating and updating
 
+There are **two** create endpoints, and they are for different jobs:
+
+| Endpoint | Use when |
+|---|---|
+| `POST /mobile/customers` | The shop is a platform customer. Simple, platform vocabulary, never goes to SAP. |
+| `POST /mobile/customers/business-partner` | The shop must end up in SAP. Takes SAP's own field names. |
+
+If you are unsure, the second one is what the field workflow wants — a shop a
+representative registers is expected to reach the ERP eventually.
+
 ### Create — `POST /api/v1/mobile/customers`
 
 ```json
@@ -399,6 +438,236 @@ A **closed** customer cannot be edited at all — expect `Customer.Closed` (422)
 final pos = await tryGetPosition();
 body['latitude']  = pos?.latitude;    // null, not 0.0
 body['longitude'] = pos?.longitude;
+```
+
+---
+
+## Registering a business partner for SAP
+
+`POST /api/v1/mobile/customers/business-partner` · `customers.create`
+
+The endpoint for a shop that must end up in SAP. **It never calls SAP.** The record
+is written to the platform database and the response returns immediately.
+
+That is the whole point. A representative standing at a counter in a market has no
+route to the ERP and frequently no signal at all, and their registration still has to
+succeed. Calling SAP inline would fail them for a reason that has nothing to do with
+them and lose what they just typed.
+
+### Why the field names look like SAP
+
+Because they are SAP's. The app already fills its dropdowns from SAP's helper
+endpoints — sales org, sales group, payment term, price group — so the representative
+is choosing real SAP codes. Renaming them into platform vocabulary here and back again
+on the push would be two lossy translations for no gain.
+
+```json
+POST /api/v1/mobile/customers/business-partner
+Content-Type: application/json
+
+{
+  "name1": "Doc Sample Hardware",
+  "name3": "ហាងគំរូ",
+  "partnerCategory": "2",
+  "partnerGroup": "Z001",
+  "bpRole": "ZFLCU1",
+  "accountGroup": "Z001",
+  "country": "KH",
+  "region": "R01",
+  "city": "Phnom Penh",
+  "street": "Street 271",
+  "houseNo": "12B",
+  "mobilePhone": "012345678",
+  "telephone": "023456789",
+  "language": "E",
+  "salesOrg": "0001",
+  "distributionChannel": "10",
+  "division": "10",
+  "customerGroup": "01",
+  "currency": "USD",
+  "paymentTerms": "T015",
+  "searchTerm1": "PHNOM PENH",
+  "latitude": 11.5449,
+  "longitude": 104.9160,
+  "territory": "PP-CENTRAL",
+  "submitToSap": true
+}
+```
+
+Response (200, the standard mobile envelope):
+
+```json
+{
+  "success": true,
+  "message": "Customer created successfully.",
+  "data": {
+    "customerId": "01a03189-9670-7599-98ac-45ebaf277899",
+    "customerCode": "BP-202608-00002",
+    "name": "Doc Sample Hardware",
+    "sapStatus": "Submitted",
+    "sapCustomerNumber": null,
+    "submittedAt": "2026-08-24T02:11:35.666005+00:00",
+    "registeredAt": null,
+    "lastError": null,
+    "attemptCount": 0
+  },
+  "traceId": "0HNO1GJO3S25K:00000001"
+}
+```
+
+**The response is a registration status, not a customer.** If you need the full
+record — to render a detail screen straight after creating — follow up with
+`GET /mobile/customers/{customerId}`.
+
+### Only `name1` is required
+
+Everything else is optional, exactly as in SAP. But a record missing
+`accountGroup`, `bpRole`, `partnerGroup` or the sales area
+(`salesOrg` + `distributionChannel` + `division`) **cannot be registered later** — the
+push will mark it `Rejected` without even calling SAP.
+
+So: collect those five if you possibly can. A blank `name1` is the only thing that
+fails the request itself:
+
+```json
+{ "status": 400, "errorCode": "Customer.NameRequired",
+  "detail": "Customer name is required." }
+```
+
+### `submitToSap`
+
+| Value | Effect |
+|---|---|
+| `true` (default) | Status `Submitted`. The next operator push delivers it. |
+| `false` | Status `NotSubmitted`. Stays local until somebody queues it. |
+
+Send `true` for a normal field registration. Send `false` only if your flow has a
+review step before the shop is allowed near the ERP.
+
+### Two statuses, and they mean different things
+
+This trips people up. A customer carries **both**:
+
+| Field | Vocabulary | Meaning |
+|---|---|---|
+| `status` | `Draft` `PendingApproval` `Active` `Suspended` `Closed` | The commercial lifecycle — may this shop trade? |
+| `sapStatus` | `NotSubmitted` `Submitted` `Registered` `Rejected` | Does the ERP know about it? |
+
+They move independently. A customer freshly registered from the field is
+`status: Draft` **and** `sapStatus: Submitted` at the same time — awaiting a human
+approval here, and awaiting delivery there. Neither implies the other.
+
+```mermaid
+flowchart LR
+    A[Rep submits] --> B[sapStatus: Submitted]
+    B --> C{Operator pushes}
+    C -->|SAP accepts| D[Registered<br/>sapCustomerNumber set]
+    C -->|SAP refuses| E[Rejected<br/>lastError set]
+    E -->|operator fixes + re-queues| B
+```
+
+### Showing SAP state to the rep
+
+Render it read-only. The rep cannot act on it — retrying is an operator action.
+
+```dart
+String sapLabel(String sapStatus) => switch (sapStatus) {
+      'NotSubmitted' => 'Not sent to SAP',
+      'Submitted'    => 'Waiting to reach SAP',
+      'Registered'   => 'In SAP',
+      'Rejected'     => 'SAP rejected — office will fix',
+      _              => 'Unknown',   // never crash on a value you do not know
+    };
+```
+
+`lastError` is **SAP's own English message**, kept verbatim so the office can act on
+it. Do not show it to a representative as-is; show the label and log the detail.
+
+---
+
+## Looking a customer up by code
+
+`GET /api/v1/customers/by-code/{code}` · `customers.read`
+
+Finds a customer by its code. **The database is checked first**; SAP is consulted
+only when the platform has never seen that code — which happens when somebody quotes
+a customer number created in the ERP since your last sync.
+
+Whatever comes back from SAP is stored, so the next lookup is local.
+
+Use it when a representative types or scans a customer number that is not in the
+local database. Do **not** put it on the normal browse path — the list endpoint is
+what that is for, and it is local.
+
+```
+GET /api/v1/customers/by-code/6100001234
+Accept-Language: en-US
+```
+
+### It is on a different surface, and the shape differs
+
+This endpoint lives on `/customers`, not `/mobile/customers`, so it uses the **portal
+envelope and the portal customer shape**. You cannot reuse your `CustomerSummary`
+parser on it.
+
+```json
+{
+  "data": {
+    "id": "01a03189-9670-7599-98ac-45ebaf277899",
+    "code": "BP-202608-00002",
+    "name": "Doc Sample Hardware",
+    "type": "Retailer",
+    "status": "Draft",
+    "canTrade": false,
+    "phone": "012345678",
+    "address": {
+      "line1": "Street 271", "line2": null, "city": "Phnom Penh",
+      "province": null, "postalCode": null,
+      "latitude": 11.5449, "longitude": 104.916
+    },
+    "creditLimit": 0.0,
+    "creditTermDays": 0,
+    "assignedSalesRepId": "019fefcb-…",
+    "createdAt": "2026-08-24T02:11:35.707489+00:00"
+  },
+  "meta": { "correlationId": "0HNO1GJO3S25L:00000001", "timestamp": "…" }
+}
+```
+
+Differences that will bite if you assume otherwise:
+
+| Mobile shape | This endpoint |
+|---|---|
+| `{ success, message, data, metadata, traceId }` | `{ data, meta }` — no `success`, no `message` |
+| `customerCode` | `code` |
+| `shopName` (localised) | `name` |
+| `statusDisplay` | *absent* — you localise `status` yourself |
+| `creditLimit: { amount, currency }` | `creditLimit: 0.0` — a bare number |
+| flat `city` / `latitude` | nested under `address` |
+
+**This is a rough edge, not a design.** Parse it with a separate small model and map
+into your own type; do not try to make one parser serve both. A mobile-shaped
+`by-code` is worth asking the backend team for if your flow leans on it.
+
+### Statuses
+
+| Status | Meaning |
+|---|---|
+| 200 | Found — locally or fetched from SAP |
+| 404 `Customer.NotFoundByCode` | Neither the platform nor SAP has it |
+| 502 | The ERP could not be reached |
+
+**404 and 502 are not the same and must not be shown the same way.** A 404 means the
+code does not exist — offer to register the shop. A 502 means we could not ask;
+the customer may well exist, and inviting a registration would create a duplicate in
+the ERP. On 502, say "cannot check right now, try later".
+
+```dart
+switch (res.statusCode) {
+  case 200: return Customer.fromPortalJson(res.data['data']);
+  case 404: return null;                       // safe to offer registration
+  case 502: throw SapUnavailable();            // do NOT offer registration
+}
 ```
 
 ---
@@ -519,6 +788,12 @@ if (stale) showAsOfLabel(customer.metricsCalculatedAt);
 | `Customer.NotSuspended` | 422 | Reinstate attempted on a non-suspended one |
 | `Customer.NotAwaitingApproval` | 422 | Approve attempted out of sequence |
 | `General.Validation` | 400 | See the `errors` map for per-field messages |
+| `Customer.NotFoundByCode` | 404 | `by-code`: neither the platform nor SAP has it |
+| `Customer.AlreadyRegisteredInSap` | 409 | Already has a SAP number — cannot be submitted again |
+| `Customer.IncompleteForSapRegistration` | 422 | Missing account group, BP role, partner group or sales area |
+| `Customer.NotRegisteredInSap` | 422 | No SAP number, so there is nothing in SAP to update |
+| *(none)* | 403 | Sync endpoint — reps do not hold `customers.sync`. No `errorCode` on a 403. |
+| *(none)* | 502 | The ERP could not be reached. **Not** the same as not-found. |
 
 `Customer.CoordinatesMissing` carries a message written for the user directly:
 *"No GPS fix was captured. Move to an open area and try again, or save without a
@@ -586,6 +861,74 @@ class CustomerListPage {
 }
 ```
 
+### SAP registration status
+
+Returned by `POST /mobile/customers/business-partner`.
+
+```dart
+enum SapStatus { notSubmitted, submitted, registered, rejected, unknown }
+
+SapStatus parseSapStatus(String? raw) => switch (raw) {
+      'NotSubmitted' => SapStatus.notSubmitted,
+      'Submitted'    => SapStatus.submitted,
+      'Registered'   => SapStatus.registered,
+      'Rejected'     => SapStatus.rejected,
+      // Never throw on an unrecognised value: a server that gains a status must not
+      // crash an app that has not shipped yet.
+      _              => SapStatus.unknown,
+    };
+
+class CustomerSapState {
+  final String customerId, customerCode, name;
+  final SapStatus sapStatus;
+  final String? sapCustomerNumber, lastError;
+  final DateTime? submittedAt, registeredAt;
+  final int attemptCount;
+
+  factory CustomerSapState.fromJson(Map<String, dynamic> j) => CustomerSapState(
+        customerId:        j['customerId'],
+        customerCode:      j['customerCode'],
+        name:              j['name'],
+        sapStatus:         parseSapStatus(j['sapStatus']),
+        sapCustomerNumber: j['sapCustomerNumber'],
+        lastError:         j['lastError'],        // SAP's English words — log, do not display
+        submittedAt:       _utc(j['submittedAt']),
+        registeredAt:      _utc(j['registeredAt']),
+        attemptCount:      j['attemptCount'] ?? 0,
+      );
+}
+
+DateTime? _utc(dynamic v) => v == null ? null : DateTime.parse(v as String).toUtc();
+```
+
+### The by-code shape is separate on purpose
+
+```dart
+// A deliberately small, separate model. Do not try to make CustomerSummary
+// parse this - the field names and the envelope both differ. See §10.
+class PortalCustomer {
+  final String id, code, name, status, phone;
+  final bool canTrade;
+  final double? latitude, longitude;
+  final String city;
+
+  factory PortalCustomer.fromJson(Map<String, dynamic> j) {
+    final a = j['address'] as Map<String, dynamic>;
+    return PortalCustomer(
+      id:        j['id'],
+      code:      j['code'],            // NOT customerCode
+      name:      j['name'],            // NOT shopName; not localised
+      status:    j['status'],          // no statusDisplay here - localise it yourself
+      phone:     j['phone'],
+      canTrade:  j['canTrade'] ?? false,
+      city:      a['city'],            // nested, not flat
+      latitude:  (a['latitude']  as num?)?.toDouble(),
+      longitude: (a['longitude'] as num?)?.toDouble(),
+    );
+  }
+}
+```
+
 All timestamps are **UTC, ISO-8601**. Parse as UTC and convert for display; never
 assume device-local.
 
@@ -608,10 +951,25 @@ assume device-local.
 - [ ] Metrics shown with `metricsCalculatedAt`, never used for credit decisions
 - [ ] Errors keyed off `errorCode`, never off `detail`
 
+SAP-related:
+
+- [ ] Business partners created through `/mobile/customers/business-partner`, not the plain create
+- [ ] `accountGroup`, `bpRole`, `partnerGroup` and the sales area collected — without them the push is rejected
+- [ ] `sapStatus` rendered read-only; no "sync now" button in the field app
+- [ ] `status` and `sapStatus` treated as independent — `Draft` + `Submitted` is normal
+- [ ] Unknown `sapStatus` values fall back, never throw
+- [ ] `lastError` logged, not shown to a representative
+- [ ] `by-code` parsed with its own model — different envelope and field names
+- [ ] `by-code` 404 offers registration; **502 does not** (would create an ERP duplicate)
+- [ ] 403 on a `/customers/sap/*` route handled by status code — a 403 has no `errorCode`
+
 ---
 
 ## See also
 
 - [Authentication-guild-integratemobile.md](Authentication-guild-integratemobile.md) — sign-in, tokens, refresh
 - [MobileCustomerApi.md](MobileCustomerApi.md) — server-side design decisions and migration notes
+- [CustomerSapIntegration.md](CustomerSapIntegration.md) — what happens after you submit: the
+  push to SAP, retry, and the ERP quirks behind it. Useful when a registration comes
+  back `Rejected` and you need to explain why.
 - `/docs` on any running instance — interactive reference, pre-authorised in Development

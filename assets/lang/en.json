@@ -57,7 +57,10 @@
       "session_expired": "Session expired. Please log in again."
     },
     "verifying": "Verifying…",
-    "youre_in": "You're in ✨"
+    "youre_in": "You're in ✨",
+    "identifier": "Employee ID or e-mail",
+    "identifier_hint": "EMP000201",
+    "identifier_required": "Enter your employee ID or e-mail"
   },
   "common": {
     "back": "Back",
@@ -115,7 +118,7 @@
   "home": {
     "title": "Home Dashboard",
     "welcome": "Welcome Back",
-    "view_kpi": "View KPI",
+    "view_kpi": "View Details",
     "achieved": "Achieved",
     "target": "Target",
     "quick_access": {

@@ -1,5 +1,4 @@
 import 'package:drift/drift.dart';
-import 'package:isi_steel_sales_mobile/core/database/drift/tables/route_tables.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/tables/syncable_table.dart';
 
 /// Visit captures — everything a rep records at a stop. Ported from the legacy
@@ -12,8 +11,19 @@ import 'package:isi_steel_sales_mobile/core/database/drift/tables/syncable_table
 /// sync — a capture that never reaches SAP is a lost sale, and losing one is the
 /// failure mode the whole offline design exists to prevent.
 ///
-/// Every table cascades from [RouteStops]: a stop's captures are meaningless
-/// without the stop, and the FK makes that structural rather than conventional.
+/// ## No foreign key to `route_stops` (ADR-011, schema v18)
+///
+/// `stop_id` is a plain column. These tables used to cascade from `route_stops`,
+/// which was actively dangerous: route sync replaces a route's stops on every
+/// run, so a routine delta — one the backend documents as "acceptable and
+/// expected" (`docs/backend-document.md` §5.2) — silently deleted every
+/// check-in, note and photo the rep had captured and not yet pushed.
+///
+/// Losing a first-hand capture is the exact failure the offline design exists
+/// to prevent, so the constraint had to go: the backend already owns this
+/// relationship, and the device only has to store the capture and hand it to
+/// the push. An orphaned capture is still pushed by `stop_id` and is dropped
+/// only once the server has it.
 
 /// Arrival at a stop. Unique per stop — a rep checks in once.
 @TableIndex(name: 'idx_visit_check_ins_stop', columns: {#stopId}, unique: true)
@@ -22,18 +32,7 @@ class VisitCheckIns extends Table with SyncableTable {
   @override
   String get tableName => 'visit_check_ins';
 
-  // Restored explicitly: drift_dev 2.31.0 + analyzer 10.2.0 silently emit no
-  // foreign keys from `references()` above (docs/flutter-web.md section 8).
-  // The `references()` calls are kept — they still drive drift's Dart-side
-  // relation API — but the SQL constraint now comes from here. Remove this
-  // override once the generator is fixed, and verify with the FK tests.
-  @override
-  List<String> get customConstraints => [
-        'FOREIGN KEY (stop_id) REFERENCES route_stops (id) ON DELETE CASCADE',
-      ];
-
-  TextColumn get stopId =>
-      text().references(RouteStops, #id, onDelete: KeyAction.cascade)();
+  TextColumn get stopId => text()();
   DateTimeColumn get timestamp => dateTime()();
   RealColumn get latitude => real()();
   RealColumn get longitude => real()();
@@ -52,18 +51,7 @@ class VisitCheckOuts extends Table with SyncableTable {
   @override
   String get tableName => 'visit_check_outs';
 
-  // Restored explicitly: drift_dev 2.31.0 + analyzer 10.2.0 silently emit no
-  // foreign keys from `references()` above (docs/flutter-web.md section 8).
-  // The `references()` calls are kept — they still drive drift's Dart-side
-  // relation API — but the SQL constraint now comes from here. Remove this
-  // override once the generator is fixed, and verify with the FK tests.
-  @override
-  List<String> get customConstraints => [
-        'FOREIGN KEY (stop_id) REFERENCES route_stops (id) ON DELETE CASCADE',
-      ];
-
-  TextColumn get stopId =>
-      text().references(RouteStops, #id, onDelete: KeyAction.cascade)();
+  TextColumn get stopId => text()();
   DateTimeColumn get timestamp => dateTime()();
   RealColumn get latitude => real()();
   RealColumn get longitude => real()();
@@ -83,18 +71,7 @@ class VisitOrderLines extends Table with SyncableTable {
   @override
   String get tableName => 'visit_order_lines';
 
-  // Restored explicitly: drift_dev 2.31.0 + analyzer 10.2.0 silently emit no
-  // foreign keys from `references()` above (docs/flutter-web.md section 8).
-  // The `references()` calls are kept — they still drive drift's Dart-side
-  // relation API — but the SQL constraint now comes from here. Remove this
-  // override once the generator is fixed, and verify with the FK tests.
-  @override
-  List<String> get customConstraints => [
-        'FOREIGN KEY (stop_id) REFERENCES route_stops (id) ON DELETE CASCADE',
-      ];
-
-  TextColumn get stopId =>
-      text().references(RouteStops, #id, onDelete: KeyAction.cascade)();
+  TextColumn get stopId => text()();
   TextColumn get productId => text()();
 
   /// Denormalised at capture time so a historical line still renders if the
@@ -119,19 +96,7 @@ class VisitStockUpdates extends Table with SyncableTable {
   @override
   String get tableName => 'visit_stock_updates';
 
-  // Restored explicitly: drift_dev 2.31.0 + analyzer 10.2.0 silently emit no
-  // foreign keys from `references()` above (docs/flutter-web.md section 8).
-  // The `references()` calls are kept — they still drive drift's Dart-side
-  // relation API — but the SQL constraint now comes from here. Remove this
-  // override once the generator is fixed, and verify with the FK tests.
-  @override
-  List<String> get customConstraints => [
-        'FOREIGN KEY (stop_id) REFERENCES route_stops (id) ON DELETE CASCADE',
-      ];
-
-  TextColumn get stopId => text()
-      .nullable()
-      .references(RouteStops, #id, onDelete: KeyAction.cascade)();
+  TextColumn get stopId => text().nullable()();
 
   /// The depot/shop (customer id) a depot count was taken at. No FK: depot
   /// counts may reference customers synced later than the capture.
@@ -149,18 +114,7 @@ class VisitReturns extends Table with SyncableTable {
   @override
   String get tableName => 'visit_returns';
 
-  // Restored explicitly: drift_dev 2.31.0 + analyzer 10.2.0 silently emit no
-  // foreign keys from `references()` above (docs/flutter-web.md section 8).
-  // The `references()` calls are kept — they still drive drift's Dart-side
-  // relation API — but the SQL constraint now comes from here. Remove this
-  // override once the generator is fixed, and verify with the FK tests.
-  @override
-  List<String> get customConstraints => [
-        'FOREIGN KEY (stop_id) REFERENCES route_stops (id) ON DELETE CASCADE',
-      ];
-
-  TextColumn get stopId =>
-      text().references(RouteStops, #id, onDelete: KeyAction.cascade)();
+  TextColumn get stopId => text()();
   TextColumn get productId => text()();
   TextColumn get productName => text()();
   RealColumn get quantity => real()();
@@ -175,18 +129,7 @@ class VisitCollections extends Table with SyncableTable {
   @override
   String get tableName => 'visit_collections';
 
-  // Restored explicitly: drift_dev 2.31.0 + analyzer 10.2.0 silently emit no
-  // foreign keys from `references()` above (docs/flutter-web.md section 8).
-  // The `references()` calls are kept — they still drive drift's Dart-side
-  // relation API — but the SQL constraint now comes from here. Remove this
-  // override once the generator is fixed, and verify with the FK tests.
-  @override
-  List<String> get customConstraints => [
-        'FOREIGN KEY (stop_id) REFERENCES route_stops (id) ON DELETE CASCADE',
-      ];
-
-  TextColumn get stopId =>
-      text().references(RouteStops, #id, onDelete: KeyAction.cascade)();
+  TextColumn get stopId => text()();
   RealColumn get amount => real()();
   TextColumn get method => text()();
   TextColumn get reference => text().withDefault(const Constant(''))();
@@ -200,18 +143,7 @@ class VisitNotes extends Table with SyncableTable {
   @override
   String get tableName => 'visit_notes';
 
-  // Restored explicitly: drift_dev 2.31.0 + analyzer 10.2.0 silently emit no
-  // foreign keys from `references()` above (docs/flutter-web.md section 8).
-  // The `references()` calls are kept — they still drive drift's Dart-side
-  // relation API — but the SQL constraint now comes from here. Remove this
-  // override once the generator is fixed, and verify with the FK tests.
-  @override
-  List<String> get customConstraints => [
-        'FOREIGN KEY (stop_id) REFERENCES route_stops (id) ON DELETE CASCADE',
-      ];
-
-  TextColumn get stopId =>
-      text().references(RouteStops, #id, onDelete: KeyAction.cascade)();
+  TextColumn get stopId => text()();
   TextColumn get type => text()();
 
   /// The note itself. Named [body] in Dart because `text` would shadow Drift's
@@ -234,18 +166,7 @@ class VisitPhotos extends Table with SyncableTable {
   @override
   String get tableName => 'visit_photos';
 
-  // Restored explicitly: drift_dev 2.31.0 + analyzer 10.2.0 silently emit no
-  // foreign keys from `references()` above (docs/flutter-web.md section 8).
-  // The `references()` calls are kept — they still drive drift's Dart-side
-  // relation API — but the SQL constraint now comes from here. Remove this
-  // override once the generator is fixed, and verify with the FK tests.
-  @override
-  List<String> get customConstraints => [
-        'FOREIGN KEY (stop_id) REFERENCES route_stops (id) ON DELETE CASCADE',
-      ];
-
-  TextColumn get stopId =>
-      text().references(RouteStops, #id, onDelete: KeyAction.cascade)();
+  TextColumn get stopId => text()();
 
   /// Filesystem path or remote URL. Legacy column was named `url`.
   // TODO(release-gate): the referenced file is not yet encrypted at rest —

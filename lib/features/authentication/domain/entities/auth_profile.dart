@@ -131,8 +131,17 @@ class AuthProfile extends Equatable {
       );
 
   @override
-  List<Object?> get props => [id, employeeId, email, fullName, roles,
-      permissions, featureFlags, territoryCode, depotCode];
+  List<Object?> get props => [
+        id,
+        employeeId,
+        email,
+        fullName,
+        roles,
+        permissions,
+        featureFlags,
+        territoryCode,
+        depotCode
+      ];
 }
 
 /// The permission strings the app actually branches on. Kept together so a

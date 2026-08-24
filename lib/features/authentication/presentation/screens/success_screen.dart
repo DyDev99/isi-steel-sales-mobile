@@ -42,8 +42,8 @@ class SuccessScreen extends StatelessWidget {
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
-              padding: EdgeInsets.all(context.pagePadding),                
-              child: ConstrainedBox(
+                padding: EdgeInsets.all(context.pagePadding),
+                child: ConstrainedBox(
                   constraints: BoxConstraints(maxWidth: maxCardWidth),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -131,7 +131,8 @@ class _SuccessBadge extends StatelessWidget {
         shape: BoxShape.circle,
         color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.12),
         border: Border.all(
-          color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.35),
+          color:
+              Theme.of(context).colorScheme.secondary.withValues(alpha: 0.35),
           width: 1.5,
         ),
       ),

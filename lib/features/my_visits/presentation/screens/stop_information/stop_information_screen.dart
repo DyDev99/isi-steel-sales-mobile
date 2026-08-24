@@ -19,12 +19,9 @@ import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubi
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/state/location_tracking_state.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/stops_check_in_screen.dart';
 
-/// Minimum width before the detail cards split into two columns.
-///
-/// Deliberately not the `medium` breakpoint (600): an info row is
-/// icon + label + value + action button, and a 6:5 split at 600-840pt leaves
-/// ~290pt columns where every value ellipsizes. A tablet in portrait (820pt
-/// and up) is the first size with genuine room for two columns.
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/stop_information/promotions_screen.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/stop_information/order_history_screen.dart';
+
 const double _twoColumnMinWidth = 840;
 
 class StopInformationScreen extends StatelessWidget {
@@ -202,9 +199,9 @@ class StopInformationScreen extends StatelessWidget {
                       flex: 5,
                       child: Column(
                         children: [
-                          const _PromoListCard(),
+                          _PromoListCard(stop: stop),
                           SizedBox(height: context.rh(16)),
-                          const _SalesHistoryDetailCard(),
+                          _SalesHistoryDetailCard(stop: stop),
                         ],
                       ),
                     ),
@@ -219,9 +216,9 @@ class StopInformationScreen extends StatelessWidget {
                       onLocationTap: (lat, lng) => _openGoogleMaps(lat, lng),
                     ),
                     SizedBox(height: context.rh(14)),
-                    const _PromoListCard(),
+                    _PromoListCard(stop: stop),
                     SizedBox(height: context.rh(14)),
-                    const _SalesHistoryDetailCard(),
+                    _SalesHistoryDetailCard(stop: stop),
                   ],
                 ),
             ],
@@ -461,94 +458,112 @@ class _OutletInfoCard extends StatelessWidget {
 }
 
 class _PromoListCard extends StatelessWidget {
-  const _PromoListCard();
+  const _PromoListCard({required this.stop});
+  
+  final RouteStop stop;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
 
     return Container(
-      padding: EdgeInsets.all(context.rr(16)),
       decoration: BoxDecoration(
         color: colors.card,
         borderRadius: BorderRadius.circular(context.rr(16)),
         border: Border.all(color: colors.border),
         boxShadow: colors.cardShadow,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // Flexible so the title block yields to the chevron rather than
-              // overflowing once the type scales up on a tablet.
-              Flexible(
-                child: Row(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(context.rr(16)),
+          onTap: () {
+            HapticFeedback.lightImpact();
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => PromotionsScreen(
+                  outletName: context.localized(stop.customer.displayName),
+                ),
+              ),
+            );
+          },
+          child: Padding(
+            padding: EdgeInsets.all(context.rr(16)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Icon(Icons.local_offer_outlined,
-                        size: context.rr(20), color: colors.textPrimary),
-                    SizedBox(width: context.rw(8)),
                     Flexible(
-                      child: Text(
-                        'Promotions',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: colors.textPrimary,
-                          fontSize: context.rsp(15),
-                          fontWeight: FontWeight.w800,
-                        ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.local_offer_outlined,
+                              size: context.rr(20), color: colors.textPrimary),
+                          SizedBox(width: context.rw(8)),
+                          Flexible(
+                            child: Text(
+                              'Promotions',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: colors.textPrimary,
+                                fontSize: context.rsp(15),
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: context.rw(8)),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: context.rw(8),
+                              vertical: context.rh(2),
+                            ),
+                            decoration: BoxDecoration(
+                              color: colors.border,
+                              borderRadius: BorderRadius.circular(context.rr(10)),
+                            ),
+                            child: Text(
+                              '25',
+                              style: TextStyle(
+                                fontSize: context.rsp(11),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    SizedBox(width: context.rw(8)),
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: context.rw(8),
-                        vertical: context.rh(2),
-                      ),
-                      decoration: BoxDecoration(
-                        color: colors.border,
-                        borderRadius: BorderRadius.circular(context.rr(10)),
-                      ),
-                      child: Text(
-                        '25',
-                        style: TextStyle(
-                          fontSize: context.rsp(11),
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      size: context.rr(24),
+                      color: colors.textSecondary,
                     ),
                   ],
                 ),
-              ),
-              Icon(
-                Icons.chevron_right_rounded,
-                size: context.rr(24),
-                color: colors.textSecondary,
-              ),
-            ],
+                SizedBox(height: context.rh(14)),
+                Wrap(
+                  spacing: context.rw(8),
+                  runSpacing: context.rh(8),
+                  children: [
+                    _PromoBadge(
+                        label: 'ON-INVOICE (20)',
+                        color: Colors.blue.shade100,
+                        textColor: Colors.blue.shade900),
+                    _PromoBadge(
+                        label: 'OFF-INVOICE (0)',
+                        color: Colors.grey.shade200,
+                        textColor: Colors.grey.shade700),
+                    _PromoBadge(
+                        label: 'CONTRACT (5)',
+                        color: Colors.teal.shade100,
+                        textColor: Colors.teal.shade900),
+                  ],
+                )
+              ],
+            ),
           ),
-          SizedBox(height: context.rh(14)),
-          Wrap(
-            spacing: context.rw(8),
-            runSpacing: context.rh(8),
-            children: [
-              _PromoBadge(
-                  label: 'ON-INVOICE (20)',
-                  color: Colors.blue.shade100,
-                  textColor: Colors.blue.shade900),
-              _PromoBadge(
-                  label: 'OFF-INVOICE (0)',
-                  color: Colors.grey.shade200,
-                  textColor: Colors.grey.shade700),
-              _PromoBadge(
-                  label: 'CONTRACT (5)',
-                  color: Colors.teal.shade100,
-                  textColor: Colors.teal.shade900),
-            ],
-          )
-        ],
+        ),
       ),
     );
   }
@@ -590,7 +605,9 @@ class _PromoBadge extends StatelessWidget {
 }
 
 class _SalesHistoryDetailCard extends StatelessWidget {
-  const _SalesHistoryDetailCard();
+  const _SalesHistoryDetailCard({required this.stop});
+
+  final RouteStop stop;
 
   @override
   Widget build(BuildContext context) {
@@ -641,6 +658,15 @@ class _SalesHistoryDetailCard extends StatelessWidget {
             label: 'Order History (SAP)',
             value: 'Tap to view outlet orders history',
             last: true,
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => OrderHistoryScreen(
+                    outletName: context.localized(stop.customer.displayName),
+                  ),
+                ),
+              );
+            },
             actionWidget: Icon(
               Icons.arrow_forward_ios_rounded,
               size: context.rr(14),
@@ -841,13 +867,6 @@ class _StartVisitBar extends StatelessWidget {
     final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
 
-    // This bar MUST shrink-wrap vertically. Scaffold measures the
-    // `bottomNavigationBar` slot against loose *full-screen* constraints, so
-    // the previous bare `ResponsiveContentFrame` here — an `Align` with no
-    // `heightFactor` — grew to the entire screen height on every non-compact
-    // window, collapsed the body to zero, and painted itself over the AppBar.
-    // `heightFactor: 1` sizes to the child instead; the background stays
-    // full-bleed while only the button is clamped and centred.
     return Container(
       decoration: BoxDecoration(
         color: colors.card,

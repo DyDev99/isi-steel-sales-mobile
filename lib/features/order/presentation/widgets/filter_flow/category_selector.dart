@@ -6,7 +6,7 @@ import 'package:isi_steel_sales_mobile/features/order/domain/entities/category.d
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/filter_flow_transition.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
-/// 4-column grid selector featuring a 3D tactile card design with dual ambient shadows,
+/// Responsive grid selector featuring a 3D tactile card design with dual ambient shadows,
 /// bevel gradients, and a premium "Read More" expander button.
 class CategorySelector extends StatefulWidget {
   const CategorySelector({
@@ -27,18 +27,23 @@ class CategorySelector extends StatefulWidget {
 class _CategorySelectorState extends State<CategorySelector> {
   bool _isExpanded = false;
 
-  // 2 rows * 4 columns = 8 items max initially
-  static const int _maxInitialItems = 8;
-
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final colors = context.appColors;
 
-    final hasMore = widget.categories.length > _maxInitialItems;
+    // Detect if the device is a tablet/iPad (shortest side >= 600dp is standard)
+    final bool isTablet = MediaQuery.sizeOf(context).shortestSide >= 600;
+    
+    // Set columns and rows dynamically
+    final int crossAxisCount = isTablet ? 6 : 4;
+    // Tablet: 6 cols * 4 rows = 24. Mobile: 4 cols * 2 rows = 8.
+    final int maxInitialItems = isTablet ? 24 : 8; 
+
+    final hasMore = widget.categories.length > maxInitialItems;
     final visibleCategories = (_isExpanded || !hasMore)
         ? widget.categories
-        : widget.categories.take(_maxInitialItems).toList();
+        : widget.categories.take(maxInitialItems).toList();
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -49,7 +54,7 @@ class _CategorySelectorState extends State<CategorySelector> {
           padding: EdgeInsets.symmetric(horizontal: context.rw(2), vertical: context.rh(4)),
           itemCount: visibleCategories.length,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 4,
+            crossAxisCount: crossAxisCount,
             mainAxisSpacing: context.rh(10),
             crossAxisSpacing: context.rw(10),
             childAspectRatio: 0.80,

@@ -14,7 +14,6 @@ import 'package:isi_steel_sales_mobile/features/authentication/presentation/widg
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/phone_number_field.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/status_pill.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/vibe_field.dart';
-import 'package:isi_steel_sales_mobile/features/authentication/presentation/screens/verify_otp_args.dart';
 import 'package:isi_steel_sales_mobile/routes/app_routes.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/glass_card.dart';
 
@@ -47,12 +46,18 @@ class _LoginScreenState extends State<LoginScreen> {
     final phoneOk = _phoneKey.currentState?.validate() ?? false;
     if (!formOk || !phoneOk) return;
 
-    // Step 1 of three. This is the only point at which the password leaves the
-    // form — `send-otp` is the only call that accepts it, and it is never
-    // re-sent at verify or login.
+    // Single request. Sign-in is phone + password and nothing else: on
+    // success `/auth/login` returns the token pair directly and the listener
+    // below lands the rep on the shell.
+    //
+    // The one-time code is **not** part of signing in any more. It now guards
+    // password *reset* only — the flow where a code in hand is the sole proof
+    // of identity, because the password by definition cannot be. Requiring it
+    // here as well charged every rep a second step, dozens of times a day, for
+    // a factor that added nothing the password had not already established.
     context.read<AuthBloc>().add(
-          PhoneLoginSubmitted(
-            phoneNumber: _phoneKey.currentState!.value,
+          LoginSubmittedEvent(
+            identifier: _phoneKey.currentState!.value,
             password: _password.text,
           ),
         );
@@ -84,25 +89,17 @@ class _LoginScreenState extends State<LoginScreen> {
     );
 
     return BlocListener<AuthBloc, AuthState>(
-      listenWhen: (prev, curr) =>
-          curr is AuthenticatedState || curr is AuthOtpRequiredState,
+      // Only one outcome to listen for now. `AuthOtpRequiredState` can no
+      // longer arise from this screen — sign-in is a single request — so the
+      // branch that pushed the code screen is gone rather than left as an
+      // unreachable path for someone to wonder about later. That state still
+      // exists and is still handled by the forgot-password flow, which is the
+      // only journey that issues a code.
+      listenWhen: (prev, curr) => curr is AuthenticatedState,
       listener: (context, state) {
         if (!context.mounted) return;
-
-        // A one-time code is outstanding. The session is *not* established yet
-        // — `SessionManager` is deliberately un-set — so this pushes rather
-        // than replacing the stack: backing out of the verify screen has to
-        // land somewhere, and abandoning the challenge signs the user out.
-        if (state is AuthOtpRequiredState) {
-          // Tagged as the sign-in journey, so the code screen routes to the
-          // shell rather than to the reset-password screen it also serves.
-          Navigator.of(context).pushNamed(
-            Static.verifyOtp,
-            arguments: VerifyOtpArgs.login(state),
-          );
-          return;
-        }
-
+        // Straight to the shell, clearing the stack: there is nothing behind a
+        // completed sign-in worth backing into.
         Navigator.of(context)
             .pushNamedAndRemoveUntil(Static.main, (route) => false);
       },
@@ -239,10 +236,13 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Phone only. The sales app signs in with phone + password + OTP;
-            // employee ID / e-mail is the admin-portal route on the same
-            // backend, so offering it here would give a rep three doors into a
-            // flow that supports one.
+            // Phone number, as before. The identifier travels to
+            // `/mobile/auth/login` as `employeeId`, which the server resolves.
+            //
+            // NOTE: staging currently answers a phone identifier with
+            // `invalid_grant` — it resolves employee IDs (`EMP000201`) and
+            // e-mail addresses only. Sign-in by phone therefore depends on the
+            // backend accepting phone as an identifier on that endpoint.
             PhoneNumberField(
               key: _phoneKey,
               required: true,
@@ -293,10 +293,18 @@ class _LoginScreenState extends State<LoginScreen> {
                 final status = _statusFor(state);
                 return Column(
                   children: [
-                    StatusPill(
-                      status: status,
-                      message: state is AuthFailureState ? state.message : null,
-                    ),
+                    // Failures only. The pill used to report success too — a
+                    // green "You're in" that appeared for a single frame
+                    // before the listener navigated away, so it said nothing
+                    // the shell appearing did not already say, and on a slow
+                    // frame it flashed. What it *was* carrying that nothing
+                    // else does is the failure message: without this a wrong
+                    // password simply stops the spinner and leaves the rep
+                    // guessing.
+                    if (state is AuthFailureState) ...[
+                      StatusPill(status: status, message: state.message),
+                      SizedBox(height: context.rh(8)),
+                    ],
                     GradientButton(
                       // `auth.login_btn` ("Sign In"), not `auth.lets_go`.
                       // "Let's Go" belongs to the reset-password success screen;

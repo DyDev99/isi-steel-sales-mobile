@@ -104,7 +104,10 @@ void main() {
   group('round-trip', () {
     test('a route with a stop survives upsert → fetch with fields intact',
         () async {
-      await seedCustomer('cust-1', territoryType: 'industrial', geofence: 150);
+      // The route feed carries its own customer rows (ADR-011); the customer
+      // directory is deliberately left empty to prove the stop does not
+      // depend on it having synced first.
+      await dataSource.upsertCustomers([stopCustomer('cust-1')]);
       await dataSource.upsertRoutes([
         plan('r-1', stops: [stop('s-1', 'r-1', 'cust-1')]),
       ]);
@@ -118,8 +121,8 @@ void main() {
       expect(route.status, RouteStatus.published);
       expect(route.stops, hasLength(1));
 
-      // The stop carries the *joined* customer, sourced from the directory —
-      // not from a denormalised copy as the legacy routes.db did.
+      // The stop carries the customer the route feed sent for it, joined
+      // from `route_customers` rather than the customer directory.
       final s = route.stops.single;
       expect(s.id, 's-1');
       expect(s.customer.id, 'cust-1');
@@ -156,7 +159,7 @@ void main() {
 
   group('local mutations', () {
     setUp(() async {
-      await seedCustomer('cust-1', territoryType: 'industrial');
+      await dataSource.upsertCustomers([stopCustomer('cust-1')]);
       await dataSource.upsertRoutes([
         plan('r-1', stops: [stop('s-1', 'r-1', 'cust-1')]),
       ]);
@@ -186,35 +189,48 @@ void main() {
     });
   });
 
-  group('customer reconciliation (behaviour change, T1.5)', () {
-    test('upsertCustomers applies attributes to a known customer', () async {
+  group('the route feed stores its own customers (ADR-011)', () {
+    // Reverses the T1.5 behaviour this group used to assert. Route sync then
+    // applied two attributes onto customers the directory already held and
+    // *skipped* the rest, on the grounds that the directory is the single
+    // source of truth. That held for ownership but not for availability: the
+    // two feeds are separate endpoints with separate scopes, so "not in the
+    // directory yet" is routine — and skipping meant the stop had no customer
+    // to render.
+
+    test('a customer the directory has never seen is stored and usable',
+        () async {
+      await dataSource.upsertCustomers([stopCustomer('ghost')]);
+
+      final stored = await db.select(db.routeCustomers).getSingle();
+      expect(stored.id, 'ghost');
+      expect(stored.name, 'ISI Hardware');
+      expect(stored.territoryType, 'industrial');
+      expect(stored.geofenceRadiusOverride, 150);
+    });
+
+    test('the customer directory is left completely alone', () async {
       await seedCustomer('cust-1');
 
       await dataSource.upsertCustomers([stopCustomer('cust-1')]);
 
+      // Route sync must never write the directory: different feed, different
+      // owner, and CLAUDE.md §4 forbids reaching into another feature's data.
       final c = await db.select(db.customers).getSingle();
-      expect(c.territoryType, 'industrial');
-      expect(c.geofenceRadiusOverride, 150);
-      // Route sync may never overwrite SAP-controlled columns.
       expect(c.shopName, 'ISI Hardware');
       expect(c.creditLimit, 5000);
-    });
-
-    test('an unknown customer is skipped, not invented', () async {
-      // Legacy behaviour inserted into routes.db's own customers table. The
-      // directory is now the single source of truth (ADR-001), so route sync
-      // must wait for customer sync — the order ARCHITECTURE §4 already
-      // mandates.
-      await dataSource.upsertCustomers([stopCustomer('ghost')]);
-
-      expect(await db.select(db.customers).get(), isEmpty);
+      expect(c.territoryType, isNull,
+          reason: 'route sync no longer mutates the customer directory');
     });
   });
 
   group('geofence fallback — fails closed', () {
-    test('a customer with no territory type falls back to the tightest radius',
+    test('a stop with no customer row at all falls back to the tightest radius',
         () async {
-      await seedCustomer('cust-1'); // territoryType left null
+      // The feed sent the stop but not its customer — a contract violation the
+      // device must survive. The stop is still rendered (ADR-011: never drop
+      // it), and the unknown location fails closed rather than widening a
+      // fraud control.
       await dataSource.upsertRoutes([
         plan('r-1', stops: [stop('s-1', 'r-1', 'cust-1')]),
       ]);
@@ -230,7 +246,14 @@ void main() {
     });
 
     test('an unrecognised territory value also falls back', () async {
-      await seedCustomer('cust-1', territoryType: 'atlantis');
+      // Written straight to the mirror table: a server that gains a new
+      // territory type must not crash a build that has not shipped yet.
+      await db.customStatement(
+        'INSERT INTO route_customers (id, name, name_kh, code, contact, '
+        'phone, address, territory, territory_type, latitude, longitude) '
+        "VALUES ('cust-1','ISI Hardware','','C-cust-1','Sok Dara','012345678',"
+        "'St 271','T1','atlantis',11.55,104.91)",
+      );
       await dataSource.upsertRoutes([
         plan('r-1', stops: [stop('s-1', 'r-1', 'cust-1')]),
       ]);

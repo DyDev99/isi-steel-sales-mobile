@@ -39,7 +39,6 @@ void registerAuthFeature(GetIt sl) {
     ),
   );
 
-
   // ── Domain (use cases) ─────────────────────────────────────────────
   sl.registerLazySingleton(() => Login(sl()));
   sl.registerLazySingleton(() => Logout(sl()));
