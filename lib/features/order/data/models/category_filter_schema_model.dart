@@ -84,6 +84,7 @@ class FilterStepModel {
   static FilterStepRole _roleFrom(String raw) => switch (raw.toLowerCase()) {
         'family' => FilterStepRole.family,
         'dimension' => FilterStepRole.dimension,
+        'sku' => FilterStepRole.sku,
         _ => FilterStepRole.specification,
       };
 }
@@ -93,16 +94,37 @@ class CategoryFilterSchemaModel {
     required this.categoryId,
     required this.categoryName,
     required this.steps,
+    this.isDerived = false,
   });
 
   final String categoryId;
   final String categoryName;
   final List<FilterStepModel> steps;
 
+  /// True when no hierarchy was published for this category and the server
+  /// built one from what the data holds.
+  ///
+  /// Worth carrying rather than discarding: a derived hierarchy has generic
+  /// labels and every step optional, because nobody chose its ordering on
+  /// business grounds. Presenting it identically to a merchandised one would
+  /// assert a confidence the server explicitly does not have.
+  final bool isDerived;
+
+  /// Reads both spellings of the category key.
+  ///
+  /// The app's own mock schema publishes `categoryId`; the platform publishes
+  /// `categoryCode`. They mean the same thing — the identity the schema is
+  /// fetched by and that rides in every selection — so one DTO reads both
+  /// rather than two DTOs drifting apart.
   factory CategoryFilterSchemaModel.fromJson(Map<String, dynamic> json) {
+    final id = json['categoryCode'] as String? ?? json['categoryId'] as String?;
+    if (id == null) {
+      throw const FormatException('Filter schema carried no category key.');
+    }
     return CategoryFilterSchemaModel(
-      categoryId: json['categoryId'] as String,
+      categoryId: id,
       categoryName: json['categoryName'] as String? ?? '',
+      isDerived: json['isDerived'] as bool? ?? false,
       steps: (json['steps'] as List? ?? const [])
           .map((e) => FilterStepModel.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -110,8 +132,9 @@ class CategoryFilterSchemaModel {
   }
 
   Map<String, dynamic> toJson() => {
-        'categoryId': categoryId,
+        'categoryCode': categoryId,
         'categoryName': categoryName,
+        'isDerived': isDerived,
         'steps': steps.map((s) => s.toJson()).toList(),
       };
 

@@ -10,15 +10,12 @@ import 'package:isi_steel_sales_mobile/features/order/data/models/category_model
 import 'package:isi_steel_sales_mobile/features/order/data/models/product_model.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/remote/mock_product_filter_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/repositories/product_filter_repository_impl.dart';
-import 'package:isi_steel_sales_mobile/features/order/data/repositories/product_repository_impl.dart';
-import 'package:isi_steel_sales_mobile/features/order/domain/entities/category.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/filter/filter_option.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/paged_result.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product_filter.dart';
-import 'package:isi_steel_sales_mobile/features/order/domain/repositories/product_repository.dart';
-import 'package:isi_steel_sales_mobile/features/order/domain/usecases/browse_products.dart';
-import 'package:isi_steel_sales_mobile/features/order/domain/usecases/catalog_params.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/entities/material_category.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_materials.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/fetch_filter_categories.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_category_filter_schema.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_filter_step_options.dart';
@@ -30,16 +27,13 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/product_
 
 /// Counts product reads so the tests can assert the flow's central promise:
 /// the catalog is not queried for products until every filter is answered.
-class _CountingBrowse extends BrowseProducts {
-  // BrowseProducts' positional parameter is a private field, which a super
-  // parameter cannot name.
-  // ignore: use_super_parameters
-  _CountingBrowse(ProductRepository repository) : super(repository);
+class _CountingMaterials extends GetMaterials {
+  _CountingMaterials(super.repository);
 
   int calls = 0;
 
   @override
-  ResultFuture<PagedResult<Product>> call(BrowseProductsParams params) {
+  ResultFuture<PagedResult<Product>> call(GetMaterialsParams params) {
     calls++;
     return super.call(params);
   }
@@ -48,7 +42,7 @@ class _CountingBrowse extends BrowseProducts {
 void main() {
   late AppDatabase db;
   late ProductDriftLocalDataSource catalog;
-  late _CountingBrowse browse;
+  late _CountingMaterials materials;
   late ProductFilterFlowBloc bloc;
 
   /// Two rows under a category SAP publishes no schema for, with no diameter
@@ -122,16 +116,16 @@ void main() {
     final filterRepository = ProductFilterRepositoryImpl(
       remote: MockProductFilterRemoteDataSource(),
       local: ProductFilterDriftLocalDataSource(db.catalogDao),
+      products: catalog,
     );
-    final ProductRepository productRepository = ProductRepositoryImpl(catalog);
-    browse = _CountingBrowse(productRepository);
+    materials = _CountingMaterials(filterRepository);
 
     bloc = ProductFilterFlowBloc(
       fetchFilterCategories: FetchFilterCategories(filterRepository),
       getCategoryFilterSchema: GetCategoryFilterSchema(filterRepository),
       getFilterStepOptions: GetFilterStepOptions(filterRepository),
       getStockLocationOptions: GetStockLocationOptions(filterRepository),
-      browseProducts: browse,
+      getMaterials: materials,
     );
   });
 
@@ -143,11 +137,11 @@ void main() {
   /// Palm Profile roofing — ISI's volume line, and the deepest published
   /// hierarchy (profile → coating → gauge → colour), so it exercises the most
   /// of the flow per test.
-  const structural = Category(
-    id: IsiDemoCatalog.palmProfileCategoryId,
-    code: 'PALM_PROFILE',
+  const structural = MaterialCategory(
+    code: IsiDemoCatalog.palmProfileCategoryId,
     name: LocalizedText(en: 'Palm Profile Roofing', km: 'ផាម ភ្លី'),
-    displayOrder: 0,
+    materialCount: 6,
+    hasPublishedSchema: true,
   );
 
   /// A row read back out of the demo catalog, so tests that need a real
@@ -176,7 +170,7 @@ void main() {
 
     expect(bloc.state.stage, FilterFlowStage.categories);
     expect(bloc.state.categories, isNotEmpty);
-    expect(browse.calls, 0);
+    expect(materials.calls, 0);
     expect(bloc.state.products, isEmpty);
   });
 
@@ -196,7 +190,7 @@ void main() {
       bloc.state.activeOptions.fold<int>(0, (sum, o) => sum + o.matchCount),
       6,
     );
-    expect(browse.calls, 0);
+    expect(materials.calls, 0);
   });
 
   test('products are requested exactly once, after the last answer', () async {
@@ -207,7 +201,8 @@ void main() {
 
     // Walk every level but the last, asserting nothing is fetched on the way.
     while (bloc.state.activeStep != null) {
-      expect(browse.calls, 0, reason: 'no product read before the last step');
+      expect(materials.calls, 0,
+          reason: 'no product read before the last step');
       final step = bloc.state.activeStep!;
       bloc.add(FilterStepAnswered(
           stepKey: step.key, option: bloc.state.activeOptions.first));
@@ -215,7 +210,7 @@ void main() {
     }
 
     expect(bloc.state.stage, FilterFlowStage.products);
-    expect(browse.calls, 1);
+    expect(materials.calls, 1);
     expect(bloc.state.productStatus, ProductListStatus.loaded);
     expect(bloc.state.products, isNotEmpty);
   });
@@ -292,11 +287,11 @@ void main() {
 
     bloc.add(const FilterFlowStarted());
     await settle();
-    bloc.add(const FilterCategorySelected(Category(
-        id: 'cat_legacy_demo',
+    bloc.add(const FilterCategorySelected(MaterialCategory(
         code: 'cat_legacy_demo',
         name: LocalizedText(en: 'Legacy Demo', km: ''),
-        displayOrder: 9)));
+        materialCount: 2,
+        hasPublishedSchema: true)));
     await settle();
 
     final shown = <String>[];
@@ -324,12 +319,12 @@ void main() {
     await settle();
     await answerEveryStep();
 
-    final before = browse.calls;
+    final before = materials.calls;
     bloc.add(const FilterProductSearchChanged('PALM'));
     await Future<void>.delayed(const Duration(milliseconds: 400)); // debounce
     await settle();
 
-    expect(browse.calls, before + 1);
+    expect(materials.calls, before + 1);
     expect(bloc.state.query, 'PALM');
     expect(bloc.state.stage, FilterFlowStage.products);
   });
@@ -344,7 +339,7 @@ void main() {
   test('a direct search from the category stage skips the hierarchy', () async {
     bloc.add(const FilterFlowStarted());
     await settle();
-    expect(browse.calls, 0);
+    expect(materials.calls, 0);
 
     // A word out of a real product description, so the assertion tracks the
     // extract rather than a name invented for the test.
@@ -354,7 +349,7 @@ void main() {
             .first;
     await search(term);
 
-    expect(browse.calls, 1);
+    expect(materials.calls, 1);
     expect(bloc.state.stage, FilterFlowStage.products);
     expect(bloc.state.category, isNull,
         reason: 'searching commits the rep to no category');
@@ -374,7 +369,7 @@ void main() {
 
     await search('D');
 
-    expect(browse.calls, 0,
+    expect(materials.calls, 0,
         reason: 'one character matches most of the catalog');
     expect(bloc.state.stage, FilterFlowStage.categories);
   });
@@ -479,12 +474,12 @@ void main() {
     await answerEveryStep();
 
     final answers = bloc.state.selection;
-    final before = browse.calls;
+    final before = materials.calls;
 
     bloc.add(const FilterPreferencesChanged(sortBy: ProductSortBy.priceDesc));
     await settle();
 
-    expect(browse.calls, before + 1);
+    expect(materials.calls, before + 1);
     expect(bloc.state.sortBy, ProductSortBy.priceDesc);
     expect(bloc.state.selection, answers);
   });
@@ -529,11 +524,11 @@ void main() {
     final structuralOptions =
         bloc.state.activeOptions.map((o) => o.label).toSet();
 
-    bloc.add(const FilterCategorySelected(Category(
-        id: IsiDemoCatalog.reinforcementCategoryId,
-        code: 'reinforcementCategoryId',
+    bloc.add(const FilterCategorySelected(MaterialCategory(
+        code: IsiDemoCatalog.reinforcementCategoryId,
         name: LocalizedText(en: 'Reinforcement (Traded)', km: ''),
-        displayOrder: 0)));
+        materialCount: 1,
+        hasPublishedSchema: true)));
     await settle();
 
     final rebarOptions = bloc.state.activeOptions.map((o) => o.label).toSet();
@@ -544,11 +539,11 @@ void main() {
   test('an option carries how many SKUs it keeps alive', () async {
     bloc.add(const FilterFlowStarted());
     await settle();
-    bloc.add(const FilterCategorySelected(Category(
-        id: IsiDemoCatalog.giPipeCategoryId,
-        code: 'giPipeCategoryId',
+    bloc.add(const FilterCategorySelected(MaterialCategory(
+        code: IsiDemoCatalog.giPipeCategoryId,
         name: LocalizedText(en: 'Galvanized Pipes', km: ''),
-        displayOrder: 0)));
+        materialCount: 1,
+        hasPublishedSchema: true)));
     await settle();
 
     expect(

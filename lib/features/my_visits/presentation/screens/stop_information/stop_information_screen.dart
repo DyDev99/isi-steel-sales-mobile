@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'dart:ui' as ui;
+import 'package:flutter/rendering.dart';
+import 'package:gal/gal.dart'; // Optional: for saving to gallery
 
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
@@ -230,100 +233,119 @@ class StopInformationScreen extends StatelessWidget {
   }
 }
 
-class _HeroCard extends StatelessWidget {
+
+
+class _HeroCard extends StatefulWidget {
   const _HeroCard({required this.stop});
   final RouteStop stop;
+
+  @override
+  State<_HeroCard> createState() => _HeroCardState();
+}
+
+class _HeroCardState extends State<_HeroCard> {
+  final GlobalKey _cardKey = GlobalKey();
+  bool _isCapturing = false;
+
+  Future<void> _captureCard() async {
+    try {
+      setState(() => _isCapturing = true);
+
+      // Allow the UI to update and hide the screenshot button before capturing
+      await WidgetsBinding.instance.endOfFrame;
+
+      final boundary = _cardKey.currentContext?.findRenderObject()
+          as RenderRepaintBoundary?;
+      if (boundary == null) return;
+
+      final image = await boundary.toImage(pixelRatio: 3.0);
+      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      final pngBytes = byteData?.buffer.asUint8List();
+
+      if (pngBytes != null && mounted) {
+        await Gal.putImageBytes(pngBytes);
+
+        HapticFeedback.lightImpact();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('my_visits.screenshot_saved'.tr),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to capture screenshot: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isCapturing = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
-    final c = stop.customer;
+    final c = widget.stop.customer;
 
-    return Container(
-      padding: EdgeInsets.all(context.rr(16)),
-      decoration: BoxDecoration(
-        color: colors.card,
-        borderRadius: BorderRadius.circular(context.rr(16)),
-        border: Border.all(color: colors.border),
-        boxShadow: colors.cardShadow,
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: context.rr(52),
-            height: context.rr(52),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: scheme.primary.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(context.rr(12)),
+    return RepaintBoundary(
+      key: _cardKey,
+      child: Container(
+        padding: EdgeInsets.all(context.rr(16)),
+        decoration: BoxDecoration(
+          color: colors.card,
+          borderRadius: BorderRadius.circular(context.rr(16)),
+          border: Border.all(color: colors.border),
+          boxShadow: colors.cardShadow,
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: context.rr(52),
+              height: context.rr(52),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: scheme.primary.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(context.rr(12)),
+              ),
+              child: Icon(
+                Icons.storefront_rounded,
+                color: scheme.primary,
+                size: context.rr(26),
+              ),
             ),
-            child: Icon(
-              Icons.storefront_rounded,
-              color: scheme.primary,
-              size: context.rr(26),
-            ),
-          ),
-          SizedBox(width: context.rw(14)),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  context.localized(c.displayName),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: colors.textPrimary,
-                    fontSize: context.rsp(18),
-                    fontWeight: FontWeight.w900,
-                  ),
+            SizedBox(width: context.rw(14)),
+            Expanded(
+              child: Text(
+                context.localized(c.displayName),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: colors.textPrimary,
+                  fontSize: context.rsp(18),
+                  fontWeight: FontWeight.w900,
                 ),
-                SizedBox(height: context.rh(4)),
-                Row(
-                  children: [
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: context.rw(6),
-                        vertical: context.rh(2),
-                      ),
-                      decoration: BoxDecoration(
-                        color: scheme.primary.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(context.rr(6)),
-                      ),
-                      child: Text(
-                        'CUS CODE',
-                        style: TextStyle(
-                          color: scheme.primary,
-                          fontSize: context.rsp(10),
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: context.rw(6)),
-                    Expanded(
-                      child: Text(
-                        c.code,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: colors.textSecondary,
-                          fontSize: context.rsp(13),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+              ),
             ),
-          ),
-        ],
+          
+              IconButton(
+                icon: Icon(
+                  Icons.camera_alt_outlined,
+                  color: colors.textSecondary,
+                  size: context.rr(22),
+                ),
+                tooltip: 'my_visits.screenshot'.tr,
+                onPressed: _captureCard,
+              )
+            
+          ],
+        ),
       ),
     );
   }
 }
-
 class _OutletInfoCard extends StatelessWidget {
   const _OutletInfoCard({
     required this.stop,
@@ -459,7 +481,7 @@ class _OutletInfoCard extends StatelessWidget {
 
 class _PromoListCard extends StatelessWidget {
   const _PromoListCard({required this.stop});
-  
+
   final RouteStop stop;
 
   @override
@@ -521,7 +543,8 @@ class _PromoListCard extends StatelessWidget {
                             ),
                             decoration: BoxDecoration(
                               color: colors.border,
-                              borderRadius: BorderRadius.circular(context.rr(10)),
+                              borderRadius:
+                                  BorderRadius.circular(context.rr(10)),
                             ),
                             child: Text(
                               '25',
@@ -725,6 +748,18 @@ class _InfoRow extends StatefulWidget {
 class _InfoRowState extends State<_InfoRow> {
   bool _isHovered = false;
 
+  void _copyToClipboard(BuildContext context) {
+    Clipboard.setData(ClipboardData(text: widget.value));
+    HapticFeedback.lightImpact();
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Copied "${widget.value}" to clipboard'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
@@ -733,15 +768,15 @@ class _InfoRowState extends State<_InfoRow> {
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
-      cursor:
-          isInteractive ? SystemMouseCursors.click : SystemMouseCursors.basic,
+      cursor: SystemMouseCursors.click,
       child: InkWell(
         onTap: widget.onTap != null
             ? () {
                 HapticFeedback.selectionClick();
                 widget.onTap!();
               }
-            : null,
+            : () => _copyToClipboard(context),
+        onLongPress: () => _copyToClipboard(context),
         borderRadius: BorderRadius.circular(context.rr(10)),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
@@ -751,7 +786,7 @@ class _InfoRowState extends State<_InfoRow> {
             horizontal: _isHovered ? context.rw(8) : 0,
           ),
           decoration: BoxDecoration(
-            color: _isHovered && isInteractive
+            color: _isHovered
                 ? colors.border.withValues(alpha: 0.3)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(context.rr(10)),
@@ -773,7 +808,7 @@ class _InfoRowState extends State<_InfoRow> {
                 child: Icon(
                   widget.icon,
                   size: context.rr(20),
-                  color: widget.onTap != null
+                  color: isInteractive
                       ? Theme.of(context).colorScheme.primary
                       : colors.textSecondary,
                 ),
@@ -806,7 +841,17 @@ class _InfoRowState extends State<_InfoRow> {
                   ],
                 ),
               ),
-              if (widget.actionWidget != null) widget.actionWidget!,
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _ActionIconButton(
+                    icon: Icons.copy_rounded,
+                    color: colors.textSecondary,
+                    onPressed: () => _copyToClipboard(context),
+                  ),
+                  if (widget.actionWidget != null) widget.actionWidget!,
+                ],
+              ),
             ],
           ),
         ),
@@ -842,12 +887,12 @@ class _ActionIconButtonState extends State<_ActionIconButton> {
         scale: _isHovered ? 1.15 : 1.0,
         duration: const Duration(milliseconds: 150),
         child: IconButton(
-          icon: Icon(widget.icon, color: widget.color, size: context.rr(22)),
+          icon: Icon(widget.icon, color: widget.color, size: context.rr(20)),
           constraints: BoxConstraints(
-            minWidth: context.rr(40),
-            minHeight: context.rr(40),
+            minWidth: context.rr(36),
+            minHeight: context.rr(36),
           ),
-          padding: EdgeInsets.all(context.rr(8)),
+          padding: EdgeInsets.all(context.rr(6)),
           onPressed: () {
             HapticFeedback.lightImpact();
             widget.onPressed();

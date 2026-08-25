@@ -52,6 +52,8 @@ class Product extends Equatable {
     required this.reservedQuantity,
     required this.minStock,
     required this.maxStock,
+    this.stockKnown = true,
+    this.isBlocked = false,
   });
 
   final String id;
@@ -118,6 +120,23 @@ class Product extends Equatable {
   final double minStock;
   final double maxStock;
 
+  /// Whether the quantities above mean anything.
+  ///
+  /// False for every material read from the selection API, because **there is
+  /// no on-hand quantity endpoint** — no stock level in units, no warehouse
+  /// balance, no ATP. What exists instead is a live per-material sellability
+  /// verdict, which answers a different question.
+  ///
+  /// Zero is the wrong default to render for an absent figure: "0 in stock" is
+  /// a claim, and a confident wrong one. Widgets branch on this and show
+  /// nothing rather than a band the data cannot support.
+  final bool stockKnown;
+
+  /// SAP has blocked this material. Never offer a blocked material for order
+  /// capture — every read that leads to a quotation asks the server to exclude
+  /// them, and this flag is the belt to that braces.
+  final bool isBlocked;
+
   /// The product name in both languages. Widgets render
   /// `product.displayName.resolve(locale)` — no translation lookup, no
   /// per-locale dataset, and a language switch is a rebuild rather than a
@@ -144,9 +163,19 @@ class Product extends Equatable {
 
   double get availableQuantity =>
       (stockQuantity - reservedQuantity).clamp(0, double.infinity);
+
+  /// Whether this material may be put on an order line.
+  ///
+  /// Note what this deliberately does *not* do when [stockKnown] is false: it
+  /// does not read the absent quantity as zero. A material with no stock feed
+  /// is sellable unless SAP says otherwise — the ERP's block flag is the
+  /// authority there, not a number the app was never given.
   bool get isAvailable =>
-      availableQuantity > 0 && status == ProductStatus.active;
-  bool get isBelowMinStock => availableQuantity < minStock;
+      !isBlocked &&
+      status == ProductStatus.active &&
+      (!stockKnown || availableQuantity > 0);
+
+  bool get isBelowMinStock => stockKnown && availableQuantity < minStock;
   bool get hasPromotion => pricing.hasPromotion;
   double get effectivePrice => pricing.effectivePrice();
 
@@ -172,5 +201,7 @@ class Product extends Equatable {
         specification,
         stockQuantity,
         reservedQuantity,
+        stockKnown,
+        isBlocked,
       ];
 }

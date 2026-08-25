@@ -85,7 +85,7 @@ void main() {
     final result = await filters.getFilterCategories();
     final ids = result
         .when(success: (c) => c, failure: (_) => const [])
-        .map((c) => c.id)
+        .map((c) => c.code)
         .toSet();
 
     for (final category in IsiDemoCatalog.categories()) {
@@ -133,7 +133,7 @@ void main() {
 
     final ids = (await filters.getFilterCategories())
         .when(success: (c) => c, failure: (_) => const [])
-        .map((c) => c.id)
+        .map((c) => c.code)
         .toSet();
 
     expect(ids, isNot(contains('cat_isi_palm')));
@@ -176,7 +176,7 @@ void main() {
         .when(success: (c) => c, failure: (_) => const []);
 
     for (final category in categories) {
-      final schema = (await filters.getFilterSchema(category.id))
+      final schema = (await filters.getFilterSchema(category.code))
           .when(success: (s) => s, failure: (_) => null);
       expect(schema, isNotNull, reason: '${category.name} has no schema');
 

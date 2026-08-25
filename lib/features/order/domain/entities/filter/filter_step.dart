@@ -6,10 +6,31 @@ import 'package:isi_steel_sales_mobile/features/order/domain/entities/filter/pro
 /// chips, twelve diameters are a grid, a family list wants rows with counts.
 enum FilterStepStyle { chips, grid, list }
 
-/// Semantic role of a step within its category's flow. Only [family] is
-/// special-cased in the UI (it gets its own richer selector); everything else
-/// renders through the generic dynamic selector.
-enum FilterStepRole { family, specification, dimension }
+/// Semantic role of a step within its category's flow.
+///
+/// [family] and [sku] are special-cased in the UI — each gets its own richer
+/// selector; [specification] and [dimension] render through the generic
+/// dynamic selector.
+///
+/// Two of these carry an ordering invariant the server enforces at publish
+/// time, so the client can rely on it rather than re-checking: a [family] step
+/// is always first, and a [sku] step is always last.
+enum FilterStepRole {
+  family,
+  specification,
+  dimension,
+
+  /// The material leaf — the exact SAP material number.
+  ///
+  /// Always the final step, conventionally published at `sortOrder: 99`. It
+  /// exists because after every attribute is answered, several genuinely
+  /// different material numbers can still match: the live master returns four
+  /// for `FG-RF / CAP 980PU / PALM 100PPGL / 0.40 mm / Brick Red`, differing in
+  /// a PU core depth and a backing sheet that SAP holds but publishes on no
+  /// attribute column. Picking one of four look-alike rows by eye is the guess
+  /// this step removes.
+  sku,
+}
 
 /// One level of a category's filter hierarchy, as defined by SAP.
 ///

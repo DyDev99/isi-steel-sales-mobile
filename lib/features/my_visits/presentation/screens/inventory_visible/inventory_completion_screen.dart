@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/shared/animations/steelforce_success_animation.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 class InventoryCompletionScreen extends StatelessWidget {
@@ -38,25 +40,25 @@ class InventoryCompletionScreen extends StatelessWidget {
             children: [
               const Spacer(),
 
-              // Success Icon Badge
-              Container(
-                width: context.rr(80),
-                height: context.rr(80),
-                decoration: BoxDecoration(
-                  color: colors.success.withValues(alpha: 0.12),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.check_circle_rounded,
-                  color: colors.success,
-                  size: context.rr(48),
-                ),
+              // The moment the whole step builds to. Sized generously — this
+              // was a 48pt tick in an 80pt circle, which is a status indicator,
+              // not a completion. A confirmation screen has one job and this is
+              // it, so it gets the room.
+              SteelForceSuccessAnimation(
+                size: context.rr(180),
+                // Brand blue rather than the usual success green: it matches
+                // the SteelForce success artwork, and a check reads as
+                // confirmation regardless of hue.
+                primaryColor: scheme.primary,
+                // Announced for screen readers — without a label the mark is
+                // decorative and a rep hears only the heading beneath it.
+                semanticLabel: 'my_visits.inventory.completion.title'.tr,
               ),
-              SizedBox(height: context.rh(20)),
+              SizedBox(height: context.rh(4)),
 
               // Success Heading
               Text(
-                'Inventory Audit Submitted!',
+                'my_visits.inventory.completion.title'.tr,
                 style: TextStyle(
                   fontSize: context.rsp(20),
                   fontWeight: FontWeight.w800,
@@ -66,7 +68,11 @@ class InventoryCompletionScreen extends StatelessWidget {
               ),
               SizedBox(height: context.rh(8)),
               Text(
-                'Depot stock records for $outletName have been successfully updated.',
+                // `trParams`, not string interpolation: the outlet name sits
+                // in a different position in Khmer, and a concatenated
+                // sentence cannot be reordered by a translator.
+                'my_visits.inventory.completion.subtitle'
+                    .trParams({'outlet': outletName}),
                 style: TextStyle(
                   fontSize: context.rsp(13),
                   color: colors.textSecondary,
@@ -90,7 +96,7 @@ class InventoryCompletionScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      'What would you like to do next?',
+                      'my_visits.inventory.completion.next_question'.tr,
                       style: TextStyle(
                         fontSize: context.rsp(13.5),
                         fontWeight: FontWeight.w700,
@@ -113,7 +119,10 @@ class InventoryCompletionScreen extends StatelessWidget {
                       ),
                       icon: const Icon(Icons.request_quote_rounded),
                       label: Text(
-                        'Create Quotation', // go to quotation creation screen
+                        // Reused rather than duplicated: the Route Information
+                        // screen already ships this exact action label, and two
+                        // keys for one button is how the two drift apart.
+                        'my_visits.route_info.create_quotation'.tr,
                         style: TextStyle(
                           fontSize: context.rsp(15),
                           fontWeight: FontWeight.bold,
@@ -136,7 +145,7 @@ class InventoryCompletionScreen extends StatelessWidget {
                       ),
                       icon: const Icon(Icons.stop_circle_rounded),
                       label: Text(
-                        'End Visit', // Go back to dashboard
+                        'my_visits.inventory.completion.complete_visit'.tr,
                         style: TextStyle(
                           fontSize: context.rsp(15),
                           fontWeight: FontWeight.bold,

@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:isi_steel_sales_mobile/features/order/domain/entities/category.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/entities/material_category.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/filter/filter_option.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product_filter.dart';
 
@@ -17,7 +17,7 @@ final class FilterFlowStarted extends ProductFilterFlowEvent {
 
 final class FilterCategorySelected extends ProductFilterFlowEvent {
   const FilterCategorySelected(this.category);
-  final Category category;
+  final MaterialCategory category;
   @override
   List<Object?> get props => [category];
 }

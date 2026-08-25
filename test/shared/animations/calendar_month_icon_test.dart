@@ -14,7 +14,8 @@ void main() {
   const ink = Color(0xFF334155);
   const muted = Color(0xFF94A3B8);
 
-  Widget frame(Widget child, {Size size = const Size(40, 40)}) => Directionality(
+  Widget frame(Widget child, {Size size = const Size(40, 40)}) =>
+      Directionality(
         textDirection: TextDirection.ltr,
         child: Center(
           child: SizedBox(
@@ -56,8 +57,7 @@ void main() {
     // 20pt is what the medallion asks for; the extremes bracket a 200%
     // text-scale medallion and a degenerate layout pass.
     for (final side in const [0.0, 1.0, 8.0, 20.0, 48.0, 200.0]) {
-      await tester.pumpWidget(
-          frame(paintedAt(0.5), size: Size(side, side)));
+      await tester.pumpWidget(frame(paintedAt(0.5), size: Size(side, side)));
       expect(tester.takeException(), isNull, reason: 'threw at size=$side');
     }
   });

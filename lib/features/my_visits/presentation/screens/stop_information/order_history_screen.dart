@@ -56,7 +56,8 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
       itemCount: 4,
       status: OrderStatus.completed,
       paymentTerm: '30 Days Net',
-      itemsSummary: 'ISI Wave Tile (Red) x 1,200 Sheets, Square Box Pipe x 3 Tons',
+      itemsSummary:
+          'ISI Wave Tile (Red) x 1,200 Sheets, Square Box Pipe x 3 Tons',
     ),
     SalesOrder(
       orderId: 'ORD-2026-8710',
@@ -107,13 +108,15 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => LocalizedBuilder(builder: _buildContent);
+  Widget build(BuildContext context) =>
+      LocalizedBuilder(builder: _buildContent);
 
   Widget _buildContent(BuildContext context) {
     final colors = context.appColors;
 
     final filteredOrders = _orders.where((o) {
-      final matchesStatus = _selectedStatusFilter == null || o.status == _selectedStatusFilter;
+      final matchesStatus =
+          _selectedStatusFilter == null || o.status == _selectedStatusFilter;
       final matchesSearch = _searchQuery.isEmpty ||
           o.orderId.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           o.sapDocNum.contains(_searchQuery) ||
@@ -121,7 +124,8 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
       return matchesStatus && matchesSearch;
     }).toList();
 
-    final totalSpent = _orders.fold<double>(0, (sum, item) => sum + item.totalAmount);
+    final totalSpent =
+        _orders.fold<double>(0, (sum, item) => sum + item.totalAmount);
 
     return Scaffold(
       backgroundColor: colors.canvas,
@@ -234,25 +238,32 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                       _FilterTab(
                         label: 'All (${_orders.length})',
                         isSelected: _selectedStatusFilter == null,
-                        onTap: () => setState(() => _selectedStatusFilter = null),
+                        onTap: () =>
+                            setState(() => _selectedStatusFilter = null),
                       ),
                       SizedBox(width: context.rw(8)),
                       _FilterTab(
                         label: 'Completed',
-                        isSelected: _selectedStatusFilter == OrderStatus.completed,
-                        onTap: () => setState(() => _selectedStatusFilter = OrderStatus.completed),
+                        isSelected:
+                            _selectedStatusFilter == OrderStatus.completed,
+                        onTap: () => setState(() =>
+                            _selectedStatusFilter = OrderStatus.completed),
                       ),
                       SizedBox(width: context.rw(8)),
                       _FilterTab(
                         label: 'In Delivery',
-                        isSelected: _selectedStatusFilter == OrderStatus.inDelivery,
-                        onTap: () => setState(() => _selectedStatusFilter = OrderStatus.inDelivery),
+                        isSelected:
+                            _selectedStatusFilter == OrderStatus.inDelivery,
+                        onTap: () => setState(() =>
+                            _selectedStatusFilter = OrderStatus.inDelivery),
                       ),
                       SizedBox(width: context.rw(8)),
                       _FilterTab(
                         label: 'Pending',
-                        isSelected: _selectedStatusFilter == OrderStatus.pending,
-                        onTap: () => setState(() => _selectedStatusFilter = OrderStatus.pending),
+                        isSelected:
+                            _selectedStatusFilter == OrderStatus.pending,
+                        onTap: () => setState(
+                            () => _selectedStatusFilter = OrderStatus.pending),
                       ),
                     ],
                   ),
@@ -279,7 +290,8 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                           context.rh(24),
                         ),
                         itemCount: filteredOrders.length,
-                        separatorBuilder: (_, __) => SizedBox(height: context.rh(12)),
+                        separatorBuilder: (_, __) =>
+                            SizedBox(height: context.rh(12)),
                         itemBuilder: (context, index) {
                           final order = filteredOrders[index];
                           return _OrderCard(order: order);
@@ -582,7 +594,8 @@ class _OrderCard extends StatelessWidget {
                   HapticFeedback.lightImpact();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Re-ordering items from ${order.orderId}...'),
+                      content:
+                          Text('Re-ordering items from ${order.orderId}...'),
                     ),
                   );
                 },

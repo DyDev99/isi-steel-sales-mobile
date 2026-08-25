@@ -691,6 +691,7 @@
   "my_visits": {
     "title": "My Visits",
     "list": "Visit List",
+    "screenshort": "Screenshot",
     "add_my_visits": "Add My Visits",
     "details": "Visit Details",
     "calendar": {
@@ -1010,17 +1011,28 @@
       "notification_text": "Tracking your route"
     },
     "inventory": {
-      "title": "Inventory Visibility",
+      "title": "Inventory Availability",
       "required": "Required",
-      "instruction": "Visually inspect each item and select its stock level.",
+      "instruction": "Available items: inspect each item and select its stock level.",
       "unit": "Unit",
       "level_high": "High stock",
       "level_medium": "Medium stock",
       "level_low": "Low stock",
       "not_assessed": "Not assessed",
       "progress": "{done} of {total} assessed",
-      "submit": "Submit stock check"
+      "submit": "Submit stock check",
+      "completion": {
+        "title": "Inventory audit submitted",
+        "subtitle": "Depot stock records for {outlet} have been updated.",
+        "next_question": "What would you like to do next?",
+        "complete_visit": "Complete visit"
+      }
     }
+  },
+  "completed": {
+    "title": "Inventory Audit Submitted!",
+    "subtitle": "All done for today! Your visit data has been synced.",
+    "cta": "Back to dashboard"
   },
   "language": {
     "choose_title": "Choose Language",

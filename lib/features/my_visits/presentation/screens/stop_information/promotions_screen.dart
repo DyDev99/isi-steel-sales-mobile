@@ -53,7 +53,8 @@ class _PromotionsScreenState extends State<PromotionsScreen> {
       id: 'P001',
       code: 'ISI-ONINV-5',
       title: '5% Instant On-Invoice Discount',
-      description: 'Get an instant 5% price reduction on all Roofing & Wave Tiles orders over \$2,000.',
+      description:
+          'Get an instant 5% price reduction on all Roofing & Wave Tiles orders over \$2,000.',
       discountLabel: '5% OFF',
       type: PromoType.onInvoice,
       validUntil: '31 Aug 2026',
@@ -64,7 +65,8 @@ class _PromotionsScreenState extends State<PromotionsScreen> {
       id: 'P002',
       code: 'STEEL-BOX-10',
       title: 'Square Box Pipe Rebate',
-      description: 'Receive \$10 cashback rebate per ton on galvanized square & box pipes.',
+      description:
+          'Receive \$10 cashback rebate per ton on galvanized square & box pipes.',
       discountLabel: '\$10/Ton',
       type: PromoType.onInvoice,
       validUntil: '15 Sep 2026',
@@ -75,7 +77,8 @@ class _PromotionsScreenState extends State<PromotionsScreen> {
       id: 'P003',
       code: 'CONTRACT-Q3-ISI',
       title: 'Q3 Volume Tier Bonus',
-      description: 'Quarterly contractual incentive for Diamond tier outlets achieving >50 Tons.',
+      description:
+          'Quarterly contractual incentive for Diamond tier outlets achieving >50 Tons.',
       discountLabel: '\$1,500 Rebate',
       type: PromoType.contract,
       validUntil: '30 Sep 2026',
@@ -86,7 +89,8 @@ class _PromotionsScreenState extends State<PromotionsScreen> {
       id: 'P004',
       code: 'C-PURLIN-SPECIAL',
       title: 'C-Purlin Direct Discount',
-      description: 'Special contractor incentive on high-grade C-Purlin and Z-Purlin orders.',
+      description:
+          'Special contractor incentive on high-grade C-Purlin and Z-Purlin orders.',
       discountLabel: '3% OFF',
       type: PromoType.onInvoice,
       validUntil: '20 Sep 2026',
@@ -97,7 +101,8 @@ class _PromotionsScreenState extends State<PromotionsScreen> {
       id: 'P005',
       code: 'CONTRACT-REBAR-2026',
       title: 'Deformed Bar Annual Agreement',
-      description: 'Special agreed contractual rate for high-volume deformed steel bar purchasing.',
+      description:
+          'Special agreed contractual rate for high-volume deformed steel bar purchasing.',
       discountLabel: 'Special Rate',
       type: PromoType.contract,
       validUntil: '31 Dec 2026',
@@ -107,7 +112,8 @@ class _PromotionsScreenState extends State<PromotionsScreen> {
   ];
 
   @override
-  Widget build(BuildContext context) => LocalizedBuilder(builder: _buildContent);
+  Widget build(BuildContext context) =>
+      LocalizedBuilder(builder: _buildContent);
 
   Widget _buildContent(BuildContext context) {
     final colors = context.appColors;
@@ -173,21 +179,27 @@ class _PromotionsScreenState extends State<PromotionsScreen> {
                       ),
                       SizedBox(width: context.rw(8)),
                       _FilterChip(
-                        label: 'ON-INVOICE (${_promotions.where((p) => p.type == PromoType.onInvoice).length})',
+                        label:
+                            'ON-INVOICE (${_promotions.where((p) => p.type == PromoType.onInvoice).length})',
                         isSelected: _selectedTypeFilter == PromoType.onInvoice,
-                        onTap: () => setState(() => _selectedTypeFilter = PromoType.onInvoice),
+                        onTap: () => setState(
+                            () => _selectedTypeFilter = PromoType.onInvoice),
                       ),
                       SizedBox(width: context.rw(8)),
                       _FilterChip(
-                        label: 'OFF-INVOICE (${_promotions.where((p) => p.type == PromoType.offInvoice).length})',
+                        label:
+                            'OFF-INVOICE (${_promotions.where((p) => p.type == PromoType.offInvoice).length})',
                         isSelected: _selectedTypeFilter == PromoType.offInvoice,
-                        onTap: () => setState(() => _selectedTypeFilter = PromoType.offInvoice),
+                        onTap: () => setState(
+                            () => _selectedTypeFilter = PromoType.offInvoice),
                       ),
                       SizedBox(width: context.rw(8)),
                       _FilterChip(
-                        label: 'CONTRACT (${_promotions.where((p) => p.type == PromoType.contract).length})',
+                        label:
+                            'CONTRACT (${_promotions.where((p) => p.type == PromoType.contract).length})',
                         isSelected: _selectedTypeFilter == PromoType.contract,
-                        onTap: () => setState(() => _selectedTypeFilter = PromoType.contract),
+                        onTap: () => setState(
+                            () => _selectedTypeFilter = PromoType.contract),
                       ),
                     ],
                   ),
@@ -215,7 +227,8 @@ class _PromotionsScreenState extends State<PromotionsScreen> {
                           context.rh(24),
                         ),
                         itemCount: filteredList.length,
-                        separatorBuilder: (_, __) => SizedBox(height: context.rh(14)),
+                        separatorBuilder: (_, __) =>
+                            SizedBox(height: context.rh(14)),
                         itemBuilder: (context, index) {
                           final promo = filteredList[index];
                           return _PromotionCard(promo: promo);
@@ -348,7 +361,8 @@ class _PromotionCard extends StatelessWidget {
               borderRadius: BorderRadius.vertical(
                 top: Radius.circular(context.rr(16)),
               ),
-              border: Border(bottom: BorderSide(color: colors.border, width: 0.8)),
+              border:
+                  Border(bottom: BorderSide(color: colors.border, width: 0.8)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

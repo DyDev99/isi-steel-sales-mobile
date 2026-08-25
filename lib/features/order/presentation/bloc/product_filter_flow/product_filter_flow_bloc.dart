@@ -1,13 +1,13 @@
 import 'dart:async';
 
 import 'package:bloc_concurrency/bloc_concurrency.dart';
+import 'package:isi_steel_sales_mobile/core/constants/app_constant.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/usecase/usecase.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/filter/category_filter_schema.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/filter/filter_selection.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/filter/filter_step.dart';
-import 'package:isi_steel_sales_mobile/features/order/domain/usecases/browse_products.dart';
-import 'package:isi_steel_sales_mobile/features/order/domain/usecases/catalog_params.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_materials.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/fetch_filter_categories.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_category_filter_schema.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_filter_step_options.dart';
@@ -24,12 +24,15 @@ const _searchDebounce = Duration(milliseconds: 300);
 /// Two rules are enforced here and nowhere else, because they are the reason
 /// the flow exists:
 ///
-/// 1. **A product query only runs for a bounded request.** There is exactly
-///    one call site for [BrowseProducts] in this class, guarded by
-///    `hasSearch || isFilterComplete`. Browsing must finish the hierarchy;
-///    searching must be deliberate enough to clear
-///    [ProductFilterFlowState.minQueryLength]. Nothing else reaches the
-///    catalog, so an idle screen can never pull the whole product list.
+/// 1. **A material query only runs for a bounded request.** There is exactly
+///    one call site for [GetMaterials] in this class, guarded by
+///    [ProductFilterFlowState.canRequestMaterials]. Browsing must finish the
+///    hierarchy *and* have answered something; searching must be deliberate
+///    enough to clear [ProductFilterFlowState.minQueryLength]. A category on
+///    its own is not enough — the largest holds 1,549 materials, which is the
+///    unbounded read wearing a filter, and the server rejects it outright.
+///    Preventing that here means the rejection never reaches a rep as an error
+///    dialog.
 /// 2. **Each level costs one small query.** Options for step N+1 are fetched
 ///    when step N is answered — never speculatively, never in bulk.
 ///
@@ -43,12 +46,12 @@ class ProductFilterFlowBloc
     required GetCategoryFilterSchema getCategoryFilterSchema,
     required GetFilterStepOptions getFilterStepOptions,
     required GetStockLocationOptions getStockLocationOptions,
-    required BrowseProducts browseProducts,
+    required GetMaterials getMaterials,
   })  : _fetchFilterCategories = fetchFilterCategories,
         _getCategoryFilterSchema = getCategoryFilterSchema,
         _getFilterStepOptions = getFilterStepOptions,
         _getStockLocationOptions = getStockLocationOptions,
-        _browseProducts = browseProducts,
+        _getMaterials = getMaterials,
         super(const ProductFilterFlowState()) {
     // Flow mutations run sequentially: each one leaves the selection in a state
     // the next one reads, so interleaving them would resolve options against a
@@ -77,7 +80,7 @@ class ProductFilterFlowBloc
   final GetCategoryFilterSchema _getCategoryFilterSchema;
   final GetFilterStepOptions _getFilterStepOptions;
   final GetStockLocationOptions _getStockLocationOptions;
-  final BrowseProducts _browseProducts;
+  final GetMaterials _getMaterials;
 
   // ── Entry ───────────────────────────────────────────────────────────
 
@@ -120,8 +123,8 @@ class ProductFilterFlowBloc
       stockLocationCode: () => null,
     ));
 
-    final result =
-        await _getCategoryFilterSchema(CategorySchemaParams(event.category.id));
+    final result = await _getCategoryFilterSchema(
+        CategorySchemaParams(event.category.code));
 
     final schema = result.when(
       success: (s) => s,
@@ -253,7 +256,11 @@ class ProductFilterFlowBloc
           optionsLoading: false,
           skippedStepKeys: skipped,
         ));
-        await _loadProducts(emit, page: 0);
+        // Every step answered. Whether that is enough to *ask* is a separate
+        // question — a derived or empty hierarchy completes having answered
+        // nothing — so this goes through the same bounded gate as everything
+        // else rather than loading unconditionally.
+        await _maybeLoadProducts(emit);
         return;
       }
 
@@ -346,8 +353,8 @@ class ProductFilterFlowBloc
     await Future<void>.delayed(_searchDebounce);
     emit(state.copyWith(query: event.query));
 
-    if (state.hasSearch || state.isFilterComplete) {
-      await _loadProducts(emit, page: 0);
+    if (state.canRequestMaterials) {
+      await _loadProducts(emit, page: AppConstants.firstPage);
       return;
     }
     // The search was cleared before the hierarchy was finished — drop the
@@ -367,8 +374,8 @@ class ProductFilterFlowBloc
   /// Loads the first page when — and only when — the current state is one the
   /// product query is allowed to run for.
   Future<void> _maybeLoadProducts(Emitter<ProductFilterFlowState> emit) async {
-    if (!state.hasSearch && !state.isFilterComplete) return;
-    await _loadProducts(emit, page: 0);
+    if (!state.canRequestMaterials) return;
+    await _loadProducts(emit, page: AppConstants.firstPage);
   }
 
   Future<void> _onStockLocationChanged(FilterStockLocationChanged event,
@@ -392,7 +399,7 @@ class ProductFilterFlowBloc
   Future<void> _loadStockLocations(Emitter<ProductFilterFlowState> emit) async {
     emit(state.copyWith(stockLocationsLoading: true));
     final result = await _getStockLocationOptions(StockLocationOptionsParams(
-      categoryId: state.category?.id,
+      categoryId: state.category?.code,
       selection: state.selection,
     ));
     emit(state.copyWith(
@@ -417,25 +424,30 @@ class ProductFilterFlowBloc
     Emitter<ProductFilterFlowState> emit, {
     required int page,
   }) async {
-    // The one gate on product reads in this feature.
-    if (!state.hasSearch && !state.isFilterComplete) return;
+    // The one gate on material reads in this feature.
+    if (!state.canRequestMaterials) return;
+
+    final isFirstPage = page <= AppConstants.firstPage;
 
     emit(state.copyWith(
-      productStatus:
-          page == 0 ? ProductListStatus.loading : ProductListStatus.loadingMore,
+      productStatus: isFirstPage
+          ? ProductListStatus.loading
+          : ProductListStatus.loadingMore,
       errorMessage: () => null,
     ));
 
-    final result = await _browseProducts(BrowseProductsParams(
+    final result = await _getMaterials(GetMaterialsParams(
+      categoryCode: state.category?.code,
+      selection: state.selection,
       page: page,
       pageSize: _pageSize,
-      query: state.query,
-      filter: state.productFilter,
+      search: state.query,
     ));
 
     result.when(
       success: (paged) => emit(state.copyWith(
-        products: page == 0 ? paged.items : [...state.products, ...paged.items],
+        products:
+            isFirstPage ? paged.items : [...state.products, ...paged.items],
         page: page,
         hasMore: paged.hasMore,
         productStatus: ProductListStatus.loaded,
@@ -447,8 +459,10 @@ class ProductFilterFlowBloc
     );
 
     // After the results, so the list paints first — the chips refine what is
-    // already on screen and are never worth delaying it for.
-    if (page == 0 && state.productStatus == ProductListStatus.loaded) {
+    // already on screen and are never worth delaying it for. Against the
+    // material selection API this resolves to nothing (SAP's material master
+    // has no plant column) and the chip row simply does not render.
+    if (isFirstPage && state.productStatus == ProductListStatus.loaded) {
       await _loadStockLocations(emit);
     }
   }

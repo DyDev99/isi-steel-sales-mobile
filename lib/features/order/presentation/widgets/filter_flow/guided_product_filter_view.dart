@@ -364,7 +364,7 @@ class _StageContent extends StatelessWidget {
         FilterFlowStage.categories => 'categories',
         FilterFlowStage.steps => 'step:${state.activeStep?.key}',
         FilterFlowStage.products =>
-          'products:${state.category?.id}:${state.hasSearch}',
+          'products:${state.category?.code}:${state.hasSearch}',
       };
 }
 
@@ -399,7 +399,7 @@ class _CategoryStage extends StatelessWidget {
         SizedBox(height: context.rh(12)),
         CategorySelector(
           categories: state.categories,
-          selectedCategoryId: state.category?.id,
+          selectedCategoryId: state.category?.code,
           onSelect: (category) => context
               .read<ProductFilterFlowBloc>()
               .add(FilterCategorySelected(category)),

@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:isi_steel_sales_mobile/features/order/domain/entities/category.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/entities/material_category.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/filter/category_filter_schema.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/filter/filter_option.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/filter/filter_selection.dart';
@@ -52,8 +52,8 @@ class ProductFilterFlowState extends Equatable {
   final FilterFlowStatus status;
   final String? errorMessage;
 
-  final List<Category> categories;
-  final Category? category;
+  final List<MaterialCategory> categories;
+  final MaterialCategory? category;
   final CategoryFilterSchema? schema;
 
   final FilterSelection selection;
@@ -123,9 +123,33 @@ class ProductFilterFlowState extends Equatable {
     return FilterFlowStage.products;
   }
 
-  /// True once every required step is answered — the only condition under which
-  /// products may be requested.
+  /// True once every required step is answered.
   bool get isFilterComplete => stage == FilterFlowStage.products;
+
+  /// Whether the current state narrows anything at all.
+  ///
+  /// The client half of the server's bounded-selection rule, and the reason
+  /// [isFilterComplete] is not sufficient on its own: a category with a derived
+  /// or empty hierarchy is "complete" the moment it is picked, having answered
+  /// nothing. Asking for its materials would be a request for 1,549 rows —
+  /// exactly the unbounded read this flow exists to prevent, and exactly what
+  /// the server answers `Material.SelectionNotBounded` to.
+  ///
+  /// A [category] deliberately does not count.
+  bool get isBounded => hasSearch || selection.hasAnswer;
+
+  /// The single condition under which the terminal material read may run.
+  ///
+  /// Both halves matter: bounded says the request is *allowed*, and the stage
+  /// says the rep is actually looking at results rather than mid-hierarchy.
+  bool get canRequestMaterials => isBounded && isFilterComplete;
+
+  /// Why the rep cannot see materials yet, when they cannot.
+  ///
+  /// Surfaced as a disabled state with a reason rather than left for the server
+  /// to reject: `Material.SelectionNotBounded` is a correct answer on the wire
+  /// and a useless one on a screen.
+  bool get needsNarrowing => isFilterComplete && !isBounded;
 
   /// 1-based position of the active step, for "Step 2 of 5".
   int get activeStepNumber {
@@ -143,8 +167,8 @@ class ProductFilterFlowState extends Equatable {
   ProductFilterFlowState copyWith({
     FilterFlowStatus? status,
     String? Function()? errorMessage,
-    List<Category>? categories,
-    Category? Function()? category,
+    List<MaterialCategory>? categories,
+    MaterialCategory? Function()? category,
     CategoryFilterSchema? Function()? schema,
     FilterSelection? selection,
     Set<String>? skippedStepKeys,
@@ -192,7 +216,7 @@ class ProductFilterFlowState extends Equatable {
   /// The catalog query the current state resolves to — one place, so the
   /// guided path and the direct-search path can never drift apart.
   ProductFilter get productFilter => selection.toProductFilter(
-        category?.id,
+        category?.code,
         sortBy: sortBy,
         availableOnly: availableOnly,
         warehouseCode: stockLocationCode,

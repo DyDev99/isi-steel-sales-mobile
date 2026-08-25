@@ -279,6 +279,7 @@ class _LoadedViewState extends State<_LoadedView> {
     );
   }
 }
+
 class _EmptyState extends StatelessWidget {
   const _EmptyState({required this.hasAnyStops});
   final bool hasAnyStops;

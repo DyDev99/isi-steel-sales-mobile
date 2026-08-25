@@ -166,3 +166,70 @@ String formatIsoOffset(DateTime value) {
       '$time$sign${two(absolute.inHours)}:'
       '${two(absolute.inMinutes.remainder(60))}';
 }
+
+/// The same envelope as [ApiEnvelope], for the endpoints whose `data` is a
+/// **JSON array rather than an object**.
+///
+/// The materials selection surface is the reason this exists: `GET
+/// selection/categories`, `GET selection/schema` and `POST selection/facets`
+/// all answer `{ "success": …, "data": [ … ] }`. Running [ApiEnvelope.fromBody]
+/// over one of those throws "missing its payload", because it insists on a map.
+///
+/// [key] handles the third shape the same family of endpoints uses — the flat
+/// material list nests its rows one level deeper, at `data.materials`. Passing
+/// a key makes this tolerant of both, which matters because
+/// `POST selection/materials` is documented as returning "the same rows as the
+/// catalogue list" and the two are not wrapped identically.
+class ApiListEnvelope {
+  const ApiListEnvelope({
+    required this.items,
+    this.message,
+    this.metadata,
+    this.traceId,
+  });
+
+  final List<DataMap> items;
+  final String? message;
+  final ApiMetadata? metadata;
+  final String? traceId;
+
+  factory ApiListEnvelope.fromBody(Object? body, {String? key}) {
+    // A bare array. Not the documented envelope, but the integration guide
+    // prints several responses this way and a client that dies on it would be
+    // brittle for no benefit.
+    if (body is List) return ApiListEnvelope(items: _rows(body));
+
+    if (body is! Map) {
+      throw const ServerException(
+          message: 'The server returned an unexpected response.');
+    }
+    final map = body.cast<String, dynamic>();
+    final data = map['data'];
+
+    final List<DataMap> items;
+    if (data is List) {
+      items = _rows(data);
+    } else if (data is Map && key != null) {
+      items = _rows(data[key]);
+    } else if (data == null) {
+      // An empty result set, not a malformed response.
+      items = const [];
+    } else {
+      throw const ServerException(
+          message: 'The server response was missing its payload.');
+    }
+
+    return ApiListEnvelope(
+      items: items,
+      message: map['message'] as String?,
+      metadata: ApiMetadata.fromJson(map['metadata']),
+      traceId: map['traceId'] as String?,
+    );
+  }
+
+  static List<DataMap> _rows(Object? raw) =>
+      (raw as List<dynamic>? ?? const <dynamic>[])
+          .whereType<Map>()
+          .map((e) => e.cast<String, dynamic>())
+          .toList();
+}

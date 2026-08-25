@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
@@ -5,6 +7,7 @@ import 'package:isi_steel_sales_mobile/core/localization/localization_services.d
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/core/usecase/usecase.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/complete_visit_check_out.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/credit_summary.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/off_visit_reason.dart';
@@ -69,10 +72,11 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
 
   Set<String> _favoriteIds = {};
 
-  // Shipment selection states
+  // Shipment & Payment selection states
   ShipmentMethod _shipmentMethod = ShipmentMethod.pickup;
   PickupLocation? _pickupLocation = PickupLocation.factory;
   DeliveryAddressOption? _deliveryOption;
+  bool _isCod = false; // COD state defaulting to 'No'
 
   final TextEditingController _newAddressController = TextEditingController();
   final TextEditingController _newPhoneController = TextEditingController();
@@ -152,6 +156,11 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
         'location': product.warehouseCode,
       })),
     ));
+  }
+
+  void _completeVisit() {
+    unawaited(sl<CompleteVisitCheckOut>()(const NoParams()));
+    Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
   Future<void> _saveQuotation() async {
@@ -266,12 +275,13 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                           .matchQuery(ImageSearchSource.gallery),
                     ),
                     SizedBox(height: context.rh(16)),
-                    
-                    // Shipment selection section
+
+                    // Shipment selection section with Cash on Delivery (COD)
                     ShipmentSelectionWidget(
                       method: _shipmentMethod,
                       pickupLocation: _pickupLocation,
                       deliveryOption: _deliveryOption,
+                      isCod: _isCod,
                       defaultAddress: widget.customer?.address,
                       newAddressController: _newAddressController,
                       newPhoneController: _newPhoneController,
@@ -282,7 +292,8 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                             _pickupLocation ??= PickupLocation.factory;
                             _deliveryOption = null;
                           } else {
-                            _deliveryOption ??= DeliveryAddressOption.defaultAddress;
+                            _deliveryOption ??=
+                                DeliveryAddressOption.defaultAddress;
                             _pickupLocation = null;
                           }
                         });
@@ -295,6 +306,11 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                       onDeliveryOptionChanged: (option) {
                         setState(() {
                           _deliveryOption = option;
+                        });
+                      },
+                      onCodChanged: (isCod) {
+                        setState(() {
+                          _isCod = isCod;
                         });
                       },
                     ),
@@ -354,7 +370,11 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                   ],
                 ),
               ),
-              QuotationBottomBar(onSave: _saveQuotation),
+              QuotationBottomBar(
+                onSave: _saveQuotation,
+                backLabelKey: 'my_visits.inventory.completion.complete_visit',
+                onBack: _completeVisit,
+              ),
             ],
           ),
         ),

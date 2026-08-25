@@ -130,20 +130,83 @@ class FilterSelection extends Equatable {
         // column the chip row sets, so the two can never disagree.
         ProductAttribute.warehouse =>
           filter.copyWith(warehouseCode: () => value),
-        ProductAttribute.subCategory =>
+        // SAP's `TopColor` and the local `sub_category` column hold the same
+        // value, so a server-published colour step still narrows offline.
+        ProductAttribute.subCategory || ProductAttribute.colour =>
           filter.copyWith(subCategory: () => value),
         ProductAttribute.brand => filter.copyWith(brand: () => value),
-        ProductAttribute.size => filter.copyWith(size: () => value),
+        ProductAttribute.size || ProductAttribute.profile =>
+          filter.copyWith(size: () => value),
         ProductAttribute.grade => filter.copyWith(grade: () => value),
         ProductAttribute.material => filter.copyWith(material: () => value),
         ProductAttribute.length => filter.copyWith(length: () => number),
         ProductAttribute.width => filter.copyWith(width: () => number),
         ProductAttribute.height => filter.copyWith(height: () => number),
         ProductAttribute.diameter => filter.copyWith(diameter: () => number),
-        ProductAttribute.thickness => filter.copyWith(thickness: () => number),
+        ProductAttribute.thickness ||
+        ProductAttribute.rawThickness =>
+          filter.copyWith(thickness: () => number),
+        // SAP classifications and the material leaf. The local catalog has no
+        // column for any of them, so they narrow nothing offline rather than
+        // narrowing the wrong thing — the honest degradation, and the reason
+        // `localFacet` is nullable.
+        ProductAttribute.materialType ||
+        ProductAttribute.division ||
+        ProductAttribute.priceGroup ||
+        ProductAttribute.sku =>
+          filter,
       };
     }
     return filter;
+  }
+
+  /// True once at least one step carries an answer.
+  ///
+  /// This is the client half of the server's bounded-selection rule: the
+  /// terminal material read refuses a request that narrows nothing, and
+  /// **a category alone does not count** — "Profile Roofing" is 1,549
+  /// materials, which is not a result set a rep can use on a phone.
+  ///
+  /// The rule is prevented rather than caught. `Material.SelectionNotBounded`
+  /// should never reach a rep as an error dialog; it should be impossible to
+  /// ask for, which is what this getter is read for.
+  bool get hasAnswer => entries.isNotEmpty;
+
+  /// Collapses the answers into the flat `selection` object the material
+  /// selection API takes.
+  ///
+  /// The counterpart to [toProductFilter]: same answers, the other data
+  /// source. Both live here so the online and offline paths can never drift
+  /// into narrowing differently — the bug that lets a step promise twelve
+  /// materials and deliver nine.
+  ///
+  /// Answers whose attribute the material master has no column for are dropped
+  /// rather than sent: the server rejects an unknown field outright, and one
+  /// local-only step must not cost the rep the whole query.
+  ///
+  /// [excludeBlocked] defaults to true because every path through this flow
+  /// leads to order capture, and a rep must not build an order the ERP will
+  /// refuse.
+  Map<String, dynamic> toApiSelection({
+    String? categoryCode,
+    bool excludeBlocked = true,
+  }) {
+    final json = <String, dynamic>{};
+    if (categoryCode != null && categoryCode.isNotEmpty) {
+      json['categoryCode'] = categoryCode;
+    }
+    for (final entry in entries) {
+      final key = entry.attribute.selectionKey;
+      if (key == null) continue;
+      final raw = entry.option.value;
+      // Numeric fields go on the wire as numbers. The server sends them back
+      // invariant (always a decimal point), so parsing is safe without a
+      // locale — and echoing the string where a number is expected is read as
+      // no answer at all.
+      json[key] = entry.attribute.isNumeric ? (double.tryParse(raw) ?? raw) : raw;
+    }
+    json['excludeBlocked'] = excludeBlocked;
+    return json;
   }
 
   @override

@@ -70,6 +70,47 @@ class AppConstants {
   /// value, so the real size must be read back from `metadata.pageSize`.
   static const int maxPageSize = 200;
 
+  // ── Mobile materials endpoints ─────────────────────────────────────
+  //
+  // The guided selection surface, per
+  // `docs/features/ProductSelection/materials-guidline-integration-mobile.md`.
+  // All of them require `materials.read` and answer the standard envelope; a
+  // 403 with no `errorCode` means the role is missing that permission, not
+  // that the request is malformed.
+  //
+  // None of these calls SAP — they read the platform's own synced copy of the
+  // material master, which is why the finder keeps working when the ERP does
+  // not. The one exception is [materialAvailabilityEndpoint], which is a live
+  // SAP round trip and must only be called when a rep commits to a material.
+  static const String materialsEndpoint = '$apiPrefix/mobile/materials';
+
+  /// Stage zero — the categories that open the finder.
+  static const String materialCategoriesEndpoint =
+      '$materialsEndpoint/selection/categories';
+
+  /// The wizard's shape for one category (or every published one).
+  /// Configuration, not catalogue data: fetch once per session and cache it.
+  static const String materialSchemaEndpoint =
+      '$materialsEndpoint/selection/schema';
+
+  /// The options for exactly one step. `{attribute, selection}`.
+  static const String materialFacetsEndpoint =
+      '$materialsEndpoint/selection/facets';
+
+  /// The terminal read. `{selection, page, pageSize, search}` — note the
+  /// different body shape from the facet call; putting the selection fields at
+  /// the top level here is silently read as an empty selection.
+  static const String materialSelectionEndpoint =
+      '$materialsEndpoint/selection/materials';
+
+  /// SAP's live sellability verdict for one material. Slow, and it fails when
+  /// the middleware is down — call it on commit, never while browsing.
+  static String materialAvailabilityEndpoint(String material) =>
+      '$materialsEndpoint/$material/availability';
+
+  /// The material list is one-based, like every other paged mobile endpoint.
+  static const int firstPage = 1;
+
   // ── Mobile visit endpoints (docs/backend-document.md) ──────────────
   //
   // Scope is always the signed-in rep: the server derives `repId` from the

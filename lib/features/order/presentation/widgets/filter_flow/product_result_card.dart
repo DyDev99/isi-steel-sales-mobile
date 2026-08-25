@@ -70,9 +70,28 @@ class ProductResultCard extends StatelessWidget {
 
   /// Maps the available quantity onto a status band. The quantity itself is
   /// never rendered — it only decides which band applies.
-  _StockStatus _resolveStockStatus(BuildContext context) {
+  ///
+  /// Returns null when there is no quantity to band. **The materials API has
+  /// no on-hand stock endpoint at all** — no level in units, no warehouse
+  /// balance, no ATP — so a material read from it carries
+  /// `stockKnown: false`. Banding that as "out of stock" would turn a gap in
+  /// the data into a claim about the yard, and a rep would decline a sale on
+  /// it. No badge is the honest render.
+  _StockStatus? _resolveStockStatus(BuildContext context) {
     final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
+
+    // SAP's own block flag is a verdict rather than a quantity, so it is worth
+    // showing even where nothing else about stock is known — it is the one
+    // thing that definitely stops an order line.
+    if (product.isBlocked) {
+      return _StockStatus(
+        label: 'products.status.blocked'.tr,
+        color: scheme.error,
+      );
+    }
+
+    if (!product.stockKnown) return null;
 
     // `availableQuantity`, not `stockQuantity`: reserved units are already
     // spoken for and cannot be quoted, so counting them would badge a SKU as
@@ -197,25 +216,28 @@ class ProductResultCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // Stock status badge using products.status keys
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: stockStatus.color.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              stockStatus.label,
-                              style: TextStyle(
-                                color: stockStatus.color,
-                                fontSize: context.rsp(10.5),
-                                fontWeight: FontWeight.w800,
+                          if (stockStatus != null) ...[
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color:
+                                    stockStatus.color.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                stockStatus.label,
+                                style: TextStyle(
+                                  color: stockStatus.color,
+                                  fontSize: context.rsp(10.5),
+                                  fontWeight: FontWeight.w800,
+                                ),
                               ),
                             ),
-                          ),
-                          SizedBox(height: context.rh(4)),
+                            SizedBox(height: context.rh(4)),
+                          ],
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.baseline,
                             textBaseline: TextBaseline.alphabetic,

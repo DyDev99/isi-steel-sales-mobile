@@ -10,9 +10,11 @@ class ShipmentSelectionWidget extends StatelessWidget {
     required this.method,
     required this.pickupLocation,
     required this.deliveryOption,
+    required this.isCod,
     required this.onMethodChanged,
     required this.onPickupLocationChanged,
     required this.onDeliveryOptionChanged,
+    required this.onCodChanged,
     this.selectedFactory,
     this.selectedBranch,
     this.onFactoryChanged,
@@ -26,12 +28,13 @@ class ShipmentSelectionWidget extends StatelessWidget {
   final ShipmentMethod method;
   final PickupLocation? pickupLocation;
   final DeliveryAddressOption? deliveryOption;
+  final bool isCod;
   
   final ValueChanged<ShipmentMethod> onMethodChanged;
   final ValueChanged<PickupLocation> onPickupLocationChanged;
   final ValueChanged<DeliveryAddressOption> onDeliveryOptionChanged;
+  final ValueChanged<bool> onCodChanged;
 
-  // Selected dropdown values & callbacks
   final String? selectedFactory;
   final String? selectedBranch;
   final ValueChanged<String?>? onFactoryChanged;
@@ -42,7 +45,6 @@ class ShipmentSelectionWidget extends StatelessWidget {
   final TextEditingController? newPhoneController;
   final VoidCallback? onAddressFieldsChanged;
 
-  // Mock data for Factories
   static const List<String> _mockFactories = [
     'Main Factory - Veng Sreng',
     'Factory 2 - Kilometer 6',
@@ -51,7 +53,6 @@ class ShipmentSelectionWidget extends StatelessWidget {
     'Factory 5 - Sihanoukville SEZ',
   ];
 
-  // Mock data for Branches
   static const List<String> _mockBranches = [
     'Phnom Penh Branch - Toul Kork',
     'Siem Reap Branch',
@@ -64,24 +65,24 @@ class ShipmentSelectionWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final isTablet = MediaQuery.of(context).size.width >= 600;
+
+    final headerTextStyle = theme.textTheme.titleMedium?.copyWith(
+      fontWeight: FontWeight.bold,
+      fontSize: isTablet ? (theme.textTheme.titleMedium?.fontSize ?? 16) * 1.3 : null,
+      color: colorScheme.onSurface,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
         // 1. Step 1: Delivery vs Pick up
-        Text(
-          'Method of shipment',
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: colorScheme.onSurface,
-          ),
-        ),
-        const SizedBox(height: 12),
+        Text('Method of shipment', style: headerTextStyle),
+        SizedBox(height: isTablet ? 16 : 12),
 
         Row(
           children: [
-            // Delivery Option
             Expanded(
               child: _SelectCard(
                 title: 'Delivery',
@@ -90,8 +91,7 @@ class ShipmentSelectionWidget extends StatelessWidget {
                 onTap: () => onMethodChanged(ShipmentMethod.delivery),
               ),
             ),
-            const SizedBox(width: 12),
-            // Pick up Option
+            SizedBox(width: isTablet ? 16 : 12),
             Expanded(
               child: _SelectCard(
                 title: 'Pick up',
@@ -103,19 +103,12 @@ class ShipmentSelectionWidget extends StatelessWidget {
           ],
         ),
 
-        const SizedBox(height: 20),
+        SizedBox(height: isTablet ? 26 : 20),
 
         // 2. Step 2 (Conditional): Options based on selected shipment method
         if (method == ShipmentMethod.pickup) ...[
-          // Sub-options for Pickup: Factory vs Branch
-          Text(
-            'Pickup Location',
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: colorScheme.onSurface,
-            ),
-          ),
-          const SizedBox(height: 12),
+          Text('Pickup Location', style: headerTextStyle),
+          SizedBox(height: isTablet ? 16 : 12),
           Row(
             children: [
               Expanded(
@@ -126,7 +119,7 @@ class ShipmentSelectionWidget extends StatelessWidget {
                   onTap: () => onPickupLocationChanged(PickupLocation.factory),
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: isTablet ? 16 : 12),
               Expanded(
                 child: _SelectCard(
                   title: 'Branch',
@@ -138,28 +131,29 @@ class ShipmentSelectionWidget extends StatelessWidget {
             ],
           ),
 
-          // Factory Dropdown
           if (pickupLocation == PickupLocation.factory) ...[
-            const SizedBox(height: 14),
+            SizedBox(height: isTablet ? 18 : 14),
             DropdownButtonFormField<String>(
               value: _mockFactories.contains(selectedFactory)
                   ? selectedFactory
                   : _mockFactories.first,
               decoration: InputDecoration(
                 labelText: 'Select Factory Location',
-                prefixIcon: const Icon(Icons.factory_rounded),
+                prefixIcon: Icon(Icons.factory_rounded, size: isTablet ? 28 : 24),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: isTablet ? 20 : 16,
+                  vertical: isTablet ? 16 : 12,
+                ),
               ),
               items: _mockFactories
                   .map((factory) => DropdownMenuItem(
                         value: factory,
                         child: Text(
                           factory,
-                          style: const TextStyle(fontSize: 13),
+                          style: TextStyle(fontSize: isTablet ? 17 : 13),
                         ),
                       ))
                   .toList(),
@@ -167,28 +161,29 @@ class ShipmentSelectionWidget extends StatelessWidget {
             ),
           ],
 
-          // Branch Dropdown
           if (pickupLocation == PickupLocation.branch) ...[
-            const SizedBox(height: 14),
+            SizedBox(height: isTablet ? 18 : 14),
             DropdownButtonFormField<String>(
               value: _mockBranches.contains(selectedBranch)
                   ? selectedBranch
                   : _mockBranches.first,
               decoration: InputDecoration(
                 labelText: 'Select Branch Location',
-                prefixIcon: const Icon(Icons.store_rounded),
+                prefixIcon: Icon(Icons.store_rounded, size: isTablet ? 28 : 24),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: isTablet ? 20 : 16,
+                  vertical: isTablet ? 16 : 12,
+                ),
               ),
               items: _mockBranches
                   .map((branch) => DropdownMenuItem(
                         value: branch,
                         child: Text(
                           branch,
-                          style: const TextStyle(fontSize: 13),
+                          style: TextStyle(fontSize: isTablet ? 17 : 13),
                         ),
                       ))
                   .toList(),
@@ -196,17 +191,9 @@ class ShipmentSelectionWidget extends StatelessWidget {
             ),
           ],
         ] else if (method == ShipmentMethod.delivery) ...[
-          // Sub-options for Delivery: SAP Address vs New Address
-          Text(
-            'Delivery Address',
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: colorScheme.onSurface,
-            ),
-          ),
-          const SizedBox(height: 12),
+          Text('Delivery Address', style: headerTextStyle),
+          SizedBox(height: isTablet ? 16 : 12),
 
-          // Default Address Option (follow SAP)
           _DeliveryOptionTile(
             title: 'Default address (follow SAP)',
             subtitle: defaultAddress,
@@ -215,9 +202,8 @@ class ShipmentSelectionWidget extends StatelessWidget {
                 onDeliveryOptionChanged(DeliveryAddressOption.defaultAddress),
           ),
 
-          const SizedBox(height: 10),
+          SizedBox(height: isTablet ? 14 : 10),
 
-          // New Address Option
           _DeliveryOptionTile(
             title: 'Input new address & phone number',
             subtitle: null,
@@ -226,12 +212,12 @@ class ShipmentSelectionWidget extends StatelessWidget {
                 onDeliveryOptionChanged(DeliveryAddressOption.newAddress),
           ),
 
-          // Step 3 (Conditional): Inputs for New Address and Phone Number
           if (deliveryOption == DeliveryAddressOption.newAddress) ...[
-            const SizedBox(height: 14),
+            SizedBox(height: isTablet ? 18 : 14),
             TextField(
               controller: newAddressController,
               maxLines: 2,
+              style: TextStyle(fontSize: isTablet ? 17 : 14),
               onChanged: (_) => onAddressFieldsChanged?.call(),
               decoration: InputDecoration(
                 labelText: 'New Address',
@@ -241,10 +227,11 @@ class ShipmentSelectionWidget extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: isTablet ? 16 : 12),
             TextField(
               controller: newPhoneController,
               keyboardType: TextInputType.phone,
+              style: TextStyle(fontSize: isTablet ? 17 : 14),
               onChanged: (_) => onAddressFieldsChanged?.call(),
               decoration: InputDecoration(
                 labelText: 'Phone Number',
@@ -256,6 +243,34 @@ class ShipmentSelectionWidget extends StatelessWidget {
             ),
           ],
         ],
+
+        SizedBox(height: isTablet ? 26 : 20),
+
+        // 3. Cash on Delivery (COD) Section
+        Text('Cash on Delivery (COD)', style: headerTextStyle),
+        SizedBox(height: isTablet ? 16 : 12),
+
+        Row(
+          children: [
+            Expanded(
+              child: _SelectCard(
+                title: 'Yes',
+                icon: Icons.payments_outlined,
+                isSelected: isCod == true,
+                onTap: () => onCodChanged(true),
+              ),
+            ),
+            SizedBox(width: isTablet ? 16 : 12),
+            Expanded(
+              child: _SelectCard(
+                title: 'No',
+                icon: Icons.money_off_outlined,
+                isSelected: isCod == false,
+                onTap: () => onCodChanged(false),
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -279,6 +294,7 @@ class _SelectCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final primaryColor = colorScheme.primary;
     final activeBgColor = colorScheme.primaryContainer.withValues(alpha: 0.35);
+    final isTablet = MediaQuery.of(context).size.width >= 600;
 
     return Material(
       color: isSelected ? activeBgColor : colorScheme.surface,
@@ -287,7 +303,10 @@ class _SelectCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          padding: EdgeInsets.symmetric(
+            horizontal: isTablet ? 18 : 14,
+            vertical: isTablet ? 18 : 14,
+          ),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
@@ -299,15 +318,15 @@ class _SelectCard extends StatelessWidget {
             children: [
               Icon(
                 icon,
-                size: 22,
+                size: isTablet ? 29 : 22,
                 color: isSelected ? primaryColor : colorScheme.onSurfaceVariant,
               ),
-              const SizedBox(width: 10),
+              SizedBox(width: isTablet ? 14 : 10),
               Expanded(
                 child: Text(
                   title,
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: isTablet ? 17 : 13,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                   ),
                 ),
@@ -315,7 +334,7 @@ class _SelectCard extends StatelessWidget {
               if (isSelected)
                 Icon(
                   Icons.check_circle_rounded,
-                  size: 20,
+                  size: isTablet ? 26 : 20,
                   color: primaryColor,
                 ),
             ],
@@ -344,6 +363,7 @@ class _DeliveryOptionTile extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final primaryColor = colorScheme.primary;
     final activeBgColor = colorScheme.primaryContainer.withValues(alpha: 0.35);
+    final isTablet = MediaQuery.of(context).size.width >= 600;
 
     return Material(
       color: isSelected ? activeBgColor : colorScheme.surface,
@@ -352,7 +372,10 @@ class _DeliveryOptionTile extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(14),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          padding: EdgeInsets.symmetric(
+            horizontal: isTablet ? 18 : 14,
+            vertical: isTablet ? 16 : 12,
+          ),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
@@ -366,10 +389,10 @@ class _DeliveryOptionTile extends StatelessWidget {
                 isSelected
                     ? Icons.radio_button_checked_rounded
                     : Icons.radio_button_off_rounded,
-                size: 20,
+                size: isTablet ? 26 : 20,
                 color: isSelected ? primaryColor : colorScheme.onSurfaceVariant,
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: isTablet ? 16 : 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -377,8 +400,8 @@ class _DeliveryOptionTile extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
-                        fontSize: 13,
+                      style: TextStyle(
+                        fontSize: isTablet ? 17 : 13,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -389,7 +412,7 @@ class _DeliveryOptionTile extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: isTablet ? 14 : 11,
                           color: colorScheme.onSurfaceVariant,
                         ),
                       ),

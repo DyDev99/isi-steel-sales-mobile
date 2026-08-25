@@ -79,7 +79,7 @@ class StopCard extends StatelessWidget {
     final canStartVisit = isToday && !isVisitedOrSkipped;
 
     // Retrieve channel (Wholesale/Retail) and tier (Diamond/Gold/Silver/Bronze)
-    final channelTag = customer.territoryType.label; 
+    final channelTag = customer.territoryType.label;
     final tierTag = 'Silver'; // Fallback / mock field from customer entity
 
     final tierColors = _getTierColors(tierTag);
