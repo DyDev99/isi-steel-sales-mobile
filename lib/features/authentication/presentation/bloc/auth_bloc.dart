@@ -14,6 +14,7 @@ import 'package:isi_steel_sales_mobile/features/authentication/domain/usecases/l
 import 'package:isi_steel_sales_mobile/features/authentication/domain/usecases/logout.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_event.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_state.dart';
+import 'package:isi_steel_sales_mobile/features/authentication/domain/notification_lifecycle.dart';
 
 /// Orchestrates auth use cases and keeps the app-wide [SessionManager] in sync
 /// so guards, role checks, and sync scopes have a single, synchronous source
@@ -31,8 +32,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     required AppRestartController appRestart,
     required AuthRepository repository,
     required AppLogger logger,
+    required NotificationLifecycle notifications,
   })  : _repo = repository,
         _logger = logger,
+        _notifications = notifications,
         _login = login,
         _logout = logout,
         _getCurrentUser = getCurrentUser,
@@ -63,6 +66,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AppRestartController _appRestart;
   final AuthRepository _repo;
   final AppLogger _logger;
+
+  /// The notification feature's sign-in/sign-out hooks.
+  ///
+  /// A narrow interface rather than the coordinator itself, so authentication
+  /// does not depend on the notification feature's data layer — the rule in
+  /// `docs/AI_ENGINEERING_PLAYBOOK.md` §12 that no feature imports another
+  /// feature's `data/`. It also keeps `AuthBloc` testable without standing up
+  /// Firebase.
+  final NotificationLifecycle _notifications;
 
   /// The attempt in flight between step 1 and step 3.
   ///
@@ -331,6 +343,26 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     LogoutRequested event,
     Emitter<AuthState> emit,
   ) async {
+    // **Before** the token store is dropped, and that ordering is the whole
+    // point (`docs/features/notification-mobile.md` §4.4): deregistering this
+    // installation is an authenticated call. Skipping it leaves the platform
+    // pushing one rep's notifications at a handset that has since been handed to
+    // somebody else — which is a disclosure, not an inconvenience.
+    //
+    // It also clears the locally-mirrored inbox and any queued acknowledgements,
+    // so the next rep neither reads the previous one's notifications nor has
+    // their queue replayed under a new token.
+    //
+    // Deliberately not fatal: a rep who cannot sign out because a deregistration
+    // failed is worse than a stale registration, which the backend deactivates
+    // on its own once FCM reports the token dead.
+    try {
+      await _notifications.onSigningOut();
+    } catch (error, stackTrace) {
+      _logger.error('auth.logout_notification_cleanup_failed',
+          error: error, stackTrace: stackTrace);
+    }
+
     await _logout(LogoutParams(allDevices: event.allDevices));
     await _sessionReset.clearAll();
     _session.clear();

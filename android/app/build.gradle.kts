@@ -41,14 +41,22 @@ plugins {
     id("org.jetbrains.kotlin.android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+    // Must come after the Flutter plugin: it hooks the variant tasks the
+    // Flutter plugin registers.
+    id("com.google.gms.google-services")
 }
 
 android {
-    namespace = "com.isigroup.steelsales"
+    namespace = "com.isigroup.steelforce"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
+        // Required by `flutter_local_notifications`, which uses `java.time` on
+        // API levels that predate it. Without this the build fails outright at
+        // `checkDebugAarMetadata` — it is a hard requirement of the plugin, not
+        // an optimisation.
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -56,7 +64,19 @@ android {
     defaultConfig {
         // Permanent for the life of the Play listing — do not change after the
         // first upload.
-        applicationId = "com.isigroup.steelsales"
+        //
+        // Renamed from `com.isigroup.steelsales` to match the iOS bundle id and
+        // the Firebase project (`steelforce-94963`), whose Android app is
+        // registered as `com.isigroup.steelforce`. Without the rename
+        // `processDebugGoogleServices` fails outright: "No matching client found
+        // for package name".
+        //
+        // ⚠️ If this app has already been published, an applicationId change
+        // creates a **new Play listing**: existing installs will not receive it
+        // as an update and will not migrate their local data. The alternative is
+        // to add a second Android app to the Firebase console under the old
+        // package name and re-download `google-services.json`.
+        applicationId = "com.isigroup.steelforce"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
@@ -114,6 +134,13 @@ android {
                 }
         }
     }
+}
+
+dependencies {
+    // The desugaring runtime enabled above. `flutter_local_notifications` 18.x
+    // requires 2.1.4 or newer; an older one builds and then throws at runtime on
+    // the first scheduled notification.
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }
 
 kotlin {

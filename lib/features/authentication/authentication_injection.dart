@@ -8,6 +8,7 @@ import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/data/datasources/auth_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/data/datasources/auth_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/data/repositories/auth_repository_impl.dart';
+import 'package:isi_steel_sales_mobile/features/authentication/domain/notification_lifecycle.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/domain/repositories/auth_repository.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/domain/usecases/get_current_user.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/domain/usecases/login.dart';
@@ -36,6 +37,11 @@ void registerAuthFeature(GetIt sl) {
       appRestart: sl(),
       repository: sl<AuthRepository>(),
       logger: sl<AppLogger>(),
+      // Resolved at bloc construction — which happens after every feature has
+      // registered — for the same reason `sessionReset` is: the notification
+      // feature is wired after auth, so an eager reference here would not find
+      // its coordinator yet.
+      notifications: sl<NotificationLifecycle>(),
     ),
   );
 

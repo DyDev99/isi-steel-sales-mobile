@@ -1064,31 +1064,129 @@
     }
   },
   "notifications": {
+    "title": "Notifications",
     "empty": "No new notifications",
-    "filter": {
-      "all": "All",
-      "approved": "Approved",
-      "assigned": "Assigned",
-      "opportunity": "Opportunity",
-      "pending": "Pending",
-      "followup": "Follow-up Due",
-      "no_results": "No notifications match this filter."
-    },
-    "group": {
-      "action_needed": "Action needed",
-      "approved": "Approved",
-      "none_here": "Nothing here",
-      "updates": "Updates"
-    },
+    "empty_action_needed": "Nothing needs your acknowledgement right now.",
+    "empty_history": "Nothing here yet. Notifications you clear or act on are kept here.",
     "login": "Login",
     "mark_all_read": "Mark all as read",
+    "welcome_title": "Welcome!",
+    "welcome_body": "Please login to view notifications and get the full experience.",
+    "action_failed": "That didn't go through. Please try again.",
+    "already_handled": "Someone else already handled this.",
+    "tab": {
+      "inbox": "Inbox",
+      "action_needed": "Action needed",
+      "history": "History"
+    },
     "status": {
       "read": "Read",
       "unread": "Unread"
     },
-    "title": "Notifications",
-    "welcome_body": "Please login to view notifications and get the full experience.",
-    "welcome_title": "Welcome!"
+    "filter": {
+      "all": "All",
+      "no_results": "No notifications match this filter."
+    },
+    "time": {
+      "now": "now",
+      "minutes": "{n}m",
+      "hours": "{n}h",
+      "days": "{n}d"
+    },
+    "note": {
+      "expired": "This is no longer current.",
+      "resolved_elsewhere": "Already actioned by someone else.",
+      "actioned": "You've dealt with this.",
+      "dismissed": "Cleared."
+    },
+    "category": {
+      "assignment": "Assignments",
+      "quote": "Quotations",
+      "order": "Orders",
+      "finance": "Finance",
+      "kpi": "Performance",
+      "approval": "Approvals",
+      "account": "Customers",
+      "system": "System",
+      "announce": "Announcements",
+      "security": "Security",
+      "other": "Other"
+    },
+    "confirm": {
+      "title": "Are you sure?",
+      "body": "“{action}” can't be undone from here."
+    },
+    "resolved_elsewhere": {
+      "title": "That item was already handled",
+      "body": "Someone else actioned it while you were offline."
+    },
+    "permission": {
+      "title": "Stay on top of your day",
+      "body": "Get notified the moment a route, order, or approval needs you. Your inbox keeps working either way.",
+      "enable": "Enable",
+      "later": "Not now",
+      "declined_banner": "Notifications are turned off for this app. Your inbox still updates — tap to change this in Settings."
+    },
+    "channel": {
+      "assignment": {
+        "name": "Assignments & schedule",
+        "description": "New routes, changes and cancellations."
+      },
+      "quotes": {
+        "name": "Quotations",
+        "description": "Quotation status and approvals."
+      },
+      "orders": {
+        "name": "Orders",
+        "description": "Order confirmations, changes and delivery."
+      },
+      "finance": {
+        "name": "Finance & credit",
+        "description": "Credit holds, limits and collections."
+      },
+      "approvals": {
+        "name": "Approvals",
+        "description": "Items waiting on your decision."
+      },
+      "kpi": {
+        "name": "Performance",
+        "description": "Daily digests and targets."
+      },
+      "account": {
+        "name": "Customers",
+        "description": "Customer account changes."
+      },
+      "system": {
+        "name": "System",
+        "description": "App and sync messages."
+      },
+      "announcements": {
+        "name": "Announcements",
+        "description": "Company-wide notices."
+      },
+      "security": {
+        "name": "Security",
+        "description": "Sign-ins and account security."
+      }
+    },
+    "settings": {
+      "title": "Notification settings",
+      "categories": "What you receive",
+      "push": "Push alerts",
+      "locked": "Required — can't be turned off.",
+      "no_categories": "No categories were returned for your account.",
+      "load_failed": "We couldn't load your notification settings.",
+      "quiet_hours": "Quiet hours",
+      "quiet_hours_off": "No quiet hours set",
+      "quiet_hours_range": "{start} to {end}",
+      "quiet_hours_note": "Quiet hours delay alerts, they never drop them. Critical alerts always come through.",
+      "quiet_hours_incomplete": "Set both a start and an end time.",
+      "quiet_every_day": "Every day",
+      "quiet_start": "Quiet hours start",
+      "quiet_end": "Quiet hours end",
+      "set": "Set"
+    },
+    "needs_ack": "Needs your acknowledgement"
   },
   "add_customer": {
     "compliance": "Compliance Documents",

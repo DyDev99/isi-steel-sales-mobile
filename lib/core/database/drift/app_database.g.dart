@@ -19182,6 +19182,1849 @@ class WorkflowStateCompanion extends UpdateCompanion<WorkflowStateData> {
   }
 }
 
+class $NotificationsTable extends Notifications
+    with TableInfo<$NotificationsTable, NotificationRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $NotificationsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _eventCodeMeta =
+      const VerificationMeta('eventCode');
+  @override
+  late final GeneratedColumn<String> eventCode = GeneratedColumn<String>(
+      'event_code', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _categoryMeta =
+      const VerificationMeta('category');
+  @override
+  late final GeneratedColumn<String> category = GeneratedColumn<String>(
+      'category', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _priorityMeta =
+      const VerificationMeta('priority');
+  @override
+  late final GeneratedColumn<String> priority = GeneratedColumn<String>(
+      'priority', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+      'title', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _bodyMeta = const VerificationMeta('body');
+  @override
+  late final GeneratedColumn<String> body = GeneratedColumn<String>(
+      'body', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _imageUrlMeta =
+      const VerificationMeta('imageUrl');
+  @override
+  late final GeneratedColumn<String> imageUrl = GeneratedColumn<String>(
+      'image_url', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _deepLinkMeta =
+      const VerificationMeta('deepLink');
+  @override
+  late final GeneratedColumn<String> deepLink = GeneratedColumn<String>(
+      'deep_link', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _requiresAckMeta =
+      const VerificationMeta('requiresAck');
+  @override
+  late final GeneratedColumn<bool> requiresAck = GeneratedColumn<bool>(
+      'requires_ack', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("requires_ack" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _expiresAtMeta =
+      const VerificationMeta('expiresAt');
+  @override
+  late final GeneratedColumn<DateTime> expiresAt = GeneratedColumn<DateTime>(
+      'expires_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _groupKeyMeta =
+      const VerificationMeta('groupKey');
+  @override
+  late final GeneratedColumn<String> groupKey = GeneratedColumn<String>(
+      'group_key', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _badgeMeta = const VerificationMeta('badge');
+  @override
+  late final GeneratedColumn<int> badge = GeneratedColumn<int>(
+      'badge', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _actionsJsonMeta =
+      const VerificationMeta('actionsJson');
+  @override
+  late final GeneratedColumn<String> actionsJson = GeneratedColumn<String>(
+      'actions_json', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _dataJsonMeta =
+      const VerificationMeta('dataJson');
+  @override
+  late final GeneratedColumn<String> dataJson = GeneratedColumn<String>(
+      'data_json', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _stateMeta = const VerificationMeta('state');
+  @override
+  late final GeneratedColumn<String> state = GeneratedColumn<String>(
+      'state', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _deliveredAtMeta =
+      const VerificationMeta('deliveredAt');
+  @override
+  late final GeneratedColumn<DateTime> deliveredAt = GeneratedColumn<DateTime>(
+      'delivered_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _readAtMeta = const VerificationMeta('readAt');
+  @override
+  late final GeneratedColumn<DateTime> readAt = GeneratedColumn<DateTime>(
+      'read_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _actionedAtMeta =
+      const VerificationMeta('actionedAt');
+  @override
+  late final GeneratedColumn<DateTime> actionedAt = GeneratedColumn<DateTime>(
+      'actioned_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _partialMeta =
+      const VerificationMeta('partial');
+  @override
+  late final GeneratedColumn<bool> partial = GeneratedColumn<bool>(
+      'partial', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("partial" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        eventCode,
+        category,
+        priority,
+        title,
+        body,
+        imageUrl,
+        deepLink,
+        requiresAck,
+        expiresAt,
+        groupKey,
+        badge,
+        actionsJson,
+        dataJson,
+        state,
+        createdAt,
+        deliveredAt,
+        readAt,
+        actionedAt,
+        partial
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'notifications';
+  @override
+  VerificationContext validateIntegrity(Insertable<NotificationRow> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('event_code')) {
+      context.handle(_eventCodeMeta,
+          eventCode.isAcceptableOrUnknown(data['event_code']!, _eventCodeMeta));
+    } else if (isInserting) {
+      context.missing(_eventCodeMeta);
+    }
+    if (data.containsKey('category')) {
+      context.handle(_categoryMeta,
+          category.isAcceptableOrUnknown(data['category']!, _categoryMeta));
+    } else if (isInserting) {
+      context.missing(_categoryMeta);
+    }
+    if (data.containsKey('priority')) {
+      context.handle(_priorityMeta,
+          priority.isAcceptableOrUnknown(data['priority']!, _priorityMeta));
+    } else if (isInserting) {
+      context.missing(_priorityMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+          _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('body')) {
+      context.handle(
+          _bodyMeta, body.isAcceptableOrUnknown(data['body']!, _bodyMeta));
+    } else if (isInserting) {
+      context.missing(_bodyMeta);
+    }
+    if (data.containsKey('image_url')) {
+      context.handle(_imageUrlMeta,
+          imageUrl.isAcceptableOrUnknown(data['image_url']!, _imageUrlMeta));
+    }
+    if (data.containsKey('deep_link')) {
+      context.handle(_deepLinkMeta,
+          deepLink.isAcceptableOrUnknown(data['deep_link']!, _deepLinkMeta));
+    }
+    if (data.containsKey('requires_ack')) {
+      context.handle(
+          _requiresAckMeta,
+          requiresAck.isAcceptableOrUnknown(
+              data['requires_ack']!, _requiresAckMeta));
+    }
+    if (data.containsKey('expires_at')) {
+      context.handle(_expiresAtMeta,
+          expiresAt.isAcceptableOrUnknown(data['expires_at']!, _expiresAtMeta));
+    }
+    if (data.containsKey('group_key')) {
+      context.handle(_groupKeyMeta,
+          groupKey.isAcceptableOrUnknown(data['group_key']!, _groupKeyMeta));
+    }
+    if (data.containsKey('badge')) {
+      context.handle(
+          _badgeMeta, badge.isAcceptableOrUnknown(data['badge']!, _badgeMeta));
+    }
+    if (data.containsKey('actions_json')) {
+      context.handle(
+          _actionsJsonMeta,
+          actionsJson.isAcceptableOrUnknown(
+              data['actions_json']!, _actionsJsonMeta));
+    }
+    if (data.containsKey('data_json')) {
+      context.handle(_dataJsonMeta,
+          dataJson.isAcceptableOrUnknown(data['data_json']!, _dataJsonMeta));
+    }
+    if (data.containsKey('state')) {
+      context.handle(
+          _stateMeta, state.isAcceptableOrUnknown(data['state']!, _stateMeta));
+    } else if (isInserting) {
+      context.missing(_stateMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('delivered_at')) {
+      context.handle(
+          _deliveredAtMeta,
+          deliveredAt.isAcceptableOrUnknown(
+              data['delivered_at']!, _deliveredAtMeta));
+    }
+    if (data.containsKey('read_at')) {
+      context.handle(_readAtMeta,
+          readAt.isAcceptableOrUnknown(data['read_at']!, _readAtMeta));
+    }
+    if (data.containsKey('actioned_at')) {
+      context.handle(
+          _actionedAtMeta,
+          actionedAt.isAcceptableOrUnknown(
+              data['actioned_at']!, _actionedAtMeta));
+    }
+    if (data.containsKey('partial')) {
+      context.handle(_partialMeta,
+          partial.isAcceptableOrUnknown(data['partial']!, _partialMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  NotificationRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return NotificationRow(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      eventCode: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}event_code'])!,
+      category: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}category'])!,
+      priority: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}priority'])!,
+      title: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
+      body: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}body'])!,
+      imageUrl: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}image_url']),
+      deepLink: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}deep_link']),
+      requiresAck: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}requires_ack'])!,
+      expiresAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}expires_at']),
+      groupKey: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}group_key']),
+      badge: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}badge']),
+      actionsJson: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}actions_json']),
+      dataJson: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}data_json']),
+      state: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}state'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      deliveredAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}delivered_at']),
+      readAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}read_at']),
+      actionedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}actioned_at']),
+      partial: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}partial'])!,
+    );
+  }
+
+  @override
+  $NotificationsTable createAlias(String alias) {
+    return $NotificationsTable(attachedDatabase, alias);
+  }
+}
+
+class NotificationRow extends DataClass implements Insertable<NotificationRow> {
+  /// The server's `notification_id`, and **the upsert key**.
+  ///
+  /// §16: upserts must be keyed on this so a catch-up that overlaps a push
+  /// already handled cannot produce a duplicate row. It is also why this table
+  /// does not carry a client-generated id — nothing here originates on the
+  /// device.
+  final String id;
+
+  /// `ROUTE.ASSIGNED` — the dotted canonical form. §18 records that the FCM
+  /// payload also ships the flattened `ROUTE_ASSIGNED` as `type` pending
+  /// sign-off; the mapper normalises to this one so the column has one shape.
+  final String eventCode;
+
+  /// Wire category code (`ASSIGNMENT`), not an enum index.
+  ///
+  /// Stored as the code so a category the backend adds later round-trips
+  /// through this database untouched. An `IntColumn` holding an enum index
+  /// would silently remap every row the day somebody inserts a value into the
+  /// middle of the enum — the exact failure `core/utils/enum_parse.dart` was
+  /// written to describe.
+  final String category;
+
+  /// `P1`–`P4`, stored as the code for the same reason as [category].
+  final String priority;
+
+  /// Server-localised copy. Rendered as-is — never run through `.tr`.
+  ///
+  /// Note the consequence: these were localised against the `Accept-Language`
+  /// header in force when they were pulled. A rep who switches to Khmer sees
+  /// existing rows in the old language until the next full catch-up, which is
+  /// why `catchUp(full: true)` exists.
+  final String title;
+  final String body;
+  final String? imageUrl;
+
+  /// `app://routes/{id}`, **as the backend built it** (§11). Never assembled
+  /// locally. Null for an event that points at no single record.
+  final String? deepLink;
+
+  /// The item cannot be dismissed and stays outstanding until `POST /action`.
+  final bool requiresAck;
+  final DateTime? expiresAt;
+
+  /// Server-supplied shade-grouping key (`Assignment:{routeId}`). Never used for
+  /// local deduplication — that is [id]'s job.
+  final String? groupKey;
+
+  /// The server's outstanding-action count at the moment this row was raised.
+  /// A snapshot for the app-icon badge, not a running total — §7 requires
+  /// reconciling against `GET /unread-count` rather than trusting this.
+  final int? badge;
+
+  /// The inline action buttons, as the raw JSON array the API sent.
+  ///
+  /// Stored verbatim rather than normalised into a child table. Actions are
+  /// immutable, are never queried across notifications, and are read only when
+  /// one row is rendered — so a join would cost a table and a migration to
+  /// answer a question nothing asks.
+  final String? actionsJson;
+
+  /// The event's own payload (`entity_type`, `entity_id`, …) as a JSON object of
+  /// **string values only**, mirroring the string-only FCM `data` block so one
+  /// notification does not parse differently depending on which path delivered
+  /// it (§9.1).
+  final String? dataJson;
+
+  /// `unread` / `read` / `actioned` / `dismissed` / `expired` /
+  /// `resolved_elsewhere` — the §5.1 lifecycle.
+  ///
+  /// **Nothing is ever deleted.** Every terminal state stays here so a rep who
+  /// half-remembers being told something can find it in history.
+  final String state;
+  final DateTime createdAt;
+  final DateTime? deliveredAt;
+  final DateTime? readAt;
+  final DateTime? actionedAt;
+
+  /// True when this row was written from an **FCM payload** rather than from the
+  /// inbox endpoint, so it is missing whatever the push deliberately withholds.
+  ///
+  /// The push carries no prices, no credit limits and no customer phone numbers
+  /// (§9.2), and no `actions` array — a partial row can therefore render a
+  /// heading and a body but must not be treated as the whole record. The next
+  /// catch-up overwrites it and clears this flag.
+  ///
+  /// Without the flag, a push-written row is indistinguishable from a complete
+  /// one and the missing action buttons look like a notification that simply
+  /// offers none.
+  final bool partial;
+  const NotificationRow(
+      {required this.id,
+      required this.eventCode,
+      required this.category,
+      required this.priority,
+      required this.title,
+      required this.body,
+      this.imageUrl,
+      this.deepLink,
+      required this.requiresAck,
+      this.expiresAt,
+      this.groupKey,
+      this.badge,
+      this.actionsJson,
+      this.dataJson,
+      required this.state,
+      required this.createdAt,
+      this.deliveredAt,
+      this.readAt,
+      this.actionedAt,
+      required this.partial});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['event_code'] = Variable<String>(eventCode);
+    map['category'] = Variable<String>(category);
+    map['priority'] = Variable<String>(priority);
+    map['title'] = Variable<String>(title);
+    map['body'] = Variable<String>(body);
+    if (!nullToAbsent || imageUrl != null) {
+      map['image_url'] = Variable<String>(imageUrl);
+    }
+    if (!nullToAbsent || deepLink != null) {
+      map['deep_link'] = Variable<String>(deepLink);
+    }
+    map['requires_ack'] = Variable<bool>(requiresAck);
+    if (!nullToAbsent || expiresAt != null) {
+      map['expires_at'] = Variable<DateTime>(expiresAt);
+    }
+    if (!nullToAbsent || groupKey != null) {
+      map['group_key'] = Variable<String>(groupKey);
+    }
+    if (!nullToAbsent || badge != null) {
+      map['badge'] = Variable<int>(badge);
+    }
+    if (!nullToAbsent || actionsJson != null) {
+      map['actions_json'] = Variable<String>(actionsJson);
+    }
+    if (!nullToAbsent || dataJson != null) {
+      map['data_json'] = Variable<String>(dataJson);
+    }
+    map['state'] = Variable<String>(state);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || deliveredAt != null) {
+      map['delivered_at'] = Variable<DateTime>(deliveredAt);
+    }
+    if (!nullToAbsent || readAt != null) {
+      map['read_at'] = Variable<DateTime>(readAt);
+    }
+    if (!nullToAbsent || actionedAt != null) {
+      map['actioned_at'] = Variable<DateTime>(actionedAt);
+    }
+    map['partial'] = Variable<bool>(partial);
+    return map;
+  }
+
+  NotificationsCompanion toCompanion(bool nullToAbsent) {
+    return NotificationsCompanion(
+      id: Value(id),
+      eventCode: Value(eventCode),
+      category: Value(category),
+      priority: Value(priority),
+      title: Value(title),
+      body: Value(body),
+      imageUrl: imageUrl == null && nullToAbsent
+          ? const Value.absent()
+          : Value(imageUrl),
+      deepLink: deepLink == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deepLink),
+      requiresAck: Value(requiresAck),
+      expiresAt: expiresAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(expiresAt),
+      groupKey: groupKey == null && nullToAbsent
+          ? const Value.absent()
+          : Value(groupKey),
+      badge:
+          badge == null && nullToAbsent ? const Value.absent() : Value(badge),
+      actionsJson: actionsJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(actionsJson),
+      dataJson: dataJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(dataJson),
+      state: Value(state),
+      createdAt: Value(createdAt),
+      deliveredAt: deliveredAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deliveredAt),
+      readAt:
+          readAt == null && nullToAbsent ? const Value.absent() : Value(readAt),
+      actionedAt: actionedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(actionedAt),
+      partial: Value(partial),
+    );
+  }
+
+  factory NotificationRow.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return NotificationRow(
+      id: serializer.fromJson<String>(json['id']),
+      eventCode: serializer.fromJson<String>(json['eventCode']),
+      category: serializer.fromJson<String>(json['category']),
+      priority: serializer.fromJson<String>(json['priority']),
+      title: serializer.fromJson<String>(json['title']),
+      body: serializer.fromJson<String>(json['body']),
+      imageUrl: serializer.fromJson<String?>(json['imageUrl']),
+      deepLink: serializer.fromJson<String?>(json['deepLink']),
+      requiresAck: serializer.fromJson<bool>(json['requiresAck']),
+      expiresAt: serializer.fromJson<DateTime?>(json['expiresAt']),
+      groupKey: serializer.fromJson<String?>(json['groupKey']),
+      badge: serializer.fromJson<int?>(json['badge']),
+      actionsJson: serializer.fromJson<String?>(json['actionsJson']),
+      dataJson: serializer.fromJson<String?>(json['dataJson']),
+      state: serializer.fromJson<String>(json['state']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      deliveredAt: serializer.fromJson<DateTime?>(json['deliveredAt']),
+      readAt: serializer.fromJson<DateTime?>(json['readAt']),
+      actionedAt: serializer.fromJson<DateTime?>(json['actionedAt']),
+      partial: serializer.fromJson<bool>(json['partial']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'eventCode': serializer.toJson<String>(eventCode),
+      'category': serializer.toJson<String>(category),
+      'priority': serializer.toJson<String>(priority),
+      'title': serializer.toJson<String>(title),
+      'body': serializer.toJson<String>(body),
+      'imageUrl': serializer.toJson<String?>(imageUrl),
+      'deepLink': serializer.toJson<String?>(deepLink),
+      'requiresAck': serializer.toJson<bool>(requiresAck),
+      'expiresAt': serializer.toJson<DateTime?>(expiresAt),
+      'groupKey': serializer.toJson<String?>(groupKey),
+      'badge': serializer.toJson<int?>(badge),
+      'actionsJson': serializer.toJson<String?>(actionsJson),
+      'dataJson': serializer.toJson<String?>(dataJson),
+      'state': serializer.toJson<String>(state),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'deliveredAt': serializer.toJson<DateTime?>(deliveredAt),
+      'readAt': serializer.toJson<DateTime?>(readAt),
+      'actionedAt': serializer.toJson<DateTime?>(actionedAt),
+      'partial': serializer.toJson<bool>(partial),
+    };
+  }
+
+  NotificationRow copyWith(
+          {String? id,
+          String? eventCode,
+          String? category,
+          String? priority,
+          String? title,
+          String? body,
+          Value<String?> imageUrl = const Value.absent(),
+          Value<String?> deepLink = const Value.absent(),
+          bool? requiresAck,
+          Value<DateTime?> expiresAt = const Value.absent(),
+          Value<String?> groupKey = const Value.absent(),
+          Value<int?> badge = const Value.absent(),
+          Value<String?> actionsJson = const Value.absent(),
+          Value<String?> dataJson = const Value.absent(),
+          String? state,
+          DateTime? createdAt,
+          Value<DateTime?> deliveredAt = const Value.absent(),
+          Value<DateTime?> readAt = const Value.absent(),
+          Value<DateTime?> actionedAt = const Value.absent(),
+          bool? partial}) =>
+      NotificationRow(
+        id: id ?? this.id,
+        eventCode: eventCode ?? this.eventCode,
+        category: category ?? this.category,
+        priority: priority ?? this.priority,
+        title: title ?? this.title,
+        body: body ?? this.body,
+        imageUrl: imageUrl.present ? imageUrl.value : this.imageUrl,
+        deepLink: deepLink.present ? deepLink.value : this.deepLink,
+        requiresAck: requiresAck ?? this.requiresAck,
+        expiresAt: expiresAt.present ? expiresAt.value : this.expiresAt,
+        groupKey: groupKey.present ? groupKey.value : this.groupKey,
+        badge: badge.present ? badge.value : this.badge,
+        actionsJson: actionsJson.present ? actionsJson.value : this.actionsJson,
+        dataJson: dataJson.present ? dataJson.value : this.dataJson,
+        state: state ?? this.state,
+        createdAt: createdAt ?? this.createdAt,
+        deliveredAt: deliveredAt.present ? deliveredAt.value : this.deliveredAt,
+        readAt: readAt.present ? readAt.value : this.readAt,
+        actionedAt: actionedAt.present ? actionedAt.value : this.actionedAt,
+        partial: partial ?? this.partial,
+      );
+  NotificationRow copyWithCompanion(NotificationsCompanion data) {
+    return NotificationRow(
+      id: data.id.present ? data.id.value : this.id,
+      eventCode: data.eventCode.present ? data.eventCode.value : this.eventCode,
+      category: data.category.present ? data.category.value : this.category,
+      priority: data.priority.present ? data.priority.value : this.priority,
+      title: data.title.present ? data.title.value : this.title,
+      body: data.body.present ? data.body.value : this.body,
+      imageUrl: data.imageUrl.present ? data.imageUrl.value : this.imageUrl,
+      deepLink: data.deepLink.present ? data.deepLink.value : this.deepLink,
+      requiresAck:
+          data.requiresAck.present ? data.requiresAck.value : this.requiresAck,
+      expiresAt: data.expiresAt.present ? data.expiresAt.value : this.expiresAt,
+      groupKey: data.groupKey.present ? data.groupKey.value : this.groupKey,
+      badge: data.badge.present ? data.badge.value : this.badge,
+      actionsJson:
+          data.actionsJson.present ? data.actionsJson.value : this.actionsJson,
+      dataJson: data.dataJson.present ? data.dataJson.value : this.dataJson,
+      state: data.state.present ? data.state.value : this.state,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      deliveredAt:
+          data.deliveredAt.present ? data.deliveredAt.value : this.deliveredAt,
+      readAt: data.readAt.present ? data.readAt.value : this.readAt,
+      actionedAt:
+          data.actionedAt.present ? data.actionedAt.value : this.actionedAt,
+      partial: data.partial.present ? data.partial.value : this.partial,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('NotificationRow(')
+          ..write('id: $id, ')
+          ..write('eventCode: $eventCode, ')
+          ..write('category: $category, ')
+          ..write('priority: $priority, ')
+          ..write('title: $title, ')
+          ..write('body: $body, ')
+          ..write('imageUrl: $imageUrl, ')
+          ..write('deepLink: $deepLink, ')
+          ..write('requiresAck: $requiresAck, ')
+          ..write('expiresAt: $expiresAt, ')
+          ..write('groupKey: $groupKey, ')
+          ..write('badge: $badge, ')
+          ..write('actionsJson: $actionsJson, ')
+          ..write('dataJson: $dataJson, ')
+          ..write('state: $state, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('deliveredAt: $deliveredAt, ')
+          ..write('readAt: $readAt, ')
+          ..write('actionedAt: $actionedAt, ')
+          ..write('partial: $partial')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      id,
+      eventCode,
+      category,
+      priority,
+      title,
+      body,
+      imageUrl,
+      deepLink,
+      requiresAck,
+      expiresAt,
+      groupKey,
+      badge,
+      actionsJson,
+      dataJson,
+      state,
+      createdAt,
+      deliveredAt,
+      readAt,
+      actionedAt,
+      partial);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is NotificationRow &&
+          other.id == this.id &&
+          other.eventCode == this.eventCode &&
+          other.category == this.category &&
+          other.priority == this.priority &&
+          other.title == this.title &&
+          other.body == this.body &&
+          other.imageUrl == this.imageUrl &&
+          other.deepLink == this.deepLink &&
+          other.requiresAck == this.requiresAck &&
+          other.expiresAt == this.expiresAt &&
+          other.groupKey == this.groupKey &&
+          other.badge == this.badge &&
+          other.actionsJson == this.actionsJson &&
+          other.dataJson == this.dataJson &&
+          other.state == this.state &&
+          other.createdAt == this.createdAt &&
+          other.deliveredAt == this.deliveredAt &&
+          other.readAt == this.readAt &&
+          other.actionedAt == this.actionedAt &&
+          other.partial == this.partial);
+}
+
+class NotificationsCompanion extends UpdateCompanion<NotificationRow> {
+  final Value<String> id;
+  final Value<String> eventCode;
+  final Value<String> category;
+  final Value<String> priority;
+  final Value<String> title;
+  final Value<String> body;
+  final Value<String?> imageUrl;
+  final Value<String?> deepLink;
+  final Value<bool> requiresAck;
+  final Value<DateTime?> expiresAt;
+  final Value<String?> groupKey;
+  final Value<int?> badge;
+  final Value<String?> actionsJson;
+  final Value<String?> dataJson;
+  final Value<String> state;
+  final Value<DateTime> createdAt;
+  final Value<DateTime?> deliveredAt;
+  final Value<DateTime?> readAt;
+  final Value<DateTime?> actionedAt;
+  final Value<bool> partial;
+  final Value<int> rowid;
+  const NotificationsCompanion({
+    this.id = const Value.absent(),
+    this.eventCode = const Value.absent(),
+    this.category = const Value.absent(),
+    this.priority = const Value.absent(),
+    this.title = const Value.absent(),
+    this.body = const Value.absent(),
+    this.imageUrl = const Value.absent(),
+    this.deepLink = const Value.absent(),
+    this.requiresAck = const Value.absent(),
+    this.expiresAt = const Value.absent(),
+    this.groupKey = const Value.absent(),
+    this.badge = const Value.absent(),
+    this.actionsJson = const Value.absent(),
+    this.dataJson = const Value.absent(),
+    this.state = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.deliveredAt = const Value.absent(),
+    this.readAt = const Value.absent(),
+    this.actionedAt = const Value.absent(),
+    this.partial = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  NotificationsCompanion.insert({
+    required String id,
+    required String eventCode,
+    required String category,
+    required String priority,
+    required String title,
+    required String body,
+    this.imageUrl = const Value.absent(),
+    this.deepLink = const Value.absent(),
+    this.requiresAck = const Value.absent(),
+    this.expiresAt = const Value.absent(),
+    this.groupKey = const Value.absent(),
+    this.badge = const Value.absent(),
+    this.actionsJson = const Value.absent(),
+    this.dataJson = const Value.absent(),
+    required String state,
+    required DateTime createdAt,
+    this.deliveredAt = const Value.absent(),
+    this.readAt = const Value.absent(),
+    this.actionedAt = const Value.absent(),
+    this.partial = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        eventCode = Value(eventCode),
+        category = Value(category),
+        priority = Value(priority),
+        title = Value(title),
+        body = Value(body),
+        state = Value(state),
+        createdAt = Value(createdAt);
+  static Insertable<NotificationRow> custom({
+    Expression<String>? id,
+    Expression<String>? eventCode,
+    Expression<String>? category,
+    Expression<String>? priority,
+    Expression<String>? title,
+    Expression<String>? body,
+    Expression<String>? imageUrl,
+    Expression<String>? deepLink,
+    Expression<bool>? requiresAck,
+    Expression<DateTime>? expiresAt,
+    Expression<String>? groupKey,
+    Expression<int>? badge,
+    Expression<String>? actionsJson,
+    Expression<String>? dataJson,
+    Expression<String>? state,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? deliveredAt,
+    Expression<DateTime>? readAt,
+    Expression<DateTime>? actionedAt,
+    Expression<bool>? partial,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (eventCode != null) 'event_code': eventCode,
+      if (category != null) 'category': category,
+      if (priority != null) 'priority': priority,
+      if (title != null) 'title': title,
+      if (body != null) 'body': body,
+      if (imageUrl != null) 'image_url': imageUrl,
+      if (deepLink != null) 'deep_link': deepLink,
+      if (requiresAck != null) 'requires_ack': requiresAck,
+      if (expiresAt != null) 'expires_at': expiresAt,
+      if (groupKey != null) 'group_key': groupKey,
+      if (badge != null) 'badge': badge,
+      if (actionsJson != null) 'actions_json': actionsJson,
+      if (dataJson != null) 'data_json': dataJson,
+      if (state != null) 'state': state,
+      if (createdAt != null) 'created_at': createdAt,
+      if (deliveredAt != null) 'delivered_at': deliveredAt,
+      if (readAt != null) 'read_at': readAt,
+      if (actionedAt != null) 'actioned_at': actionedAt,
+      if (partial != null) 'partial': partial,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  NotificationsCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? eventCode,
+      Value<String>? category,
+      Value<String>? priority,
+      Value<String>? title,
+      Value<String>? body,
+      Value<String?>? imageUrl,
+      Value<String?>? deepLink,
+      Value<bool>? requiresAck,
+      Value<DateTime?>? expiresAt,
+      Value<String?>? groupKey,
+      Value<int?>? badge,
+      Value<String?>? actionsJson,
+      Value<String?>? dataJson,
+      Value<String>? state,
+      Value<DateTime>? createdAt,
+      Value<DateTime?>? deliveredAt,
+      Value<DateTime?>? readAt,
+      Value<DateTime?>? actionedAt,
+      Value<bool>? partial,
+      Value<int>? rowid}) {
+    return NotificationsCompanion(
+      id: id ?? this.id,
+      eventCode: eventCode ?? this.eventCode,
+      category: category ?? this.category,
+      priority: priority ?? this.priority,
+      title: title ?? this.title,
+      body: body ?? this.body,
+      imageUrl: imageUrl ?? this.imageUrl,
+      deepLink: deepLink ?? this.deepLink,
+      requiresAck: requiresAck ?? this.requiresAck,
+      expiresAt: expiresAt ?? this.expiresAt,
+      groupKey: groupKey ?? this.groupKey,
+      badge: badge ?? this.badge,
+      actionsJson: actionsJson ?? this.actionsJson,
+      dataJson: dataJson ?? this.dataJson,
+      state: state ?? this.state,
+      createdAt: createdAt ?? this.createdAt,
+      deliveredAt: deliveredAt ?? this.deliveredAt,
+      readAt: readAt ?? this.readAt,
+      actionedAt: actionedAt ?? this.actionedAt,
+      partial: partial ?? this.partial,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (eventCode.present) {
+      map['event_code'] = Variable<String>(eventCode.value);
+    }
+    if (category.present) {
+      map['category'] = Variable<String>(category.value);
+    }
+    if (priority.present) {
+      map['priority'] = Variable<String>(priority.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (body.present) {
+      map['body'] = Variable<String>(body.value);
+    }
+    if (imageUrl.present) {
+      map['image_url'] = Variable<String>(imageUrl.value);
+    }
+    if (deepLink.present) {
+      map['deep_link'] = Variable<String>(deepLink.value);
+    }
+    if (requiresAck.present) {
+      map['requires_ack'] = Variable<bool>(requiresAck.value);
+    }
+    if (expiresAt.present) {
+      map['expires_at'] = Variable<DateTime>(expiresAt.value);
+    }
+    if (groupKey.present) {
+      map['group_key'] = Variable<String>(groupKey.value);
+    }
+    if (badge.present) {
+      map['badge'] = Variable<int>(badge.value);
+    }
+    if (actionsJson.present) {
+      map['actions_json'] = Variable<String>(actionsJson.value);
+    }
+    if (dataJson.present) {
+      map['data_json'] = Variable<String>(dataJson.value);
+    }
+    if (state.present) {
+      map['state'] = Variable<String>(state.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (deliveredAt.present) {
+      map['delivered_at'] = Variable<DateTime>(deliveredAt.value);
+    }
+    if (readAt.present) {
+      map['read_at'] = Variable<DateTime>(readAt.value);
+    }
+    if (actionedAt.present) {
+      map['actioned_at'] = Variable<DateTime>(actionedAt.value);
+    }
+    if (partial.present) {
+      map['partial'] = Variable<bool>(partial.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('NotificationsCompanion(')
+          ..write('id: $id, ')
+          ..write('eventCode: $eventCode, ')
+          ..write('category: $category, ')
+          ..write('priority: $priority, ')
+          ..write('title: $title, ')
+          ..write('body: $body, ')
+          ..write('imageUrl: $imageUrl, ')
+          ..write('deepLink: $deepLink, ')
+          ..write('requiresAck: $requiresAck, ')
+          ..write('expiresAt: $expiresAt, ')
+          ..write('groupKey: $groupKey, ')
+          ..write('badge: $badge, ')
+          ..write('actionsJson: $actionsJson, ')
+          ..write('dataJson: $dataJson, ')
+          ..write('state: $state, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('deliveredAt: $deliveredAt, ')
+          ..write('readAt: $readAt, ')
+          ..write('actionedAt: $actionedAt, ')
+          ..write('partial: $partial, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $NotificationActionQueueTable extends NotificationActionQueue
+    with TableInfo<$NotificationActionQueueTable, NotificationActionQueueRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $NotificationActionQueueTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _notificationIdMeta =
+      const VerificationMeta('notificationId');
+  @override
+  late final GeneratedColumn<String> notificationId = GeneratedColumn<String>(
+      'notification_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _kindMeta = const VerificationMeta('kind');
+  @override
+  late final GeneratedColumn<String> kind = GeneratedColumn<String>(
+      'kind', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _actionIdMeta =
+      const VerificationMeta('actionId');
+  @override
+  late final GeneratedColumn<String> actionId = GeneratedColumn<String>(
+      'action_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _categoryMeta =
+      const VerificationMeta('category');
+  @override
+  late final GeneratedColumn<String> category = GeneratedColumn<String>(
+      'category', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _occurredAtMeta =
+      const VerificationMeta('occurredAt');
+  @override
+  late final GeneratedColumn<DateTime> occurredAt = GeneratedColumn<DateTime>(
+      'occurred_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _attemptsMeta =
+      const VerificationMeta('attempts');
+  @override
+  late final GeneratedColumn<int> attempts = GeneratedColumn<int>(
+      'attempts', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        notificationId,
+        kind,
+        actionId,
+        category,
+        occurredAt,
+        attempts,
+        createdAt
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'notification_action_queue';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<NotificationActionQueueRow> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('notification_id')) {
+      context.handle(
+          _notificationIdMeta,
+          notificationId.isAcceptableOrUnknown(
+              data['notification_id']!, _notificationIdMeta));
+    } else if (isInserting) {
+      context.missing(_notificationIdMeta);
+    }
+    if (data.containsKey('kind')) {
+      context.handle(
+          _kindMeta, kind.isAcceptableOrUnknown(data['kind']!, _kindMeta));
+    } else if (isInserting) {
+      context.missing(_kindMeta);
+    }
+    if (data.containsKey('action_id')) {
+      context.handle(_actionIdMeta,
+          actionId.isAcceptableOrUnknown(data['action_id']!, _actionIdMeta));
+    }
+    if (data.containsKey('category')) {
+      context.handle(_categoryMeta,
+          category.isAcceptableOrUnknown(data['category']!, _categoryMeta));
+    }
+    if (data.containsKey('occurred_at')) {
+      context.handle(
+          _occurredAtMeta,
+          occurredAt.isAcceptableOrUnknown(
+              data['occurred_at']!, _occurredAtMeta));
+    } else if (isInserting) {
+      context.missing(_occurredAtMeta);
+    }
+    if (data.containsKey('attempts')) {
+      context.handle(_attemptsMeta,
+          attempts.isAcceptableOrUnknown(data['attempts']!, _attemptsMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  NotificationActionQueueRow map(Map<String, dynamic> data,
+      {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return NotificationActionQueueRow(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      notificationId: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}notification_id'])!,
+      kind: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}kind'])!,
+      actionId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}action_id']),
+      category: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}category']),
+      occurredAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}occurred_at'])!,
+      attempts: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}attempts'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+    );
+  }
+
+  @override
+  $NotificationActionQueueTable createAlias(String alias) {
+    return $NotificationActionQueueTable(attachedDatabase, alias);
+  }
+}
+
+class NotificationActionQueueRow extends DataClass
+    implements Insertable<NotificationActionQueueRow> {
+  /// Client-generated, so an offline capture needs no server round trip to
+  /// exist (`docs/DATABASE_GUIDE.md` §3).
+  final String id;
+
+  /// Empty for a `read_all`, which is not scoped to one item.
+  final String notificationId;
+
+  /// `read` / `action` / `dismiss` / `read_all`.
+  ///
+  /// Kept as distinct kinds rather than one generic mutation because §8.3 warns
+  /// that wiring "the rep scrolled past it" to `/action` silently breaks the
+  /// escalation chain the assignment flow depends on. One column that could mean
+  /// either is how that mistake gets made.
+  final String kind;
+
+  /// Which button was pressed. Null when the rep acted inside the record rather
+  /// than from a notification button, which §8.3 explicitly allows.
+  final String? actionId;
+
+  /// Category scope for a `read_all`, so the replay clears what the rep could
+  /// see rather than what they could not (§8.2).
+  final String? category;
+
+  /// When the rep did it — not when the queue drained.
+  ///
+  /// Advisory to the server, which records its own clock, and used only to order
+  /// a replayed queue. Still worth capturing honestly: three routes acknowledged
+  /// offline and synced at 18:00 should not all be ordered as 18:00.
+  final DateTime occurredAt;
+
+  /// Drain attempts so far. Diagnostics only — a permanently failing row should
+  /// not look identical to a fresh one in a log.
+  final int attempts;
+  final DateTime createdAt;
+  const NotificationActionQueueRow(
+      {required this.id,
+      required this.notificationId,
+      required this.kind,
+      this.actionId,
+      this.category,
+      required this.occurredAt,
+      required this.attempts,
+      required this.createdAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['notification_id'] = Variable<String>(notificationId);
+    map['kind'] = Variable<String>(kind);
+    if (!nullToAbsent || actionId != null) {
+      map['action_id'] = Variable<String>(actionId);
+    }
+    if (!nullToAbsent || category != null) {
+      map['category'] = Variable<String>(category);
+    }
+    map['occurred_at'] = Variable<DateTime>(occurredAt);
+    map['attempts'] = Variable<int>(attempts);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  NotificationActionQueueCompanion toCompanion(bool nullToAbsent) {
+    return NotificationActionQueueCompanion(
+      id: Value(id),
+      notificationId: Value(notificationId),
+      kind: Value(kind),
+      actionId: actionId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(actionId),
+      category: category == null && nullToAbsent
+          ? const Value.absent()
+          : Value(category),
+      occurredAt: Value(occurredAt),
+      attempts: Value(attempts),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory NotificationActionQueueRow.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return NotificationActionQueueRow(
+      id: serializer.fromJson<String>(json['id']),
+      notificationId: serializer.fromJson<String>(json['notificationId']),
+      kind: serializer.fromJson<String>(json['kind']),
+      actionId: serializer.fromJson<String?>(json['actionId']),
+      category: serializer.fromJson<String?>(json['category']),
+      occurredAt: serializer.fromJson<DateTime>(json['occurredAt']),
+      attempts: serializer.fromJson<int>(json['attempts']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'notificationId': serializer.toJson<String>(notificationId),
+      'kind': serializer.toJson<String>(kind),
+      'actionId': serializer.toJson<String?>(actionId),
+      'category': serializer.toJson<String?>(category),
+      'occurredAt': serializer.toJson<DateTime>(occurredAt),
+      'attempts': serializer.toJson<int>(attempts),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  NotificationActionQueueRow copyWith(
+          {String? id,
+          String? notificationId,
+          String? kind,
+          Value<String?> actionId = const Value.absent(),
+          Value<String?> category = const Value.absent(),
+          DateTime? occurredAt,
+          int? attempts,
+          DateTime? createdAt}) =>
+      NotificationActionQueueRow(
+        id: id ?? this.id,
+        notificationId: notificationId ?? this.notificationId,
+        kind: kind ?? this.kind,
+        actionId: actionId.present ? actionId.value : this.actionId,
+        category: category.present ? category.value : this.category,
+        occurredAt: occurredAt ?? this.occurredAt,
+        attempts: attempts ?? this.attempts,
+        createdAt: createdAt ?? this.createdAt,
+      );
+  NotificationActionQueueRow copyWithCompanion(
+      NotificationActionQueueCompanion data) {
+    return NotificationActionQueueRow(
+      id: data.id.present ? data.id.value : this.id,
+      notificationId: data.notificationId.present
+          ? data.notificationId.value
+          : this.notificationId,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      actionId: data.actionId.present ? data.actionId.value : this.actionId,
+      category: data.category.present ? data.category.value : this.category,
+      occurredAt:
+          data.occurredAt.present ? data.occurredAt.value : this.occurredAt,
+      attempts: data.attempts.present ? data.attempts.value : this.attempts,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('NotificationActionQueueRow(')
+          ..write('id: $id, ')
+          ..write('notificationId: $notificationId, ')
+          ..write('kind: $kind, ')
+          ..write('actionId: $actionId, ')
+          ..write('category: $category, ')
+          ..write('occurredAt: $occurredAt, ')
+          ..write('attempts: $attempts, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, notificationId, kind, actionId, category,
+      occurredAt, attempts, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is NotificationActionQueueRow &&
+          other.id == this.id &&
+          other.notificationId == this.notificationId &&
+          other.kind == this.kind &&
+          other.actionId == this.actionId &&
+          other.category == this.category &&
+          other.occurredAt == this.occurredAt &&
+          other.attempts == this.attempts &&
+          other.createdAt == this.createdAt);
+}
+
+class NotificationActionQueueCompanion
+    extends UpdateCompanion<NotificationActionQueueRow> {
+  final Value<String> id;
+  final Value<String> notificationId;
+  final Value<String> kind;
+  final Value<String?> actionId;
+  final Value<String?> category;
+  final Value<DateTime> occurredAt;
+  final Value<int> attempts;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const NotificationActionQueueCompanion({
+    this.id = const Value.absent(),
+    this.notificationId = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.actionId = const Value.absent(),
+    this.category = const Value.absent(),
+    this.occurredAt = const Value.absent(),
+    this.attempts = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  NotificationActionQueueCompanion.insert({
+    required String id,
+    required String notificationId,
+    required String kind,
+    this.actionId = const Value.absent(),
+    this.category = const Value.absent(),
+    required DateTime occurredAt,
+    this.attempts = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        notificationId = Value(notificationId),
+        kind = Value(kind),
+        occurredAt = Value(occurredAt);
+  static Insertable<NotificationActionQueueRow> custom({
+    Expression<String>? id,
+    Expression<String>? notificationId,
+    Expression<String>? kind,
+    Expression<String>? actionId,
+    Expression<String>? category,
+    Expression<DateTime>? occurredAt,
+    Expression<int>? attempts,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (notificationId != null) 'notification_id': notificationId,
+      if (kind != null) 'kind': kind,
+      if (actionId != null) 'action_id': actionId,
+      if (category != null) 'category': category,
+      if (occurredAt != null) 'occurred_at': occurredAt,
+      if (attempts != null) 'attempts': attempts,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  NotificationActionQueueCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? notificationId,
+      Value<String>? kind,
+      Value<String?>? actionId,
+      Value<String?>? category,
+      Value<DateTime>? occurredAt,
+      Value<int>? attempts,
+      Value<DateTime>? createdAt,
+      Value<int>? rowid}) {
+    return NotificationActionQueueCompanion(
+      id: id ?? this.id,
+      notificationId: notificationId ?? this.notificationId,
+      kind: kind ?? this.kind,
+      actionId: actionId ?? this.actionId,
+      category: category ?? this.category,
+      occurredAt: occurredAt ?? this.occurredAt,
+      attempts: attempts ?? this.attempts,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (notificationId.present) {
+      map['notification_id'] = Variable<String>(notificationId.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<String>(kind.value);
+    }
+    if (actionId.present) {
+      map['action_id'] = Variable<String>(actionId.value);
+    }
+    if (category.present) {
+      map['category'] = Variable<String>(category.value);
+    }
+    if (occurredAt.present) {
+      map['occurred_at'] = Variable<DateTime>(occurredAt.value);
+    }
+    if (attempts.present) {
+      map['attempts'] = Variable<int>(attempts.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('NotificationActionQueueCompanion(')
+          ..write('id: $id, ')
+          ..write('notificationId: $notificationId, ')
+          ..write('kind: $kind, ')
+          ..write('actionId: $actionId, ')
+          ..write('category: $category, ')
+          ..write('occurredAt: $occurredAt, ')
+          ..write('attempts: $attempts, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $NotificationSyncMetaTable extends NotificationSyncMeta
+    with TableInfo<$NotificationSyncMetaTable, NotificationSyncMetaRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $NotificationSyncMetaTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _entityMeta = const VerificationMeta('entity');
+  @override
+  late final GeneratedColumn<String> entity = GeneratedColumn<String>(
+      'entity', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _syncTimestampMeta =
+      const VerificationMeta('syncTimestamp');
+  @override
+  late final GeneratedColumn<DateTime> syncTimestamp =
+      GeneratedColumn<DateTime>('sync_timestamp', aliasedName, true,
+          type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _unreadMeta = const VerificationMeta('unread');
+  @override
+  late final GeneratedColumn<int> unread = GeneratedColumn<int>(
+      'unread', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _actionRequiredMeta =
+      const VerificationMeta('actionRequired');
+  @override
+  late final GeneratedColumn<int> actionRequired = GeneratedColumn<int>(
+      'action_required', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _byCategoryJsonMeta =
+      const VerificationMeta('byCategoryJson');
+  @override
+  late final GeneratedColumn<String> byCategoryJson = GeneratedColumn<String>(
+      'by_category_json', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _countsAtMeta =
+      const VerificationMeta('countsAt');
+  @override
+  late final GeneratedColumn<DateTime> countsAt = GeneratedColumn<DateTime>(
+      'counts_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [entity, syncTimestamp, unread, actionRequired, byCategoryJson, countsAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'notification_sync_meta';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<NotificationSyncMetaRow> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('entity')) {
+      context.handle(_entityMeta,
+          entity.isAcceptableOrUnknown(data['entity']!, _entityMeta));
+    } else if (isInserting) {
+      context.missing(_entityMeta);
+    }
+    if (data.containsKey('sync_timestamp')) {
+      context.handle(
+          _syncTimestampMeta,
+          syncTimestamp.isAcceptableOrUnknown(
+              data['sync_timestamp']!, _syncTimestampMeta));
+    }
+    if (data.containsKey('unread')) {
+      context.handle(_unreadMeta,
+          unread.isAcceptableOrUnknown(data['unread']!, _unreadMeta));
+    }
+    if (data.containsKey('action_required')) {
+      context.handle(
+          _actionRequiredMeta,
+          actionRequired.isAcceptableOrUnknown(
+              data['action_required']!, _actionRequiredMeta));
+    }
+    if (data.containsKey('by_category_json')) {
+      context.handle(
+          _byCategoryJsonMeta,
+          byCategoryJson.isAcceptableOrUnknown(
+              data['by_category_json']!, _byCategoryJsonMeta));
+    }
+    if (data.containsKey('counts_at')) {
+      context.handle(_countsAtMeta,
+          countsAt.isAcceptableOrUnknown(data['counts_at']!, _countsAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {entity};
+  @override
+  NotificationSyncMetaRow map(Map<String, dynamic> data,
+      {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return NotificationSyncMetaRow(
+      entity: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}entity'])!,
+      syncTimestamp: attachedDatabase.typeMapping.read(
+          DriftSqlType.dateTime, data['${effectivePrefix}sync_timestamp']),
+      unread: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}unread'])!,
+      actionRequired: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}action_required'])!,
+      byCategoryJson: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}by_category_json']),
+      countsAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}counts_at']),
+    );
+  }
+
+  @override
+  $NotificationSyncMetaTable createAlias(String alias) {
+    return $NotificationSyncMetaTable(attachedDatabase, alias);
+  }
+}
+
+class NotificationSyncMetaRow extends DataClass
+    implements Insertable<NotificationSyncMetaRow> {
+  /// Always `inbox` today. A keyed table rather than a single-row one so a
+  /// second stream (a digest cursor, say) needs no migration.
+  final String entity;
+
+  /// The server's own clock from the last successful list call. Sent back as
+  /// `since`. **Never** `DateTime.now()`.
+  final DateTime? syncTimestamp;
+
+  /// Last reconciled `unread` — drives the bell badge.
+  final int unread;
+
+  /// Last reconciled `action_required` — drives the **app-icon** badge, and
+  /// nothing else does (§5.4).
+  final int actionRequired;
+
+  /// `{"ASSIGNMENT": 2, "ORDER": 7}` — the per-category counts, for section
+  /// badges. JSON because the key set is server-defined and grows without an
+  /// app release.
+  final String? byCategoryJson;
+
+  /// When the counts above were last reconciled.
+  ///
+  /// Persisted so a cold start can render the last known badge immediately
+  /// instead of flashing zero, and so a stale figure is identifiable as stale
+  /// rather than merely old.
+  final DateTime? countsAt;
+  const NotificationSyncMetaRow(
+      {required this.entity,
+      this.syncTimestamp,
+      required this.unread,
+      required this.actionRequired,
+      this.byCategoryJson,
+      this.countsAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['entity'] = Variable<String>(entity);
+    if (!nullToAbsent || syncTimestamp != null) {
+      map['sync_timestamp'] = Variable<DateTime>(syncTimestamp);
+    }
+    map['unread'] = Variable<int>(unread);
+    map['action_required'] = Variable<int>(actionRequired);
+    if (!nullToAbsent || byCategoryJson != null) {
+      map['by_category_json'] = Variable<String>(byCategoryJson);
+    }
+    if (!nullToAbsent || countsAt != null) {
+      map['counts_at'] = Variable<DateTime>(countsAt);
+    }
+    return map;
+  }
+
+  NotificationSyncMetaCompanion toCompanion(bool nullToAbsent) {
+    return NotificationSyncMetaCompanion(
+      entity: Value(entity),
+      syncTimestamp: syncTimestamp == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncTimestamp),
+      unread: Value(unread),
+      actionRequired: Value(actionRequired),
+      byCategoryJson: byCategoryJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(byCategoryJson),
+      countsAt: countsAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(countsAt),
+    );
+  }
+
+  factory NotificationSyncMetaRow.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return NotificationSyncMetaRow(
+      entity: serializer.fromJson<String>(json['entity']),
+      syncTimestamp: serializer.fromJson<DateTime?>(json['syncTimestamp']),
+      unread: serializer.fromJson<int>(json['unread']),
+      actionRequired: serializer.fromJson<int>(json['actionRequired']),
+      byCategoryJson: serializer.fromJson<String?>(json['byCategoryJson']),
+      countsAt: serializer.fromJson<DateTime?>(json['countsAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'entity': serializer.toJson<String>(entity),
+      'syncTimestamp': serializer.toJson<DateTime?>(syncTimestamp),
+      'unread': serializer.toJson<int>(unread),
+      'actionRequired': serializer.toJson<int>(actionRequired),
+      'byCategoryJson': serializer.toJson<String?>(byCategoryJson),
+      'countsAt': serializer.toJson<DateTime?>(countsAt),
+    };
+  }
+
+  NotificationSyncMetaRow copyWith(
+          {String? entity,
+          Value<DateTime?> syncTimestamp = const Value.absent(),
+          int? unread,
+          int? actionRequired,
+          Value<String?> byCategoryJson = const Value.absent(),
+          Value<DateTime?> countsAt = const Value.absent()}) =>
+      NotificationSyncMetaRow(
+        entity: entity ?? this.entity,
+        syncTimestamp:
+            syncTimestamp.present ? syncTimestamp.value : this.syncTimestamp,
+        unread: unread ?? this.unread,
+        actionRequired: actionRequired ?? this.actionRequired,
+        byCategoryJson:
+            byCategoryJson.present ? byCategoryJson.value : this.byCategoryJson,
+        countsAt: countsAt.present ? countsAt.value : this.countsAt,
+      );
+  NotificationSyncMetaRow copyWithCompanion(
+      NotificationSyncMetaCompanion data) {
+    return NotificationSyncMetaRow(
+      entity: data.entity.present ? data.entity.value : this.entity,
+      syncTimestamp: data.syncTimestamp.present
+          ? data.syncTimestamp.value
+          : this.syncTimestamp,
+      unread: data.unread.present ? data.unread.value : this.unread,
+      actionRequired: data.actionRequired.present
+          ? data.actionRequired.value
+          : this.actionRequired,
+      byCategoryJson: data.byCategoryJson.present
+          ? data.byCategoryJson.value
+          : this.byCategoryJson,
+      countsAt: data.countsAt.present ? data.countsAt.value : this.countsAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('NotificationSyncMetaRow(')
+          ..write('entity: $entity, ')
+          ..write('syncTimestamp: $syncTimestamp, ')
+          ..write('unread: $unread, ')
+          ..write('actionRequired: $actionRequired, ')
+          ..write('byCategoryJson: $byCategoryJson, ')
+          ..write('countsAt: $countsAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      entity, syncTimestamp, unread, actionRequired, byCategoryJson, countsAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is NotificationSyncMetaRow &&
+          other.entity == this.entity &&
+          other.syncTimestamp == this.syncTimestamp &&
+          other.unread == this.unread &&
+          other.actionRequired == this.actionRequired &&
+          other.byCategoryJson == this.byCategoryJson &&
+          other.countsAt == this.countsAt);
+}
+
+class NotificationSyncMetaCompanion
+    extends UpdateCompanion<NotificationSyncMetaRow> {
+  final Value<String> entity;
+  final Value<DateTime?> syncTimestamp;
+  final Value<int> unread;
+  final Value<int> actionRequired;
+  final Value<String?> byCategoryJson;
+  final Value<DateTime?> countsAt;
+  final Value<int> rowid;
+  const NotificationSyncMetaCompanion({
+    this.entity = const Value.absent(),
+    this.syncTimestamp = const Value.absent(),
+    this.unread = const Value.absent(),
+    this.actionRequired = const Value.absent(),
+    this.byCategoryJson = const Value.absent(),
+    this.countsAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  NotificationSyncMetaCompanion.insert({
+    required String entity,
+    this.syncTimestamp = const Value.absent(),
+    this.unread = const Value.absent(),
+    this.actionRequired = const Value.absent(),
+    this.byCategoryJson = const Value.absent(),
+    this.countsAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : entity = Value(entity);
+  static Insertable<NotificationSyncMetaRow> custom({
+    Expression<String>? entity,
+    Expression<DateTime>? syncTimestamp,
+    Expression<int>? unread,
+    Expression<int>? actionRequired,
+    Expression<String>? byCategoryJson,
+    Expression<DateTime>? countsAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (entity != null) 'entity': entity,
+      if (syncTimestamp != null) 'sync_timestamp': syncTimestamp,
+      if (unread != null) 'unread': unread,
+      if (actionRequired != null) 'action_required': actionRequired,
+      if (byCategoryJson != null) 'by_category_json': byCategoryJson,
+      if (countsAt != null) 'counts_at': countsAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  NotificationSyncMetaCompanion copyWith(
+      {Value<String>? entity,
+      Value<DateTime?>? syncTimestamp,
+      Value<int>? unread,
+      Value<int>? actionRequired,
+      Value<String?>? byCategoryJson,
+      Value<DateTime?>? countsAt,
+      Value<int>? rowid}) {
+    return NotificationSyncMetaCompanion(
+      entity: entity ?? this.entity,
+      syncTimestamp: syncTimestamp ?? this.syncTimestamp,
+      unread: unread ?? this.unread,
+      actionRequired: actionRequired ?? this.actionRequired,
+      byCategoryJson: byCategoryJson ?? this.byCategoryJson,
+      countsAt: countsAt ?? this.countsAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (entity.present) {
+      map['entity'] = Variable<String>(entity.value);
+    }
+    if (syncTimestamp.present) {
+      map['sync_timestamp'] = Variable<DateTime>(syncTimestamp.value);
+    }
+    if (unread.present) {
+      map['unread'] = Variable<int>(unread.value);
+    }
+    if (actionRequired.present) {
+      map['action_required'] = Variable<int>(actionRequired.value);
+    }
+    if (byCategoryJson.present) {
+      map['by_category_json'] = Variable<String>(byCategoryJson.value);
+    }
+    if (countsAt.present) {
+      map['counts_at'] = Variable<DateTime>(countsAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('NotificationSyncMetaCompanion(')
+          ..write('entity: $entity, ')
+          ..write('syncTimestamp: $syncTimestamp, ')
+          ..write('unread: $unread, ')
+          ..write('actionRequired: $actionRequired, ')
+          ..write('byCategoryJson: $byCategoryJson, ')
+          ..write('countsAt: $countsAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -19229,6 +21072,11 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $SalesOrdersTable salesOrders = $SalesOrdersTable(this);
   late final $SyncQueueTable syncQueue = $SyncQueueTable(this);
   late final $WorkflowStateTable workflowState = $WorkflowStateTable(this);
+  late final $NotificationsTable notifications = $NotificationsTable(this);
+  late final $NotificationActionQueueTable notificationActionQueue =
+      $NotificationActionQueueTable(this);
+  late final $NotificationSyncMetaTable notificationSyncMeta =
+      $NotificationSyncMetaTable(this);
   late final Index idxCustomersTerritory = Index('idx_customers_territory',
       'CREATE INDEX idx_customers_territory ON customers (territory)');
   late final Index idxCustomersRep = Index('idx_customers_rep',
@@ -19299,6 +21147,16 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       'CREATE INDEX idx_visit_notes_stop ON visit_notes (stop_id)');
   late final Index idxVisitPhotosStop = Index('idx_visit_photos_stop',
       'CREATE INDEX idx_visit_photos_stop ON visit_photos (stop_id)');
+  late final Index idxNotificationsCreated = Index('idx_notifications_created',
+      'CREATE INDEX idx_notifications_created ON notifications (created_at)');
+  late final Index idxNotificationsState = Index('idx_notifications_state',
+      'CREATE INDEX idx_notifications_state ON notifications (state, requires_ack)');
+  late final Index idxNotificationsCategory = Index(
+      'idx_notifications_category',
+      'CREATE INDEX idx_notifications_category ON notifications (category)');
+  late final Index idxNotificationQueueNotification = Index(
+      'idx_notification_queue_notification',
+      'CREATE INDEX idx_notification_queue_notification ON notification_action_queue (notification_id)');
   late final AppMetadataDao appMetadataDao =
       AppMetadataDao(this as AppDatabase);
   late final CustomerDao customerDao = CustomerDao(this as AppDatabase);
@@ -19313,6 +21171,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final SyncQueueDao syncQueueDao = SyncQueueDao(this as AppDatabase);
   late final WorkflowStateDao workflowStateDao =
       WorkflowStateDao(this as AppDatabase);
+  late final NotificationDao notificationDao =
+      NotificationDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -19352,6 +21212,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         salesOrders,
         syncQueue,
         workflowState,
+        notifications,
+        notificationActionQueue,
+        notificationSyncMeta,
         idxCustomersTerritory,
         idxCustomersRep,
         idxCustomersStatus,
@@ -19383,7 +21246,11 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         idxVisitReturnsStop,
         idxVisitCollectionsStop,
         idxVisitNotesStop,
-        idxVisitPhotosStop
+        idxVisitPhotosStop,
+        idxNotificationsCreated,
+        idxNotificationsState,
+        idxNotificationsCategory,
+        idxNotificationQueueNotification
       ];
   @override
   DriftDatabaseOptions get options =>
@@ -28323,6 +30190,830 @@ typedef $$WorkflowStateTableProcessedTableManager = ProcessedTableManager<
     ),
     WorkflowStateData,
     PrefetchHooks Function()>;
+typedef $$NotificationsTableCreateCompanionBuilder = NotificationsCompanion
+    Function({
+  required String id,
+  required String eventCode,
+  required String category,
+  required String priority,
+  required String title,
+  required String body,
+  Value<String?> imageUrl,
+  Value<String?> deepLink,
+  Value<bool> requiresAck,
+  Value<DateTime?> expiresAt,
+  Value<String?> groupKey,
+  Value<int?> badge,
+  Value<String?> actionsJson,
+  Value<String?> dataJson,
+  required String state,
+  required DateTime createdAt,
+  Value<DateTime?> deliveredAt,
+  Value<DateTime?> readAt,
+  Value<DateTime?> actionedAt,
+  Value<bool> partial,
+  Value<int> rowid,
+});
+typedef $$NotificationsTableUpdateCompanionBuilder = NotificationsCompanion
+    Function({
+  Value<String> id,
+  Value<String> eventCode,
+  Value<String> category,
+  Value<String> priority,
+  Value<String> title,
+  Value<String> body,
+  Value<String?> imageUrl,
+  Value<String?> deepLink,
+  Value<bool> requiresAck,
+  Value<DateTime?> expiresAt,
+  Value<String?> groupKey,
+  Value<int?> badge,
+  Value<String?> actionsJson,
+  Value<String?> dataJson,
+  Value<String> state,
+  Value<DateTime> createdAt,
+  Value<DateTime?> deliveredAt,
+  Value<DateTime?> readAt,
+  Value<DateTime?> actionedAt,
+  Value<bool> partial,
+  Value<int> rowid,
+});
+
+class $$NotificationsTableFilterComposer
+    extends Composer<_$AppDatabase, $NotificationsTable> {
+  $$NotificationsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get eventCode => $composableBuilder(
+      column: $table.eventCode, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get category => $composableBuilder(
+      column: $table.category, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get priority => $composableBuilder(
+      column: $table.priority, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get title => $composableBuilder(
+      column: $table.title, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get body => $composableBuilder(
+      column: $table.body, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get imageUrl => $composableBuilder(
+      column: $table.imageUrl, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get deepLink => $composableBuilder(
+      column: $table.deepLink, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get requiresAck => $composableBuilder(
+      column: $table.requiresAck, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get expiresAt => $composableBuilder(
+      column: $table.expiresAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get groupKey => $composableBuilder(
+      column: $table.groupKey, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get badge => $composableBuilder(
+      column: $table.badge, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get actionsJson => $composableBuilder(
+      column: $table.actionsJson, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get dataJson => $composableBuilder(
+      column: $table.dataJson, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get state => $composableBuilder(
+      column: $table.state, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get deliveredAt => $composableBuilder(
+      column: $table.deliveredAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get readAt => $composableBuilder(
+      column: $table.readAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get actionedAt => $composableBuilder(
+      column: $table.actionedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get partial => $composableBuilder(
+      column: $table.partial, builder: (column) => ColumnFilters(column));
+}
+
+class $$NotificationsTableOrderingComposer
+    extends Composer<_$AppDatabase, $NotificationsTable> {
+  $$NotificationsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get eventCode => $composableBuilder(
+      column: $table.eventCode, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get category => $composableBuilder(
+      column: $table.category, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get priority => $composableBuilder(
+      column: $table.priority, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get title => $composableBuilder(
+      column: $table.title, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get body => $composableBuilder(
+      column: $table.body, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get imageUrl => $composableBuilder(
+      column: $table.imageUrl, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get deepLink => $composableBuilder(
+      column: $table.deepLink, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get requiresAck => $composableBuilder(
+      column: $table.requiresAck, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get expiresAt => $composableBuilder(
+      column: $table.expiresAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get groupKey => $composableBuilder(
+      column: $table.groupKey, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get badge => $composableBuilder(
+      column: $table.badge, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get actionsJson => $composableBuilder(
+      column: $table.actionsJson, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get dataJson => $composableBuilder(
+      column: $table.dataJson, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get state => $composableBuilder(
+      column: $table.state, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get deliveredAt => $composableBuilder(
+      column: $table.deliveredAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get readAt => $composableBuilder(
+      column: $table.readAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get actionedAt => $composableBuilder(
+      column: $table.actionedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get partial => $composableBuilder(
+      column: $table.partial, builder: (column) => ColumnOrderings(column));
+}
+
+class $$NotificationsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $NotificationsTable> {
+  $$NotificationsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get eventCode =>
+      $composableBuilder(column: $table.eventCode, builder: (column) => column);
+
+  GeneratedColumn<String> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
+
+  GeneratedColumn<String> get priority =>
+      $composableBuilder(column: $table.priority, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get body =>
+      $composableBuilder(column: $table.body, builder: (column) => column);
+
+  GeneratedColumn<String> get imageUrl =>
+      $composableBuilder(column: $table.imageUrl, builder: (column) => column);
+
+  GeneratedColumn<String> get deepLink =>
+      $composableBuilder(column: $table.deepLink, builder: (column) => column);
+
+  GeneratedColumn<bool> get requiresAck => $composableBuilder(
+      column: $table.requiresAck, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get expiresAt =>
+      $composableBuilder(column: $table.expiresAt, builder: (column) => column);
+
+  GeneratedColumn<String> get groupKey =>
+      $composableBuilder(column: $table.groupKey, builder: (column) => column);
+
+  GeneratedColumn<int> get badge =>
+      $composableBuilder(column: $table.badge, builder: (column) => column);
+
+  GeneratedColumn<String> get actionsJson => $composableBuilder(
+      column: $table.actionsJson, builder: (column) => column);
+
+  GeneratedColumn<String> get dataJson =>
+      $composableBuilder(column: $table.dataJson, builder: (column) => column);
+
+  GeneratedColumn<String> get state =>
+      $composableBuilder(column: $table.state, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deliveredAt => $composableBuilder(
+      column: $table.deliveredAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get readAt =>
+      $composableBuilder(column: $table.readAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get actionedAt => $composableBuilder(
+      column: $table.actionedAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get partial =>
+      $composableBuilder(column: $table.partial, builder: (column) => column);
+}
+
+class $$NotificationsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $NotificationsTable,
+    NotificationRow,
+    $$NotificationsTableFilterComposer,
+    $$NotificationsTableOrderingComposer,
+    $$NotificationsTableAnnotationComposer,
+    $$NotificationsTableCreateCompanionBuilder,
+    $$NotificationsTableUpdateCompanionBuilder,
+    (
+      NotificationRow,
+      BaseReferences<_$AppDatabase, $NotificationsTable, NotificationRow>
+    ),
+    NotificationRow,
+    PrefetchHooks Function()> {
+  $$NotificationsTableTableManager(_$AppDatabase db, $NotificationsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$NotificationsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$NotificationsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$NotificationsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> eventCode = const Value.absent(),
+            Value<String> category = const Value.absent(),
+            Value<String> priority = const Value.absent(),
+            Value<String> title = const Value.absent(),
+            Value<String> body = const Value.absent(),
+            Value<String?> imageUrl = const Value.absent(),
+            Value<String?> deepLink = const Value.absent(),
+            Value<bool> requiresAck = const Value.absent(),
+            Value<DateTime?> expiresAt = const Value.absent(),
+            Value<String?> groupKey = const Value.absent(),
+            Value<int?> badge = const Value.absent(),
+            Value<String?> actionsJson = const Value.absent(),
+            Value<String?> dataJson = const Value.absent(),
+            Value<String> state = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime?> deliveredAt = const Value.absent(),
+            Value<DateTime?> readAt = const Value.absent(),
+            Value<DateTime?> actionedAt = const Value.absent(),
+            Value<bool> partial = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              NotificationsCompanion(
+            id: id,
+            eventCode: eventCode,
+            category: category,
+            priority: priority,
+            title: title,
+            body: body,
+            imageUrl: imageUrl,
+            deepLink: deepLink,
+            requiresAck: requiresAck,
+            expiresAt: expiresAt,
+            groupKey: groupKey,
+            badge: badge,
+            actionsJson: actionsJson,
+            dataJson: dataJson,
+            state: state,
+            createdAt: createdAt,
+            deliveredAt: deliveredAt,
+            readAt: readAt,
+            actionedAt: actionedAt,
+            partial: partial,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required String eventCode,
+            required String category,
+            required String priority,
+            required String title,
+            required String body,
+            Value<String?> imageUrl = const Value.absent(),
+            Value<String?> deepLink = const Value.absent(),
+            Value<bool> requiresAck = const Value.absent(),
+            Value<DateTime?> expiresAt = const Value.absent(),
+            Value<String?> groupKey = const Value.absent(),
+            Value<int?> badge = const Value.absent(),
+            Value<String?> actionsJson = const Value.absent(),
+            Value<String?> dataJson = const Value.absent(),
+            required String state,
+            required DateTime createdAt,
+            Value<DateTime?> deliveredAt = const Value.absent(),
+            Value<DateTime?> readAt = const Value.absent(),
+            Value<DateTime?> actionedAt = const Value.absent(),
+            Value<bool> partial = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              NotificationsCompanion.insert(
+            id: id,
+            eventCode: eventCode,
+            category: category,
+            priority: priority,
+            title: title,
+            body: body,
+            imageUrl: imageUrl,
+            deepLink: deepLink,
+            requiresAck: requiresAck,
+            expiresAt: expiresAt,
+            groupKey: groupKey,
+            badge: badge,
+            actionsJson: actionsJson,
+            dataJson: dataJson,
+            state: state,
+            createdAt: createdAt,
+            deliveredAt: deliveredAt,
+            readAt: readAt,
+            actionedAt: actionedAt,
+            partial: partial,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$NotificationsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $NotificationsTable,
+    NotificationRow,
+    $$NotificationsTableFilterComposer,
+    $$NotificationsTableOrderingComposer,
+    $$NotificationsTableAnnotationComposer,
+    $$NotificationsTableCreateCompanionBuilder,
+    $$NotificationsTableUpdateCompanionBuilder,
+    (
+      NotificationRow,
+      BaseReferences<_$AppDatabase, $NotificationsTable, NotificationRow>
+    ),
+    NotificationRow,
+    PrefetchHooks Function()>;
+typedef $$NotificationActionQueueTableCreateCompanionBuilder
+    = NotificationActionQueueCompanion Function({
+  required String id,
+  required String notificationId,
+  required String kind,
+  Value<String?> actionId,
+  Value<String?> category,
+  required DateTime occurredAt,
+  Value<int> attempts,
+  Value<DateTime> createdAt,
+  Value<int> rowid,
+});
+typedef $$NotificationActionQueueTableUpdateCompanionBuilder
+    = NotificationActionQueueCompanion Function({
+  Value<String> id,
+  Value<String> notificationId,
+  Value<String> kind,
+  Value<String?> actionId,
+  Value<String?> category,
+  Value<DateTime> occurredAt,
+  Value<int> attempts,
+  Value<DateTime> createdAt,
+  Value<int> rowid,
+});
+
+class $$NotificationActionQueueTableFilterComposer
+    extends Composer<_$AppDatabase, $NotificationActionQueueTable> {
+  $$NotificationActionQueueTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get notificationId => $composableBuilder(
+      column: $table.notificationId,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get kind => $composableBuilder(
+      column: $table.kind, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get actionId => $composableBuilder(
+      column: $table.actionId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get category => $composableBuilder(
+      column: $table.category, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get occurredAt => $composableBuilder(
+      column: $table.occurredAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get attempts => $composableBuilder(
+      column: $table.attempts, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$NotificationActionQueueTableOrderingComposer
+    extends Composer<_$AppDatabase, $NotificationActionQueueTable> {
+  $$NotificationActionQueueTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get notificationId => $composableBuilder(
+      column: $table.notificationId,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get kind => $composableBuilder(
+      column: $table.kind, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get actionId => $composableBuilder(
+      column: $table.actionId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get category => $composableBuilder(
+      column: $table.category, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get occurredAt => $composableBuilder(
+      column: $table.occurredAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get attempts => $composableBuilder(
+      column: $table.attempts, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$NotificationActionQueueTableAnnotationComposer
+    extends Composer<_$AppDatabase, $NotificationActionQueueTable> {
+  $$NotificationActionQueueTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get notificationId => $composableBuilder(
+      column: $table.notificationId, builder: (column) => column);
+
+  GeneratedColumn<String> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+
+  GeneratedColumn<String> get actionId =>
+      $composableBuilder(column: $table.actionId, builder: (column) => column);
+
+  GeneratedColumn<String> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get occurredAt => $composableBuilder(
+      column: $table.occurredAt, builder: (column) => column);
+
+  GeneratedColumn<int> get attempts =>
+      $composableBuilder(column: $table.attempts, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$NotificationActionQueueTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $NotificationActionQueueTable,
+    NotificationActionQueueRow,
+    $$NotificationActionQueueTableFilterComposer,
+    $$NotificationActionQueueTableOrderingComposer,
+    $$NotificationActionQueueTableAnnotationComposer,
+    $$NotificationActionQueueTableCreateCompanionBuilder,
+    $$NotificationActionQueueTableUpdateCompanionBuilder,
+    (
+      NotificationActionQueueRow,
+      BaseReferences<_$AppDatabase, $NotificationActionQueueTable,
+          NotificationActionQueueRow>
+    ),
+    NotificationActionQueueRow,
+    PrefetchHooks Function()> {
+  $$NotificationActionQueueTableTableManager(
+      _$AppDatabase db, $NotificationActionQueueTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$NotificationActionQueueTableFilterComposer(
+                  $db: db, $table: table),
+          createOrderingComposer: () =>
+              $$NotificationActionQueueTableOrderingComposer(
+                  $db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$NotificationActionQueueTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> notificationId = const Value.absent(),
+            Value<String> kind = const Value.absent(),
+            Value<String?> actionId = const Value.absent(),
+            Value<String?> category = const Value.absent(),
+            Value<DateTime> occurredAt = const Value.absent(),
+            Value<int> attempts = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              NotificationActionQueueCompanion(
+            id: id,
+            notificationId: notificationId,
+            kind: kind,
+            actionId: actionId,
+            category: category,
+            occurredAt: occurredAt,
+            attempts: attempts,
+            createdAt: createdAt,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required String notificationId,
+            required String kind,
+            Value<String?> actionId = const Value.absent(),
+            Value<String?> category = const Value.absent(),
+            required DateTime occurredAt,
+            Value<int> attempts = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              NotificationActionQueueCompanion.insert(
+            id: id,
+            notificationId: notificationId,
+            kind: kind,
+            actionId: actionId,
+            category: category,
+            occurredAt: occurredAt,
+            attempts: attempts,
+            createdAt: createdAt,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$NotificationActionQueueTableProcessedTableManager
+    = ProcessedTableManager<
+        _$AppDatabase,
+        $NotificationActionQueueTable,
+        NotificationActionQueueRow,
+        $$NotificationActionQueueTableFilterComposer,
+        $$NotificationActionQueueTableOrderingComposer,
+        $$NotificationActionQueueTableAnnotationComposer,
+        $$NotificationActionQueueTableCreateCompanionBuilder,
+        $$NotificationActionQueueTableUpdateCompanionBuilder,
+        (
+          NotificationActionQueueRow,
+          BaseReferences<_$AppDatabase, $NotificationActionQueueTable,
+              NotificationActionQueueRow>
+        ),
+        NotificationActionQueueRow,
+        PrefetchHooks Function()>;
+typedef $$NotificationSyncMetaTableCreateCompanionBuilder
+    = NotificationSyncMetaCompanion Function({
+  required String entity,
+  Value<DateTime?> syncTimestamp,
+  Value<int> unread,
+  Value<int> actionRequired,
+  Value<String?> byCategoryJson,
+  Value<DateTime?> countsAt,
+  Value<int> rowid,
+});
+typedef $$NotificationSyncMetaTableUpdateCompanionBuilder
+    = NotificationSyncMetaCompanion Function({
+  Value<String> entity,
+  Value<DateTime?> syncTimestamp,
+  Value<int> unread,
+  Value<int> actionRequired,
+  Value<String?> byCategoryJson,
+  Value<DateTime?> countsAt,
+  Value<int> rowid,
+});
+
+class $$NotificationSyncMetaTableFilterComposer
+    extends Composer<_$AppDatabase, $NotificationSyncMetaTable> {
+  $$NotificationSyncMetaTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get entity => $composableBuilder(
+      column: $table.entity, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get syncTimestamp => $composableBuilder(
+      column: $table.syncTimestamp, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get unread => $composableBuilder(
+      column: $table.unread, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get actionRequired => $composableBuilder(
+      column: $table.actionRequired,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get byCategoryJson => $composableBuilder(
+      column: $table.byCategoryJson,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get countsAt => $composableBuilder(
+      column: $table.countsAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$NotificationSyncMetaTableOrderingComposer
+    extends Composer<_$AppDatabase, $NotificationSyncMetaTable> {
+  $$NotificationSyncMetaTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get entity => $composableBuilder(
+      column: $table.entity, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get syncTimestamp => $composableBuilder(
+      column: $table.syncTimestamp,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get unread => $composableBuilder(
+      column: $table.unread, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get actionRequired => $composableBuilder(
+      column: $table.actionRequired,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get byCategoryJson => $composableBuilder(
+      column: $table.byCategoryJson,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get countsAt => $composableBuilder(
+      column: $table.countsAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$NotificationSyncMetaTableAnnotationComposer
+    extends Composer<_$AppDatabase, $NotificationSyncMetaTable> {
+  $$NotificationSyncMetaTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get entity =>
+      $composableBuilder(column: $table.entity, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get syncTimestamp => $composableBuilder(
+      column: $table.syncTimestamp, builder: (column) => column);
+
+  GeneratedColumn<int> get unread =>
+      $composableBuilder(column: $table.unread, builder: (column) => column);
+
+  GeneratedColumn<int> get actionRequired => $composableBuilder(
+      column: $table.actionRequired, builder: (column) => column);
+
+  GeneratedColumn<String> get byCategoryJson => $composableBuilder(
+      column: $table.byCategoryJson, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get countsAt =>
+      $composableBuilder(column: $table.countsAt, builder: (column) => column);
+}
+
+class $$NotificationSyncMetaTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $NotificationSyncMetaTable,
+    NotificationSyncMetaRow,
+    $$NotificationSyncMetaTableFilterComposer,
+    $$NotificationSyncMetaTableOrderingComposer,
+    $$NotificationSyncMetaTableAnnotationComposer,
+    $$NotificationSyncMetaTableCreateCompanionBuilder,
+    $$NotificationSyncMetaTableUpdateCompanionBuilder,
+    (
+      NotificationSyncMetaRow,
+      BaseReferences<_$AppDatabase, $NotificationSyncMetaTable,
+          NotificationSyncMetaRow>
+    ),
+    NotificationSyncMetaRow,
+    PrefetchHooks Function()> {
+  $$NotificationSyncMetaTableTableManager(
+      _$AppDatabase db, $NotificationSyncMetaTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$NotificationSyncMetaTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$NotificationSyncMetaTableOrderingComposer(
+                  $db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$NotificationSyncMetaTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> entity = const Value.absent(),
+            Value<DateTime?> syncTimestamp = const Value.absent(),
+            Value<int> unread = const Value.absent(),
+            Value<int> actionRequired = const Value.absent(),
+            Value<String?> byCategoryJson = const Value.absent(),
+            Value<DateTime?> countsAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              NotificationSyncMetaCompanion(
+            entity: entity,
+            syncTimestamp: syncTimestamp,
+            unread: unread,
+            actionRequired: actionRequired,
+            byCategoryJson: byCategoryJson,
+            countsAt: countsAt,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String entity,
+            Value<DateTime?> syncTimestamp = const Value.absent(),
+            Value<int> unread = const Value.absent(),
+            Value<int> actionRequired = const Value.absent(),
+            Value<String?> byCategoryJson = const Value.absent(),
+            Value<DateTime?> countsAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              NotificationSyncMetaCompanion.insert(
+            entity: entity,
+            syncTimestamp: syncTimestamp,
+            unread: unread,
+            actionRequired: actionRequired,
+            byCategoryJson: byCategoryJson,
+            countsAt: countsAt,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$NotificationSyncMetaTableProcessedTableManager
+    = ProcessedTableManager<
+        _$AppDatabase,
+        $NotificationSyncMetaTable,
+        NotificationSyncMetaRow,
+        $$NotificationSyncMetaTableFilterComposer,
+        $$NotificationSyncMetaTableOrderingComposer,
+        $$NotificationSyncMetaTableAnnotationComposer,
+        $$NotificationSyncMetaTableCreateCompanionBuilder,
+        $$NotificationSyncMetaTableUpdateCompanionBuilder,
+        (
+          NotificationSyncMetaRow,
+          BaseReferences<_$AppDatabase, $NotificationSyncMetaTable,
+              NotificationSyncMetaRow>
+        ),
+        NotificationSyncMetaRow,
+        PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -28395,4 +31086,11 @@ class $AppDatabaseManager {
       $$SyncQueueTableTableManager(_db, _db.syncQueue);
   $$WorkflowStateTableTableManager get workflowState =>
       $$WorkflowStateTableTableManager(_db, _db.workflowState);
+  $$NotificationsTableTableManager get notifications =>
+      $$NotificationsTableTableManager(_db, _db.notifications);
+  $$NotificationActionQueueTableTableManager get notificationActionQueue =>
+      $$NotificationActionQueueTableTableManager(
+          _db, _db.notificationActionQueue);
+  $$NotificationSyncMetaTableTableManager get notificationSyncMeta =>
+      $$NotificationSyncMetaTableTableManager(_db, _db.notificationSyncMeta);
 }

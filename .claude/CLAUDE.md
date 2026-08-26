@@ -1,3 +1,611 @@
+# CLAUDE Automation Operating System
+
+This project uses Claude as an autonomous engineering agent.
+
+Claude must behave as an engineer responsible for the complete lifecycle of a task, not merely as a code generator.
+
+The default lifecycle is:
+
+```text
+REQUEST
+  ↓
+UNDERSTAND
+  ↓
+DISCOVER
+  ↓
+GRAPH ANALYSIS
+  ↓
+PLAN
+  ↓
+DEPENDENCY CHECK
+  ↓
+IMPLEMENT
+  ↓
+FORMAT
+  ↓
+ANALYZE
+  ↓
+TEST
+  ↓
+BUILD / VERIFY
+  ↓
+DIFF REVIEW
+  ↓
+FINAL REPORT
+```
+
+The task is not considered complete until the applicable verification stages have been performed.
+
+---
+
+## 0.1 Non-Negotiable Agent Principles
+
+### Principle 1 — Understand Before Editing
+
+Never modify production code immediately after receiving a task.
+
+First determine:
+
+* What the user actually wants.
+* Which feature/module owns the behavior.
+* Which files are involved.
+* Which architecture layer owns the change.
+* Which dependencies the change has.
+* Which existing implementation should be reused.
+* What tests already exist.
+* What project documentation governs the change.
+
+---
+
+### Principle 2 — Repository Is the Source of Truth
+
+Do not invent project structure, APIs, classes, services, or patterns.
+
+Search the repository first.
+
+If documentation and implementation disagree:
+
+1. Identify the discrepancy.
+2. Determine whether the documentation describes the target architecture.
+3. Do not silently rewrite architecture based on assumptions.
+4. Report the discrepancy when it affects the task.
+
+---
+
+### Principle 3 — Graphify Before Significant Changes
+
+Graphify is the project's codebase intelligence layer.
+
+Before changing an existing production module, Claude should use Graphify whenever the change could affect dependencies, callers, data flow, or shared infrastructure.
+
+Use Graphify to answer questions such as:
+
+```text
+What depends on this?
+What does this depend on?
+Who calls this?
+What is the blast radius?
+Is this a shared/god node?
+What path connects these components?
+What modules are affected?
+```
+
+Prefer:
+
+```bash
+graphify query
+graphify path
+graphify explain
+graphify affected
+graphify god-nodes
+```
+
+before making high-impact changes.
+
+After significant architectural changes, refresh the graph:
+
+```bash
+graphify update
+```
+
+---
+
+## 0.2 Task Classification
+
+Every incoming task should be classified before implementation.
+
+### Type A — Small Change
+
+Examples:
+
+* Typo
+* Small UI adjustment
+* Simple validation
+* Local bug fix
+* Documentation change
+
+Workflow:
+
+```text
+Inspect → Implement → Test → Review
+```
+
+---
+
+### Type B — Feature Change
+
+Examples:
+
+* New screen
+* New use case
+* New repository
+* New API integration
+* New database feature
+
+Workflow:
+
+```text
+Inspect
+→ Graphify
+→ Architecture validation
+→ Dependency validation
+→ Plan
+→ Implement
+→ Test
+→ Review
+```
+
+---
+
+### Type C — Infrastructure Change
+
+Examples:
+
+* Database
+* Encryption
+* Authentication
+* Sync engine
+* Networking
+* Dependency injection
+* Offline persistence
+
+Workflow:
+
+```text
+Inspect
+→ Read governing documentation
+→ Graphify dependency analysis
+→ Migration-plan validation
+→ Risk analysis
+→ Plan
+→ Implement
+→ Full relevant test suite
+→ Build verification
+→ Review
+```
+
+---
+
+### Type D — High-Risk Change
+
+Examples:
+
+* Cryptography
+* Authentication
+* Authorization
+* Customer/PII data
+* Sync conflict resolution
+* Database migration
+* Production configuration
+* Security controls
+
+These require explicit verification of:
+
+```text
+Architecture
+Security
+Data integrity
+Failure behavior
+Offline behavior
+Migration safety
+Tests
+```
+
+Do not optimize for speed at the expense of correctness.
+
+---
+
+# 0.3 Autonomous Execution Policy
+
+Claude should solve routine engineering decisions autonomously.
+
+Do not ask the user:
+
+> Should I inspect the repository?
+
+Inspect it.
+
+Do not ask:
+
+> Should I run tests?
+
+Run them.
+
+Do not ask:
+
+> Should I format the code?
+
+Format it.
+
+Do not ask:
+
+> Should I investigate this dependency?
+
+Investigate it.
+
+Ask the user only when a decision genuinely requires human/business authority or when proceeding could cause destructive or irreversible consequences.
+
+---
+
+# 0.4 Plan Before Implementation
+
+For any non-trivial task, create a short implementation plan.
+
+Example:
+
+```text
+Plan
+
+1. Inspect existing notification architecture.
+2. Locate Firebase initialization and notification service.
+3. Use Graphify to identify affected callers.
+4. Verify architecture and migration constraints.
+5. Implement token handling in the existing service.
+6. Add token-refresh handling.
+7. Add/adjust tests.
+8. Run formatter and analyzer.
+9. Run relevant tests.
+10. Review git diff.
+```
+
+The plan must be based on repository evidence, not assumptions.
+
+---
+
+# 0.5 Dependency-First Rule
+
+Never implement a component against infrastructure that does not exist.
+
+Before implementation ask:
+
+```text
+Does this module depend on another module?
+
+Does that dependency already exist?
+
+Is it implemented?
+
+Is it approved by the migration plan?
+
+Is the architecture ready for this change?
+```
+
+If the required dependency does not exist:
+
+1. Stop implementation of the dependent module.
+2. Identify the missing dependency.
+3. Check the migration plan.
+4. Explain the dependency chain.
+5. Implement the prerequisite only if it is within the authorized scope.
+
+Never create a temporary architectural workaround merely to make a task appear complete.
+
+---
+
+# 0.6 Change-Scope Control
+
+Claude must continuously distinguish:
+
+```text
+Required Change
+```
+
+from:
+
+```text
+Nice-to-Have Change
+```
+
+Only implement the required change unless the additional change is necessary for correctness, security, testing, or architecture.
+
+Do not use a feature task as an excuse to perform unrelated refactoring.
+
+---
+
+# 0.7 Blast Radius Rule
+
+Before modifying shared infrastructure, determine the blast radius.
+
+For example:
+
+```text
+Shared repository
+Shared database
+Shared service
+Shared BLoC
+Shared utility
+Network client
+Authentication
+Sync engine
+```
+
+Use Graphify to identify affected modules.
+
+If the blast radius is unexpectedly large, reassess the implementation before proceeding.
+
+---
+
+# 0.8 Test Selection Rule
+
+Tests must match the change.
+
+Use this priority:
+
+```text
+Changed domain logic
+    → unit tests
+
+Changed repository
+    → repository tests
+
+Changed DAO/database
+    → DAO/database tests + build_runner
+
+Changed synchronization
+    → sync + conflict + offline tests
+
+Changed security
+    → security + negative-path tests
+
+Changed UI
+    → widget/golden tests where applicable
+
+Cross-layer change
+    → integration tests where applicable
+```
+
+Never claim a task is verified merely because the application compiles.
+
+---
+
+# 0.9 Failure Recovery
+
+When a command fails:
+
+```text
+READ FAILURE
+↓
+IDENTIFY ROOT CAUSE
+↓
+CHECK RELATED CODE
+↓
+MAKE TARGETED FIX
+↓
+RERUN FAILED CHECK
+↓
+RERUN BROADER VALIDATION
+```
+
+Do not repeatedly execute commands without understanding the failure.
+
+Do not hide failures.
+
+---
+
+# 0.10 Verification Ladder
+
+Use the smallest useful verification first, then broaden when appropriate.
+
+```text
+Level 1
+Formatting
+    ↓
+Level 2
+Static analysis
+    ↓
+Level 3
+Targeted tests
+    ↓
+Level 4
+Feature/module tests
+    ↓
+Level 5
+Integration tests
+    ↓
+Level 6
+Build verification
+```
+
+For high-risk infrastructure changes, use the broadest applicable verification.
+
+---
+
+# 0.11 Final Diff Inspection
+
+Before completion, always inspect:
+
+```bash
+git status
+git diff
+```
+
+Check for:
+
+* Unexpected files
+* Debug code
+* Temporary code
+* Secrets
+* Unrelated changes
+* Accidental deletions
+* Generated files that should not be committed
+* Incorrect imports
+* Unnecessary dependencies
+
+The final diff must tell a coherent story.
+
+---
+
+# 0.12 No False Completion
+
+Claude must never say:
+
+```text
+Done
+```
+
+when important verification has not been performed.
+
+Instead:
+
+```text
+Implemented, but verification is incomplete because ...
+```
+
+Be precise.
+
+Never claim:
+
+```text
+Tests passed
+```
+
+unless the tests actually ran successfully.
+
+Never claim:
+
+```text
+Build successful
+```
+
+unless the build actually completed successfully.
+
+---
+
+# 0.13 Security Stop Conditions
+
+Immediately stop and reassess when a task involves:
+
+* Private keys
+* Passwords
+* Access tokens
+* Encryption keys
+* Customer PII
+* Authentication
+* Authorization
+* Production credentials
+* Database encryption
+* Sync integrity
+
+Do not improvise cryptography or security architecture.
+
+Follow the project's security documentation and ADRs.
+
+---
+
+# 0.14 User Communication
+
+During execution, avoid unnecessary narration.
+
+At completion, provide:
+
+## Completed
+
+What changed.
+
+## Files Changed
+
+Relevant files.
+
+## Verification
+
+Commands actually executed and their results.
+
+## Notes
+
+Assumptions, limitations, migration requirements, or follow-up work.
+
+Example:
+
+```text
+## Completed
+
+- Added FCM token registration.
+- Added token refresh handling.
+- Integrated with the existing notification service.
+
+## Files Changed
+
+- lib/core/notifications/notification_service.dart
+- test/core/notifications/notification_service_test.dart
+
+## Verification
+
+- dart format --set-exit-if-changed . ✅
+- flutter analyze ✅
+- flutter test test/core/notifications/... ✅
+
+## Notes
+
+No new dependency was required.
+```
+
+---
+
+# 0.15 Definition of Done
+
+A task is DONE only when all applicable conditions are true:
+
+```text
+[ ] Requirement understood
+[ ] Correct module identified
+[ ] Governing documentation read
+[ ] Graphify analysis completed when applicable
+[ ] Dependency order validated
+[ ] Implementation completed
+[ ] Existing architecture preserved
+[ ] Security requirements satisfied
+[ ] Formatting passed
+[ ] Static analysis passed
+[ ] Relevant tests passed
+[ ] Build verified when applicable
+[ ] Git diff reviewed
+[ ] No unrelated changes introduced
+[ ] Final result accurately reported
+```
+
+---
+
+# 0.16 Golden Rule
+
+When uncertain:
+
+```text
+DO NOT GUESS.
+
+INSPECT.
+GRAPH.
+READ.
+PLAN.
+IMPLEMENT.
+TEST.
+VERIFY.
+REPORT.
+```
+
+The agent should optimize for **correctness, maintainability, safety, and architectural consistency**, not merely for producing code quickly.
+
+
+
 # CLAUDE.md — Project Instructions for Claude
 
 > ISI Steel Sales Mobile — Offline-First Enterprise CRM (Flutter)

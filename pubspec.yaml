@@ -53,6 +53,23 @@ dependencies:
   printing: ^5.14.3
   open_filex: ^4.7.0
 
+  # ── Push notifications (docs/features/notification-mobile.md) ──────────
+  # The inbox is the notification; these three only accelerate it. Every one
+  # of them is no-op'd on web behind `core/notifications/push_*` conditional
+  # imports — a browser has no FCM registration in this build and the inbox
+  # still syncs (ADR-010).
+  firebase_core: ^3.8.0
+  firebase_messaging: ^15.2.10
+  # Renders the foreground/local alert Android and iOS will not draw for us
+  # while the app is visible, and owns the ten per-category channels the
+  # backend addresses by `channel_id` (§9.3).
+  flutter_local_notifications: ^18.0.1
+  # The backend needs an **IANA** zone (`Asia/Phnom_Penh`) to place quiet
+  # hours and digests on a wall clock (§4.2). Dart core exposes only the
+  # abbreviation (`ICT`), which is what `DeviceIdentity` already flags as
+  # inadequate for exactly this case.
+  flutter_timezone: ^4.1.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -24,7 +24,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubi
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/route_sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/stop_dashboard_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/stop_dashboard/stop_dashboard_screen.dart';
-import 'package:isi_steel_sales_mobile/features/notification/domain/usecases/fetch_notifications.dart';
+import 'package:isi_steel_sales_mobile/features/notification/notification_coordinator.dart';
 import 'package:isi_steel_sales_mobile/features/notification/presentation/screen/notifications_sheet.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/sync/continue_work_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/sync/pending_sync_cubit.dart';
@@ -131,9 +131,16 @@ class _MainShellState extends State<MainShell> {
   void _openGuestNotifications(BuildContext context) {
     showNotificationsSheet(
       context: context,
-      fetchNotifications: sl<FetchNotifications>(),
       isGuest: !_session.isAuthenticated,
       onLogin: () => _openProfile(context),
+      // A guest never reaches this callback — the sheet shows the sign-in
+      // prompt instead of a list — but wiring it means the one entry point
+      // behaves identically the moment a session exists, rather than silently
+      // having non-tappable rows for a signed-in rep who arrived this way.
+      onOpenNotification: (notification) {
+        Navigator.of(context).pop();
+        sl<NotificationCoordinator>().openLink(notification.deepLink);
+      },
     );
   }
 

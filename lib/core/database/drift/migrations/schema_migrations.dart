@@ -4,7 +4,7 @@ import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
 /// The single source of truth for the encrypted database's schema version.
 /// Bump this by exactly one whenever a schema change ships, and add the matching
 /// step to [_stepwiseMigrations].
-const int kCurrentSchemaVersion = 18;
+const int kCurrentSchemaVersion = 19;
 
 /// Keys under which the migrator records bookkeeping in `app_metadata`, so the
 /// on-device schema history is auditable and a failed/partial upgrade is
@@ -370,7 +370,7 @@ final Map<int, SchemaMigrationStep> _stepwiseMigrations =
   //      captured check-ins, notes and photos whenever route sync refreshed a
   //      route, because the refresh replaces a route's stops. The backend
   //      documents re-sending the full set as expected behaviour
-  //      (`docs/backend-document.md` §5.2), so this fired on a normal delta and
+  //      (`docs/integrations/backend-document.md` §5.2), so this fired on a normal delta and
   //      destroyed first-hand field work that had not been pushed yet.
   //
   // The constraints that have no such path are deliberately kept — see the
@@ -422,7 +422,85 @@ final Map<int, SchemaMigrationStep> _stepwiseMigrations =
     await m.alterTable(TableMigration(db.visitNotes));
     await m.alterTable(TableMigration(db.visitPhotos));
   },
+
+  // v19: the notification inbox becomes a first-class local mirror.
+  //
+  // Purely additive — three new tables, nothing existing is touched, so an
+  // upgrade cannot lose or rewrite a row. `IF NOT EXISTS` on the indexes keeps
+  // the step re-runnable after a crash mid-upgrade
+  // (`docs/blueprints/DATABASE_GUIDE.md` §5); `createTable` is already idempotent-safe
+  // here because these tables cannot exist below v19.
+  //
+  // ## Why the inbox needs storage at all
+  //
+  // `docs/features/notification-mobile.md` §1: the inbox *is* the notification
+  // and push is only an accelerator, because a push routinely never arrives —
+  // a flat battery, a coverage hole, an OEM battery optimiser, a rotated FCM
+  // token, or a P4 that is never pushed by design. A client whose only render
+  // path is the FCM callback shows a rep less than half their work.
+  //
+  // ## Why it is in the encrypted database rather than Hive
+  //
+  // A notification title and body name a customer and a route, which is PII and
+  // therefore belongs in the encrypted store, not a key-value cache
+  // (`docs/skills/SECURITY.md` §3, `docs/blueprints/ARCHITECTURE.md` §3). The FCM payload is
+  // deliberately thinner for the same reason (§9.2): a push renders on a locked
+  // screen in front of whoever is holding the phone.
+  //
+  // ## Why three tables and not one
+  //
+  //  * `notifications` is a **pull-only mirror** and carries no `SyncableTable`
+  //    bookkeeping: nothing here originates on the device, and the id is the
+  //    server's own so a catch-up overlapping a push cannot duplicate a row.
+  //  * `notification_action_queue` is the **outbox** — the discrete acts the rep
+  //    performed. ADR-006 requires a state change and its queued call to commit
+  //    in one transaction, which is what `NotificationDao` enforces; a visible
+  //    acknowledgement with no queued call is a route the supervisor still
+  //    believes was never acknowledged.
+  //  * `notification_sync_meta` holds the cursor and the reconciled counts, in
+  //    the same database as the rows so sign-out drops all three together. A
+  //    cursor that outlives its rows asks for "changes since" a point whose rows
+  //    are gone, receives an empty delta, and leaves a permanently blank inbox
+  //    with no error anywhere.
+  //
+  // No foreign keys, per ADR-011 — and here the reason is concrete rather than
+  // precautionary: a push can land before the catch-up page that carries its
+  // notification, so a queue row can legitimately reference a row this device
+  // has not stored yet. Enforcing the constraint would abort that write and
+  // lose the rep's acknowledgement instead of harmlessly orphaning a row.
+  19: (m, db) async {
+    // Guarded, not a bare `createTable`. [SchemaMigrationStep] requires every
+    // step to be idempotent-safe, and `CREATE TABLE` is not: SQLite fails the
+    // whole upgrade with "table already exists", which on a real device leaves
+    // the user on a database that will not open.
+    //
+    // That is not hypothetical — it is how the migration fixtures work. They
+    // build the *current* schema with Drift's own DDL and then rewind
+    // `user_version`, deliberately, so a fixture cannot drift from reality. Every
+    // replayed step therefore meets objects that already exist. Steps 10, 11 and
+    // 15 guard the same hazard the same way.
+    await _createTableIfMissing(m, db, db.notifications);
+    await _createTableIfMissing(m, db, db.notificationActionQueue);
+    await _createTableIfMissing(m, db, db.notificationSyncMeta);
+  },
 };
+
+/// `createTable`, skipped when the table is already there.
+///
+/// See the note in the v19 step for why this is required rather than defensive:
+/// a replayed `CREATE TABLE` aborts the entire upgrade.
+Future<void> _createTableIfMissing(
+  Migrator m,
+  AppDatabase db,
+  TableInfo<Table, dynamic> table,
+) async {
+  final existing = await db.customSelect(
+    "SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?;",
+    variables: [Variable<String>(table.actualTableName)],
+  ).get();
+  if (existing.isNotEmpty) return;
+  await m.createTable(table);
+}
 
 /// `addColumn`, skipped when the column is already there.
 ///

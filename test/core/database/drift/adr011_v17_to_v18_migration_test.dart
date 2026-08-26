@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
+import 'package:isi_steel_sales_mobile/core/database/drift/migrations/schema_migrations.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqlite3/sqlite3.dart' as sqlite;
 
@@ -121,8 +122,13 @@ void main() {
     addTearDown(db.close);
 
     // Opening triggers onUpgrade. If this throws, a real device is bricked.
+    //
+    // Asserted against [kCurrentSchemaVersion] rather than the literal 18: the
+    // walk continues through every later step, so pinning the number here made
+    // this test fail on the next schema bump for a reason that has nothing to do
+    // with ADR-011. What this test is actually about is the rows below.
     final version = await db.customSelect('PRAGMA user_version;').getSingle();
-    expect(version.data['user_version'], 18);
+    expect(version.data['user_version'], kCurrentSchemaVersion);
 
     Future<int> count(String table) async =>
         (await db.customSelect('SELECT COUNT(*) c FROM $table').getSingle())

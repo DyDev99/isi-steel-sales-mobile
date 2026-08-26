@@ -15,6 +15,7 @@ import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc
 import 'package:isi_steel_sales_mobile/core/theme/app_theme.dart';
 import 'package:isi_steel_sales_mobile/core/theme/app_typography.dart';
 import 'package:isi_steel_sales_mobile/features/localization/presentation/bloc/language_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/notification/presentation/widgets/notification_host.dart';
 import 'package:isi_steel_sales_mobile/features/settings/theme/domain/entities/app_theme_mode.dart';
 import 'package:isi_steel_sales_mobile/features/settings/theme/presentation/cubit/theme_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/settings/theme/presentation/cubit/theme_state.dart';
@@ -171,6 +172,20 @@ class ISISteelSalesApp extends StatelessWidget {
                       onGenerateInitialRoutes: (name) =>
                           [AppPages.onGenerateRoute(RouteSettings(name: name))],
                       onGenerateRoute: AppPages.onGenerateRoute,
+                      // Push starts here rather than in `AppBootstrapService`.
+                      // Two of its steps need what boot does not have yet: the
+                      // loaded language bundle (Android caches a notification
+                      // channel's name at creation and ignores later renames, so
+                      // the first launch permanently decides them) and a
+                      // Navigator for a tapped notification. See
+                      // [NotificationHost].
+                      //
+                      // `builder` wraps the Navigator, so this sits above every
+                      // route and survives navigation — which is what a
+                      // background push arriving mid-session needs.
+                      builder: (context, child) => NotificationHost(
+                        child: child ?? const SizedBox.shrink(),
+                      ),
                     );
                   },
                 );

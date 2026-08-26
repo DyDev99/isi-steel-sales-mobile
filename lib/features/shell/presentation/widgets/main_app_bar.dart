@@ -7,8 +7,10 @@ import 'package:isi_steel_sales_mobile/core/animations/app_animations.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/presentation/services/coach_keys.dart';
-import 'package:isi_steel_sales_mobile/core/usecase/usecase.dart';
-import 'package:isi_steel_sales_mobile/features/notification/domain/usecases/fetch_notifications.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:isi_steel_sales_mobile/features/notification/domain/entities/notification_counts.dart';
+import 'package:isi_steel_sales_mobile/features/notification/notification_coordinator.dart';
+import 'package:isi_steel_sales_mobile/features/notification/presentation/bloc/notification_badge_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/notification/presentation/screen/notifications_sheet.dart';
 
 class MainAppBar extends StatelessWidget {
@@ -277,7 +279,15 @@ class _NotificationBell extends StatelessWidget {
         onTap: onTapOverride ??
             () => showNotificationsSheet(
                   context: context,
-                  fetchNotifications: sl<FetchNotifications>(),
+                  // Routing a tapped row is the coordinator's job: the backend
+                  // builds every `deep_link` (§11) and exactly one place resolves
+                  // them. The sheet pops first so the destination is not raised
+                  // underneath it.
+                  onOpenNotification: (notification) {
+                    Navigator.of(context).pop();
+                    sl<NotificationCoordinator>()
+                        .openLink(notification.deepLink);
+                  },
                 ),
         child: Stack(
           clipBehavior: Clip.none,
@@ -322,12 +332,21 @@ class _NotificationBell extends StatelessWidget {
       return buildBellIcon(false);
     }
 
-    return FutureBuilder(
-      future: sl<FetchNotifications>().call(const NoParams()),
-      builder: (context, snapshot) {
-        final hasNotifications = (snapshot.data?.isNotEmpty ?? false);
-        return buildBellIcon(hasNotifications);
-      },
+    // Bound to the app-wide badge cubit rather than a `FutureBuilder`.
+    //
+    // The previous version re-ran a fetch on every app-bar rebuild — which is
+    // every tab change — and showed a dot that was already stale by the time it
+    // painted. This reads the local mirror, so it moves the instant a
+    // notification arrives, the instant one is read, and correctly while
+    // offline.
+    //
+    // The dot shows **unread** (§5.4): the bell answers "is there something to
+    // look at". The app-icon badge is a different number — outstanding actions —
+    // and is set by the backend in `aps.badge`.
+    return BlocSelector<NotificationBadgeCubit, NotificationCounts, bool>(
+      bloc: sl<NotificationBadgeCubit>(),
+      selector: (counts) => counts.hasUnread,
+      builder: (context, hasUnread) => buildBellIcon(hasUnread),
     );
   }
 }

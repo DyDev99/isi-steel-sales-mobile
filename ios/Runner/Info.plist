@@ -85,9 +85,26 @@
 	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<!-- Firebase swizzles UIApplicationDelegate so the APNs device token and
+	     `didReceiveRemoteNotification` reach the plugin without AppDelegate
+	     forwarding them by hand. `true` is Firebase's default; it is stated
+	     explicitly because `AppDelegate.swift` deliberately does *not* forward
+	     those callbacks, so turning this off would silently stop token
+	     registration and leave the app permanently unpushable.
+
+	     Foreground banner suppression (§10) is a separate concern and is set
+	     from Dart via `setForegroundNotificationPresentationOptions`. -->
+	<key>FirebaseAppDelegateProxyEnabled</key>
+	<true/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>location</string>
+		<!-- Required for the data-only pushes that trigger a background inbox
+		     sync (§10, "Data-only"). Without it iOS delivers a silent push to
+		     a suspended app only when it feels like it, and never calls
+		     `didReceiveRemoteNotification` — so a rep who never opens the app
+		     between routes falls behind until the next foreground catch-up. -->
+		<string>remote-notification</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>

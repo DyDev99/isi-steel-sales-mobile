@@ -20,6 +20,10 @@ import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubi
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/stop_dashboard/stop_dashboard_screen.dart';
 import 'package:isi_steel_sales_mobile/features/profile/presentation/bloc/profile_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/profile/presentation/screens/profile_screen.dart';
+import 'package:isi_steel_sales_mobile/core/notifications/notification_deep_link.dart';
+import 'package:isi_steel_sales_mobile/features/notification/notification_coordinator.dart';
+import 'package:isi_steel_sales_mobile/features/notification/presentation/screen/notification_preferences_screen.dart';
+import 'package:isi_steel_sales_mobile/features/notification/presentation/screen/notifications_screen.dart';
 import 'package:isi_steel_sales_mobile/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:isi_steel_sales_mobile/features/splash/presentation/language_selection_screen.dart';
 import 'package:isi_steel_sales_mobile/routes/app_routes.dart';
@@ -90,6 +94,28 @@ class AppPages {
 
       case Static.onboarding:
         return _page(const OnboardingScreen(), settings);
+
+      // The notification inbox as a real route, not only a bottom sheet.
+      //
+      // `app://notifications` is §11's fallback for **every** unroutable deep
+      // link — an event that names no single record, and any URI pointing at a
+      // screen this build does not have yet. A cold start from a notification
+      // tap has nothing underneath to raise a sheet over, so that fallback needs
+      // a route with a back button.
+      case NotificationDeepLink.inboxRoute:
+        return _page(
+          // Tapping a row routes on its own `deep_link` — the backend builds
+          // those (§11), so this hands the link straight back to the resolver
+          // rather than deriving a destination from the entity fields.
+          NotificationsScreen(
+            onOpenNotification: (notification) =>
+                sl<NotificationCoordinator>().openLink(notification.deepLink),
+          ),
+          settings,
+        );
+
+      case NotificationDeepLink.notificationSettingsRoute:
+        return _page(const NotificationPreferencesScreen(), settings);
 
       case Static.profile:
         return _page(

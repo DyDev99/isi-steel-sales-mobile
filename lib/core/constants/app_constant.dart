@@ -132,6 +132,81 @@ class AppConstants {
   /// never fail the batch.
   static const String visitPushEndpoint = '$apiPrefix/mobile/visits/push';
 
+  // ── Mobile notification endpoints ──────────────────────────────────
+  //
+  // Per `docs/features/notification-mobile.md` §3. The same routes also exist
+  // without the `/mobile` segment for the admin portal — same handlers,
+  // different envelope. **Use these**, or the response comes back in the
+  // portal's shape and every parse fails.
+  //
+  // All of these require authentication. The inbox and preference routes
+  // additionally need `notifications.read`, which every seeded role holds.
+  // Device registration deliberately requires **only** authentication: a rep
+  // who cannot read notifications must still be able to tell the platform
+  // their token changed.
+
+  /// `POST` — register or refresh this installation's FCM token. Idempotent on
+  /// `deviceId`, so calling it on every launch costs one cheap round trip;
+  /// calling it less often is how a rep silently stops receiving anything
+  /// (§4.1).
+  static const String deviceRegisterEndpoint =
+      '$apiPrefix/mobile/devices/register';
+
+  /// `GET` — the rep's registered installations.
+  static const String devicesEndpoint = '$apiPrefix/mobile/devices';
+
+  /// `DELETE` — deregister on sign-out. **Call before discarding the access
+  /// token**, or the platform keeps pushing one rep's notifications at a
+  /// handset that has since been handed to somebody else (§4.4).
+  static String deviceEndpoint(String deviceId) => '$devicesEndpoint/$deviceId';
+
+  /// `GET` — the inbox, paged and filtered. The guaranteed delivery path: this
+  /// is what makes a dropped push cost nothing (§1).
+  static const String notificationsEndpoint = '$apiPrefix/mobile/notifications';
+
+  /// `GET` — badge figures. Cheap enough to call on every foreground, and the
+  /// only correct source for them: a locally incremented counter drifts the
+  /// first time a push is dropped (§7).
+  static const String notificationCountsEndpoint =
+      '$notificationsEndpoint/unread-count';
+
+  /// `PATCH` — mark one read. Idempotent; the first read timestamp wins.
+  static String notificationReadEndpoint(String id) =>
+      '$notificationsEndpoint/$id/read';
+
+  /// `PATCH` — mark all read, optionally scoped by `?category=`.
+  static const String notificationReadAllEndpoint =
+      '$notificationsEndpoint/read-all';
+
+  /// `POST` — record that the rep **acted**. The only call that closes an item
+  /// requiring acknowledgement; wiring "scrolled past it" here instead of to
+  /// `/read` silently breaks the supervisor escalation chain (§8.3).
+  static String notificationActionEndpoint(String id) =>
+      '$notificationsEndpoint/$id/action';
+
+  /// `DELETE` — dismiss. A state change, not a deletion; answers 409 when the
+  /// item requires acknowledgement.
+  static String notificationDismissEndpoint(String id) =>
+      '$notificationsEndpoint/$id';
+
+  /// `GET`/`PUT` — the settings screen. Build it from the response's
+  /// `categories`, never from a list compiled into the app (§13).
+  static const String notificationPreferencesEndpoint =
+      '$notificationsEndpoint/preferences';
+
+  /// One catch-up page. Comfortably inside the server's clamp of
+  /// [maxPageSize] and large enough that a rep returning from a week offline
+  /// drains in a handful of round trips (§6.1).
+  static const int notificationPageSize = 100;
+
+  /// Safety stop on the catch-up loop.
+  ///
+  /// A paging bug — a server that always reports `hasNextPage`, or a cursor that
+  /// never advances — would otherwise spin until the app is killed, on a rep's
+  /// mobile data. Ten pages is 1,000 notifications, far past any real backlog;
+  /// hitting it is a defect and is logged as one rather than silently truncated.
+  static const int notificationMaxCatchUpPages = 10;
+
   /// Minimum accepted by `POST /auth/change-password` and `/auth/reset-password`.
   static const int minPasswordLength = 12;
 
@@ -143,6 +218,21 @@ class AppConstants {
   /// Per-installation device identifier sent with login and refresh. Survives
   /// restarts, may change on reinstall, never used for authorisation.
   static const String kDeviceId = 'isi.device_id';
+
+  /// Hive key for the cached notification-preferences document (§13).
+  ///
+  /// Hive rather than the encrypted database, and deliberately: these are the
+  /// rep's own toggles and quiet-hours window — settings, not business records
+  /// or PII — and they are regenerable from the server on demand
+  /// (`docs/ARCHITECTURE.md` §3, Layer 2). Caching them needs no schema
+  /// migration and the cache is never authoritative.
+  static const String kNotificationPreferences = 'isi.notification_preferences';
+
+  /// Hive key for when the push-permission explainer was last shown.
+  ///
+  /// §14 caps re-showing it at once every 14 days after a decline. Local UI
+  /// state with nothing sensitive in it, so Hive is the right home.
+  static const String kPushExplainerShownAt = 'isi.push_explainer_shown_at';
 
   // ── Encrypted database (Blueprint §3) ──────────────────────────────
   /// Secure-storage key holding the hardware-sealed 256-bit device key. This

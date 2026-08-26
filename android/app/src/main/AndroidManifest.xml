@@ -8,6 +8,12 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <!-- Android 13+ (API 33) gates every notification behind a runtime
+         grant. Declared here, requested from the in-app explainer rather
+         than at first launch (docs/features/notification-mobile.md §14):
+         a rep who has not yet seen a route has no reason to say yes, and
+         a denial is sticky. The inbox works fully without it. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
@@ -73,7 +79,36 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+
+            <!-- `app://` deep links, the URI scheme every notification's
+                 `deep_link` is built in (§11). Needed for links that arrive
+                 from outside FCM (a chat message, a QA test intent); a tap on
+                 an FCM notification reaches Dart through
+                 `onMessageOpenedApp` / `getInitialMessage()` instead and does
+                 not depend on this filter. `singleTop` above is what keeps a
+                 second link from stacking a second Flutter engine. -->
+            <intent-filter android:autoVerify="false">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="app"/>
+            </intent-filter>
         </activity>
+
+        <!-- Where a push lands when the backend sends no `channel_id`, or
+             sends one this build has not created. Android's own fallback is a
+             low-importance channel the user cannot see or control, so a
+             mis-tagged P1 would arrive silently. `system` is created at
+             startup by `NotificationChannelRegistrar` along with the other
+             nine categories (§9.3). -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="system" />
+        <!-- Without an explicit small icon Android renders the full-colour
+             launcher icon as a white square in the status bar. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@mipmap/launcher_icon" />
 
         <meta-data
             android:name="flutterEmbedding"

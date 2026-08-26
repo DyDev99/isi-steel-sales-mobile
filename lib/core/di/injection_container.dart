@@ -115,8 +115,10 @@ Future<void> initDependencies() async {
   registerHomeFeature(sl);
   await registerOrderFeature(sl);
   await registerCustomerFeature(sl);
-  // After customers: the notification feed is derived from the customer cache
-  // now that the lead feature — which used to own it — is gone.
+  // After auth, which supplies the authenticated `Dio` and the `DeviceIdentity`
+  // whose per-installation id is the upsert key for a push registration
+  // (docs/features/notification-mobile.md §4.2). The feed is no longer derived
+  // from the customer cache — it is the real inbox now.
   registerNotificationFeature(sl);
   await registerMyVisitsFeature(sl);
   registerProfileFeature(sl);

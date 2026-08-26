@@ -1,36 +1,155 @@
+import 'dart:async';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:isi_steel_sales_mobile/core/database/hive/local_cache.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/breakpoints.dart';
 import 'package:isi_steel_sales_mobile/core/theme/app_theme.dart';
 import 'package:isi_steel_sales_mobile/core/theme/app_typography.dart';
-
 import 'package:isi_steel_sales_mobile/core/usecase/usecase.dart';
-import 'package:isi_steel_sales_mobile/features/notification/domain/entities/notification_item.dart';
-import 'package:isi_steel_sales_mobile/features/notification/domain/repositories/notification_repository.dart';
-import 'package:isi_steel_sales_mobile/features/notification/domain/usecases/fetch_notifications.dart';
+import 'package:isi_steel_sales_mobile/core/utils/result.dart';
+import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
+import 'package:isi_steel_sales_mobile/features/notification/domain/entities/notification_category.dart';
+import 'package:isi_steel_sales_mobile/features/notification/domain/entities/notification_counts.dart';
+import 'package:isi_steel_sales_mobile/features/notification/domain/entities/notification_message.dart';
+import 'package:isi_steel_sales_mobile/features/notification/domain/entities/notification_priority.dart';
+import 'package:isi_steel_sales_mobile/features/notification/domain/entities/notification_query.dart';
+import 'package:isi_steel_sales_mobile/features/notification/domain/entities/notification_state.dart';
+import 'package:isi_steel_sales_mobile/features/notification/domain/entities/notification_sync_result.dart';
+import 'package:isi_steel_sales_mobile/features/notification/domain/entities/push_registration.dart';
+import 'package:isi_steel_sales_mobile/features/notification/domain/repositories/notification_inbox_repository.dart';
+import 'package:isi_steel_sales_mobile/features/notification/domain/repositories/push_device_repository.dart';
+import 'package:isi_steel_sales_mobile/features/notification/domain/usecases/inbox_usecases.dart';
+import 'package:isi_steel_sales_mobile/features/notification/domain/usecases/push_device_usecases.dart';
+import 'package:isi_steel_sales_mobile/features/notification/presentation/bloc/notification_inbox_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/notification/presentation/bloc/push_permission_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/notification/presentation/screen/notifications_sheet.dart';
-import 'package:mocktail/mocktail.dart';
+import 'package:isi_steel_sales_mobile/features/notification/presentation/widgets/notification_inbox_view.dart';
 
-class _MockNotificationRepository extends Mock
-    implements NotificationRepository {}
+/// An in-memory inbox, so the view can be pumped without a database, DI, or a
+/// gateway.
+class _FakeInboxRepository implements NotificationInboxRepository {
+  _FakeInboxRepository(this._items);
 
-class _StubFetchNotifications extends FetchNotifications {
-  _StubFetchNotifications(this.items) : super(_MockNotificationRepository());
+  final List<NotificationMessage> _items;
+  final _controller = StreamController<List<NotificationMessage>>.broadcast();
 
-  final List<NotificationItem> items;
+  /// Filters exactly as the DAO does, so the tabs and chips are exercised
+  /// against the same rules production uses rather than against a stub that
+  /// always returns everything.
+  List<NotificationMessage> _slice(NotificationQuery query) {
+    final states = query.states;
+    return _items.where((item) {
+      if (!states.contains(item.state)) return false;
+      if (query.requiresAckOnly && !item.requiresAck) return false;
+      if (query.category != null && item.category != query.category) {
+        return false;
+      }
+      return true;
+    }).toList();
+  }
 
   @override
-  Future<List<NotificationItem>> call(NoParams params) async => items;
+  Stream<List<NotificationMessage>> watch(NotificationQuery query) async* {
+    yield _slice(query);
+    yield* _controller.stream.map((_) => _slice(query));
+  }
+
+  @override
+  Future<NotificationMessage?> findById(String id) async => null;
+
+  @override
+  Stream<NotificationCounts> watchCounts() =>
+      Stream.value(const NotificationCounts());
+
+  @override
+  ResultFuture<NotificationSyncResult> catchUp({bool full = false}) async =>
+      const Success(NotificationSyncResult());
+
+  @override
+  ResultFuture<NotificationCounts> refreshCounts() async =>
+      const Success(NotificationCounts.empty);
+
+  @override
+  ResultFuture<void> markRead(String notificationId) async {
+    final index = _items.indexWhere((i) => i.id == notificationId);
+    if (index >= 0) {
+      _items[index] = _items[index].markedRead(DateTime.utc(2026, 8, 25));
+      _controller.add(_items);
+    }
+    return const Success(null);
+  }
+
+  @override
+  ResultFuture<int> markAllRead({String? categoryCode}) async =>
+      const Success(0);
+
+  @override
+  ResultFuture<void> recordAction(String notificationId,
+          {String? actionId}) async =>
+      const Success(null);
+
+  @override
+  ResultFuture<void> dismiss(String notificationId) async =>
+      const Success(null);
+
+  @override
+  ResultFuture<void> upsertFromPush(Map<String, String> data,
+          {String? title, String? body}) async =>
+      const Success(null);
+
+  @override
+  ResultFuture<List<String>> drainActionQueue() async => const Success([]);
+
+  @override
+  Future<void> clear() async {}
 }
 
-NotificationItem _item(String id, NotificationKind kind) => NotificationItem(
+/// Reports the permission as already granted, so neither the §14 explainer nor
+/// the declined banner is on screen for the list assertions below. Both have
+/// their own coverage in `push_permission_cubit_test.dart`.
+class _GrantedPushDevices implements PushDeviceRepository {
+  @override
+  Future<PushPermissionStatus> permissionStatus() async =>
+      PushPermissionStatus.granted;
+
+  @override
+  ResultFuture<PushPermissionStatus> requestPermission() async =>
+      const Success(PushPermissionStatus.granted);
+
+  @override
+  ResultFuture<PushRegistrationResult?> register() async => const Success(null);
+
+  @override
+  ResultFuture<void> deregister() async => const Success(null);
+
+  @override
+  Stream<String> get tokenRefreshes => const Stream<String>.empty();
+}
+
+NotificationMessage _message(
+  String id, {
+  NotificationCategory category = NotificationCategory.finance,
+  NotificationState state = NotificationState.unread,
+  bool requiresAck = false,
+  String title = 'Credit approved',
+}) =>
+    NotificationMessage(
       id: id,
-      kind: kind,
-      title: 'Credit approved',
+      eventCode: 'FINANCE.CREDIT_APPROVED',
+      category: category,
+      priority: NotificationPriority.p2,
+      title: title,
       body: 'The credit limit for ISI Steel Co. was approved.',
-      createdAt: DateTime(2026, 8, 12),
+      requiresAck: requiresAck,
+      state: state,
+      createdAt: DateTime.utc(2026, 8, 12),
     );
 
 void main() {
@@ -44,42 +163,76 @@ void main() {
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
     await LocalizationService.instance.load('en');
+    // `NotificationTile` formats dates older than a week with
+    // `DateFormat.MMMd(<locale>)`, and the explicit-locale constructors throw
+    // `LocaleDataException` without this. `AppBootstrapService` calls it for the
+    // real app; a widget test has to do the same rather than have the tile
+    // defend itself, which would only hide a genuinely broken boot.
+    await initializeDateFormatting();
+    // `PushPermissionCubit` reads and writes the explainer timestamp through
+    // Hive. An in-memory box keeps the widget tests off disk.
+    Hive.init('.dart_tool/test_hive_notifications');
   });
 
   const phone = Size(390, 844);
   const tablet = Size(834, 1112); // iPad Air portrait — `medium`
 
-  /// Opens the real sheet, so the test exercises `showNotificationsSheet`'s
-  /// chrome (via `showAppBottomSheet`) rather than the private widget alone.
-  Future<void> openSheet(
-    WidgetTester tester, {
-    required Size size,
-    required bool isGuest,
-    List<NotificationItem> items = const [],
-  }) async {
+  late Box<dynamic> box;
+
+  setUp(() async {
+    box = await Hive.openBox<dynamic>(
+      'notif_test_${DateTime.now().microsecondsSinceEpoch}',
+      bytes: Uint8List(0),
+    );
+  });
+
+  tearDown(() async => box.close());
+
+  Future<void> pumpAt(WidgetTester tester, Size size, Widget child) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
 
     await tester.pumpWidget(
       ScreenUtilInit(
-        designSize:
-            Breakpoints.fromWidth(size.width).isCompact ? phone : size,
+        designSize: Breakpoints.fromWidth(size.width).isCompact ? phone : size,
         builder: (context, _) => MaterialApp(
           theme: AppTheme.light(AppTypography.latinFontFamily),
-          home: Builder(
-            builder: (context) => Scaffold(
-              body: Center(
-                child: ElevatedButton(
-                  onPressed: () => showNotificationsSheet(
-                    context: context,
-                    fetchNotifications: _StubFetchNotifications(items),
-                    isGuest: isGuest,
-                    onLogin: () {},
-                  ),
-                  child: const Text('open'),
-                ),
+          home: child,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+  }
+
+  /// Opens the real sheet, so the test exercises `showNotificationsSheet`'s
+  /// chrome (via `showAppBottomSheet`) rather than the private widget alone.
+  ///
+  /// Guest only: the signed-in branch resolves its cubits from `GetIt`, and the
+  /// list assertions below pump [NotificationInboxView] with locally-built ones
+  /// instead of standing up the whole container.
+  Future<void> openGuestSheet(WidgetTester tester, {required Size size}) async {
+    // Tear the previous tree down first. A test that opens the sheet twice —
+    // once per viewport — otherwise leaves the first modal route on screen
+    // covering the trigger button, and the second `tap` hit-tests the sheet
+    // instead. It only surfaces as a `warnIfMissed` warning, so the assertion
+    // still passes while measuring the wrong sheet.
+    await tester.pumpWidget(const SizedBox.shrink());
+
+    await pumpAt(
+      tester,
+      size,
+      Builder(
+        builder: (context) => Scaffold(
+          body: Center(
+            child: ElevatedButton(
+              onPressed: () => showNotificationsSheet(
+                context: context,
+                isGuest: true,
+                onLogin: () {},
               ),
+              child: const Text('open'),
             ),
           ),
         ),
@@ -92,6 +245,48 @@ void main() {
     // past the sheet's entrance animation is all this test needs.
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 600));
+  }
+
+  /// Pumps the inbox body with a scripted set of notifications.
+  Future<void> openInbox(
+    WidgetTester tester, {
+    required Size size,
+    required List<NotificationMessage> items,
+  }) async {
+    final repository = _FakeInboxRepository(List.of(items));
+    final inbox = NotificationInboxCubit(
+      watchNotifications: WatchNotifications(repository),
+      syncNotifications: SyncNotifications(repository),
+      markRead: MarkNotificationRead(repository),
+      markAllRead: MarkAllNotificationsRead(repository),
+      recordAction: RecordNotificationAction(repository),
+      dismissNotification: DismissNotification(repository),
+      invokeAction: ({required endpoint, required method}) async {},
+    )..start();
+    final permission = PushPermissionCubit(
+      getStatus: GetPushPermissionStatus(_GrantedPushDevices()),
+      requestPermission: RequestPushPermission(_GrantedPushDevices()),
+      cache: LocalCache(box),
+    );
+    addTearDown(inbox.close);
+    addTearDown(permission.close);
+
+    await pumpAt(
+      tester,
+      size,
+      MultiBlocProvider(
+        providers: [
+          BlocProvider.value(value: inbox),
+          BlocProvider.value(value: permission),
+        ],
+        child: const Scaffold(
+          body: Padding(
+            padding: EdgeInsets.all(16),
+            child: NotificationInboxView(),
+          ),
+        ),
+      ),
+    );
   }
 
   double fontSizeOf(WidgetTester tester, String text) =>
@@ -108,7 +303,7 @@ void main() {
         // (singular) namespace, which existed only in en.json — so in Khmer
         // every string here rendered as its own key. `translate()` returns the
         // key on a miss, so nothing failed loudly.
-        await openSheet(tester, size: phone, isGuest: true);
+        await openGuestSheet(tester, size: phone);
 
         expect(find.text('notifications.welcome_title'), findsNothing);
         expect(find.text('notifications.welcome_body'), findsNothing);
@@ -118,103 +313,122 @@ void main() {
     });
 
     testWidgets('type is larger on a tablet than on a phone', (tester) async {
-      await openSheet(tester, size: phone, isGuest: true);
+      await openGuestSheet(tester, size: phone);
       final phoneTitle = fontSizeOf(tester, 'Welcome!');
 
-      await openSheet(tester, size: tablet, isGuest: true);
+      await openGuestSheet(tester, size: tablet);
       expect(fontSizeOf(tester, 'Welcome!'), greaterThan(phoneTitle));
     });
   });
 
-  group('list state', () {
+  group('inbox', () {
     final items = [
-      _item('1', NotificationKind.creditApproved),
-      _item('2', NotificationKind.customerAssigned),
+      _message('1'),
+      _message('2', category: NotificationCategory.assignment),
     ];
 
-    testWidgets('title, filters and rows render without overflow',
+    testWidgets('tabs, filters and rows render without overflow',
         (tester) async {
-      await openSheet(tester, size: phone, isGuest: false, items: items);
+      await openInbox(tester, size: phone, items: items);
 
-      expect(find.text('Notifications'), findsOneWidget);
+      expect(find.text('Inbox'), findsOneWidget);
+      expect(find.text('History'), findsOneWidget);
       expect(find.text('All'), findsOneWidget);
-      expect(find.text('Approved'), findsOneWidget);
       expect(find.text('Credit approved'), findsNWidgets(2));
       expect(tester.takeException(), isNull);
     });
 
     testWidgets('row type scales up on a tablet', (tester) async {
+      await openInbox(tester, size: phone, items: items);
+      final phoneRowTitle = tester
+          .widgetList<Text>(find.text('Credit approved'))
+          .first
+          .style!
+          .fontSize!;
 
-      await openSheet(tester, size: phone, isGuest: false, items: items);
-      final phoneSheetTitle = fontSizeOf(tester, 'Notifications');
-      final phoneRowTitle =
-          tester.widgetList<Text>(find.text('Credit approved')).first.style!.fontSize!;
+      await openInbox(tester, size: tablet, items: items);
+      final tabletRowTitle = tester
+          .widgetList<Text>(find.text('Credit approved'))
+          .first
+          .style!
+          .fontSize!;
 
-      await openSheet(tester, size: tablet, isGuest: false, items: items);
-      final tabletRowTitle =
-          tester.widgetList<Text>(find.text('Credit approved')).first.style!.fontSize!;
-
-      expect(fontSizeOf(tester, 'Notifications'),
-          greaterThan(phoneSheetTitle));
       expect(tabletRowTitle, greaterThan(phoneRowTitle));
     });
 
-    testWidgets('groups into status columns on a tablet, flat list on a phone',
+    testWidgets('an empty category filter shows translated copy',
         (tester) async {
-      // The buckets are derived statically from NotificationKind — the entity
-      // has no status field — so this also pins that mapping: creditApproved
-      // belongs under "Approved", customerAssigned under "Updates".
-      await openSheet(tester, size: phone, isGuest: false, items: items);
-      expect(find.text('Approved'), findsOneWidget); // the filter chip only
-      expect(find.text('Updates'), findsNothing);
-      expect(find.text('Action needed'), findsNothing);
+      await openInbox(tester, size: phone, items: [_message('1')]);
 
-      await openSheet(tester, size: tablet, isGuest: false, items: items);
-      // Column headings appear; 'Approved' now matches chip + heading.
-      expect(find.text('Updates'), findsOneWidget);
-      expect(find.text('Action needed'), findsOneWidget);
-      expect(find.text('Approved'), findsNWidgets(2));
-      expect(tester.takeException(), isNull);
-    });
-
-    testWidgets('an empty status column still renders, with a zero count',
-        (tester) async {
-      // Every bucket is drawn even when empty so the columns do not reshuffle
-      // as notifications arrive (FS-UX-2).
-      await openSheet(
-        tester,
-        size: tablet,
-        isGuest: false,
-        items: [_item('1', NotificationKind.creditApproved)],
+      // The chips live in a lazy horizontal ListView, so a chip far along the
+      // row is not merely off-screen — it has not been built at all, and
+      // `ensureVisible` throws "No element". Scrolling it into view builds it
+      // first. Tapping without this would hit-test empty space and silently do
+      // nothing (only a "warnIfMissed" warning), leaving the filter unapplied.
+      await tester.scrollUntilVisible(
+        find.text('Orders'),
+        200,
+        scrollable: find.byType(Scrollable).first,
       );
-
-      expect(find.text('Action needed'), findsOneWidget);
-      expect(find.text('Nothing here'), findsNWidgets(2)); // updates + action
-      expect(find.text('0'), findsNWidgets(2));
-    });
-
-    testWidgets('an empty filter result shows translated copy', (tester) async {
-      await openSheet(
-        tester,
-        size: phone,
-        isGuest: false,
-        items: [_item('1', NotificationKind.creditApproved)],
-      );
-
-      // The chips live in a horizontal SingleChildScrollView and 'Pending' is
-      // the 5th of six, so at 390pt it starts off-screen. `tap` would find the
-      // widget but hit-test empty space, silently do nothing (only a
-      // "warnIfMissed" warning), and the filter would never apply — which is
-      // exactly how this test was failing.
-      await tester.ensureVisible(find.text('Pending'));
       await tester.pump();
-
-      await tester.tap(find.text('Pending'));
+      await tester.tap(find.text('Orders'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
-      expect(find.text('No notifications match this filter.'), findsOneWidget);
-      expect(find.text('notifications.filter.no_results'), findsNothing);
+      expect(find.text('No new notifications'), findsOneWidget);
+      expect(find.text('notifications.empty'), findsNothing);
+    });
+
+    testWidgets('the Action needed tab shows only outstanding items',
+        (tester) async {
+      // §5.4: `requires_ack` items are the tab's whole content, and §8.3 means a
+      // *read* one still belongs here.
+      await openInbox(tester, size: phone, items: [
+        _message('1', title: 'Routine update'),
+        _message('2',
+            title: 'Acknowledge route',
+            requiresAck: true,
+            state: NotificationState.read),
+      ]);
+
+      await tester.tap(find.text('Action needed'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('Acknowledge route'), findsOneWidget);
+      expect(find.text('Routine update'), findsNothing);
+    });
+
+    testWidgets('an empty Action needed tab reads as good news',
+        (tester) async {
+      await openInbox(tester, size: phone, items: [_message('1')]);
+
+      await tester.tap(find.text('Action needed'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(
+        find.text('Nothing needs your acknowledgement right now.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('history shows a resolved item with its explanation',
+        (tester) async {
+      // §5.1: nothing is ever deleted, and a greyed row without a reason reads
+      // as a bug rather than as information.
+      await openInbox(tester, size: phone, items: [
+        _message('1',
+            title: 'Order on credit hold',
+            state: NotificationState.resolvedElsewhere),
+      ]);
+
+      await tester.tap(find.text('History'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('Order on credit hold'), findsOneWidget);
+      expect(find.text('Already actioned by someone else.'), findsOneWidget);
     });
   });
 }

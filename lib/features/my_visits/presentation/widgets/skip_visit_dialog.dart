@@ -22,7 +22,6 @@ const _presetReasons = [
   'Customer not available',
   'No stock needed',
   'Access denied',
-  'Other',
 ];
 
 /// Asks the rep why they're skipping [customer] before the stop dashboard

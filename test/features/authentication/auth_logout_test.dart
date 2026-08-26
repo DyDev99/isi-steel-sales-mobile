@@ -1,3 +1,4 @@
+import 'package:isi_steel_sales_mobile/features/authentication/domain/notification_lifecycle.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/domain/repositories/auth_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isi_steel_sales_mobile/core/logging/app_logger.dart';
@@ -34,6 +35,30 @@ class _RecordingStore implements SessionScopedStore {
   Future<void> clearForSignOut() async => cleared = true;
 }
 
+/// Fails every hook, to prove sign-out survives it.
+class _ThrowingNotifications implements NotificationLifecycle {
+  @override
+  Future<void> onSignedIn() async => throw StateError('no network');
+
+  @override
+  Future<void> onSigningOut() async => throw StateError('no network');
+}
+
+/// Records when the notification side of sign-out ran.
+///
+/// A two-method fake rather than a mock of `NotificationCoordinator`: that is
+/// the entire reason [NotificationLifecycle] exists — `AuthBloc` must be
+/// testable without standing up Firebase, a Drift DAO and three repositories.
+class _RecordingNotifications implements NotificationLifecycle {
+  final List<String> calls = [];
+
+  @override
+  Future<void> onSignedIn() async => calls.add('signedIn');
+
+  @override
+  Future<void> onSigningOut() async => calls.add('signingOut');
+}
+
 void main() {
   const logger = ConsoleAppLogger(verbose: false);
 
@@ -44,6 +69,7 @@ void main() {
   late _MockAuthRepository repository;
   late AppRestartController restart;
   late _RecordingStore store;
+  late _RecordingNotifications notifications;
 
   setUpAll(() {
     registerFallbackValue(const NoParams());
@@ -59,9 +85,11 @@ void main() {
         appRestart: restart,
         repository: repository,
         logger: logger,
+        notifications: notifications,
       );
 
   setUp(() {
+    notifications = _RecordingNotifications();
     login = _MockLogin();
     logout = _MockLogout();
     getCurrentUser = _MockGetCurrentUser();
@@ -78,6 +106,52 @@ void main() {
     // is already-completed test doubles.
     await Future<void>.delayed(Duration.zero);
   }
+
+  test('the device is deregistered before the token is discarded', () async {
+    // `docs/features/notification-mobile.md` §4.4, and the ordering is the whole
+    // point: deregistration is an authenticated call, so it has to happen while
+    // the bearer token is still valid. Skipping it — or running it after — leaves
+    // the platform pushing one rep's notifications at a handset that has since
+    // been handed to somebody else.
+    final order = <String>[];
+    notifications.calls.clear();
+    when(() => logout(any())).thenAnswer((_) async {
+      order.add('logout');
+      return const Success(null);
+    });
+
+    final bloc = build();
+    addTearDown(bloc.close);
+
+    await signOut(bloc);
+    order.insertAll(0, notifications.calls);
+
+    expect(order, ['signingOut', 'logout']);
+  });
+
+  test('a failing deregistration does not block sign-out', () async {
+    // A rep who cannot sign out because a deregistration failed is worse than a
+    // stale registration — which the backend deactivates on its own once FCM
+    // reports the token dead.
+    final bloc = AuthBloc(
+      login: login,
+      logout: logout,
+      getCurrentUser: getCurrentUser,
+      sessionManager: session,
+      sessionReset: SessionResetService([store], logger),
+      appRestart: restart,
+      repository: repository,
+      logger: logger,
+      notifications: _ThrowingNotifications(),
+    );
+    addTearDown(bloc.close);
+
+    await signOut(bloc);
+
+    verify(() => logout(any())).called(1);
+    expect(session.isAuthenticated, isFalse);
+    expect(bloc.state, isA<AuthGuestState>());
+  });
 
   test('sign-out clears tokens, feature stores and the session', () async {
     final bloc = build();

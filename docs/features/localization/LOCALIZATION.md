@@ -258,7 +258,7 @@ a correctly-synced bilingual catalog decayed back to English the longer the app 
 - **Never translate**: brand names (`Schneider`, `Draka`, `ISI PIPE`), size/spec labels
   (`3P 63A`, `1Cx2.5mm2`), grades, material numbers, unit codes. They are SAP vocabulary a
   rep reads identically in either language, and "translating" them makes the Khmer catalog
-  un-searchable by part number.
+  un-searchable by part "../../localization"number.
 
 ## 9. Deliberate exclusions
 

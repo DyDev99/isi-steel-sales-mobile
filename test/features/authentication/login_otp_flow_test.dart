@@ -11,6 +11,7 @@ import 'package:isi_steel_sales_mobile/features/authentication/domain/repositori
 import 'package:isi_steel_sales_mobile/features/authentication/domain/usecases/get_current_user.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/domain/usecases/login.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/domain/usecases/logout.dart';
+import 'package:isi_steel_sales_mobile/features/authentication/domain/notification_lifecycle.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_event.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_state.dart';
@@ -53,6 +54,19 @@ class _NoopStore implements SessionScopedStore {
 /// `send-otp` checks the password and returns a `verificationId`, `verify-otp`
 /// confirms the code and issues *no token*, and `mobile/auth/login` exchanges
 /// the verified attempt for the pair.
+/// The notification hooks are irrelevant to the OTP flow, but `AuthBloc`
+/// requires them — see [NotificationLifecycle] for why the dependency is an
+/// interface rather than the coordinator itself.
+class _NoopNotifications implements NotificationLifecycle {
+  const _NoopNotifications();
+
+  @override
+  Future<void> onSignedIn() async {}
+
+  @override
+  Future<void> onSigningOut() async {}
+}
+
 void main() {
   late _MockRepo repo;
   late SessionManager session;
@@ -68,6 +82,7 @@ void main() {
         appRestart: AppRestartController(),
         repository: repo,
         logger: _logger,
+        notifications: const _NoopNotifications(),
       );
 
   setUp(() {

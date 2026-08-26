@@ -6,6 +6,7 @@ import 'package:isi_steel_sales_mobile/core/database/drift/daos/catalog_dao.dart
 import 'package:isi_steel_sales_mobile/core/database/drift/daos/customer_dao.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/daos/route_dao.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/daos/route_telemetry_dao.dart';
+import 'package:isi_steel_sales_mobile/core/database/drift/daos/notification_dao.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/daos/order_dao.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/daos/visit_dao.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/daos/workflow_state_dao.dart';
@@ -15,6 +16,7 @@ import 'package:isi_steel_sales_mobile/core/database/drift/tables/cart_items_tab
 import 'package:isi_steel_sales_mobile/core/database/drift/tables/catalog_tables.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/tables/customer_related_tables.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/tables/customers_table.dart';
+import 'package:isi_steel_sales_mobile/core/database/drift/tables/notification_tables.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/tables/order_tables.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/tables/route_tables.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/tables/visit_tables.dart';
@@ -74,6 +76,14 @@ part 'app_database.g.dart';
     SyncQueue,
     // Resume pointer (T1.5b, v13) — the last table in the plaintext `routes.db`.
     WorkflowState,
+    // Notification inbox (v19). A pull-only mirror of the server's inbox plus
+    // its own outbox, because the inbox — not the push — is the system of
+    // record (docs/features/notification-mobile.md §1). Encrypted rather than
+    // cached in Hive: a notification body names a customer and a route, which
+    // is PII (docs/SECURITY.md §3).
+    Notifications,
+    NotificationActionQueue,
+    NotificationSyncMeta,
   ],
   daos: [
     AppMetadataDao,
@@ -89,6 +99,10 @@ part 'app_database.g.dart';
     SalesOrderDao,
     SyncQueueDao,
     WorkflowStateDao,
+    // Notification inbox + outbox (v19). One DAO for both, because every state
+    // change has to write the mirror and enqueue its server call in the same
+    // transaction (ADR-006) — two DAOs could not share one.
+    NotificationDao,
   ],
 )
 class AppDatabase extends _$AppDatabase {
