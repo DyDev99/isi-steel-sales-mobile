@@ -7,6 +7,7 @@ import 'package:isi_steel_sales_mobile/core/usecase/usecase.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/location_sample.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_plan.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_stop.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_status.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/geofence_service.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/location_tracking_service.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/stop_distance_sorter.dart';
@@ -153,17 +154,27 @@ class StopDashboardCubit extends Cubit<StopDashboardState> {
   void _rebuild() {
     final ctx = <String, ({String routeId, String routeName})>{};
     final stops = <RouteStop>[];
+    final today = DateUtils.dateOnly(DateTime.now());
+
     for (final route in _routes) {
       if (!DateUtils.isSameDay(route.visitDate, _selectedDate)) continue;
+      final isOverdue = route.visitDate.isBefore(today);
       for (final stop in route.stops) {
-        // `RoutePlan.name` carries a translation key for mock-generated plans
-        // and a verbatim SAP description for real ones; `.tr` resolves the
-        // former and passes the latter through untouched, so one call handles
-        // both. Resolved here rather than in the widget because the search
-        // predicate in `StopDashboardLoaded._matchesQuery` compares against
-        // this value — a raw key would never match what the rep sees.
         ctx[stop.id] = (routeId: route.id, routeName: route.name.tr);
-        stops.add(stop);
+        // Auto-correct statuses for past (overdue) dates:
+        //   pending   → missed   (never started)
+        //   checkedIn → checkedOut (left open, treat as completed)
+        if (isOverdue) {
+          final corrected = switch (stop.status) {
+            VisitStatus.pending => VisitStatus.missed,
+            VisitStatus.checkedIn => VisitStatus.checkedOut,
+            _ => stop.status,
+          };
+          stops.add(
+              corrected != stop.status ? stop.copyWith(status: corrected) : stop);
+        } else {
+          stops.add(stop);
+        }
       }
     }
 

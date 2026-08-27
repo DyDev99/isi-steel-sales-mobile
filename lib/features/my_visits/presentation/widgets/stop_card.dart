@@ -192,18 +192,19 @@ class StopCard extends StatelessWidget {
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Ad-Hoc / Basket Order Button (Allowed anytime)
-                      _ActionButton(
-                        icon: Icons.shopping_basket_rounded,
-                        color: Theme.of(context).colorScheme.primary,
-                        backgroundColor: Theme.of(context)
-                            .colorScheme
-                            .primary
-                            .withValues(alpha: 0.12),
-                        onTap: onQuotationTap,
-                      ),
+                      // Basket Order Button — hidden when pending
+                      if (_status != VisitStatus.pending)
+                        _ActionButton(
+                          icon: Icons.shopping_basket_rounded,
+                          color: Theme.of(context).colorScheme.primary,
+                          backgroundColor: Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withValues(alpha: 0.12),
+                          onTap: onQuotationTap,
+                        ),
 
-                      // Skip Visit Button (Allowed ONLY on today's call plan)
+                      // Skip Visit Button — shown only when pending today
                       if (canSkip) ...[
                         SizedBox(width: context.rw(8)),
                         _ActionButton(
