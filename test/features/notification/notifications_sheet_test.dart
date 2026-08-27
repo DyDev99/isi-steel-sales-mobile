@@ -12,7 +12,6 @@ import 'package:isi_steel_sales_mobile/core/localization/localization_services.d
 import 'package:isi_steel_sales_mobile/core/responsive/breakpoints.dart';
 import 'package:isi_steel_sales_mobile/core/theme/app_theme.dart';
 import 'package:isi_steel_sales_mobile/core/theme/app_typography.dart';
-import 'package:isi_steel_sales_mobile/core/usecase/usecase.dart';
 import 'package:isi_steel_sales_mobile/core/utils/result.dart';
 import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
 import 'package:isi_steel_sales_mobile/features/notification/domain/entities/notification_category.dart';

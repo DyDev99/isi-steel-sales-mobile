@@ -245,15 +245,9 @@ class _HeroCard extends StatefulWidget {
 
 class _HeroCardState extends State<_HeroCard> {
   final GlobalKey _cardKey = GlobalKey();
-  bool _isCapturing = false;
 
   Future<void> _captureCard() async {
     try {
-      setState(() => _isCapturing = true);
-
-      // Allow the UI to update and hide the screenshot button before capturing
-      await WidgetsBinding.instance.endOfFrame;
-
       final boundary = _cardKey.currentContext?.findRenderObject()
           as RenderRepaintBoundary?;
       if (boundary == null) return;
@@ -262,9 +256,10 @@ class _HeroCardState extends State<_HeroCard> {
       final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
       final pngBytes = byteData?.buffer.asUint8List();
 
-      if (pngBytes != null && mounted) {
+      if (pngBytes != null) {
         await Gal.putImageBytes(pngBytes);
 
+        if (!mounted) return;
         HapticFeedback.lightImpact();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -279,8 +274,6 @@ class _HeroCardState extends State<_HeroCard> {
           SnackBar(content: Text('Failed to capture screenshot: $e')),
         );
       }
-    } finally {
-      if (mounted) setState(() => _isCapturing = false);
     }
   }
 

@@ -43,7 +43,7 @@ class DrawingUploadComponent extends StatelessWidget {
                   top: 10,
                   right: 10,
                   child: CircleAvatar(
-                    backgroundColor: Colors.black.withOpacity(0.6),
+                    backgroundColor: Colors.black.withValues(alpha: 0.6),
                     child: IconButton(
                       icon:
                           const Icon(Icons.delete_outline, color: Colors.white),
@@ -89,7 +89,7 @@ class DrawingUploadComponent extends StatelessWidget {
         color: colorScheme.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: colorScheme.primary.withOpacity(0.4),
+          color: colorScheme.primary.withValues(alpha: 0.4),
           width: 1.5,
           style: BorderStyle.solid,
         ),

@@ -3,17 +3,14 @@ import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/usecase/usecase.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
-import 'package:isi_steel_sales_mobile/shared/widgets/glass_card.dart';
 import 'package:isi_steel_sales_mobile/features/home/presentation/bloc/home_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/quotation.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/quotation_status.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/sales_order.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/watch_quotations.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/watch_sales_orders.dart';
-import 'package:isi_steel_sales_mobile/features/order/presentation/screens/catalog/product_filter_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/quotation_detail_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/sales_order/sales_order_detail_screen.dart';
-import 'package:isi_steel_sales_mobile/features/order/presentation/screens/territory/territory_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/order_skeletons.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
@@ -42,13 +39,6 @@ class _OrderScreenState extends State<OrderScreen> {
 
   // Track active filter state[cite: 6]
   _OrderStatusFilter _selectedFilter = _OrderStatusFilter.all;
-
-  void _openProductFilter() {
-    Navigator.of(context).push(MaterialPageRoute(
-      settings: const RouteSettings(name: ProductFilterScreen.routeName),
-      builder: (_) => ProductFilterScreen.provider(),
-    ));
-  }
 
   @override
   Widget build(BuildContext context) {

@@ -326,7 +326,7 @@ final Map<String, TextPainter> _textCache = {};
 
 TextPainter _label(String text, double size, Color color, double spacing,
     FontWeight weight) {
-  final key = '$text|$size|${color.toARGB32()}|$spacing|${weight.index}';
+  final key = '$text|$size|${color.toARGB32()}|$spacing|${weight.value}';
   return _textCache.putIfAbsent(key, () {
     final tp = TextPainter(
       text: TextSpan(

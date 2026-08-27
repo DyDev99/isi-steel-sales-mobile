@@ -447,8 +447,8 @@ class _OutletDetailsCard extends StatelessWidget {
           _InfoRow(
             icon: Icons.person_outline_rounded,
             label: 'Owner / Contact Person (SAP)',
-            value: (customer.ownerName?.isNotEmpty ?? false)
-                ? customer.ownerName!
+            value: customer.ownerName.isNotEmpty
+                ? customer.ownerName
                 : 'N/A',
           ),
           if (customer.phone.isNotEmpty)

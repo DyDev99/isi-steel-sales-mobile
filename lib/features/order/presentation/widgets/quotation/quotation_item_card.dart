@@ -30,7 +30,7 @@ class QuotationItemCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
           color: item.isCustomized
-              ? colorScheme.primary.withOpacity(0.5)
+              ? colorScheme.primary.withValues(alpha: 0.5)
               : colorScheme.outlineVariant,
           width: item.isCustomized ? 1.5 : 1,
         ),

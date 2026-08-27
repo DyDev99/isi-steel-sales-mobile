@@ -1,3 +1,4 @@
+// ignore_for_file: experimental_member_use
 import 'package:drift/drift.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
 
@@ -142,7 +143,6 @@ final Map<int, SchemaMigrationStep> _stepwiseMigrations =
       // changes; marked experimental upstream but covered by the v9→v10
       // migration test.
       await m.alterTable(
-        // ignore: experimental_member_use
         TableMigration(
           db.visitStockUpdates,
           newColumns: [db.visitStockUpdates.depotId],

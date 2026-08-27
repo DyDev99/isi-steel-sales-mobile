@@ -131,3 +131,59 @@ class _RouteFeedAdapter implements HttpClientAdapter {
 /// rather than an empty dashboard with no explanation.
 Dio unsatisfiableRouteFeed() =>
     scriptedRouteFeed(customerIds: () async => ['ghost-customer']);
+
+/// A scripted customer feed for pipeline tests.
+Dio scriptedCustomerFeed({int customerCount = 6}) {
+  final dio = Dio(BaseOptions(baseUrl: 'https://customers.test'));
+  dio.httpClientAdapter = _CustomerFeedAdapter(customerCount: customerCount);
+  return dio;
+}
+
+class _CustomerFeedAdapter implements HttpClientAdapter {
+  _CustomerFeedAdapter({this.customerCount = 6});
+
+  final int customerCount;
+
+  @override
+  Future<ResponseBody> fetch(RequestOptions options, Stream<List<int>>? stream,
+      Future<void>? cancelFuture) async {
+    final now = DateTime.now().toUtc().toIso8601String();
+    final body = {
+      'data': {
+        'customers': [
+          for (var i = 1; i <= customerCount; i++)
+            {
+              'id': 'cust-$i',
+              'sapCustomerId': 'SAP-$i',
+              'customerCode': 'ISI-$i',
+              'shopName': 'Hardware Shop $i',
+              'ownerName': 'Owner $i',
+              'phone': '01234567$i',
+              'province': 'Phnom Penh',
+              'district': 'Chamkar Mon',
+              'territory': 'Phnom Penh',
+              'status': 'Active',
+              'latitude': 11.55,
+              'longitude': 104.91,
+              'creditLimit': {'amount': 50000.0, 'currency': 'USD'},
+              'creditBalance': {'amount': 12000.0, 'currency': 'USD'},
+            }
+        ],
+      },
+      'message': null,
+      'metadata': {
+        'pageNumber': 1,
+        'pageSize': customerCount,
+        'hasNextPage': false,
+        'syncTimestamp': now,
+      },
+    };
+
+    return ResponseBody.fromString(jsonEncode(body), 200, headers: {
+      Headers.contentTypeHeader: [Headers.jsonContentType],
+    });
+  }
+
+  @override
+  void close({bool force = false}) {}
+}

@@ -136,7 +136,7 @@ class ShipmentSelectionWidget extends StatelessWidget {
           if (pickupLocation == PickupLocation.factory) ...[
             SizedBox(height: isTablet ? 18 : 14),
             DropdownButtonFormField<String>(
-              value: _mockFactories.contains(selectedFactory)
+              initialValue: _mockFactories.contains(selectedFactory)
                   ? selectedFactory
                   : _mockFactories.first,
               decoration: InputDecoration(
@@ -166,7 +166,7 @@ class ShipmentSelectionWidget extends StatelessWidget {
           if (pickupLocation == PickupLocation.branch) ...[
             SizedBox(height: isTablet ? 18 : 14),
             DropdownButtonFormField<String>(
-              value: _mockBranches.contains(selectedBranch)
+              initialValue: _mockBranches.contains(selectedBranch)
                   ? selectedBranch
                   : _mockBranches.first,
               decoration: InputDecoration(

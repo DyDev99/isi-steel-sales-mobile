@@ -64,9 +64,12 @@ class NotificationDao extends DatabaseAccessor<AppDatabase>
       ])
       ..limit(limit);
 
-    if (requiresAckOnly) query.where((t) => t.requiresAck.equals(true));
-    if (categoryCode != null)
+    if (requiresAckOnly) {
+      query.where((t) => t.requiresAck.equals(true));
+    }
+    if (categoryCode != null) {
       query.where((t) => t.category.equals(categoryCode));
+    }
 
     return query.watch();
   }

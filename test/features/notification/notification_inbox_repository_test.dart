@@ -43,8 +43,9 @@ class _FakeRemote implements NotificationRemoteDataSource {
   bool offline = false;
 
   void _maybeThrow(String key) {
-    if (offline)
+    if (offline) {
       throw const ApiException(ApiError(code: ApiErrorCodes.network));
+    }
     final error = failures[key];
     if (error != null) throw ApiException(error);
   }

@@ -518,8 +518,6 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
   // ===========================================================================
   Widget _buildAddressStep(Map<String, String> errors) {
     final draft = _bloc.state.draft;
-    final districts = SapMasterData.districtByCity[draft.cityCode] ?? const [];
-    final hasDistrictOptions = districts.isNotEmpty;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

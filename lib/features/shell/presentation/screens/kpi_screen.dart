@@ -656,8 +656,6 @@ class _InVisitVsAdHocCard extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final appColors = context.appColors;
 
-    final inVisitRatio = (inVisitPercentage / 100).clamp(0.0, 1.0);
-
     return Container(
       padding: EdgeInsets.all(context.rw(16)),
       decoration: BoxDecoration(
@@ -1102,7 +1100,6 @@ class _MetricTile extends StatelessWidget {
     required this.title,
     this.subtitle,
     required this.value,
-    this.detailText,
     required this.growth,
     required this.isPositive,
     required this.icon,
@@ -1111,7 +1108,6 @@ class _MetricTile extends StatelessWidget {
   final String title;
   final String? subtitle;
   final String value;
-  final String? detailText;
   final String growth;
   final bool isPositive;
   final IconData icon;
@@ -1194,17 +1190,6 @@ class _MetricTile extends StatelessWidget {
               letterSpacing: -0.3,
             ),
           ),
-          if (detailText != null) ...[
-            SizedBox(height: context.rh(2)),
-            Text(
-              detailText!,
-              style: TextStyle(
-                fontSize: context.rsp(10),
-                fontWeight: FontWeight.w600,
-                color: scheme.primary,
-              ),
-            ),
-          ],
           SizedBox(height: context.rh(4)),
           Text(
             title,
