@@ -144,7 +144,11 @@ class ProductResultCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
-    final available = product.isAvailable;
+    // The live verdict wins where we have one: it is current, and it is the
+    // only thing that actually knows whether SAP will accept the line. Falling
+    // back to the product's own flags keeps the offline catalog working, and
+    // an unanswered check never blocks the rep — see [MaterialAvailability.canOrder].
+    final available = availability?.canOrder ?? product.isAvailable;
     final inCart = quantity > 0;
     final stockStatus = _resolveStockStatus(context);
 
@@ -317,10 +321,20 @@ class ProductResultCard extends StatelessWidget {
                       enabled: available,
                       // Capped at what this SKU's own warehouse can back, so
                       // the `+` stops rather than the rep discovering the
-                      // limit only after tapping. A made-to-order SKU is
-                      // produced against the order, so stock is not its
-                      // constraint and it stays unbounded.
-                      max: product.isMto
+                      // limit only after tapping.
+                      //
+                      // Two cases are deliberately *uncapped*, and conflating
+                      // either with "zero available" is what silently kills
+                      // the `+` button:
+                      //
+                      //  * a made-to-order SKU is produced against the order,
+                      //    so stock is not its constraint;
+                      //  * a material from the selection API has no on-hand
+                      //    figure at all — `stockKnown` is false and the zero
+                      //    is an absence, not a limit. It reports a *band*,
+                      //    which is advisory, and the sellable verdict is
+                      //    carried by `enabled` above.
+                      max: product.isMto || !product.stockKnown
                           ? null
                           : product.availableQuantity.floor(),
                       onChanged: onQuantityChanged,

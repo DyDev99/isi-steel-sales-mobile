@@ -1,5 +1,5 @@
 /// How loud a notification is allowed to be
-/// (`docs/features/notification-mobile.md` §5.2).
+/// (`docs/feature/notification/README.md` §5.2).
 ///
 /// The tier is decided by the backend and is *already applied* by the time the
 /// row reaches the device — quiet hours have been honoured or bypassed, the

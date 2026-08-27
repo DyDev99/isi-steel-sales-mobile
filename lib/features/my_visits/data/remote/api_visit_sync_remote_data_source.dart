@@ -15,7 +15,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/data/remote/visit_sync
 /// implements the pending-queue and partial-acceptance handling — was
 /// untouched by the cutover.
 ///
-/// The whole device drains in one round trip (`docs/backend-document.md` §6):
+/// The whole device drains in one round trip (`docs/feature/my-visits/api.md` §6):
 /// a rep back in signal sends every pending row of every kind at once, not
 /// eight requests. The response is an accepted/rejected id split, never a
 /// whole-batch verdict.

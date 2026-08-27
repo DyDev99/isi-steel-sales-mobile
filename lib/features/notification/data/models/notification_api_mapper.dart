@@ -15,7 +15,7 @@ import 'package:isi_steel_sales_mobile/features/notification/domain/entities/pus
 /// ## Why this file is the only place that knows about `snake_case`
 ///
 /// The notification object is `snake_case` while the rest of the API is
-/// `camelCase` — `docs/features/notification-mobile.md` §5 explains why: the
+/// `camelCase` — `docs/feature/notification/README.md` §5 explains why: the
 /// object is quoted verbatim in the published specification and in the FCM
 /// payload, so it keeps the spec's casing rather than the API's. That
 /// inconsistency is real and permanent, and confining it to one file is the

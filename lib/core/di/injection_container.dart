@@ -34,8 +34,10 @@ import 'package:isi_steel_sales_mobile/features/home/presentation/bloc/home_cubi
 import 'package:isi_steel_sales_mobile/features/geo_location/geo_location_injection.dart';
 import 'package:isi_steel_sales_mobile/features/home/home_injection.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/my_visits_injection.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/usecases/check_material_availability.dart';
 import 'package:isi_steel_sales_mobile/features/order/order_injection.dart';
 import 'package:isi_steel_sales_mobile/features/notification/notification_injection.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/stock_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/profile/profile_injection.dart';
 import 'package:isi_steel_sales_mobile/features/settings/theme/theme_injection.dart';
 
@@ -62,6 +64,7 @@ Future<void> initDependencies() async {
       salt: Env.dbSalt,
     ),
   );
+  sl.registerFactory(() => StockCubit(sl<CheckMaterialAvailability>()));
   sl.registerLazySingleton<AppDatabase>(() => AppDatabase.encrypted(sl()));
   sl.registerLazySingleton<DatabaseRekeyExecutor>(
     () => AppDatabaseRekeyExecutor(sl()),
@@ -121,7 +124,7 @@ Future<void> initDependencies() async {
   registerGeoLocationFeature(sl);
   // After auth, which supplies the authenticated `Dio` and the `DeviceIdentity`
   // whose per-installation id is the upsert key for a push registration
-  // (docs/features/notification-mobile.md §4.2). The feed is no longer derived
+  // (docs/feature/notification/README.md §4.2). The feed is no longer derived
   // from the customer cache — it is the real inbox now.
   registerNotificationFeature(sl);
   await registerMyVisitsFeature(sl);

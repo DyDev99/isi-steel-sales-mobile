@@ -26,7 +26,7 @@ import 'package:sqlite3/wasm.dart';
 /// satisfied on web by there being no rest.
 ///
 /// > **Do not "upgrade" this to `WasmDatabase.open()` for offline persistence.**
-/// > That is Option C in `docs/flutter-web-support.md` §3.2, and it was
+/// > That is Option C in `docs/blueprint/web-migration-plan.md` §3.2, and it was
 /// > rejected: browsers have no hardware-backed keystore, so the key would sit
 /// > in the same storage as the data it claims to protect. Changing this needs
 /// > an ADR superseding ADR-010, not a patch.
@@ -48,7 +48,7 @@ LazyDatabase openAppDatabaseConnection(AppDatabaseKeyProvider keyProvider) {
     // so the same build works at the domain root and under a GitHub Pages
     // repository sub-path (`/isi-steel-sales-mobile/sqlite3.wasm`) with no
     // rebuild. Hardcoding a leading slash here is the single most common way to
-    // break the sub-path deployment — see `docs/flutter-web.md`.
+    // break the sub-path deployment — see `docs/blueprint/web-architecture.md`.
     final sqlite3 = await WasmSqlite3.loadFromUrl(Uri.parse('sqlite3.wasm'));
 
     // An in-memory VFS, registered as the default, is what makes "no

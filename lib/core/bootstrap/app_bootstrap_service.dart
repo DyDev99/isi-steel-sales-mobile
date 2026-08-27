@@ -16,7 +16,7 @@ import 'package:intl/date_symbol_data_local.dart';
 ///
 /// ## Two rules this service exists to enforce
 ///
-/// **1. Boot never blocks on the network** (ADR-002 §3, `docs/OFFLINE_FIRST.md`
+/// **1. Boot never blocks on the network** (ADR-002 §3, `docs/blueprint/offline-architecture.md`
 /// §2.6). A signed-in rep standing in a warehouse with no signal must reach
 /// their data. Therefore this service performs **no** token validation, **no**
 /// token refresh, and **no** master-data download. Token refresh is lazy — the
@@ -26,16 +26,16 @@ import 'package:intl/date_symbol_data_local.dart';
 /// server rejection (refresh token revoked) does, and that cannot be known
 /// offline.
 ///
-/// **2. Bootstrap never navigates** (`docs/OFFLINE_FIRST.md` §2.2, ADR-002 §5).
+/// **2. Bootstrap never navigates** (`docs/blueprint/offline-architecture.md` §2.2, ADR-002 §5).
 /// Each surface owns its own transition; `SplashScreen` decides
 /// `main` vs `chooseLanguage` from `onboarding_complete`. A central
 /// bootstrap-driven redirect is the exact global-listener pattern that was
 /// already tried, caused guest redirect loops, and was reverted — it is listed
-/// as an anti-pattern in `docs/AI_ENGINEERING_PLAYBOOK.md` §12.
+/// as an anti-pattern in `docs/skills/ai-engineering-playbook.md` §12.
 ///
 /// Auth resolution itself stays where it already works: `AuthBloc`
 /// (`AuthCheckRequested`) resolves the cached session in the background and
-/// mirrors it into `SessionManager` (`docs/OFFLINE_FIRST.md` §2.1/§2.3). This
+/// mirrors it into `SessionManager` (`docs/blueprint/offline-architecture.md` §2.1/§2.3). This
 /// service does not duplicate that.
 ///
 /// ## Ordering note
@@ -155,7 +155,7 @@ class AppBootstrapService {
 /// import was verifiably complete.
 ///
 /// This is the step that actually removes customer PII and employee GPS traces
-/// from unencrypted storage — the top entry in `docs/MIGRATION_PLAN.md` §9's
+/// from unencrypted storage — the top entry in `docs/blueprint/migration-plan.md` §9's
 /// risk register. Two rules govern it:
 ///
 /// 1. **Verify, then purge.** `safeToPurge` is false if anything was skipped
@@ -276,7 +276,7 @@ final class BootstrapFailure extends BootstrapResult {
   const BootstrapFailure(this.reason);
 
   /// Exception *type* only — never a message, which could embed PII
-  /// (`docs/SECURITY.md` §10).
+  /// (`docs/skills/security.md` §10).
   final String reason;
 }
 
@@ -284,16 +284,16 @@ final class BootstrapFailure extends BootstrapResult {
 // Not yet wired — tracked infrastructure, NOT forgotten steps.
 //
 // These boot steps are specified but blocked on infrastructure that does not
-// exist yet. Per `docs/ENGINEERING_STANDARD.md` §2 and `docs/ARCHITECTURE.md`
+// exist yet. Per `docs/skills/engineering-standard.md` §2 and `docs/blueprint/system-architecture.md`
 // §4, they must not be built ahead of their dependencies:
 //
-//   • Sync-queue crash recovery (inFlight → queued) — `docs/SYNC_ENGINE.md` §7.
+//   • Sync-queue crash recovery (inFlight → queued) — `docs/blueprint/sync-architecture.md` §7.
 //     Blocked on: a Drift `sync_queue` table + `SyncQueueDao` (Phase 2), and
 //     promoting the Orders feature's working queue into `core/sync/` (ADR-006).
 //
-//   • SyncCoordinator start — `docs/SYNC_ENGINE.md` §9. Blocked on the above.
+//   • SyncCoordinator start — `docs/blueprint/sync-architecture.md` §9. Blocked on the above.
 //
-//   • WorkflowSession resume check — `docs/OFFLINE_FIRST.md` §3, ADR-007.
+//   • WorkflowSession resume check — `docs/blueprint/offline-architecture.md` §3, ADR-007.
 //     Blocked on: a Drift `workflow_session` table + generalizing `my_visits`'
 //     `ActiveWorkflow` into `core/workflow/` (Phase 3). NOTE: `workflow_state`
 //     is the last live table in the plaintext `routes.db` — the T1.5 purge
@@ -303,6 +303,6 @@ final class BootstrapFailure extends BootstrapResult {
 //     table carries a `userId` today, and ADR-001 mandates a single database,
 //     so per-user isolation is an open architectural decision.
 //
-// See `docs/MIGRATION_PLAN.md` for sequencing. Do not stub these in with
+// See `docs/blueprint/migration-plan.md` for sequencing. Do not stub these in with
 // no-op implementations — an empty hook reads as "done" to the next engineer.
 // ─────────────────────────────────────────────────────────────────────────────

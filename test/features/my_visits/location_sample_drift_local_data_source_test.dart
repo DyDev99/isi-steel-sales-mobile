@@ -13,7 +13,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/fraud_
 /// swap from plaintext sqflite to the encrypted Drift database must be invisible
 /// to the repository above (ADR-003 seam). If any expectation here had to change
 /// to accommodate Drift, that would mean the "refactor" changed behaviour —
-/// which `docs/AI_ENGINEERING_PLAYBOOK.md` §8 says makes it not a refactor.
+/// which `docs/skills/ai-engineering-playbook.md` §8 says makes it not a refactor.
 void main() {
   late AppDatabase db;
   late LocationSampleDriftLocalDataSource dataSource;

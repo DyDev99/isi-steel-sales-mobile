@@ -32,7 +32,7 @@ enum VisitCaptureTable {
 /// every method here is shaped by them:
 ///
 /// 1. Nothing is marked `synced` until the server confirms it
-///    (`docs/SYNC_ENGINE.md` §3) — never speculatively.
+///    (`docs/blueprint/sync-architecture.md` §3) — never speculatively.
 /// 2. Writes are transaction-composable so the repository can wrap the mutation
 ///    and its sync-queue row in one transaction (ADR-006, ADR-003 point 3). The
 ///    DAO does not decide sync policy.
@@ -134,7 +134,7 @@ class VisitDao extends DatabaseAccessor<AppDatabase> with _$VisitDaoMixin {
   // (`.claude/CLAUDE.md`). Repetition is the cheaper trade.
   //
   // Soft-deleted rows are **included** everywhere here: a delete still has to be
-  // pushed before the row may be dropped (`docs/DATABASE_GUIDE.md` §3.1).
+  // pushed before the row may be dropped (`docs/blueprint/local-storage-architecture.md` §3.1).
 
   Future<List<VisitCheckInRow>> fetchPendingCheckIns() => (select(visitCheckIns)
         ..where((t) => t.syncState.equals(SyncStates.dirty)))
@@ -220,7 +220,7 @@ class VisitDao extends DatabaseAccessor<AppDatabase> with _$VisitDaoMixin {
   }
 
   /// Total unsynced captures across every table — drives the pending-sync
-  /// badge (`docs/OFFLINE_FIRST.md` §5).
+  /// badge (`docs/blueprint/offline-architecture.md` §5).
   ///
   /// One `UNION ALL` round trip rather than eight queries (`playbook` §9).
   Future<int> countPendingVisitRecords() async {
@@ -234,7 +234,7 @@ class VisitDao extends DatabaseAccessor<AppDatabase> with _$VisitDaoMixin {
       'visit_notes',
       'visit_photos',
     ];
-    // Raw SQL is the documented exception here (`docs/DATABASE_GUIDE.md` §4):
+    // Raw SQL is the documented exception here (`docs/blueprint/local-storage-architecture.md` §4):
     // Drift's builder has no cross-table UNION, and eight separate COUNT
     // queries to render one badge is the N+1 pattern `playbook` §9 rejects.
     // Table names are compile-time constants — no user input reaches this.

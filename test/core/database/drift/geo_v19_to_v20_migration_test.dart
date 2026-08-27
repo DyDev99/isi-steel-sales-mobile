@@ -105,12 +105,10 @@ void main() {
     raw.dispose();
 
     final db = AppDatabase(NativeDatabase(dbFile));
-    final survived = await db
-        .customSelect(
-          'SELECT value FROM app_metadata WHERE key = ?;',
-          variables: [Variable<String>('geo.migration.canary')],
-        )
-        .getSingleOrNull();
+    final survived = await db.customSelect(
+      'SELECT value FROM app_metadata WHERE key = ?;',
+      variables: [Variable<String>('geo.migration.canary')],
+    ).getSingleOrNull();
     expect(survived?.read<String>('value'), 'intact');
     await db.close();
   });

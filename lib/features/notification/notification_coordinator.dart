@@ -34,7 +34,7 @@ class ForegroundNotification {
 ///
 /// ## What this class is for
 ///
-/// `docs/features/notification-mobile.md` §16 is a checklist of things that are
+/// `docs/feature/notification/README.md` §16 is a checklist of things that are
 /// each individually easy to forget and individually invisible when missed:
 /// channels created before the first push, `getInitialMessage()` checked at
 /// startup, `onTokenRefresh` wired to registration, catch-up on start *and* on

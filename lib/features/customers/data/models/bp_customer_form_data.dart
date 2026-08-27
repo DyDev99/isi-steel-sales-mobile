@@ -90,43 +90,16 @@ class SapMasterData {
     SapOption('0002', 'Mr.', 'លោក'),
   ];
 
-  static const List<SapOption> city = [
-    SapOption('12', 'Phnom Penh', 'ភ្នំពេញ'),
-    SapOption('02', 'Battambang', 'បាត់ដំបង'),
-    SapOption('08', 'Kandal', 'កណ្ដាល'),
-    SapOption('18', 'Preah Sihanouk', 'ព្រះសីហនុ'),
-    SapOption('17', 'Siem Reap', 'សៀមរាប'),
-  ];
-
-  /// District list is dependent on the selected city code.
-  static const Map<String, List<SapOption>> districtByCity = {
-    '12': [
-      SapOption('1201', 'Chamkar Mon', 'ចំការមន'),
-      SapOption('1202', 'Doun Penh', 'ដូនពេញ'),
-      SapOption('1203', 'Prampir Meakkakra', 'ប្រាំពីរមករា'),
-      SapOption('1204', 'Tuol Kouk', 'ទួលគោក'),
-      SapOption('1205', 'Dangkao', 'ដង្កោ'),
-      SapOption('1206', 'Mean Chey', 'មានជ័យ'),
-      SapOption('1207', 'Russey Keo', 'ឫស្សីកែវ'),
-      SapOption('1208', 'Sen Sok', 'សែនសុខ'),
-      SapOption('1209', 'Pou Senchey', 'ពោធិ៍សែនជ័យ'),
-      SapOption('1210', 'Chroy Changvar', 'ជ្រោយចង្វារ'),
-    ],
-  };
-
-  /// Postal code pre-fill. Rep can still override.
-  static const Map<String, String> postalCodeByDistrict = {
-    '1201': '12300',
-    '1202': '12200',
-    '1203': '12250',
-    '1204': '12150',
-    '1205': '12350',
-    '1206': '12350',
-    '1207': '12100',
-    '1208': '12100',
-    '1209': '12000',
-    '1210': '12110',
-  };
+  // The `city`, `districtByCity` and `postalCodeByDistrict` tables that used to
+  // sit here are gone. They held five provinces, one province's districts and
+  // the superseded five-digit Phnom Penh postal codes — so a rep in Kampot
+  // could not enter their own district, and the postal code was keyed to a
+  // district rather than to the commune that actually determines it.
+  //
+  // The full hierarchy (25 provinces, 203 districts, 1,646 communes, 14,372
+  // villages) now lives in the shared geo_location feature, backed by the
+  // bundled gazetteer. Use `GeoLocationSelector`; see
+  // `docs/features/geo-location/README.md`.
 
   static const List<SapOption> distributionChannel = [
     SapOption('10', 'End User'),
@@ -419,8 +392,7 @@ class BpCustomerDraft {
       priceGroup = nullableString('priceGroup', priceGroup);
     }
     if (fields.containsKey('deliveryPriority')) {
-      deliveryPriority =
-          nullableString('deliveryPriority', deliveryPriority);
+      deliveryPriority = nullableString('deliveryPriority', deliveryPriority);
     }
     if (fields.containsKey('shippingCondition')) {
       shippingCondition =
@@ -454,14 +426,57 @@ class BpCustomerDraft {
   String get effectiveTelephone =>
       telephoneSameAsMobile ? mobilePhone : telephone;
 
+  /// SAP's street line, carrying the two levels SAP has no field for.
+  ///
+  /// The BP structure has `city`, `district` and `postalCode` and stops there —
+  /// there is no commune/sangkat field and no village field
+  /// (`docs/features/create_BP/customer-mobile-registration/api.md`). Sending
+  /// them as extra keys would leave them to be dropped by a middleware that
+  /// does not model them, so the two levels are folded into the one free-text
+  /// field that does reach SAP.
+  ///
+  /// Ordered street → village → commune because SAP's `STREET` is 60
+  /// characters and this truncates from the end: what a delivery driver needs
+  /// most is at the front. Province and district are deliberately absent —
+  /// they already travel as their own fields, and repeating them would spend
+  /// the character budget on data SAP already has.
+  String get sapStreetLine {
+    final parts = <String>[];
+    final base = street.trim();
+    if (base.isNotEmpty) parts.add(base);
+
+    final village = geoAddress?.village;
+    if (village != null) parts.add('Phum ${village.name.resolve('en')}');
+
+    final commune = geoAddress?.commune;
+    if (commune != null) {
+      final word = commune.unit == 'Sangkat' ? 'Sangkat' : 'Khum';
+      parts.add('$word ${commune.name.resolve('en')}');
+    }
+
+    final line = parts.join(', ');
+    return line.length <= _sapStreetMaxLength
+        ? line
+        : line.substring(0, _sapStreetMaxLength).trimRight();
+  }
+
+  /// SAP `ADRC-STREET`.
+  static const int _sapStreetMaxLength = 60;
+
   /// Keep the derived fields consistent whenever a driver field changes.
   void applyDerivations() {
-    if (districtCode != null &&
-        SapMasterData.postalCodeByDistrict.containsKey(districtCode)) {
-      if (postalCode.isEmpty) {
-        postalCode = SapMasterData.postalCodeByDistrict[districtCode]!;
-      }
-    }
+    // The postal code is NOT derived here any more. It comes from the selected
+    // commune, via the gazetteer (`GeoAddress.postalCode`), and the selector
+    // writes it onto the draft.
+    //
+    // The old rule — fill an empty postal code from a per-district table —
+    // has to stay gone rather than act as a fallback. That table holds the
+    // superseded five-digit Phnom Penh codes, and the case where it would now
+    // fire is precisely the case it gets wrong: `postalCode` is empty exactly
+    // when the chosen commune is one of the 99 Cambodia Post does not cover,
+    // and filling it from the *district* would ship a code for a different
+    // place. `validateStep` blocks submission instead, and the rep types the
+    // real code — never a silently wrong one (§10).
     if (customerGroup != null) {
       priceGroup = SapMasterData.priceGroupByCustomerGroup[customerGroup!];
     }
@@ -502,8 +517,12 @@ class BpCustomerDraft {
             geoAddress?.commune == null) {
           e['commune'] = 'error.required';
         }
+        // Six digits is the current Cambodia Post scheme and what the
+        // gazetteer supplies. Five is still accepted because a rep may be
+        // editing a draft saved under the superseded scheme, and rejecting
+        // their own stored value would strand them on this step.
         if (!RegExp(r'^\d{5,6}$').hasMatch(postalCode.trim())) {
-          e['postalCode'] = 'error.postal_5_digits';
+          e['postalCode'] = 'error.postal_code';
         }
         if (geoFix == null) {
           e['geo'] = 'error.gps_required';
@@ -585,9 +604,7 @@ class BpCustomerDraft {
       'region': SapBpConst.region,
       'city': cityCode,
       'district': districtCode,
-      'commune': communeCode,
-      'village': villageCode,
-      'street': street.trim(),
+      'street': sapStreetLine,
       'houseNo': houseNumber.trim(),
       'postalCode': postalCode,
       'mobilePhone': mobilePhone,

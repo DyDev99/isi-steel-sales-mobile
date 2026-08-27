@@ -10,7 +10,7 @@ import 'package:isi_steel_sales_mobile/features/notification/domain/entities/not
 import 'package:isi_steel_sales_mobile/features/notification/presentation/bloc/notification_preferences_cubit.dart';
 
 /// The notification settings screen
-/// (`docs/features/notification-mobile.md` §13).
+/// (`docs/feature/notification/README.md` §13).
 ///
 /// ## Built from the server's answer, not from a list in the app
 ///

@@ -13,7 +13,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_
 /// (T1.5 cutover). Replaces the plaintext `routes.db` implementation.
 ///
 /// The interface is unchanged, so the repository, usecases and blocs above are
-/// untouched by the storage swap (ADR-003 seam, `docs/ARCHITECTURE.md` §5).
+/// untouched by the storage swap (ADR-003 seam, `docs/blueprint/system-architecture.md` §5).
 class RouteDriftLocalDataSource implements RouteLocalDataSource {
   const RouteDriftLocalDataSource(this._dao, this._logger);
 
@@ -117,7 +117,7 @@ class RouteDriftLocalDataSource implements RouteLocalDataSource {
       await _dao.upsertRouteCustomers(
         customers.map((c) => c.toRouteCustomerCompanion()).toList(),
       );
-      // A count, never an identifier (`docs/SECURITY.md` §10). Worth recording
+      // A count, never an identifier (`docs/skills/security.md` §10). Worth recording
       // because a stop rendering as its bare customer id means this number came
       // back short — the feed omitted a customer it is contracted to send.
       _logger.debug('route_sync.customers_stored',

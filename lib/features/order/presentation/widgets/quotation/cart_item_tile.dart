@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
-import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/entities/material_availability.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/catalog/stock_availability_badge.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/cart_quantity_stepper.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
@@ -24,11 +25,25 @@ class CartItemTile extends StatelessWidget {
     required this.item,
     required this.onQuantityChanged,
     required this.onRemove,
+    this.stock,
   });
 
   final CartItem item;
   final ValueChanged<double> onQuantityChanged;
   final VoidCallback onRemove;
+
+  /// SAP's verdict for this line's material.
+  ///
+  /// Replaces the old `_StockDot(available: item.product.isAvailable)`, which
+  /// was reading the wrong thing from the wrong place. `Product.isAvailable` is
+  /// a flag off the synced catalog row — it says what the last sync thought,
+  /// not what the ERP will accept now — and being a bool it collapsed four
+  /// states into two, so "never asked" and "SAP refused" rendered identically
+  /// as "out of stock" on a line the rep had already committed to.
+  ///
+  /// Null renders nothing, which on a cart line means the check has not come
+  /// back yet rather than that there is a problem.
+  final MaterialAvailability? stock;
 
   /// Measurements + finish, joined for the review line (null for plain lines).
   String? get _customSpecs {
@@ -121,7 +136,13 @@ class CartItemTile extends StatelessWidget {
                   ),
                 ),
                 SizedBox(width: context.rw(6)),
-                _StockDot(available: item.product.isAvailable),
+                // The badge keeps the dot-plus-word shape the old `_StockDot`
+                // had, for the same reason: colour alone leaves the state
+                // unreadable to a colour-blind rep, and on a quotation line
+                // that is the difference between promising stock and promising
+                // a lead time. What changed is where the answer comes from.
+                if (stock != null)
+                  StockAvailabilityBadge(availability: stock),
                 SizedBox(width: context.rw(8)),
               ],
             ),
@@ -131,6 +152,11 @@ class CartItemTile extends StatelessWidget {
                 CartQuantityStepper(
                   quantity: item.quantity.round(),
                   onChanged: (value) => onQuantityChanged(value.toDouble()),
+                  // Gates `+` on the status alone. A line already in the
+                  // quotation can always be reduced or removed, including when
+                  // SAP has since refused it — which is the case where a rep
+                  // most needs to take it back out.
+                  stock: stock,
                 ),
                 SizedBox(width: context.rw(10)),
                 Expanded(
@@ -171,42 +197,6 @@ class CartItemTile extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-/// Stock presence as a dot plus a word — colour alone would leave the state
-/// unreadable to a colour-blind rep, which on a quotation line is the
-/// difference between promising stock and promising a lead time.
-class _StockDot extends StatelessWidget {
-  const _StockDot({required this.available});
-  final bool available;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-    final color = available ? colors.success : colors.warning;
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 6,
-          height: 6,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        ),
-        SizedBox(width: context.rw(4)),
-        Text(
-          available
-              ? 'orders.catalog.in_stock_short'.tr
-              : 'orders.catalog.out_of_stock'.tr,
-          style: TextStyle(
-            color: color,
-            fontSize: context.rsp(10.5),
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ],
     );
   }
 }

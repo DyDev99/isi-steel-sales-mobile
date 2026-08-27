@@ -7,7 +7,7 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 /// Dart core exposes only `DateTime.now().timeZoneName`, which yields `ICT` or
 /// `+07` — and `DeviceIdentity._timeZone` already carries a note saying to swap
 /// in `flutter_timezone` here if an exact IANA name is ever required. It is
-/// required now: `docs/features/notification-mobile.md` §4.2 makes this the
+/// required now: `docs/feature/notification/README.md` §4.2 makes this the
 /// field the backend places quiet hours and digests against, because both are
 /// **wall-clock facts** rather than instants. An abbreviation is not a zone —
 /// it carries no DST rules and several are ambiguous across regions — so the

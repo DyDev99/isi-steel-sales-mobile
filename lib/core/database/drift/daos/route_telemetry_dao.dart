@@ -11,7 +11,7 @@ part 'route_telemetry_dao.g.dart';
 /// Grouped as one aggregate because they are written by the same subsystem
 /// (location tracking + fraud detection during route execution) and are both
 /// *push-only* — SAP never sends these back, so they have no pull path.
-/// `docs/SYNC_ENGINE.md` §4 classifies them as `telemetry`, the lowest drain
+/// `docs/blueprint/sync-architecture.md` §4 classifies them as `telemetry`, the lowest drain
 /// priority: a rep's check-in must never queue behind a backlog of GPS points.
 ///
 /// Replaces the hand-written SQL in
@@ -91,7 +91,7 @@ class RouteTelemetryDao extends DatabaseAccessor<AppDatabase>
 
   /// Deletes synced samples older than [before] — the GPS trail is the fastest
   /// growing table on the device and is worthless once pushed
-  /// (`docs/SYNC_ENGINE.md` §11 TTL purge). Never deletes unsynced rows.
+  /// (`docs/blueprint/sync-architecture.md` §11 TTL purge). Never deletes unsynced rows.
   Future<int> purgeSyncedSamplesBefore(DateTime before) =>
       (delete(locationSamples)
             ..where((t) => t.syncState.equals(SyncStates.synced))

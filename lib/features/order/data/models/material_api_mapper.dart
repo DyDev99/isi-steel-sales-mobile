@@ -144,6 +144,55 @@ abstract final class MaterialApiMapper {
     );
   }
 
+  /// The `data` object of `GET /mobile/materials/{material}/stock`.
+  ///
+  /// ```jsonc
+  /// { "material": "1100000042", "band": "High", "isSellable": true,
+  ///   "baseUnit": "KG",
+  ///   "plants": [{ "plant": "KMH2", "band": "High", "isSellable": true }],
+  ///   "checkedAt": "2026-08-27T07:51:39Z" }
+  /// ```
+  ///
+  /// `isSellable` is the verdict the order flow gates on; `band` is advisory
+  /// and is shown, not enforced. A `Low` band is a warning about how much, not
+  /// a refusal, so it must not disable the quantity stepper.
+  ///
+  /// [requested] wins over the echoed number for the same reason it does in
+  /// [availabilityFrom]: the verdict is keyed by what was asked, and a server
+  /// that normalised the number differently would orphan the result.
+  static MaterialAvailability stockFrom(
+    DataMap json, {
+    required String requested,
+  }) {
+    final plants = (json['plants'] as List<dynamic>? ?? const [])
+        .whereType<Map>()
+        .map((e) => e.cast<String, dynamic>())
+        .map((p) => MaterialPlantStock(
+              plant: _string(p['plant']),
+              band: StockBand.parse(p['band'] as String?),
+              isSellable: p['isSellable'] as bool? ?? false,
+            ))
+        .toList(growable: false);
+
+    final sellable = json['isSellable'] as bool? ?? false;
+    final band = StockBand.parse(json['band'] as String?);
+
+    return MaterialAvailability(
+      material: requested,
+      isSellable: sellable,
+      // No prose on this endpoint, so the band is the summary. Kept human so
+      // the badge's tooltip has something to say.
+      summary: band == StockBand.unknown ? '' : _string(json['band']),
+      band: band,
+      baseUnit: _string(json['baseUnit']),
+      plants: plants,
+      checkedAt: _time(json['checkedAt']),
+      status: sellable
+          ? MaterialStockStatus.available
+          : MaterialStockStatus.unavailable,
+    );
+  }
+
   /// The `data` object of `/materials/{material}/availability`.
   ///
   /// [requested] is the material number the call was made for, and it wins over

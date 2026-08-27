@@ -2,7 +2,7 @@ import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
 import 'package:isi_steel_sales_mobile/features/notification/domain/entities/push_registration.dart';
 
 /// This installation's standing with the push service
-/// (`docs/features/notification-mobile.md` §4).
+/// (`docs/feature/notification/README.md` §4).
 ///
 /// ## Register more often than feels necessary
 ///

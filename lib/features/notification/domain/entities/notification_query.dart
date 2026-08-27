@@ -3,7 +3,7 @@ import 'package:isi_steel_sales_mobile/features/notification/domain/entities/not
 import 'package:isi_steel_sales_mobile/features/notification/domain/entities/notification_state.dart';
 
 /// Which slice of the inbox a surface is showing
-/// (`docs/features/notification-mobile.md` §6).
+/// (`docs/feature/notification/README.md` §6).
 ///
 /// Modelled as three named tabs rather than a free-form state filter because
 /// that is what the spec's UI actually asks for, and because two of them are

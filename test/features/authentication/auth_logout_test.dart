@@ -108,7 +108,7 @@ void main() {
   }
 
   test('the device is deregistered before the token is discarded', () async {
-    // `docs/features/notification-mobile.md` §4.4, and the ordering is the whole
+    // `docs/feature/notification/README.md` §4.4, and the ordering is the whole
     // point: deregistration is an authenticated call, so it has to happen while
     // the bearer token is still valid. Skipping it — or running it after — leaves
     // the platform pushing one rep's notifications at a handset that has since

@@ -9,9 +9,9 @@ import 'package:isi_steel_sales_mobile/core/database/drift/tables/syncable_table
 
 /// DAO query + constraint tests for the route/visit aggregates (T1.5a step 2).
 ///
-/// `docs/ENGINEERING_STANDARD.md` §10 requires new DAOs to ship with query and
+/// `docs/skills/engineering-standard.md` §10 requires new DAOs to ship with query and
 /// constraint tests; in-memory Drift keeps them fast on host CI
-/// (`docs/DATABASE_GUIDE.md` §8).
+/// (`docs/blueprint/local-storage-architecture.md` §8).
 void main() {
   late AppDatabase db;
   late RouteDao routeDao;
@@ -390,7 +390,7 @@ void main() {
     // rejection meant a capture raced against sync was refused outright.
     //
     // A capture is first-hand field work the server has no competing version
-    // of (`docs/SYNC_ENGINE.md` §5). Losing one is the exact failure the
+    // of (`docs/blueprint/sync-architecture.md` §5). Losing one is the exact failure the
     // offline design exists to prevent, so it now survives independently and
     // is pushed by `stop_id`.
 

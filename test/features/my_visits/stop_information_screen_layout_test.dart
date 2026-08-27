@@ -86,7 +86,7 @@ void main() {
       );
 
       // Content renders.
-      expect(find.text('CUS CODE'), findsOneWidget);
+      expect(find.text('Outlet ID (BP SAP)'), findsOneWidget);
       expect(find.text('Outlet Details & Location'), findsOneWidget);
 
       expect(tester.takeException(), isNull);

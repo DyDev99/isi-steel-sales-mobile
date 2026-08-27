@@ -73,7 +73,7 @@ class AppConstants {
   // ── Mobile materials endpoints ─────────────────────────────────────
   //
   // The guided selection surface, per
-  // `docs/features/ProductSelection/materials-guidline-integration-mobile.md`.
+  // `docs/feature/order/product-selection/api.md`.
   // All of them require `materials.read` and answer the standard envelope; a
   // 403 with no `errorCode` means the role is missing that permission, not
   // that the request is malformed.
@@ -103,6 +103,14 @@ class AppConstants {
   static const String materialSelectionEndpoint =
       '$materialsEndpoint/selection/materials';
 
+  /// Banded on-hand stock for one material, with a per-plant breakdown.
+  ///
+  /// `{ material, band, isSellable, baseUnit, plants[], checkedAt }` — a band
+  /// (`High` / `Medium` / `Low` / `None`), never a quantity. This is the read
+  /// the order flow uses to decide whether a rep may set a quantity at all.
+  static String materialStockEndpoint(String material) =>
+      '$materialsEndpoint/$material/stock';
+
   /// SAP's live sellability verdict for one material.
   ///
   /// Note the path: this one sits at `/materials/...`, **not** under the
@@ -118,7 +126,7 @@ class AppConstants {
   /// The material list is one-based, like every other paged mobile endpoint.
   static const int firstPage = 1;
 
-  // ── Mobile visit endpoints (docs/backend-document.md) ──────────────
+  // ── Mobile visit endpoints (docs/feature/my-visits/api.md) ──────────────
   //
   // Scope is always the signed-in rep: the server derives `repId` from the
   // bearer token. The client sends `territory` to narrow the result set, never
@@ -141,7 +149,7 @@ class AppConstants {
 
   // ── Mobile notification endpoints ──────────────────────────────────
   //
-  // Per `docs/features/notification-mobile.md` §3. The same routes also exist
+  // Per `docs/feature/notification/README.md` §3. The same routes also exist
   // without the `/mobile` segment for the admin portal — same handlers,
   // different envelope. **Use these**, or the response comes back in the
   // portal's shape and every parse fails.
@@ -231,7 +239,7 @@ class AppConstants {
   /// Hive rather than the encrypted database, and deliberately: these are the
   /// rep's own toggles and quiet-hours window — settings, not business records
   /// or PII — and they are regenerable from the server on demand
-  /// (`docs/ARCHITECTURE.md` §3, Layer 2). Caching them needs no schema
+  /// (`docs/blueprint/system-architecture.md` §3, Layer 2). Caching them needs no schema
   /// migration and the cache is never authoritative.
   static const String kNotificationPreferences = 'isi.notification_preferences';
 

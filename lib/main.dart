@@ -99,7 +99,7 @@ Future<void> main() async {
 ///
 /// On a **physical iOS device** it usually means `getToken()` ran before APNs
 /// replied, or before the notification permission was granted — which
-/// `docs/features/notification-mobile.md` §14 defers to the in-app explainer, on
+/// `docs/feature/notification/README.md` §14 defers to the in-app explainer, on
 /// purpose. Accept the explainer, then relaunch.
 ///
 /// On **web** there is no transport at all (ADR-010).

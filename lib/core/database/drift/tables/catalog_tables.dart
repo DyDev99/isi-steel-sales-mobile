@@ -119,7 +119,7 @@ class Prices extends Table {
   String get tableName => 'prices';
 
   // Restored explicitly: drift_dev 2.31.0 + analyzer 10.2.0 silently emit no
-  // foreign keys from `references()` above (docs/flutter-web.md section 8).
+  // foreign keys from `references()` above (docs/blueprint/web-architecture.md section 8).
   // The `references()` calls are kept — they still drive drift's Dart-side
   // relation API — but the SQL constraint now comes from here. Remove this
   // override once the generator is fixed, and verify with the FK tests.
@@ -152,7 +152,7 @@ class Stock extends Table {
   String get tableName => 'stock';
 
   // Restored explicitly: drift_dev 2.31.0 + analyzer 10.2.0 silently emit no
-  // foreign keys from `references()` above (docs/flutter-web.md section 8).
+  // foreign keys from `references()` above (docs/blueprint/web-architecture.md section 8).
   // The `references()` calls are kept — they still drive drift's Dart-side
   // relation API — but the SQL constraint now comes from here. Remove this
   // override once the generator is fixed, and verify with the FK tests.
@@ -178,7 +178,7 @@ class ProductFavorites extends Table {
   String get tableName => 'favorites';
 
   // Restored explicitly: drift_dev 2.31.0 + analyzer 10.2.0 silently emit no
-  // foreign keys from `references()` above (docs/flutter-web.md section 8).
+  // foreign keys from `references()` above (docs/blueprint/web-architecture.md section 8).
   // The `references()` calls are kept — they still drive drift's Dart-side
   // relation API — but the SQL constraint now comes from here. Remove this
   // override once the generator is fixed, and verify with the FK tests.
@@ -199,7 +199,7 @@ class RecentProducts extends Table {
   String get tableName => 'recent_products';
 
   // Restored explicitly: drift_dev 2.31.0 + analyzer 10.2.0 silently emit no
-  // foreign keys from `references()` above (docs/flutter-web.md section 8).
+  // foreign keys from `references()` above (docs/blueprint/web-architecture.md section 8).
   // The `references()` calls are kept — they still drive drift's Dart-side
   // relation API — but the SQL constraint now comes from here. Remove this
   // override once the generator is fixed, and verify with the FK tests.

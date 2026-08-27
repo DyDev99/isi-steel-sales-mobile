@@ -1,5 +1,5 @@
 /// Where a notification sits in its lifecycle
-/// (`docs/features/notification-mobile.md` §5.1).
+/// (`docs/feature/notification/README.md` §5.1).
 ///
 /// ```
 ///                     ┌──────────┐  read     ┌────────┐  acted    ┌────────────┐

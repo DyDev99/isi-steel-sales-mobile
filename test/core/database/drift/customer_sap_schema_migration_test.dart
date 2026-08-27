@@ -13,7 +13,7 @@ import 'package:sqlite3/sqlite3.dart' as sqlite;
 /// Division, and so the mock datasource can later be swapped for a real SAP one
 /// without another schema change (ADR-009).
 ///
-/// `docs/DATABASE_GUIDE.md` §5 requires every migration step to ship with a test
+/// `docs/blueprint/local-storage-architecture.md` §5 requires every migration step to ship with a test
 /// that upgrades a fixture of the *previous* version and proves data survives.
 /// That is the `v8 → v9` group below.
 ///

@@ -80,9 +80,9 @@ part 'app_database.g.dart';
     WorkflowState,
     // Notification inbox (v19). A pull-only mirror of the server's inbox plus
     // its own outbox, because the inbox — not the push — is the system of
-    // record (docs/features/notification-mobile.md §1). Encrypted rather than
+    // record (docs/feature/notification/README.md §1). Encrypted rather than
     // cached in Hive: a notification body names a customer and a route, which
-    // is PII (docs/SECURITY.md §3).
+    // is PII (docs/skills/security.md §3).
     Notifications,
     NotificationActionQueue,
     NotificationSyncMeta,

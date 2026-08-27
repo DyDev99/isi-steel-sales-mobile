@@ -2,13 +2,13 @@ import 'package:drift/drift.dart';
 
 /// The Cambodian administrative gazetteer — province → district →
 /// commune/sangkat → village — plus the commune-level postal code
-/// (`docs/features/geo-location/README.md`).
+/// (`docs/feature/geo-location/README.md`).
 ///
 /// ## Why this is a table and not an API cache
 ///
 /// There is no geographic endpoint. `GET /mobile/customers/references` serves
-/// exactly ten SAP `CustHelper` catalogues (`docs/features/create_BP/
-/// customer-mobile-registration/sap-helpers.md`) and none of them is
+/// exactly ten SAP `CustHelper` catalogues
+/// (`docs/feature/customer/registration/sap-helpers.md`) and none of them is
 /// geographic, so there is nothing to cache. Before this table the app carried
 /// five provinces and one province's districts as `const` maps in
 /// `bp_customer_form_data.dart`, which meant a rep in Kampot could not enter
@@ -24,7 +24,7 @@ import 'package:drift/drift.dart';
 /// Not because a village name is a secret — it is public record. Because the
 /// address a rep selects becomes part of a customer record, and joining it out
 /// of a plaintext side-store would put half of a PII row outside the
-/// encryption boundary (`docs/SECURITY.md` §3). One database also means the
+/// encryption boundary (`docs/skills/security.md` §3). One database also means the
 /// address can be resolved in the same transaction as the customer write.
 ///
 /// ## No foreign keys (ADR-011)

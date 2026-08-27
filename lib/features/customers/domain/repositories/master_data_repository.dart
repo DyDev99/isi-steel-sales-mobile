@@ -14,7 +14,7 @@ abstract interface class MasterDataRepository {
   ///
   /// Never throws for want of connectivity: if the network is unavailable and a
   /// cached copy exists — even a stale one — the cached copy is returned, because
-  /// a usable stale dropdown beats a blocked screen (`docs/OFFLINE_FIRST.md` §1).
+  /// a usable stale dropdown beats a blocked screen (`docs/blueprint/offline-architecture.md` §1).
   Future<MasterDataResult> fetch(MasterDataType type);
 
   /// Forces a network read and rewrites the cache. Used by explicit

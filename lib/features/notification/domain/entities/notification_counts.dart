@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:isi_steel_sales_mobile/features/notification/domain/entities/notification_category.dart';
 
 /// The server's authoritative badge figures
-/// (`docs/features/notification-mobile.md` §7).
+/// (`docs/feature/notification/README.md` §7).
 ///
 /// ## Reconcile, never increment
 ///

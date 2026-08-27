@@ -1,8 +1,8 @@
 import 'package:drift/drift.dart';
 
-/// The standard syncable-table columns mandated by `docs/DATABASE_GUIDE.md`
+/// The standard syncable-table columns mandated by `docs/blueprint/local-storage-architecture.md`
 /// §3.1, shared via a mixin so they can never drift apart per table ("do not
-/// invent alternate names per table" — `docs/AI_ENGINEERING_PLAYBOOK.md` §2).
+/// invent alternate names per table" — `docs/skills/ai-engineering-playbook.md` §2).
 ///
 /// Every table that participates in sync carries these. The documented
 /// exceptions are pure local-only tables (`carts`/`cart_items`) and cursor
@@ -13,7 +13,7 @@ import 'package:drift/drift.dart';
 /// | `id` | TEXT/UUID primary key, **client-generated** so offline creates need no server round-trip (§3) |
 /// | `updated_at` | Last local mutation; drives delta pulls and LWW comparison |
 /// | `deleted` | Soft delete — a row is never hard-deleted while its deletion still needs to reach SAP |
-/// | `sync_state` | `synced` / `dirty` / `syncing` / `conflict` (`docs/SYNC_ENGINE.md` §5) |
+/// | `sync_state` | `synced` / `dirty` / `syncing` / `conflict` (`docs/blueprint/sync-architecture.md` §5) |
 /// | `server_revision` | Last known server version/ETag, for conflict detection |
 /// | `dirty` | Convenience flag: a local write not yet confirmed synced |
 mixin SyncableTable on Table {
@@ -42,7 +42,7 @@ mixin SyncableTable on Table {
   Set<Column> get primaryKey => {id};
 }
 
-/// Canonical `sync_state` values (`docs/SYNC_ENGINE.md` §5).
+/// Canonical `sync_state` values (`docs/blueprint/sync-architecture.md` §5).
 ///
 /// `SYNC_ENGINE.md` §3 warns against two parallel vocabularies — these names are
 /// the single set used in code. The legacy sqflite `sync_status` column used

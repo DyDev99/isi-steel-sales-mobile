@@ -10,7 +10,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/data/models/location_s
 ///
 /// The interface is unchanged, so nothing above this line moves: the repository,
 /// usecases and blocs are untouched by the storage swap — that is the whole
-/// point of the repository seam (ADR-003, `docs/ARCHITECTURE.md` §5: "feature
+/// point of the repository seam (ADR-003, `docs/blueprint/system-architecture.md` §5: "feature
 /// code above the datasource boundary should not need to change").
 ///
 /// Exceptions are normalised to [CacheException] exactly as the legacy

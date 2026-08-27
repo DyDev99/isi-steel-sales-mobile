@@ -48,6 +48,18 @@ abstract interface class MaterialSelectionRemoteDataSource {
     String? search,
   });
 
+  /// Banded on-hand stock for one material.
+  ///
+  /// The read the order flow actually gates on. Unlike [fetchAvailability] it
+  /// needs no sales-area parameters, so it answers a real verdict rather than
+  /// a complaint about missing input — which is why this, not that, is what
+  /// decides whether a rep may set a quantity.
+  ///
+  /// Returns a band (`High` / `Medium` / `Low` / `None`) and a per-plant
+  /// breakdown. Never a quantity: there is no on-hand figure anywhere in this
+  /// API, by design.
+  Future<DataMap> fetchStock(String material);
+
   /// SAP's live sellability verdict for one material.
   ///
   /// The odd one out in this interface: the other four read the platform's own

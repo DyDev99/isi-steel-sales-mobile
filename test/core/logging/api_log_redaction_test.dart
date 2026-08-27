@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isi_steel_sales_mobile/core/logging/app_logger.dart';
 
-/// `docs/SECURITY.md` §10 is a hard constraint: passwords, tokens, e-mail
+/// `docs/skills/security.md` §10 is a hard constraint: passwords, tokens, e-mail
 /// addresses, phone numbers, customer data and money must never reach a log
 /// sink. Logs outlive the session that produced them — they end up in bug
 /// reports, and on Android any app holding `READ_LOGS` can read them.
@@ -116,8 +116,7 @@ void main() {
 
     test('the exemption is anchored, not a substring match', () {
       // `correlationIdToken` must not inherit the exemption.
-      expect(redact('correlationIdToken', '12345678'),
-          LogRedactor.placeholder);
+      expect(redact('correlationIdToken', '12345678'), LogRedactor.placeholder);
     });
   });
 }

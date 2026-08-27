@@ -5,7 +5,7 @@ import 'package:isi_steel_sales_mobile/features/notification/domain/entities/not
 import 'package:isi_steel_sales_mobile/features/notification/domain/entities/notification_state.dart';
 
 /// One item in the rep's inbox — the notification itself, not a hint that one
-/// exists (`docs/features/notification-mobile.md` §5).
+/// exists (`docs/feature/notification/README.md` §5).
 ///
 /// ## The inbox is the system of record
 ///

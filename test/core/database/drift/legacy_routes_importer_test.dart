@@ -11,7 +11,7 @@ import 'package:isi_steel_sales_mobile/core/logging/app_logger.dart';
 ///
 /// Hand-written rather than mocked: the rows *are* the input to the logic under
 /// test, and a mock returning canned values would let the mapping rules go
-/// unverified (`docs/AI_ENGINEERING_PLAYBOOK.md` §7.6). Values are deliberately
+/// unverified (`docs/skills/ai-engineering-playbook.md` §7.6). Values are deliberately
 /// stored in legacy shapes — ISO date strings, 0/1 integers for booleans — so
 /// the coercion path is exercised for real.
 class _FakeLegacySource implements LegacyRouteSource {

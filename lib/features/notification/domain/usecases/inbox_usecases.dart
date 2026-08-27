@@ -23,7 +23,7 @@ import 'package:isi_steel_sales_mobile/features/notification/domain/repositories
 /// collapsed into fewer classes: **one use case per business action**, no
 /// branching on a "mode" parameter. Marking read, recording an action and
 /// dismissing are three different things to the server and to a supervisor's
-/// escalation chain (`docs/features/notification-mobile.md` §8.3), so they are
+/// escalation chain (`docs/feature/notification/README.md` §8.3), so they are
 /// three types.
 
 /// The inbox slice matching a query, live.

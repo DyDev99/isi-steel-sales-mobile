@@ -9,7 +9,7 @@ import 'package:isi_steel_sales_mobile/features/notification/domain/entities/not
 /// flight. Collapsing the two into one "loading" state would blank a screenful
 /// of perfectly good notifications every time the app came to the foreground —
 /// which is the opposite of what an offline-first inbox is for
-/// (`docs/features/notification-mobile.md` §1).
+/// (`docs/feature/notification/README.md` §1).
 enum NotificationSyncStatus {
   /// Nothing in flight.
   idle,

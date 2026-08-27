@@ -10,7 +10,7 @@ import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
 /// **Hazard 1 — codegen silently drops constraints.** `drift_dev 2.31.0` +
 /// `analyzer 10.2.0` emit **no** foreign keys from `references()`: the
 /// reference resolves to nothing, no constraint is written, and no warning is
-/// printed (`docs/flutter-web.md` §8). Every constraint vanished on the next
+/// printed (`docs/blueprint/web-architecture.md` §8). Every constraint vanished on the next
 /// `build_runner` run and the only symptom was a few behavioural tests a reader
 /// in a hurry could dismiss as flaky. The survivors are therefore declared via
 /// `customConstraints`, and the counts below are what stops that workaround
@@ -56,7 +56,7 @@ void main() {
       total,
       6,
       reason: 'Expected 6 foreign keys after ADR-011. Getting 0 means codegen '
-          'dropped them again (docs/flutter-web.md §8). Getting more means a '
+          'dropped them again (docs/blueprint/web-architecture.md §8). Getting more means a '
           'constraint was re-added to a mirror table — read ADR-011 before '
           'changing this number, and do not simply update it to make a build '
           'pass.',

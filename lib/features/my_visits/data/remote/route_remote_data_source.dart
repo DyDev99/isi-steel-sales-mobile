@@ -13,7 +13,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_
 /// Note the scope is a *filter*, never an authorisation claim: the real
 /// implementation sends `territory` but not `repId`, because the server
 /// derives the rep from the bearer token and must refuse to answer for anyone
-/// else (`docs/backend-document.md` §5, §8.1).
+/// else (`docs/feature/my-visits/api.md` §5, §8.1).
 abstract interface class RouteRemoteDataSource {
   Future<RouteSyncPage> fetchInitial(
       {required RouteSyncScope scope,

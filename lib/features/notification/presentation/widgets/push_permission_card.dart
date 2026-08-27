@@ -4,7 +4,7 @@ import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
 /// The in-app explainer that earns the OS permission prompt
-/// (`docs/features/notification-mobile.md` §14).
+/// (`docs/feature/notification/README.md` §14).
 ///
 /// ## Why a card and not just the OS prompt
 ///

@@ -14,7 +14,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/data/models/visit_capt
 /// reaches SAP is a lost order or an uncollected payment. The interface is
 /// unchanged so the repository above is untouched (ADR-003 seam), and every
 /// failure is normalised to [CacheException] exactly as before
-/// (`docs/ENGINEERING_STANDARD.md` §7 — no raw storage exception reaches the
+/// (`docs/skills/engineering-standard.md` §7 — no raw storage exception reaches the
 /// repository).
 class VisitDriftLocalDataSource implements VisitLocalDataSource {
   const VisitDriftLocalDataSource(this._dao, this._logger);

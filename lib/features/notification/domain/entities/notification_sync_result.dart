@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 /// Outcome of one inbox catch-up run
-/// (`docs/features/notification-mobile.md` §6.1).
+/// (`docs/feature/notification/README.md` §6.1).
 class NotificationSyncResult extends Equatable {
   const NotificationSyncResult({
     this.received = 0,

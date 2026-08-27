@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:isi_steel_sales_mobile/core/animations/app_animations.dart';
+import 'package:isi_steel_sales_mobile/core/animations/fade_slide_transition.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
-import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/shared/animations/work_icons.dart';
 
+/// The guest (signed-out) replica of [MyWorkGridSection].
+///
+/// Shares the exact traditional gold metallic frame, corner flourishes,
+/// animated [WorkIcon] illustrations, 3D tactile press physics, and typography
+/// so that the guest and authenticated experiences feel completely harmonious
+/// and premium.
 class GuestMyWorkGrid extends StatelessWidget {
   const GuestMyWorkGrid({super.key, required this.onRequireLogin});
 
@@ -11,84 +19,76 @@ class GuestMyWorkGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final appColors = context.appColors;
-
     return Padding(
       padding: EdgeInsets.symmetric(
         horizontal: context.pagePadding,
-        vertical: context.rh(8),
+        vertical: context.rh(12),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Section Title Header with Gold Accent Indicator
-          Padding(
-            padding: EdgeInsets.only(left: 4.w, bottom: context.rh(14)),
+          _SectionHeader('shell.my_work'.tr, letterSpacing: 1.6),
+
+          // ── Top: My Visits (Full Width) ──────────────────────────────
+          SizedBox(
+            height: context.rh(120),
+            width: double.infinity,
+            child: FadeSlideIn(
+              delay: FadeSlideIn.staggerDelay(1),
+              child: _GuestWorkCard(
+                label: 'shell.my_visits'.tr,
+                icon: Icons.assignment_turned_in_outlined,
+                kind: WorkIconKind.visits,
+                accent: const Color(0xFF22C3D6),
+                tileHeight: context.rr(56),
+                badgeText: 'shell.badge_today'.trParams({'count': 3}),
+                isActive: true,
+                onTap: onRequireLogin,
+              ),
+            ),
+          ),
+
+          SizedBox(height: context.rh(12)),
+
+          // ── Bottom: Customers & Quotes/Orders ─────────────────────────
+          SizedBox(
+            height: context.rh(120),
             child: Row(
               children: [
-                Container(
-                  width: 4.w,
-                  height: context.rh(16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFC88D2B),
-                    borderRadius: BorderRadius.circular(2.r),
+                // Left: Customers
+                Expanded(
+                  child: FadeSlideIn(
+                    delay: FadeSlideIn.staggerDelay(2),
+                    child: _GuestWorkCard(
+                      label: 'shell.my_customers'.tr,
+                      icon: Icons.people_alt_outlined,
+                      kind: WorkIconKind.customers,
+                      accent: const Color(0xFFEC3F72),
+                      isActive: false,
+                      onTap: onRequireLogin,
+                    ),
                   ),
                 ),
-                SizedBox(width: context.rw(8)),
-                Text(
-                  'shell.my_work'.tr.toUpperCase(),
-                  style: TextStyle(
-                    // Matches _SectionHeader in my_work_grid_section.dart — the
-                    // guest and authenticated home must not diverge. See the
-                    // note there for why the base widens above compact.
-                    fontSize: context
-                        .rsp(context.responsive(compact: 14.0, medium: 16.0)),
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.5,
-                    color: appColors.textSecondary,
+
+                SizedBox(width: context.rw(12)),
+
+                // Right: Quotes & Orders
+                Expanded(
+                  child: FadeSlideIn(
+                    delay: FadeSlideIn.staggerDelay(3),
+                    child: _GuestWorkCard(
+                      label: 'shell.my_quotes_orders'.tr,
+                      icon: Icons.description_outlined,
+                      kind: WorkIconKind.quotesOrders,
+                      accent: const Color(0xFFF5A623),
+                      isActive: false,
+                      onTap: onRequireLogin,
+                    ),
                   ),
                 ),
               ],
             ),
-          ),
-
-          // 2x2 Grid Layout
-          Row(
-            children: [
-              Expanded(
-                child: _WorkCard(
-                  label: 'shell.my_visits'.tr,
-                  icon: Icons.assignment_turned_in_outlined,
-                  tint: const Color(0xFF34A853),
-                  badgeText: '3 today',
-                  badgeColor: const Color(0xFFC88D2B),
-                  onTap: onRequireLogin,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: context.rh(12)),
-          Row(
-            children: [
-              Expanded(
-                child: _WorkCard(
-                  label: 'shell.my_customers'.tr,
-                  icon: Icons.people_alt_outlined,
-                  tint: const Color(0xFFEA4335),
-                  onTap: onRequireLogin,
-                ),
-              ),
-              SizedBox(width: context.rw(12)),
-              Expanded(
-                child: _WorkCard(
-                  label: 'shell.my_quotes_orders'.tr,
-                  icon: Icons.description_outlined,
-                  tint: const Color(0xFFFBBC05),
-                  onTap: onRequireLogin,
-                ),
-              ),
-            ],
           ),
         ],
       ),
@@ -96,175 +96,293 @@ class GuestMyWorkGrid extends StatelessWidget {
   }
 }
 
-class _WorkCard extends StatelessWidget {
-  const _WorkCard({
+class _GuestWorkCard extends StatefulWidget {
+  const _GuestWorkCard({
     required this.label,
     required this.icon,
-    required this.tint,
+    required this.accent,
     required this.onTap,
     this.badgeText,
-    this.badgeColor,
+    this.isActive = false,
+    required this.kind,
+    this.tileHeight,
   });
 
   final String label;
   final IconData icon;
-  final Color tint;
+  final Color accent;
   final VoidCallback onTap;
   final String? badgeText;
-  final Color? badgeColor;
+  final bool isActive;
+
+  /// Which drawn, animated illustration this card shows.
+  final WorkIconKind kind;
+
+  /// Tile height override.
+  final double? tileHeight;
+
+  @override
+  State<_GuestWorkCard> createState() => _GuestWorkCardState();
+}
+
+class _GuestWorkCardState extends State<_GuestWorkCard> {
+  bool _isPressed = false;
+
+  // Traditional Gold Accent Palette
+  static const Color _goldLight = Color(0xFFF3E5AB);
+  static const Color _goldPrimary = Color(0xFFD4AF37);
+  static const Color _goldDark = Color(0xFF996515);
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final appColors = context.appColors;
     final isDark = theme.brightness == Brightness.dark;
+
+    final depthOffset = _isPressed ? 2.0 : 6.0;
 
     return Semantics(
       button: true,
-      label: 'shell.login_required_label'.trParams({'feature': label}),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(20.r),
+      label: 'shell.login_required_label'.trParams({'feature': widget.label}),
+      child: GestureDetector(
+        onTapDown: (_) => setState(() => _isPressed = true),
+        onTapUp: (_) {
+          setState(() => _isPressed = false);
+          widget.onTap();
+        },
+        onTapCancel: () => setState(() => _isPressed = false),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 100),
+          curve: Curves.easeOut,
+          transform: Matrix4.translationValues(0, _isPressed ? 4.0 : 0.0, 0),
           child: Container(
-            height: context.rh(124),
-            clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
-              color: isDark ? appColors.card : scheme.surface,
               borderRadius: BorderRadius.circular(20.r),
-              border: Border.all(
-                color:
-                    (isDark ? const Color(0xFFF3E5AB) : const Color(0xFFE5B54E))
-                        .withValues(alpha: isDark ? 0.35 : 0.5),
-                width: 1.5,
-              ),
               boxShadow: [
                 BoxShadow(
-                  color: isDark
-                      ? appColors.shadowColor.withValues(alpha: 0.3)
-                      : const Color(0xFFC88D2B).withValues(alpha: 0.12),
-                  blurRadius: 16,
-                  offset: const Offset(0, 6),
+                  color: widget.accent.withValues(alpha: isDark ? 0.35 : 0.25),
+                  offset: Offset(0, depthOffset),
+                  blurRadius: _isPressed ? 2 : 6,
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.40 : 0.08),
+                  offset: Offset(0, depthOffset + 2),
+                  blurRadius: _isPressed ? 4 : 12,
                 ),
               ],
             ),
             child: Stack(
               children: [
-                // Top-left corner decorative ring
-                Positioned(
-                  top: -18.r,
-                  left: -18.r,
-                  child: Container(
-                    width: 48.r,
-                    height: 48.r,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: tint.withValues(alpha: isDark ? 0.35 : 0.25),
-                        width: 1.5,
-                      ),
+                // 1. Traditional Outer Gold Frame & Card Base
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20.r),
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        _goldLight.withValues(alpha: 0.8),
+                        _goldPrimary,
+                        _goldDark,
+                      ],
                     ),
                   ),
-                ),
-
-                // Bottom-right corner decorative ring
-                Positioned(
-                  bottom: -18.r,
-                  right: -18.r,
+                  padding: EdgeInsets.all(2.r),
                   child: Container(
-                    width: 48.r,
-                    height: 48.r,
                     decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: tint.withValues(alpha: isDark ? 0.35 : 0.25),
-                        width: 1.5,
+                      borderRadius: BorderRadius.circular(18.r),
+                      color: scheme.surface,
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          scheme.surface,
+                          Color.lerp(
+                            scheme.surface,
+                            widget.accent,
+                            0.05,
+                          )!,
+                        ],
                       ),
                     ),
-                  ),
-                ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(18.r),
+                      child: Stack(
+                        children: [
+                          // Traditional Corner Ornaments
+                          Positioned(
+                            top: -12.r,
+                            left: -12.r,
+                            child: _TraditionalCornerOrnament(
+                                color: widget.accent),
+                          ),
+                          Positioned(
+                            bottom: -12.r,
+                            right: -12.r,
+                            child: Transform.rotate(
+                              angle: 3.14159,
+                              child: _TraditionalCornerOrnament(
+                                  color: widget.accent),
+                            ),
+                          ),
 
-                // Card Main Content
-                Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Circular Icon Shape
-                      Container(
-                        width: context.rr(48),
-                        height: context.rr(48),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: tint.withValues(alpha: isDark ? 0.18 : 0.12),
-                          border: Border.all(
-                            color: tint.withValues(alpha: isDark ? 0.45 : 0.35),
-                            width: 1.2,
-                          ),
-                        ),
-                        child: Center(
-                          child: Icon(
-                            icon,
-                            color: tint,
-                            size: context.rr(22),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: context.rh(10)),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 10.w),
-                        child: Text(
-                          label,
-                          style: TextStyle(
-                            fontSize: context.rsp(14),
-                            fontWeight: FontWeight.w800,
-                            color: appColors.textPrimary,
-                            letterSpacing: -0.2,
-                          ),
-                          textAlign: TextAlign.center,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Top-right pill badge (e.g., "3 today")
-                if (badgeText != null)
-                  Positioned(
-                    top: 10.h,
-                    right: 10.w,
-                    child: Container(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-                      decoration: BoxDecoration(
-                        color: badgeColor ?? scheme.secondary,
-                        borderRadius: BorderRadius.circular(100.r),
-                        boxShadow: [
-                          BoxShadow(
-                            color: (badgeColor ?? scheme.secondary)
-                                .withValues(alpha: 0.3),
-                            blurRadius: 6,
-                            offset: const Offset(0, 2),
+                          // Card Content
+                          Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                WorkIcon(
+                                  kind: widget.kind,
+                                  accent: widget.accent,
+                                  size: widget.tileHeight ?? context.rr(66),
+                                ),
+                                SizedBox(height: context.rh(10)),
+                                Padding(
+                                  padding:
+                                      EdgeInsets.symmetric(horizontal: 8.w),
+                                  child: Text(
+                                    widget.label,
+                                    textAlign: TextAlign.center,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: context.rsp(13.5),
+                                      fontWeight: FontWeight.w800,
+                                      color: scheme.onSurface,
+                                      letterSpacing: -0.1,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
-                      child: Text(
-                        badgeText!,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: context.rsp(10),
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
                     ),
+                  ),
+                ),
+
+                // 2. Badge with 3D Elevation
+                if (widget.badgeText != null)
+                  Positioned(
+                    top: 8.h,
+                    right: 8.w,
+                    child: _WorkBadge(text: widget.badgeText!),
                   ),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Traditional geometric motif corner decoration
+class _TraditionalCornerOrnament extends StatelessWidget {
+  const _TraditionalCornerOrnament({required this.color});
+
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 36.r,
+      height: 36.r,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: color.withValues(alpha: 0.12),
+          width: 2,
+        ),
+      ),
+    );
+  }
+}
+
+class _WorkBadge extends StatelessWidget {
+  const _WorkBadge({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSwitcher(
+      duration: AppDurations.medium,
+      switchInCurve: AppCurves.emphasized,
+      transitionBuilder: (child, animation) => ScaleTransition(
+        scale: animation,
+        child: FadeTransition(opacity: animation, child: child),
+      ),
+      child: Container(
+        key: ValueKey<String>(text),
+        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFFD4AF37), Color(0xFFB8860B)],
+          ),
+          borderRadius: BorderRadius.circular(100.r),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.25),
+              offset: const Offset(0, 2),
+              blurRadius: 4,
+            ),
+          ],
+        ),
+        child: Text(
+          text,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: context.rsp(9),
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader(this.text, {this.letterSpacing = 1.6});
+
+  final String text;
+  final double letterSpacing;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final color = theme.textTheme.bodySmall?.color?.withValues(alpha: 0.8) ??
+        theme.colorScheme.onSurface.withValues(alpha: 0.8);
+
+    final double headerBase = context.responsive(compact: 14.0, medium: 16.0);
+
+    return Padding(
+      padding: EdgeInsets.only(left: 4.w, bottom: context.rh(12)),
+      child: Row(
+        children: [
+          Container(
+            width: context.rw(4),
+            height: context.rh(14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(2.r),
+              gradient: const LinearGradient(
+                colors: [Color(0xFFD4AF37), Color(0xFF996515)],
+              ),
+            ),
+          ),
+          SizedBox(width: context.rw(8)),
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: context.rsp(headerBase),
+              fontWeight: FontWeight.w900,
+              letterSpacing: letterSpacing,
+              color: color,
+            ),
+          ),
+        ],
       ),
     );
   }

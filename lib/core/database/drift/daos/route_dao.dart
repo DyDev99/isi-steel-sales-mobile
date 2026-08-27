@@ -44,7 +44,7 @@ class RouteStopWithCustomer {
 /// Replaces the hand-written SQL in `my_visits/data/local/route_local_data_source.dart`
 /// (ADR-004: generated DAOs give compile-time safety the raw-SQL version could
 /// not). Reads exclude soft-deleted rows — a row pending a delete-push is still
-/// on disk (`docs/DATABASE_GUIDE.md` §3.1) but must not be shown to the user.
+/// on disk (`docs/blueprint/local-storage-architecture.md` §3.1) but must not be shown to the user.
 @DriftAccessor(
     tables: [Routes, RouteStops, RouteCustomers, RouteSyncMeta, Customers])
 class RouteDao extends DatabaseAccessor<AppDatabase> with _$RouteDaoMixin {
@@ -123,7 +123,7 @@ class RouteDao extends DatabaseAccessor<AppDatabase> with _$RouteDaoMixin {
 
   /// Reactive equivalent of [fetchRoutesForDay] — the UI rebuilds itself when
   /// a sync writes new plans, with no manual refresh
-  /// (`docs/OFFLINE_FIRST.md` §1).
+  /// (`docs/blueprint/offline-architecture.md` §1).
   Stream<List<RouteRow>> watchRoutesForDay(DateTime day) {
     final start = DateTime.utc(day.year, day.month, day.day);
     final end = start.add(const Duration(days: 1));
@@ -204,7 +204,7 @@ class RouteDao extends DatabaseAccessor<AppDatabase> with _$RouteDaoMixin {
   ///
   /// Idempotent upsert keyed by customer id, so re-running a sync — which the
   /// backend explicitly permits, since a delta may re-send the full current set
-  /// (`docs/backend-document.md` §5.2) — converges rather than duplicating.
+  /// (`docs/feature/my-visits/api.md` §5.2) — converges rather than duplicating.
   ///
   /// This deliberately does **not** touch the `customers` directory. The two
   /// are different feeds with different scopes and different owners; writing

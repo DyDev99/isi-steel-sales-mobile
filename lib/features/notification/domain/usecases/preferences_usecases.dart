@@ -3,7 +3,7 @@ import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
 import 'package:isi_steel_sales_mobile/features/notification/domain/entities/notification_preferences.dart';
 import 'package:isi_steel_sales_mobile/features/notification/domain/repositories/notification_preferences_repository.dart';
 
-/// Notification-settings use cases (`docs/features/notification-mobile.md` §13).
+/// Notification-settings use cases (`docs/feature/notification/README.md` §13).
 ///
 /// Grouped for the reason given at the top of `inbox_usecases.dart`.
 

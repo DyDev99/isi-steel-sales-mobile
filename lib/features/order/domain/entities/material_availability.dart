@@ -24,6 +24,54 @@ enum MaterialStockStatus {
   unavailable,
 }
 
+/// How much of a material SAP says is on hand, as a band rather than a figure.
+///
+/// The stock endpoint answers `"High"` / `"Medium"` / `"Low"` / `"None"`, never
+/// a quantity, and that is a deliberate choice on the server's part rather than
+/// a gap: an exact count on a card is a number a rep will read as a promise the
+/// moment it goes stale.
+enum StockBand {
+  /// No band was reported. Distinct from [none] — "not told" rather than
+  /// "told there is nothing".
+  unknown,
+
+  none,
+  low,
+  medium,
+  high;
+
+  /// Parses SAP's own casing. An unrecognised band degrades to [unknown]
+  /// rather than to [none]: inventing "there is no stock" out of a string this
+  /// build has not seen would stop a sale that should have gone ahead.
+  static StockBand parse(String? raw) => switch (raw?.trim().toLowerCase()) {
+        'high' => StockBand.high,
+        'medium' || 'mid' => StockBand.medium,
+        'low' => StockBand.low,
+        'none' || 'zero' || 'out' => StockBand.none,
+        _ => StockBand.unknown,
+      };
+}
+
+/// One plant's own verdict on a material.
+///
+/// The material-level answer is the roll-up; this is the breakdown. A rep who
+/// is told "High" still needs to know *where*, because a depot two provinces
+/// away is not the same offer as the one down the road.
+class MaterialPlantStock extends Equatable {
+  const MaterialPlantStock({
+    required this.plant,
+    required this.band,
+    required this.isSellable,
+  });
+
+  final String plant;
+  final StockBand band;
+  final bool isSellable;
+
+  @override
+  List<Object?> get props => [plant, band, isSellable];
+}
+
 /// One line of SAP's reasoning.
 ///
 /// The working, not just the conclusion: `SALES_VIEW` failing with "Material is
@@ -75,7 +123,11 @@ class MaterialAvailability extends Equatable {
     required this.material,
     required this.isSellable,
     required this.summary,
-    required this.checks,
+    this.checks = const [],
+    this.band = StockBand.unknown,
+    this.baseUnit = '',
+    this.plants = const [],
+    this.checkedAt,
     this.status = MaterialStockStatus.unknown,
   });
 
@@ -85,6 +137,10 @@ class MaterialAvailability extends Equatable {
       : isSellable = false,
         summary = '',
         checks = const [],
+        band = StockBand.unknown,
+        baseUnit = '',
+        plants = const [],
+        checkedAt = null,
         status = MaterialStockStatus.checking;
 
   final String material;
@@ -93,9 +149,44 @@ class MaterialAvailability extends Equatable {
   /// SAP's own one-line conclusion, already written for a human.
   final String summary;
 
+  /// SAP's working, from the sales-area validation endpoint. Empty for a stock
+  /// read, which answers a band instead of a chain of checks.
   final List<MaterialAvailabilityCheck> checks;
 
+  /// How much is on hand, banded. [StockBand.unknown] where the answer came
+  /// from the sellability endpoint, which reports no quantity at all.
+  final StockBand band;
+
+  /// The material's own unit — `KG` for coil, `M` for profile. Read per
+  /// material, never assumed.
+  final String baseUnit;
+
+  /// Per-plant breakdown behind [band].
+  final List<MaterialPlantStock> plants;
+
+  /// When SAP computed this. Worth carrying: a band is a snapshot, and a rep
+  /// deciding on a large line is entitled to know how fresh it is.
+  final DateTime? checkedAt;
+
   final MaterialStockStatus status;
+
+  /// Whether the rep may put this material on an order line.
+  ///
+  /// The single question the quantity stepper asks. Note what it does *not*
+  /// consult: the band. A `Low` band is still sellable — it is a warning about
+  /// how much, not a refusal — and gating the `+` on it would block orders SAP
+  /// would happily accept.
+  bool get canOrder => switch (status) {
+        MaterialStockStatus.available => true,
+        MaterialStockStatus.unavailable => false,
+        // Never asked, or still asking. The rep is not blocked on a question
+        // that has not been answered yet.
+        MaterialStockStatus.unknown || MaterialStockStatus.checking => true,
+      };
+
+  /// The plants that can actually supply this material.
+  List<MaterialPlantStock> get sellablePlants =>
+      plants.where((p) => p.isSellable).toList(growable: false);
 
   /// The concluding check, or null when SAP returned only working.
   MaterialAvailabilityCheck? get verdict {
@@ -134,5 +225,15 @@ class MaterialAvailability extends Equatable {
   }
 
   @override
-  List<Object?> get props => [material, isSellable, summary, checks, status];
+  List<Object?> get props => [
+        material,
+        isSellable,
+        summary,
+        checks,
+        band,
+        baseUnit,
+        plants,
+        checkedAt,
+        status,
+      ];
 }

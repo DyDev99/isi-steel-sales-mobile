@@ -14,7 +14,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/data/remote/visit_push
 /// Implementations return an accepted/rejected id split rather than a
 /// whole-batch verdict, and throw only when the *request* failed. One bad row
 /// must never strand a day's other captures on the device
-/// (`docs/backend-document.md` §3.3).
+/// (`docs/feature/my-visits/api.md` §3.3).
 abstract interface class VisitSyncRemoteDataSource {
   Future<VisitPushResult> pushVisitData(VisitPushBatch batch);
 }

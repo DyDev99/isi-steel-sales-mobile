@@ -17,7 +17,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_
 /// everything above it were untouched by the cutover.
 ///
 /// Both calls read the same envelope — `data.customers`, `data.routes` and
-/// `data.hasMore` (`docs/backend-document.md` §5).
+/// `data.hasMore` (`docs/feature/my-visits/api.md` §5).
 class ApiRouteRemoteDataSource implements RouteRemoteDataSource {
   const ApiRouteRemoteDataSource(this._client);
 
@@ -70,7 +70,7 @@ class ApiRouteRemoteDataSource implements RouteRemoteDataSource {
   /// Reads one page of the shared route body.
   ///
   /// Note what is *not* sent: `repId`. The rep identity comes from the bearer
-  /// token server-side (`docs/backend-document.md` §5, §8.1). A client-supplied
+  /// token server-side (`docs/feature/my-visits/api.md` §5, §8.1). A client-supplied
   /// rep id would be an authorisation claim the client is not entitled to make,
   /// and the server is required to ignore it — so sending it would only
   /// suggest otherwise. [RouteSyncScope.repId] stays local, for local scoping.

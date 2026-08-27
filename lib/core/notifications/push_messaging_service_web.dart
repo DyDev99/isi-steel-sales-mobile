@@ -20,7 +20,7 @@ import 'package:isi_steel_sales_mobile/core/notifications/push_messaging_service
 ///
 /// ## Why this is a no-op and not an error
 ///
-/// `docs/features/notification-mobile.md` §1: *"Design the app so that a
+/// `docs/feature/notification/README.md` §1: *"Design the app so that a
 /// dropped push costs nothing."* Web is the permanent case of that. Every method
 /// answers honestly — [isSupported] is false, [authorization] is
 /// [PushAuthorization.unsupported], [token] is null — so

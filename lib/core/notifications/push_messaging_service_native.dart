@@ -21,7 +21,7 @@ import 'package:isi_steel_sales_mobile/core/notifications/push_messaging_service
 ///     one file is a corruption risk, not a performance question.
 ///  2. It is not needed. The inbox is the system of record and the catch-up call
 ///     on next foreground pulls everything since the cursor
-///     (`docs/features/notification-mobile.md` §6.1). A background write would
+///     (`docs/feature/notification/README.md` §6.1). A background write would
 ///     duplicate work the foreground path already guarantees, while adding the
 ///     one failure mode the design has no answer for: a half-written encrypted
 ///     row nobody is around to see.

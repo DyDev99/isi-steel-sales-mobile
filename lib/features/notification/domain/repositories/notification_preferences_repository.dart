@@ -2,7 +2,7 @@ import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
 import 'package:isi_steel_sales_mobile/features/notification/domain/entities/notification_preferences.dart';
 
 /// The rep's notification settings, which live server-side and follow them
-/// across devices (`docs/features/notification-mobile.md` §13).
+/// across devices (`docs/feature/notification/README.md` §13).
 ///
 /// Cached locally only so the settings screen opens instantly and reads
 /// something sensible offline. The cache is never authoritative: a rep who

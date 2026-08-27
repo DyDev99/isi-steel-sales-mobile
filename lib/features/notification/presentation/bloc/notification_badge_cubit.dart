@@ -9,7 +9,7 @@ import 'package:isi_steel_sales_mobile/features/notification/domain/usecases/inb
 ///
 /// ## Two numbers, two meanings
 ///
-/// `docs/features/notification-mobile.md` §5.4 and §7 keep these apart on
+/// `docs/feature/notification/README.md` §5.4 and §7 keep these apart on
 /// purpose:
 ///
 ///  * **`unread`** drives the bell — "there is something to look at".

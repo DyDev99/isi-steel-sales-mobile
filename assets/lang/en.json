@@ -1199,12 +1199,12 @@
       "invalid_phone": "Invalid phone number",
       "max_40": "Maximum 40 characters",
       "must_be_khmer": "Enter a Khmer name",
-      "postal_5_digits": "Enter a 5-digit postal code",
       "gps_required": "GPS location is required",
       "gps_outside_kh": "GPS location must be in Cambodia",
       "photo_required": "This photo is required",
       "vat_tin_required": "VAT/TIN is required",
-      "submit": "Unable to submit customer"
+      "submit": "Unable to submit customer",
+      "postal_code": "Enter a valid postal code"
     },
     "gps_hint": "Tap to capture current location",
     "gps_save": "Save GPS Location",
@@ -1300,7 +1300,8 @@
     "review": "Review",
     "queued_offline": "Saved locally and awaiting sync",
     "draft_resumed": "Resumed your unfinished registration",
-    "send_for_credit_approval": "Send for credit approval"
+    "send_for_credit_approval": "Send for credit approval",
+    "commune": "Commune / Sangkat"
   },
   "add_customer.shop_types": {
     "hardware_shop": "Hardware Shop",
@@ -1470,8 +1471,8 @@
     "quick_actions": "QUICK ACTIONS",
     "my_leads": "My Leads",
     "my_visits": "My Visits",
-    "my_customers": "My Customers",
-    "my_quotes_orders": "My Quotes & Orders",
+    "my_customers": "Customers",
+    "my_quotes_orders": "Quotes & Orders",
     "badge_due": "{count} due",
     "badge_today": "{count} today",
     "new_quote": "New quote",

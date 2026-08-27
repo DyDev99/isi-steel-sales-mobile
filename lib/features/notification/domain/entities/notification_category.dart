@@ -1,5 +1,5 @@
 /// The ten groupings every notification belongs to
-/// (`docs/features/notification-mobile.md` §5.3).
+/// (`docs/feature/notification/README.md` §5.3).
 ///
 /// The wire values are the SCREAMING_SNAKE codes the backend sends, kept
 /// verbatim as [code] rather than derived from `name`: `ANNOUNCE` and

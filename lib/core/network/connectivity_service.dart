@@ -14,7 +14,7 @@ enum ConnectivityStatus { online, offline }
 /// Confirms real internet reachability, separate from interface-up state.
 ///
 /// Extracted as a seam so [ConnectivityServiceImpl] is testable without a
-/// network (`docs/AI_ENGINEERING_PLAYBOOK.md` §7.6: a test that mocks away the
+/// network (`docs/skills/ai-engineering-playbook.md` §7.6: a test that mocks away the
 /// thing under test is worse than no test — here the probe is a collaborator,
 /// not the logic being verified).
 abstract interface class ReachabilityProbe {
@@ -27,10 +27,10 @@ abstract interface class ReachabilityProbe {
 /// than a third-party endpoint, so "reachable" means "reachable enough to sync"
 /// — a third-party host being down must never make the app think it is offline.
 ///
-/// `docs/SECURITY.md` §6 requires a timeout and a defined retry policy on every
+/// `docs/skills/security.md` §6 requires a timeout and a defined retry policy on every
 /// network call: this issues a single bounded-timeout request and never retries
 /// (the caller re-probes on the next connectivity event; retry/backoff is the
-/// sync engine's job, per `docs/SYNC_ENGINE.md` §4).
+/// sync engine's job, per `docs/blueprint/sync-architecture.md` §4).
 class HttpReachabilityProbe implements ReachabilityProbe {
   HttpReachabilityProbe({
     required Dio dio,
@@ -104,14 +104,14 @@ class HttpReachabilityProbe implements ReachabilityProbe {
 
 /// The single source of truth for connectivity across the app (ADR-005).
 ///
-/// Every consumer — the UI status pill (`docs/OFFLINE_FIRST.md` §5) and the sync
-/// drain trigger (`docs/SYNC_ENGINE.md` §9) — subscribes here, so the pill and
+/// Every consumer — the UI status pill (`docs/blueprint/offline-architecture.md` §5) and the sync
+/// drain trigger (`docs/blueprint/sync-architecture.md` §9) — subscribes here, so the pill and
 /// the sync engine can never disagree. **No UI, bloc, repository or DAO may call
 /// `connectivity_plus` directly** (ADR-005 §3).
 abstract interface class ConnectivityService {
   /// Last known state, readable synchronously so guards and the sync
   /// coordinator don't have to await (mirrors the `SessionManager` pattern in
-  /// `docs/OFFLINE_FIRST.md` §2.6).
+  /// `docs/blueprint/offline-architecture.md` §2.6).
   ConnectivityStatus get status;
 
   bool get isOnline;
@@ -125,7 +125,7 @@ abstract interface class ConnectivityService {
   Future<void> start();
 
   /// Forces an immediate reachability re-check, e.g. on foreground resume
-  /// (`docs/SYNC_ENGINE.md` §9).
+  /// (`docs/blueprint/sync-architecture.md` §9).
   Future<ConnectivityStatus> refresh();
 
   Future<void> dispose();

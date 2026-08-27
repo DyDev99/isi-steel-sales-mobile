@@ -32,7 +32,7 @@ class NotificationDestination {
 }
 
 /// Maps the backend's `app://…` URIs onto this app's routes
-/// (`docs/features/notification-mobile.md` §11).
+/// (`docs/feature/notification/README.md` §11).
 ///
 /// ## The backend builds the URI; this only reads it
 ///

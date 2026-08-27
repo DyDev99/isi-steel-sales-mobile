@@ -68,7 +68,6 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
   final _coNameCtrl = TextEditingController();
   final _streetCtrl = TextEditingController();
   final _houseNoCtrl = TextEditingController();
-  final _postalCtrl = TextEditingController();
   final _contactNameCtrl = TextEditingController();
   final _vatTinCtrl = TextEditingController();
   final _remarkCtrl = TextEditingController();
@@ -77,6 +76,19 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
       initialValue: const PhoneNumber(isoCode: IsoCode.KH, nsn: ''));
   final _telCtrl = PhoneController(
       initialValue: const PhoneNumber(isoCode: IsoCode.KH, nsn: ''));
+
+  /// Lets "Next" tell the address block to reveal its own field errors.
+  ///
+  /// `validateStep` decides whether the step may advance, but it returns error
+  /// keys the geo selector never sees — it owns its four fields and their
+  /// messages. Without this handle the rep taps Next, nothing happens, and no
+  /// field says why.
+  final _geoController = GeoLocationSelectorController();
+
+  /// The address-step error keys the selector renders itself. Postal code is
+  /// included: the selector owns that field too, including the manual-entry
+  /// case for the communes with no code on record.
+  static const _geoErrorKeys = {'city', 'district', 'commune', 'postalCode'};
 
   bool _capturingGps = false;
   bool _showMoreIdentity = false;
@@ -92,7 +104,6 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
       _coNameCtrl,
       _streetCtrl,
       _houseNoCtrl,
-      _postalCtrl,
       _contactNameCtrl,
       _vatTinCtrl,
       _remarkCtrl,
@@ -110,10 +121,12 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
   double _spacing(double base) =>
       widget.isTablet ? base * 1.2 : context.rh(base);
 
-  int get _stepColumns =>
-      context.responsive(compact: 1, medium: 2, expanded: 3);
+  bool get _isTabletLayout =>
+      widget.isTablet ||
+      context.responsive(compact: false, medium: true, expanded: true);
 
-  bool get _showsAllSteps => _stepColumns > 1;
+  int _tabletStage =
+      0; // 0: Identity+Address, 1: Contact+Terms, 2: Documents+Notes, 3: Preview
 
   AddCustomerBloc get _bloc => context.read<AddCustomerBloc>();
 
@@ -136,7 +149,6 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
     _coNameCtrl.text = draft.coName;
     _streetCtrl.text = draft.street;
     _houseNoCtrl.text = draft.houseNumber;
-    _postalCtrl.text = draft.postalCode;
     _contactNameCtrl.text = draft.contactPersonName;
     _vatTinCtrl.text = draft.vatTin;
     _remarkCtrl.text = draft.remark;
@@ -151,7 +163,9 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
 
     return BlocConsumer<AddCustomerBloc, AddCustomerState>(
       listenWhen: (prev, curr) =>
-          prev.status != curr.status || prev.serverFields != curr.serverFields,
+          prev.status != curr.status ||
+          prev.serverFields != curr.serverFields ||
+          prev.errors != curr.errors,
       listener: (context, state) {
         if (state.status == AddCustomerStatus.editing &&
             state.serverDraftId != null) {
@@ -165,6 +179,22 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('add_customer.draft_resumed'.tr)),
             );
+          }
+        }
+        // Next was blocked on a field the selector owns — tell it to show why.
+        if (state.currentStep == BpFormStep.address &&
+            state.errors.keys.any(_geoErrorKeys.contains)) {
+          _geoController.validate();
+        }
+        if (state.errors.isNotEmpty && _isTabletLayout) {
+          if (state.currentStep == BpFormStep.identity ||
+              state.currentStep == BpFormStep.address) {
+            setState(() => _tabletStage = 0);
+          } else if (state.currentStep == BpFormStep.contact ||
+              state.currentStep == BpFormStep.salesTerms) {
+            setState(() => _tabletStage = 1);
+          } else if (state.currentStep == BpFormStep.documents) {
+            setState(() => _tabletStage = 2);
           }
         }
         if (state.status == AddCustomerStatus.success) {
@@ -221,9 +251,15 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
                 ),
                 SizedBox(height: _spacing(12)),
               ],
-              _buildFormHeader(state),
+              if (_isTabletLayout)
+                _buildTabletFormHeader(state)
+              else
+                _buildFormHeader(state),
               SizedBox(height: _spacing(16)),
-              if (!_showsAllSteps) _buildStepProgress(state),
+              if (_isTabletLayout)
+                _buildTabletStepProgress(state)
+              else
+                _buildStepProgress(state),
               SizedBox(height: _spacing(16)),
               Expanded(
                 child: SingleChildScrollView(
@@ -245,8 +281,11 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
                               ),
                             ),
                           )
-                        : _showsAllSteps
-                            ? _buildAllStepsBody(state)
+                        : _isTabletLayout
+                            ? KeyedSubtree(
+                                key: ValueKey('tablet_stage_$_tabletStage'),
+                                child: _buildTabletStageBody(state),
+                              )
                             : KeyedSubtree(
                                 key: ValueKey(state.currentStep),
                                 child: _buildStepBody(
@@ -256,7 +295,10 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
                 ),
               ),
               SizedBox(height: _spacing(20)),
-              _buildNavigationButtons(state),
+              if (_isTabletLayout)
+                _buildTabletNavigationButtons(state)
+              else
+                _buildNavigationButtons(state),
             ],
           ),
         );
@@ -265,9 +307,6 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeOut,
           padding: EdgeInsets.only(bottom: bottomInset),
-          // The BP form is a full-screen workspace on phones.  Giving the
-          // Column a bounded height lets its scrollable body use the remaining
-          // space instead of collapsing to a short, overflowing bottom sheet.
           child: SizedBox(
             width: double.infinity,
             height: MediaQuery.sizeOf(context).height,
@@ -279,14 +318,489 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
   }
 
   // ===========================================================================
-  // Header + progress
+  // Tablet Header & Progress
+  // ===========================================================================
+  Widget _buildTabletFormHeader(AddCustomerState state) {
+    final stageTitles = [
+      (
+        title:
+            '${'add_customer.steps.identity'.tr} & ${'add_customer.steps.address'.tr}',
+        subtitle: 'add_customer.subtitle'.tr,
+      ),
+      (
+        title:
+            '${'add_customer.steps.contact'.tr} & ${'add_customer.steps.sales_terms'.tr}',
+        subtitle:
+            'Configure contact details, commercial pricing & tax classification',
+      ),
+      (
+        title: 'add_customer.steps.documents'.tr,
+        subtitle: 'Upload required verification photos and internal remarks',
+      ),
+      (
+        title: '${'add_customer.review'.tr} & ${'add_customer.send_to_hq'.tr}',
+        subtitle:
+            'Verify all registered customer information before final submission',
+      ),
+    ];
+    final current = stageTitles[_tabletStage.clamp(0, 3)];
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 250),
+                child: Text(
+                  current.title,
+                  key: ValueKey(current.title),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: _fontSize(22),
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                current.subtitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.5),
+                  fontSize: _fontSize(13),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: context.appColors.surfaceSoft,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: context.appColors.border),
+          ),
+          child: Text(
+            'Step ${_tabletStage + 1} / 4',
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.secondary,
+              fontSize: _fontSize(13),
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTabletStepProgress(AddCustomerState state) {
+    final stages = [
+      '1. General & Location',
+      '2. Contact & Terms',
+      '3. Documents & Notes',
+      '4. Preview & Submit',
+    ];
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+      decoration: BoxDecoration(
+        color: context.appColors.surfaceSoft,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: context.appColors.border),
+      ),
+      child: Row(
+        children: [
+          for (var i = 0; i < stages.length; i++) ...[
+            Expanded(
+              child: InkWell(
+                onTap: i < _tabletStage ? () => _goToTabletStage(i) : null,
+                borderRadius: BorderRadius.circular(10),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 4, horizontal: 6),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 26,
+                        height: 26,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: i == _tabletStage
+                              ? Theme.of(context).colorScheme.primary
+                              : i < _tabletStage
+                                  ? context.appColors.success
+                                  : context.appColors.border,
+                        ),
+                        child: i < _tabletStage
+                            ? const Icon(Icons.check,
+                                size: 14, color: Colors.white)
+                            : Text(
+                                '${i + 1}',
+                                style: TextStyle(
+                                  color: i == _tabletStage
+                                      ? Colors.white
+                                      : context.appColors.textSecondary,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          stages[i],
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: _fontSize(12.5),
+                            fontWeight: i == _tabletStage
+                                ? FontWeight.w800
+                                : FontWeight.w600,
+                            color: i == _tabletStage
+                                ? Theme.of(context).colorScheme.primary
+                                : i < _tabletStage
+                                    ? context.appColors.textPrimary
+                                    : context.appColors.textSecondary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            if (i < stages.length - 1)
+              Container(
+                width: 16,
+                height: 2,
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                color: i < _tabletStage
+                    ? context.appColors.success
+                    : context.appColors.border,
+              ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // ===========================================================================
+  // Tablet Stages Body (2-Step Columns & Preview)
+  // ===========================================================================
+  Widget _buildTabletStageBody(AddCustomerState state) {
+    return switch (_tabletStage) {
+      0 => Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: _buildSectionCard(
+                title: 'add_customer.steps.identity'.tr,
+                subtitle: 'Who is the customer (BP header & names)',
+                icon: Icons.person_outline_rounded,
+                child: _buildIdentityStep(state.errors),
+              ),
+            ),
+            SizedBox(width: _spacing(24)),
+            Expanded(
+              child: _buildSectionCard(
+                title: 'add_customer.steps.address'.tr,
+                subtitle: 'Where are they located (Address & GPS)',
+                icon: Icons.location_on_outlined,
+                child: _buildAddressStep(state.errors),
+              ),
+            ),
+          ],
+        ),
+      1 => Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: _buildSectionCard(
+                title: 'add_customer.steps.contact'.tr,
+                subtitle: 'How do we reach them (Phones & Contact person)',
+                icon: Icons.phone_outlined,
+                child: _buildContactStep(state.errors),
+              ),
+            ),
+            SizedBox(width: _spacing(24)),
+            Expanded(
+              child: _buildSectionCard(
+                title: 'add_customer.steps.sales_terms'.tr,
+                subtitle: 'Commercial setup (Pricing, Payment & Tax)',
+                icon: Icons.receipt_long_outlined,
+                child: _buildSalesTermsStep(state.errors),
+              ),
+            ),
+          ],
+        ),
+      2 => Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: _buildSectionCard(
+                title: 'add_customer.steps.documents'.tr,
+                subtitle: 'Verification documents & business license photos',
+                icon: Icons.attach_file_rounded,
+                child: _buildDocumentPhotosSection(state.draft, state.errors),
+              ),
+            ),
+            SizedBox(width: _spacing(24)),
+            Expanded(
+              child: _buildSectionCard(
+                title: 'add_customer.remark'.tr,
+                subtitle: 'Internal notes & instructions for Sales HQ',
+                icon: Icons.description_outlined,
+                child: _buildRemarksSection(state.draft),
+              ),
+            ),
+          ],
+        ),
+      3 => _buildTabletPreviewScreen(state.draft),
+      _ => const SizedBox.shrink(),
+    };
+  }
+
+  Widget _buildSectionCard({
+    required String title,
+    String? subtitle,
+    required IconData icon,
+    required Widget child,
+  }) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: EdgeInsets.all(widget.isTablet ? 24 : context.rw(16)),
+      decoration: BoxDecoration(
+        color: colors.card,
+        borderRadius: BorderRadius.circular(context.rr(18)),
+        border: Border.all(color: colors.border),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: scheme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: scheme.primary, size: _fontSize(20)),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: _fontSize(16),
+                        fontWeight: FontWeight.w800,
+                        color: colors.textPrimary,
+                      ),
+                    ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          fontSize: _fontSize(12),
+                          color: colors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Divider(height: 1),
+          const SizedBox(height: 16),
+          child,
+        ],
+      ),
+    );
+  }
+
+  void _goToTabletStage(int stage) {
+    setState(() => _tabletStage = stage);
+    switch (stage) {
+      case 0:
+        _bloc.add(const GoToStep(BpFormStep.identity));
+        break;
+      case 1:
+        _bloc.add(const GoToStep(BpFormStep.contact));
+        break;
+      case 2:
+        _bloc.add(const GoToStep(BpFormStep.documents));
+        break;
+      case 3:
+        break;
+    }
+  }
+
+  void _editFromPreview(int targetStage, BpFormStep step) {
+    setState(() => _tabletStage = targetStage);
+    _bloc.add(GoToStep(step));
+  }
+
+  void _handleTabletNext(AddCustomerState state) {
+    if (state.serverDraftId == null) {
+      _bloc.add(const OpenServerDraft());
+      return;
+    }
+
+    if (_tabletStage == 0) {
+      final idErrors = state.draft.validateStep(BpFormStep.identity);
+      final addrErrors = state.draft.validateStep(BpFormStep.address);
+      if (idErrors.isNotEmpty) {
+        _bloc.add(const GoToStep(BpFormStep.identity));
+        _bloc.add(const NextStep());
+        return;
+      }
+      if (addrErrors.isNotEmpty) {
+        _bloc.add(const GoToStep(BpFormStep.address));
+        _bloc.add(const NextStep());
+        return;
+      }
+      _goToTabletStage(1);
+    } else if (_tabletStage == 1) {
+      final contactErrors = state.draft.validateStep(BpFormStep.contact);
+      final termsErrors = state.draft.validateStep(BpFormStep.salesTerms);
+      if (contactErrors.isNotEmpty) {
+        _bloc.add(const GoToStep(BpFormStep.contact));
+        _bloc.add(const NextStep());
+        return;
+      }
+      if (termsErrors.isNotEmpty) {
+        _bloc.add(const GoToStep(BpFormStep.salesTerms));
+        _bloc.add(const NextStep());
+        return;
+      }
+      _goToTabletStage(2);
+    } else if (_tabletStage == 2) {
+      final docErrors = state.draft.validateStep(BpFormStep.documents);
+      if (docErrors.isNotEmpty) {
+        _bloc.add(const GoToStep(BpFormStep.documents));
+        _bloc.add(const NextStep());
+        return;
+      }
+      _goToTabletStage(3);
+    } else if (_tabletStage == 3) {
+      _bloc.add(const SubmitToHQ());
+    }
+  }
+
+  Widget _buildTabletNavigationButtons(AddCustomerState state) {
+    final isFirst = _tabletStage == 0;
+    final isLast = _tabletStage == 3;
+    final needsCredit =
+        SapMasterData.paymentTermNeedsCreditApproval(state.draft.paymentTerm);
+
+    const btnPadding = EdgeInsets.symmetric(vertical: 20);
+
+    return Row(
+      children: [
+        if (!isFirst) ...[
+          Expanded(
+            child: OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                padding: btnPadding,
+                side: BorderSide(color: context.appColors.border),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
+              ),
+              onPressed: () {
+                if (_tabletStage == 3) {
+                  _goToTabletStage(2);
+                } else if (_tabletStage == 2) {
+                  _goToTabletStage(1);
+                } else if (_tabletStage == 1) {
+                  _goToTabletStage(0);
+                }
+              },
+              icon: const Icon(Icons.arrow_back),
+              label: Text(
+                _tabletStage == 3 ? 'Back to Edit' : 'Previous',
+                style: TextStyle(
+                  fontSize: _fontSize(14),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+        ],
+        Expanded(
+          flex: 2,
+          child: ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              padding: btnPadding,
+              backgroundColor: isLast
+                  ? context.appColors.success
+                  : Theme.of(context).colorScheme.primary,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14)),
+              elevation: 0,
+            ),
+            onPressed: state.status == AddCustomerStatus.submitting ||
+                    state.status == AddCustomerStatus.opening
+                ? null
+                : () => _handleTabletNext(state),
+            icon: Icon(
+              isLast ? Icons.check_circle_outline : Icons.arrow_forward,
+              color: Colors.white,
+            ),
+            label: Text(
+              isLast
+                  ? (needsCredit
+                      ? 'add_customer.send_for_credit_approval'.tr
+                      : 'add_customer.send_to_hq'.tr)
+                  : (_tabletStage == 2
+                      ? 'Preview & Review'
+                      : 'add_customer.next_step'.tr),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: _fontSize(15),
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ===========================================================================
+  // Phone Header + progress
   // ===========================================================================
   Widget _buildFormHeader(AddCustomerState state) {
-    final title = _showsAllSteps
-        ? 'add_customer.title'.tr
-        : state.currentStep.titleKey.tr;
+    final title = state.currentStep.titleKey.tr;
 
-    // Was hardcoded '3'. Now driven by the enum, so adding a step is free.
     final stepText = 'add_customer.step_indicator'
         .tr
         .replaceAll('{current}', '${state.currentStep.number}')
@@ -329,28 +843,26 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
             ],
           ),
         ),
-        if (!_showsAllSteps) ...[
-          const SizedBox(width: 8),
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: widget.isTablet ? 20 : context.rw(12),
-              vertical: widget.isTablet ? 10 : context.rh(6),
-            ),
-            decoration: BoxDecoration(
-              color: context.appColors.surfaceSoft,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: context.appColors.border),
-            ),
-            child: Text(
-              stepText,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.secondary,
-                fontSize: _fontSize(13),
-                fontWeight: FontWeight.w800,
-              ),
+        const SizedBox(width: 8),
+        Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: widget.isTablet ? 20 : context.rw(12),
+            vertical: widget.isTablet ? 10 : context.rh(6),
+          ),
+          decoration: BoxDecoration(
+            color: context.appColors.surfaceSoft,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: context.appColors.border),
+          ),
+          child: Text(
+            stepText,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.secondary,
+              fontSize: _fontSize(13),
+              fontWeight: FontWeight.w800,
             ),
           ),
-        ],
+        ),
       ],
     );
   }
@@ -395,46 +907,6 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
       BpFormStep.salesTerms => _buildSalesTermsStep(errors),
       BpFormStep.documents => _buildDocumentsStep(errors),
     };
-  }
-
-  Widget _buildAllStepsBody(AddCustomerState state) {
-    final gap = context.rw(24);
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final columns = _stepColumns;
-        final itemWidth =
-            (constraints.maxWidth - gap * (columns - 1)) / columns;
-
-        return Wrap(
-          spacing: gap,
-          runSpacing: context.rh(24),
-          children: [
-            for (final step in BpFormStep.values)
-              SizedBox(
-                width: itemWidth,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      step.titleKey.tr,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: _fontSize(16),
-                        fontWeight: FontWeight.w800,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                    ),
-                    SizedBox(height: _spacing(12)),
-                    _buildStepBody(step, state.errors),
-                  ],
-                ),
-              ),
-          ],
-        );
-      },
-    );
   }
 
   // ===========================================================================
@@ -553,6 +1025,7 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
         ),
         _gap(),
         GeoLocationSelector(
+          controller: _geoController,
           initialAddress: draft.geoAddress,
           initialCodes: ResolveGeoAddressParams(
             provinceCode: draft.cityCode,
@@ -842,47 +1315,443 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
   // ===========================================================================
   // STEP 5 — Documents & review
   // ===========================================================================
-  Widget _buildDocumentsStep(Map<String, String> errors) {
-    final draft = _bloc.state.draft;
+  Widget _buildPhotoTile(
+    String kind,
+    String labelKey,
+    IconData icon,
+    BpCustomerDraft draft,
+    Map<String, String> errors, {
+    bool required = true,
+  }) {
+    final attached = draft.hasAttachment(kind);
+    return Padding(
+      padding: EdgeInsets.only(bottom: _spacing(12)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _actionTile(
+            label: labelKey.tr + (required ? ' *' : ''),
+            sub: attached
+                ? 'add_customer.photo_attached'.tr
+                : 'add_customer.photo_tap'.tr,
+            icon: icon,
+            completed: attached,
+            onTap: () => unawaited(_capturePhoto(kind)),
+          ),
+          if (errors[kind] != null)
+            _errorText('add_customer.error.photo_required'.tr),
+        ],
+      ),
+    );
+  }
 
-    Widget photo(String kind, String labelKey, IconData icon,
-        {bool required = true}) {
-      final attached = draft.hasAttachment(kind);
+  Widget _buildDocumentPhotosSection(
+      BpCustomerDraft draft, Map<String, String> errors) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _label('add_customer.photos'.tr, required: true),
+        _buildPhotoTile('outlet_front', 'add_customer.photo_front',
+            Icons.storefront_rounded, draft, errors),
+        _buildPhotoTile('outlet_inside', 'add_customer.photo_inside',
+            Icons.store_rounded, draft, errors),
+        _buildPhotoTile('id_card', 'add_customer.photo_id', Icons.badge_rounded,
+            draft, errors),
+        _buildPhotoTile('patent_tax', 'add_customer.photo_patent',
+            Icons.receipt_long_rounded, draft, errors,
+            required: false),
+        if (draft.taxClass == '1')
+          _buildPhotoTile('vat_cert', 'add_customer.photo_vat',
+              Icons.verified_rounded, draft, errors),
+      ],
+    );
+  }
+
+  Widget _buildRemarksSection(BpCustomerDraft draft) {
+    final colors = context.appColors;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _label('add_customer.remark'.tr),
+        _text(
+          _remarkCtrl,
+          'add_customer.remark_hint'.tr,
+          maxLines: 4,
+          onChanged: (v) => _edit((d) => d.remark = v),
+        ),
+        SizedBox(height: _spacing(16)),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: colors.surfaceSoft,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: colors.border),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.info_outline,
+                  color: Theme.of(context).colorScheme.primary, size: 20),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'add_customer.credit_notice'.tr,
+                  style: TextStyle(
+                    fontSize: _fontSize(12),
+                    color: colors.textSecondary,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTabletPreviewScreen(BpCustomerDraft draft) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
+    final needsCredit =
+        SapMasterData.paymentTermNeedsCreditApproval(draft.paymentTerm);
+
+    Widget previewItem(String label, String value, {bool isCode = false}) {
       return Padding(
-        padding: EdgeInsets.only(bottom: _spacing(12)),
-        child: Column(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _actionTile(
-              label: labelKey.tr + (required ? ' *' : ''),
-              sub: attached
-                  ? 'add_customer.photo_attached'.tr
-                  : 'add_customer.photo_tap'.tr,
-              icon: icon,
-              completed: attached,
-              onTap: () => unawaited(_capturePhoto(kind)),
+            SizedBox(
+              width: 140,
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: _fontSize(12),
+                  color: colors.textSecondary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
-            if (errors[kind] != null)
-              _errorText('add_customer.error.photo_required'.tr),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                value.isEmpty ? '—' : value,
+                style: TextStyle(
+                  fontSize: _fontSize(13),
+                  fontWeight: isCode ? FontWeight.w700 : FontWeight.w500,
+                  color: colors.textPrimary,
+                  fontFamily: isCode ? 'monospace' : null,
+                ),
+              ),
+            ),
           ],
         ),
       );
     }
 
+    Widget previewCard({
+      required String title,
+      required IconData icon,
+      required VoidCallback onEdit,
+      required List<Widget> children,
+    }) {
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: colors.card,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: colors.border),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: scheme.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(icon, color: scheme.primary, size: 18),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: _fontSize(15),
+                        fontWeight: FontWeight.w800,
+                        color: colors.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    side: BorderSide(color: colors.border),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
+                  ),
+                  onPressed: onEdit,
+                  icon: const Icon(Icons.edit_outlined, size: 14),
+                  label:
+                      Text('Edit', style: TextStyle(fontSize: _fontSize(12))),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            const Divider(height: 1),
+            const SizedBox(height: 14),
+            ...children,
+          ],
+        ),
+      );
+    }
+
+    final formattedAddress = [
+      if (draft.street.isNotEmpty || draft.houseNumber.isNotEmpty)
+        '${draft.houseNumber} ${draft.street}'.trim(),
+      if (draft.geoAddress != null && draft.geoAddress != GeoAddress.empty)
+        draft.geoAddress!
+            .format(LocalizationService.instance.currentLanguageCode)
+      else ...[
+        if (draft.communeCode != null) draft.communeCode!,
+        if (draft.districtCode != null) draft.districtCode!,
+        if (draft.cityCode != null) draft.cityCode!,
+      ],
+      if (draft.postalCode.isNotEmpty) 'Postal: ${draft.postalCode}',
+    ].where((s) => s.isNotEmpty).join(', ');
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _label('add_customer.photos'.tr, required: true),
-        photo('outlet_front', 'add_customer.photo_front',
-            Icons.storefront_rounded),
-        photo(
-            'outlet_inside', 'add_customer.photo_inside', Icons.store_rounded),
-        photo('id_card', 'add_customer.photo_id', Icons.badge_rounded),
-        photo('patent_tax', 'add_customer.photo_patent',
-            Icons.receipt_long_rounded,
-            required: false),
-        if (draft.taxClass == '1')
-          photo('vat_cert', 'add_customer.photo_vat', Icons.verified_rounded),
+        // Highlight Header
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                scheme.primary.withValues(alpha: 0.08),
+                scheme.secondary.withValues(alpha: 0.04),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: scheme.primary.withValues(alpha: 0.2)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: scheme.primary,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(Icons.storefront_rounded,
+                    color: Colors.white, size: 28),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      draft.nameEn.isNotEmpty ? draft.nameEn : 'New Customer',
+                      style: TextStyle(
+                        fontSize: _fontSize(18),
+                        fontWeight: FontWeight.w900,
+                        color: colors.textPrimary,
+                      ),
+                    ),
+                    if (draft.nameKh.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        draft.nameKh,
+                        style: TextStyle(
+                          fontSize: _fontSize(14),
+                          fontWeight: FontWeight.w600,
+                          color: colors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  color: needsCredit
+                      ? Colors.amber.withValues(alpha: 0.15)
+                      : colors.success.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: needsCredit ? Colors.amber : colors.success,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      needsCredit ? Icons.schedule : Icons.check_circle,
+                      size: 16,
+                      color:
+                          needsCredit ? Colors.amber.shade900 : colors.success,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      needsCredit
+                          ? 'Credit Approval Required'
+                          : 'Ready for SAP HQ',
+                      style: TextStyle(
+                        fontSize: _fontSize(12),
+                        fontWeight: FontWeight.w800,
+                        color: needsCredit
+                            ? Colors.amber.shade900
+                            : colors.success,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(height: _spacing(20)),
+
+        // 2-Column Grid
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                children: [
+                  previewCard(
+                    title: 'add_customer.steps.identity'.tr,
+                    icon: Icons.person_outline_rounded,
+                    onEdit: () => _editFromPreview(0, BpFormStep.identity),
+                    children: [
+                      previewItem('Account Group', draft.grouping,
+                          isCode: true),
+                      previewItem(
+                          'Title', draft.title.isNotEmpty ? draft.title : '—'),
+                      previewItem('Name (EN)', draft.nameEn),
+                      if (draft.name2.isNotEmpty)
+                        previewItem('Trade Name (Name 2)', draft.name2),
+                      previewItem('Name (KH)', draft.nameKh),
+                      previewItem('Search Term', draft.searchTerm),
+                      if (draft.coName.isNotEmpty)
+                        previewItem('c/o Name', draft.coName),
+                    ],
+                  ),
+                  SizedBox(height: _spacing(20)),
+                  previewCard(
+                    title: 'add_customer.steps.contact'.tr,
+                    icon: Icons.phone_outlined,
+                    onEdit: () => _editFromPreview(1, BpFormStep.contact),
+                    children: [
+                      previewItem('Mobile Phone', draft.mobilePhone),
+                      previewItem(
+                          'Telephone',
+                          draft.telephoneSameAsMobile
+                              ? 'Same as mobile'
+                              : draft.telephone),
+                      previewItem('Contact Person', draft.contactPersonName),
+                      previewItem(
+                          'Contact Role', draft.contactPersonRole ?? '—'),
+                      previewItem('Language', draft.language),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(width: _spacing(20)),
+            Expanded(
+              child: Column(
+                children: [
+                  previewCard(
+                    title: 'add_customer.steps.address'.tr,
+                    icon: Icons.location_on_outlined,
+                    onEdit: () => _editFromPreview(0, BpFormStep.address),
+                    children: [
+                      previewItem('Full Address', formattedAddress),
+                      if (draft.geoFix != null)
+                        previewItem(
+                          'GPS Coordinates',
+                          '${draft.geoFix!.latitude.toStringAsFixed(5)}, ${draft.geoFix!.longitude.toStringAsFixed(5)}',
+                          isCode: true,
+                        ),
+                    ],
+                  ),
+                  SizedBox(height: _spacing(20)),
+                  previewCard(
+                    title: 'add_customer.steps.sales_terms'.tr,
+                    icon: Icons.receipt_long_outlined,
+                    onEdit: () => _editFromPreview(1, BpFormStep.salesTerms),
+                    children: [
+                      previewItem('Distribution Channel',
+                          draft.distributionChannel ?? '—'),
+                      previewItem('Division', draft.divisionCode ?? '—'),
+                      previewItem('Customer Group', draft.customerGroup ?? '—'),
+                      previewItem('Price Group', draft.priceGroup ?? '—'),
+                      previewItem(
+                          'Delivery Priority', draft.deliveryPriority ?? '—'),
+                      previewItem(
+                          'Shipping Condition', draft.shippingCondition ?? '—'),
+                      previewItem('Payment Terms', draft.paymentTerm ?? '—'),
+                      previewItem(
+                          'Tax Class',
+                          draft.taxClass == '1'
+                              ? '1 - Taxable'
+                              : '0 - Non-taxable'),
+                      if (draft.taxClass == '1')
+                        previewItem('VAT / TIN', draft.vatTin, isCode: true),
+                    ],
+                  ),
+                  SizedBox(height: _spacing(20)),
+                  previewCard(
+                    title: 'add_customer.steps.documents'.tr,
+                    icon: Icons.folder_shared_outlined,
+                    onEdit: () => _editFromPreview(2, BpFormStep.documents),
+                    children: [
+                      previewItem('Attachments',
+                          '${draft.attachments.length} attached (${draft.attachments.map((a) => a.kind).join(', ')})'),
+                      if (draft.remark.isNotEmpty)
+                        previewItem('Remarks', draft.remark),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDocumentsStep(Map<String, String> errors) {
+    final draft = _bloc.state.draft;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildDocumentPhotosSection(draft, errors),
         _gap(),
         _label('add_customer.remark'.tr),
         _text(_remarkCtrl, 'add_customer.remark_hint'.tr,
@@ -974,8 +1843,8 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
                 '${draft.houseNumber} ${draft.street}'.trim(),
               if (draft.geoAddress != null &&
                   draft.geoAddress != GeoAddress.empty)
-                draft.geoAddress!.format(
-                    LocalizationService.instance.currentLanguageCode)
+                draft.geoAddress!
+                    .format(LocalizationService.instance.currentLanguageCode)
               else ...[
                 if (draft.districtCode != null) draft.districtCode!,
                 if (draft.cityCode != null) draft.cityCode!,
@@ -995,8 +1864,8 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
   // Navigation
   // ===========================================================================
   Widget _buildNavigationButtons(AddCustomerState state) {
-    final isFirst = _showsAllSteps || state.isFirstStep;
-    final isLast = _showsAllSteps || state.isLastStep;
+    final isFirst = state.isFirstStep;
+    final isLast = state.isLastStep;
     final needsCredit =
         SapMasterData.paymentTermNeedsCreditApproval(state.draft.paymentTerm);
 

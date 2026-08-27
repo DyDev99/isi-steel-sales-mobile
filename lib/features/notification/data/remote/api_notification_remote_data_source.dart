@@ -10,7 +10,7 @@ import 'package:isi_steel_sales_mobile/features/notification/domain/entities/not
 import 'package:isi_steel_sales_mobile/features/notification/domain/entities/notification_preferences.dart';
 import 'package:isi_steel_sales_mobile/features/notification/domain/entities/push_registration.dart';
 
-/// The real notification API (`docs/features/notification-mobile.md` §3).
+/// The real notification API (`docs/feature/notification/README.md` §3).
 ///
 /// ## Two response shapes, one envelope family
 ///

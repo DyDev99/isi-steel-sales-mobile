@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 /// What tapping an inline action button does
-/// (`docs/features/notification-mobile.md` §12).
+/// (`docs/feature/notification/README.md` §12).
 enum NotificationActionType {
   /// Navigate to the notification's own `deep_link`.
   ///

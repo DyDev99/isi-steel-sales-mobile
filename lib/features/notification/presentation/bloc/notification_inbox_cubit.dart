@@ -19,7 +19,7 @@ import 'package:isi_steel_sales_mobile/features/notification/presentation/bloc/n
 /// the screen asking. The network call ([refresh]) only *feeds* that stream —
 /// it never populates the state directly. That is what makes the inbox render
 /// instantly and identically offline, which
-/// `docs/features/notification-mobile.md` §1 treats as the whole point.
+/// `docs/feature/notification/README.md` §1 treats as the whole point.
 ///
 /// ## Reading and acting are different gestures
 ///

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:isi_steel_sales_mobile/core/constants/app_constant.dart';
 import 'package:isi_steel_sales_mobile/core/network/api_envelope.dart';
 import 'package:isi_steel_sales_mobile/core/network/api_error.dart';
@@ -134,6 +135,44 @@ class ApiMaterialSelectionRemoteDataSource
       // surface's `{data: [...]}`, so it reads through the object envelope.
       return ApiEnvelope.fromBody(res.data).data;
     } on DioException catch (e) {
+      throw ApiException(ApiError.fromDio(e));
+    }
+  }
+
+  @override
+  Future<DataMap> fetchStock(String material) async {
+    final path = AppConstants.materialStockEndpoint(material);
+    try {
+      final res = await _client.get<Object?>(path);
+      final data = ApiEnvelope.fromBody(res.data).data;
+
+      // Logged in full because this endpoint decides whether a rep may set a
+      // quantity at all, and when it is wrong the symptom on screen ("the plus
+      // button does nothing") says nothing about why. The payload carries no
+      // customer, no price and no PII — only a material number and a band —
+      // so it is safe to print. Debug builds only.
+      if (kDebugMode) {
+        final plants = (data['plants'] as List<dynamic>? ?? const [])
+            .whereType<Map>()
+            .map((p) => '${p['plant']}:${p['band']}'
+                '${p['isSellable'] == true ? '' : '(blocked)'}')
+            .join(', ');
+        debugPrint(
+          '[isi.stock] material=$material '
+          'band=${data['band']} '
+          'isSellable=${data['isSellable']} '
+          'baseUnit=${data['baseUnit']} '
+          'plants=[$plants] '
+          'checkedAt=${data['checkedAt']}',
+        );
+      }
+
+      return data;
+    } on DioException catch (e) {
+      if (kDebugMode) {
+        debugPrint('[isi.stock] material=$material FAILED '
+            'status=${e.response?.statusCode} type=${e.type}');
+      }
       throw ApiException(ApiError.fromDio(e));
     }
   }

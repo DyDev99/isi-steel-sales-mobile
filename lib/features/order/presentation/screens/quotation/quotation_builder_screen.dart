@@ -10,8 +10,10 @@ import 'package:isi_steel_sales_mobile/features/customers/domain/entities/custom
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/complete_visit_check_out.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/credit_summary.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/entities/material_availability.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/off_visit_reason.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/entities/product_material_number.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/quotation.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/services/image_search_service.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/services/voice_search_service.dart';
@@ -21,6 +23,7 @@ import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_credit
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/toggle_favorite.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_state.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/stock_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/sync_state.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/product_filter_flow/product_filter_flow_bloc.dart';
@@ -81,6 +84,19 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
   final TextEditingController _newAddressController = TextEditingController();
   final TextEditingController _newPhoneController = TextEditingController();
 
+  /// Owned here rather than looked up from `context`.
+  ///
+  /// The provider is created in this widget's own `build`, which makes the
+  /// State's `context` an *ancestor* of it — `context.read<StockCubit>()` from
+  /// a State method therefore searches above the provider and finds nothing.
+  /// Holding the instance directly sidesteps the lookup entirely, and
+  /// `BlocProvider.value` still hands the same instance down to the cards and
+  /// steppers below.
+  ///
+  /// Owning it also means closing it: `BlocProvider.value` does not dispose
+  /// what it did not create.
+  late final StockCubit _stock = sl<StockCubit>();
+
   @override
   void initState() {
     super.initState();
@@ -101,6 +117,7 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
   void dispose() {
     _newAddressController.dispose();
     _newPhoneController.dispose();
+    _stock.close();
     super.dispose();
   }
 
@@ -143,18 +160,68 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
     );
   }
 
+  /// Sets a cart line's quantity, after asking SAP whether the line is allowed
+  /// at all.
+  ///
+  /// ## Why the old message read "Only 0 KG available at ."
+  ///
+  /// It interpolated two fields that this API never fills:
+  ///
+  /// * `verdict.availableQuantity` — there is **no on-hand quantity anywhere in
+  ///   the materials API.** The stock endpoint answers a band (`"High"`,
+  ///   `"Medium"`, `"Low"`, `"None"`), never a figure, so `availableQuantity`
+  ///   sits at its `0` default. That zero means *never told*, and comparing a
+  ///   requested quantity against it refused every line above nothing.
+  /// * `product.warehouseCode` — materials arriving through
+  ///   `/materials/selection` carry no warehouse. Location lives in the stock
+  ///   read's `plants` array now, which is where a real code like `KMH2` comes
+  ///   from.
+  ///
+  /// So the check moved: the line is gated on
+  /// [MaterialAvailability.canOrder] — the **status** — and never on a
+  /// quantity. `High` through `None` all permit the line; only a verdict of
+  /// `unavailable` refuses it, because that is SAP declining rather than
+  /// reporting a level.
   Future<void> _setLineQuantity(Product product, int quantity) async {
+    final material = product.materialNumber;
+
+    // Held for five minutes and deduplicated, so setting a quantity twice on
+    // the same material costs one round trip, not two.
+    await _stock.ensure(material);
+    if (!mounted) return;
+
+    final stock = _stock.of(material);
+    if (stock != null && !stock.canOrder) {
+      _showStockRefusal(stock);
+      return;
+    }
+
     final verdict = await _cartLines.setQuantity(product, quantity);
     if (verdict.isValid || !mounted) return;
 
+    // Whatever else the binding rejects — a credit limit, a missing customer —
+    // still gets said. What it no longer does is interpolate a stock figure
+    // and a warehouse that were always going to come out blank.
     final key = verdict.messageKey;
     if (key == null) return;
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(key.tr)));
+  }
+
+  /// The refusal, with the one detail SAP does supply: where.
+  ///
+  /// A rep told "cannot sell this" can do nothing with it. A rep told which
+  /// plants will supply it can phone someone. Where there are no sellable
+  /// plants, the bare refusal stands rather than an empty "at ."
+  void _showStockRefusal(MaterialAvailability stock) {
+    final plants = stock.sellablePlants.map((p) => p.plant).join(', ');
+    final message = plants.isEmpty
+        ? 'products.status.no_stock_message'.tr
+        : 'products.status.no_stock_try_plants'.trParams({'plants': plants});
+
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(key.trParams({
-        'available': verdict.availableQuantity.toStringAsFixed(0),
-        'unit': product.unit,
-        'location': product.warehouseCode,
-      })),
+      content: Text(message),
+      duration: const Duration(seconds: 4),
     ));
   }
 
@@ -193,14 +260,28 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return BlocProvider<ProductFilterFlowBloc>(
-      create: (_) =>
-          sl<ProductFilterFlowBloc>()..add(const FilterFlowStarted()),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<ProductFilterFlowBloc>(
+          create: (_) =>
+              sl<ProductFilterFlowBloc>()..add(const FilterFlowStarted()),
+        ),
+        // Sits above the product list so every card and stepper below reads the
+        // same per-material verdicts. `.value`, not `create` — the instance
+        // belongs to the State so that `_setLineQuantity` can use it without a
+        // context lookup that would search above this provider.
+        BlocProvider<StockCubit>.value(value: _stock),
+      ],
       child: BlocListener<SyncCubit, SyncState>(
         listenWhen: (a, b) => b is SyncSucceeded,
-        listener: (context, _) => context
-            .read<ProductFilterFlowBloc>()
-            .add(const FilterFlowStarted()),
+        listener: (context, _) {
+          context.read<ProductFilterFlowBloc>().add(const FilterFlowStarted());
+          // A resync can change what is sellable and from where, so the held
+          // verdicts are now describing a catalog that has moved underneath
+          // them. Dropping them costs a round trip on next use and avoids
+          // showing a band that predates the sync.
+          _stock.invalidate();
+        },
         child: Scaffold(
           backgroundColor: colorScheme.surface,
           appBar: AppBar(

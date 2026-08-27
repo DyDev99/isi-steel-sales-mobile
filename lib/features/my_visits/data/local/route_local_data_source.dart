@@ -32,7 +32,7 @@ abstract interface class RouteLocalDataSource {
 // cutover. T1.5b removes the last reader of the plaintext `routes.db`, so the
 // rollback target no longer exists — and because it imported `sqflite`, which
 // has no web implementation, keeping dead code here would have blocked the web
-// target permanently (`docs/flutter-web.md`).
+// target permanently (`docs/blueprint/web-architecture.md`).
 //
 // The live implementation is `RouteDriftLocalDataSource`, registered in
 // `my_visits_injection.dart`. The deleted class remains in git history.

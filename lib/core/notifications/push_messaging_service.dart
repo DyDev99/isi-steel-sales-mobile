@@ -10,7 +10,7 @@ import 'package:isi_steel_sales_mobile/core/notifications/push_message.dart';
 ///    well-behaved no-op. A browser build has no FCM registration here (ADR-010)
 ///    and `firebase_messaging` on web additionally needs a service worker and a
 ///    VAPID key that this app does not ship. **The inbox is unaffected**, which
-///    is exactly the property `docs/features/notification-mobile.md` §1 is
+///    is exactly the property `docs/feature/notification/README.md` §1 is
 ///    built around: a dropped push must cost nothing.
 ///
 /// Everything here is safe to call whether or not push is available or

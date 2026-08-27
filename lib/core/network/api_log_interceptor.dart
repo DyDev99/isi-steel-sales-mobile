@@ -11,7 +11,7 @@ import 'package:isi_steel_sales_mobile/core/network/api_error.dart';
 ///
 /// ## What is deliberately *not* logged
 ///
-/// `docs/SECURITY.md` §10 is a hard constraint, not a preference: passwords,
+/// `docs/skills/security.md` §10 is a hard constraint, not a preference: passwords,
 /// tokens, e-mail addresses, phone numbers, customer names and money never go
 /// to a log sink. Logs outlive the session that produced them — they are read
 /// by other people, pulled into bug reports, and on Android any app holding
@@ -77,7 +77,8 @@ class ApiLogInterceptor extends Interceptor {
   }
 
   @override
-  void onResponse(Response<dynamic> response, ResponseInterceptorHandler handler) {
+  void onResponse(
+      Response<dynamic> response, ResponseInterceptorHandler handler) {
     _logger.debug('api.response', fields: {
       'method': response.requestOptions.method,
       'path': response.requestOptions.path,

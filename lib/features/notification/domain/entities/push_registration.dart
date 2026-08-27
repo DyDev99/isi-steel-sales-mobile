@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 /// Which platform a registration belongs to
-/// (`docs/features/notification-mobile.md` §4.2).
+/// (`docs/feature/notification/README.md` §4.2).
 ///
 /// The backend stores an unrecognised value as `Unknown` rather than rejecting
 /// it, so this is a display/routing hint on the server side, never a gate.

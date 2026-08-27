@@ -15,7 +15,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/data/remote/visit_push
 /// `stop_id` and `is_mocked: 1` to an endpoint documented to read `stopId` and
 /// `isMocked: true`, so the two encodings stay apart on purpose.
 ///
-/// Field names here are a hard contract (`docs/backend-document.md` §7): the
+/// Field names here are a hard contract (`docs/feature/my-visits/api.md` §7): the
 /// backend spec was derived *from these models*, so renaming one silently
 /// breaks the endpoint rather than failing a compile.
 ///
@@ -57,7 +57,7 @@ extension VisitPushBatchApiJson on VisitPushBatch {
 
   /// Photo ids held back from this push.
   ///
-  /// **OPEN-1 (`docs/backend-document.md` §10) — blocking for photos.**
+  /// **OPEN-1 (`docs/feature/my-visits/api.md` §10) — blocking for photos.**
   /// `VisitPhoto.url` is a path on the *device*; binary cannot travel inside
   /// the JSON batch, and no upload endpoint exists yet. Sending the local path
   /// as if it were a server URL would have the backend accept the row, the

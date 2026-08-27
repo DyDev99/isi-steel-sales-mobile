@@ -3,7 +3,7 @@ import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
 import 'package:isi_steel_sales_mobile/features/notification/domain/entities/push_registration.dart';
 import 'package:isi_steel_sales_mobile/features/notification/domain/repositories/push_device_repository.dart';
 
-/// Push-registration use cases (`docs/features/notification-mobile.md` §4).
+/// Push-registration use cases (`docs/feature/notification/README.md` §4).
 ///
 /// Grouped for the reason given at the top of `inbox_usecases.dart`. The rule
 /// that matters — one use case per business action — holds: registering and

@@ -3,9 +3,9 @@ import 'package:isi_steel_sales_mobile/core/database/drift/tables/syncable_table
 
 /// Route plans (Blueprint Layer 1). Ported from the legacy **plaintext**
 /// `routes.db` `routes` table into the single encrypted database (ADR-001,
-/// `docs/MIGRATION_PLAN.md` T1.5).
+/// `docs/blueprint/migration-plan.md` T1.5).
 ///
-/// Offline posture (`docs/OFFLINE_FIRST.md` §4): full offline, pull + push
+/// Offline posture (`docs/blueprint/offline-architecture.md` §4): full offline, pull + push
 /// telemetry — the plan is issued by the backend, while execution status is
 /// captured locally and pushed.
 @TableIndex(name: 'idx_routes_rep', columns: {#repId})
@@ -63,7 +63,7 @@ class RouteStops extends Table with SyncableTable {
 }
 
 /// The customer details carried by the **route feed itself**
-/// (`docs/backend-document.md` §7.1 `CustomerStopInfo`) — a flat,
+/// (`docs/feature/my-visits/api.md` §7.1 `CustomerStopInfo`) — a flat,
 /// de-duplicated mirror, one row per customer appearing on a route.
 ///
 /// ## Why this exists rather than joining the directory (ADR-011)
@@ -116,7 +116,7 @@ class RouteCustomers extends Table {
 /// **Sensitive**: this is a location trace of a named employee. It sat in a
 /// plaintext SQLite file until T1.5; moving it into the encrypted database is
 /// the single highest-severity outcome of this migration
-/// (`docs/SECURITY.md` §3, `docs/MIGRATION_PLAN.md` §9 risk register).
+/// (`docs/skills/security.md` §3, `docs/blueprint/migration-plan.md` §9 risk register).
 ///
 /// Keeps its `route_id` foreign key (ADR-011 kept the constraints that have no
 /// data-loss path): nothing hard-deletes a route — route sync upserts — so the
@@ -130,7 +130,7 @@ class LocationSamples extends Table with SyncableTable {
   String get tableName => 'location_samples';
 
   // Restored explicitly: drift_dev 2.31.0 + analyzer 10.2.0 silently emit no
-  // foreign keys from `references()` (docs/flutter-web.md section 8).
+  // foreign keys from `references()` (docs/blueprint/web-architecture.md section 8).
   // The `references()` call is kept — it still drives drift's Dart-side
   // relation API — but the SQL constraint now comes from here. Remove this
   // override once the generator is fixed, and verify with the FK tests.
@@ -187,7 +187,7 @@ class FraudFlags extends Table with SyncableTable {
 /// `CustomerSyncMeta` / `CatalogSyncMeta` pattern.
 ///
 /// A cursor table, not a syncable entity: it has nothing to push, so it
-/// deliberately does not use [SyncableTable] (`docs/DATABASE_GUIDE.md` §3.1).
+/// deliberately does not use [SyncableTable] (`docs/blueprint/local-storage-architecture.md` §3.1).
 @DataClassName('RouteSyncMetaRow')
 class RouteSyncMeta extends Table {
   @override

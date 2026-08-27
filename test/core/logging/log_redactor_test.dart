@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isi_steel_sales_mobile/core/logging/app_logger.dart';
 
-/// Verifies `docs/SECURITY.md` §10: "Never log passwords, JWT tokens, API keys,
+/// Verifies `docs/skills/security.md` §10: "Never log passwords, JWT tokens, API keys,
 /// customer information, phone numbers, emails, revenue data" and "Allowed: API
 /// endpoint, response code, error code."
 ///

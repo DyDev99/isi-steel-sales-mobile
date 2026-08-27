@@ -66,7 +66,7 @@ jobs:
         # `Env` is Envied-obfuscated, which defends against *native binary*
         # inspection. A web build is JavaScript: everything compiled into it is
         # readable by anyone who opens devtools, and obfuscation buys nothing
-        # (`docs/SECURITY.md` §4, `docs/flutter-web.md`).
+        # (`docs/skills/security.md` §4, `docs/blueprint/web-architecture.md`).
         #
         # So the web job is never given the real secrets at all. `DB_SALT` in
         # particular is meaningless here — per ADR-010 the web build has no
@@ -204,7 +204,7 @@ jobs:
         #
         # NOT included: `frame-ancestors`, which browsers ignore when delivered
         # via <meta>. Clickjacking protection needs a real HTTP header, and
-        # GitHub Pages cannot send one — see `docs/flutter-web.md` §6.
+        # GitHub Pages cannot send one — see `docs/blueprint/web-architecture.md` §6.
         #
         # Google Maps (enabled on web — see web/index.html) needs four exact
         # origins, never a wildcard:

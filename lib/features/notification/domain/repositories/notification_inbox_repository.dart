@@ -9,7 +9,7 @@ import 'package:isi_steel_sales_mobile/features/notification/domain/entities/not
 ///
 /// ## Reads are local, always
 ///
-/// [watch] and [counts] answer from the device. `docs/features/notification-mobile.md`
+/// [watch] and [counts] answer from the device. `docs/feature/notification/README.md`
 /// §1 establishes the inbox as the system of record and push as a mere
 /// accelerator; a repository that reached for the network to render a list would
 /// show a rep in a warehouse an empty screen and an error banner, which is

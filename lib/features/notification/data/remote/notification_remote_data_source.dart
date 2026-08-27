@@ -17,7 +17,7 @@ class NotificationPage {
   /// The server's own clock, from `metadata.syncTimestamp`, and **the only
   /// valid source for the next `since`**.
   ///
-  /// `docs/features/notification-mobile.md` §6.1 calls substituting the device
+  /// `docs/feature/notification/README.md` §6.1 calls substituting the device
   /// clock here *"the single most common way an offline-first notification
   /// client breaks"*: a handset ten minutes fast asks for changes since the
   /// future, gets an empty result, stores that timestamp, and never syncs again

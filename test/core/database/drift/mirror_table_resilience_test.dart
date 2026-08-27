@@ -123,7 +123,7 @@ void main() {
       await seedCapture();
 
       // Exactly what the backend documents as normal: a delta may re-send the
-      // complete current set (docs/backend-document.md §5.2). Under the old
+      // complete current set (docs/feature/my-visits/api.md §5.2). Under the old
       // schema the stop replacement cascaded and erased all three rows.
       await db.routeDao.upsertRoutesWithStops([
         RouteWithStops(route('r1'), [stop('s1', 'cust-1', 1)]),

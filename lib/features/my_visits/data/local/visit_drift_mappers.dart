@@ -14,7 +14,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_
 /// point 2). Two naming shifts are handled here and nowhere else:
 /// `visit_notes.text` → `body` (it would shadow Drift's `text()` builder) and
 /// `visit_photos.url` → `path` (the value is a filesystem reference, not a URL —
-/// `docs/ARCHITECTURE.md` §3 Layer 4).
+/// `docs/blueprint/system-architecture.md` §3 Layer 4).
 ///
 /// Enum decoding always falls back rather than throwing: a capture is a rep's
 /// irreplaceable field observation, and a value this build doesn't recognise is

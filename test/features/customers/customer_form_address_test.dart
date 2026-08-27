@@ -17,7 +17,9 @@ void main() {
       expect(errors['geo'], 'error.gps_required');
     });
 
-    test('accepts a valid gazetteer address with 6-digit postal code and cambodia gps fix', () {
+    test(
+        'accepts a valid gazetteer address with 6-digit postal code and cambodia gps fix',
+        () {
       final draft = BpCustomerDraft(
         cityCode: '12',
         districtCode: '1201',
@@ -51,7 +53,8 @@ void main() {
       expect(errors['geo'], 'error.gps_outside_kh');
     });
 
-    test('satisfies commune requirement when geoAddress has commune entity', () {
+    test('satisfies commune requirement when geoAddress has commune entity',
+        () {
       final draft = BpCustomerDraft(
         cityCode: '12',
         districtCode: '1201',
@@ -115,7 +118,9 @@ void main() {
       expect(draft.contactPersonRole, '01');
     });
 
-    test('toSapPayload includes city, district, commune, village, sales terms and contact', () {
+    test(
+        'toSapPayload includes city, district, commune, village, sales terms and contact',
+        () {
       final draft = BpCustomerDraft(
         street: 'Street 271',
         houseNumber: '217',

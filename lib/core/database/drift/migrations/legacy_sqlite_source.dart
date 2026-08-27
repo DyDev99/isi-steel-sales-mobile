@@ -10,7 +10,7 @@
 ///    thin part; deciding what happens to them is not.
 /// 2. `sqflite` has no web implementation. The seam is what lets the importers
 ///    stay in the shared codebase while `sqflite` never reaches a web compile
-///    (`docs/flutter-web.md`).
+///    (`docs/blueprint/web-architecture.md`).
 ///
 /// The interface is deliberately raw-map-shaped rather than model-shaped: the
 /// legacy schemas are frozen history, and giving them typed models would imply
@@ -25,7 +25,7 @@ abstract interface class LegacySqliteSource {
   Future<List<Map<String, Object?>>> readTable(String table);
 
   /// Deletes every row of [table]. Used only after the import is verified
-  /// (`docs/MIGRATION_PLAN.md` T1.5: "old plaintext files purged after verified
+  /// (`docs/blueprint/migration-plan.md` T1.5: "old plaintext files purged after verified
   /// import").
   Future<void> deleteAllRows(String table);
 

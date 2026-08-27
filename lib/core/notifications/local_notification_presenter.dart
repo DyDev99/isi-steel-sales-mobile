@@ -5,7 +5,7 @@ import 'package:isi_steel_sales_mobile/core/notifications/notification_channels.
 ///
 /// ## Two distinct jobs
 ///
-/// **1. Channel registration.** `docs/features/notification-mobile.md` §9.3
+/// **1. Channel registration.** `docs/feature/notification/README.md` §9.3
 /// requires all ten channels to exist *before* the first push, because Android
 /// drops a push naming an unknown channel into a default the rep cannot see or
 /// control. This has to happen at startup and cannot be fetched.

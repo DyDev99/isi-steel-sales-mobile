@@ -80,9 +80,10 @@ class _FakeSource implements GeoLocalDataSource {
   @override
   Future<GeoUnit?> communeByPostalCode(String postalCode) async {
     if (throwOnRead) throw const CacheException(message: 'db gone');
-    return _units.values
-        .where((u) => u.level == GeoLevel.commune && u.postalCode == postalCode)
-        .firstOrNull;
+    for (final u in _units.values) {
+      if (u.level == GeoLevel.commune && u.postalCode == postalCode) return u;
+    }
+    return null;
   }
 }
 

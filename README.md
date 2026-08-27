@@ -8,8 +8,8 @@
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.44-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
 [![Dart](https://img.shields.io/badge/Dart-3.3%2B-0175C2?logo=dart&logoColor=white)](https://dart.dev)
-[![Architecture](https://img.shields.io/badge/Architecture-Clean%20%2B%20BLoC-6E56CF)](docs/ARCHITECTURE.md)
-[![Storage](https://img.shields.io/badge/Storage-Drift%20%2B%20SQLCipher-1FA37A)](docs/DATABASE_GUIDE.md)
+[![Architecture](https://img.shields.io/badge/Architecture-Clean%20%2B%20BLoC-6E56CF)](docs/blueprint/system-architecture.md)
+[![Storage](https://img.shields.io/badge/Storage-Drift%20%2B%20SQLCipher-1FA37A)](docs/blueprint/local-storage-architecture.md)
 [![Platforms](https://img.shields.io/badge/Platforms-Android%20%C2%B7%20iOS-444)](#platform-support)
 [![License](https://img.shields.io/badge/License-Proprietary-C7362F)](#license)
 
@@ -83,13 +83,13 @@ Every piece of data is assigned to exactly one store, by sensitivity and shape. 
 | **3 · Secrets** | `flutter_secure_storage` | access/refresh tokens, cached user, device key | ✅ Keychain / Keystore |
 | **4 · Media** | App-sandboxed filesystem | photos, signed documents, attachments (path-only in Drift) | 🚧 Phase 5 |
 
-The database key is never static. It is derived at runtime as `SHA256(Env.dbSalt + DeviceKey)`, where `DeviceKey` is a 256-bit CSPRNG value sealed in the platform keystore — neither the binary nor the device alone is sufficient to decrypt. Opening the DB is **fail-closed**: a wrong key or missing cipher aborts rather than silently falling back to plaintext. Full detail in [DATABASE_GUIDE.md](docs/DATABASE_GUIDE.md).
+The database key is never static. It is derived at runtime as `SHA256(Env.dbSalt + DeviceKey)`, where `DeviceKey` is a 256-bit CSPRNG value sealed in the platform keystore — neither the binary nor the device alone is sufficient to decrypt. Opening the DB is **fail-closed**: a wrong key or missing cipher aborts rather than silently falling back to plaintext. Full detail in [DATABASE_GUIDE.md](docs/blueprint/local-storage-architecture.md).
 
 ### Offline-first & sync
 
 > Connectivity is the exception the UI plans for, not an error state.
 
-Local mutation and its sync-queue entry are written **inside the same transaction**, so a crash can never produce a row that will never sync. The UI updates optimistically from local data; the server round-trip happens later, off the critical path, with retry, backoff, priority and conflict handling defined in [SYNC_ENGINE.md](docs/SYNC_ENGINE.md) and [OFFLINE_FIRST.md](docs/OFFLINE_FIRST.md).
+Local mutation and its sync-queue entry are written **inside the same transaction**, so a crash can never produce a row that will never sync. The UI updates optimistically from local data; the server round-trip happens later, off the critical path, with retry, backoff, priority and conflict handling defined in [SYNC_ENGINE.md](docs/blueprint/sync-architecture.md) and [OFFLINE_FIRST.md](docs/blueprint/offline-architecture.md).
 
 ---
 
@@ -206,7 +206,7 @@ assets/  docs/  test/  tool/  web/
 
 ## Localization
 
-Two locales ship: `en` and `km`, defined in [app.dart](lib/app.dart) as `kSupportedLocales` and backed by `assets/lang/*.json`. Khmer renders in **MiSans Khmer**, Latin in **ABC Ginto**; the locale picks the primary family and the other is always registered as its glyph fallback, since neither font covers the other's script. Master data is stored bilingually so a language switch does not degrade catalog content — guarded by tests such as [product_delta_preserves_khmer_test.dart](test/features/order/product_delta_preserves_khmer_test.dart). See [docs/localization/LOCALIZATION.md](docs/localization/LOCALIZATION.md).
+Two locales ship: `en` and `km`, defined in [app.dart](lib/app.dart) as `kSupportedLocales` and backed by `assets/lang/*.json`. Khmer renders in **MiSans Khmer**, Latin in **ABC Ginto**; the locale picks the primary family and the other is always registered as its glyph fallback, since neither font covers the other's script. Master data is stored bilingually so a language switch does not degrade catalog content — guarded by tests such as [product_delta_preserves_khmer_test.dart](test/features/order/product_delta_preserves_khmer_test.dart). See [docs/localization/LOCALIZATION.md](docs/skills/localization.md).
 
 ---
 
@@ -227,7 +227,7 @@ Coverage focuses on the layers where correctness is expensive to lose: Drift dat
 |---|---|
 | **Android** | ✅ Supported (min SDK 21) |
 | **iOS** | ✅ Supported |
-| **Web** | 🚧 Planning — blocked on encrypted persistence and responsive layer; see [flutter-web-support.md](docs/flutter-web-support.md) and ADR-010 |
+| **Web** | 🚧 Planning — blocked on encrypted persistence and responsive layer; see [flutter-web-support.md](docs/blueprint/web-migration-plan.md) and ADR-010 |
 
 ---
 
@@ -237,18 +237,18 @@ The `docs/` set is the source of truth for how this codebase is built. Start her
 
 | Document | Read it for |
 |---|---|
-| [ENGINEERING_STANDARD.md](docs/ENGINEERING_STANDARD.md) | The master rules every other doc implements |
-| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Layers, dependency graph, folder structure, known gaps |
-| [DATABASE_GUIDE.md](docs/DATABASE_GUIDE.md) | Drift schema, DAOs, encryption and key rotation |
-| [OFFLINE_FIRST.md](docs/OFFLINE_FIRST.md) | Boot flow, guest-first identity, per-domain offline posture |
-| [SYNC_ENGINE.md](docs/SYNC_ENGINE.md) | Queue lifecycle, retry/backoff, conflict resolution |
-| [SECURITY.md](docs/SECURITY.md) | OWASP MASVS mapping, storage rules, release gates |
-| [MIGRATION_PLAN.md](docs/MIGRATION_PLAN.md) | Sprint-by-sprint plan to close infrastructure gaps |
-| [cl_cd_deployment.md](docs/cl_cd_deployment.md) | CI/CD pipeline, signing, beta and store distribution |
+| [ENGINEERING_STANDARD.md](docs/skills/engineering-standard.md) | The master rules every other doc implements |
+| [ARCHITECTURE.md](docs/blueprint/system-architecture.md) | Layers, dependency graph, folder structure, known gaps |
+| [DATABASE_GUIDE.md](docs/blueprint/local-storage-architecture.md) | Drift schema, DAOs, encryption and key rotation |
+| [OFFLINE_FIRST.md](docs/blueprint/offline-architecture.md) | Boot flow, guest-first identity, per-domain offline posture |
+| [SYNC_ENGINE.md](docs/blueprint/sync-architecture.md) | Queue lifecycle, retry/backoff, conflict resolution |
+| [SECURITY.md](docs/skills/security.md) | OWASP MASVS mapping, storage rules, release gates |
+| [MIGRATION_PLAN.md](docs/blueprint/migration-plan.md) | Sprint-by-sprint plan to close infrastructure gaps |
+| [cl_cd_deployment.md](docs/release/ci-cd.md) | CI/CD pipeline, signing, beta and store distribution |
 | [adr/](docs/adr) | 10 accepted decisions — single DB, offline-first, DAO pattern, SQLCipher path, web persistence |
-| [features/](docs/features) | Per-feature blueprints, business rules, QA/UAT plans |
+| [feature/](docs/feature) | Per-feature blueprints, business rules, QA/UAT plans |
 
-A queryable knowledge graph of the codebase lives in `graphify-out/` — see [GRAPHIFY.md](docs/GRAPHIFY.md).
+A queryable knowledge graph of the codebase lives in `graphify-out/` — see [GRAPHIFY.md](docs/skills/graphify.md).
 
 ---
 
@@ -262,10 +262,10 @@ The presentation and domain layers are mature; `core/` is being filled in delibe
 | Encrypted Drift database (16 tables, DAOs, migrator, rekey) | ✅ Built and verified |
 | Envied config + device-bound key derivation | ✅ Built |
 | Legacy plaintext `sqflite` → encrypted import & purge | 🚧 In progress (P0) |
-| Sync engine, conflict manager, SAP client | 🚧 Stubbed — target defined in `SYNC_ENGINE.md` |
+| Sync engine, conflict manager, SAP client | 🚧 Stubbed — target defined in `docs/blueprint/sync-architecture.md` |
 | RBAC, workflow layer, structured logging | 📋 Planned |
 
-**The one rule that overrides everything:** no production code is written for a module until its plan and dependencies are validated — see `ENGINEERING_STANDARD.md` §2.
+**The one rule that overrides everything:** no production code is written for a module until its plan and dependencies are validated — see `docs/skills/engineering-standard.md` §2.
 
 ---
 

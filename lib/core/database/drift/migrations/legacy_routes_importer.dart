@@ -88,7 +88,7 @@ class LegacyImportResult {
 }
 
 /// Imports the legacy plaintext `routes.db` into the single encrypted database
-/// (ADR-001, `docs/MIGRATION_PLAN.md` **T1.5** — the live Sprint-1 P0).
+/// (ADR-001, `docs/blueprint/migration-plan.md` **T1.5** — the live Sprint-1 P0).
 ///
 /// This is the highest-risk step in the whole migration plan: it is a one-way,
 /// on-device data move, and the data it moves (customer PII, GPS traces of named
@@ -98,7 +98,7 @@ class LegacyImportResult {
 /// - **Idempotent.** Every write is an upsert keyed by the legacy UUID, and a
 ///   completion marker in `app_metadata` short-circuits re-runs. A device that
 ///   dies mid-import and restarts re-runs it safely rather than double-applying
-///   (`docs/DATABASE_GUIDE.md` §5).
+///   (`docs/blueprint/local-storage-architecture.md` §5).
 /// - **One transaction.** Either the whole import lands or none of it does —
 ///   impossible before ADR-001, when the data spanned two database files.
 /// - **Reconciles, never blind-copies.** The legacy `customers` table is a

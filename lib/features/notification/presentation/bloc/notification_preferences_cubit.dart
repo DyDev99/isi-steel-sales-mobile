@@ -54,7 +54,7 @@ class NotificationPreferencesState extends Equatable {
 }
 
 /// Drives the notification settings screen
-/// (`docs/features/notification-mobile.md` §13).
+/// (`docs/feature/notification/README.md` §13).
 ///
 /// ## The screen is built from the server's answer
 ///

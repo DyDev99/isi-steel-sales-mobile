@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-/// One row of the settings screen (`docs/features/notification-mobile.md` §13).
+/// One row of the settings screen (`docs/feature/notification/README.md` §13).
 ///
 /// [category] is the raw wire code rather than a [NotificationCategory], and
 /// that is deliberate: §13 requires the screen to render whatever the server

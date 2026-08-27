@@ -10,7 +10,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/geofen
 ///   sequence).
 /// - **Location unavailable** (null) → returns the **planned order** (by
 ///   `sequence`) with distances left null, so the dashboard still works with no
-///   GPS. See `docs/OFFLINE_FIRST.md` — the visit flow never depends on GPS.
+///   GPS. See `docs/blueprint/offline-architecture.md` — the visit flow never depends on GPS.
 class StopDistanceSorter {
   const StopDistanceSorter();
 

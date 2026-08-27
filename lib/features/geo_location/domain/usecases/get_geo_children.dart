@@ -20,7 +20,7 @@ class GetGeoChildrenParams extends Equatable {
 /// a district, the villages of a commune.
 ///
 /// One use case for all four levels rather than four that differ by a single
-/// argument. `docs/AI_ENGINEERING_PLAYBOOK.md` forbids a use case that branches
+/// argument. `docs/skills/ai-engineering-playbook.md` forbids a use case that branches
 /// on a "mode" to do several unrelated things — this does one thing, and the
 /// level is data, not a mode: the caller is a cascade whose whole job is to
 /// walk levels uniformly.

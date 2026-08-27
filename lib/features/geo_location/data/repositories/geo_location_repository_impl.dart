@@ -132,8 +132,8 @@ class GeoLocationRepositoryImpl implements GeoLocationRepository {
               ? await _local.communeByPostalCode(postalCode)
               : null);
       if (commune == null || !commune.isChildOf(district.code)) {
-        _logIfBroken(commune != null, 'commune',
-            communeCode ?? commune?.code, districtCode);
+        _logIfBroken(commune != null, 'commune', communeCode ?? commune?.code,
+            districtCode);
         return Success(GeoAddress(province: province, district: district));
       }
 
@@ -169,7 +169,7 @@ class GeoLocationRepositoryImpl implements GeoLocationRepository {
   /// A code that resolves to a real row but hangs off the wrong parent means
   /// bad stored data, not a missing row — worth a log line, because it points
   /// at whatever wrote it. Codes only; no names, so nothing here is PII
-  /// (`docs/SECURITY.md` §10).
+  /// (`docs/skills/security.md` §10).
   void _logIfBroken(bool resolved, String level, String? code, String? parent) {
     if (!resolved) return;
     _logger.warning(

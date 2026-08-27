@@ -84,7 +84,105 @@ const DataMap _sellable = {
   ],
 };
 
+/// The live `GET /mobile/materials/1100000042/stock` payload.
+const DataMap _stockHigh = {
+  'material': '1100000042',
+  'band': 'High',
+  'isSellable': true,
+  'baseUnit': 'KG',
+  'plants': [
+    {'plant': 'KMH2', 'band': 'High', 'isSellable': true},
+  ],
+  'checkedAt': '2026-08-27T07:51:39.9213697+00:00',
+};
+
+const DataMap _stockNone = {
+  'material': '1100000099',
+  'band': 'None',
+  'isSellable': false,
+  'baseUnit': 'M',
+  'plants': <DataMap>[],
+  'checkedAt': '2026-08-27T07:51:39.9213697+00:00',
+};
+
+const DataMap _stockLow = {
+  'material': '1100000077',
+  'band': 'Low',
+  'isSellable': true,
+  'baseUnit': 'M',
+  'plants': [
+    {'plant': 'KMH2', 'band': 'Low', 'isSellable': true},
+    {'plant': 'KMH9', 'band': 'None', 'isSellable': false},
+  ],
+  'checkedAt': '2026-08-27T07:51:39.9213697+00:00',
+};
+
 void main() {
+  group('banded stock', () {
+    test('a High band is sellable and orderable', () {
+      final stock =
+          MaterialApiMapper.stockFrom(_stockHigh, requested: '1100000042');
+
+      expect(stock.isSellable, isTrue);
+      expect(stock.status, MaterialStockStatus.available);
+      expect(stock.band, StockBand.high);
+      expect(stock.baseUnit, 'KG');
+      expect(stock.canOrder, isTrue);
+    });
+
+    test('a Low band still lets the rep order', () {
+      // The distinction the quantity stepper hangs on: "Low" warns about how
+      // much, it does not refuse. Gating `+` on the band would block orders
+      // SAP would accept.
+      final stock =
+          MaterialApiMapper.stockFrom(_stockLow, requested: '1100000077');
+
+      expect(stock.band, StockBand.low);
+      expect(stock.canOrder, isTrue);
+    });
+
+    test('a None band with isSellable false cannot be ordered', () {
+      final stock =
+          MaterialApiMapper.stockFrom(_stockNone, requested: '1100000099');
+
+      expect(stock.status, MaterialStockStatus.unavailable);
+      expect(stock.canOrder, isFalse);
+    });
+
+    test('an unchecked material is orderable, not blocked', () {
+      // Never asked is not a refusal. A rep must not be stopped by a question
+      // the handset has not got round to putting.
+      const unchecked = MaterialAvailability(
+        material: '1100000042',
+        isSellable: false,
+        summary: '',
+      );
+
+      expect(unchecked.status, MaterialStockStatus.unknown);
+      expect(unchecked.canOrder, isTrue);
+    });
+
+    test('only sellable plants are offered as sources', () {
+      final stock =
+          MaterialApiMapper.stockFrom(_stockLow, requested: '1100000077');
+
+      expect(stock.plants, hasLength(2));
+      expect(stock.sellablePlants.map((p) => p.plant), ['KMH2']);
+    });
+
+    test('an unrecognised band degrades to unknown, never to none', () {
+      // Inventing "there is no stock" out of a string this build has not seen
+      // would stop a sale that should have gone ahead.
+      final stock = MaterialApiMapper.stockFrom(
+        {..._stockHigh, 'band': 'Plentiful'},
+        requested: '1100000042',
+      );
+
+      expect(stock.band, StockBand.unknown);
+      expect(stock.canOrder, isTrue);
+    });
+  });
+
   group('availability verdicts', () {
     test('a sellable material reads as available', () {
       final verdict = MaterialApiMapper.availabilityFrom(

@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 
 /// The notification inbox, mirrored into the single encrypted database
-/// (`docs/features/notification-mobile.md` §1, ADR-001).
+/// (`docs/feature/notification/README.md` §1, ADR-001).
 ///
 /// ## Why the inbox is stored at all
 ///
@@ -143,7 +143,7 @@ class Notifications extends Table {
 }
 
 /// Server-side changes captured while offline, awaiting replay
-/// (`docs/features/notification-mobile.md` §8.5).
+/// (`docs/feature/notification/README.md` §8.5).
 ///
 /// This is the **outbox** for the notification feature. `notifications` above is
 /// a pull-only mirror and carries no `SyncableTable` bookkeeping of its own,

@@ -12,13 +12,13 @@ import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 class ProductCard extends StatelessWidget {
   const ProductCard({
     super.key,
-    required this.product,
     required this.onTap,
     required this.isFavorite,
+    required this.product,
     required this.onFavoriteToggle,
     required this.onAddToCart,
     this.onCustomize,
-    this.availability,
+    this.stock,
   });
 
   final Product product;
@@ -31,13 +31,18 @@ class ProductCard extends StatelessWidget {
   /// customization form instead of adding the plain product.
   final VoidCallback? onCustomize;
 
-  /// SAP's sellability verdict, once it has been asked for.
+  /// SAP's stock read for **this** material, once it has been asked for.
   ///
-  /// Null means the question was never put — the check is a live ERP round trip
-  /// spent when a rep commits to a material, not on every card that scrolls
-  /// past. Null renders nothing rather than "No stock": declining a sale
-  /// because the handset had not asked yet is worse than showing no badge.
-  final MaterialAvailability? availability;
+  /// There is one stock field on this card, not two. It used to carry a
+  /// required verdict alongside a nullable one, and the required one was
+  /// handed the same object for every row in the list — so one material's band
+  /// and base unit were painted onto products nobody had checked.
+  ///
+  /// Null means the question was never put — the check is a live ERP round
+  /// trip spent when a rep commits to a material, not on every card that
+  /// scrolls past. Null renders nothing rather than "No stock": declining a
+  /// sale because the handset had not asked yet is worse than showing no badge.
+  final MaterialAvailability? stock;
 
   static const _imageSize = 58.0;
 
@@ -46,6 +51,11 @@ class ProductCard extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final appColors = context.appColors;
+
+    // Only ever shown next to a verdict. The base unit is read per material
+    // (`KG` for coil, `M` for profile) and arrives with the stock read, so
+    // before the check there is no unit to state.
+    final baseUnit = stock?.baseUnit ?? '';
 
     return GlassCard(
       padding: EdgeInsets.all(context.rr(8)),
@@ -128,27 +138,35 @@ class ProductCard extends StatelessWidget {
                     height: 1.1,
                   ),
                 ),
-                SizedBox(height: context.rh(4)),
-                Text(
-                  [
-                    if (product.subCategory.isNotEmpty) product.subCategory,
-                    // Read per material, never assumed: `KG` for coil, `M` for
-                    // profile.
-                    if (product.unit.isNotEmpty) product.unit,
-                  ].join(' · '),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                      color: scheme.onSurface.withValues(alpha: 0.5),
-                      fontSize: context.rsp(10.5)),
-                ),
-                if (availability != null) ...[
+
+                // The stock row. Absent entirely until the check has been
+                // made, which is what keeps an unchecked card honest — the
+                // old code printed `band.name.tr` here, and `band.name` is the
+                // raw enum name (`"high"`), not a key in the ARB, so it
+                // rendered the literal. The band belongs to the badge, which
+                // maps it to a real key and a colour.
+                if (stock != null) ...[
                   SizedBox(height: context.rh(5)),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: StockAvailabilityBadge(availability: availability),
+                  Row(
+                    children: [
+                      Flexible(child: StockAvailabilityBadge(availability: stock)),
+                      if (baseUnit.isNotEmpty) ...[
+                        SizedBox(width: context.rw(5)),
+                        Text(
+                          baseUnit,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: scheme.onSurface.withValues(alpha: 0.5),
+                            fontSize: context.rsp(10.5),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ],
+
                 SizedBox(height: context.rh(6)),
                 Row(
                   children: [
@@ -194,19 +212,14 @@ class ProductCard extends StatelessWidget {
                       ),
                       SizedBox(width: context.rw(6)),
                     ],
-                    InkWell(
+                    _AddButton(
+                      // `canOrder` is true while unchecked and while checking —
+                      // a rep is not blocked on a question that has not been
+                      // answered. It goes false only on a verdict of
+                      // `unavailable`, which is SAP actually refusing the line.
+                      enabled: stock?.canOrder ?? true,
+                      busy: stock?.status == MaterialStockStatus.checking,
                       onTap: onAddToCart,
-                      borderRadius: BorderRadius.circular(8),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: scheme.primary,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(Icons.add_shopping_cart_rounded,
-                            size: context.rr(16), color: scheme.onPrimary),
-                      ),
                     ),
                   ],
                 ),
@@ -214,6 +227,54 @@ class ProductCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// The `+` action, dimmed rather than hidden when SAP refuses the line.
+///
+/// Hidden would leave a rep wondering where the button went; dimmed with the
+/// refusal sitting next to it in the badge says what happened. It stays
+/// tappable, so the snack bar can explain rather than the tap simply dying —
+/// "the plus button does nothing" is the symptom worth never shipping again.
+class _AddButton extends StatelessWidget {
+  const _AddButton({
+    required this.enabled,
+    required this.busy,
+    required this.onTap,
+  });
+
+  final bool enabled;
+  final bool busy;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final background =
+        enabled ? scheme.primary : scheme.onSurface.withValues(alpha: 0.18);
+
+    return InkWell(
+      onTap: busy ? null : onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: background,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: busy
+            ? SizedBox(
+                width: context.rr(16),
+                height: context.rr(16),
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation(scheme.onPrimary),
+                ),
+              )
+            : Icon(Icons.add_shopping_cart_rounded,
+                size: context.rr(16), color: scheme.onPrimary),
       ),
     );
   }

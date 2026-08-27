@@ -15,7 +15,7 @@ import 'package:isi_steel_sales_mobile/features/notification/domain/entities/pus
 /// Selected by `DataSourceMode` (`--dart-define=USE_MOCK_DATA=true`); live is
 /// the default. Every other feature in this app ships a `Mock*RemoteDataSource`
 /// beside its real one, and the notification feature is where fixtures matter
-/// most in practice: `docs/features/notification-mobile.md` §18 records that the
+/// most in practice: `docs/feature/notification/README.md` §18 records that the
 /// business events (`ROUTE.ASSIGNED`, `QUOTE.APPROVED`, …) are **Phase 2+** and
 /// nothing raises them yet. Against a live backend today the inbox is correctly,
 /// permanently empty — which makes the whole surface impossible to review.

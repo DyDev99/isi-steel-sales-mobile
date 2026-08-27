@@ -6,20 +6,60 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/entities/material_availability.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/entities/product_material_number.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_state.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/stock_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/catalog/stock_availability_badge.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
-class CartPreviewSection extends StatelessWidget {
+/// The cart, reviewed before saving — and the one place stock is checked
+/// eagerly rather than on commitment.
+///
+/// Everywhere else a check is spent only when a rep singles a material out,
+/// because a scrolling catalog would otherwise cost a live ERP round trip per
+/// card. The cart is the opposite case: every line here is already a
+/// commitment, there are rarely more than a dozen, and the rep is about to
+/// turn them into a quotation. Finding out at that moment that SAP will not
+/// accept one of them is the entire point.
+class CartPreviewSection extends StatefulWidget {
   const CartPreviewSection({super.key});
+
+  @override
+  State<CartPreviewSection> createState() => _CartPreviewSectionState();
+}
+
+class _CartPreviewSectionState extends State<CartPreviewSection> {
+  @override
+  void initState() {
+    super.initState();
+    // After the first frame, so the read happens against a mounted tree rather
+    // than mid-build.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _checkAll(context.read<CartCubit>().state);
+    });
+  }
+
+  /// `ensure` deduplicates in-flight requests and holds a verdict for five
+  /// minutes, so a cart that rebuilds on every quantity tap does not re-ask.
+  void _checkAll(CartState state) {
+    if (state is! CartLoaded) return;
+    final stock = context.read<StockCubit>();
+    for (final item in state.items) {
+      stock.ensure(item.product.materialNumber);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppThemeColors>()!;
 
-    return BlocBuilder<CartCubit, CartState>(
+    return BlocConsumer<CartCubit, CartState>(
+      // A line added after the first frame gets checked too.
+      listener: (_, state) => _checkAll(state),
       builder: (context, state) {
-        final items = state is CartLoaded ? state.items : const [];
+        final items = state is CartLoaded ? state.items : const <CartItem>[];
 
         return AnimatedSize(
           duration: const Duration(milliseconds: 250),
@@ -47,28 +87,32 @@ class CartPreviewSection extends StatelessWidget {
                         ),
                       ),
                       SizedBox(height: context.rh(12)),
-                      ListView.separated(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: items.length,
-                        separatorBuilder: (_, __) => Divider(
-                          color: colors.divider,
-                          height: 16,
+                      BlocBuilder<StockCubit,
+                          Map<String, MaterialAvailability>>(
+                        builder: (context, stock) => ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: items.length,
+                          separatorBuilder: (_, __) => Divider(
+                            color: colors.divider,
+                            height: 16,
+                          ),
+                          itemBuilder: (context, index) {
+                            final item = items[index];
+                            return _CartPreviewRow(
+                              item: item,
+                              stock: stock[item.product.materialNumber],
+                              // Address the line by its own id — customized
+                              // lines share a product id, so keying on
+                              // product.id would hit the wrong line.
+                              onQuantityChanged: (qty) => context
+                                  .read<CartCubit>()
+                                  .updateQuantity(item.id, qty),
+                              onRemove: () =>
+                                  context.read<CartCubit>().removeItem(item.id),
+                            );
+                          },
                         ),
-                        itemBuilder: (context, index) {
-                          final item = items[index];
-                          return _CartPreviewRow(
-                            item: item,
-                            // Address the line by its own id — customized lines
-                            // share a product id, so keying on product.id would
-                            // hit the wrong line.
-                            onQuantityChanged: (qty) => context
-                                .read<CartCubit>()
-                                .updateQuantity(item.id, qty),
-                            onRemove: () =>
-                                context.read<CartCubit>().removeItem(item.id),
-                          );
-                        },
                       ),
                     ],
                   ),
@@ -84,11 +128,13 @@ class _CartPreviewRow extends StatelessWidget {
     required this.item,
     required this.onQuantityChanged,
     required this.onRemove,
+    this.stock,
   });
 
   final CartItem item;
   final ValueChanged<double> onQuantityChanged;
   final VoidCallback onRemove;
+  final MaterialAvailability? stock;
 
   bool get _hasDrawing =>
       item.drawingImagePath != null && localFileExists(item.drawingImagePath!);
@@ -108,6 +154,9 @@ class _CartPreviewRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppThemeColors>()!;
     final specs = _customSpecs;
+    // Status only. The band never gates: `Low` is a warning about how much,
+    // not a refusal, and there is no on-hand figure in this API to cap against.
+    final canIncrease = stock?.canOrder ?? true;
 
     return Row(
       children: [
@@ -167,13 +216,24 @@ class _CartPreviewRow extends StatelessWidget {
                 ),
               ],
               SizedBox(height: context.rh(2)),
-              Text(
-                '\$${item.lineTotal.toStringAsFixed(2)}',
-                style: TextStyle(
-                  color: colors.accentPurple,
-                  fontSize: context.rsp(12),
-                  fontWeight: FontWeight.w700,
-                ),
+              Row(
+                children: [
+                  Text(
+                    '\$${item.lineTotal.toStringAsFixed(2)}',
+                    style: TextStyle(
+                      color: colors.accentPurple,
+                      fontSize: context.rsp(12),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  if (stock != null) ...[
+                    SizedBox(width: context.rw(6)),
+                    Flexible(
+                      child: StockAvailabilityBadge(
+                          availability: stock, compact: true),
+                    ),
+                  ],
+                ],
               ),
             ],
           ),
@@ -186,6 +246,8 @@ class _CartPreviewRow extends StatelessWidget {
           ),
           child: Row(
             children: [
+              // Always live. Reducing or removing a line must survive a
+              // refusal — it is the response a refusal calls for.
               _QtyButton(
                 icon: Icons.remove_rounded,
                 iconColor: colors.textPrimary,
@@ -205,6 +267,7 @@ class _CartPreviewRow extends StatelessWidget {
               _QtyButton(
                 icon: Icons.add_rounded,
                 iconColor: colors.textPrimary,
+                enabled: canIncrease,
                 onTap: () => onQuantityChanged(item.quantity + 1),
               ),
             ],
@@ -236,11 +299,13 @@ class _QtyButton extends StatelessWidget {
     required this.icon,
     required this.iconColor,
     required this.onTap,
+    this.enabled = true,
   });
 
   final IconData icon;
   final Color iconColor;
   final VoidCallback onTap;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
@@ -249,18 +314,21 @@ class _QtyButton extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onTap,
+        onTap: enabled ? onTap : null,
         borderRadius: BorderRadius.circular(6),
-        child: Container(
-          width: 24,
-          height: context.rh(24),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: colors.card,
-            borderRadius: BorderRadius.circular(6),
-            boxShadow: colors.cardShadow,
+        child: Opacity(
+          opacity: enabled ? 1 : 0.35,
+          child: Container(
+            width: 24,
+            height: context.rh(24),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: colors.card,
+              borderRadius: BorderRadius.circular(6),
+              boxShadow: colors.cardShadow,
+            ),
+            child: Icon(icon, size: context.rr(14), color: iconColor),
           ),
-          child: Icon(icon, size: context.rr(14), color: iconColor),
         ),
       ),
     );

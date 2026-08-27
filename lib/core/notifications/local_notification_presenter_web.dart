@@ -13,7 +13,7 @@ import 'package:isi_steel_sales_mobile/core/notifications/local_notification_pre
 /// in-app card (which is all web ever had), and the offline queue's
 /// "already handled by someone else" message renders as an in-app banner. The
 /// inbox — the system of record, per
-/// `docs/features/notification-mobile.md` §1 — is untouched.
+/// `docs/feature/notification/README.md` §1 — is untouched.
 class NoopLocalNotificationPresenter implements LocalNotificationPresenter {
   const NoopLocalNotificationPresenter(this._logger);
 

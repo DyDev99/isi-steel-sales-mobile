@@ -20,7 +20,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_
 /// is nullable in `customers` (added in schema v7) and is populated by route
 /// sync, so null means "route sync has not seen this customer yet". The value
 /// drives the geofence radius, which is a fraud control
-/// (`docs/SYNC_ENGINE.md` §5 classifies check-ins as first-hand captures the
+/// (`docs/blueprint/sync-architecture.md` §5 classifies check-ins as first-hand captures the
 /// server cannot re-verify).
 ///
 /// [TerritoryType.urban] is the **tightest** radius (50 m), so an unknown
@@ -33,7 +33,7 @@ extension RouteCustomerRowStopInfoMapper on RouteCustomerRow {
   /// Projects the route feed's own customer row onto the stop entity.
   ///
   /// A straight field copy: this table was defined to mirror the feed's
-  /// `CustomerStopInfo` payload (`docs/backend-document.md` §7.1), so there is
+  /// `CustomerStopInfo` payload (`docs/feature/my-visits/api.md` §7.1), so there is
   /// no vocabulary translation to do and nothing to reconcile.
   CustomerStopInfoModel toStopInfo() => CustomerStopInfoModel(
         id: id,
@@ -103,7 +103,7 @@ extension RouteStopWithCustomerMapper on RouteStopWithCustomer {
   /// Builds the stop, standing in for a customer row the feed did not send.
   ///
   /// The route feed is documented to include every stop's customer
-  /// (`docs/backend-document.md` §5.1), so [customer] being null means the
+  /// (`docs/feature/my-visits/api.md` §5.1), so [customer] being null means the
   /// server broke its own contract. The stop is still rendered rather than
   /// dropped — dropping it is the data loss ADR-011 exists to stop — using the
   /// customer id as both name and code, which reads unmistakably as "details

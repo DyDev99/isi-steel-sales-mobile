@@ -12,7 +12,7 @@ import 'package:isi_steel_sales_mobile/features/notification/domain/entities/not
 import 'package:isi_steel_sales_mobile/features/notification/domain/repositories/notification_preferences_repository.dart';
 
 /// Notification settings, server-owned with a local cache
-/// (`docs/features/notification-mobile.md` §13).
+/// (`docs/feature/notification/README.md` §13).
 ///
 /// ## Why Hive and not the encrypted database
 ///

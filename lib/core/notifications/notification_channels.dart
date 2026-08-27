@@ -1,5 +1,5 @@
 /// The Android notification channels this app owns
-/// (`docs/features/notification-mobile.md` §9.3).
+/// (`docs/feature/notification/README.md` §9.3).
 ///
 /// ## Why these must exist before the first push
 ///

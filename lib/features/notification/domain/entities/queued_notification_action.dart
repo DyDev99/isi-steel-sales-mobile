@@ -40,7 +40,7 @@ enum NotificationMutationKind {
 }
 
 /// One outstanding server-side change captured while offline
-/// (`docs/features/notification-mobile.md` §8.5).
+/// (`docs/feature/notification/README.md` §8.5).
 ///
 /// ## Why this is queued rather than fired and forgotten
 ///

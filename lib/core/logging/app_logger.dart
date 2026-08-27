@@ -7,7 +7,7 @@ enum LogLevel { debug, info, warning, error }
 
 /// Structured, PII-free application logger.
 ///
-/// Implements `docs/SECURITY.md` §10 (MASVS-PRIVACY / MASVS-CODE), which is a
+/// Implements `docs/skills/security.md` §10 (MASVS-PRIVACY / MASVS-CODE), which is a
 /// **hard constraint on every logging call in the codebase**, not a guideline:
 ///
 /// - **Never logged**: passwords, JWT/tokens, API keys, customer information,
@@ -22,7 +22,7 @@ enum LogLevel { debug, info, warning, error }
 /// leaked, but callers are still expected not to pass it (§10).
 ///
 /// This is deliberately the only logging surface in `core/` — see
-/// `docs/ENGINEERING_STANDARD.md` §7: a `catch` block either rethrows a typed
+/// `docs/skills/engineering-standard.md` §7: a `catch` block either rethrows a typed
 /// `Failure` or logs through this logger. Silent `catch (_) {}` is not
 /// acceptable in reviewed code.
 abstract interface class AppLogger {
@@ -48,7 +48,7 @@ abstract interface class AppLogger {
 
 /// Default [AppLogger]: emits via `dart:developer` so records surface in the
 /// IDE/DevTools without adding a third-party logging dependency (a new package
-/// would need the maintenance/trust check in `docs/SECURITY.md` §14).
+/// would need the maintenance/trust check in `docs/skills/security.md` §14).
 ///
 /// Release behaviour per `SECURITY.md` §11 ("verbose logging disabled"):
 /// [debug] and [info] are dropped entirely; [warning]/[error] are kept without
@@ -157,7 +157,7 @@ class ConsoleAppLogger implements AppLogger {
       };
 }
 
-/// Redacts values that `docs/SECURITY.md` §10 forbids logging.
+/// Redacts values that `docs/skills/security.md` §10 forbids logging.
 ///
 /// Two independent passes, because either alone is insufficient:
 ///  1. **Key-name matching** — catches `token`, `email`, `customerName`, …

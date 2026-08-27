@@ -71,7 +71,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ///
   /// A narrow interface rather than the coordinator itself, so authentication
   /// does not depend on the notification feature's data layer — the rule in
-  /// `docs/AI_ENGINEERING_PLAYBOOK.md` §12 that no feature imports another
+  /// `docs/skills/ai-engineering-playbook.md` §12 that no feature imports another
   /// feature's `data/`. It also keeps `AuthBloc` testable without standing up
   /// Firebase.
   final NotificationLifecycle _notifications;
@@ -344,7 +344,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     // **Before** the token store is dropped, and that ordering is the whole
-    // point (`docs/features/notification-mobile.md` §4.4): deregistering this
+    // point (`docs/feature/notification/README.md` §4.4): deregistering this
     // installation is an authenticated call. Skipping it leaves the platform
     // pushing one rep's notifications at a handset that has since been handed to
     // somebody else — which is a disclosure, not an inconvenience.

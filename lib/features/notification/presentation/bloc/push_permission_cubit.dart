@@ -45,7 +45,7 @@ class PushPermissionState extends Equatable {
 }
 
 /// Owns the permission-priming rules of
-/// `docs/features/notification-mobile.md` §14.
+/// `docs/feature/notification/README.md` §14.
 ///
 /// ## The single most consequential rule in the whole feature
 ///

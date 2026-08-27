@@ -13,7 +13,7 @@ import 'package:sqlite3/sqlite3.dart' as sqlite;
 /// ported off the plaintext `routes.db` into the single encrypted database
 /// (ADR-001).
 ///
-/// `docs/DATABASE_GUIDE.md` §5 requires every migration step to ship with a test
+/// `docs/blueprint/local-storage-architecture.md` §5 requires every migration step to ship with a test
 /// that runs the upgrade against a fixture of the *previous* schema version and
 /// asserts data survives intact — migrations are proven before merge, not
 /// discovered broken in the field. That is the `v6 → v8 upgrade` group below.

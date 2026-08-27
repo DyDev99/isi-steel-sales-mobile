@@ -433,7 +433,7 @@ final Map<int, SchemaMigrationStep> _stepwiseMigrations =
   //
   // ## Why the inbox needs storage at all
   //
-  // `docs/features/notification-mobile.md` §1: the inbox *is* the notification
+  // `docs/feature/notification/README.md` §1: the inbox *is* the notification
   // and push is only an accelerator, because a push routinely never arrives —
   // a flat battery, a coverage hole, an OEM battery optimiser, a rotated FCM
   // token, or a P4 that is never pushed by design. A client whose only render

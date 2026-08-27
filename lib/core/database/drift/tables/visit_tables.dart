@@ -5,7 +5,7 @@ import 'package:isi_steel_sales_mobile/core/database/drift/tables/syncable_table
 /// plaintext `routes.db` into the single encrypted database (ADR-001, T1.5).
 ///
 /// All of these are **first-hand field captures**, which
-/// `docs/SYNC_ENGINE.md` §5 classifies as *client-authoritative*: the server has
+/// `docs/blueprint/sync-architecture.md` §5 classifies as *client-authoritative*: the server has
 /// no competing version of an observation the rep made, so they push rather than
 /// merge. They still carry the full §3.1 column set because they participate in
 /// sync — a capture that never reaches SAP is a lost sale, and losing one is the
@@ -16,7 +16,7 @@ import 'package:isi_steel_sales_mobile/core/database/drift/tables/syncable_table
 /// `stop_id` is a plain column. These tables used to cascade from `route_stops`,
 /// which was actively dangerous: route sync replaces a route's stops on every
 /// run, so a routine delta — one the backend documents as "acceptable and
-/// expected" (`docs/backend-document.md` §5.2) — silently deleted every
+/// expected" (`docs/feature/my-visits/api.md` §5.2) — silently deleted every
 /// check-in, note and photo the rep had captured and not yet pushed.
 ///
 /// Losing a first-hand capture is the exact failure the offline design exists
@@ -64,7 +64,7 @@ class VisitCheckOuts extends Table with SyncableTable {
 /// [unitPrice] is denormalised deliberately: it records the price *as quoted at
 /// the visit*, which must not silently change if the catalog is re-synced
 /// afterwards. Server-side divergence on price is a conflict routed to
-/// Action-Required, never an in-place overwrite (`docs/SYNC_ENGINE.md` §5).
+/// Action-Required, never an in-place overwrite (`docs/blueprint/sync-architecture.md` §5).
 @TableIndex(name: 'idx_visit_order_lines_stop', columns: {#stopId})
 @DataClassName('VisitOrderLineRow')
 class VisitOrderLines extends Table with SyncableTable {
@@ -122,7 +122,7 @@ class VisitReturns extends Table with SyncableTable {
 }
 
 /// Cash/cheque collected at a stop. Financial data — server-authoritative on
-/// conflict (`docs/SYNC_ENGINE.md` §5).
+/// conflict (`docs/blueprint/sync-architecture.md` §5).
 @TableIndex(name: 'idx_visit_collections_stop', columns: {#stopId})
 @DataClassName('VisitCollectionRow')
 class VisitCollections extends Table with SyncableTable {
@@ -155,10 +155,10 @@ class VisitNotes extends Table with SyncableTable {
 
 /// Photo / signature evidence captured at a stop.
 ///
-/// **Layer 4 boundary** (`docs/ARCHITECTURE.md` §3): this table stores only a
+/// **Layer 4 boundary** (`docs/blueprint/system-architecture.md` §3): this table stores only a
 /// filesystem [path] — never the binary. Encrypting the referenced file itself
 /// is the `core/database/files/encrypted_file_store.dart` deliverable
-/// (`docs/MIGRATION_PLAN.md` §8, P0), so until that lands the *reference* is
+/// (`docs/blueprint/migration-plan.md` §8, P0), so until that lands the *reference* is
 /// encrypted here while the file on disk is not.
 @TableIndex(name: 'idx_visit_photos_stop', columns: {#stopId})
 @DataClassName('VisitPhotoRow')

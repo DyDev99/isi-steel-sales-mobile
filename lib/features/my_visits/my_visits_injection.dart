@@ -97,7 +97,7 @@ Future<void> registerMyVisitsFeature(GetIt sl) async {
   // repository and everything above it are untouched (ADR-003 seam).
   // `LocationSampleLocalDataSourceImpl` (sqflite) is retained but unregistered
   // until the import is verified in production — do not delete it before then
-  // (`docs/AI_ENGINEERING_PLAYBOOK.md` §8: parity first).
+  // (`docs/skills/ai-engineering-playbook.md` §8: parity first).
   sl.registerLazySingleton<LocationSampleLocalDataSource>(() =>
       LocationSampleDriftLocalDataSource(sl<AppDatabase>().routeTelemetryDao));
   sl.registerLazySingleton<WorkflowStateLocalDataSource>(() =>
