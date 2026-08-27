@@ -148,9 +148,11 @@ class _ShopOrderEntryScreenState extends State<ShopOrderEntryScreen> {
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
         children: [
           Text(customer.address,
-              style: TextStyle(color: colors.textPrimary, fontSize: context.rsp(13))),
+              style: TextStyle(
+                  color: colors.textPrimary, fontSize: context.rsp(13))),
           Text('${customer.district}, ${customer.province}',
-              style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(12))),
+              style: TextStyle(
+                  color: colors.textSecondary, fontSize: context.rsp(12))),
           SizedBox(height: context.rh(14)),
           FutureBuilder<CreditSummary?>(
             future: _summaryFuture,
@@ -192,7 +194,8 @@ class _ShopOrderEntryScreenState extends State<ShopOrderEntryScreen> {
                     : _gps == null
                         ? 'orders.shop.capture_gps'.tr
                         : '${_gps!.lat.toStringAsFixed(5)}, ${_gps!.lng.toStringAsFixed(5)}',
-                style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(12)),
+                style: TextStyle(
+                    color: colors.textSecondary, fontSize: context.rsp(12)),
               ),
             ],
           ),
@@ -245,7 +248,8 @@ class _OffVisitBanner extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.info_outline_rounded, color: colors.warning, size: context.rr(18)),
+          Icon(Icons.info_outline_rounded,
+              color: colors.warning, size: context.rr(18)),
           SizedBox(width: context.rw(10)),
           Expanded(
             child: Column(

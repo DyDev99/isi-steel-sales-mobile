@@ -113,7 +113,8 @@
     "search_button": "Search",
     "done": "Done",
     "back_to_home": "Back to Home",
-    "next": "Next"
+    "next": "Next",
+    "close": "Close"
   },
   "home": {
     "title": "Home Dashboard",
@@ -1195,7 +1196,15 @@
     "credit_notice": "Customer will be eligible for credit once this information is approved by HQ.",
     "error": {
       "required": "This field is required",
-      "invalid_phone": "Invalid phone number"
+      "invalid_phone": "Invalid phone number",
+      "max_40": "Maximum 40 characters",
+      "must_be_khmer": "Enter a Khmer name",
+      "postal_5_digits": "Enter a 5-digit postal code",
+      "gps_required": "GPS location is required",
+      "gps_outside_kh": "GPS location must be in Cambodia",
+      "photo_required": "This photo is required",
+      "vat_tin_required": "VAT/TIN is required",
+      "submit": "Unable to submit customer"
     },
     "gps_hint": "Tap to capture current location",
     "gps_save": "Save GPS Location",
@@ -1219,7 +1228,12 @@
     "steps": {
       "shop_details": "Shop Details",
       "contact_person": "Contact Person",
-      "location_papers": "Location & Documents"
+      "location_papers": "Location & Documents",
+      "identity": "Identity",
+      "address": "Address & location",
+      "contact": "Contact details",
+      "sales_terms": "Sales terms",
+      "documents": "Documents & review"
     },
     "subtitle": "Fill in the new customer information",
     "success": "Customer added successfully!",
@@ -1234,7 +1248,59 @@
     "address_hint": "Street and sangkat",
     "city": "City / province",
     "city_hint": "e.g. Phnom Penh",
-    "gps_failed": "No GPS fix was captured. Move to an open area and try again, or save without a location."
+    "gps_failed": "No GPS fix was captured. Move to an open area and try again, or save without a location.",
+    "grouping": "Customer grouping",
+    "title_field": "Title",
+    "name_en": "Name (English)",
+    "name_en_hint": "Enter English business name",
+    "name_kh": "Name (Khmer)",
+    "name_kh_hint": "Enter Khmer business name",
+    "name2": "Additional name",
+    "name2_hint": "Optional additional name",
+    "search_term": "Search term",
+    "co_name": "Care of / company name",
+    "co_name_hint": "Optional company or contact name",
+    "code_assigned_by_sap": "Customer code will be assigned by SAP",
+    "more_details": "More details",
+    "show_less": "Show less",
+    "street": "Street",
+    "street_hint": "Enter street name",
+    "house_no": "House no.",
+    "district": "District",
+    "district_unavailable": "Not available for this city",
+    "pick_city_first": "Select a city first",
+    "postal_code": "Postal code",
+    "gps": "GPS location",
+    "gps_capturing": "Capturing GPS location…",
+    "mobile_phone": "Mobile phone",
+    "telephone": "Telephone",
+    "same_as_mobile": "Same as mobile phone",
+    "distribution_channel": "Distribution channel",
+    "division": "Division",
+    "customer_group": "Customer group",
+    "price_group_auto": "Price group is set automatically",
+    "delivery_priority": "Delivery priority",
+    "shipping_condition": "Shipping condition",
+    "payment_term": "Payment term",
+    "tax_class": "Tax class",
+    "vat_tin": "VAT / TIN",
+    "vat_tin_hint": "Enter VAT or tax identification number",
+    "currency": "Currency",
+    "adjust_defaults": "Adjust default terms",
+    "photos": "Photos and documents",
+    "photo_front": "Storefront photo",
+    "photo_inside": "Inside-store photo",
+    "photo_id": "ID card photo",
+    "photo_patent": "Patent / tax document",
+    "photo_vat": "VAT certificate",
+    "photo_tap": "Tap to take photo",
+    "photo_attached": "Photo attached",
+    "remark": "Remark",
+    "remark_hint": "Add an optional remark",
+    "review": "Review",
+    "queued_offline": "Saved locally and awaiting sync",
+    "draft_resumed": "Resumed your unfinished registration",
+    "send_for_credit_approval": "Send for credit approval"
   },
   "add_customer.shop_types": {
     "hardware_shop": "Hardware Shop",
@@ -1391,8 +1457,13 @@
       "out_of_stock": "Out of stock",
       "low_stock": "Low stock",
       "in_stock": "In stock",
-      "high_stock": "High stock"
-    }
+      "high_stock": "High stock",
+      "no_stock": "No stock",
+      "blocked": "Blocked",
+      "checking_stock": "Checking stock…",
+      "stock_unknown": "Stock not checked"
+    },
+    "price_unavailable": "Price not available"
   },
   "shell": {
     "my_work": "MY WORK",
@@ -1663,6 +1734,49 @@
           "b3": "If prices or stock look out of date, allow the application to synchronise while connected."
         }
       }
+    }
+  },
+  "geo": {
+    "section_title": "Address Location",
+    "province": "Province",
+    "district": "District",
+    "commune": "Commune / Sangkat",
+    "village": "Village",
+    "postal_code": "Postal Code",
+    "loading": "Loading…",
+    "clear": "Clear",
+    "reset": "Reset",
+    "search_hint": "Search by name, code or postal code",
+    "postal_hint": "Enter postal code",
+    "postal_manual_notice": "No postal code is on record for this commune. Please enter it manually.",
+    "hint": {
+      "province": "Search or select province",
+      "district": "Select district",
+      "commune": "Select commune / sangkat",
+      "village": "Search or select village"
+    },
+    "locked": {
+      "province": "Select province",
+      "district": "Select province first",
+      "commune": "Select district first",
+      "village": "Select commune / sangkat first"
+    },
+    "empty": {
+      "provinces": "No provinces found",
+      "districts": "No districts found for this province",
+      "communes": "No communes found for this district",
+      "villages": "No villages found for this commune",
+      "no_matches": "No matches. Try a different search."
+    },
+    "error": {
+      "province_required": "Province is required",
+      "district_required": "District is required",
+      "commune_required": "Commune / Sangkat is required",
+      "village_required": "Village is required",
+      "broken_hierarchy": "This location combination is not valid. Please re-select.",
+      "postal_unavailable": "Postal code is unavailable for this location",
+      "load_failed": "Unable to load locations.",
+      "seed_failed": "Unable to prepare location data."
     }
   }
 }

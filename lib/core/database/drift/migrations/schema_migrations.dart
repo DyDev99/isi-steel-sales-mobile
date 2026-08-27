@@ -4,7 +4,7 @@ import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
 /// The single source of truth for the encrypted database's schema version.
 /// Bump this by exactly one whenever a schema change ships, and add the matching
 /// step to [_stepwiseMigrations].
-const int kCurrentSchemaVersion = 19;
+const int kCurrentSchemaVersion = 20;
 
 /// Keys under which the migrator records bookkeeping in `app_metadata`, so the
 /// on-device schema history is auditable and a failed/partial upgrade is
@@ -482,6 +482,21 @@ final Map<int, SchemaMigrationStep> _stepwiseMigrations =
     await _createTableIfMissing(m, db, db.notifications);
     await _createTableIfMissing(m, db, db.notificationActionQueue);
     await _createTableIfMissing(m, db, db.notificationSyncMeta);
+  },
+  // v20: the bundled Cambodian administrative gazetteer.
+  //
+  // The tables are created empty. Populating them is the seed importer's job
+  // (`GeoSeedAssetLoader`), not the migrator's, for two reasons: reading a
+  // 1.3 MB asset and inserting 16,000 rows inside `onUpgrade` would block the
+  // first frame on the launch that happens to upgrade, and a migration that
+  // depends on an asset bundle cannot be replayed by the schema fixtures,
+  // which have no Flutter binding. The importer runs after startup and is
+  // idempotent, so an interrupted seed simply re-runs.
+  20: (m, db) async {
+    await _createTableIfMissing(m, db, db.geoProvinces);
+    await _createTableIfMissing(m, db, db.geoDistricts);
+    await _createTableIfMissing(m, db, db.geoCommunes);
+    await _createTableIfMissing(m, db, db.geoVillages);
   },
 };
 

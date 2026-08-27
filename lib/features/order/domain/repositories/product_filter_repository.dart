@@ -6,6 +6,7 @@ import 'package:isi_steel_sales_mobile/features/order/domain/entities/filter/fil
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/material_category.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/paged_result.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/entities/product_filter.dart';
 
 /// Drives the guided material configurator one level at a time.
 ///
@@ -81,11 +82,20 @@ abstract interface class ProductFilterRepository {
   /// filter. Callers prevent the unbounded case rather than catching it; the
   /// server rejects it outright, and that rejection should never reach a rep
   /// as an error dialog.
+  /// [sortBy], [availableOnly] and [warehouseCode] are refinements of the
+  /// result set rather than answers about the article, so they never invalidate
+  /// an answered step. They are honoured by whichever implementation can:
+  /// the local catalog applies all three, and the selection API applies none —
+  /// it exposes no sort parameter, no plant column, and already excludes
+  /// blocked materials on every order-capture path.
   ResultFuture<PagedResult<Product>> getMaterials({
     required String? categoryCode,
     required FilterSelection selection,
     required int page,
     required int pageSize,
     String search = '',
+    ProductSortBy sortBy = ProductSortBy.relevance,
+    bool availableOnly = false,
+    String? warehouseCode,
   });
 }

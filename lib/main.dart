@@ -92,12 +92,20 @@ Future<void> main() async {
 ///
 /// ## What "null" means here
 ///
-/// On **iOS** the token is null until APNs issues one, and APNs only does that
-/// after the notification permission is granted — which
+/// On the **iOS Simulator** it means there is no APNs device token, and there
+/// never will be — the Simulator does not issue one. Firebase itself is fine and
+/// the inbox works; only the token is unobtainable. Use a physical device, or
+/// Android, which issues one immediately.
+///
+/// On a **physical iOS device** it usually means `getToken()` ran before APNs
+/// replied, or before the notification permission was granted — which
 /// `docs/features/notification-mobile.md` §14 defers to the in-app explainer, on
-/// purpose. So a null on a fresh iOS install is correct, not broken: accept the
-/// explainer, then hot-restart. On **web** there is no transport at all
-/// (ADR-010).
+/// purpose. Accept the explainer, then relaunch.
+///
+/// On **web** there is no transport at all (ADR-010).
+///
+/// The `push.token_unavailable` log line names the actual Firebase error code
+/// in every case; read that before guessing.
 Future<void> printFcmTokenForDebugging() async {
   if (!kDebugMode) return;
 
@@ -119,10 +127,19 @@ Future<void> printFcmTokenForDebugging() async {
 
     final token = await messaging.token();
     if (token == null || token.isEmpty) {
+      // The preceding `push.token_unavailable` log line carries the Firebase
+      // error code and the specific cause; this only points at it.
+      //
+      // Note what is deliberately *not* claimed here: that the notification
+      // permission is to blame. An earlier version of this message said exactly
+      // that, and it was wrong — the usual cause on iOS is a missing APNs device
+      // token, which the Simulator never issues no matter how thoroughly
+      // notifications are allowed in Settings.
       debugPrint(
-        '[isi.debug] FCM token: not issued yet. On iOS this is expected until '
-        'the notification permission is granted — accept the in-app prompt, '
-        'then hot-restart.',
+        '[isi.debug] FCM token: none issued. See the push.token_unavailable '
+        'line above for the reason. On the iOS Simulator this is expected and '
+        'unfixable — FCM needs an APNs device token, which only a physical '
+        'device provides. Android issues one immediately.',
       );
       return;
     }

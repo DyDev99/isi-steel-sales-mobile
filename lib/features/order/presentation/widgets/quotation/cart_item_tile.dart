@@ -116,7 +116,8 @@ class CartItemTile extends StatelessWidget {
                     _identityLine,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(11)),
+                    style: TextStyle(
+                        color: colors.textSecondary, fontSize: context.rsp(11)),
                   ),
                 ),
                 SizedBox(width: context.rw(6)),

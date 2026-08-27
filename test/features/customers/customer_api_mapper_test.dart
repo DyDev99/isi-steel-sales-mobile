@@ -55,8 +55,8 @@ void main() {
         'Suspended': CustomerStatus.suspended,
         'Closed': CustomerStatus.closed,
       }.entries) {
-        final customer = CustomerApiMapper.fromSummary(
-            _summary()..['status'] = entry.key);
+        final customer =
+            CustomerApiMapper.fromSummary(_summary()..['status'] = entry.key);
         expect(customer.status, entry.value, reason: entry.key);
       }
     });

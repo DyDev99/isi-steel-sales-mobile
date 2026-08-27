@@ -14,6 +14,7 @@ import 'package:isi_steel_sales_mobile/features/order/domain/entities/filter/fil
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/material_category.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/paged_result.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/entities/product_filter.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/repositories/product_filter_repository.dart';
 
 /// The guided configurator over the device's own catalog — the offline twin of
@@ -152,6 +153,9 @@ class ProductFilterRepositoryImpl implements ProductFilterRepository {
     required int page,
     required int pageSize,
     String search = '',
+    ProductSortBy sortBy = ProductSortBy.relevance,
+    bool availableOnly = false,
+    String? warehouseCode,
   }) async {
     try {
       // The local browse is zero-based and returns `pageSize + 1` rows so the
@@ -169,7 +173,12 @@ class ProductFilterRepositoryImpl implements ProductFilterRepository {
         page: zeroBased,
         pageSize: pageSize,
         query: search.trim(),
-        filter: selection.toProductFilter(categoryCode),
+        filter: selection.toProductFilter(
+          categoryCode,
+          sortBy: sortBy,
+          availableOnly: availableOnly,
+          warehouseCode: warehouseCode,
+        ),
       );
       final hasMore = rows.length > pageSize;
       return Success(PagedResult<Product>(

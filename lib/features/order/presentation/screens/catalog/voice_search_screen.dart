@@ -130,7 +130,8 @@ class _VoiceSearchScreenState extends State<VoiceSearchScreen> {
                     ? 'orders.voice.listening'.tr
                     : (_error ?? 'orders.voice.tap_to_start'.tr),
                 textAlign: TextAlign.center,
-                style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(14)),
+                style: TextStyle(
+                    color: colors.textSecondary, fontSize: context.rsp(14)),
               ),
               SizedBox(height: context.rh(28)),
               GestureDetector(

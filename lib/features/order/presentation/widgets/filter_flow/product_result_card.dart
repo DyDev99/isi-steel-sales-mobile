@@ -3,6 +3,8 @@ import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/entities/material_availability.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/catalog/stock_availability_badge.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/cart_quantity_stepper.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
@@ -44,6 +46,7 @@ class ProductResultCard extends StatelessWidget {
     this.onCustomize,
     this.lowStockThreshold = 10,
     this.mediumStockThreshold = 50,
+    this.availability,
   });
 
   final Product product;
@@ -67,6 +70,18 @@ class ProductResultCard extends StatelessWidget {
   /// Custom threshold boundaries for stock categories
   final int lowStockThreshold;
   final int mediumStockThreshold;
+
+  /// SAP's live sellability verdict, once asked for.
+  ///
+  /// Asked exactly once per flow, when the rep answers the SKU step — that is
+  /// the moment they name a material rather than narrow towards one, and the
+  /// only moment worth a live ERP round trip. Null everywhere else, and null
+  /// renders no badge at all.
+  ///
+  /// Takes precedence over the local quantity band below it when both exist:
+  /// the ERP's verdict is current, and a synced quantity is as old as the last
+  /// sync.
+  final MaterialAvailability? availability;
 
   /// Maps the available quantity onto a status band. The quantity itself is
   /// never rendered — it only decides which band applies.
@@ -215,8 +230,13 @@ class ProductResultCard extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Stock status badge using products.status keys
-                          if (stockStatus != null) ...[
+                          // SAP's live verdict wins where it exists; the
+                          // banded local quantity is the fallback for the
+                          // offline catalog, whose rows do carry a figure.
+                          if (availability != null) ...[
+                            StockAvailabilityBadge(availability: availability),
+                            SizedBox(height: context.rh(4)),
+                          ] else if (stockStatus != null) ...[
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 6,
@@ -242,23 +262,42 @@ class ProductResultCard extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.baseline,
                             textBaseline: TextBaseline.alphabetic,
                             children: [
-                              Text(
-                                '\$${product.effectivePrice.toStringAsFixed(2)}',
-                                style: TextStyle(
-                                  color: colors.textPrimary,
-                                  fontSize: context.rsp(16),
-                                  fontWeight: FontWeight.w800,
+                              // Shown only when an amount was actually
+                              // received. The materials API returns no price
+                              // of any kind — no list, no condition, no
+                              // currency — and `\$0.00` would read as free
+                              // rather than as missing.
+                              if (product.pricing.isPriced) ...[
+                                Text(
+                                  '\$${product.effectivePrice.toStringAsFixed(2)}',
+                                  style: TextStyle(
+                                    color: colors.textPrimary,
+                                    fontSize: context.rsp(16),
+                                    fontWeight: FontWeight.w800,
+                                  ),
                                 ),
-                              ),
-                              SizedBox(width: context.rw(4)),
-                              Text(
-                                '/ ${product.unit}',
-                                style: TextStyle(
-                                  color: colors.textSecondary,
-                                  fontSize: context.rsp(11),
-                                  fontWeight: FontWeight.w600,
+                                SizedBox(width: context.rw(4)),
+                              ] else ...[
+                                Text(
+                                  'products.price_unavailable'.tr,
+                                  style: TextStyle(
+                                    color: colors.textSecondary,
+                                    fontSize: context.rsp(11.5),
+                                    fontWeight: FontWeight.w700,
+                                    fontStyle: FontStyle.italic,
+                                  ),
                                 ),
-                              ),
+                                SizedBox(width: context.rw(4)),
+                              ],
+                              if (product.unit.isNotEmpty)
+                                Text(
+                                  '/ ${product.unit}',
+                                  style: TextStyle(
+                                    color: colors.textSecondary,
+                                    fontSize: context.rsp(11),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                             ],
                           ),
                         ],

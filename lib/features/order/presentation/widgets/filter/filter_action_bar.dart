@@ -83,7 +83,8 @@ class FilterActionBar extends StatelessWidget {
                     : Text(
                         _applyLabel,
                         style: TextStyle(
-                            fontSize: context.rsp(14), fontWeight: FontWeight.w800),
+                            fontSize: context.rsp(14),
+                            fontWeight: FontWeight.w800),
                       ),
               ),
             ),

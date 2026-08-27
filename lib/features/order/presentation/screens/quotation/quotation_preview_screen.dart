@@ -148,7 +148,8 @@ class _QuotationView extends StatelessWidget {
             Expanded(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
-                padding: EdgeInsets.fromLTRB(context.rw(16), context.rh(16), context.rw(16), context.rh(8)),
+                padding: EdgeInsets.fromLTRB(context.rw(16), context.rh(16),
+                    context.rw(16), context.rh(8)),
                 child: Column(
                   children: [
                     QuotationPreviewSection(
@@ -164,7 +165,8 @@ class _QuotationView extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: context.rw(16), vertical: context.rh(12)),
+              padding: EdgeInsets.symmetric(
+                  horizontal: context.rw(16), vertical: context.rh(12)),
               child: BlocConsumer<PdfGenerationCubit, PdfGenerationState>(
                 listener: (context, state) {
                   if (state is PdfGenerated) {
@@ -197,7 +199,8 @@ class _QuotationView extends StatelessWidget {
                             isGenerating ? null : () => Navigator.pop(context),
                         style: OutlinedButton.styleFrom(
                           padding: EdgeInsets.symmetric(
-                              vertical: context.rh(14), horizontal: context.rw(24)),
+                              vertical: context.rh(14),
+                              horizontal: context.rw(24)),
                           side:
                               BorderSide(color: themeColors.border, width: 1.5),
                           shape: RoundedRectangleBorder(
@@ -224,7 +227,8 @@ class _QuotationView extends StatelessWidget {
                               color: isGenerating
                                   ? colorScheme.primary.withValues(alpha: 0.7)
                                   : colorScheme.primary,
-                              borderRadius: BorderRadius.circular(context.rr(14)),
+                              borderRadius:
+                                  BorderRadius.circular(context.rr(14)),
                               boxShadow: [
                                 BoxShadow(
                                   color: colorScheme.primary

@@ -62,9 +62,11 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
     final Uri callUri = Uri.parse('tel:$cleanNumber');
 
     try {
-      bool launched = await launchUrl(telegramTgUri, mode: LaunchMode.externalApplication);
+      bool launched =
+          await launchUrl(telegramTgUri, mode: LaunchMode.externalApplication);
       if (!launched) {
-        launched = await launchUrl(telegramWebUri, mode: LaunchMode.externalApplication);
+        launched = await launchUrl(telegramWebUri,
+            mode: LaunchMode.externalApplication);
       }
       if (!launched) {
         await launchUrl(callUri, mode: LaunchMode.externalApplication);
@@ -98,7 +100,8 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (sheetContext) => Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(sheetContext).viewInsets.bottom),
+        padding: EdgeInsets.only(
+            bottom: MediaQuery.of(sheetContext).viewInsets.bottom),
         child: Container(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
           decoration: BoxDecoration(
@@ -137,18 +140,22 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    context.read<CustomerDetailCubit>().addNote(_noteController.text);
+                    context
+                        .read<CustomerDetailCubit>()
+                        .addNote(_noteController.text);
                     _noteController.clear();
                     Navigator.pop(sheetContext);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: scheme.primary,
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
                   ),
                   child: Text(
                     'customers.save_note'.tr,
-                    style: TextStyle(color: scheme.onPrimary, fontWeight: FontWeight.w800),
+                    style: TextStyle(
+                        color: scheme.onPrimary, fontWeight: FontWeight.w800),
                   ),
                 ),
               ),
@@ -164,7 +171,8 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
     return LocalizedBuilder(
       builder: (context) {
         final colors = context.appColors;
-        final isTwoColumn = MediaQuery.sizeOf(context).width >= _twoColumnMinWidth;
+        final isTwoColumn =
+            MediaQuery.sizeOf(context).width >= _twoColumnMinWidth;
 
         return Scaffold(
           backgroundColor: colors.canvas,
@@ -194,7 +202,9 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
                     color: colors.textPrimary,
                     size: context.rr(22),
                   ),
-                  onPressed: state is CustomerDetailLoaded ? () => _addNote(context) : null,
+                  onPressed: state is CustomerDetailLoaded
+                      ? () => _addNote(context)
+                      : null,
                 ),
               ),
             ],
@@ -233,9 +243,11 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
                                     children: [
                                       if (state.customer.contacts.isNotEmpty)
                                         _ContactsCard(customer: state.customer),
-                                      if (state.customer.productsPurchased.isNotEmpty) ...[
+                                      if (state.customer.productsPurchased
+                                          .isNotEmpty) ...[
                                         SizedBox(height: context.rh(16)),
-                                        _ProductMixCard(customer: state.customer),
+                                        _ProductMixCard(
+                                            customer: state.customer),
                                       ],
                                       SizedBox(height: context.rh(16)),
                                       _TimelineCard(state: state),
@@ -256,7 +268,8 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
                                   SizedBox(height: context.rh(14)),
                                   _ContactsCard(customer: state.customer),
                                 ],
-                                if (state.customer.productsPurchased.isNotEmpty) ...[
+                                if (state
+                                    .customer.productsPurchased.isNotEmpty) ...[
                                   SizedBox(height: context.rh(14)),
                                   _ProductMixCard(customer: state.customer),
                                 ],
@@ -268,7 +281,8 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
                       ),
                     ),
                   CustomerDetailError(:final message) => Center(
-                      child: Text(message, style: TextStyle(color: colors.textSecondary)),
+                      child: Text(message,
+                          style: TextStyle(color: colors.textSecondary)),
                     ),
                   _ => Center(
                       child: CircularProgressIndicator(
@@ -464,13 +478,15 @@ class _OutletDetailsCard extends StatelessWidget {
             _InfoRow(
               icon: Icons.my_location_rounded,
               label: 'Lat & Long (SAP)',
-              value: '${customer.latitude.toStringAsFixed(5)}, ${customer.longitude.toStringAsFixed(5)}',
+              value:
+                  '${customer.latitude.toStringAsFixed(5)}, ${customer.longitude.toStringAsFixed(5)}',
               last: true,
               onTap: () => onLocationTap(customer.latitude, customer.longitude),
               actionWidget: _ActionIconButton(
                 icon: Icons.map_rounded,
                 color: Colors.blue,
-                onPressed: () => onLocationTap(customer.latitude, customer.longitude),
+                onPressed: () =>
+                    onLocationTap(customer.latitude, customer.longitude),
               ),
             ),
         ],
@@ -533,7 +549,8 @@ class _InfoRowState extends State<_InfoRow> {
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
-      cursor: isInteractive ? SystemMouseCursors.click : SystemMouseCursors.basic,
+      cursor:
+          isInteractive ? SystemMouseCursors.click : SystemMouseCursors.basic,
       child: InkWell(
         onTap: widget.onTap != null
             ? () {
@@ -694,7 +711,8 @@ class _ContactsCard extends StatelessWidget {
                         CircleAvatar(
                           radius: context.rr(16),
                           backgroundColor: colors.surfaceStrong,
-                          child: Icon(Icons.person, size: context.rr(16), color: scheme.primary),
+                          child: Icon(Icons.person,
+                              size: context.rr(16), color: scheme.primary),
                         ),
                         SizedBox(width: context.rw(10)),
                         Expanded(

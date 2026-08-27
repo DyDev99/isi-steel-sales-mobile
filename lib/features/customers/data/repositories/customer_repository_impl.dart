@@ -12,26 +12,25 @@ import 'package:isi_steel_sales_mobile/features/customers/domain/entities/custom
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer_paged_result.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/repositories/customer_repository.dart';
 
-/// Local-read only, same shape as `order`'s `ProductRepositoryImpl` — this
-/// repository never touches the network; that door is `CustomerSyncRepository`.
+/// Local-read only. Network-backed creation and sync live in the sync repository.
 class CustomerRepositoryImpl implements CustomerRepository {
   const CustomerRepositoryImpl(this._local);
   final CustomerLocalDataSource _local;
 
   @override
-  ResultFuture<CustomerPagedResult> browse({
-    required int page,
-    required int pageSize,
-    String query = '',
-    CustomerFilter filter = const CustomerFilter(),
-  }) async {
+  ResultFuture<CustomerPagedResult> browse(
+      {required int page,
+      required int pageSize,
+      String query = '',
+      CustomerFilter filter = const CustomerFilter()}) async {
     try {
       final rows = await _local.browse(
           page: page, pageSize: pageSize, query: query, filter: filter);
       final hasMore = rows.length > pageSize;
-      final items = hasMore ? rows.sublist(0, pageSize) : rows;
-      return Success(
-          CustomerPagedResult(items: items, page: page, hasMore: hasMore));
+      return Success(CustomerPagedResult(
+          items: hasMore ? rows.sublist(0, pageSize) : rows,
+          page: page,
+          hasMore: hasMore));
     } on CacheException catch (e) {
       return Failed(CacheFailure(message: e.message));
     }
@@ -41,10 +40,9 @@ class CustomerRepositoryImpl implements CustomerRepository {
   ResultFuture<Customer> getById(String id) async {
     try {
       final customer = await _local.getById(id);
-      if (customer == null) {
-        return const Failed(CacheFailure(message: 'Customer not found.'));
-      }
-      return Success(customer);
+      return customer == null
+          ? const Failed(CacheFailure(message: 'Customer not found.'))
+          : Success(customer);
     } on CacheException catch (e) {
       return Failed(CacheFailure(message: e.message));
     }
@@ -101,11 +99,10 @@ class CustomerRepositoryImpl implements CustomerRepository {
   ResultFuture<void> addNote(String customerId, String body) async {
     try {
       await _local.addNote(CustomerNoteModel(
-        id: '$customerId-NOTE-${DateTime.now().microsecondsSinceEpoch}',
-        customerId: customerId,
-        body: body,
-        createdAt: DateTime.now(),
-      ));
+          id: '$customerId-NOTE-${DateTime.now().microsecondsSinceEpoch}',
+          customerId: customerId,
+          body: body,
+          createdAt: DateTime.now()));
       return const Success(null);
     } on CacheException catch (e) {
       return Failed(CacheFailure(message: e.message));
@@ -126,12 +123,11 @@ class CustomerRepositoryImpl implements CustomerRepository {
   ResultFuture<void> addActivity(CustomerActivity activity) async {
     try {
       await _local.addActivity(CustomerActivityModel(
-        id: activity.id,
-        customerId: activity.customerId,
-        type: activity.type,
-        summary: activity.summary,
-        createdAt: activity.createdAt,
-      ));
+          id: activity.id,
+          customerId: activity.customerId,
+          type: activity.type,
+          summary: activity.summary,
+          createdAt: activity.createdAt));
       return const Success(null);
     } on CacheException catch (e) {
       return Failed(CacheFailure(message: e.message));

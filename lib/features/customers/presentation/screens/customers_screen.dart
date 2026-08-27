@@ -11,12 +11,15 @@ import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/cust
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customers_event.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customers_state.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/screens/customer_detail_screen.dart';
+import 'package:isi_steel_sales_mobile/features/customers/presentation/screens/customer_create_screen.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_card.dart';
+import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_empty_state.dart';
+import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_error_state.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_filter_sheet.dart';
+import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_loading.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_search_bar.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_sync_status_banner.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/navigation/open_quotation.dart';
-import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/add_customer_bottom_sheet.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 enum _QuickAccess {
@@ -125,13 +128,13 @@ class _CustomersViewState extends State<_CustomersView> {
                   scrollController: _scrollController,
                   onOpenDetail: (id) => _openDetail(context, id),
                 ),
-              CustomersError(:final message) => Center(
-                  child: Text(message,
-                      style:
-                          TextStyle(color: context.appColors.textSecondary))),
-              _ => Center(
-                  child: CircularProgressIndicator(
-                      color: Theme.of(context).colorScheme.primary)),
+              CustomersError(:final message) => CustomerErrorState(
+                  message: message,
+                  onRetry: () => context
+                      .read<CustomersBloc>()
+                      .add(const CustomersLoadRequested()),
+                ),
+              _ => const CustomerLoading(),
             };
           },
         ),
@@ -238,6 +241,7 @@ class _Loaded extends StatelessWidget {
                   SizedBox(height: context.rh(20)),
                   const CustomerSyncStatusBanner(),
                   CustomerSearchBar(
+                    query: state.query,
                     onSearchChanged: (q) => context
                         .read<CustomersBloc>()
                         .add(CustomersSearchChanged(q)),
@@ -254,7 +258,21 @@ class _Loaded extends StatelessWidget {
                     // Registers a shop directly. This used to require picking
                     // a won lead first, which meant a rep standing in a shop
                     // that was never in the pipeline could not add it at all.
-                    onAddTap: () => showAddCustomerSheet(context),
+                    onAddTap: () async {
+                      final submitted = await Navigator.of(context).push<bool>(
+                        MaterialPageRoute(
+                          settings: const RouteSettings(
+                            name: CustomerCreateScreen.routeName,
+                          ),
+                          builder: (_) => const CustomerCreateScreen(),
+                        ),
+                      );
+                      if (submitted == true && context.mounted) {
+                        context
+                            .read<CustomersBloc>()
+                            .add(const CustomersRefreshRequested());
+                      }
+                    },
                   ),
                   SizedBox(height: context.rh(12)),
                   _QuickAccessRow(
@@ -265,13 +283,15 @@ class _Loaded extends StatelessWidget {
           ),
           if (items.isEmpty)
             SliverFillRemaining(
-              child: Center(
-                child: Text(
-                  quickAccess == _QuickAccess.all
-                      ? 'customers.no_customers'.tr
-                      : 'customers.nothing_here'.tr,
-                  style: TextStyle(color: colors.textSecondary),
-                ),
+              child: CustomerEmptyState(
+                hasActiveSearchOrFilter:
+                    state.query.isNotEmpty || !state.filter.isEmpty,
+                onClearSearchOrFilter:
+                    state.query.isNotEmpty || !state.filter.isEmpty
+                        ? () => context
+                            .read<CustomersBloc>()
+                            .add(const CustomersFiltersCleared())
+                        : null,
               ),
             )
           else

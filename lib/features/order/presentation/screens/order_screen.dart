@@ -54,12 +54,13 @@ class _OrderScreenState extends State<OrderScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = context.appColors;
-    
+
     // Determine screen width for responsive columns
     final isTablet = MediaQuery.sizeOf(context).width >= 600;
-    
+
     return PopScope(
-      canPop: false, // Prevent default exit to handle custom tab switching[cite: 6]
+      canPop:
+          false, // Prevent default exit to handle custom tab switching[cite: 6]
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
 
@@ -205,16 +206,19 @@ class _OrderScreenState extends State<OrderScreen> {
                                             color: colors.textSecondary))),
                               );
                             }
-                            
+
                             // Replaced Column with responsive GridView for square layout
                             return GridView.builder(
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
-                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: isTablet ? 4 : 2, // Responsive columns
+                              gridDelegate:
+                                  SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount:
+                                    isTablet ? 4 : 2, // Responsive columns
                                 crossAxisSpacing: context.rw(12),
                                 mainAxisSpacing: context.rh(12),
-                                childAspectRatio: 1.0, // Strictly square proportion
+                                childAspectRatio:
+                                    1.0, // Strictly square proportion
                               ),
                               itemCount: entries.length,
                               itemBuilder: (context, index) {
@@ -321,12 +325,14 @@ class _OrderTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
-    
+
     // Determine icon and color based on whether it is a sales order or quotation
     final isSO = entry.isSalesOrder;
     final iconData = isSO ? Icons.local_mall_rounded : Icons.assignment_rounded;
     final iconColor = isSO ? scheme.primary : colors.warning;
-    final iconBgColor = isSO ? scheme.primary.withValues(alpha: 0.1) : colors.warning.withValues(alpha: 0.1);
+    final iconBgColor = isSO
+        ? scheme.primary.withValues(alpha: 0.1)
+        : colors.warning.withValues(alpha: 0.1);
 
     return InkWell(
       onTap: entry.onTap == null ? null : () => entry.onTap!(context),
@@ -365,7 +371,8 @@ class _OrderTile extends StatelessWidget {
                   child: Icon(iconData, color: iconColor, size: context.rr(18)),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                   decoration: BoxDecoration(
                     color: colors.warning.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(8),
@@ -381,9 +388,9 @@ class _OrderTile extends StatelessWidget {
                 ),
               ],
             ),
-            
+
             const Spacer(),
-            
+
             // Middle: Items count and Date
             Text(
               'orders.items_count'
@@ -400,7 +407,8 @@ class _OrderTile extends StatelessWidget {
             SizedBox(height: context.rh(2)),
             Row(
               children: [
-                Icon(Icons.calendar_today_rounded, size: context.rr(10), color: colors.textSecondary),
+                Icon(Icons.calendar_today_rounded,
+                    size: context.rr(10), color: colors.textSecondary),
                 SizedBox(width: context.rw(4)),
                 Text(
                   _formatDate(entry.date),
@@ -411,11 +419,11 @@ class _OrderTile extends StatelessWidget {
                 ),
               ],
             ),
-            
+
             SizedBox(height: context.rh(8)),
             Divider(height: 1, color: colors.divider.withValues(alpha: 0.5)),
             SizedBox(height: context.rh(8)),
-            
+
             // Bottom: Total Price
             Text(
               '\$${entry.total.toStringAsFixed(2)}',

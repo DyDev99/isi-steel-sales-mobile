@@ -153,7 +153,8 @@ class QuotationItemCard extends StatelessWidget {
               Row(
                 children: [
                   Icon(Icons.palette_outlined,
-                      size: context.rr(16), color: colorScheme.onSurfaceVariant),
+                      size: context.rr(16),
+                      color: colorScheme.onSurfaceVariant),
                   SizedBox(width: context.rw(6)),
                   Expanded(
                     child: Text(

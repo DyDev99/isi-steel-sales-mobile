@@ -76,7 +76,9 @@ class _CounterBadge extends StatelessWidget {
       child: Text(
         '$count',
         style: TextStyle(
-            color: Colors.white, fontSize: context.rsp(12), fontWeight: FontWeight.w800),
+            color: Colors.white,
+            fontSize: context.rsp(12),
+            fontWeight: FontWeight.w800),
       ),
     );
   }

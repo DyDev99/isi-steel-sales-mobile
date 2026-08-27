@@ -96,8 +96,8 @@ class ApiCustomerRemoteDataSource implements CustomerRemoteDataSource {
   @override
   Future<CustomerModel> fetchById(String id) async {
     try {
-      final res = await _client
-          .get<DataMap>('${AppConstants.customersEndpoint}/$id');
+      final res =
+          await _client.get<DataMap>('${AppConstants.customersEndpoint}/$id');
       final envelope = ApiEnvelope.fromBody(res.data);
 
       // Wrapped one level deeper than the list: `data.customer`, not `data`.

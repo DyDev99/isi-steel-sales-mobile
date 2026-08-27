@@ -36,11 +36,11 @@ class _CategorySelectorState extends State<CategorySelector> {
 
     // Detect if the device is a tablet/iPad (shortest side >= 600dp is standard)
     final bool isTablet = MediaQuery.sizeOf(context).shortestSide >= 600;
-    
+
     // Set columns and rows dynamically
     final int crossAxisCount = isTablet ? 6 : 4;
     // Tablet: 6 cols * 4 rows = 24. Mobile: 4 cols * 2 rows = 8.
-    final int maxInitialItems = isTablet ? 24 : 8; 
+    final int maxInitialItems = isTablet ? 24 : 8;
 
     final hasMore = widget.categories.length > maxInitialItems;
     final visibleCategories = (_isExpanded || !hasMore)
@@ -53,7 +53,8 @@ class _CategorySelectorState extends State<CategorySelector> {
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          padding: EdgeInsets.symmetric(horizontal: context.rw(2), vertical: context.rh(4)),
+          padding: EdgeInsets.symmetric(
+              horizontal: context.rw(2), vertical: context.rh(4)),
           itemCount: visibleCategories.length,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
@@ -83,8 +84,8 @@ class _CategorySelectorState extends State<CategorySelector> {
                 borderRadius: BorderRadius.circular(context.rr(20)),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
-                  padding:
-                      EdgeInsets.symmetric(horizontal: context.rw(16), vertical: context.rh(6)),
+                  padding: EdgeInsets.symmetric(
+                      horizontal: context.rw(16), vertical: context.rh(6)),
                   decoration: BoxDecoration(
                     color: colors.card,
                     borderRadius: BorderRadius.circular(context.rr(20)),
@@ -208,7 +209,8 @@ class _CategoryTile extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(context.rr(14)),
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: context.rw(4), vertical: context.rh(8)),
+            padding: EdgeInsets.symmetric(
+                horizontal: context.rw(4), vertical: context.rh(8)),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

@@ -49,7 +49,8 @@ class CatalogSearchBar extends StatelessWidget {
                     onChanged: onSearchChanged,
                     textInputAction: TextInputAction.search,
                     onSubmitted: onSearchChanged,
-                    style: TextStyle(color: scheme.onSurface, fontSize: context.rsp(13.5)),
+                    style: TextStyle(
+                        color: scheme.onSurface, fontSize: context.rsp(13.5)),
                     decoration: InputDecoration(
                       isDense: true,
                       border: InputBorder.none,
@@ -138,7 +139,8 @@ class _SquareButton extends StatelessWidget {
               color: highlighted ? scheme.primary : context.appColors.border),
         ),
         child: Icon(icon,
-            color: highlighted ? scheme.primary : scheme.onSurface, size: context.rr(20)),
+            color: highlighted ? scheme.primary : scheme.onSurface,
+            size: context.rr(20)),
       ),
     );
   }

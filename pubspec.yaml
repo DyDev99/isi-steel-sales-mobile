@@ -98,6 +98,11 @@ flutter:
     # silently absent at runtime and Image.asset falls through to errorBuilder.
     - assets/images/icons/
     - assets/lang/
+    # The bundled Cambodian administrative gazetteer (~1.3 MB), imported into
+    # the encrypted database on first use. Bundled rather than fetched because
+    # there is no geographic endpoint to fetch it from, and an address form has
+    # to work with no signal (docs/features/geo-location/README.md).
+    - assets/geo/
 
   # Font families are declared here and resolved in `core/theme/app_typography.dart`.
   # The two families are strictly complementary — ABC Ginto has no Khmer glyphs

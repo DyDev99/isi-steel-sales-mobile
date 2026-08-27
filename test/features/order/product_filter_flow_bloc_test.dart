@@ -15,6 +15,11 @@ import 'package:isi_steel_sales_mobile/features/order/domain/entities/paged_resu
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product_filter.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/material_category.dart';
+import 'package:isi_steel_sales_mobile/core/error/failures.dart';
+import 'package:isi_steel_sales_mobile/core/utils/result.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/entities/material_availability.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/repositories/material_availability_repository.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/usecases/check_material_availability.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_materials.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/fetch_filter_categories.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_category_filter_schema.dart';
@@ -39,10 +44,32 @@ class _CountingMaterials extends GetMaterials {
   }
 }
 
+/// Stands in for the live SAP sellability check, which these tests must never
+/// make.
+///
+/// It answers the way an unreachable middleware does, and that is the point:
+/// the flow has to treat "could not ask" as *no verdict at all*, not as a
+/// refusal. Every assertion below about products reaching the screen would
+/// still pass if this quietly returned "unsellable", so the failure it guards
+/// against is the flow letting a failed check disable a card.
+///
+/// [calls] is exposed so a test can assert the check is spent on commitment
+/// rather than on browsing.
+class _OfflineAvailability implements MaterialAvailabilityRepository {
+  int calls = 0;
+
+  @override
+  ResultFuture<MaterialAvailability> checkAvailability(String material) async {
+    calls++;
+    return const Failed(NetworkFailure());
+  }
+}
+
 void main() {
   late AppDatabase db;
   late ProductDriftLocalDataSource catalog;
   late _CountingMaterials materials;
+  late _OfflineAvailability availability;
   late ProductFilterFlowBloc bloc;
 
   /// Two rows under a category SAP publishes no schema for, with no diameter
@@ -119,6 +146,7 @@ void main() {
       products: catalog,
     );
     materials = _CountingMaterials(filterRepository);
+    availability = _OfflineAvailability();
 
     bloc = ProductFilterFlowBloc(
       fetchFilterCategories: FetchFilterCategories(filterRepository),
@@ -126,6 +154,7 @@ void main() {
       getFilterStepOptions: GetFilterStepOptions(filterRepository),
       getStockLocationOptions: GetStockLocationOptions(filterRepository),
       getMaterials: materials,
+      checkMaterialAvailability: CheckMaterialAvailability(availability),
     );
   });
 

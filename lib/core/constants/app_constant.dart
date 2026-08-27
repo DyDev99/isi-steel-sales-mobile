@@ -103,10 +103,17 @@ class AppConstants {
   static const String materialSelectionEndpoint =
       '$materialsEndpoint/selection/materials';
 
-  /// SAP's live sellability verdict for one material. Slow, and it fails when
-  /// the middleware is down — call it on commit, never while browsing.
+  /// SAP's live sellability verdict for one material.
+  ///
+  /// Note the path: this one sits at `/materials/...`, **not** under the
+  /// `/mobile/` prefix the rest of this block uses. Verified against the
+  /// staging host; deriving it from [materialsEndpoint] would 404.
+  ///
+  /// Unlike every other call here it is a live SAP round trip, so it is slow
+  /// and it fails when the middleware is down. Call it when a rep commits to a
+  /// material — never while they browse.
   static String materialAvailabilityEndpoint(String material) =>
-      '$materialsEndpoint/$material/availability';
+      '$apiPrefix/materials/$material/availability';
 
   /// The material list is one-based, like every other paged mobile endpoint.
   static const int firstPage = 1;

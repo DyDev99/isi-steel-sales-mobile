@@ -131,7 +131,8 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet> {
               onChanged: (value) => setState(() => _availableOnly = value),
               title: Text(
                 'orders.filter.in_stock_only'.tr,
-                style: TextStyle(color: colors.textPrimary, fontSize: context.rsp(14)),
+                style: TextStyle(
+                    color: colors.textPrimary, fontSize: context.rsp(14)),
               ),
             ),
             if (widget.categoryLabel != null) ...[
@@ -159,7 +160,8 @@ class _FilterOptionsSheetState extends State<FilterOptionsSheet> {
                 SizedBox(height: context.rh(8)),
                 Text(
                   'orders.guided_filter.clear_dependents_note'.tr,
-                  style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(11.5)),
+                  style: TextStyle(
+                      color: colors.textSecondary, fontSize: context.rsp(11.5)),
                 ),
               ],
             ],

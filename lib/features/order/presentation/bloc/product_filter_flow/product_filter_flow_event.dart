@@ -105,3 +105,18 @@ final class FilterStockLocationChanged extends ProductFilterFlowEvent {
   @override
   List<Object?> get props => [warehouseCode];
 }
+
+/// Asks SAP whether one material may actually be sold.
+///
+/// Fired automatically when the rep answers the SKU step, which is the moment
+/// they stop narrowing and name a material. Exposed as an event as well so a
+/// card can retry a check that failed, without the widget needing to know that
+/// a live ERP round trip sits behind it.
+///
+/// [material] is the SAP material number, not the platform row id.
+final class FilterMaterialAvailabilityRequested extends ProductFilterFlowEvent {
+  const FilterMaterialAvailabilityRequested(this.material);
+  final String material;
+  @override
+  List<Object?> get props => [material];
+}

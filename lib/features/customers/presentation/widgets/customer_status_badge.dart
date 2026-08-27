@@ -56,8 +56,10 @@ class CustomerStatusBadge extends StatelessWidget {
       ),
       child: Text(
         status.localizedLabel,
-        style:
-            TextStyle(color: color, fontSize: context.rsp(11), fontWeight: FontWeight.w700),
+        style: TextStyle(
+            color: color,
+            fontSize: context.rsp(11),
+            fontWeight: FontWeight.w700),
       ),
     );
   }

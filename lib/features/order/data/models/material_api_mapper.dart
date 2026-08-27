@@ -1,6 +1,7 @@
 import 'package:isi_steel_sales_mobile/core/localization/localized_text.dart';
 import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/filter/filter_option.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/entities/material_availability.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/material_category.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product_pricing.dart';
@@ -140,6 +141,41 @@ abstract final class MaterialApiMapper {
       minStock: 0,
       maxStock: 0,
       stockKnown: false,
+    );
+  }
+
+  /// The `data` object of `/materials/{material}/availability`.
+  ///
+  /// [requested] is the material number the call was made for, and it wins over
+  /// whatever the body echoes: the response is keyed into a map by what was
+  /// asked, and a server that normalised or trimmed the number differently
+  /// would otherwise leave the result orphaned against every card.
+  static MaterialAvailability availabilityFrom(
+    DataMap json, {
+    required String requested,
+  }) {
+    final checks = (json['checks'] as List<dynamic>? ?? const [])
+        .whereType<Map>()
+        .map((e) => e.cast<String, dynamic>())
+        .map((c) => MaterialAvailabilityCheck(
+              sequence: _string(c['sequence']),
+              checkId: _string(c['checkId']),
+              status: _string(c['status']),
+              message: _string(c['message']),
+              isVerdict: c['isVerdict'] as bool? ?? false,
+            ))
+        .toList(growable: false);
+
+    final sellable = json['isSellable'] as bool? ?? false;
+
+    return MaterialAvailability(
+      material: requested,
+      isSellable: sellable,
+      summary: _string(json['summary']),
+      checks: checks,
+      status: sellable
+          ? MaterialStockStatus.available
+          : MaterialStockStatus.unavailable,
     );
   }
 

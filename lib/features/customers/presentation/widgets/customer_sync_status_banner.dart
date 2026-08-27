@@ -30,8 +30,8 @@ class CustomerSyncStatusBanner extends StatelessWidget {
             ),
           CustomerSyncFailed(:final message) => _Banner(
               color: scheme.error,
-              icon:
-                  Icon(Icons.cloud_off_rounded, size: context.rr(16), color: scheme.error),
+              icon: Icon(Icons.cloud_off_rounded,
+                  size: context.rr(16), color: scheme.error),
               text: message,
             ),
           CustomerSyncSucceeded(:final upserted, :final deleted)

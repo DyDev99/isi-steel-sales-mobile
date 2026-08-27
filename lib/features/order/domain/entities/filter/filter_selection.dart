@@ -132,10 +132,12 @@ class FilterSelection extends Equatable {
           filter.copyWith(warehouseCode: () => value),
         // SAP's `TopColor` and the local `sub_category` column hold the same
         // value, so a server-published colour step still narrows offline.
-        ProductAttribute.subCategory || ProductAttribute.colour =>
+        ProductAttribute.subCategory ||
+        ProductAttribute.colour =>
           filter.copyWith(subCategory: () => value),
         ProductAttribute.brand => filter.copyWith(brand: () => value),
-        ProductAttribute.size || ProductAttribute.profile =>
+        ProductAttribute.size ||
+        ProductAttribute.profile =>
           filter.copyWith(size: () => value),
         ProductAttribute.grade => filter.copyWith(grade: () => value),
         ProductAttribute.material => filter.copyWith(material: () => value),
@@ -203,7 +205,8 @@ class FilterSelection extends Equatable {
       // invariant (always a decimal point), so parsing is safe without a
       // locale — and echoing the string where a number is expected is read as
       // no answer at all.
-      json[key] = entry.attribute.isNumeric ? (double.tryParse(raw) ?? raw) : raw;
+      json[key] =
+          entry.attribute.isNumeric ? (double.tryParse(raw) ?? raw) : raw;
     }
     json['excludeBlocked'] = excludeBlocked;
     return json;

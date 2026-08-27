@@ -83,7 +83,8 @@ class _Separator extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.symmetric(horizontal: 2),
-        child: Icon(Icons.chevron_right_rounded, size: context.rr(16), color: color),
+        child: Icon(Icons.chevron_right_rounded,
+            size: context.rr(16), color: color),
       );
 }
 

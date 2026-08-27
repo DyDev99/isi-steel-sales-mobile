@@ -47,6 +47,25 @@ abstract interface class MaterialSelectionRemoteDataSource {
     required int pageSize,
     String? search,
   });
+
+  /// SAP's live sellability verdict for one material.
+  ///
+  /// The odd one out in this interface: the other four read the platform's own
+  /// synced copy and cannot fail because the ERP is down. This one *is* the
+  /// ERP, so it is slow, it can time out, and it is spent on commitment rather
+  /// than on browsing.
+  ///
+  /// The sales-area triple is optional on the wire and mandatory in SAP.
+  /// Omitting it does not produce an error — it produces a **200** carrying
+  /// `isSellable: false` and `INPUT_*` checks, which is the absence of an
+  /// answer shaped like one. Callers must be able to tell the two apart.
+  Future<DataMap> fetchAvailability(
+    String material, {
+    String? salesOrg,
+    String? disChannel,
+    String? division,
+    String? plant,
+  });
 }
 
 /// One page of the terminal read, with the server's own paging verdict.

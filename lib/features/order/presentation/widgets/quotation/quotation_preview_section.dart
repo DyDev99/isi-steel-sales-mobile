@@ -110,7 +110,8 @@ class QuotationPreviewSection extends StatelessWidget {
                       borderRadius: BorderRadius.circular(context.rr(8)),
                       child: Container(
                         padding: EdgeInsets.symmetric(
-                            horizontal: context.rw(10), vertical: context.rh(5)),
+                            horizontal: context.rw(10),
+                            vertical: context.rh(5)),
                         decoration: BoxDecoration(
                           color: colors.surfaceSoft,
                           border: Border.all(color: colors.border),
@@ -208,7 +209,8 @@ class QuotationPreviewSection extends StatelessWidget {
                                 ? localFileImage((item.drawingImagePath!),
                                     fit: BoxFit.cover)
                                 : Icon(Icons.tune_rounded,
-                                    size: context.rw(16), color: colors.brandNavy),
+                                    size: context.rw(16),
+                                    color: colors.brandNavy),
                           ),
                         ),
                         SizedBox(width: context.rw(8)),
@@ -236,9 +238,11 @@ class QuotationPreviewSection extends StatelessWidget {
                                 ),
                                 if (item.isCustomized)
                                   Padding(
-                                    padding: EdgeInsets.only(left: context.rw(4)),
+                                    padding:
+                                        EdgeInsets.only(left: context.rw(4)),
                                     child: Text('✏️',
-                                        style: TextStyle(fontSize: context.rsp(11))),
+                                        style: TextStyle(
+                                            fontSize: context.rsp(11))),
                                   ),
                               ],
                             ),

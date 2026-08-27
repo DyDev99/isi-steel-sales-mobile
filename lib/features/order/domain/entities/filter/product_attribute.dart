@@ -164,7 +164,8 @@ enum ProductAttribute {
   String? get localFacet => switch (this) {
         ProductAttribute.family => 'family',
         ProductAttribute.warehouse => 'warehouse',
-        ProductAttribute.subCategory || ProductAttribute.colour =>
+        ProductAttribute.subCategory ||
+        ProductAttribute.colour =>
           'subCategory',
         ProductAttribute.brand => 'brand',
         ProductAttribute.size || ProductAttribute.profile => 'size',

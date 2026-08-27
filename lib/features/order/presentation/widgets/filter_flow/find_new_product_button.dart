@@ -42,7 +42,8 @@ class FindNewProductButton extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.add_rounded, size: context.rr(19), color: scheme.primary),
+                  Icon(Icons.add_rounded,
+                      size: context.rr(19), color: scheme.primary),
                   SizedBox(width: context.rw(8)),
                   Text(
                     'orders.guided_filter.find_new_product'.tr,
@@ -80,7 +81,8 @@ class FindNewProductButton extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.add_rounded, size: context.rr(15), color: scheme.primary),
+            Icon(Icons.add_rounded,
+                size: context.rr(15), color: scheme.primary),
             SizedBox(width: context.rw(5)),
             Text(
               'orders.guided_filter.find_new_product'.tr,

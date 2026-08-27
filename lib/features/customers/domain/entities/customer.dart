@@ -57,6 +57,7 @@ class Customer extends Equatable {
   });
 
   final String id;
+
   /// The ERP's identifier, once it has one. Null until SAP creates the record.
   final String? sapCustomerId;
   final String customerCode;

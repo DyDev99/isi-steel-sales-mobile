@@ -202,7 +202,8 @@ class _PickerSheetState extends State<_PickerSheet> {
                     child: Text(
                       'orders.filter.select'.trParams({'label': widget.label}),
                       style: TextStyle(
-                          fontSize: context.rsp(16), fontWeight: FontWeight.w800),
+                          fontSize: context.rsp(16),
+                          fontWeight: FontWeight.w800),
                     ),
                   ),
                   IconButton(
@@ -253,7 +254,8 @@ class _PickerSheetState extends State<_PickerSheet> {
                           ),
                           trailing: isSelected
                               ? Icon(Icons.check_rounded,
-                                  color: theme.colorScheme.primary, size: context.rr(20))
+                                  color: theme.colorScheme.primary,
+                                  size: context.rr(20))
                               : null,
                           onTap: () =>
                               Navigator.of(context).pop(_PickResult(option)),

@@ -96,7 +96,8 @@ class DrawingUploadComponent extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Icon(Icons.draw_rounded, size: context.rr(48), color: colorScheme.primary),
+          Icon(Icons.draw_rounded,
+              size: context.rr(48), color: colorScheme.primary),
           SizedBox(height: context.rh(12)),
           Text(
             'Attach Product Drawing or Sketch',

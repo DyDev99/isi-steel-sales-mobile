@@ -13,6 +13,7 @@ import 'package:isi_steel_sales_mobile/features/order/domain/entities/filter/fil
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/material_category.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/paged_result.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/entities/product_filter.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/repositories/product_filter_repository.dart';
 
 /// The guided finder over the platform's material selection API.
@@ -147,6 +148,15 @@ class ApiProductFilterRepositoryImpl implements ProductFilterRepository {
     required int page,
     required int pageSize,
     String search = '',
+    // Accepted and ignored, deliberately. The selection API exposes no sort
+    // parameter and no plant column, and `excludeBlocked` is already true on
+    // every path that leads to order capture. Silently accepting these keeps
+    // one call site in the bloc; silently *applying* a page-local sort would
+    // be worse than not sorting, because it would look right on page one and
+    // be wrong across the rest.
+    ProductSortBy sortBy = ProductSortBy.relevance,
+    bool availableOnly = false,
+    String? warehouseCode,
   }) async {
     final trimmed = search.trim();
     final bounded = selection.hasAnswer || trimmed.length >= 2;

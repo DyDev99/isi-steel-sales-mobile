@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/entities/material_availability.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/material_category.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/filter/category_filter_schema.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/filter/filter_option.dart';
@@ -47,6 +48,7 @@ class ProductFilterFlowState extends Equatable {
     this.stockLocations = const [],
     this.stockLocationCode,
     this.stockLocationsLoading = false,
+    this.availability = const {},
   });
 
   final FilterFlowStatus status;
@@ -95,6 +97,19 @@ class ProductFilterFlowState extends Equatable {
   final String? stockLocationCode;
 
   final bool stockLocationsLoading;
+
+  /// SAP's sellability verdicts, keyed by material number.
+  ///
+  /// Sparse on purpose. The check is a live ERP round trip, so it is spent on
+  /// the one material the rep committed to at the SKU step — never on a page
+  /// of cards they are only scrolling past. A material absent from this map has
+  /// not been asked about, which is a different thing from having been refused,
+  /// and the card renders the two differently.
+  final Map<String, MaterialAvailability> availability;
+
+  /// The verdict for [material], or null when it was never asked.
+  MaterialAvailability? availabilityFor(String material) =>
+      availability[material];
 
   /// Whether choosing a location would actually change anything. One location
   /// means every matched SKU ships from the same place, so offering the choice
@@ -185,6 +200,7 @@ class ProductFilterFlowState extends Equatable {
     List<FilterOption>? stockLocations,
     String? Function()? stockLocationCode,
     bool? stockLocationsLoading,
+    Map<String, MaterialAvailability>? availability,
   }) {
     return ProductFilterFlowState(
       status: status ?? this.status,
@@ -210,6 +226,7 @@ class ProductFilterFlowState extends Equatable {
           : this.stockLocationCode,
       stockLocationsLoading:
           stockLocationsLoading ?? this.stockLocationsLoading,
+      availability: availability ?? this.availability,
     );
   }
 
@@ -253,5 +270,6 @@ class ProductFilterFlowState extends Equatable {
         stockLocations,
         stockLocationCode,
         stockLocationsLoading,
+        availability,
       ];
 }

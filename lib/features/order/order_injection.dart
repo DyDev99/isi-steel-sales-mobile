@@ -1,4 +1,6 @@
+import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
+import 'package:isi_steel_sales_mobile/core/config/data_source_mode.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
 import 'package:isi_steel_sales_mobile/core/logging/app_logger.dart';
 import 'package:isi_steel_sales_mobile/core/services/pdf/pdf_file_service.dart';
@@ -20,13 +22,15 @@ import 'package:isi_steel_sales_mobile/features/order/data/local/sync_queue_loca
 import 'package:isi_steel_sales_mobile/features/order/data/local/sales_order_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/remote/mock_product_filter_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/remote/mock_product_remote_data_source.dart';
-import 'package:isi_steel_sales_mobile/features/order/data/remote/product_filter_remote_data_source.dart';
-import 'package:isi_steel_sales_mobile/features/order/data/remote/product_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/remote/api_material_selection_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/remote/material_selection_remote_data_source.dart';
+import 'package:isi_steel_sales_mobile/features/order/data/remote/product_filter_remote_data_source.dart';
+import 'package:isi_steel_sales_mobile/features/order/data/remote/product_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/repositories/cart_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/repositories/category_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/repositories/api_product_filter_repository_impl.dart';
+import 'package:isi_steel_sales_mobile/features/order/data/repositories/material_availability_repository_impl.dart';
+import 'package:isi_steel_sales_mobile/features/order/data/repositories/product_filter_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/repositories/product_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/repositories/quotation_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/repositories/sales_order_repository_impl.dart';
@@ -37,6 +41,7 @@ import 'package:isi_steel_sales_mobile/features/order/data/services/mock_quotati
 import 'package:isi_steel_sales_mobile/features/order/data/services/mock_mto_pricing_service.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/repositories/cart_repository.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/repositories/category_repository.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/repositories/material_availability_repository.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/repositories/product_filter_repository.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/repositories/product_repository.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/repositories/quotation_repository.dart';
@@ -65,10 +70,11 @@ import 'package:isi_steel_sales_mobile/features/order/domain/usecases/fetch_filt
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/fetch_recent_products.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_category_filter_schema.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_credit_summary.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/usecases/check_material_availability.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_filter_step_options.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_materials.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_stock_location_options.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_last_synced_at.dart';
-import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_materials.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_pricing.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_product_by_barcode.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_product_by_id.dart';
@@ -127,8 +133,11 @@ Future<void> registerOrderFeature(GetIt sl) async {
       () => MockProductRemoteDataSource());
   sl.registerLazySingleton<ProductFilterRemoteDataSource>(
       () => MockProductFilterRemoteDataSource());
+  // The guided material finder's four reads. Registered unconditionally: the
+  // availability check below needs it even on the offline path, where it is
+  // the only thing that can answer "may I sell this?" at all.
   sl.registerLazySingleton<MaterialSelectionRemoteDataSource>(
-      () => ApiMaterialSelectionRemoteDataSource(sl()));
+      () => ApiMaterialSelectionRemoteDataSource(sl<Dio>()));
   sl.registerLazySingleton<ProductFilterLocalDataSource>(
       () => ProductFilterDriftLocalDataSource(sl<AppDatabase>().catalogDao));
   sl.registerLazySingleton<CatalogFilterStore>(
@@ -155,8 +164,30 @@ Future<void> registerOrderFeature(GetIt sl) async {
       () => ProductRepositoryImpl(sl()));
   sl.registerLazySingleton<CategoryRepository>(
       () => CategoryRepositoryImpl(sl()));
+  // The guided finder runs against the platform's material selection API, and
+  // falls back to the device's synced catalog when the app is built for mocks.
+  // Both satisfy the same interface, so nothing above this line knows which
+  // one answered.
   sl.registerLazySingleton<ProductFilterRepository>(
-      () => ApiProductFilterRepositoryImpl(sl()));
+    () => DataSourceMode.useLiveApi
+        ? ApiProductFilterRepositoryImpl(sl())
+        : ProductFilterRepositoryImpl(
+            remote: sl(), local: sl(), products: sl()),
+  );
+  // SAP's live sellability check — the one call in this feature that reaches
+  // the ERP, spent when a rep commits to a material at the SKU step.
+  //
+  // TODO(release-gate): the sales-area triple (salesOrg / disChannel /
+  // division) is not carried by the session yet, so SAP answers every check
+  // with `INPUT_*` and `isSellable: false`. That renders as "No stock", which
+  // is safe — it never invents a yes — but uninformative until the rep's sales
+  // area is resolved and passed here.
+  sl.registerLazySingleton<MaterialAvailabilityRepository>(
+    () => MaterialAvailabilityRepositoryImpl(
+      remote: sl(),
+      network: sl<NetworkInfo>(),
+    ),
+  );
   sl.registerLazySingleton<CartRepository>(
       () => CartRepositoryImpl(cartLocal: sl(), productLocal: sl()));
   sl.registerLazySingleton<QuotationRepository>(
@@ -203,6 +234,7 @@ Future<void> registerOrderFeature(GetIt sl) async {
   sl.registerLazySingleton(() => GetFilterStepOptions(sl()));
   sl.registerLazySingleton(() => GetStockLocationOptions(sl()));
   sl.registerLazySingleton(() => GetMaterials(sl()));
+  sl.registerLazySingleton(() => CheckMaterialAvailability(sl()));
 
   sl.registerLazySingleton(() => FetchCart(sl()));
   sl.registerLazySingleton(() => AddToCart(sl()));
@@ -236,6 +268,7 @@ Future<void> registerOrderFeature(GetIt sl) async {
         getFilterStepOptions: sl(),
         getStockLocationOptions: sl(),
         getMaterials: sl(),
+        checkMaterialAvailability: sl(),
       ));
   sl.registerFactory(() => ProductDetailCubit(
         getProductById: sl(),

@@ -4,7 +4,6 @@ import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
 import 'package:isi_steel_sales_mobile/core/logging/app_logger.dart';
 import 'package:isi_steel_sales_mobile/core/network/network_info.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/local/customer_drift_local_data_source.dart';
-import 'package:isi_steel_sales_mobile/features/customers/data/remote/mock_customer_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/repositories/customer_sync_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/route_drift_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/remote/api_route_remote_data_source.dart';
@@ -43,7 +42,7 @@ void main() {
     customerLocal = CustomerDriftLocalDataSource(db.customerDao);
     routeLocal = RouteDriftLocalDataSource(db.routeDao, logger);
     customerSync = CustomerSyncRepositoryImpl(
-      remote: MockCustomerRemoteDataSource(),
+      remote: ApiCustomerRemoteDataSource(scriptedCustomerFeed),
       local: customerLocal,
       network: _AlwaysOnline(),
       logger: logger,

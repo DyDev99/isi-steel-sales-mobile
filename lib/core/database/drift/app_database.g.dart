@@ -20331,7 +20331,7 @@ class $NotificationActionQueueTable extends NotificationActionQueue
 class NotificationActionQueueRow extends DataClass
     implements Insertable<NotificationActionQueueRow> {
   /// Client-generated, so an offline capture needs no server round trip to
-  /// exist (`docs/DATABASE_GUIDE.md` §3).
+  /// exist (`docs/blueprints/DATABASE_GUIDE.md` §3).
   final String id;
 
   /// Empty for a `read_all`, which is not scoped to one item.
@@ -21025,6 +21025,1281 @@ class NotificationSyncMetaCompanion
   }
 }
 
+class $GeoProvincesTable extends GeoProvinces
+    with TableInfo<$GeoProvincesTable, GeoProvinceRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $GeoProvincesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _codeMeta = const VerificationMeta('code');
+  @override
+  late final GeneratedColumn<String> code = GeneratedColumn<String>(
+      'code', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _nameEnMeta = const VerificationMeta('nameEn');
+  @override
+  late final GeneratedColumn<String> nameEn = GeneratedColumn<String>(
+      'name_en', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _nameKmMeta = const VerificationMeta('nameKm');
+  @override
+  late final GeneratedColumn<String> nameKm = GeneratedColumn<String>(
+      'name_km', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _unitMeta = const VerificationMeta('unit');
+  @override
+  late final GeneratedColumn<String> unit = GeneratedColumn<String>(
+      'unit', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [code, nameEn, nameKm, unit];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'geo_provinces';
+  @override
+  VerificationContext validateIntegrity(Insertable<GeoProvinceRow> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('code')) {
+      context.handle(
+          _codeMeta, code.isAcceptableOrUnknown(data['code']!, _codeMeta));
+    } else if (isInserting) {
+      context.missing(_codeMeta);
+    }
+    if (data.containsKey('name_en')) {
+      context.handle(_nameEnMeta,
+          nameEn.isAcceptableOrUnknown(data['name_en']!, _nameEnMeta));
+    } else if (isInserting) {
+      context.missing(_nameEnMeta);
+    }
+    if (data.containsKey('name_km')) {
+      context.handle(_nameKmMeta,
+          nameKm.isAcceptableOrUnknown(data['name_km']!, _nameKmMeta));
+    } else if (isInserting) {
+      context.missing(_nameKmMeta);
+    }
+    if (data.containsKey('unit')) {
+      context.handle(
+          _unitMeta, unit.isAcceptableOrUnknown(data['unit']!, _unitMeta));
+    } else if (isInserting) {
+      context.missing(_unitMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {code};
+  @override
+  GeoProvinceRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return GeoProvinceRow(
+      code: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}code'])!,
+      nameEn: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name_en'])!,
+      nameKm: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name_km'])!,
+      unit: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}unit'])!,
+    );
+  }
+
+  @override
+  $GeoProvincesTable createAlias(String alias) {
+    return $GeoProvincesTable(attachedDatabase, alias);
+  }
+}
+
+class GeoProvinceRow extends DataClass implements Insertable<GeoProvinceRow> {
+  /// The two-digit NCDD code (`'12'` = Phnom Penh). **This is the key that is
+  /// submitted**, never the display name — a name is localised and a rep can
+  /// switch language mid-form.
+  final String code;
+  final String nameEn;
+  final String nameKm;
+
+  /// `Province` or `Capital`. Kept because a Cambodian address writes the two
+  /// differently (ខេត្ត vs រាជធានី) and dropping it would render
+  /// "Phnom Penh Province", which is wrong.
+  final String unit;
+  const GeoProvinceRow(
+      {required this.code,
+      required this.nameEn,
+      required this.nameKm,
+      required this.unit});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['code'] = Variable<String>(code);
+    map['name_en'] = Variable<String>(nameEn);
+    map['name_km'] = Variable<String>(nameKm);
+    map['unit'] = Variable<String>(unit);
+    return map;
+  }
+
+  GeoProvincesCompanion toCompanion(bool nullToAbsent) {
+    return GeoProvincesCompanion(
+      code: Value(code),
+      nameEn: Value(nameEn),
+      nameKm: Value(nameKm),
+      unit: Value(unit),
+    );
+  }
+
+  factory GeoProvinceRow.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return GeoProvinceRow(
+      code: serializer.fromJson<String>(json['code']),
+      nameEn: serializer.fromJson<String>(json['nameEn']),
+      nameKm: serializer.fromJson<String>(json['nameKm']),
+      unit: serializer.fromJson<String>(json['unit']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'code': serializer.toJson<String>(code),
+      'nameEn': serializer.toJson<String>(nameEn),
+      'nameKm': serializer.toJson<String>(nameKm),
+      'unit': serializer.toJson<String>(unit),
+    };
+  }
+
+  GeoProvinceRow copyWith(
+          {String? code, String? nameEn, String? nameKm, String? unit}) =>
+      GeoProvinceRow(
+        code: code ?? this.code,
+        nameEn: nameEn ?? this.nameEn,
+        nameKm: nameKm ?? this.nameKm,
+        unit: unit ?? this.unit,
+      );
+  GeoProvinceRow copyWithCompanion(GeoProvincesCompanion data) {
+    return GeoProvinceRow(
+      code: data.code.present ? data.code.value : this.code,
+      nameEn: data.nameEn.present ? data.nameEn.value : this.nameEn,
+      nameKm: data.nameKm.present ? data.nameKm.value : this.nameKm,
+      unit: data.unit.present ? data.unit.value : this.unit,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GeoProvinceRow(')
+          ..write('code: $code, ')
+          ..write('nameEn: $nameEn, ')
+          ..write('nameKm: $nameKm, ')
+          ..write('unit: $unit')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(code, nameEn, nameKm, unit);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is GeoProvinceRow &&
+          other.code == this.code &&
+          other.nameEn == this.nameEn &&
+          other.nameKm == this.nameKm &&
+          other.unit == this.unit);
+}
+
+class GeoProvincesCompanion extends UpdateCompanion<GeoProvinceRow> {
+  final Value<String> code;
+  final Value<String> nameEn;
+  final Value<String> nameKm;
+  final Value<String> unit;
+  final Value<int> rowid;
+  const GeoProvincesCompanion({
+    this.code = const Value.absent(),
+    this.nameEn = const Value.absent(),
+    this.nameKm = const Value.absent(),
+    this.unit = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  GeoProvincesCompanion.insert({
+    required String code,
+    required String nameEn,
+    required String nameKm,
+    required String unit,
+    this.rowid = const Value.absent(),
+  })  : code = Value(code),
+        nameEn = Value(nameEn),
+        nameKm = Value(nameKm),
+        unit = Value(unit);
+  static Insertable<GeoProvinceRow> custom({
+    Expression<String>? code,
+    Expression<String>? nameEn,
+    Expression<String>? nameKm,
+    Expression<String>? unit,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (code != null) 'code': code,
+      if (nameEn != null) 'name_en': nameEn,
+      if (nameKm != null) 'name_km': nameKm,
+      if (unit != null) 'unit': unit,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  GeoProvincesCompanion copyWith(
+      {Value<String>? code,
+      Value<String>? nameEn,
+      Value<String>? nameKm,
+      Value<String>? unit,
+      Value<int>? rowid}) {
+    return GeoProvincesCompanion(
+      code: code ?? this.code,
+      nameEn: nameEn ?? this.nameEn,
+      nameKm: nameKm ?? this.nameKm,
+      unit: unit ?? this.unit,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (code.present) {
+      map['code'] = Variable<String>(code.value);
+    }
+    if (nameEn.present) {
+      map['name_en'] = Variable<String>(nameEn.value);
+    }
+    if (nameKm.present) {
+      map['name_km'] = Variable<String>(nameKm.value);
+    }
+    if (unit.present) {
+      map['unit'] = Variable<String>(unit.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GeoProvincesCompanion(')
+          ..write('code: $code, ')
+          ..write('nameEn: $nameEn, ')
+          ..write('nameKm: $nameKm, ')
+          ..write('unit: $unit, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $GeoDistrictsTable extends GeoDistricts
+    with TableInfo<$GeoDistrictsTable, GeoDistrictRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $GeoDistrictsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _codeMeta = const VerificationMeta('code');
+  @override
+  late final GeneratedColumn<String> code = GeneratedColumn<String>(
+      'code', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _provinceCodeMeta =
+      const VerificationMeta('provinceCode');
+  @override
+  late final GeneratedColumn<String> provinceCode = GeneratedColumn<String>(
+      'province_code', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _nameEnMeta = const VerificationMeta('nameEn');
+  @override
+  late final GeneratedColumn<String> nameEn = GeneratedColumn<String>(
+      'name_en', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _nameKmMeta = const VerificationMeta('nameKm');
+  @override
+  late final GeneratedColumn<String> nameKm = GeneratedColumn<String>(
+      'name_km', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _unitMeta = const VerificationMeta('unit');
+  @override
+  late final GeneratedColumn<String> unit = GeneratedColumn<String>(
+      'unit', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [code, provinceCode, nameEn, nameKm, unit];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'geo_districts';
+  @override
+  VerificationContext validateIntegrity(Insertable<GeoDistrictRow> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('code')) {
+      context.handle(
+          _codeMeta, code.isAcceptableOrUnknown(data['code']!, _codeMeta));
+    } else if (isInserting) {
+      context.missing(_codeMeta);
+    }
+    if (data.containsKey('province_code')) {
+      context.handle(
+          _provinceCodeMeta,
+          provinceCode.isAcceptableOrUnknown(
+              data['province_code']!, _provinceCodeMeta));
+    } else if (isInserting) {
+      context.missing(_provinceCodeMeta);
+    }
+    if (data.containsKey('name_en')) {
+      context.handle(_nameEnMeta,
+          nameEn.isAcceptableOrUnknown(data['name_en']!, _nameEnMeta));
+    } else if (isInserting) {
+      context.missing(_nameEnMeta);
+    }
+    if (data.containsKey('name_km')) {
+      context.handle(_nameKmMeta,
+          nameKm.isAcceptableOrUnknown(data['name_km']!, _nameKmMeta));
+    } else if (isInserting) {
+      context.missing(_nameKmMeta);
+    }
+    if (data.containsKey('unit')) {
+      context.handle(
+          _unitMeta, unit.isAcceptableOrUnknown(data['unit']!, _unitMeta));
+    } else if (isInserting) {
+      context.missing(_unitMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {code};
+  @override
+  GeoDistrictRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return GeoDistrictRow(
+      code: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}code'])!,
+      provinceCode: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}province_code'])!,
+      nameEn: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name_en'])!,
+      nameKm: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name_km'])!,
+      unit: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}unit'])!,
+    );
+  }
+
+  @override
+  $GeoDistrictsTable createAlias(String alias) {
+    return $GeoDistrictsTable(attachedDatabase, alias);
+  }
+}
+
+class GeoDistrictRow extends DataClass implements Insertable<GeoDistrictRow> {
+  /// Four digits; the first two are always [provinceCode].
+  final String code;
+
+  /// Indexed because every read of this table is "the districts of one
+  /// province" — the cascade never asks for anything else.
+  final String provinceCode;
+  final String nameEn;
+  final String nameKm;
+
+  /// `District`, `Municipality` or `Khan`.
+  final String unit;
+  const GeoDistrictRow(
+      {required this.code,
+      required this.provinceCode,
+      required this.nameEn,
+      required this.nameKm,
+      required this.unit});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['code'] = Variable<String>(code);
+    map['province_code'] = Variable<String>(provinceCode);
+    map['name_en'] = Variable<String>(nameEn);
+    map['name_km'] = Variable<String>(nameKm);
+    map['unit'] = Variable<String>(unit);
+    return map;
+  }
+
+  GeoDistrictsCompanion toCompanion(bool nullToAbsent) {
+    return GeoDistrictsCompanion(
+      code: Value(code),
+      provinceCode: Value(provinceCode),
+      nameEn: Value(nameEn),
+      nameKm: Value(nameKm),
+      unit: Value(unit),
+    );
+  }
+
+  factory GeoDistrictRow.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return GeoDistrictRow(
+      code: serializer.fromJson<String>(json['code']),
+      provinceCode: serializer.fromJson<String>(json['provinceCode']),
+      nameEn: serializer.fromJson<String>(json['nameEn']),
+      nameKm: serializer.fromJson<String>(json['nameKm']),
+      unit: serializer.fromJson<String>(json['unit']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'code': serializer.toJson<String>(code),
+      'provinceCode': serializer.toJson<String>(provinceCode),
+      'nameEn': serializer.toJson<String>(nameEn),
+      'nameKm': serializer.toJson<String>(nameKm),
+      'unit': serializer.toJson<String>(unit),
+    };
+  }
+
+  GeoDistrictRow copyWith(
+          {String? code,
+          String? provinceCode,
+          String? nameEn,
+          String? nameKm,
+          String? unit}) =>
+      GeoDistrictRow(
+        code: code ?? this.code,
+        provinceCode: provinceCode ?? this.provinceCode,
+        nameEn: nameEn ?? this.nameEn,
+        nameKm: nameKm ?? this.nameKm,
+        unit: unit ?? this.unit,
+      );
+  GeoDistrictRow copyWithCompanion(GeoDistrictsCompanion data) {
+    return GeoDistrictRow(
+      code: data.code.present ? data.code.value : this.code,
+      provinceCode: data.provinceCode.present
+          ? data.provinceCode.value
+          : this.provinceCode,
+      nameEn: data.nameEn.present ? data.nameEn.value : this.nameEn,
+      nameKm: data.nameKm.present ? data.nameKm.value : this.nameKm,
+      unit: data.unit.present ? data.unit.value : this.unit,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GeoDistrictRow(')
+          ..write('code: $code, ')
+          ..write('provinceCode: $provinceCode, ')
+          ..write('nameEn: $nameEn, ')
+          ..write('nameKm: $nameKm, ')
+          ..write('unit: $unit')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(code, provinceCode, nameEn, nameKm, unit);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is GeoDistrictRow &&
+          other.code == this.code &&
+          other.provinceCode == this.provinceCode &&
+          other.nameEn == this.nameEn &&
+          other.nameKm == this.nameKm &&
+          other.unit == this.unit);
+}
+
+class GeoDistrictsCompanion extends UpdateCompanion<GeoDistrictRow> {
+  final Value<String> code;
+  final Value<String> provinceCode;
+  final Value<String> nameEn;
+  final Value<String> nameKm;
+  final Value<String> unit;
+  final Value<int> rowid;
+  const GeoDistrictsCompanion({
+    this.code = const Value.absent(),
+    this.provinceCode = const Value.absent(),
+    this.nameEn = const Value.absent(),
+    this.nameKm = const Value.absent(),
+    this.unit = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  GeoDistrictsCompanion.insert({
+    required String code,
+    required String provinceCode,
+    required String nameEn,
+    required String nameKm,
+    required String unit,
+    this.rowid = const Value.absent(),
+  })  : code = Value(code),
+        provinceCode = Value(provinceCode),
+        nameEn = Value(nameEn),
+        nameKm = Value(nameKm),
+        unit = Value(unit);
+  static Insertable<GeoDistrictRow> custom({
+    Expression<String>? code,
+    Expression<String>? provinceCode,
+    Expression<String>? nameEn,
+    Expression<String>? nameKm,
+    Expression<String>? unit,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (code != null) 'code': code,
+      if (provinceCode != null) 'province_code': provinceCode,
+      if (nameEn != null) 'name_en': nameEn,
+      if (nameKm != null) 'name_km': nameKm,
+      if (unit != null) 'unit': unit,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  GeoDistrictsCompanion copyWith(
+      {Value<String>? code,
+      Value<String>? provinceCode,
+      Value<String>? nameEn,
+      Value<String>? nameKm,
+      Value<String>? unit,
+      Value<int>? rowid}) {
+    return GeoDistrictsCompanion(
+      code: code ?? this.code,
+      provinceCode: provinceCode ?? this.provinceCode,
+      nameEn: nameEn ?? this.nameEn,
+      nameKm: nameKm ?? this.nameKm,
+      unit: unit ?? this.unit,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (code.present) {
+      map['code'] = Variable<String>(code.value);
+    }
+    if (provinceCode.present) {
+      map['province_code'] = Variable<String>(provinceCode.value);
+    }
+    if (nameEn.present) {
+      map['name_en'] = Variable<String>(nameEn.value);
+    }
+    if (nameKm.present) {
+      map['name_km'] = Variable<String>(nameKm.value);
+    }
+    if (unit.present) {
+      map['unit'] = Variable<String>(unit.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GeoDistrictsCompanion(')
+          ..write('code: $code, ')
+          ..write('provinceCode: $provinceCode, ')
+          ..write('nameEn: $nameEn, ')
+          ..write('nameKm: $nameKm, ')
+          ..write('unit: $unit, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $GeoCommunesTable extends GeoCommunes
+    with TableInfo<$GeoCommunesTable, GeoCommuneRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $GeoCommunesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _codeMeta = const VerificationMeta('code');
+  @override
+  late final GeneratedColumn<String> code = GeneratedColumn<String>(
+      'code', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _districtCodeMeta =
+      const VerificationMeta('districtCode');
+  @override
+  late final GeneratedColumn<String> districtCode = GeneratedColumn<String>(
+      'district_code', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _provinceCodeMeta =
+      const VerificationMeta('provinceCode');
+  @override
+  late final GeneratedColumn<String> provinceCode = GeneratedColumn<String>(
+      'province_code', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _nameEnMeta = const VerificationMeta('nameEn');
+  @override
+  late final GeneratedColumn<String> nameEn = GeneratedColumn<String>(
+      'name_en', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _nameKmMeta = const VerificationMeta('nameKm');
+  @override
+  late final GeneratedColumn<String> nameKm = GeneratedColumn<String>(
+      'name_km', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _unitMeta = const VerificationMeta('unit');
+  @override
+  late final GeneratedColumn<String> unit = GeneratedColumn<String>(
+      'unit', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _postalCodeMeta =
+      const VerificationMeta('postalCode');
+  @override
+  late final GeneratedColumn<String> postalCode = GeneratedColumn<String>(
+      'postal_code', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [code, districtCode, provinceCode, nameEn, nameKm, unit, postalCode];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'geo_communes';
+  @override
+  VerificationContext validateIntegrity(Insertable<GeoCommuneRow> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('code')) {
+      context.handle(
+          _codeMeta, code.isAcceptableOrUnknown(data['code']!, _codeMeta));
+    } else if (isInserting) {
+      context.missing(_codeMeta);
+    }
+    if (data.containsKey('district_code')) {
+      context.handle(
+          _districtCodeMeta,
+          districtCode.isAcceptableOrUnknown(
+              data['district_code']!, _districtCodeMeta));
+    } else if (isInserting) {
+      context.missing(_districtCodeMeta);
+    }
+    if (data.containsKey('province_code')) {
+      context.handle(
+          _provinceCodeMeta,
+          provinceCode.isAcceptableOrUnknown(
+              data['province_code']!, _provinceCodeMeta));
+    } else if (isInserting) {
+      context.missing(_provinceCodeMeta);
+    }
+    if (data.containsKey('name_en')) {
+      context.handle(_nameEnMeta,
+          nameEn.isAcceptableOrUnknown(data['name_en']!, _nameEnMeta));
+    } else if (isInserting) {
+      context.missing(_nameEnMeta);
+    }
+    if (data.containsKey('name_km')) {
+      context.handle(_nameKmMeta,
+          nameKm.isAcceptableOrUnknown(data['name_km']!, _nameKmMeta));
+    } else if (isInserting) {
+      context.missing(_nameKmMeta);
+    }
+    if (data.containsKey('unit')) {
+      context.handle(
+          _unitMeta, unit.isAcceptableOrUnknown(data['unit']!, _unitMeta));
+    } else if (isInserting) {
+      context.missing(_unitMeta);
+    }
+    if (data.containsKey('postal_code')) {
+      context.handle(
+          _postalCodeMeta,
+          postalCode.isAcceptableOrUnknown(
+              data['postal_code']!, _postalCodeMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {code};
+  @override
+  GeoCommuneRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return GeoCommuneRow(
+      code: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}code'])!,
+      districtCode: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}district_code'])!,
+      provinceCode: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}province_code'])!,
+      nameEn: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name_en'])!,
+      nameKm: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name_km'])!,
+      unit: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}unit'])!,
+      postalCode: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}postal_code']),
+    );
+  }
+
+  @override
+  $GeoCommunesTable createAlias(String alias) {
+    return $GeoCommunesTable(attachedDatabase, alias);
+  }
+}
+
+class GeoCommuneRow extends DataClass implements Insertable<GeoCommuneRow> {
+  /// Six digits; the first four are always [districtCode].
+  final String code;
+  final String districtCode;
+
+  /// Denormalised so a province-wide commune search is one indexed scan rather
+  /// than a join through `geo_districts`. The gazetteer is read-only between
+  /// re-seeds, so the usual argument against denormalisation — the two copies
+  /// drifting apart on update — does not apply.
+  final String provinceCode;
+  final String nameEn;
+  final String nameKm;
+
+  /// `Commune` or `Sangkat`.
+  final String unit;
+
+  /// The six-digit Cambodia Post code, or null for the 99 communes the postal
+  /// source does not cover unambiguously.
+  ///
+  /// **Nullable on purpose.** The seed builder joins the postal dataset by name
+  /// because its own numbering is not the NCDD numbering, and it drops every
+  /// ambiguous match rather than picking one. Null reaches the rep as
+  /// "postal code unavailable — enter it manually", which is recoverable; a
+  /// guessed code would be silently wrong on a delivery address.
+  final String? postalCode;
+  const GeoCommuneRow(
+      {required this.code,
+      required this.districtCode,
+      required this.provinceCode,
+      required this.nameEn,
+      required this.nameKm,
+      required this.unit,
+      this.postalCode});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['code'] = Variable<String>(code);
+    map['district_code'] = Variable<String>(districtCode);
+    map['province_code'] = Variable<String>(provinceCode);
+    map['name_en'] = Variable<String>(nameEn);
+    map['name_km'] = Variable<String>(nameKm);
+    map['unit'] = Variable<String>(unit);
+    if (!nullToAbsent || postalCode != null) {
+      map['postal_code'] = Variable<String>(postalCode);
+    }
+    return map;
+  }
+
+  GeoCommunesCompanion toCompanion(bool nullToAbsent) {
+    return GeoCommunesCompanion(
+      code: Value(code),
+      districtCode: Value(districtCode),
+      provinceCode: Value(provinceCode),
+      nameEn: Value(nameEn),
+      nameKm: Value(nameKm),
+      unit: Value(unit),
+      postalCode: postalCode == null && nullToAbsent
+          ? const Value.absent()
+          : Value(postalCode),
+    );
+  }
+
+  factory GeoCommuneRow.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return GeoCommuneRow(
+      code: serializer.fromJson<String>(json['code']),
+      districtCode: serializer.fromJson<String>(json['districtCode']),
+      provinceCode: serializer.fromJson<String>(json['provinceCode']),
+      nameEn: serializer.fromJson<String>(json['nameEn']),
+      nameKm: serializer.fromJson<String>(json['nameKm']),
+      unit: serializer.fromJson<String>(json['unit']),
+      postalCode: serializer.fromJson<String?>(json['postalCode']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'code': serializer.toJson<String>(code),
+      'districtCode': serializer.toJson<String>(districtCode),
+      'provinceCode': serializer.toJson<String>(provinceCode),
+      'nameEn': serializer.toJson<String>(nameEn),
+      'nameKm': serializer.toJson<String>(nameKm),
+      'unit': serializer.toJson<String>(unit),
+      'postalCode': serializer.toJson<String?>(postalCode),
+    };
+  }
+
+  GeoCommuneRow copyWith(
+          {String? code,
+          String? districtCode,
+          String? provinceCode,
+          String? nameEn,
+          String? nameKm,
+          String? unit,
+          Value<String?> postalCode = const Value.absent()}) =>
+      GeoCommuneRow(
+        code: code ?? this.code,
+        districtCode: districtCode ?? this.districtCode,
+        provinceCode: provinceCode ?? this.provinceCode,
+        nameEn: nameEn ?? this.nameEn,
+        nameKm: nameKm ?? this.nameKm,
+        unit: unit ?? this.unit,
+        postalCode: postalCode.present ? postalCode.value : this.postalCode,
+      );
+  GeoCommuneRow copyWithCompanion(GeoCommunesCompanion data) {
+    return GeoCommuneRow(
+      code: data.code.present ? data.code.value : this.code,
+      districtCode: data.districtCode.present
+          ? data.districtCode.value
+          : this.districtCode,
+      provinceCode: data.provinceCode.present
+          ? data.provinceCode.value
+          : this.provinceCode,
+      nameEn: data.nameEn.present ? data.nameEn.value : this.nameEn,
+      nameKm: data.nameKm.present ? data.nameKm.value : this.nameKm,
+      unit: data.unit.present ? data.unit.value : this.unit,
+      postalCode:
+          data.postalCode.present ? data.postalCode.value : this.postalCode,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GeoCommuneRow(')
+          ..write('code: $code, ')
+          ..write('districtCode: $districtCode, ')
+          ..write('provinceCode: $provinceCode, ')
+          ..write('nameEn: $nameEn, ')
+          ..write('nameKm: $nameKm, ')
+          ..write('unit: $unit, ')
+          ..write('postalCode: $postalCode')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      code, districtCode, provinceCode, nameEn, nameKm, unit, postalCode);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is GeoCommuneRow &&
+          other.code == this.code &&
+          other.districtCode == this.districtCode &&
+          other.provinceCode == this.provinceCode &&
+          other.nameEn == this.nameEn &&
+          other.nameKm == this.nameKm &&
+          other.unit == this.unit &&
+          other.postalCode == this.postalCode);
+}
+
+class GeoCommunesCompanion extends UpdateCompanion<GeoCommuneRow> {
+  final Value<String> code;
+  final Value<String> districtCode;
+  final Value<String> provinceCode;
+  final Value<String> nameEn;
+  final Value<String> nameKm;
+  final Value<String> unit;
+  final Value<String?> postalCode;
+  final Value<int> rowid;
+  const GeoCommunesCompanion({
+    this.code = const Value.absent(),
+    this.districtCode = const Value.absent(),
+    this.provinceCode = const Value.absent(),
+    this.nameEn = const Value.absent(),
+    this.nameKm = const Value.absent(),
+    this.unit = const Value.absent(),
+    this.postalCode = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  GeoCommunesCompanion.insert({
+    required String code,
+    required String districtCode,
+    required String provinceCode,
+    required String nameEn,
+    required String nameKm,
+    required String unit,
+    this.postalCode = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : code = Value(code),
+        districtCode = Value(districtCode),
+        provinceCode = Value(provinceCode),
+        nameEn = Value(nameEn),
+        nameKm = Value(nameKm),
+        unit = Value(unit);
+  static Insertable<GeoCommuneRow> custom({
+    Expression<String>? code,
+    Expression<String>? districtCode,
+    Expression<String>? provinceCode,
+    Expression<String>? nameEn,
+    Expression<String>? nameKm,
+    Expression<String>? unit,
+    Expression<String>? postalCode,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (code != null) 'code': code,
+      if (districtCode != null) 'district_code': districtCode,
+      if (provinceCode != null) 'province_code': provinceCode,
+      if (nameEn != null) 'name_en': nameEn,
+      if (nameKm != null) 'name_km': nameKm,
+      if (unit != null) 'unit': unit,
+      if (postalCode != null) 'postal_code': postalCode,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  GeoCommunesCompanion copyWith(
+      {Value<String>? code,
+      Value<String>? districtCode,
+      Value<String>? provinceCode,
+      Value<String>? nameEn,
+      Value<String>? nameKm,
+      Value<String>? unit,
+      Value<String?>? postalCode,
+      Value<int>? rowid}) {
+    return GeoCommunesCompanion(
+      code: code ?? this.code,
+      districtCode: districtCode ?? this.districtCode,
+      provinceCode: provinceCode ?? this.provinceCode,
+      nameEn: nameEn ?? this.nameEn,
+      nameKm: nameKm ?? this.nameKm,
+      unit: unit ?? this.unit,
+      postalCode: postalCode ?? this.postalCode,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (code.present) {
+      map['code'] = Variable<String>(code.value);
+    }
+    if (districtCode.present) {
+      map['district_code'] = Variable<String>(districtCode.value);
+    }
+    if (provinceCode.present) {
+      map['province_code'] = Variable<String>(provinceCode.value);
+    }
+    if (nameEn.present) {
+      map['name_en'] = Variable<String>(nameEn.value);
+    }
+    if (nameKm.present) {
+      map['name_km'] = Variable<String>(nameKm.value);
+    }
+    if (unit.present) {
+      map['unit'] = Variable<String>(unit.value);
+    }
+    if (postalCode.present) {
+      map['postal_code'] = Variable<String>(postalCode.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GeoCommunesCompanion(')
+          ..write('code: $code, ')
+          ..write('districtCode: $districtCode, ')
+          ..write('provinceCode: $provinceCode, ')
+          ..write('nameEn: $nameEn, ')
+          ..write('nameKm: $nameKm, ')
+          ..write('unit: $unit, ')
+          ..write('postalCode: $postalCode, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $GeoVillagesTable extends GeoVillages
+    with TableInfo<$GeoVillagesTable, GeoVillageRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $GeoVillagesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _codeMeta = const VerificationMeta('code');
+  @override
+  late final GeneratedColumn<String> code = GeneratedColumn<String>(
+      'code', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _communeCodeMeta =
+      const VerificationMeta('communeCode');
+  @override
+  late final GeneratedColumn<String> communeCode = GeneratedColumn<String>(
+      'commune_code', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _nameEnMeta = const VerificationMeta('nameEn');
+  @override
+  late final GeneratedColumn<String> nameEn = GeneratedColumn<String>(
+      'name_en', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _nameKmMeta = const VerificationMeta('nameKm');
+  @override
+  late final GeneratedColumn<String> nameKm = GeneratedColumn<String>(
+      'name_km', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [code, communeCode, nameEn, nameKm];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'geo_villages';
+  @override
+  VerificationContext validateIntegrity(Insertable<GeoVillageRow> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('code')) {
+      context.handle(
+          _codeMeta, code.isAcceptableOrUnknown(data['code']!, _codeMeta));
+    } else if (isInserting) {
+      context.missing(_codeMeta);
+    }
+    if (data.containsKey('commune_code')) {
+      context.handle(
+          _communeCodeMeta,
+          communeCode.isAcceptableOrUnknown(
+              data['commune_code']!, _communeCodeMeta));
+    } else if (isInserting) {
+      context.missing(_communeCodeMeta);
+    }
+    if (data.containsKey('name_en')) {
+      context.handle(_nameEnMeta,
+          nameEn.isAcceptableOrUnknown(data['name_en']!, _nameEnMeta));
+    } else if (isInserting) {
+      context.missing(_nameEnMeta);
+    }
+    if (data.containsKey('name_km')) {
+      context.handle(_nameKmMeta,
+          nameKm.isAcceptableOrUnknown(data['name_km']!, _nameKmMeta));
+    } else if (isInserting) {
+      context.missing(_nameKmMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {code};
+  @override
+  GeoVillageRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return GeoVillageRow(
+      code: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}code'])!,
+      communeCode: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}commune_code'])!,
+      nameEn: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name_en'])!,
+      nameKm: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name_km'])!,
+    );
+  }
+
+  @override
+  $GeoVillagesTable createAlias(String alias) {
+    return $GeoVillagesTable(attachedDatabase, alias);
+  }
+}
+
+class GeoVillageRow extends DataClass implements Insertable<GeoVillageRow> {
+  /// Eight digits; the first six are always [communeCode].
+  final String code;
+  final String communeCode;
+  final String nameEn;
+  final String nameKm;
+  const GeoVillageRow(
+      {required this.code,
+      required this.communeCode,
+      required this.nameEn,
+      required this.nameKm});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['code'] = Variable<String>(code);
+    map['commune_code'] = Variable<String>(communeCode);
+    map['name_en'] = Variable<String>(nameEn);
+    map['name_km'] = Variable<String>(nameKm);
+    return map;
+  }
+
+  GeoVillagesCompanion toCompanion(bool nullToAbsent) {
+    return GeoVillagesCompanion(
+      code: Value(code),
+      communeCode: Value(communeCode),
+      nameEn: Value(nameEn),
+      nameKm: Value(nameKm),
+    );
+  }
+
+  factory GeoVillageRow.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return GeoVillageRow(
+      code: serializer.fromJson<String>(json['code']),
+      communeCode: serializer.fromJson<String>(json['communeCode']),
+      nameEn: serializer.fromJson<String>(json['nameEn']),
+      nameKm: serializer.fromJson<String>(json['nameKm']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'code': serializer.toJson<String>(code),
+      'communeCode': serializer.toJson<String>(communeCode),
+      'nameEn': serializer.toJson<String>(nameEn),
+      'nameKm': serializer.toJson<String>(nameKm),
+    };
+  }
+
+  GeoVillageRow copyWith(
+          {String? code,
+          String? communeCode,
+          String? nameEn,
+          String? nameKm}) =>
+      GeoVillageRow(
+        code: code ?? this.code,
+        communeCode: communeCode ?? this.communeCode,
+        nameEn: nameEn ?? this.nameEn,
+        nameKm: nameKm ?? this.nameKm,
+      );
+  GeoVillageRow copyWithCompanion(GeoVillagesCompanion data) {
+    return GeoVillageRow(
+      code: data.code.present ? data.code.value : this.code,
+      communeCode:
+          data.communeCode.present ? data.communeCode.value : this.communeCode,
+      nameEn: data.nameEn.present ? data.nameEn.value : this.nameEn,
+      nameKm: data.nameKm.present ? data.nameKm.value : this.nameKm,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GeoVillageRow(')
+          ..write('code: $code, ')
+          ..write('communeCode: $communeCode, ')
+          ..write('nameEn: $nameEn, ')
+          ..write('nameKm: $nameKm')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(code, communeCode, nameEn, nameKm);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is GeoVillageRow &&
+          other.code == this.code &&
+          other.communeCode == this.communeCode &&
+          other.nameEn == this.nameEn &&
+          other.nameKm == this.nameKm);
+}
+
+class GeoVillagesCompanion extends UpdateCompanion<GeoVillageRow> {
+  final Value<String> code;
+  final Value<String> communeCode;
+  final Value<String> nameEn;
+  final Value<String> nameKm;
+  final Value<int> rowid;
+  const GeoVillagesCompanion({
+    this.code = const Value.absent(),
+    this.communeCode = const Value.absent(),
+    this.nameEn = const Value.absent(),
+    this.nameKm = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  GeoVillagesCompanion.insert({
+    required String code,
+    required String communeCode,
+    required String nameEn,
+    required String nameKm,
+    this.rowid = const Value.absent(),
+  })  : code = Value(code),
+        communeCode = Value(communeCode),
+        nameEn = Value(nameEn),
+        nameKm = Value(nameKm);
+  static Insertable<GeoVillageRow> custom({
+    Expression<String>? code,
+    Expression<String>? communeCode,
+    Expression<String>? nameEn,
+    Expression<String>? nameKm,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (code != null) 'code': code,
+      if (communeCode != null) 'commune_code': communeCode,
+      if (nameEn != null) 'name_en': nameEn,
+      if (nameKm != null) 'name_km': nameKm,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  GeoVillagesCompanion copyWith(
+      {Value<String>? code,
+      Value<String>? communeCode,
+      Value<String>? nameEn,
+      Value<String>? nameKm,
+      Value<int>? rowid}) {
+    return GeoVillagesCompanion(
+      code: code ?? this.code,
+      communeCode: communeCode ?? this.communeCode,
+      nameEn: nameEn ?? this.nameEn,
+      nameKm: nameKm ?? this.nameKm,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (code.present) {
+      map['code'] = Variable<String>(code.value);
+    }
+    if (communeCode.present) {
+      map['commune_code'] = Variable<String>(communeCode.value);
+    }
+    if (nameEn.present) {
+      map['name_en'] = Variable<String>(nameEn.value);
+    }
+    if (nameKm.present) {
+      map['name_km'] = Variable<String>(nameKm.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GeoVillagesCompanion(')
+          ..write('code: $code, ')
+          ..write('communeCode: $communeCode, ')
+          ..write('nameEn: $nameEn, ')
+          ..write('nameKm: $nameKm, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -21077,6 +22352,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $NotificationActionQueueTable(this);
   late final $NotificationSyncMetaTable notificationSyncMeta =
       $NotificationSyncMetaTable(this);
+  late final $GeoProvincesTable geoProvinces = $GeoProvincesTable(this);
+  late final $GeoDistrictsTable geoDistricts = $GeoDistrictsTable(this);
+  late final $GeoCommunesTable geoCommunes = $GeoCommunesTable(this);
+  late final $GeoVillagesTable geoVillages = $GeoVillagesTable(this);
   late final Index idxCustomersTerritory = Index('idx_customers_territory',
       'CREATE INDEX idx_customers_territory ON customers (territory)');
   late final Index idxCustomersRep = Index('idx_customers_rep',
@@ -21157,6 +22436,12 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final Index idxNotificationQueueNotification = Index(
       'idx_notification_queue_notification',
       'CREATE INDEX idx_notification_queue_notification ON notification_action_queue (notification_id)');
+  late final Index idxGeoDistrictsProvince = Index('idx_geo_districts_province',
+      'CREATE INDEX idx_geo_districts_province ON geo_districts (province_code)');
+  late final Index idxGeoCommunesDistrict = Index('idx_geo_communes_district',
+      'CREATE INDEX idx_geo_communes_district ON geo_communes (district_code)');
+  late final Index idxGeoVillagesCommune = Index('idx_geo_villages_commune',
+      'CREATE INDEX idx_geo_villages_commune ON geo_villages (commune_code)');
   late final AppMetadataDao appMetadataDao =
       AppMetadataDao(this as AppDatabase);
   late final CustomerDao customerDao = CustomerDao(this as AppDatabase);
@@ -21173,6 +22458,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       WorkflowStateDao(this as AppDatabase);
   late final NotificationDao notificationDao =
       NotificationDao(this as AppDatabase);
+  late final GeoDao geoDao = GeoDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -21215,6 +22501,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         notifications,
         notificationActionQueue,
         notificationSyncMeta,
+        geoProvinces,
+        geoDistricts,
+        geoCommunes,
+        geoVillages,
         idxCustomersTerritory,
         idxCustomersRep,
         idxCustomersStatus,
@@ -21250,7 +22540,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         idxNotificationsCreated,
         idxNotificationsState,
         idxNotificationsCategory,
-        idxNotificationQueueNotification
+        idxNotificationQueueNotification,
+        idxGeoDistrictsProvince,
+        idxGeoCommunesDistrict,
+        idxGeoVillagesCommune
       ];
   @override
   DriftDatabaseOptions get options =>
@@ -31014,6 +32307,701 @@ typedef $$NotificationSyncMetaTableProcessedTableManager
         ),
         NotificationSyncMetaRow,
         PrefetchHooks Function()>;
+typedef $$GeoProvincesTableCreateCompanionBuilder = GeoProvincesCompanion
+    Function({
+  required String code,
+  required String nameEn,
+  required String nameKm,
+  required String unit,
+  Value<int> rowid,
+});
+typedef $$GeoProvincesTableUpdateCompanionBuilder = GeoProvincesCompanion
+    Function({
+  Value<String> code,
+  Value<String> nameEn,
+  Value<String> nameKm,
+  Value<String> unit,
+  Value<int> rowid,
+});
+
+class $$GeoProvincesTableFilterComposer
+    extends Composer<_$AppDatabase, $GeoProvincesTable> {
+  $$GeoProvincesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get code => $composableBuilder(
+      column: $table.code, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get nameEn => $composableBuilder(
+      column: $table.nameEn, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get nameKm => $composableBuilder(
+      column: $table.nameKm, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get unit => $composableBuilder(
+      column: $table.unit, builder: (column) => ColumnFilters(column));
+}
+
+class $$GeoProvincesTableOrderingComposer
+    extends Composer<_$AppDatabase, $GeoProvincesTable> {
+  $$GeoProvincesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get code => $composableBuilder(
+      column: $table.code, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get nameEn => $composableBuilder(
+      column: $table.nameEn, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get nameKm => $composableBuilder(
+      column: $table.nameKm, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get unit => $composableBuilder(
+      column: $table.unit, builder: (column) => ColumnOrderings(column));
+}
+
+class $$GeoProvincesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $GeoProvincesTable> {
+  $$GeoProvincesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get code =>
+      $composableBuilder(column: $table.code, builder: (column) => column);
+
+  GeneratedColumn<String> get nameEn =>
+      $composableBuilder(column: $table.nameEn, builder: (column) => column);
+
+  GeneratedColumn<String> get nameKm =>
+      $composableBuilder(column: $table.nameKm, builder: (column) => column);
+
+  GeneratedColumn<String> get unit =>
+      $composableBuilder(column: $table.unit, builder: (column) => column);
+}
+
+class $$GeoProvincesTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $GeoProvincesTable,
+    GeoProvinceRow,
+    $$GeoProvincesTableFilterComposer,
+    $$GeoProvincesTableOrderingComposer,
+    $$GeoProvincesTableAnnotationComposer,
+    $$GeoProvincesTableCreateCompanionBuilder,
+    $$GeoProvincesTableUpdateCompanionBuilder,
+    (
+      GeoProvinceRow,
+      BaseReferences<_$AppDatabase, $GeoProvincesTable, GeoProvinceRow>
+    ),
+    GeoProvinceRow,
+    PrefetchHooks Function()> {
+  $$GeoProvincesTableTableManager(_$AppDatabase db, $GeoProvincesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$GeoProvincesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$GeoProvincesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$GeoProvincesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> code = const Value.absent(),
+            Value<String> nameEn = const Value.absent(),
+            Value<String> nameKm = const Value.absent(),
+            Value<String> unit = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              GeoProvincesCompanion(
+            code: code,
+            nameEn: nameEn,
+            nameKm: nameKm,
+            unit: unit,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String code,
+            required String nameEn,
+            required String nameKm,
+            required String unit,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              GeoProvincesCompanion.insert(
+            code: code,
+            nameEn: nameEn,
+            nameKm: nameKm,
+            unit: unit,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$GeoProvincesTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $GeoProvincesTable,
+    GeoProvinceRow,
+    $$GeoProvincesTableFilterComposer,
+    $$GeoProvincesTableOrderingComposer,
+    $$GeoProvincesTableAnnotationComposer,
+    $$GeoProvincesTableCreateCompanionBuilder,
+    $$GeoProvincesTableUpdateCompanionBuilder,
+    (
+      GeoProvinceRow,
+      BaseReferences<_$AppDatabase, $GeoProvincesTable, GeoProvinceRow>
+    ),
+    GeoProvinceRow,
+    PrefetchHooks Function()>;
+typedef $$GeoDistrictsTableCreateCompanionBuilder = GeoDistrictsCompanion
+    Function({
+  required String code,
+  required String provinceCode,
+  required String nameEn,
+  required String nameKm,
+  required String unit,
+  Value<int> rowid,
+});
+typedef $$GeoDistrictsTableUpdateCompanionBuilder = GeoDistrictsCompanion
+    Function({
+  Value<String> code,
+  Value<String> provinceCode,
+  Value<String> nameEn,
+  Value<String> nameKm,
+  Value<String> unit,
+  Value<int> rowid,
+});
+
+class $$GeoDistrictsTableFilterComposer
+    extends Composer<_$AppDatabase, $GeoDistrictsTable> {
+  $$GeoDistrictsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get code => $composableBuilder(
+      column: $table.code, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get provinceCode => $composableBuilder(
+      column: $table.provinceCode, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get nameEn => $composableBuilder(
+      column: $table.nameEn, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get nameKm => $composableBuilder(
+      column: $table.nameKm, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get unit => $composableBuilder(
+      column: $table.unit, builder: (column) => ColumnFilters(column));
+}
+
+class $$GeoDistrictsTableOrderingComposer
+    extends Composer<_$AppDatabase, $GeoDistrictsTable> {
+  $$GeoDistrictsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get code => $composableBuilder(
+      column: $table.code, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get provinceCode => $composableBuilder(
+      column: $table.provinceCode,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get nameEn => $composableBuilder(
+      column: $table.nameEn, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get nameKm => $composableBuilder(
+      column: $table.nameKm, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get unit => $composableBuilder(
+      column: $table.unit, builder: (column) => ColumnOrderings(column));
+}
+
+class $$GeoDistrictsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $GeoDistrictsTable> {
+  $$GeoDistrictsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get code =>
+      $composableBuilder(column: $table.code, builder: (column) => column);
+
+  GeneratedColumn<String> get provinceCode => $composableBuilder(
+      column: $table.provinceCode, builder: (column) => column);
+
+  GeneratedColumn<String> get nameEn =>
+      $composableBuilder(column: $table.nameEn, builder: (column) => column);
+
+  GeneratedColumn<String> get nameKm =>
+      $composableBuilder(column: $table.nameKm, builder: (column) => column);
+
+  GeneratedColumn<String> get unit =>
+      $composableBuilder(column: $table.unit, builder: (column) => column);
+}
+
+class $$GeoDistrictsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $GeoDistrictsTable,
+    GeoDistrictRow,
+    $$GeoDistrictsTableFilterComposer,
+    $$GeoDistrictsTableOrderingComposer,
+    $$GeoDistrictsTableAnnotationComposer,
+    $$GeoDistrictsTableCreateCompanionBuilder,
+    $$GeoDistrictsTableUpdateCompanionBuilder,
+    (
+      GeoDistrictRow,
+      BaseReferences<_$AppDatabase, $GeoDistrictsTable, GeoDistrictRow>
+    ),
+    GeoDistrictRow,
+    PrefetchHooks Function()> {
+  $$GeoDistrictsTableTableManager(_$AppDatabase db, $GeoDistrictsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$GeoDistrictsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$GeoDistrictsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$GeoDistrictsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> code = const Value.absent(),
+            Value<String> provinceCode = const Value.absent(),
+            Value<String> nameEn = const Value.absent(),
+            Value<String> nameKm = const Value.absent(),
+            Value<String> unit = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              GeoDistrictsCompanion(
+            code: code,
+            provinceCode: provinceCode,
+            nameEn: nameEn,
+            nameKm: nameKm,
+            unit: unit,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String code,
+            required String provinceCode,
+            required String nameEn,
+            required String nameKm,
+            required String unit,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              GeoDistrictsCompanion.insert(
+            code: code,
+            provinceCode: provinceCode,
+            nameEn: nameEn,
+            nameKm: nameKm,
+            unit: unit,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$GeoDistrictsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $GeoDistrictsTable,
+    GeoDistrictRow,
+    $$GeoDistrictsTableFilterComposer,
+    $$GeoDistrictsTableOrderingComposer,
+    $$GeoDistrictsTableAnnotationComposer,
+    $$GeoDistrictsTableCreateCompanionBuilder,
+    $$GeoDistrictsTableUpdateCompanionBuilder,
+    (
+      GeoDistrictRow,
+      BaseReferences<_$AppDatabase, $GeoDistrictsTable, GeoDistrictRow>
+    ),
+    GeoDistrictRow,
+    PrefetchHooks Function()>;
+typedef $$GeoCommunesTableCreateCompanionBuilder = GeoCommunesCompanion
+    Function({
+  required String code,
+  required String districtCode,
+  required String provinceCode,
+  required String nameEn,
+  required String nameKm,
+  required String unit,
+  Value<String?> postalCode,
+  Value<int> rowid,
+});
+typedef $$GeoCommunesTableUpdateCompanionBuilder = GeoCommunesCompanion
+    Function({
+  Value<String> code,
+  Value<String> districtCode,
+  Value<String> provinceCode,
+  Value<String> nameEn,
+  Value<String> nameKm,
+  Value<String> unit,
+  Value<String?> postalCode,
+  Value<int> rowid,
+});
+
+class $$GeoCommunesTableFilterComposer
+    extends Composer<_$AppDatabase, $GeoCommunesTable> {
+  $$GeoCommunesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get code => $composableBuilder(
+      column: $table.code, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get districtCode => $composableBuilder(
+      column: $table.districtCode, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get provinceCode => $composableBuilder(
+      column: $table.provinceCode, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get nameEn => $composableBuilder(
+      column: $table.nameEn, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get nameKm => $composableBuilder(
+      column: $table.nameKm, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get unit => $composableBuilder(
+      column: $table.unit, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get postalCode => $composableBuilder(
+      column: $table.postalCode, builder: (column) => ColumnFilters(column));
+}
+
+class $$GeoCommunesTableOrderingComposer
+    extends Composer<_$AppDatabase, $GeoCommunesTable> {
+  $$GeoCommunesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get code => $composableBuilder(
+      column: $table.code, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get districtCode => $composableBuilder(
+      column: $table.districtCode,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get provinceCode => $composableBuilder(
+      column: $table.provinceCode,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get nameEn => $composableBuilder(
+      column: $table.nameEn, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get nameKm => $composableBuilder(
+      column: $table.nameKm, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get unit => $composableBuilder(
+      column: $table.unit, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get postalCode => $composableBuilder(
+      column: $table.postalCode, builder: (column) => ColumnOrderings(column));
+}
+
+class $$GeoCommunesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $GeoCommunesTable> {
+  $$GeoCommunesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get code =>
+      $composableBuilder(column: $table.code, builder: (column) => column);
+
+  GeneratedColumn<String> get districtCode => $composableBuilder(
+      column: $table.districtCode, builder: (column) => column);
+
+  GeneratedColumn<String> get provinceCode => $composableBuilder(
+      column: $table.provinceCode, builder: (column) => column);
+
+  GeneratedColumn<String> get nameEn =>
+      $composableBuilder(column: $table.nameEn, builder: (column) => column);
+
+  GeneratedColumn<String> get nameKm =>
+      $composableBuilder(column: $table.nameKm, builder: (column) => column);
+
+  GeneratedColumn<String> get unit =>
+      $composableBuilder(column: $table.unit, builder: (column) => column);
+
+  GeneratedColumn<String> get postalCode => $composableBuilder(
+      column: $table.postalCode, builder: (column) => column);
+}
+
+class $$GeoCommunesTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $GeoCommunesTable,
+    GeoCommuneRow,
+    $$GeoCommunesTableFilterComposer,
+    $$GeoCommunesTableOrderingComposer,
+    $$GeoCommunesTableAnnotationComposer,
+    $$GeoCommunesTableCreateCompanionBuilder,
+    $$GeoCommunesTableUpdateCompanionBuilder,
+    (
+      GeoCommuneRow,
+      BaseReferences<_$AppDatabase, $GeoCommunesTable, GeoCommuneRow>
+    ),
+    GeoCommuneRow,
+    PrefetchHooks Function()> {
+  $$GeoCommunesTableTableManager(_$AppDatabase db, $GeoCommunesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$GeoCommunesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$GeoCommunesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$GeoCommunesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> code = const Value.absent(),
+            Value<String> districtCode = const Value.absent(),
+            Value<String> provinceCode = const Value.absent(),
+            Value<String> nameEn = const Value.absent(),
+            Value<String> nameKm = const Value.absent(),
+            Value<String> unit = const Value.absent(),
+            Value<String?> postalCode = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              GeoCommunesCompanion(
+            code: code,
+            districtCode: districtCode,
+            provinceCode: provinceCode,
+            nameEn: nameEn,
+            nameKm: nameKm,
+            unit: unit,
+            postalCode: postalCode,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String code,
+            required String districtCode,
+            required String provinceCode,
+            required String nameEn,
+            required String nameKm,
+            required String unit,
+            Value<String?> postalCode = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              GeoCommunesCompanion.insert(
+            code: code,
+            districtCode: districtCode,
+            provinceCode: provinceCode,
+            nameEn: nameEn,
+            nameKm: nameKm,
+            unit: unit,
+            postalCode: postalCode,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$GeoCommunesTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $GeoCommunesTable,
+    GeoCommuneRow,
+    $$GeoCommunesTableFilterComposer,
+    $$GeoCommunesTableOrderingComposer,
+    $$GeoCommunesTableAnnotationComposer,
+    $$GeoCommunesTableCreateCompanionBuilder,
+    $$GeoCommunesTableUpdateCompanionBuilder,
+    (
+      GeoCommuneRow,
+      BaseReferences<_$AppDatabase, $GeoCommunesTable, GeoCommuneRow>
+    ),
+    GeoCommuneRow,
+    PrefetchHooks Function()>;
+typedef $$GeoVillagesTableCreateCompanionBuilder = GeoVillagesCompanion
+    Function({
+  required String code,
+  required String communeCode,
+  required String nameEn,
+  required String nameKm,
+  Value<int> rowid,
+});
+typedef $$GeoVillagesTableUpdateCompanionBuilder = GeoVillagesCompanion
+    Function({
+  Value<String> code,
+  Value<String> communeCode,
+  Value<String> nameEn,
+  Value<String> nameKm,
+  Value<int> rowid,
+});
+
+class $$GeoVillagesTableFilterComposer
+    extends Composer<_$AppDatabase, $GeoVillagesTable> {
+  $$GeoVillagesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get code => $composableBuilder(
+      column: $table.code, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get communeCode => $composableBuilder(
+      column: $table.communeCode, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get nameEn => $composableBuilder(
+      column: $table.nameEn, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get nameKm => $composableBuilder(
+      column: $table.nameKm, builder: (column) => ColumnFilters(column));
+}
+
+class $$GeoVillagesTableOrderingComposer
+    extends Composer<_$AppDatabase, $GeoVillagesTable> {
+  $$GeoVillagesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get code => $composableBuilder(
+      column: $table.code, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get communeCode => $composableBuilder(
+      column: $table.communeCode, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get nameEn => $composableBuilder(
+      column: $table.nameEn, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get nameKm => $composableBuilder(
+      column: $table.nameKm, builder: (column) => ColumnOrderings(column));
+}
+
+class $$GeoVillagesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $GeoVillagesTable> {
+  $$GeoVillagesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get code =>
+      $composableBuilder(column: $table.code, builder: (column) => column);
+
+  GeneratedColumn<String> get communeCode => $composableBuilder(
+      column: $table.communeCode, builder: (column) => column);
+
+  GeneratedColumn<String> get nameEn =>
+      $composableBuilder(column: $table.nameEn, builder: (column) => column);
+
+  GeneratedColumn<String> get nameKm =>
+      $composableBuilder(column: $table.nameKm, builder: (column) => column);
+}
+
+class $$GeoVillagesTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $GeoVillagesTable,
+    GeoVillageRow,
+    $$GeoVillagesTableFilterComposer,
+    $$GeoVillagesTableOrderingComposer,
+    $$GeoVillagesTableAnnotationComposer,
+    $$GeoVillagesTableCreateCompanionBuilder,
+    $$GeoVillagesTableUpdateCompanionBuilder,
+    (
+      GeoVillageRow,
+      BaseReferences<_$AppDatabase, $GeoVillagesTable, GeoVillageRow>
+    ),
+    GeoVillageRow,
+    PrefetchHooks Function()> {
+  $$GeoVillagesTableTableManager(_$AppDatabase db, $GeoVillagesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$GeoVillagesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$GeoVillagesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$GeoVillagesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> code = const Value.absent(),
+            Value<String> communeCode = const Value.absent(),
+            Value<String> nameEn = const Value.absent(),
+            Value<String> nameKm = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              GeoVillagesCompanion(
+            code: code,
+            communeCode: communeCode,
+            nameEn: nameEn,
+            nameKm: nameKm,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String code,
+            required String communeCode,
+            required String nameEn,
+            required String nameKm,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              GeoVillagesCompanion.insert(
+            code: code,
+            communeCode: communeCode,
+            nameEn: nameEn,
+            nameKm: nameKm,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$GeoVillagesTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $GeoVillagesTable,
+    GeoVillageRow,
+    $$GeoVillagesTableFilterComposer,
+    $$GeoVillagesTableOrderingComposer,
+    $$GeoVillagesTableAnnotationComposer,
+    $$GeoVillagesTableCreateCompanionBuilder,
+    $$GeoVillagesTableUpdateCompanionBuilder,
+    (
+      GeoVillageRow,
+      BaseReferences<_$AppDatabase, $GeoVillagesTable, GeoVillageRow>
+    ),
+    GeoVillageRow,
+    PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -31093,4 +33081,12 @@ class $AppDatabaseManager {
           _db, _db.notificationActionQueue);
   $$NotificationSyncMetaTableTableManager get notificationSyncMeta =>
       $$NotificationSyncMetaTableTableManager(_db, _db.notificationSyncMeta);
+  $$GeoProvincesTableTableManager get geoProvinces =>
+      $$GeoProvincesTableTableManager(_db, _db.geoProvinces);
+  $$GeoDistrictsTableTableManager get geoDistricts =>
+      $$GeoDistrictsTableTableManager(_db, _db.geoDistricts);
+  $$GeoCommunesTableTableManager get geoCommunes =>
+      $$GeoCommunesTableTableManager(_db, _db.geoCommunes);
+  $$GeoVillagesTableTableManager get geoVillages =>
+      $$GeoVillagesTableTableManager(_db, _db.geoVillages);
 }

@@ -29,6 +29,7 @@ class CustomersBloc extends Bloc<CustomersEvent, CustomersState> {
     on<CustomersLoadMoreRequested>(_onLoadMore, transformer: droppable());
     on<CustomersSearchChanged>(_onSearchChanged, transformer: restartable());
     on<CustomersFilterChanged>(_onFilterChanged, transformer: restartable());
+    on<CustomersFiltersCleared>(_onFiltersCleared, transformer: restartable());
     on<CustomersFavoriteToggled>(_onFavoriteToggled, transformer: sequential());
   }
 
@@ -153,6 +154,26 @@ class CustomersBloc extends Bloc<CustomersEvent, CustomersState> {
         page: 0,
         hasMore: paged.hasMore,
         filter: event.filter,
+      )),
+      failure: (f) => emit(CustomersError(f.message)),
+    );
+  }
+
+  Future<void> _onFiltersCleared(
+      CustomersFiltersCleared event, Emitter<CustomersState> emit) async {
+    final current = state;
+    if (current is! CustomersLoaded) return;
+
+    final result = await _browseCustomers(
+      const BrowseCustomersParams(page: 0, pageSize: _pageSize),
+    );
+    result.when(
+      success: (paged) => emit(current.copyWith(
+        items: paged.items,
+        page: 0,
+        hasMore: paged.hasMore,
+        query: '',
+        filter: const CustomerFilter(),
       )),
       failure: (f) => emit(CustomersError(f.message)),
     );

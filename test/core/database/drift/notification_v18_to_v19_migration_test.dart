@@ -148,10 +148,12 @@ void main() {
     await db.close();
   });
 
-  test('the migration step is registered for v19', () {
-    // A guard on the registry itself: `kCurrentSchemaVersion` and the step map
-    // are edited in two places, and bumping one without the other silently skips
-    // the migration for every existing installation.
-    expect(kCurrentSchemaVersion, 19);
+  test('v19 is part of the shipped schema history', () {
+    // Relaxed from an exact pin to a floor when v20 was added. The exact pin
+    // belongs with the newest migration — it is a "did you add the step?"
+    // tripwire, and pinning it here as well only meant every future bump broke
+    // a notification test that has nothing to say about the new schema. The
+    // current pin lives in `geo_v19_to_v20_migration_test.dart`.
+    expect(kCurrentSchemaVersion, greaterThanOrEqualTo(19));
   });
 }

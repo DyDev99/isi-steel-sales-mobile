@@ -31,8 +31,8 @@ class SyncStatusBanner extends StatelessWidget {
             ),
           SyncFailed(:final message) => _Banner(
               color: scheme.error,
-              icon:
-                  Icon(Icons.cloud_off_rounded, size: context.rr(16), color: scheme.error),
+              icon: Icon(Icons.cloud_off_rounded,
+                  size: context.rr(16), color: scheme.error),
               text: message,
             ),
           SyncSucceeded(:final upserted, :final deleted)
@@ -78,7 +78,9 @@ class _Banner extends StatelessWidget {
           Expanded(
             child: Text(text,
                 style: TextStyle(
-                    color: color, fontSize: context.rsp(12), fontWeight: FontWeight.w600)),
+                    color: color,
+                    fontSize: context.rsp(12),
+                    fontWeight: FontWeight.w600)),
           ),
         ],
       ),

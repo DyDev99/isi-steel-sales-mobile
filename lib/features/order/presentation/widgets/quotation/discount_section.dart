@@ -84,7 +84,8 @@ class _DiscountSectionState extends State<DiscountSection> {
                 contentPadding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 hintText: 'orders.quotation_extra.enter_value'.tr,
-                hintStyle: TextStyle(fontSize: context.rsp(12), color: colors.textHint),
+                hintStyle: TextStyle(
+                    fontSize: context.rsp(12), color: colors.textHint),
                 suffixText: '%',
                 suffixStyle: TextStyle(
                   fontWeight: FontWeight.bold,

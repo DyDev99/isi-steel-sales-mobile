@@ -4,6 +4,7 @@ import 'package:isi_steel_sales_mobile/core/database/drift/daos/app_metadata_dao
 import 'package:isi_steel_sales_mobile/core/database/drift/daos/cart_dao.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/daos/catalog_dao.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/daos/customer_dao.dart';
+import 'package:isi_steel_sales_mobile/core/database/drift/daos/geo_dao.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/daos/route_dao.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/daos/route_telemetry_dao.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/daos/notification_dao.dart';
@@ -16,6 +17,7 @@ import 'package:isi_steel_sales_mobile/core/database/drift/tables/cart_items_tab
 import 'package:isi_steel_sales_mobile/core/database/drift/tables/catalog_tables.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/tables/customer_related_tables.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/tables/customers_table.dart';
+import 'package:isi_steel_sales_mobile/core/database/drift/tables/geo_tables.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/tables/notification_tables.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/tables/order_tables.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/tables/route_tables.dart';
@@ -84,6 +86,14 @@ part 'app_database.g.dart';
     Notifications,
     NotificationActionQueue,
     NotificationSyncMeta,
+    // Cambodian administrative gazetteer (v20) — bundled reference data, not a
+    // sync target. There is no geographic endpoint to sync from; the rows are
+    // imported from `assets/geo/kh_geo_seed_v1.json` on first run so a rep with
+    // no signal can still complete an address (ADR-002).
+    GeoProvinces,
+    GeoDistricts,
+    GeoCommunes,
+    GeoVillages,
   ],
   daos: [
     AppMetadataDao,
@@ -103,6 +113,10 @@ part 'app_database.g.dart';
     // change has to write the mirror and enqueue its server call in the same
     // transaction (ADR-006) — two DAOs could not share one.
     NotificationDao,
+    // One DAO for all four gazetteer levels (v20). They are read together as a
+    // single cascade and re-seeded together in one transaction, so splitting
+    // them per level would only prevent that transaction.
+    GeoDao,
   ],
 )
 class AppDatabase extends _$AppDatabase {

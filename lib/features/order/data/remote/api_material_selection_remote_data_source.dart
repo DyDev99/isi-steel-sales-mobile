@@ -91,7 +91,8 @@ class ApiMaterialSelectionRemoteDataSource
           'selection': selection,
           'page': page,
           'pageSize': pageSize,
-          if (search != null && search.trim().isNotEmpty) 'search': search.trim(),
+          if (search != null && search.trim().isNotEmpty)
+            'search': search.trim(),
         },
       );
       final envelope = ApiListEnvelope.fromBody(res.data, key: 'materials');
@@ -101,6 +102,37 @@ class ApiMaterialSelectionRemoteDataSource
         hasMore: meta?.hasNextPage ?? false,
         totalRecords: meta?.totalRecords ?? envelope.items.length,
       );
+    } on DioException catch (e) {
+      throw ApiException(ApiError.fromDio(e));
+    }
+  }
+
+  @override
+  Future<DataMap> fetchAvailability(
+    String material, {
+    String? salesOrg,
+    String? disChannel,
+    String? division,
+    String? plant,
+  }) async {
+    try {
+      final res = await _client.get<Object?>(
+        AppConstants.materialAvailabilityEndpoint(material),
+        queryParameters: {
+          // Sent only when known. SAP treats all three as mandatory and
+          // answers 200 with `INPUT_*` checks when they are absent, so an
+          // empty string here would be worse than an omission: it looks like
+          // an answer.
+          if (salesOrg != null && salesOrg.isNotEmpty) 'salesOrg': salesOrg,
+          if (disChannel != null && disChannel.isNotEmpty)
+            'disChannel': disChannel,
+          if (division != null && division.isNotEmpty) 'division': division,
+          if (plant != null && plant.isNotEmpty) 'plant': plant,
+        },
+      );
+      // This endpoint answers `{data, meta}` rather than the selection
+      // surface's `{data: [...]}`, so it reads through the object envelope.
+      return ApiEnvelope.fromBody(res.data).data;
     } on DioException catch (e) {
       throw ApiException(ApiError.fromDio(e));
     }

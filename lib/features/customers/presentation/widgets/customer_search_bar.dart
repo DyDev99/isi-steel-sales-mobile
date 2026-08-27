@@ -3,19 +3,51 @@ import 'package:isi_steel_sales_mobile/core/localization/localization_services.d
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
-class CustomerSearchBar extends StatelessWidget {
+class CustomerSearchBar extends StatefulWidget {
   const CustomerSearchBar({
     super.key,
+    required this.query,
     required this.onSearchChanged,
     required this.onFilterTap,
     required this.hasActiveFilters,
     required this.onAddTap, // 1. Added the required callback parameter
   });
 
+  final String query;
   final ValueChanged<String> onSearchChanged;
   final VoidCallback onFilterTap;
   final bool hasActiveFilters;
   final VoidCallback onAddTap; // 2. Declared the parameter
+
+  @override
+  State<CustomerSearchBar> createState() => _CustomerSearchBarState();
+}
+
+class _CustomerSearchBarState extends State<CustomerSearchBar> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.query);
+  }
+
+  @override
+  void didUpdateWidget(covariant CustomerSearchBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.query != oldWidget.query && _controller.text != widget.query) {
+      _controller.value = TextEditingValue(
+        text: widget.query,
+        selection: TextSelection.collapsed(offset: widget.query.length),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,13 +67,16 @@ class CustomerSearchBar extends StatelessWidget {
             child: Row(
               children: [
                 Icon(Icons.search_rounded,
-                    color: colors.textSecondary, size: context.rr(20)), //[cite: 3]
+                    color: colors.textSecondary,
+                    size: context.rr(20)), //[cite: 3]
                 SizedBox(width: context.rw(8)),
                 Expanded(
                   child: TextField(
-                    onChanged: onSearchChanged, //[cite: 3]
+                    controller: _controller,
+                    onChanged: widget.onSearchChanged, //[cite: 3]
                     style: TextStyle(
-                        color: colors.textPrimary, fontSize: context.rsp(13.5)), //[cite: 3]
+                        color: colors.textPrimary,
+                        fontSize: context.rsp(13.5)), //[cite: 3]
                     decoration: InputDecoration(
                       isDense: true,
                       border: InputBorder.none,
@@ -58,24 +93,24 @@ class CustomerSearchBar extends StatelessWidget {
         ),
         SizedBox(width: context.rw(10)),
         InkWell(
-          onTap: onFilterTap, //[cite: 3]
+          onTap: widget.onFilterTap, //[cite: 3]
           borderRadius: BorderRadius.circular(14),
           child: Container(
             width: 44,
             height: context.rh(44),
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: hasActiveFilters
+              color: widget.hasActiveFilters
                   ? scheme.primary.withValues(alpha: 0.18) //[cite: 3]
                   : colors.card, //[cite: 3]
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                  color: hasActiveFilters
+                  color: widget.hasActiveFilters
                       ? scheme.primary
                       : colors.border), //[cite: 3]
             ),
             child: Icon(Icons.tune_rounded,
-                color: hasActiveFilters
+                color: widget.hasActiveFilters
                     ? scheme.primary
                     : colors.textPrimary, //[cite: 3]
                 size: context.rr(20)),
@@ -85,7 +120,7 @@ class CustomerSearchBar extends StatelessWidget {
 
         // 3. New Add Customer Button on the right of filter
         InkWell(
-          onTap: onAddTap,
+          onTap: widget.onAddTap,
           borderRadius: BorderRadius.circular(14),
           child: Container(
             width: 44,

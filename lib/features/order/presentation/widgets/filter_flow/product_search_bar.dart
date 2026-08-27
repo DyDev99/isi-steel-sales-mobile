@@ -55,20 +55,22 @@ class ProductSearchBar extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Icon(Icons.search_rounded, color: colors.iconMuted, size: context.rr(20)),
+                Icon(Icons.search_rounded,
+                    color: colors.iconMuted, size: context.rr(20)),
                 SizedBox(width: context.rw(8)),
                 Expanded(
                   child: TextField(
                     controller: controller,
                     onChanged: onChanged,
                     textInputAction: TextInputAction.search,
-                    style: TextStyle(color: colors.textPrimary, fontSize: context.rsp(13.5)),
+                    style: TextStyle(
+                        color: colors.textPrimary, fontSize: context.rsp(13.5)),
                     decoration: InputDecoration(
                       isDense: true,
                       border: InputBorder.none,
                       hintText: 'orders.guided_filter.search_hint'.tr,
-                      hintStyle:
-                          TextStyle(color: colors.textHint, fontSize: context.rsp(13)),
+                      hintStyle: TextStyle(
+                          color: colors.textHint, fontSize: context.rsp(13)),
                     ),
                   ),
                 ),
@@ -117,7 +119,8 @@ class _IconAction extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         child: Padding(
           padding: const EdgeInsets.only(left: 8),
-          child: Icon(icon, color: context.appColors.iconMuted, size: context.rr(19)),
+          child: Icon(icon,
+              color: context.appColors.iconMuted, size: context.rr(19)),
         ),
       );
 }

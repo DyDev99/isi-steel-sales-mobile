@@ -78,7 +78,8 @@ class CatalogGridSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
-      padding: EdgeInsets.fromLTRB(context.rw(16), context.rh(8), context.rw(16), context.rh(16)),
+      padding: EdgeInsets.fromLTRB(
+          context.rw(16), context.rh(8), context.rw(16), context.rh(16)),
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: itemCount,

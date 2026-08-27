@@ -11,7 +11,8 @@ import 'package:isi_steel_sales_mobile/features/order/domain/entities/sales_orde
 /// rep cannot separate, and this badge is the only thing on the row that says
 /// whether the order is committed.
 class SalesOrderStatusChip extends StatelessWidget {
-  const SalesOrderStatusChip({super.key, required this.status, this.compact = false});
+  const SalesOrderStatusChip(
+      {super.key, required this.status, this.compact = false});
 
   final SalesOrderStatus status;
   final bool compact;

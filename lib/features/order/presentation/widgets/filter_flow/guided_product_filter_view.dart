@@ -560,6 +560,9 @@ class _ProductStage extends StatelessWidget {
               onCustomize: onCustomize,
               onTap: onProductTap,
               specLineBuilder: _specLine,
+              // Sparse by design: only the material the rep named at the SKU
+              // step has been checked, so only its card carries a badge.
+              availabilityFor: (product) => state.availabilityFor(product.code),
             ),
           ),
           if (state.hasMore)

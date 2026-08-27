@@ -140,11 +140,13 @@ class QuotationDetailScreen extends StatelessWidget {
           ),
           SizedBox(height: context.rh(4)),
           Text(quotation.shopName ?? quotation.leadDisplayName ?? '',
-              style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(13))),
+              style: TextStyle(
+                  color: colors.textSecondary, fontSize: context.rsp(13))),
           SizedBox(height: context.rh(4)),
           Text(
             '${'orders.quotation.valid_until'.tr}: ${_formatDate(quotation.validUntil)}',
-            style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(12)),
+            style: TextStyle(
+                color: colors.textSecondary, fontSize: context.rsp(12)),
           ),
           SizedBox(height: context.rh(20)),
           Container(
@@ -232,7 +234,8 @@ class _LineRow extends StatelessWidget {
                     fontWeight: FontWeight.w700)),
           ),
           Text('x${qty.toStringAsFixed(0)}',
-              style: TextStyle(color: colors.textSecondary, fontSize: context.rsp(12))),
+              style: TextStyle(
+                  color: colors.textSecondary, fontSize: context.rsp(12))),
           SizedBox(width: context.rw(12)),
           Text('\$${total.toStringAsFixed(2)}',
               style: TextStyle(

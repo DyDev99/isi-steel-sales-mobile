@@ -18,7 +18,8 @@ class PromotionBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.local_offer_rounded, size: context.rr(11), color: scheme.error),
+          Icon(Icons.local_offer_rounded,
+              size: context.rr(11), color: scheme.error),
           SizedBox(width: context.rw(3)),
           Text(label,
               style: TextStyle(

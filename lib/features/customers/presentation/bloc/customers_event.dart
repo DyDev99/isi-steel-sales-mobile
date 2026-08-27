@@ -33,6 +33,11 @@ final class CustomersFilterChanged extends CustomersEvent {
   List<Object?> get props => [filter];
 }
 
+/// Restores the directory's unfiltered first page from the empty state.
+final class CustomersFiltersCleared extends CustomersEvent {
+  const CustomersFiltersCleared();
+}
+
 final class CustomersFavoriteToggled extends CustomersEvent {
   const CustomersFavoriteToggled(this.customerId);
   final String customerId;

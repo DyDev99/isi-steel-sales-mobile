@@ -147,7 +147,8 @@ class _TerritoryTile extends StatelessWidget {
                               .tr
                               .replaceAll('{count}', '$shopCount'),
                           style: TextStyle(
-                              color: colors.textSecondary, fontSize: context.rsp(12))),
+                              color: colors.textSecondary,
+                              fontSize: context.rsp(12))),
                     ],
                   ),
                 ),

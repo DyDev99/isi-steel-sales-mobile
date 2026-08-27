@@ -12,8 +12,7 @@ import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/cust
 /// Drives the customer directory's sync banner: runs the initial pull once
 /// (first launch, detected via an empty `customer_sync_meta`), and a delta
 /// pull on-demand (pull-to-refresh) — same shape as `order`'s `SyncCubit`.
-class CustomerSyncCubit extends Cubit<CustomerSyncState>
-    with ProtectedFeature {
+class CustomerSyncCubit extends Cubit<CustomerSyncState> with ProtectedFeature {
   CustomerSyncCubit({
     required RunCustomerInitialSync runInitialSync,
     required RunCustomerDeltaSync runDeltaSync,
@@ -53,8 +52,7 @@ class CustomerSyncCubit extends Cubit<CustomerSyncState>
     // was logged" is indistinguishable from a sync that never ran, and that
     // ambiguity is what sends someone reading this code instead of the log.
     if (!canLoad) {
-      _logger.info('customers.sync.skipped',
-          fields: {'reason': blockedReason});
+      _logger.info('customers.sync.skipped', fields: {'reason': blockedReason});
       return;
     }
 

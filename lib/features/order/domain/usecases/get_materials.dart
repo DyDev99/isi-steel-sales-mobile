@@ -4,6 +4,7 @@ import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/filter/filter_selection.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/paged_result.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/entities/product_filter.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/repositories/product_filter_repository.dart';
 
 class GetMaterialsParams extends Equatable {
@@ -13,6 +14,9 @@ class GetMaterialsParams extends Equatable {
     required this.page,
     required this.pageSize,
     this.search = '',
+    this.sortBy = ProductSortBy.relevance,
+    this.availableOnly = false,
+    this.warehouseCode,
   });
 
   final String? categoryCode;
@@ -23,6 +27,12 @@ class GetMaterialsParams extends Equatable {
   final int pageSize;
   final String search;
 
+  /// Result-set preferences from the Filter sheet. They re-run the query but
+  /// never invalidate an answered step.
+  final ProductSortBy sortBy;
+  final bool availableOnly;
+  final String? warehouseCode;
+
   /// Whether this request narrows anything at all.
   ///
   /// Mirrors the server's rule exactly: one answered step, or two characters of
@@ -32,7 +42,16 @@ class GetMaterialsParams extends Equatable {
   bool get isBounded => selection.hasAnswer || search.trim().length >= 2;
 
   @override
-  List<Object?> get props => [categoryCode, selection, page, pageSize, search];
+  List<Object?> get props => [
+        categoryCode,
+        selection,
+        page,
+        pageSize,
+        search,
+        sortBy,
+        availableOnly,
+        warehouseCode,
+      ];
 }
 
 /// The terminal read of the guided flow — the only call in the feature that
@@ -52,5 +71,8 @@ class GetMaterials extends UseCase<PagedResult<Product>, GetMaterialsParams> {
         page: params.page,
         pageSize: params.pageSize,
         search: params.search,
+        sortBy: params.sortBy,
+        availableOnly: params.availableOnly,
+        warehouseCode: params.warehouseCode,
       );
 }

@@ -5,8 +5,7 @@ import 'package:isi_steel_sales_mobile/features/order/domain/repositories/produc
 
 /// Step 0 of the guided flow: the only thing loaded when the configurator
 /// opens.
-class FetchFilterCategories
-    extends UseCase<List<MaterialCategory>, NoParams> {
+class FetchFilterCategories extends UseCase<List<MaterialCategory>, NoParams> {
   const FetchFilterCategories(this._repository);
   final ProductFilterRepository _repository;
 

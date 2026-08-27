@@ -82,7 +82,8 @@ class ShopTile extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                                color: colors.textSecondary, fontSize: context.rsp(12))),
+                                color: colors.textSecondary,
+                                fontSize: context.rsp(12))),
                         SizedBox(height: context.rh(6)),
                         Row(
                           children: [

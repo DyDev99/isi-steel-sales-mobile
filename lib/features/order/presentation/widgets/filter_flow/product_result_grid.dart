@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/entities/material_availability.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/filter_flow_transition.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/product_result_card.dart';
@@ -22,6 +23,7 @@ class ProductResultGrid extends StatelessWidget {
     this.onCustomize,
     this.specLineBuilder,
     this.lineTotalBuilder,
+    this.availabilityFor,
   });
 
   final List<Product> products;
@@ -40,6 +42,13 @@ class ProductResultGrid extends StatelessWidget {
 
   final String Function(Product product)? specLineBuilder;
   final String Function(Product product, int quantity)? lineTotalBuilder;
+
+  /// SAP's sellability verdict for a product, or null when it was never asked.
+  ///
+  /// A builder rather than a map so this grid stays reusable outside the guided
+  /// flow: a screen with no availability data simply does not pass one, and no
+  /// card renders a badge.
+  final MaterialAvailability? Function(Product product)? availabilityFor;
 
   @override
   Widget build(BuildContext context) {
@@ -65,6 +74,7 @@ class ProductResultGrid extends StatelessWidget {
                   onTap: onTap == null ? null : () => onTap!(product),
                   onCustomize:
                       onCustomize == null ? null : () => onCustomize!(product),
+                  availability: availabilityFor?.call(product),
                 );
               }),
             ),

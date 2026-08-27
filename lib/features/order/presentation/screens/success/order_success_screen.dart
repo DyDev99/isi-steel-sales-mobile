@@ -55,7 +55,8 @@ class OrderSuccessScreen extends StatelessWidget {
                               salesOrder.leadDisplayName ??
                               '',
                           style: TextStyle(
-                              color: colors.textSecondary, fontSize: context.rsp(13))),
+                              color: colors.textSecondary,
+                              fontSize: context.rsp(13))),
                     ),
                     SizedBox(height: context.rh(24)),
                     Container(
@@ -139,8 +140,9 @@ class _Row extends StatelessWidget {
         children: [
           Expanded(
               child: Text(label,
-                  style:
-                      TextStyle(color: colors.textSecondary, fontSize: context.rsp(12.5)))),
+                  style: TextStyle(
+                      color: colors.textSecondary,
+                      fontSize: context.rsp(12.5)))),
           Text(value,
               style: TextStyle(
                 color: emphasize ? colors.accentPurple : colors.textPrimary,

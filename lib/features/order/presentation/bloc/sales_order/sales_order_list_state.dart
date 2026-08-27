@@ -53,8 +53,7 @@ final class SalesOrderListLoaded extends SalesOrderListState {
   /// Scoped to the filter on purpose: a "confirmed" total that silently
   /// included pending orders would overstate committed revenue, which is the
   /// one number on this screen nobody should have to double-check.
-  double get visibleTotal =>
-      visibleOrders.fold(0.0, (sum, o) => sum + o.total);
+  double get visibleTotal => visibleOrders.fold(0.0, (sum, o) => sum + o.total);
 
   bool get isEmpty => orders.isEmpty;
 

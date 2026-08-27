@@ -68,8 +68,9 @@ class CustomerModel extends Customer {
         latitude: (json['latitude'] as num).toDouble(),
         longitude: (json['longitude'] as num).toDouble(),
         creditLimit: (json['creditLimit'] as num).toDouble(),
-        status: CustomerStatus.values.byNameOr(json['status'] as String?,
-            CustomerStatus.draft, context: 'customer.json.status'),
+        status: CustomerStatus.values.byNameOr(
+            json['status'] as String?, CustomerStatus.draft,
+            context: 'customer.json.status'),
         assignedRepId: json['assignedRepId'] as String,
         assignedRepName: json['assignedRepName'] as String,
         updatedAt: DateTime.parse(json['updatedAt'] as String),
@@ -127,8 +128,9 @@ class CustomerModel extends Customer {
         latitude: (row['latitude'] as num).toDouble(),
         longitude: (row['longitude'] as num).toDouble(),
         creditLimit: (row['credit_limit'] as num).toDouble(),
-        status: CustomerStatus.values.byNameOr(row['status'] as String?,
-            CustomerStatus.draft, context: 'customer.row.status'),
+        status: CustomerStatus.values.byNameOr(
+            row['status'] as String?, CustomerStatus.draft,
+            context: 'customer.row.status'),
         assignedRepId: row['assigned_rep_id'] as String,
         assignedRepName: row['assigned_rep_name'] as String,
         updatedAt: DateTime.parse(row['updated_at'] as String),

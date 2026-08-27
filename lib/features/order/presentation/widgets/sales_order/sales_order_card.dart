@@ -10,7 +10,7 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/sales
 /// One row in the sales-order list: who it is for, when, how much, and whether
 /// it is committed[cite: 5].
 ///
-/// Designed with a modern, relaxed aesthetic using soft shadows, clear visual 
+/// Designed with a modern, relaxed aesthetic using soft shadows, clear visual
 /// hierarchy, and distinct metadata chips for easy scanning.
 class SalesOrderCard extends StatelessWidget {
   const SalesOrderCard({super.key, required this.order, required this.onTap});
@@ -41,7 +41,9 @@ class SalesOrderCard extends StatelessWidget {
       button: true,
       label: '${order.id}, $party, $total',
       child: Padding(
-        padding: EdgeInsets.only(bottom: context.rh(14)), // Slightly larger padding for a relaxed layout
+        padding: EdgeInsets.only(
+            bottom:
+                context.rh(14)), // Slightly larger padding for a relaxed layout
         child: Container(
           decoration: BoxDecoration(
             color: colors.card,
@@ -66,7 +68,8 @@ class SalesOrderCard extends StatelessWidget {
               onTap: onTap,
               borderRadius: BorderRadius.circular(context.rr(20)),
               child: Padding(
-                padding: EdgeInsets.all(context.rr(16)), // Generous inner padding
+                padding:
+                    EdgeInsets.all(context.rr(16)), // Generous inner padding
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -88,12 +91,13 @@ class SalesOrderCard extends StatelessWidget {
                           ),
                         ),
                         SizedBox(width: context.rw(8)),
-                        SalesOrderStatusChip(status: order.status, compact: true),
+                        SalesOrderStatusChip(
+                            status: order.status, compact: true),
                       ],
                     ),
-                    
+
                     SizedBox(height: context.rh(14)),
-                    
+
                     // --- BODY: Visual Aid & Customer Name ---
                     Row(
                       children: [
@@ -125,9 +129,9 @@ class SalesOrderCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    
+
                     SizedBox(height: context.rh(14)),
-                    
+
                     // --- METADATA: Soft Pill Chips ---
                     // Wraps instead of overflowing: at 200% font scale
                     // (FS-A11Y-2) the date and total cannot share one line[cite: 5].
@@ -147,11 +151,13 @@ class SalesOrderCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    
+
                     SizedBox(height: context.rh(16)),
-                    Divider(color: colors.divider.withValues(alpha: 0.5), height: 1),
+                    Divider(
+                        color: colors.divider.withValues(alpha: 0.5),
+                        height: 1),
                     SizedBox(height: context.rh(12)),
-                    
+
                     // --- FOOTER: Total Amount ---
                     Row(
                       children: [
@@ -168,7 +174,8 @@ class SalesOrderCard extends StatelessWidget {
                         Text(
                           total,
                           style: TextStyle(
-                            color: colors.accentPurple, // Maintaining your accent color[cite: 5]
+                            color: colors
+                                .accentPurple, // Maintaining your accent color[cite: 5]
                             fontSize: context.rsp(17),
                             fontWeight: FontWeight.w900,
                             letterSpacing: -0.5,
@@ -191,21 +198,22 @@ class SalesOrderCard extends StatelessWidget {
 /// grouping and a modern look.
 class _MetaChip extends StatelessWidget {
   const _MetaChip({required this.icon, required this.text});
-  
+
   final IconData icon;
   final String text;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    
+
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: context.rw(10),
         vertical: context.rh(6),
       ),
       decoration: BoxDecoration(
-        color: colors.surfaceSoft, // Use a soft gray/background color from your theme
+        color: colors
+            .surfaceSoft, // Use a soft gray/background color from your theme
         borderRadius: BorderRadius.circular(context.rr(8)),
       ),
       child: Row(
@@ -218,7 +226,7 @@ class _MetaChip extends StatelessWidget {
               text,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: colors.textSecondary, 
+                color: colors.textSecondary,
                 fontSize: context.rsp(11.5),
                 fontWeight: FontWeight.w600,
               ),

@@ -7,6 +7,8 @@ import 'package:isi_steel_sales_mobile/core/usecase/usecase.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/filter/category_filter_schema.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/filter/filter_selection.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/filter/filter_step.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/entities/material_availability.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/usecases/check_material_availability.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_materials.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/fetch_filter_categories.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_category_filter_schema.dart';
@@ -47,11 +49,13 @@ class ProductFilterFlowBloc
     required GetFilterStepOptions getFilterStepOptions,
     required GetStockLocationOptions getStockLocationOptions,
     required GetMaterials getMaterials,
+    required CheckMaterialAvailability checkMaterialAvailability,
   })  : _fetchFilterCategories = fetchFilterCategories,
         _getCategoryFilterSchema = getCategoryFilterSchema,
         _getFilterStepOptions = getFilterStepOptions,
         _getStockLocationOptions = getStockLocationOptions,
         _getMaterials = getMaterials,
+        _checkMaterialAvailability = checkMaterialAvailability,
         super(const ProductFilterFlowState()) {
     // Flow mutations run sequentially: each one leaves the selection in a state
     // the next one reads, so interleaving them would resolve options against a
@@ -74,6 +78,10 @@ class ProductFilterFlowBloc
     // overwrite the newer selection's results.
     on<FilterStockLocationChanged>(_onStockLocationChanged,
         transformer: sequential());
+    // Droppable: a second check for a material already in flight adds nothing,
+    // and this is the one call in the feature that reaches SAP.
+    on<FilterMaterialAvailabilityRequested>(_onAvailabilityRequested,
+        transformer: droppable());
   }
 
   final FetchFilterCategories _fetchFilterCategories;
@@ -81,6 +89,7 @@ class ProductFilterFlowBloc
   final GetFilterStepOptions _getFilterStepOptions;
   final GetStockLocationOptions _getStockLocationOptions;
   final GetMaterials _getMaterials;
+  final CheckMaterialAvailability _checkMaterialAvailability;
 
   // ── Entry ───────────────────────────────────────────────────────────
 
@@ -227,6 +236,7 @@ class ProductFilterFlowBloc
         stockLocations: const [],
         stockLocationCode: () => null,
         stockLocationsLoading: false,
+        availability: const {},
       );
 
   Future<void> _onPreferencesChanged(FilterPreferencesChanged event,
@@ -411,6 +421,53 @@ class ProductFilterFlowBloc
     ));
   }
 
+  Future<void> _onAvailabilityRequested(
+    FilterMaterialAvailabilityRequested event,
+    Emitter<ProductFilterFlowState> emit,
+  ) =>
+      _resolveAvailability(emit, event.material);
+
+  /// Asks SAP whether [material] may be sold, and records the verdict.
+  ///
+  /// Never re-asks for a material already answered: the verdict is about a
+  /// material in a sales area, neither of which changes while the rep is on
+  /// this screen, and the call is the most expensive one in the feature.
+  ///
+  /// A failure is recorded as *nothing*, not as a refusal. Losing the
+  /// middleware must not read on screen as SAP declining the sale — "we could
+  /// not ask" and "the answer is no" are different, and only the second should
+  /// stop a rep.
+  Future<void> _resolveAvailability(
+    Emitter<ProductFilterFlowState> emit,
+    String material,
+  ) async {
+    final trimmed = material.trim();
+    if (trimmed.isEmpty) return;
+    final existing = state.availabilityFor(trimmed);
+    if (existing != null && existing.status != MaterialStockStatus.checking) {
+      return;
+    }
+
+    emit(state.copyWith(availability: {
+      ...state.availability,
+      trimmed: MaterialAvailability.checking(trimmed),
+    }));
+
+    final result =
+        await _checkMaterialAvailability(MaterialAvailabilityParams(trimmed));
+
+    result.when(
+      success: (verdict) => emit(state.copyWith(availability: {
+        ...state.availability,
+        trimmed: verdict,
+      })),
+      failure: (_) {
+        final pending = {...state.availability}..remove(trimmed);
+        emit(state.copyWith(availability: pending));
+      },
+    );
+  }
+
   Future<void> _onLoadMore(FilterProductsLoadMoreRequested event,
       Emitter<ProductFilterFlowState> emit) async {
     if (!state.hasMore ||
@@ -442,6 +499,9 @@ class ProductFilterFlowBloc
       page: page,
       pageSize: _pageSize,
       search: state.query,
+      sortBy: state.sortBy,
+      availableOnly: state.availableOnly,
+      warehouseCode: state.stockLocationCode,
     ));
 
     result.when(
@@ -464,6 +524,34 @@ class ProductFilterFlowBloc
     // has no plant column) and the chip row simply does not render.
     if (isFirstPage && state.productStatus == ProductListStatus.loaded) {
       await _loadStockLocations(emit);
+      await _resolveAvailabilityForResults(emit);
+    }
+  }
+
+  /// How many matched materials still count as "the rep committed to this".
+  ///
+  /// Answering the SKU step lands on one row; a hierarchy that stops just short
+  /// of the leaf can land on two or three. Above that the rep is still choosing,
+  /// and a live SAP hop per card would be both slow and unasked-for.
+  static const _availabilityAutoCheckLimit = 3;
+
+  /// Asks SAP about the materials actually on screen.
+  ///
+  /// Driven off the returned rows rather than off the SKU step's answer, and
+  /// that is the whole point: the facet option's value and the material row's
+  /// number are produced by two different queries, so keying the verdict by the
+  /// first and reading it back by the second is a mismatch waiting to happen.
+  /// Resolving from `product.code` means the key that goes in is the key the
+  /// card looks up.
+  Future<void> _resolveAvailabilityForResults(
+      Emitter<ProductFilterFlowState> emit) async {
+    final rows = state.products;
+    if (rows.isEmpty || rows.length > _availabilityAutoCheckLimit) return;
+    // Sequential, not concurrent: this is the ERP, and three parallel round
+    // trips to save a few hundred milliseconds is not a trade worth making on
+    // a handset.
+    for (final product in rows) {
+      await _resolveAvailability(emit, product.code);
     }
   }
 }

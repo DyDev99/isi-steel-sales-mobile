@@ -85,8 +85,9 @@ class ProductModel extends Product {
         businessUnit: json['businessUnit'] as String,
         imageUrl: json['imageUrl'] as String,
         isMto: json['isMto'] as bool,
-        status: ProductStatus.values.byNameOr(json['status'] as String?,
-            ProductStatus.values.first, context: 'product.json.status'),
+        status: ProductStatus.values.byNameOr(
+            json['status'] as String?, ProductStatus.values.first,
+            context: 'product.json.status'),
         updatedAt: DateTime.parse(json['updatedAt'] as String),
         deleted: json['deleted'] as bool? ?? false,
         pricing: _pricingFromJson(json['pricing'] as DataMap),
@@ -108,8 +109,9 @@ class ProductModel extends Product {
         promotionPrice: (json['promotionPrice'] as num?)?.toDouble(),
         promotionType: json['promotionType'] == null
             ? null
-            : PromotionType.values.byNameOr(json['promotionType'] as String?,
-                PromotionType.values.first, context: 'product.json.promo'),
+            : PromotionType.values.byNameOr(
+                json['promotionType'] as String?, PromotionType.values.first,
+                context: 'product.json.promo'),
         promotionLabel: json['promotionLabel'] as String?,
       );
 
@@ -144,9 +146,9 @@ class ProductModel extends Product {
         businessUnit: row['business_unit'] as String,
         imageUrl: row['image_url'] as String,
         isMto: (row['is_mto'] as int) == 1,
-        status:
-            ProductStatus.values.byNameOr(row['status'] as String?,
-                ProductStatus.values.first, context: 'product.row.status'),
+        status: ProductStatus.values.byNameOr(
+            row['status'] as String?, ProductStatus.values.first,
+            context: 'product.row.status'),
         updatedAt: DateTime.parse(row['updated_at'] as String),
         deleted: (row['deleted'] as int? ?? 0) == 1,
         pricing: ProductPricing(
@@ -161,8 +163,9 @@ class ProductModel extends Product {
           promotionPrice: (row['promotion_price'] as num?)?.toDouble(),
           promotionType: row['promotion_type'] == null
               ? null
-              : PromotionType.values.byNameOr(row['promotion_type'] as String?,
-                  PromotionType.values.first, context: 'product.row.promo'),
+              : PromotionType.values.byNameOr(
+                  row['promotion_type'] as String?, PromotionType.values.first,
+                  context: 'product.row.promo'),
           promotionLabel: row['promotion_label'] as String?,
         ),
         stockQuantity: (row['stock_quantity'] as num?)?.toDouble() ?? 0,

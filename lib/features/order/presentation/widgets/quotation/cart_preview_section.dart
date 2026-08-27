@@ -148,7 +148,8 @@ class _CartPreviewRow extends StatelessWidget {
                     SizedBox(width: context.rw(6)),
                     Text('✏️',
                         style: TextStyle(
-                            fontSize: context.rsp(11), color: colors.accentPurple)),
+                            fontSize: context.rsp(11),
+                            color: colors.accentPurple)),
                   ],
                 ],
               ),

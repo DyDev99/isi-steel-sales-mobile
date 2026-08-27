@@ -118,12 +118,42 @@ class FirebasePushMessagingService implements PushMessagingService {
       // which happens only after the permission is granted. Null is therefore a
       // normal answer before the explainer has been accepted, not an error.
       return await messaging.getToken();
+    } on FirebaseException catch (error) {
+      // The **code**, not the runtime type. `FirebaseException` on its own says
+      // nothing — every failure here reports it — and an error code is
+      // explicitly allowed in logs by `docs/skills/SECURITY.md` §10. Logging the
+      // type instead sent a real debugging session off to check iOS Settings for
+      // a permission that was already granted.
+      _logger.warning('push.token_unavailable', fields: {
+        'code': error.code,
+        'reason': _tokenFailureReason(error.code),
+      });
+      return null;
     } catch (error) {
       _logger.warning('push.token_unavailable',
           fields: {'error': error.runtimeType.toString()});
       return null;
     }
   }
+
+  /// Plain-language cause for a `getToken()` failure code.
+  ///
+  /// `apns-token-not-set` is by far the most common and the most misleading:
+  /// FCM cannot mint a registration token until APNs has issued a device token
+  /// first, and **the iOS Simulator never issues one**. The notification
+  /// permission is unrelated — it can be fully granted and this still fails —
+  /// so naming the real cause here saves the next person from auditing
+  /// Settings, entitlements and the provisioning profile in turn.
+  String _tokenFailureReason(String code) => switch (code) {
+        'apns-token-not-set' =>
+          'No APNs device token. Expected on the iOS Simulator, which never '
+              'issues one — use a physical device. On a real device this also '
+              'appears when getToken() runs before APNs has replied.',
+        'unregistered' ||
+        'token-unsubscribed' =>
+          'The registration was revoked. It is re-minted on the next launch.',
+        _ => 'See the Firebase Messaging error code.',
+      };
 
   @override
   Stream<String> get tokenRefreshes => _tokens.stream;

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 enum ShipmentMethod { pickup, delivery }
+
 enum PickupLocation { factory, branch }
+
 enum DeliveryAddressOption { defaultAddress, newAddress }
 
 class ShipmentSelectionWidget extends StatelessWidget {
@@ -29,7 +31,7 @@ class ShipmentSelectionWidget extends StatelessWidget {
   final PickupLocation? pickupLocation;
   final DeliveryAddressOption? deliveryOption;
   final bool isCod;
-  
+
   final ValueChanged<ShipmentMethod> onMethodChanged;
   final ValueChanged<PickupLocation> onPickupLocationChanged;
   final ValueChanged<DeliveryAddressOption> onDeliveryOptionChanged;
@@ -69,7 +71,8 @@ class ShipmentSelectionWidget extends StatelessWidget {
 
     final headerTextStyle = theme.textTheme.titleMedium?.copyWith(
       fontWeight: FontWeight.bold,
-      fontSize: isTablet ? (theme.textTheme.titleMedium?.fontSize ?? 16) * 1.3 : null,
+      fontSize:
+          isTablet ? (theme.textTheme.titleMedium?.fontSize ?? 16) * 1.3 : null,
       color: colorScheme.onSurface,
     );
 
@@ -130,7 +133,6 @@ class ShipmentSelectionWidget extends StatelessWidget {
               ),
             ],
           ),
-
           if (pickupLocation == PickupLocation.factory) ...[
             SizedBox(height: isTablet ? 18 : 14),
             DropdownButtonFormField<String>(
@@ -139,7 +141,8 @@ class ShipmentSelectionWidget extends StatelessWidget {
                   : _mockFactories.first,
               decoration: InputDecoration(
                 labelText: 'Select Factory Location',
-                prefixIcon: Icon(Icons.factory_rounded, size: isTablet ? 28 : 24),
+                prefixIcon:
+                    Icon(Icons.factory_rounded, size: isTablet ? 28 : 24),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -160,7 +163,6 @@ class ShipmentSelectionWidget extends StatelessWidget {
               onChanged: onFactoryChanged,
             ),
           ],
-
           if (pickupLocation == PickupLocation.branch) ...[
             SizedBox(height: isTablet ? 18 : 14),
             DropdownButtonFormField<String>(
@@ -193,7 +195,6 @@ class ShipmentSelectionWidget extends StatelessWidget {
         ] else if (method == ShipmentMethod.delivery) ...[
           Text('Delivery Address', style: headerTextStyle),
           SizedBox(height: isTablet ? 16 : 12),
-
           _DeliveryOptionTile(
             title: 'Default address (follow SAP)',
             subtitle: defaultAddress,
@@ -201,9 +202,7 @@ class ShipmentSelectionWidget extends StatelessWidget {
             onTap: () =>
                 onDeliveryOptionChanged(DeliveryAddressOption.defaultAddress),
           ),
-
           SizedBox(height: isTablet ? 14 : 10),
-
           _DeliveryOptionTile(
             title: 'Input new address & phone number',
             subtitle: null,
@@ -211,7 +210,6 @@ class ShipmentSelectionWidget extends StatelessWidget {
             onTap: () =>
                 onDeliveryOptionChanged(DeliveryAddressOption.newAddress),
           ),
-
           if (deliveryOption == DeliveryAddressOption.newAddress) ...[
             SizedBox(height: isTablet ? 18 : 14),
             TextField(

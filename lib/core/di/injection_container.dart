@@ -31,6 +31,7 @@ import 'package:isi_steel_sales_mobile/features/authentication/authentication_in
 import 'package:isi_steel_sales_mobile/features/localization/localization_injection.dart';
 import 'package:isi_steel_sales_mobile/features/customers/customers_injection.dart';
 import 'package:isi_steel_sales_mobile/features/home/presentation/bloc/home_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/geo_location/geo_location_injection.dart';
 import 'package:isi_steel_sales_mobile/features/home/home_injection.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/my_visits_injection.dart';
 import 'package:isi_steel_sales_mobile/features/order/order_injection.dart';
@@ -115,6 +116,9 @@ Future<void> initDependencies() async {
   registerHomeFeature(sl);
   await registerOrderFeature(sl);
   await registerCustomerFeature(sl);
+  // Shared address component. After the customer feature only for readability —
+  // its one real dependency is `AppDatabase`, registered above.
+  registerGeoLocationFeature(sl);
   // After auth, which supplies the authenticated `Dio` and the `DeviceIdentity`
   // whose per-installation id is the upsert key for a push registration
   // (docs/features/notification-mobile.md §4.2). The feed is no longer derived
