@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart' show DateUtils;
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/location_sample.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_plan.dart';
+import 'package:isi_steel_sales_mobile/core/utils/text_normalization.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_status.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/models/today_stop.dart';
 
@@ -79,17 +80,29 @@ final class StopDashboardLoaded extends StopDashboardState {
       };
 
   bool _matchesQuery(TodayStop s) {
-    final q = query.trim().toLowerCase();
+    // Zero-width characters are stripped from both sides, because SAP embeds
+    // them inside Khmer names as word-break hints and they are invisible on
+    // screen — a rep reading a shop's name off the card and typing it back
+    // would otherwise match nothing. This is the same normalisation
+    // `CustomerDao.browse` applies in SQL, which is what lets the claim below
+    // (in-memory and on-disk search agree) actually hold.
+    //
+    // Phone normalisation is deliberately *not* applied here: unlike the
+    // directory, this path does not search a phone column, so reducing a
+    // phone-shaped term to digits could only lose matches against the address
+    // and route name.
+    final q = stripZeroWidth(query.trim()).toLowerCase();
     if (q.isEmpty) return true;
     final c = s.stop.customer;
+    bool contains(String value) =>
+        stripZeroWidth(value).toLowerCase().contains(q);
     // Matches the shop's name in *either* language, whichever the UI is
     // showing: a rep who knows a shop by its Khmer sign types that even while
     // the app is in English, and vice versa. `searchableValues` already spans
-    // both plus the customer code — the same rule `CustomerDao.browse` applies
-    // in SQL, so in-memory and on-disk search agree.
-    return c.searchableValues.any((v) => v.toLowerCase().contains(q)) ||
-        c.address.toLowerCase().contains(q) ||
-        s.routeName.toLowerCase().contains(q);
+    // both plus the customer code.
+    return c.searchableValues.any(contains) ||
+        contains(c.address) ||
+        contains(s.routeName);
   }
 
   /// Filter + search applied — what the list actually renders.

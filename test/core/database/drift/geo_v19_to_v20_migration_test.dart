@@ -130,11 +130,14 @@ void main() {
     await db.close();
   });
 
-  test('the migration step is registered for the current version', () {
-    // The guard that v19's test used to carry: `kCurrentSchemaVersion` and the
-    // step map are edited in two places, and bumping one without the other
-    // silently skips the migration for every existing installation. Update this
-    // pin — and add the step — together, with the next schema change.
-    expect(kCurrentSchemaVersion, 20);
+  test('v20 is still a registered step, not skipped by a later bump', () {
+    // The current-version pin has moved on to the newest migration's test, as
+    // it did from v19's to this one — see
+    // `customer_sync_language_v20_to_v21_migration_test.dart`.
+    //
+    // What stays here is the assertion this file actually owns: v20 must remain
+    // reachable. A later schema change that renumbered or dropped this step
+    // would skip the geo tables for every device still on v19.
+    expect(kCurrentSchemaVersion, greaterThanOrEqualTo(20));
   });
 }

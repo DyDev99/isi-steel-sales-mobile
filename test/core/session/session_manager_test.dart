@@ -123,8 +123,8 @@ void main() {
       await sub.cancel();
 
       // A listener rebuilding on state must not be woken by a no-op.
-      expect(seen,
-          [AuthenticationState.authenticated, AuthenticationState.guest]);
+      expect(
+          seen, [AuthenticationState.authenticated, AuthenticationState.guest]);
     });
 
     test('roles fall back to guest with no user', () {

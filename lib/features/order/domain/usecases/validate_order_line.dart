@@ -33,15 +33,23 @@ class ValidateOrderLineParams extends Equatable {
 
 /// Decides whether a requested SKU + quantity may enter the cart.
 ///
-/// Re-reads the SKU from the repository rather than trusting the [Product] the
-/// UI is holding: the card on screen may have been rendered before the last
-/// catalog sync, and the whole point of this check is to catch exactly that.
+/// ## What this deliberately no longer checks
 ///
-/// The figure it checks against is the **last synced** local stock, never a
-/// live SAP reservation — the order UI does not call SAP (ADR-002). That is
-/// reported honestly through [OrderLineValidation.isStockStale] rather than
-/// papered over, so the UI can say "as of last sync" instead of implying a
-/// guarantee the app cannot make.
+/// **Stock.** Material selection is independent of stock: a rep may put any
+/// catalogue material on a quotation, and availability is settled later in the
+/// workflow. Two rules were removed for that reason:
+///
+///  * `!sku.isAvailable` — refused a line outright when the last sync happened
+///    to show nothing on hand;
+///  * `quantity > availableQuantity` — refused any quantity above the synced
+///    figure, which for a material from the selection API is `0`, because that
+///    API supplies no on-hand quantity at all. Every line above zero failed,
+///    and the rep saw "Only 0 available at ." for a perfectly orderable
+///    material.
+///
+/// What remains is the one rule that is not about stock: a line must ask for a
+/// positive quantity. A SKU that no longer resolves is still reported, because
+/// that is an identity problem rather than an availability one.
 class ValidateOrderLine
     extends UseCase<OrderLineValidation, ValidateOrderLineParams> {
   const ValidateOrderLine(this._products);
@@ -76,31 +84,12 @@ class ValidateOrderLine
   }
 
   OrderLineValidation _verdict(Product sku, ValidateOrderLineParams params) {
-    final available = sku.availableQuantity;
-
-    if (!sku.isAvailable) {
-      return OrderLineValidation(
-        issue: OrderLineIssue.skuUnavailable,
-        requestedQuantity: params.quantity,
-        availableQuantity: available,
-        isStockStale: true,
-      );
-    }
-
-    // Made-to-order lines are produced against the order, so warehouse stock is
-    // not the constraint and quoting more than is on the floor is normal.
-    if (!sku.isMto && params.quantity + params.alreadyInCart > available) {
-      return OrderLineValidation(
-        issue: OrderLineIssue.exceedsAvailableStock,
-        requestedQuantity: params.quantity,
-        availableQuantity: available,
-        isStockStale: true,
-      );
-    }
-
+    // The SKU resolved and the quantity is positive, so the line stands. The
+    // available figure is still reported for anything that wants to *show* it;
+    // nothing here refuses on it.
     return OrderLineValidation.valid(
       requestedQuantity: params.quantity,
-      availableQuantity: available,
+      availableQuantity: sku.availableQuantity,
       isStockStale: true,
     );
   }
@@ -109,6 +98,8 @@ class ValidateOrderLine
 /// Convenience for callers that already hold a freshly-read [Product] and only
 /// need the rule, not the round-trip — the product grid re-renders on every
 /// cart change and must not fire a database read per card.
+///
+/// Stock is not consulted here either; see [ValidateOrderLine].
 OrderLineValidation validateAgainstSku({
   required Product sku,
   required double quantity,
@@ -117,22 +108,6 @@ OrderLineValidation validateAgainstSku({
   if (quantity <= 0) {
     return OrderLineValidation(
       issue: OrderLineIssue.nonPositiveQuantity,
-      requestedQuantity: quantity,
-      availableQuantity: sku.availableQuantity,
-      isStockStale: true,
-    );
-  }
-  if (!sku.isAvailable) {
-    return OrderLineValidation(
-      issue: OrderLineIssue.skuUnavailable,
-      requestedQuantity: quantity,
-      availableQuantity: sku.availableQuantity,
-      isStockStale: true,
-    );
-  }
-  if (!sku.isMto && quantity + alreadyInCart > sku.availableQuantity) {
-    return OrderLineValidation(
-      issue: OrderLineIssue.exceedsAvailableStock,
       requestedQuantity: quantity,
       availableQuantity: sku.availableQuantity,
       isStockStale: true,

@@ -92,6 +92,9 @@ flutter:
     # 2. Include your logos folder here
     - assets/logos/
     - assets/mock/
+    # Synthetic stand-in images for the simulator camera. Its own line
+    # because Flutter does not recurse into subdirectories (see above).
+    - assets/mock/camera/
     - assets/lotties/
     - assets/images/
     # Flutter does not recurse into subdirectories: `assets/images/` bundles

@@ -8,11 +8,15 @@ import 'package:isi_steel_sales_mobile/core/network/network_info.dart';
 import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/local/customer_drift_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/local/customer_local_data_source.dart';
+import 'package:isi_steel_sales_mobile/features/customers/data/local/customer_reference_cache.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/local/master_data_cache.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/remote/api_customer_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/remote/customer_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/remote/master_data_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/remote/mock_master_data_remote_data_source.dart';
+import 'package:isi_steel_sales_mobile/features/customers/data/remote/customer_document_remote_data_source.dart';
+import 'package:isi_steel_sales_mobile/features/customers/data/repositories/customer_document_repository_impl.dart';
+import 'package:isi_steel_sales_mobile/features/customers/domain/repositories/customer_document_repository.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/repositories/customer_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/repositories/business_partner_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/remote/customer_datasources.dart'
@@ -32,6 +36,7 @@ import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/fetch_
 import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/fetch_favorite_customers.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/fetch_recent_customers.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/get_customer_by_id.dart';
+import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/lookup_customer_by_code.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/fetch_master_data.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/get_customer_last_synced_at.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/refresh_master_data.dart';
@@ -39,6 +44,7 @@ import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/record
 import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/run_customer_delta_sync.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/run_customer_initial_sync.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/toggle_favorite_customer.dart';
+import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customer_code_lookup_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customer_detail_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customer_sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customers_bloc.dart';
@@ -78,8 +84,25 @@ Future<void> registerCustomerFeature(GetIt sl) async {
       () => CustomerRepositoryImpl(sl()));
   sl.registerLazySingleton<bp.CustomerRemoteDataSource>(
       () => bp.CustomerRemoteDataSourceImpl(sl<Dio>()));
+  // Hive, not Drift: regenerable ERP lookups are Layer 2 (ADR-009), so this
+  // needs no schema migration.
+  sl.registerLazySingleton<CustomerReferenceCache>(
+      () => CustomerReferenceCache(LocalCache(HiveService.cacheBox)));
+  // Evidence photographs. Separate from the registration repository because the
+  // lifetime differs — they outlive the draft and are edited from the detail
+  // screen long after registration closed.
+  sl.registerLazySingleton<CustomerDocumentRemoteDataSource>(
+      () => ApiCustomerDocumentRemoteDataSource(sl<Dio>()));
+  sl.registerLazySingleton<CustomerDocumentRepository>(
+      () => CustomerDocumentRepositoryImpl(
+            remote: sl<CustomerDocumentRemoteDataSource>(),
+            logger: sl<AppLogger>(),
+          ));
   sl.registerLazySingleton<BusinessPartnerRepository>(
-      () => BusinessPartnerRepositoryImpl(sl<bp.CustomerRemoteDataSource>()));
+      () => BusinessPartnerRepositoryImpl(
+            sl<bp.CustomerRemoteDataSource>(),
+            sl<CustomerReferenceCache>(),
+          ));
   sl.registerLazySingleton<CustomerSyncRepository>(
     () => CustomerSyncRepositoryImpl(
       remote: sl(),
@@ -108,6 +131,7 @@ Future<void> registerCustomerFeature(GetIt sl) async {
   sl.registerLazySingleton(() => RunCustomerInitialSync(sl()));
   sl.registerLazySingleton(() => RunCustomerDeltaSync(sl()));
   sl.registerLazySingleton(() => GetCustomerLastSyncedAt(sl()));
+  sl.registerLazySingleton(() => LookupCustomerByCode(sl()));
   sl.registerLazySingleton(() => FetchMasterData(sl()));
   sl.registerLazySingleton(() => RefreshMasterData(sl()));
 
@@ -119,6 +143,7 @@ Future<void> registerCustomerFeature(GetIt sl) async {
       ));
   sl.registerFactory(() => AddCustomerBloc(
         repository: sl(),
+        documents: sl<CustomerDocumentRepository>(),
         rep: const RepSalesContext(
           salesOrganization: '0001',
           salesOrganizationName: 'ISI',
@@ -136,6 +161,7 @@ Future<void> registerCustomerFeature(GetIt sl) async {
         addCustomerActivity: sl(),
         recordCustomerViewed: sl(),
       ));
+  sl.registerFactory(() => CustomerCodeLookupCubit(sl()));
   sl.registerFactory(() => CustomerSyncCubit(
         runInitialSync: sl(),
         runDeltaSync: sl(),

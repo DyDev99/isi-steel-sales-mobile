@@ -121,8 +121,7 @@ class ProductListSection extends StatelessWidget {
                                 : 'orders.catalog.no_products'.tr,
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                                color:
-                                    scheme.onSurface.withValues(alpha: 0.5)),
+                                color: scheme.onSurface.withValues(alpha: 0.5)),
                           ),
                         ),
                       )
@@ -130,7 +129,8 @@ class ProductListSection extends StatelessWidget {
                       // Scoped to the rows so a verdict landing for one
                       // material does not rebuild the header and the paging
                       // controls with it.
-                      BlocBuilder<StockCubit, Map<String, MaterialAvailability>>(
+                      BlocBuilder<StockCubit,
+                          Map<String, MaterialAvailability>>(
                         builder: (context, stock) => Column(
                           children: [
                             for (final product in items)
@@ -222,7 +222,6 @@ class _ProductRow extends StatelessWidget {
 
     return ProductCard(
       product: product,
-      stock: stock,
       isFavorite: isFavorite,
       onFavoriteToggle: () => onToggleFavorite(product.id),
       onTap: () {
@@ -230,15 +229,11 @@ class _ProductRow extends StatelessWidget {
         onToggleExpanded(product.id);
       },
       onAddToCart: () {
+        // The stock read still fires — other parts of the flow use it — but it
+        // no longer gates the add. Material selection is independent of stock:
+        // a rep may put any catalogue material on a quotation, and SAP's
+        // verdict is settled later rather than at the point of choosing.
         ask();
-        if (stock?.canOrder == false) {
-          // SAP has already refused this line. The card dims the `+` for the
-          // same reason, but the tap still explains rather than dying quietly.
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('products.status.no_stock'.tr)),
-          );
-          return;
-        }
         context.read<CartCubit>().addProduct(
               product,
               quantity: quantity,

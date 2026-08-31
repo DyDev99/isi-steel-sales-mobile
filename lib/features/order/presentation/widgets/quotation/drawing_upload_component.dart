@@ -1,12 +1,12 @@
 import 'package:isi_steel_sales_mobile/core/platform/local_files.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/app_bottom_sheet.dart';
+import 'package:isi_steel_sales_mobile/core/camera/image_capture_service.dart';
 
 class DrawingUploadComponent extends StatelessWidget {
   final String? imagePath;
-  final Function(ImageSource source) onPickImage;
+  final Function(ImageCaptureSource source) onPickImage;
   final VoidCallback onRemoveImage;
 
   const DrawingUploadComponent({
@@ -118,13 +118,13 @@ class DrawingUploadComponent extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               FilledButton.icon(
-                onPressed: () => onPickImage(ImageSource.camera),
+                onPressed: () => onPickImage(ImageCaptureSource.camera),
                 icon: Icon(Icons.camera_alt_rounded, size: context.rr(18)),
                 label: const Text('Camera'),
               ),
               SizedBox(width: context.rw(12)),
               OutlinedButton.icon(
-                onPressed: () => onPickImage(ImageSource.gallery),
+                onPressed: () => onPickImage(ImageCaptureSource.gallery),
                 icon: Icon(Icons.photo_library_rounded, size: context.rr(18)),
                 label: const Text('Gallery'),
               ),
@@ -150,7 +150,7 @@ class DrawingUploadComponent extends StatelessWidget {
               title: const Text('Take Photo via Camera'),
               onTap: () {
                 Navigator.pop(ctx);
-                onPickImage(ImageSource.camera);
+                onPickImage(ImageCaptureSource.camera);
               },
             ),
             ListTile(
@@ -158,7 +158,7 @@ class DrawingUploadComponent extends StatelessWidget {
               title: const Text('Choose from Gallery'),
               onTap: () {
                 Navigator.pop(ctx);
-                onPickImage(ImageSource.gallery);
+                onPickImage(ImageCaptureSource.gallery);
               },
             ),
           ],

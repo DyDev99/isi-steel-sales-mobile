@@ -10,7 +10,6 @@ import 'package:isi_steel_sales_mobile/features/customers/domain/entities/custom
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/complete_visit_check_out.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/credit_summary.dart';
-import 'package:isi_steel_sales_mobile/features/order/domain/entities/material_availability.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/off_visit_reason.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product_material_number.dart';
@@ -29,6 +28,7 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/product_filter_flow/product_filter_flow_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/product_filter_flow/product_filter_flow_event.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/customized_product_form_screen.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/promotion_section.dart.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/quotation_detail_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/quotation_preview_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/catalog/sync_status_banner.dart';
@@ -160,42 +160,31 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
     );
   }
 
-  /// Sets a cart line's quantity, after asking SAP whether the line is allowed
-  /// at all.
+  /// Sets a cart line's quantity.
   ///
-  /// ## Why the old message read "Only 0 KG available at ."
+  /// **No stock gate.** Material selection is independent of stock: a rep may
+  /// put any catalogue material on a quotation, and SAP's verdict is settled
+  /// later in the workflow rather than at the point of choosing.
   ///
-  /// It interpolated two fields that this API never fills:
+  /// This method used to `await` a live stock read before every increase and
+  /// refuse the line on `!canOrder`. Two things were wrong with that. The
+  /// verdict answers about a sales area the handset frequently had not
+  /// supplied, so it came back `false` for materials that were perfectly
+  /// orderable; and even when it was right, "SAP has none at this plant today"
+  /// is not a reason a rep cannot quote.
   ///
-  /// * `verdict.availableQuantity` — there is **no on-hand quantity anywhere in
-  ///   the materials API.** The stock endpoint answers a band (`"High"`,
-  ///   `"Medium"`, `"Low"`, `"None"`), never a figure, so `availableQuantity`
-  ///   sits at its `0` default. That zero means *never told*, and comparing a
-  ///   requested quantity against it refused every line above nothing.
-  /// * `product.warehouseCode` — materials arriving through
-  ///   `/materials/selection` carry no warehouse. Location lives in the stock
-  ///   read's `plants` array now, which is where a real code like `KMH2` comes
-  ///   from.
-  ///
-  /// So the check moved: the line is gated on
-  /// [MaterialAvailability.canOrder] — the **status** — and never on a
-  /// quantity. `High` through `None` all permit the line; only a verdict of
-  /// `unavailable` refuses it, because that is SAP declining rather than
-  /// reporting a level.
+  /// What still runs is the binding's own validation — credit limit, missing
+  /// customer — which is business logic this change does not touch.
   Future<void> _setLineQuantity(Product product, int quantity) async {
-    final material = product.materialNumber;
+    // Still asked, still shown further down the flow — just not a gate. Held
+    // for five minutes and deduplicated, so this costs nothing per tap.
+    unawaited(_stock.ensure(product.materialNumber));
+    await _writeLine(product, quantity);
+  }
 
-    // Held for five minutes and deduplicated, so setting a quantity twice on
-    // the same material costs one round trip, not two.
-    await _stock.ensure(material);
-    if (!mounted) return;
-
-    final stock = _stock.of(material);
-    if (stock != null && !stock.canOrder) {
-      _showStockRefusal(stock);
-      return;
-    }
-
+  /// The single write into the quotation, and the only place its rejections
+  /// are reported.
+  Future<void> _writeLine(Product product, int quantity) async {
     final verdict = await _cartLines.setQuantity(product, quantity);
     if (verdict.isValid || !mounted) return;
 
@@ -204,25 +193,7 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
     // and a warehouse that were always going to come out blank.
     final key = verdict.messageKey;
     if (key == null) return;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(key.tr)));
-  }
-
-  /// The refusal, with the one detail SAP does supply: where.
-  ///
-  /// A rep told "cannot sell this" can do nothing with it. A rep told which
-  /// plants will supply it can phone someone. Where there are no sellable
-  /// plants, the bare refusal stands rather than an empty "at ."
-  void _showStockRefusal(MaterialAvailability stock) {
-    final plants = stock.sellablePlants.map((p) => p.plant).join(', ');
-    final message = plants.isEmpty
-        ? 'products.status.no_stock_message'.tr
-        : 'products.status.no_stock_try_plants'.trParams({'plants': plants});
-
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(message),
-      duration: const Duration(seconds: 4),
-    ));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(key.tr)));
   }
 
   void _completeVisit() {
@@ -395,8 +366,10 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                         });
                       },
                     ),
-
-                    SizedBox(height: context.rh(12)),
+                    // Place inside ListView children in QuotationBuilderScreen build method:
+                    SizedBox(height: context.rh(16)),
+                    const PromotionSectionWidget(),
+                    SizedBox(height: context.rh(16)),
                     const CartPreviewSection(),
                     BlocBuilder<CartCubit, CartState>(
                       builder: (context, cartState) {

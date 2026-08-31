@@ -12,8 +12,7 @@ class _CapturingLogger implements AppLogger {
   final errors = <Object?>[];
 
   @override
-  void debug(String event, {Map<String, Object?>? fields}) =>
-      events.add(event);
+  void debug(String event, {Map<String, Object?>? fields}) => events.add(event);
 
   @override
   void info(String event, {Map<String, Object?>? fields}) => events.add(event);

@@ -1,30 +1,33 @@
 import 'package:isi_steel_sales_mobile/core/platform/captured_media_store.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:isi_steel_sales_mobile/core/camera/image_capture_service.dart';
 
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/data_domain.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/customization/customization_state.dart';
 
 class CustomizationCubit extends Cubit<CustomizationState> {
-  final ImagePicker _picker;
+  /// The acquisition seam. Previously an `ImagePicker` constructed here, which
+  /// meant the drawing upload could not be exercised on the simulator at all.
+  final ImageCaptureService _capture;
 
-  CustomizationCubit({ImagePicker? picker})
-      : _picker = picker ?? ImagePicker(),
+  CustomizationCubit({required ImageCaptureService capture})
+      : _capture = capture,
         super(const CustomizationDataState());
 
   CustomizationDataState get _currentState => state is CustomizationDataState
       ? (state as CustomizationDataState)
       : const CustomizationDataState();
 
-  Future<void> captureOrPickDrawing(ImageSource source) async {
+  Future<void> captureOrPickDrawing(ImageCaptureSource source) async {
     final previous = _currentState;
     try {
       emit(const CustomizationLoading());
       // image_picker requests the camera/photo permission itself and downscales
       // the capture via [imageQuality]/[maxWidth]/[maxHeight], so no separate
       // permission or compression package is needed.
-      final XFile? file = await _picker.pickImage(
-        source: source,
+      final XFile? file = await _capture.pick(
+        source,
         imageQuality: 75,
         maxWidth: 1024,
         maxHeight: 1024,

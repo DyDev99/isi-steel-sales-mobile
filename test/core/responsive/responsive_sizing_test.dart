@@ -64,8 +64,10 @@ void main() {
   testWidgets('type is 30% up on the original 1.15/1.25 curve', (tester) async {
     // Locks in the on-device decision so a future "tidy-up" cannot quietly
     // walk it back. See the class doc in responsive_sizing.dart.
-    expect(await at(tester, 834, (c) => c.typeScale), closeTo(1.15 * 1.30, 0.01));
-    expect(await at(tester, 1032, (c) => c.typeScale), closeTo(1.25 * 1.30, 0.01));
+    expect(
+        await at(tester, 834, (c) => c.typeScale), closeTo(1.15 * 1.30, 0.01));
+    expect(
+        await at(tester, 1032, (c) => c.typeScale), closeTo(1.25 * 1.30, 0.01));
   });
 
   testWidgets('My Work card content still fits its box', (tester) async {
@@ -79,7 +81,8 @@ void main() {
       final line = await at(tester, w, (c) => c.rsp(14)) * 1.4; // line height
       final used = icon + gap + line;
       // ignore: avoid_print
-      print('${w.toStringAsFixed(0).padLeft(5)}pt  used=${used.toStringAsFixed(0)}'
+      print(
+          '${w.toStringAsFixed(0).padLeft(5)}pt  used=${used.toStringAsFixed(0)}'
           ' / card=${card.toStringAsFixed(0)}pt');
       expect(used, lessThan(card),
           reason: 'card content overflows at ${w}pt — give the box more room '

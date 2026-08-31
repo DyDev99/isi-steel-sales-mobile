@@ -9,6 +9,7 @@ import 'package:isi_steel_sales_mobile/features/customers/data/remote/customer_s
 import 'package:isi_steel_sales_mobile/features/customers/data/repositories/customer_sync_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer_status.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer_code_lookup.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer_draft.dart';
 
 class _MockLocal extends Mock implements CustomerLocalDataSource {}
@@ -52,6 +53,10 @@ class _ScriptedRemote implements CustomerRemoteDataSource {
   @override
   Future<CustomerModel> fetchById(String id) async =>
       throw UnimplementedError();
+
+  @override
+  Future<CustomerCodeLookup> lookupByCode(String code) =>
+      throw UnimplementedError('these tests exercise sync, not code lookup');
 }
 
 CustomerModel _customer(String id) => CustomerModel(
@@ -88,7 +93,11 @@ void main() {
     when(() => network.isConnected).thenAnswer((_) async => true);
     when(() => local.upsertCustomers(any())).thenAnswer((_) async {});
     when(() => local.markDeleted(any())).thenAnswer((_) async {});
-    when(() => local.setLastSyncedAt(any(), any())).thenAnswer((_) async {});
+    when(() => local.setLastSyncedAt(any(), any(),
+        language: any(named: 'language'))).thenAnswer((_) async {});
+    // Unknown by default, which the repository reads as "matches" — these
+    // tests are about the watermark, not the language guard.
+    when(() => local.getSyncedLanguage(any())).thenAnswer((_) async => null);
   });
 
   CustomerSyncRepositoryImpl build(_ScriptedRemote remote) =>
@@ -115,7 +124,8 @@ void main() {
       final result = await build(remote).runInitialSync();
 
       expect(result, isA<Success<dynamic>>());
-      verify(() => local.setLastSyncedAt('customers', serverTime)).called(1);
+      verify(() => local.setLastSyncedAt('customers', serverTime,
+          language: any(named: 'language'))).called(1);
     });
 
     test('pages from 1, because the API is one-based', () async {
@@ -148,7 +158,8 @@ void main() {
 
       await build(remote).runInitialSync();
 
-      verify(() => local.setLastSyncedAt('customers', serverTime)).called(1);
+      verify(() => local.setLastSyncedAt('customers', serverTime,
+          language: any(named: 'language'))).called(1);
     });
 
     _ScriptedRemote twoPages() => _ScriptedRemote(initial: [
@@ -170,14 +181,16 @@ void main() {
       verifyInOrder([
         () => local.upsertCustomers(any()),
         () => local.upsertCustomers(any()),
-        () => local.setLastSyncedAt('customers', serverTime),
+        () => local.setLastSyncedAt('customers', serverTime,
+            language: any(named: 'language')),
       ]);
     });
 
     test('commits the watermark exactly once for the whole run', () async {
       await build(twoPages()).runInitialSync();
 
-      verify(() => local.setLastSyncedAt(any(), any())).called(1);
+      verify(() => local.setLastSyncedAt(any(), any(),
+          language: any(named: 'language'))).called(1);
     });
   });
 
@@ -230,7 +243,8 @@ void main() {
 
       await build(remote).runDeltaSync();
 
-      verify(() => local.setLastSyncedAt('customers', serverTime)).called(1);
+      verify(() => local.setLastSyncedAt('customers', serverTime,
+          language: any(named: 'language'))).called(1);
     });
 
     test('falls back to a full sync when there is no watermark', () async {

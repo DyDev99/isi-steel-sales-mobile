@@ -4,6 +4,7 @@ import 'package:isi_steel_sales_mobile/core/platform/local_files.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/pricing_text.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/painters/dashed_rrect.dart';
 
@@ -31,6 +32,10 @@ class QuotationPreviewSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppThemeColors>()!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // One pending line makes the whole document pending: a subtotal that
+    // silently drops a line is a smaller, wronger number than none at all.
+    final pending = items.hasPendingPricing;
     final logoAsset = isDark
         ? 'assets/logos/darkmood_logo.jpg'
         : 'assets/logos/isi_main_screen_logo.png';
@@ -164,7 +169,6 @@ class QuotationPreviewSection extends StatelessWidget {
               ...items.map((item) {
                 final product = item.product;
                 final int qty = item.quantity.toInt();
-                final double rowTotal = item.lineSubtotal;
 
                 final specParts = <String>[];
                 if (item.isCustomized) {
@@ -270,11 +274,13 @@ class QuotationPreviewSection extends StatelessWidget {
                       // Row Total
                       SizedBox(width: context.rw(8)),
                       Text(
-                        '\$${rowTotal.toStringAsFixed(0)}',
+                        PricingText.amount(item.lineTotalOrNull, decimals: 0),
                         style: TextStyle(
                           fontSize: context.rsp(13),
                           fontWeight: FontWeight.w600,
-                          color: colors.textPrimary,
+                          color: item.isPricePending
+                              ? colors.textSecondary
+                              : colors.textPrimary,
                         ),
                       ),
                     ],
@@ -299,7 +305,7 @@ class QuotationPreviewSection extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  '\$${subtotal.toStringAsFixed(0)}',
+                  PricingText.amount(pending ? null : subtotal, decimals: 0),
                   style: TextStyle(
                     fontSize: context.rsp(14),
                     fontWeight: FontWeight.w600,
@@ -323,7 +329,9 @@ class QuotationPreviewSection extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  '-\$${discount.toStringAsFixed(0)}',
+                  pending || discount <= 0
+                      ? ''
+                      : '-\$${discount.toStringAsFixed(0)}',
                   style: TextStyle(
                     fontSize: context.rsp(14),
                     fontWeight: FontWeight.w600,
@@ -347,7 +355,7 @@ class QuotationPreviewSection extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  '\$${tax.toStringAsFixed(0)}',
+                  PricingText.amount(pending ? null : tax, decimals: 0),
                   style: TextStyle(
                     fontSize: context.rsp(14),
                     fontWeight: FontWeight.w600,
@@ -373,7 +381,7 @@ class QuotationPreviewSection extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  '\$${total.toStringAsFixed(0)}',
+                  PricingText.amount(pending ? null : total, decimals: 0),
                   style: TextStyle(
                     fontSize: context.rsp(16),
                     fontWeight: FontWeight.w900,

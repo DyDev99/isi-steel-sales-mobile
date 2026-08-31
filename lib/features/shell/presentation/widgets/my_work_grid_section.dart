@@ -70,8 +70,8 @@ class MyWorkGridSection extends StatelessWidget {
                           kind: WorkIconKind.customers,
                           accent: const Color(0xFFEC3F72),
                           isActive: false,
-                          onTap: () => sl<ShellTabController>()
-                              .goTo(ShellTab.customers),
+                          onTap: () =>
+                              sl<ShellTabController>().goTo(ShellTab.customers),
                         ),
                       ),
                     ),
@@ -409,7 +409,7 @@ class MyWorkGridSkeleton extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           _SectionHeader('shell.my_work'.tr, letterSpacing: 1.6),
-          
+
           // Skeleton Top: Full width
           Container(
             height: context.rh(120),

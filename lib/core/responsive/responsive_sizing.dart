@@ -64,8 +64,7 @@ export 'package:isi_steel_sales_mobile/core/responsive/breakpoints.dart';
 /// ```
 extension ResponsiveSizing on BuildContext {
   /// Multiplier for boxes, icons, radii, and spacing.
-  double get boxScale =>
-      responsive(compact: 1.0, medium: 1.30, expanded: 1.45);
+  double get boxScale => responsive(compact: 1.0, medium: 1.30, expanded: 1.45);
 
   /// Multiplier for type.
   ///

@@ -7,9 +7,9 @@
 // =============================================================================
 
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 
 import 'package:isi_steel_sales_mobile/core/constants/app_constant.dart';
+import 'package:isi_steel_sales_mobile/core/logging/debug_trace.dart';
 import 'package:isi_steel_sales_mobile/core/network/api_envelope.dart';
 import 'package:isi_steel_sales_mobile/core/network/api_error.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/models/bp_customer_form_data.dart';
@@ -89,10 +89,56 @@ class CustomerRegistrationDraft {
 /// deliberately absent unless queried with `search`, per MobileCustomerApi.
 class CustomerReferenceCatalogue {
   const CustomerReferenceCatalogue(this.values);
+
+  /// The raw `data` object — `{ catalogues: { … }, synchronisedAt: … }`.
+  ///
+  /// Kept as a map on purpose: the ERP owns these catalogues and the reference
+  /// sync can add one without this app being redeployed. A typed field per
+  /// catalogue would make a new one invisible until the next release.
   final Map<String, dynamic> values;
 
   factory CustomerReferenceCatalogue.fromJson(Map<String, dynamic> json) =>
       CustomerReferenceCatalogue(json);
+
+  /// Catalogue name → options, e.g. `PaymentTerm` → 28 entries.
+  ///
+  /// Names are the server's (`SalesOrg`, `DistributionChannel`, `Division`,
+  /// `CustomerGroup`, `PriceGroup`, `PaymentTerm`, `ShippingCondition`,
+  /// `SalesOffice`, `SalesGroup`).
+  Map<String, List<SapOption>> get catalogues {
+    final raw = values['catalogues'];
+    if (raw is! Map) return const {};
+    final result = <String, List<SapOption>>{};
+    for (final entry in raw.entries) {
+      final rows = entry.value;
+      if (rows is! List) continue;
+      final options = <SapOption>[];
+      for (final row in rows) {
+        if (row is! Map) continue;
+        final code = row['code']?.toString();
+        if (code == null || code.isEmpty) continue;
+        options.add(SapOption(code, row['name']?.toString() ?? code));
+      }
+      if (options.isNotEmpty) result[entry.key.toString()] = options;
+    }
+    return result;
+  }
+
+  /// When the platform last refreshed these from the ERP. Show it when the copy
+  /// is stale rather than implying the codes are current.
+  DateTime? get synchronisedAt {
+    final raw = values['synchronisedAt'];
+    return raw is String ? DateTime.tryParse(raw)?.toUtc() : null;
+  }
+
+  /// Options for [catalogue], or an empty list when the server did not send it.
+  ///
+  /// Empty rather than null so a caller can fall back with `isEmpty ? … : …`
+  /// without a null check on every dropdown.
+  List<SapOption> optionsFor(String catalogue) =>
+      catalogues[catalogue] ?? const [];
+
+  bool get isEmpty => catalogues.isEmpty;
 }
 
 class CreateBpResponse {
@@ -149,6 +195,9 @@ abstract class CustomerRemoteDataSource {
   });
 }
 
+/// Console tracer for the registration HTTP calls. Debug builds only.
+const _trace = DebugTrace('registration');
+
 class CustomerRemoteDataSourceImpl implements CustomerRemoteDataSource {
   final Dio _dio;
   const CustomerRemoteDataSourceImpl(this._dio);
@@ -162,8 +211,10 @@ class CustomerRemoteDataSourceImpl implements CustomerRemoteDataSource {
       if (kinds != null && kinds.isNotEmpty) 'kinds': kinds.join(','),
       if (search != null && search.trim().isNotEmpty) 'search': search.trim(),
     };
-    debugPrint('[CustomerRegistration] GET references '
-        'kinds=${kinds?.join(',') ?? 'all'} search=${search?.trim().isEmpty ?? true ? 'none' : 'provided'}');
+    _trace.send('http', 'GET references', {
+      'kinds': kinds?.join(',') ?? 'all',
+      'search': search?.trim().isEmpty ?? true ? null : 'yes',
+    });
     final response = await _get(
       '${AppConstants.customersEndpoint}/references',
       queryParameters: query,
@@ -173,17 +224,17 @@ class CustomerRemoteDataSourceImpl implements CustomerRemoteDataSource {
 
   @override
   Future<CustomerRegistrationDraft> createRegistrationDraft() async {
-    debugPrint('[CustomerRegistration] POST draft');
+    _trace.send('http', 'POST draft');
     final response = await _post('${AppConstants.customersEndpoint}/draft');
     final draft = CustomerRegistrationDraft.fromJson(_data(response));
-    debugPrint('[CustomerRegistration] POST draft complete '
-        'draftId=${draft.draftId} fieldCount=${draft.fields.length}');
+    _trace.ok('http', 'POST draft → 200',
+        {'id': DebugTrace.id(draft.draftId), 'fields': draft.fields.length});
     return draft;
   }
 
   @override
   Future<CustomerRegistrationDraft?> fetchActiveRegistrationDraft() async {
-    debugPrint('[CustomerRegistration] GET draft/active');
+    _trace.send('http', 'GET draft/active');
 
     final Response<dynamic> response;
     try {
@@ -195,7 +246,7 @@ class CustomerRemoteDataSourceImpl implements CustomerRemoteDataSource {
       // server that has not deployed this endpoint yet answers, so treating it
       // as absence keeps the app working against both.
       if (apiError.statusCode == 404) {
-        debugPrint('[CustomerRegistration] GET draft/active -> none (404)');
+        _trace.step('http', 'GET draft/active → 404 none');
         return null;
       }
       throw _translate(error, apiError);
@@ -207,20 +258,23 @@ class CustomerRemoteDataSourceImpl implements CustomerRemoteDataSource {
     final body = response.data;
     final data = body is Map ? body['data'] : null;
     if (data is! Map) {
-      debugPrint('[CustomerRegistration] GET draft/active -> none (empty)');
+      _trace.step('http', 'GET draft/active → 200 empty');
       return null;
     }
 
     final draft =
         CustomerRegistrationDraft.fromJson(data.cast<String, dynamic>());
     if (draft.draftId.isEmpty) {
-      debugPrint('[CustomerRegistration] GET draft/active -> none (no id)');
+      _trace.warn('http', 'GET draft/active → 200 but no draft id');
       return null;
     }
 
-    debugPrint('[CustomerRegistration] GET draft/active complete '
-        'draftId=${draft.draftId} status=${draft.status} '
-        'resumable=${draft.isResumable} fieldCount=${draft.fields.length}');
+    _trace.ok('http', 'GET draft/active → 200', {
+      'id': DebugTrace.id(draft.draftId),
+      'status': draft.status,
+      'resumable': DebugTrace.yesNo(draft.isResumable),
+      'fields': draft.fields.length,
+    });
     return draft;
   }
 
@@ -229,32 +283,36 @@ class CustomerRemoteDataSourceImpl implements CustomerRemoteDataSource {
     required String draftId,
     required Map<String, dynamic> changedFields,
   }) async {
-    debugPrint('[CustomerRegistration] POST update '
-        'draftId=$draftId changedFields=${changedFields.keys.join(',')}');
+    _trace.send('http', 'POST update', {
+      'id': DebugTrace.id(draftId),
+      // Field names only, never their values.
+      'patch': DebugTrace.names(changedFields.keys),
+    });
     final response = await _post('${AppConstants.customersEndpoint}/update',
         // `fields` is intentional: update is a patch, and the server must be
         // able to distinguish an omitted field from one explicitly set to ''.
         data: {'draftId': draftId, 'fields': changedFields});
     final draft = CustomerRegistrationDraft.fromJson(_data(response));
-    debugPrint('[CustomerRegistration] POST update complete '
-        'draftId=${draft.draftId} fieldCount=${draft.fields.length}');
+    _trace.ok('http', 'POST update → 200', {'fields': draft.fields.length});
     return draft;
   }
 
   @override
   Future<CreateBpResponse> submitRegistrationDraft(String draftId) async {
-    debugPrint('[CustomerRegistration] POST submit draftId=$draftId');
+    _trace.send('http', 'POST submit', {'id': DebugTrace.id(draftId)});
     final response = await _post('${AppConstants.customersEndpoint}/submit',
         data: {'draftId': draftId});
     final result = CreateBpResponse.fromJson(_data(response));
-    debugPrint('[CustomerRegistration] POST submit complete '
-        'draftId=$draftId status=${result.status}');
+    _trace.ok('http', 'POST submit → 200', {
+      'customer': DebugTrace.id(result.localId),
+      'sap': result.status,
+    });
     return result;
   }
 
   @override
   Future<List<CustomerRegistrationDraft>> fetchRegistrationDrafts() async {
-    debugPrint('[CustomerRegistration] GET drafts');
+    _trace.send('http', 'GET drafts');
     final response = await _get('${AppConstants.customersEndpoint}/drafts');
     final data = _data(response);
     final drafts = data['drafts'] ?? data['items'] ?? data;
@@ -264,15 +322,14 @@ class CustomerRemoteDataSourceImpl implements CustomerRemoteDataSource {
         .map((draft) =>
             CustomerRegistrationDraft.fromJson(draft.cast<String, dynamic>()))
         .toList();
-    debugPrint(
-        '[CustomerRegistration] GET drafts complete count=${result.length}');
+    _trace.ok('http', 'GET drafts → 200', {'count': result.length});
     return result;
   }
 
   @override
   Future<CustomerRegistrationDraft> fetchRegistrationDraft(
       String draftId) async {
-    debugPrint('[CustomerRegistration] GET draft draftId=$draftId');
+    _trace.send('http', 'GET draft', {'id': DebugTrace.id(draftId)});
     final response =
         await _get('${AppConstants.customersEndpoint}/draft/$draftId');
     return CustomerRegistrationDraft.fromJson(_data(response));
@@ -283,23 +340,24 @@ class CustomerRemoteDataSourceImpl implements CustomerRemoteDataSource {
       _deleteRegistrationDraft(draftId);
 
   Future<void> _deleteRegistrationDraft(String draftId) async {
-    debugPrint('[CustomerRegistration] DELETE draft draftId=$draftId');
+    _trace.send('http', 'DELETE draft', {'id': DebugTrace.id(draftId)});
     await _dio.delete<void>('${AppConstants.customersEndpoint}/draft/$draftId');
-    debugPrint('[CustomerRegistration] DELETE draft complete draftId=$draftId');
+    _trace.ok('http', 'DELETE draft → 204');
   }
 
   @override
   Future<CreateBpResponse> createBusinessPartner(
       Map<String, dynamic> payload) async {
-    debugPrint(
-        '[CustomerRegistration] POST business-partner (compatibility path)');
+    _trace.send('http', 'POST business-partner (compatibility)');
     final response = await _post(
       '${AppConstants.customersEndpoint}/business-partner',
       data: payload,
     );
     final result = CreateBpResponse.fromJson(_data(response));
-    debugPrint('[CustomerRegistration] POST business-partner complete '
-        'status=${result.status}');
+    _trace.ok('http', 'POST business-partner → 200', {
+      'customer': DebugTrace.id(result.localId),
+      'sap': result.status,
+    });
     return result;
   }
 
@@ -325,9 +383,11 @@ class CustomerRemoteDataSourceImpl implements CustomerRemoteDataSource {
   /// [_request] because it has to inspect the status code before the mapping
   /// happens — a 404 there is an answer, not an error.
   Object _translate(DioException error, ApiError apiError) {
-    debugPrint('[CustomerRegistration] API failure '
-        'status=${apiError.statusCode} code=${apiError.code} '
-        'correlationId=${apiError.correlationId ?? 'none'}');
+    _trace.fail('http', 'request failed', {
+      'status': apiError.statusCode,
+      'code': apiError.code,
+      'correlation': apiError.correlationId,
+    });
     final status = apiError.statusCode ?? 0;
     // A 4xx means the rep must change something; retrying the same payload
     // cannot succeed. 5xx and transport errors stay retryable.

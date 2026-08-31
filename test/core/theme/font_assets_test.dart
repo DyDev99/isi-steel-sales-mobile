@@ -69,7 +69,10 @@ bool _isLoadableFont(String path) {
 /// ('OTTO') throws at export time, which no widget test would catch.
 bool _hasGlyfOutlines(String path) {
   final magic = File(path).readAsBytesSync().sublist(0, 4);
-  return magic[0] == 0x00 && magic[1] == 0x01 && magic[2] == 0x00 && magic[3] == 0x00;
+  return magic[0] == 0x00 &&
+      magic[1] == 0x01 &&
+      magic[2] == 0x00 &&
+      magic[3] == 0x00;
 }
 
 void main() {
@@ -114,8 +117,10 @@ void main() {
     const en = Locale('en');
     const km = Locale('km');
 
-    expect(AppTypography.fontFamilyForLocale(en), AppTypography.latinFontFamily);
-    expect(AppTypography.fontFamilyForLocale(km), AppTypography.khmerFontFamily);
+    expect(
+        AppTypography.fontFamilyForLocale(en), AppTypography.latinFontFamily);
+    expect(
+        AppTypography.fontFamilyForLocale(km), AppTypography.khmerFontFamily);
 
     // The two families are script-disjoint: ABC Ginto has no Khmer glyphs and
     // MiSans Khmer no Latin ones, so neither may resolve without the other.

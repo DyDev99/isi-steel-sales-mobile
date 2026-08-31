@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/pricing_text.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/material_availability.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/catalog/stock_availability_badge.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/cart_quantity_stepper.dart';
@@ -141,8 +142,7 @@ class CartItemTile extends StatelessWidget {
                 // unreadable to a colour-blind rep, and on a quotation line
                 // that is the difference between promising stock and promising
                 // a lead time. What changed is where the answer comes from.
-                if (stock != null)
-                  StockAvailabilityBadge(availability: stock),
+                if (stock != null) StockAvailabilityBadge(availability: stock),
                 SizedBox(width: context.rw(8)),
               ],
             ),
@@ -152,17 +152,16 @@ class CartItemTile extends StatelessWidget {
                 CartQuantityStepper(
                   quantity: item.quantity.round(),
                   onChanged: (value) => onQuantityChanged(value.toDouble()),
-                  // Gates `+` on the status alone. A line already in the
-                  // quotation can always be reduced or removed, including when
-                  // SAP has since refused it — which is the case where a rep
-                  // most needs to take it back out.
-                  stock: stock,
                 ),
                 SizedBox(width: context.rw(10)),
                 Expanded(
                   child: Text(
-                    '\$${item.unitPrice.toStringAsFixed(2)}/${item.unit}'
-                    '${discounted ? '  −${item.discountPercent.toStringAsFixed(0)}%' : ''}',
+                    // Unit only while unpriced — the line still says what it
+                    // is and how it is measured, just not what it costs.
+                    item.isPricePending
+                        ? item.unit
+                        : '\$${item.unitPrice.toStringAsFixed(2)}/${item.unit}'
+                            '${discounted ? '  −${item.discountPercent.toStringAsFixed(0)}%' : ''}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -182,8 +181,8 @@ class CartItemTile extends StatelessWidget {
                     child: ScaleTransition(scale: animation, child: child),
                   ),
                   child: Text(
-                    '\$${item.lineTotal.toStringAsFixed(2)}',
-                    key: ValueKey(item.lineTotal.toStringAsFixed(2)),
+                    PricingText.amount(item.lineTotalOrNull),
+                    key: ValueKey('total-${item.id}-${item.lineTotalOrNull}'),
                     style: TextStyle(
                       color: colors.textPrimary,
                       fontSize: context.rsp(14),

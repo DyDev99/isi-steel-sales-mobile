@@ -187,8 +187,7 @@ class CalendarMonthPainter extends CustomPainter {
     // Travels the last 10 units into place rather than appearing at rest.
     final y = 12 * s + (1 - drop) * -10 * s;
     for (final x in const [34.0, 66.0]) {
-      canvas.drawLine(
-          Offset(x * s, y), Offset(x * s, y + 14 * s), stroke);
+      canvas.drawLine(Offset(x * s, y), Offset(x * s, y + 14 * s), stroke);
     }
   }
 
@@ -228,11 +227,10 @@ class CalendarMonthPainter extends CustomPainter {
     final wipe = _phase(t, 0.20, 0.34, Curves.easeOutCubic);
     if (wipe <= 0) return;
 
-    final full = Rect.fromLTWH(
-        body.left, body.top, body.width, 18 * s);
+    final full = Rect.fromLTWH(body.left, body.top, body.width, 18 * s);
     // `wipe` is clamped to 0–1, so the width can never go negative.
-    final grown = Rect.fromLTWH(
-        full.left, full.top, full.width * wipe, full.height);
+    final grown =
+        Rect.fromLTWH(full.left, full.top, full.width * wipe, full.height);
 
     canvas.save();
     canvas.clipRRect(RRect.fromRectAndCorners(

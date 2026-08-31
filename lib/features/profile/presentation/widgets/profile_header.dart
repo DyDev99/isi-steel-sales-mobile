@@ -10,7 +10,8 @@ import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 /// same component reads well to both a younger, design-forward audience and
 /// a more traditional "premium member" audience.
 class ProfileHeader extends StatelessWidget {
-  const ProfileHeader({super.key, required this.profile, this.isTablet = false});
+  const ProfileHeader(
+      {super.key, required this.profile, this.isTablet = false});
 
   final WorkerProfile profile;
   final bool isTablet;

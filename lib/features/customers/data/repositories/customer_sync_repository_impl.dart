@@ -1,6 +1,7 @@
 import 'package:isi_steel_sales_mobile/core/constants/app_constant.dart';
 import 'package:isi_steel_sales_mobile/core/error/exceptions.dart';
 import 'package:isi_steel_sales_mobile/core/error/failures.dart';
+import 'package:isi_steel_sales_mobile/core/localization/active_language.dart';
 import 'package:isi_steel_sales_mobile/core/logging/app_logger.dart';
 import 'package:isi_steel_sales_mobile/core/network/api_error.dart';
 import 'package:isi_steel_sales_mobile/core/network/network_info.dart';
@@ -9,11 +10,17 @@ import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/local/customer_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/remote/customer_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer.dart';
+import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer_code_lookup.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer_draft.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer_sync_result.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/repositories/customer_sync_repository.dart';
 
 const _customersEntity = 'customers';
+
+/// Default language reader. Safe to call in a unit test: the underlying service
+/// holds a plain `'en'` field until assets are loaded, so this touches no
+/// Flutter binding.
+String _activeLanguageTag() => ActiveLanguage.acceptLanguageTag;
 
 /// The only repository allowed to touch [CustomerRemoteDataSource] — this
 /// is where "a Customer row only ever comes from SAP" is enforced: nothing
@@ -25,15 +32,23 @@ class CustomerSyncRepositoryImpl implements CustomerSyncRepository {
     required CustomerLocalDataSource local,
     required NetworkInfo network,
     required AppLogger logger,
+    String Function() readLanguageTag = _activeLanguageTag,
   })  : _remote = remote,
         _local = local,
         _network = network,
-        _logger = logger;
+        _logger = logger,
+        _readLanguageTag = readLanguageTag;
 
   final CustomerRemoteDataSource _remote;
   final CustomerLocalDataSource _local;
   final NetworkInfo _network;
   final AppLogger _logger;
+
+  /// Reads the `Accept-Language` tag the requests will carry.
+  ///
+  /// Injected rather than read from [ActiveLanguage] directly so a test can
+  /// simulate the rep switching language without a Flutter binding.
+  final String Function() _readLanguageTag;
 
   static const _pageSize = AppConstants.maxPageSize;
 
@@ -101,12 +116,22 @@ class CustomerSyncRepositoryImpl implements CustomerSyncRepository {
       // page and the stored timestamp — permanently, because nothing ever
       // asks for that window again.
       final syncedAt = watermark ?? DateTime.now().toUtc();
-      await _local.setLastSyncedAt(_customersEntity, syncedAt);
+      // The language is stored with the watermark, not separately: the rows
+      // just written are localised for it, and a watermark that outlived its
+      // language would let the next delta resume against text the user can no
+      // longer read.
+      final language = _readLanguageTag();
+      await _local.setLastSyncedAt(
+        _customersEntity,
+        syncedAt,
+        language: language,
+      );
 
       _logger.info('customers.sync.initial.done', fields: {
         'pages': page,
         'upserted': total,
         'watermark': syncedAt.toIso8601String(),
+        'language': language,
       });
 
       return Success(
@@ -133,6 +158,25 @@ class CustomerSyncRepositoryImpl implements CustomerSyncRepository {
       final since = await _local.getLastSyncedAt(_customersEntity);
       if (since == null) {
         _logger.info('customers.sync.delta.noWatermark');
+        return runInitialSync();
+      }
+
+      // A language switch invalidates the whole book, and a delta cannot
+      // repair it: `shopName` is localised server-side, so the rows only carry
+      // the language they were fetched under, and `modifiedSince` returns what
+      // the *server* changed — which a device-side language change is not.
+      // Without this the directory renders the old language indefinitely.
+      //
+      // A null stored language means "synced before this was recorded"; that
+      // is treated as a match rather than putting every upgrading device
+      // through a full re-page for a book almost certainly already correct.
+      final storedLanguage = await _local.getSyncedLanguage(_customersEntity);
+      final language = _readLanguageTag();
+      if (storedLanguage != null && storedLanguage != language) {
+        _logger.info('customers.sync.delta.languageChanged', fields: {
+          'from': storedLanguage,
+          'to': language,
+        });
         return runInitialSync();
       }
 
@@ -180,7 +224,11 @@ class CustomerSyncRepositoryImpl implements CustomerSyncRepository {
       // that returned no timestamp must not cause the window between `since`
       // and now to be skipped — repeating a delta is free, missing one is not.
       final syncedAt = watermark ?? since;
-      await _local.setLastSyncedAt(_customersEntity, syncedAt);
+      await _local.setLastSyncedAt(
+        _customersEntity,
+        syncedAt,
+        language: language,
+      );
 
       _logger.info('customers.sync.delta.done', fields: {
         'pages': page,
@@ -198,12 +246,26 @@ class CustomerSyncRepositoryImpl implements CustomerSyncRepository {
         syncedAt: syncedAt,
       ));
     } on ApiException catch (e) {
+      // A rejected `modifiedSince` means the stored watermark is unusable —
+      // most likely a future timestamp written from a device clock by an older
+      // build. Left alone it is terminal: every delta from here on fails the
+      // same way and the device silently never syncs again.
+      //
+      // Recovery is to ignore the watermark and re-page from scratch, which
+      // rewrites it from the server's clock. Bounded by construction — the
+      // initial sync sends no `modifiedSince`, so it cannot land back here.
+      if (_isRejectedWatermark(e.error)) {
+        _logger.warning('customers.sync.delta.watermarkRejected', fields: {
+          'errorCode': e.error.code,
+          'correlationId': e.error.correlationId,
+        });
+        return runInitialSync();
+      }
+
       _logger.error('customers.sync.delta.failed', fields: {
         'errorCode': e.error.code,
         'status': e.error.statusCode,
         'correlationId': e.error.correlationId,
-        // A rejected `modifiedSince` means the stored watermark is unusable —
-        // most likely written from a device clock by an older build.
         'invalidFields': e.error.fieldErrors.keys.toList(),
       });
       return Failed(_failure(e.error));
@@ -280,6 +342,54 @@ class CustomerSyncRepositoryImpl implements CustomerSyncRepository {
       // it rather than claiming the registration failed — the next sync will
       // bring the row down.
       return Failed(CacheFailure(message: e.message));
+    }
+  }
+
+  /// True when the server refused the request *because of* the stored
+  /// watermark, rather than for any other reason.
+  ///
+  /// Deliberately narrow. A blanket "400 means resync" would turn every
+  /// unrelated validation error into a 31-request re-page, so this requires the
+  /// server to have named `modifiedSince` as the offending parameter — which
+  /// it does, in the per-field `errors` map documented for `General.Validation`.
+  bool _isRejectedWatermark(ApiError error) {
+    final status = error.statusCode;
+    if (status != 400) return false;
+    return error.fieldError('modifiedSince') != null;
+  }
+
+  @override
+  ResultFuture<CustomerCodeLookup> lookupByCode(String code) async {
+    final trimmed = code.trim();
+    if (trimmed.isEmpty) {
+      return const Success(CustomerCodeAbsent());
+    }
+    if (!await _network.isConnected) return const Failed(NetworkFailure());
+
+    // The code itself is customer data, so only its shape is logged.
+    _logger.info('customers.lookupByCode.start',
+        fields: {'codeLength': trimmed.length});
+
+    try {
+      final outcome = await _remote.lookupByCode(trimmed);
+      _logger.info('customers.lookupByCode.done', fields: {
+        'outcome': switch (outcome) {
+          CustomerCodeFound() => 'found',
+          CustomerCodeAbsent() => 'absent',
+          CustomerCodeUnavailable() => 'erpUnavailable',
+        },
+      });
+      return Success(outcome);
+    } on ApiException catch (e) {
+      _logger.error('customers.lookupByCode.failed', fields: {
+        'errorCode': e.error.code,
+        'status': e.error.statusCode,
+        'correlationId': e.error.correlationId,
+      });
+      return Failed(_failure(e.error));
+    } on ServerException catch (e) {
+      return Failed(
+          ServerFailure(message: e.message, statusCode: e.statusCode));
     }
   }
 

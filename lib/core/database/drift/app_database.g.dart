@@ -3504,8 +3504,14 @@ class $CustomerSyncMetaTable extends CustomerSyncMeta
   late final GeneratedColumn<DateTime> lastSyncedAt = GeneratedColumn<DateTime>(
       'last_synced_at', aliasedName, true,
       type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _syncedLanguageMeta =
+      const VerificationMeta('syncedLanguage');
   @override
-  List<GeneratedColumn> get $columns => [entity, lastSyncedAt];
+  late final GeneratedColumn<String> syncedLanguage = GeneratedColumn<String>(
+      'synced_language', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [entity, lastSyncedAt, syncedLanguage];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -3529,6 +3535,12 @@ class $CustomerSyncMetaTable extends CustomerSyncMeta
           lastSyncedAt.isAcceptableOrUnknown(
               data['last_synced_at']!, _lastSyncedAtMeta));
     }
+    if (data.containsKey('synced_language')) {
+      context.handle(
+          _syncedLanguageMeta,
+          syncedLanguage.isAcceptableOrUnknown(
+              data['synced_language']!, _syncedLanguageMeta));
+    }
     return context;
   }
 
@@ -3542,6 +3554,8 @@ class $CustomerSyncMetaTable extends CustomerSyncMeta
           .read(DriftSqlType.string, data['${effectivePrefix}entity'])!,
       lastSyncedAt: attachedDatabase.typeMapping.read(
           DriftSqlType.dateTime, data['${effectivePrefix}last_synced_at']),
+      syncedLanguage: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}synced_language']),
     );
   }
 
@@ -3555,13 +3569,36 @@ class CustomerSyncMetaData extends DataClass
     implements Insertable<CustomerSyncMetaData> {
   final String entity;
   final DateTime? lastSyncedAt;
-  const CustomerSyncMetaData({required this.entity, this.lastSyncedAt});
+
+  /// The `Accept-Language` tag the stored rows were fetched under (`en-US` /
+  /// `km-KH`), or null for a book synced before this column existed.
+  ///
+  /// ## Why the language has to be recorded (schema v21)
+  ///
+  /// `shopName` is localised **by the server**, against the `Accept-Language`
+  /// header of the request that fetched it. A book pulled under `km-KH` holds
+  /// Khmer names; the same rows pulled under `en-US` hold Latin ones. The list
+  /// summary carries no language-independent name — `enName` and `khName` are
+  /// on the detail aggregate only — so the cached row is only correct for the
+  /// language it arrived in.
+  ///
+  /// A delta cannot repair that: `modifiedSince` returns rows the *server*
+  /// changed, and switching language on the device changes nothing server-side.
+  /// So the directory would keep rendering the old language indefinitely.
+  /// Comparing this against the active language turns that into a one-off full
+  /// resync (`docs/feature/customer/mobile/get-customer.md` §Local schema).
+  final String? syncedLanguage;
+  const CustomerSyncMetaData(
+      {required this.entity, this.lastSyncedAt, this.syncedLanguage});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['entity'] = Variable<String>(entity);
     if (!nullToAbsent || lastSyncedAt != null) {
       map['last_synced_at'] = Variable<DateTime>(lastSyncedAt);
+    }
+    if (!nullToAbsent || syncedLanguage != null) {
+      map['synced_language'] = Variable<String>(syncedLanguage);
     }
     return map;
   }
@@ -3572,6 +3609,9 @@ class CustomerSyncMetaData extends DataClass
       lastSyncedAt: lastSyncedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(lastSyncedAt),
+      syncedLanguage: syncedLanguage == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncedLanguage),
     );
   }
 
@@ -3581,6 +3621,7 @@ class CustomerSyncMetaData extends DataClass
     return CustomerSyncMetaData(
       entity: serializer.fromJson<String>(json['entity']),
       lastSyncedAt: serializer.fromJson<DateTime?>(json['lastSyncedAt']),
+      syncedLanguage: serializer.fromJson<String?>(json['syncedLanguage']),
     );
   }
   @override
@@ -3589,16 +3630,20 @@ class CustomerSyncMetaData extends DataClass
     return <String, dynamic>{
       'entity': serializer.toJson<String>(entity),
       'lastSyncedAt': serializer.toJson<DateTime?>(lastSyncedAt),
+      'syncedLanguage': serializer.toJson<String?>(syncedLanguage),
     };
   }
 
   CustomerSyncMetaData copyWith(
           {String? entity,
-          Value<DateTime?> lastSyncedAt = const Value.absent()}) =>
+          Value<DateTime?> lastSyncedAt = const Value.absent(),
+          Value<String?> syncedLanguage = const Value.absent()}) =>
       CustomerSyncMetaData(
         entity: entity ?? this.entity,
         lastSyncedAt:
             lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
+        syncedLanguage:
+            syncedLanguage.present ? syncedLanguage.value : this.syncedLanguage,
       );
   CustomerSyncMetaData copyWithCompanion(CustomerSyncMetaCompanion data) {
     return CustomerSyncMetaData(
@@ -3606,6 +3651,9 @@ class CustomerSyncMetaData extends DataClass
       lastSyncedAt: data.lastSyncedAt.present
           ? data.lastSyncedAt.value
           : this.lastSyncedAt,
+      syncedLanguage: data.syncedLanguage.present
+          ? data.syncedLanguage.value
+          : this.syncedLanguage,
     );
   }
 
@@ -3613,43 +3661,50 @@ class CustomerSyncMetaData extends DataClass
   String toString() {
     return (StringBuffer('CustomerSyncMetaData(')
           ..write('entity: $entity, ')
-          ..write('lastSyncedAt: $lastSyncedAt')
+          ..write('lastSyncedAt: $lastSyncedAt, ')
+          ..write('syncedLanguage: $syncedLanguage')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(entity, lastSyncedAt);
+  int get hashCode => Object.hash(entity, lastSyncedAt, syncedLanguage);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is CustomerSyncMetaData &&
           other.entity == this.entity &&
-          other.lastSyncedAt == this.lastSyncedAt);
+          other.lastSyncedAt == this.lastSyncedAt &&
+          other.syncedLanguage == this.syncedLanguage);
 }
 
 class CustomerSyncMetaCompanion extends UpdateCompanion<CustomerSyncMetaData> {
   final Value<String> entity;
   final Value<DateTime?> lastSyncedAt;
+  final Value<String?> syncedLanguage;
   final Value<int> rowid;
   const CustomerSyncMetaCompanion({
     this.entity = const Value.absent(),
     this.lastSyncedAt = const Value.absent(),
+    this.syncedLanguage = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   CustomerSyncMetaCompanion.insert({
     required String entity,
     this.lastSyncedAt = const Value.absent(),
+    this.syncedLanguage = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : entity = Value(entity);
   static Insertable<CustomerSyncMetaData> custom({
     Expression<String>? entity,
     Expression<DateTime>? lastSyncedAt,
+    Expression<String>? syncedLanguage,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (entity != null) 'entity': entity,
       if (lastSyncedAt != null) 'last_synced_at': lastSyncedAt,
+      if (syncedLanguage != null) 'synced_language': syncedLanguage,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -3657,10 +3712,12 @@ class CustomerSyncMetaCompanion extends UpdateCompanion<CustomerSyncMetaData> {
   CustomerSyncMetaCompanion copyWith(
       {Value<String>? entity,
       Value<DateTime?>? lastSyncedAt,
+      Value<String?>? syncedLanguage,
       Value<int>? rowid}) {
     return CustomerSyncMetaCompanion(
       entity: entity ?? this.entity,
       lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
+      syncedLanguage: syncedLanguage ?? this.syncedLanguage,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -3674,6 +3731,9 @@ class CustomerSyncMetaCompanion extends UpdateCompanion<CustomerSyncMetaData> {
     if (lastSyncedAt.present) {
       map['last_synced_at'] = Variable<DateTime>(lastSyncedAt.value);
     }
+    if (syncedLanguage.present) {
+      map['synced_language'] = Variable<String>(syncedLanguage.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -3685,6 +3745,7 @@ class CustomerSyncMetaCompanion extends UpdateCompanion<CustomerSyncMetaData> {
     return (StringBuffer('CustomerSyncMetaCompanion(')
           ..write('entity: $entity, ')
           ..write('lastSyncedAt: $lastSyncedAt, ')
+          ..write('syncedLanguage: $syncedLanguage, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -24233,12 +24294,14 @@ typedef $$CustomerSyncMetaTableCreateCompanionBuilder
     = CustomerSyncMetaCompanion Function({
   required String entity,
   Value<DateTime?> lastSyncedAt,
+  Value<String?> syncedLanguage,
   Value<int> rowid,
 });
 typedef $$CustomerSyncMetaTableUpdateCompanionBuilder
     = CustomerSyncMetaCompanion Function({
   Value<String> entity,
   Value<DateTime?> lastSyncedAt,
+  Value<String?> syncedLanguage,
   Value<int> rowid,
 });
 
@@ -24256,6 +24319,10 @@ class $$CustomerSyncMetaTableFilterComposer
 
   ColumnFilters<DateTime> get lastSyncedAt => $composableBuilder(
       column: $table.lastSyncedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get syncedLanguage => $composableBuilder(
+      column: $table.syncedLanguage,
+      builder: (column) => ColumnFilters(column));
 }
 
 class $$CustomerSyncMetaTableOrderingComposer
@@ -24273,6 +24340,10 @@ class $$CustomerSyncMetaTableOrderingComposer
   ColumnOrderings<DateTime> get lastSyncedAt => $composableBuilder(
       column: $table.lastSyncedAt,
       builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get syncedLanguage => $composableBuilder(
+      column: $table.syncedLanguage,
+      builder: (column) => ColumnOrderings(column));
 }
 
 class $$CustomerSyncMetaTableAnnotationComposer
@@ -24289,6 +24360,9 @@ class $$CustomerSyncMetaTableAnnotationComposer
 
   GeneratedColumn<DateTime> get lastSyncedAt => $composableBuilder(
       column: $table.lastSyncedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get syncedLanguage => $composableBuilder(
+      column: $table.syncedLanguage, builder: (column) => column);
 }
 
 class $$CustomerSyncMetaTableTableManager extends RootTableManager<
@@ -24321,21 +24395,25 @@ class $$CustomerSyncMetaTableTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<String> entity = const Value.absent(),
             Value<DateTime?> lastSyncedAt = const Value.absent(),
+            Value<String?> syncedLanguage = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               CustomerSyncMetaCompanion(
             entity: entity,
             lastSyncedAt: lastSyncedAt,
+            syncedLanguage: syncedLanguage,
             rowid: rowid,
           ),
           createCompanionCallback: ({
             required String entity,
             Value<DateTime?> lastSyncedAt = const Value.absent(),
+            Value<String?> syncedLanguage = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               CustomerSyncMetaCompanion.insert(
             entity: entity,
             lastSyncedAt: lastSyncedAt,
+            syncedLanguage: syncedLanguage,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0

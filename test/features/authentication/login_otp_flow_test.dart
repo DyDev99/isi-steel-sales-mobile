@@ -193,8 +193,8 @@ void main() {
       final bloc = await atCodeScreen();
 
       bloc.add(const OtpSubmitted('0000'));
-      final state = await bloc.stream.firstWhere(
-          (s) => s is AuthOtpFailureState) as AuthOtpFailureState;
+      final state = await bloc.stream
+          .firstWhere((s) => s is AuthOtpFailureState) as AuthOtpFailureState;
 
       expect(state.attemptDead, isFalse, reason: 'they may try again');
       // Never exchange an unverified attempt — that is the client bug the API
@@ -217,8 +217,8 @@ void main() {
       final bloc = await atCodeScreen();
 
       bloc.add(const OtpSubmitted('0000'));
-      final state = await bloc.stream.firstWhere(
-          (s) => s is AuthOtpFailureState) as AuthOtpFailureState;
+      final state = await bloc.stream
+          .firstWhere((s) => s is AuthOtpFailureState) as AuthOtpFailureState;
 
       expect(state.attemptDead, isTrue);
 
@@ -239,8 +239,8 @@ void main() {
       final bloc = await atCodeScreen();
 
       bloc.add(const OtpSubmitted('1234'));
-      final state = await bloc.stream.firstWhere(
-          (s) => s is AuthOtpFailureState) as AuthOtpFailureState;
+      final state = await bloc.stream
+          .firstWhere((s) => s is AuthOtpFailureState) as AuthOtpFailureState;
 
       expect(state.attemptDead, isTrue);
       await bloc.close();
@@ -259,8 +259,8 @@ void main() {
       final bloc = await atCodeScreen();
 
       bloc.add(const OtpResendRequested());
-      final state = await bloc.stream.firstWhere(
-          (s) => s is AuthOtpRequiredState) as AuthOtpRequiredState;
+      final state = await bloc.stream
+          .firstWhere((s) => s is AuthOtpRequiredState) as AuthOtpRequiredState;
 
       expect(state.challenge.verificationId, 'new-id');
 
@@ -281,8 +281,8 @@ void main() {
       final bloc = await atCodeScreen();
 
       bloc.add(const OtpResendRequested());
-      final state = await bloc.stream.firstWhere(
-          (s) => s is AuthOtpFailureState) as AuthOtpFailureState;
+      final state = await bloc.stream
+          .firstWhere((s) => s is AuthOtpFailureState) as AuthOtpFailureState;
 
       // "Resend" must disappear and the user start again from step 1.
       expect(state.attemptDead, isTrue);
@@ -299,8 +299,8 @@ void main() {
     await bloc.stream.firstWhere((s) => s is AuthGuestState);
 
     expect(session.state, AuthenticationState.guest);
-    verifyNever(() => repo.completePhoneLogin(
-        verificationId: any(named: 'verificationId')));
+    verifyNever(() =>
+        repo.completePhoneLogin(verificationId: any(named: 'verificationId')));
     await bloc.close();
   });
 }

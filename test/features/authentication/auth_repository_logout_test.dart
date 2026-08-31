@@ -43,9 +43,8 @@ void main() {
     when(local.clear).thenAnswer((_) async {});
     when(() => network.isConnected).thenAnswer((_) async => true);
     when(() => remote.logout(
-            refreshToken: any(named: 'refreshToken'),
-            allDevices: any(named: 'allDevices')))
-        .thenAnswer((_) async {});
+        refreshToken: any(named: 'refreshToken'),
+        allDevices: any(named: 'allDevices'))).thenAnswer((_) async {});
   });
 
   test('completes without waiting for server revocation', () async {
@@ -58,9 +57,8 @@ void main() {
     final hung = Completer<void>();
     addTearDown(hung.complete);
     when(() => remote.logout(
-            refreshToken: any(named: 'refreshToken'),
-            allDevices: any(named: 'allDevices')))
-        .thenAnswer((_) => hung.future);
+        refreshToken: any(named: 'refreshToken'),
+        allDevices: any(named: 'allDevices'))).thenAnswer((_) => hung.future);
 
     // Times out rather than passing if the network is ever awaited again.
     await repository.logout().timeout(const Duration(seconds: 1));
@@ -75,8 +73,8 @@ void main() {
 
     verify(local.clear).called(1);
     verifyNever(() => remote.logout(
-            refreshToken: any(named: 'refreshToken'),
-            allDevices: any(named: 'allDevices')));
+        refreshToken: any(named: 'refreshToken'),
+        allDevices: any(named: 'allDevices')));
   });
 
   test('revokes with the outgoing token, read before the store is cleared',
@@ -88,8 +86,7 @@ void main() {
     verifyInOrder([
       () => local.readToken(),
       local.clear,
-      () => remote.logout(
-          refreshToken: token.refreshToken, allDevices: false),
+      () => remote.logout(refreshToken: token.refreshToken, allDevices: false),
     ]);
   });
 
@@ -112,7 +109,7 @@ void main() {
 
     verify(local.clear).called(1);
     verifyNever(() => remote.logout(
-            refreshToken: any(named: 'refreshToken'),
-            allDevices: any(named: 'allDevices')));
+        refreshToken: any(named: 'refreshToken'),
+        allDevices: any(named: 'allDevices')));
   });
 }

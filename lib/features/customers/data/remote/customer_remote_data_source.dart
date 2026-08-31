@@ -1,5 +1,6 @@
 import 'package:isi_steel_sales_mobile/features/customers/data/models/customer_model.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/remote/customer_sync_page.dart';
+import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer_code_lookup.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer_draft.dart';
 
 /// The SAP customer master, as seen from the mobile app. Only ever called
@@ -33,4 +34,18 @@ abstract interface class CustomerRemoteDataSource {
   /// where it cannot trade until someone holding `customers.approve` activates
   /// it. Requires `customers.create`; a rep without it gets 403.
   Future<CustomerModel> create(CustomerDraft draft);
+
+  /// `GET /customers/by-code/{code}` — resolves a customer number the local
+  /// book does not have.
+  ///
+  /// The server checks its own database first and consults SAP only on a miss,
+  /// storing whatever it finds, so the next lookup is local. **Only for an
+  /// explicit full-code lookup** — never the keystroke path, because it can
+  /// reach the ERP.
+  ///
+  /// Returns a [CustomerCodeLookup] rather than a nullable customer so that
+  /// "not found" (safe to offer registration) and "could not reach the ERP"
+  /// (offering registration would duplicate a business partner in SAP) cannot
+  /// be collapsed into one branch.
+  Future<CustomerCodeLookup> lookupByCode(String code);
 }

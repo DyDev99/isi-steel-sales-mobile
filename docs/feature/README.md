@@ -25,6 +25,7 @@ works offline, and where the code lives.
 | **Shell** | `shell` | [shell/README.md](shell/README.md) | UI upgrade plan (proposed, not started) |
 | **Localization** | `localization` | [localization/README.md](localization/README.md) | Migration analysis; the how-to guide is [../skills/localization.md](../skills/localization.md) |
 | **Geo location** | `geo_location` | [geo-location/README.md](geo-location/README.md) | Bundled offline gazetteer, tables, seeding, address selector |
+| **Camera** | `core/camera` | [camera/README.md](camera/README.md) | The capture seam: real camera on a device, bundled test images on the iOS Simulator |
 
 ### Not yet documented
 

@@ -9,10 +9,23 @@ class CustomerEmptyState extends StatelessWidget {
     super.key,
     required this.hasActiveSearchOrFilter,
     this.onClearSearchOrFilter,
+    this.lookupCode,
+    this.onLookupCode,
+    this.isLookingUp = false,
   });
 
   final bool hasActiveSearchOrFilter;
   final VoidCallback? onClearSearchOrFilter;
+
+  /// The code-shaped query to offer a server lookup for, or null when the
+  /// search does not look like a customer number.
+  ///
+  /// The offer is deliberately gated on an explicit action and a code-shaped
+  /// term: `GET /customers/by-code` can reach the ERP, so it must never sit on
+  /// the keystroke path the way local search does.
+  final String? lookupCode;
+  final VoidCallback? onLookupCode;
+  final bool isLookingUp;
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +61,27 @@ class CustomerEmptyState extends StatelessWidget {
                   fontSize: context.rsp(13),
                 ),
               ),
+              // A customer created in SAP since the last nightly sync is
+              // invisible to local search but findable by code, so a rep who
+              // typed a full number gets one explicit way to ask the server.
+              if (lookupCode != null && onLookupCode != null) ...[
+                SizedBox(height: context.rh(16)),
+                if (isLookingUp)
+                  Text(
+                    'customers.lookup_searching'.tr,
+                    style: TextStyle(
+                      color: colors.textSecondary,
+                      fontSize: context.rsp(13),
+                    ),
+                  )
+                else
+                  FilledButton.icon(
+                    onPressed: onLookupCode,
+                    icon: const Icon(Icons.cloud_download_outlined, size: 18),
+                    label: Text('customers.lookup_code'
+                        .trParams({'code': lookupCode!})),
+                  ),
+              ],
               if (onClearSearchOrFilter != null) ...[
                 SizedBox(height: context.rh(16)),
                 TextButton(

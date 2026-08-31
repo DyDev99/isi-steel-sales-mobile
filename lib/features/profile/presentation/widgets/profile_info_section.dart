@@ -7,7 +7,8 @@ import 'package:isi_steel_sales_mobile/features/profile/domain/entities/worker_p
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 class ProfileInfoSection extends StatelessWidget {
-  const ProfileInfoSection({super.key, required this.profile, this.isTablet = false});
+  const ProfileInfoSection(
+      {super.key, required this.profile, this.isTablet = false});
 
   final WorkerProfile profile;
   final bool isTablet;

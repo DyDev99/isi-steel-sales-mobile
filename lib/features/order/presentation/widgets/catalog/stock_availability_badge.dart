@@ -75,10 +75,7 @@ class StockAvailabilityBadge extends StatelessWidget {
           StockBand.low => ('products.status.low_stock'.tr, colors.warning),
           // Sellable, but the yard is empty. Warning rather than success, and
           // its own words rather than "In stock".
-          StockBand.none => (
-              'products.status.none_on_hand'.tr,
-              colors.warning
-            ),
+          StockBand.none => ('products.status.none_on_hand'.tr, colors.warning),
           // No band reported. Falls back to a plain "In stock" rather than
           // inventing a level out of silence.
           StockBand.unknown => ('products.status.in_stock'.tr, colors.success),

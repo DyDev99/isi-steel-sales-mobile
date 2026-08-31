@@ -206,8 +206,8 @@ void main() {
 
   test('a failed refresh clears the session and reports it once', () async {
     var expired = 0;
-    final replayAdapter = _ScriptedAdapter(
-        (_) async => _json({'error': 'invalid_grant'}, 400));
+    final replayAdapter =
+        _ScriptedAdapter((_) async => _json({'error': 'invalid_grant'}, 400));
     final adapter = _ScriptedAdapter((_) async => _json({}, 401));
 
     final dio = build(

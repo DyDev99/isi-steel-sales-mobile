@@ -104,7 +104,12 @@ class QuotationItemCard extends StatelessWidget {
                       ),
                       SizedBox(height: context.rh(4)),
                       Text(
-                        '${item.quantity.toStringAsFixed(0)} ${item.unit} × \$${item.unitPrice.toStringAsFixed(2)}',
+                        // Quantity and unit always read normally; only the
+                        // amount drops out while the line is unpriced.
+                        item.isPricePending
+                            ? '${item.quantity.toStringAsFixed(0)} ${item.unit}'
+                            : '${item.quantity.toStringAsFixed(0)} ${item.unit}'
+                                ' × \$${item.unitPrice.toStringAsFixed(2)}',
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),

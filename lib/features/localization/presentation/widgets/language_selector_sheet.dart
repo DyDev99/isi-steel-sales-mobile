@@ -70,8 +70,7 @@ class _LanguageSelectorSheet extends StatefulWidget {
   final bool isTablet;
 
   @override
-  State<_LanguageSelectorSheet> createState() =>
-      _LanguageSelectorSheetState();
+  State<_LanguageSelectorSheet> createState() => _LanguageSelectorSheetState();
 }
 
 class _LanguageSelectorSheetState extends State<_LanguageSelectorSheet> {

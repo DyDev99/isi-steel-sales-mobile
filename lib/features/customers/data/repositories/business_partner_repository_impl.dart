@@ -1,12 +1,18 @@
 import 'package:isi_steel_sales_mobile/features/customers/data/remote/customer_datasources.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/repositories/business_partner_repository.dart';
+import 'package:isi_steel_sales_mobile/features/customers/data/local/customer_reference_cache.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/models/bp_customer_form_data.dart';
+import 'package:isi_steel_sales_mobile/features/customers/data/models/sap_reference_options.dart';
 
 /// Submission is server-queued: a successful response means the platform
 /// accepted the BP for HQ/SAP processing, not that SAP assigned a number.
 class BusinessPartnerRepositoryImpl implements BusinessPartnerRepository {
-  const BusinessPartnerRepositoryImpl(this._remote);
+  const BusinessPartnerRepositoryImpl(this._remote, [this._references]);
   final CustomerRemoteDataSource _remote;
+
+  /// Optional so an existing test can construct this without a Hive box; when
+  /// absent the dropdowns fall back to the built-in lists.
+  final CustomerReferenceCache? _references;
 
   @override
   Future<CustomerReferenceCatalogue> fetchReferences({
@@ -14,6 +20,35 @@ class BusinessPartnerRepositoryImpl implements BusinessPartnerRepository {
     String? search,
   }) =>
       _remote.fetchRegistrationReferences(kinds: kinds, search: search);
+
+  @override
+  Future<SapReferenceOptions> loadReferenceOptions() async {
+    final cache = _references;
+
+    // Fresh cache wins outright — these change rarely and the form opens on a
+    // counter in a market, where a needless round trip is a stalled rep.
+    final fresh = cache?.readFresh();
+    if (fresh != null && !fresh.isEmpty) return SapReferenceOptions(fresh);
+
+    try {
+      final fetched = await _remote.fetchRegistrationReferences();
+      if (!fetched.isEmpty) {
+        await cache?.write(fetched);
+        return SapReferenceOptions(fetched);
+      }
+    } on Object {
+      // Swallowed deliberately. Reference codes are an accuracy improvement on
+      // the built-in lists, not a precondition for registering a shop, so a
+      // failure here must never surface as an error the rep has to clear.
+    }
+
+    // Stale beats empty: an out-of-date ERP list still contains the codes a rep
+    // needs far more often than the built-in list does.
+    final stale = cache?.readStale();
+    if (stale != null && !stale.isEmpty) return SapReferenceOptions(stale);
+
+    return SapReferenceOptions.empty;
+  }
 
   @override
   Future<OpenedRegistrationDraft> openDraft() async {

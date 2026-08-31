@@ -324,8 +324,8 @@ double _phase(double t, double a, double b, [Curve c = Curves.easeOutCubic]) =>
 /// wordmark is measurable work to produce a pixel-identical result every time.
 final Map<String, TextPainter> _textCache = {};
 
-TextPainter _label(String text, double size, Color color, double spacing,
-    FontWeight weight) {
+TextPainter _label(
+    String text, double size, Color color, double spacing, FontWeight weight) {
   final key = '$text|$size|${color.toARGB32()}|$spacing|${weight.value}';
   return _textCache.putIfAbsent(key, () {
     final tp = TextPainter(
@@ -493,8 +493,20 @@ class _SuccessPainter extends CustomPainter {
   /// this widget is unstable.
   void _paintSkyline(Canvas canvas, double s, Size size) {
     const heights = [
-      0.30, 0.46, 0.22, 0.54, 0.34, 0.62, 0.26, 0.42,
-      0.58, 0.30, 0.48, 0.24, 0.38, 0.28,
+      0.30,
+      0.46,
+      0.22,
+      0.54,
+      0.34,
+      0.62,
+      0.26,
+      0.42,
+      0.58,
+      0.30,
+      0.48,
+      0.24,
+      0.38,
+      0.28,
     ];
     final base = size.height * 0.815;
     final slot = size.width / heights.length;
@@ -528,8 +540,8 @@ class _SuccessPainter extends CustomPainter {
     final base = size.height * 0.815;
 
     for (var i = 0; i < 2; i++) {
-      final grow = _phase(t, _towersIn[0] + i * 0.05,
-          _towersIn[1] + i * 0.05, Curves.easeOutCubic);
+      final grow = _phase(t, _towersIn[0] + i * 0.05, _towersIn[1] + i * 0.05,
+          Curves.easeOutCubic);
       if (grow <= 0) continue;
 
       final cx = size.width * (i == 0 ? 0.215 : 0.305);
@@ -606,11 +618,11 @@ class _SuccessPainter extends CustomPainter {
 
     // Finial, so the pole ends deliberately instead of just stopping.
     if (raise >= 0.98) {
-      canvas.drawCircle(
-          Offset(px, topY), 2.2 * s, Paint()..color = _steelDark);
+      canvas.drawCircle(Offset(px, topY), 2.2 * s, Paint()..color = _steelDark);
     }
 
-    final unfurl = _phase(t, _flagIn[0] + 0.10, _flagIn[1], Curves.easeOutCubic);
+    final unfurl =
+        _phase(t, _flagIn[0] + 0.10, _flagIn[1], Curves.easeOutCubic);
     if (unfurl <= 0) return;
 
     final w = size.width * 0.30;
@@ -668,8 +680,8 @@ class _SuccessPainter extends CustomPainter {
     final available = w - (textLeft - px) - inset * 0.6;
     if (available <= 0) return;
 
-    final title = _label(
-        flagTitle, h * 0.26, Colors.white, h * 0.012, FontWeight.w900);
+    final title =
+        _label(flagTitle, h * 0.26, Colors.white, h * 0.012, FontWeight.w900);
     canvas.save();
     canvas.clipRect(Rect.fromLTWH(textLeft, top, available, h));
     // Scale down rather than clip when a longer name is passed in.
@@ -714,7 +726,9 @@ class _SuccessPainter extends CustomPainter {
     final ry = size.height * 0.048 * settle;
     final depth = size.height * 0.052;
     final top = Rect.fromCenter(
-        center: Offset(size.width * 0.5, ground), width: rx * 2, height: ry * 2);
+        center: Offset(size.width * 0.5, ground),
+        width: rx * 2,
+        height: ry * 2);
 
     // Contact shadow first, so the dais sits *on* something.
     canvas.drawOval(
@@ -831,8 +845,8 @@ class _SuccessPainter extends CustomPainter {
       canvas.drawPath(
         face,
         Paint()
-          ..color = (i.isEven ? _steel : _steelDark)
-              .withValues(alpha: 0.95 * rise),
+          ..color =
+              (i.isEven ? _steel : _steelDark).withValues(alpha: 0.95 * rise),
       );
       // Top edge catches the light — the difference between a stack of sheets
       // and a stack of grey bars.
@@ -1077,8 +1091,7 @@ class _SuccessPainter extends CustomPainter {
 
       // Launched from the badge rim: a particle starting inside the badge has
       // to travel through it before it exists.
-      final out =
-          r0 * 1.05 + Curves.easeOutCubic.transform(launch) * speed;
+      final out = r0 * 1.05 + Curves.easeOutCubic.transform(launch) * speed;
       // Eased travel against squared gravity — that mismatch is what makes it
       // read as thrown rather than scaled.
       final drop = launch * launch * r0 * 2.7;

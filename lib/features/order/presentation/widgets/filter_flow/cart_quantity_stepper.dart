@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
-import 'package:isi_steel_sales_mobile/features/order/domain/entities/material_availability.dart';
 
 /// The quantity control that *is* the add-to-cart action.
 ///
@@ -16,25 +15,38 @@ import 'package:isi_steel_sales_mobile/features/order/domain/entities/material_a
 /// The number is tappable. Steppers are for nudging; a rep entering 250 tonnes
 /// should not be holding a `+`.
 ///
-/// ## What gates `+`, and what deliberately does not
+/// ## Nothing gates this control
 ///
-/// The `+` is gated on **[MaterialAvailability.canOrder] — the status — and
-/// never on the band.**
+/// Not stock, not the unit, not a price. Material selection is independent of
+/// both: a rep may put any catalogue material on a quotation, and stock and
+/// pricing are settled later in the flow.
 ///
-/// There is no on-hand quantity anywhere in this API to bound against. The
-/// stock endpoint answers `"High"` / `"Medium"` / `"Low"` / `"None"`, which
-/// describes how much rather than capping what may be ordered. `Low` is a
-/// warning, not a limit, and blocking on it would refuse orders SAP would
-/// accept.
+/// Three gates have been removed from here in turn, each of which silently
+/// killed the `+` button:
 ///
-/// | Stock | `-` | `n` | `+` |
-/// |---|---|---|---|
-/// | never asked / `checking` / `unknown` | live | editable | live |
-/// | `available` — `High` through `None` | live | editable | live |
-/// | `unavailable` | **live** | locked | **blocked** |
+///  * `enabled: product.isAvailable` — reads an `availableQuantity` the
+///    materials API never fills;
+///  * `max: availableQuantity.floor()` — i.e. `0`, read as a ceiling;
+///  * `stock.canOrder` — SAP's verdict, which answers about a sales area the
+///    handset had often not supplied.
 ///
-/// `-` stays live through a refusal. A rep taking a line back down to zero must
-/// not be stopped by the verdict that is stopping them adding to it.
+/// The only bound left is [maxQuantity], a slipped-thumb guard.
+///
+/// ## Instant on screen, debounced to the cart
+///
+/// The displayed number is **local state**, updated on the same frame as the
+/// tap. It does not wait for the cart write to come back, so a held `+` ramps
+/// at frame rate instead of at the speed of a database round trip.
+///
+/// The write is debounced by [_commitDelay]: a long press that runs from 3 to
+/// 240 produces one cart update, not two hundred and thirty-seven. Each of
+/// those would otherwise persist a row and rebuild the whole product grid,
+/// which is what made the control feel heavy.
+///
+/// [didUpdateWidget] adopts the parent's value whenever no write is in flight,
+/// so an external change — another card editing the same line, a cart reload —
+/// still lands. While a write *is* pending the local value wins, because it is
+/// the newer of the two.
 ///
 /// Named [CartQuantityStepper] rather than `QuantityStepper` because the older
 /// standalone `widgets/filter/quantity_stepper.dart` still exists; two widgets
@@ -44,10 +56,16 @@ class CartQuantityStepper extends StatefulWidget {
     super.key,
     required this.quantity,
     required this.onChanged,
-    this.max,
-    this.enabled = true,
-    this.stock,
+    this.maxQuantity = typoGuard,
   });
+
+  /// The largest quantity the field will accept.
+  ///
+  /// A guard against a slipped thumb turning 25 into 250000 — **not a stock
+  /// ceiling**, and not derived from anything the server said. Nothing on the
+  /// wire supplies an on-hand figure to bound against; the band is a
+  /// description, not a limit.
+  static const int typoGuard = 999999;
 
   final int quantity;
 
@@ -55,36 +73,33 @@ class CartQuantityStepper extends StatefulWidget {
   /// treats zero as "remove this line".
   final ValueChanged<int> onChanged;
 
-  /// A guard against a mistyped `999999`, **not a stock ceiling.** Nothing on
-  /// the wire supplies an on-hand figure to bound this with; the band is not
-  /// one. Null means unbounded.
-  final int? max;
-
-  final bool enabled;
-
-  /// SAP's verdict for this material. Null means never asked, which leaves the
-  /// stepper fully live — a rep is not blocked on a question that has not been
-  /// answered.
-  final MaterialAvailability? stock;
+  final int maxQuantity;
 
   @override
   State<CartQuantityStepper> createState() => _CartQuantityStepperState();
 }
 
+/// How long the control waits after the last change before writing.
+///
+/// Long enough to swallow a burst of taps, short enough that letting go and
+/// looking at the cart shows the new number already there.
+const _commitDelay = Duration(milliseconds: 220);
+
 class _CartQuantityStepperState extends State<CartQuantityStepper> {
   Timer? _repeat;
+  Timer? _commitTimer;
   bool _editing = false;
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
 
-  /// Only the status decides. See the class doc for why the band does not.
-  bool get _canOrder => widget.stock?.canOrder ?? true;
+  /// What the rep sees. Ahead of [CartQuantityStepper.quantity] while a write
+  /// is still on its way to the cart.
+  late int _local = widget.quantity;
 
-  bool get _canDecrease => widget.enabled && widget.quantity > 0;
-  bool get _canIncrease =>
-      widget.enabled &&
-      _canOrder &&
-      (widget.max == null || widget.quantity < widget.max!);
+  bool get _writePending => _commitTimer?.isActive ?? false;
+
+  bool get _canDecrease => _local > 0;
+  bool get _canIncrease => _local < widget.maxQuantity;
 
   @override
   void initState() {
@@ -97,19 +112,95 @@ class _CartQuantityStepperState extends State<CartQuantityStepper> {
   }
 
   @override
+  void didUpdateWidget(covariant CartQuantityStepper oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.quantity == oldWidget.quantity || widget.quantity == _local) {
+      return;
+    }
+    // A burst is still being typed or tapped out — the local value is the
+    // newer of the two, so the parent's echo of an older state must not fight
+    // the rep's thumb.
+    if (_writePending) return;
+    // Nothing in flight, and the parent disagrees with us: it is authoritative.
+    // This covers a rejected write and an edit made somewhere else, both of
+    // which would otherwise leave a number on screen that nothing backs.
+    _local = widget.quantity;
+  }
+
+  @override
   void dispose() {
     _repeat?.cancel();
+    // Never drop a change on the floor because the card scrolled out of view
+    // or the screen was popped: flush synchronously on the way out.
+    if (_writePending) {
+      _commitTimer?.cancel();
+      widget.onChanged(_local);
+    }
     _controller.dispose();
     _focusNode.dispose();
     super.dispose();
   }
 
+  /// Moves the number now and schedules the write for when the taps stop.
+  /// [fromField] marks a change the text field itself produced.
+  ///
+  /// It exists so the controller is written back for a button press but not
+  /// for a keystroke: echoing the rep's own typing into the controller would
+  /// reset the caret to the end on every character.
+  void _setLocal(int next, {bool immediate = false, bool fromField = false}) {
+    if (next == _local) {
+      // Already showing it, but a debounced write may still be queued behind
+      // it — Done must not leave that hanging.
+      if (immediate && _writePending) {
+        _commitTimer?.cancel();
+        widget.onChanged(next);
+      }
+      return;
+    }
+    setState(() => _local = next);
+
+    // The `+` and `-` buttons stay live while the field is open, so the field
+    // has to follow them. Without this the number under the caret kept saying
+    // 800 while the value being committed climbed past it.
+    if (_editing && !fromField) {
+      _controller.text = '$next';
+      _controller.selection =
+          TextSelection.collapsed(offset: _controller.text.length);
+    }
+
+    _commitTimer?.cancel();
+    if (immediate) {
+      widget.onChanged(next);
+      return;
+    }
+    _commitTimer = Timer(_commitDelay, () {
+      if (!mounted) return;
+      widget.onChanged(_local);
+    });
+  }
+
   void _beginEdit() {
-    if (!widget.enabled || !_canOrder) return;
-    _controller.text = '${widget.quantity}';
+    _controller.text = '$_local';
     _controller.selection =
         TextSelection(baseOffset: 0, extentOffset: _controller.text.length);
     setState(() => _editing = true);
+  }
+
+  /// Each keystroke, clamped and scheduled like a button press.
+  ///
+  /// A cleared field is deliberately ignored rather than treated as zero: the
+  /// rep is part-way through replacing the number, and blanking the line under
+  /// them mid-edit would be its own bug. [_commit] applies the same rule when
+  /// they leave the field.
+  void _onTyped(String raw) {
+    final parsed = int.tryParse(raw.trim());
+    if (parsed == null) return;
+    _setLocal(_clamp(parsed), fromField: true);
+  }
+
+  int _clamp(int value) {
+    if (value < 0) return 0;
+    return value > widget.maxQuantity ? widget.maxQuantity : value;
   }
 
   void _commit() {
@@ -120,22 +211,16 @@ class _CartQuantityStepperState extends State<CartQuantityStepper> {
     // It is a rep who cleared the box and tapped away, so nothing changes.
     if (parsed == null) return;
 
-    var next = parsed < 0 ? 0 : parsed;
-    if (widget.max != null && next > widget.max!) next = widget.max!;
-    // A refused line cannot be raised by typing either. Leaving the keyboard as
-    // a way past a blocked `+` would make the disabled button a decoration.
-    if (!_canOrder && next > widget.quantity) next = widget.quantity;
-
-    if (next != widget.quantity) widget.onChanged(next);
+    // Typed and confirmed, so there is no burst to wait out — write it now.
+    // Nothing may be left pending behind a dismissed keyboard.
+    _setLocal(_clamp(parsed), immediate: true);
   }
 
   void _step(int delta) {
-    if (delta > 0 && !_canOrder) return;
-    final next = widget.quantity + delta;
-    if (next < 0) return;
-    if (widget.max != null && next > widget.max!) return;
+    final next = _local + delta;
+    if (next < 0 || next > widget.maxQuantity) return;
     HapticFeedback.selectionClick();
-    widget.onChanged(next);
+    _setLocal(next);
   }
 
   /// Long press ramps up: slow at first so a held thumb doesn't overshoot by
@@ -156,15 +241,19 @@ class _CartQuantityStepperState extends State<CartQuantityStepper> {
   }
 
   void _stopRepeat() {
+    if (_repeat == null) return;
     _repeat?.cancel();
     _repeat = null;
+    // Rebuild so the number's key stops being pinned to 'ramp' and a
+    // subsequent single tap animates again.
+    if (mounted) setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
-    final inCart = widget.quantity > 0;
+    final inCart = _local > 0;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 220),
@@ -190,9 +279,10 @@ class _CartQuantityStepperState extends State<CartQuantityStepper> {
             onLongPressEnd: _stopRepeat,
           ),
           SizedBox(
-            // Wider while editing so a four-digit quantity is not typed into a
-            // slot built for two.
-            width: _editing ? 52 : 34,
+            // Wider while editing so a six-digit quantity is not typed into a
+            // slot built for two. 250000 has to fit without the caret pushing
+            // the leading digits out of view.
+            width: _editing ? context.rw(66) : context.rw(38),
             child: _editing
                 ? TextField(
                     controller: _controller,
@@ -202,12 +292,17 @@ class _CartQuantityStepperState extends State<CartQuantityStepper> {
                     keyboardType: const TextInputType.numberWithOptions(
                         signed: false, decimal: false),
                     textInputAction: TextInputAction.done,
+                    // Typing commits as it goes, on the same debounce as the
+                    // buttons. Waiting for Done meant the cart and the
+                    // quotation preview sat on the old number while a rep
+                    // looked straight at the new one and reasonably concluded
+                    // nothing had happened.
+                    onChanged: _onTyped,
                     onSubmitted: (_) => _focusNode.unfocus(),
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,
-                      if (widget.max != null)
-                        LengthLimitingTextInputFormatter(
-                            '${widget.max}'.length),
+                      LengthLimitingTextInputFormatter(
+                          '${widget.maxQuantity}'.length),
                     ],
                     style: TextStyle(
                       color: scheme.primary,
@@ -232,14 +327,26 @@ class _CartQuantityStepperState extends State<CartQuantityStepper> {
                         child: ScaleTransition(scale: animation, child: child),
                       ),
                       child: Text(
-                        '${widget.quantity}',
-                        key: ValueKey(widget.quantity),
+                        '$_local',
+                        // A held `+` changes this every frame; cross-fading
+                        // each step would smear the number into illegibility,
+                        // so the switcher is pinned during a repeat and only
+                        // animates a deliberate single tap.
+                        key: ValueKey(_repeat == null ? _local : 'ramp'),
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color:
-                              inCart ? scheme.primary : colors.textSecondary,
+                          color: inCart ? scheme.primary : colors.textSecondary,
                           fontSize: context.rsp(14),
                           fontWeight: FontWeight.w800,
+                          // A dotted underline is the only affordance saying
+                          // this number is a field. Without it a rep holds `+`
+                          // to reach 250 rather than typing it, which is the
+                          // behaviour the text entry exists to replace.
+                          decoration: TextDecoration.underline,
+                          decorationStyle: TextDecorationStyle.dotted,
+                          decorationColor:
+                              (inCart ? scheme.primary : colors.textSecondary)
+                                  .withValues(alpha: 0.5),
                         ),
                       ),
                     ),

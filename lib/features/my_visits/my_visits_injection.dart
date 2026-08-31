@@ -72,6 +72,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubi
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/depot_selection_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/depot_stock_count_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/visit_cubit.dart';
+import 'package:isi_steel_sales_mobile/core/camera/image_capture_service.dart';
 
 /// Registers the route-management feature: GPS tracking, geofence
 /// check-in/out, offline visit capture, and the route sync engine.
@@ -116,7 +117,7 @@ Future<void> registerMyVisitsFeature(GetIt sl) async {
   sl.registerLazySingleton<StopDistanceSorter>(
       () => const StopDistanceSorter());
   sl.registerLazySingleton<ProofPhotoService>(
-      () => const CameraProofPhotoService());
+      () => CameraProofPhotoService(sl<ImageCaptureService>()));
 
   // ── Repositories ────────────────────────────────────────────────────
   sl.registerLazySingleton<RouteRepository>(() => RouteRepositoryImpl(sl()));

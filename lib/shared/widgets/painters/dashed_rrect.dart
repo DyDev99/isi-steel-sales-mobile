@@ -75,7 +75,8 @@ List<Offset> flattenRRect(RRect rrect, {int arcSegments = 8}) {
   void arc(Offset centre, double rx, double ry, double startDeg) {
     for (var i = 0; i <= arcSegments; i++) {
       final a = (startDeg + 90.0 * i / arcSegments) * math.pi / 180.0;
-      points.add(Offset(centre.dx + rx * math.cos(a), centre.dy + ry * math.sin(a)));
+      points.add(
+          Offset(centre.dx + rx * math.cos(a), centre.dy + ry * math.sin(a)));
     }
   }
 
@@ -83,20 +84,20 @@ List<Offset> flattenRRect(RRect rrect, {int arcSegments = 8}) {
 
   points.add(Offset(l + rrect.tlRadiusX, t));
   points.add(Offset(r - rrect.trRadiusX, t));
-  arc(Offset(r - rrect.trRadiusX, t + rrect.trRadiusY),
-      rrect.trRadiusX, rrect.trRadiusY, -90);
+  arc(Offset(r - rrect.trRadiusX, t + rrect.trRadiusY), rrect.trRadiusX,
+      rrect.trRadiusY, -90);
 
   points.add(Offset(r, b - rrect.brRadiusY));
-  arc(Offset(r - rrect.brRadiusX, b - rrect.brRadiusY),
-      rrect.brRadiusX, rrect.brRadiusY, 0);
+  arc(Offset(r - rrect.brRadiusX, b - rrect.brRadiusY), rrect.brRadiusX,
+      rrect.brRadiusY, 0);
 
   points.add(Offset(l + rrect.blRadiusX, b));
-  arc(Offset(l + rrect.blRadiusX, b - rrect.blRadiusY),
-      rrect.blRadiusX, rrect.blRadiusY, 90);
+  arc(Offset(l + rrect.blRadiusX, b - rrect.blRadiusY), rrect.blRadiusX,
+      rrect.blRadiusY, 90);
 
   points.add(Offset(l, t + rrect.tlRadiusY));
-  arc(Offset(l + rrect.tlRadiusX, t + rrect.tlRadiusY),
-      rrect.tlRadiusX, rrect.tlRadiusY, 180);
+  arc(Offset(l + rrect.tlRadiusX, t + rrect.tlRadiusY), rrect.tlRadiusX,
+      rrect.tlRadiusY, 180);
 
   points.add(points.first); // close
   return points;

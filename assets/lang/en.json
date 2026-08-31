@@ -687,7 +687,11 @@
     "active_product_mix": "Active Product Mix",
     "no_active_product_lines": "No active product lines found.",
     "cross_sell_gaps": "Cross-Sell Gaps (Tap to target)",
-    "creating_opportunity": "Creating opportunity for {product}…"
+    "creating_opportunity": "Creating opportunity for {product}…",
+    "lookup_code": "Look up {code} on the server",
+    "lookup_searching": "Checking with the server…",
+    "lookup_absent": "No customer with that code exists. You can register the shop.",
+    "lookup_unavailable": "Cannot check right now. Try again later."
   },
   "my_visits": {
     "title": "My Visits",
@@ -1276,6 +1280,9 @@
     "telephone": "Telephone",
     "same_as_mobile": "Same as mobile phone",
     "distribution_channel": "Distribution channel",
+    "sales_org": "Sales organization",
+    "sales_office": "Sales office",
+    "sales_group": "Sales group",
     "division": "Division",
     "customer_group": "Customer group",
     "price_group_auto": "Price group is set automatically",
@@ -1299,9 +1306,11 @@
     "remark_hint": "Add an optional remark",
     "review": "Review",
     "queued_offline": "Saved locally and awaiting sync",
+    "documents_partially_sent": "Customer saved. {count} photo(s) did not upload — reopen the customer to retry.",
     "draft_resumed": "Resumed your unfinished registration",
     "send_for_credit_approval": "Send for credit approval",
-    "commune": "Commune / Sangkat"
+    "commune": "Commune / Sangkat",
+    "unrecognised_code": "{code} (not in the current list)"
   },
   "add_customer.shop_types": {
     "hardware_shop": "Hardware Shop",

@@ -40,7 +40,8 @@ class AssistantBubble extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: Container(
-          padding: EdgeInsets.fromLTRB(context.rw(18), context.rh(16), context.rw(16), context.rh(16)),
+          padding: EdgeInsets.fromLTRB(
+              context.rw(18), context.rh(16), context.rw(16), context.rh(16)),
           decoration: BoxDecoration(
             color: colors.card,
             borderRadius: BorderRadius.circular(context.rr(22)),
@@ -163,7 +164,8 @@ class _Avatar extends StatelessWidget {
           borderRadius: BorderRadius.circular(context.rr(13)),
           border: Border.all(color: color.withValues(alpha: 0.18)),
         ),
-        child: Icon(Icons.auto_awesome_rounded, size: context.rr(20), color: color),
+        child: Icon(Icons.auto_awesome_rounded,
+            size: context.rr(20), color: color),
       );
 }
 
@@ -238,7 +240,8 @@ class _StepPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: EdgeInsets.symmetric(horizontal: context.rw(8), vertical: context.rh(3)),
+        padding: EdgeInsets.symmetric(
+            horizontal: context.rw(8), vertical: context.rh(3)),
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.10),
           borderRadius: BorderRadius.circular(100),
@@ -311,7 +314,8 @@ class _PrimaryButtonState extends State<_PrimaryButton> {
             },
             onHighlightChanged: (v) => setState(() => _pressed = v),
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: context.rw(20), vertical: context.rh(11)),
+              padding: EdgeInsets.symmetric(
+                  horizontal: context.rw(20), vertical: context.rh(11)),
               child: Text(
                 widget.label,
                 style: TextStyle(
@@ -344,7 +348,8 @@ class _TextButton extends StatelessWidget {
           onTap();
         },
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: context.rw(8), vertical: context.rh(8)),
+          padding: EdgeInsets.symmetric(
+              horizontal: context.rw(8), vertical: context.rh(8)),
           child: Text(
             label,
             style: TextStyle(
@@ -379,7 +384,8 @@ class _IconButton extends StatelessWidget {
           onPressed: onTap,
           tooltip: tooltip,
           visualDensity: VisualDensity.compact,
-          constraints: BoxConstraints.tight(Size(context.rr(32), context.rr(32))),
+          constraints:
+              BoxConstraints.tight(Size(context.rr(32), context.rr(32))),
           padding: EdgeInsets.zero,
           icon: Icon(icon, size: context.rr(16), color: color),
         ),

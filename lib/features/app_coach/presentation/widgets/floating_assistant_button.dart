@@ -50,7 +50,8 @@ class _FloatingAssistantButtonState extends State<FloatingAssistantButton>
     return Align(
       alignment: Alignment.bottomRight,
       child: Padding(
-        padding: EdgeInsets.only(right: context.rw(16), bottom: context.rh(16) + bottomInset),
+        padding: EdgeInsets.only(
+            right: context.rw(16), bottom: context.rh(16) + bottomInset),
         child: Semantics(
           button: true,
           label: 'coach.resume_hint'.tr,

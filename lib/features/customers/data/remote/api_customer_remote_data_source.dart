@@ -7,6 +7,8 @@ import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/models/customer_api_mapper.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/models/customer_model.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/remote/customer_remote_data_source.dart';
+import 'package:isi_steel_sales_mobile/features/customers/data/models/portal_customer_mapper.dart';
+import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer_code_lookup.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer_draft.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/remote/customer_sync_page.dart';
 
@@ -107,6 +109,45 @@ class ApiCustomerRemoteDataSource implements CustomerRemoteDataSource {
             message: 'The customer response was missing its payload.');
       }
       return CustomerApiMapper.fromDetail(customer);
+    } on DioException catch (e) {
+      throw ApiException(ApiError.fromDio(e));
+    }
+  }
+
+  @override
+  Future<CustomerCodeLookup> lookupByCode(String code) async {
+    try {
+      final res = await _client.get<dynamic>(
+        '${AppConstants.customersByCodeEndpoint}/$code',
+        // 404 and 502 are answers, not transport failures, so they must reach
+        // the branching below instead of being thrown as DioExceptions.
+        options: Options(
+          validateStatus: (status) =>
+              status != null &&
+              (status == 200 || status == 404 || status == 502),
+        ),
+      );
+
+      switch (res.statusCode) {
+        case 200:
+          // The portal envelope: `{ data, meta }`. `ApiEnvelope` insists on a
+          // `success`-shaped body and would reject this.
+          final customer = PortalCustomerMapper.fromEnvelope(res.data);
+          return customer == null
+              ? const CustomerCodeAbsent()
+              : CustomerCodeFound(customer);
+
+        case 404:
+          // `Customer.NotFoundByCode` — neither the platform nor SAP has it.
+          // The only outcome where offering to register the shop is safe.
+          return const CustomerCodeAbsent();
+
+        default:
+          // 502: the ERP could not be reached. The customer may well exist, so
+          // this must never be presented as "not found" — a registration
+          // offered here creates a duplicate business partner in SAP.
+          return const CustomerCodeUnavailable();
+      }
     } on DioException catch (e) {
       throw ApiException(ApiError.fromDio(e));
     }

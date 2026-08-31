@@ -3,22 +3,26 @@ import 'package:isi_steel_sales_mobile/core/platform/captured_media_store.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
+import 'package:isi_steel_sales_mobile/core/camera/image_capture_service.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/proof_photo_service.dart';
 
 /// Real camera-backed proof photo: captures via `image_picker` (which handles
 /// the native camera permission prompt), then stamps the timestamp + GPS onto
 /// the pixels on a background isolate (`compute`) so the UI thread never jank.
 class CameraProofPhotoService implements ProofPhotoService {
-  const CameraProofPhotoService();
+  const CameraProofPhotoService(this._capture);
+
+  /// The acquisition seam. Whether it is the device camera or the simulator
+  /// stand-in is decided once, in the service locator — the stamping,
+  /// persistence and result shape below are identical either way.
+  final ImageCaptureService _capture;
 
   @override
   Future<ProofPhotoResult?> captureStamped(
       {required double latitude, required double longitude}) async {
-    final XFile? shot = await ImagePicker().pickImage(
-      source: ImageSource.camera,
+    final XFile? shot = await _capture.capture(
       imageQuality: 70, // in-picker compression
       maxWidth: 1600,
-      preferredCameraDevice: CameraDevice.rear,
     );
     if (shot == null) return null; // user backed out of the camera
 

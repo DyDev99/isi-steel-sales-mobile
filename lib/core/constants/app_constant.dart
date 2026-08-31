@@ -66,6 +66,16 @@ class AppConstants {
   // ── Mobile customer endpoints ──────────────────────────────────────
   static const String customersEndpoint = '$apiPrefix/mobile/customers';
 
+  /// `GET /customers/by-code/{code}` — the **portal** surface, deliberately not
+  /// under `/mobile`.
+  ///
+  /// It answers with the portal envelope (`data` + `meta`, no `success`) and the
+  /// portal customer shape (`code` not `customerCode`, a nested `address`, a
+  /// bare `creditLimit` number), so it needs its own parser. Documented as a
+  /// rough edge rather than a design — see
+  /// `docs/feature/customer/mobile/mobile.md` §Looking a customer up by code.
+  static const String customersByCodeEndpoint = '$apiPrefix/customers/by-code';
+
   /// The server clamps `pageSize` to this rather than rejecting a larger
   /// value, so the real size must be read back from `metadata.pageSize`.
   static const int maxPageSize = 200;

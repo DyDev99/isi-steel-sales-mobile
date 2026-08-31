@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/pricing_text.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
@@ -160,7 +162,10 @@ class QuotationDetailScreen extends StatelessWidget {
                   _LineRow(
                       name: context.localized(line.product.displayName),
                       qty: line.quantity,
-                      total: line.lineTotal),
+                      unit: line.unit,
+                      // Null, not zero: the material is on the quotation and
+                      // HQ has simply not priced it yet.
+                      total: line.lineTotalOrNull),
               ],
             ),
           ),
@@ -212,10 +217,22 @@ class QuotationDetailScreen extends StatelessWidget {
 }
 
 class _LineRow extends StatelessWidget {
-  const _LineRow({required this.name, required this.qty, required this.total});
+  const _LineRow({
+    required this.name,
+    required this.qty,
+    required this.total,
+    this.unit = '',
+  });
+
   final String name;
   final double qty;
-  final double total;
+
+  /// The line total, or **null** while HQ has not priced the material.
+  /// Null renders "Waiting for HQ" — never `\$0.00`, which would be a quoted
+  /// price of zero rather than an absent one.
+  final double? total;
+
+  final String unit;
 
   @override
   Widget build(BuildContext context) {
@@ -233,15 +250,17 @@ class _LineRow extends StatelessWidget {
                     fontSize: context.rsp(13),
                     fontWeight: FontWeight.w700)),
           ),
-          Text('x${qty.toStringAsFixed(0)}',
+          Text('x${qty.toStringAsFixed(0)}${unit.isEmpty ? '' : ' $unit'}',
               style: TextStyle(
                   color: colors.textSecondary, fontSize: context.rsp(12))),
           SizedBox(width: context.rw(12)),
-          Text('\$${total.toStringAsFixed(2)}',
-              style: TextStyle(
-                  color: colors.textPrimary,
-                  fontSize: context.rsp(13),
-                  fontWeight: FontWeight.w700)),
+          // Omitted, not placeholdered, while the line has no price.
+          if (!PricingText.isHidden(total))
+            Text(PricingText.amount(total),
+                style: TextStyle(
+                    color: colors.textPrimary,
+                    fontSize: context.rsp(13),
+                    fontWeight: FontWeight.w700)),
         ],
       ),
     );
@@ -254,6 +273,10 @@ class _TotalsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // One unpriced line and the document has no total yet. Summing the rest
+    // would print a confident figure that is missing a line.
+    final pending = quotation.lines.hasPendingPricing;
+
     return Container(
       padding: EdgeInsets.all(context.rr(14)),
       decoration: BoxDecoration(
@@ -261,12 +284,14 @@ class _TotalsCard extends StatelessWidget {
           border: Border.all(color: context.appColors.border)),
       child: Column(
         children: [
-          _Row('orders.quotation_extra.subtotal'.tr, quotation.subtotal),
-          if (quotation.discount > 0)
+          _Row('orders.quotation_extra.subtotal'.tr,
+              pending ? null : quotation.subtotal),
+          if (!pending && quotation.discount > 0)
             _Row('orders.quotation_extra.discount'.tr, -quotation.discount),
-          _Row('orders.quotation_extra.tax'.tr, quotation.tax),
+          _Row('orders.quotation_extra.tax'.tr, pending ? null : quotation.tax),
           Divider(color: context.appColors.divider, height: 20),
-          _Row('orders.quotation_extra.total'.tr, quotation.total,
+          _Row('orders.quotation_extra.total'.tr,
+              pending ? null : quotation.total,
               emphasize: true),
         ],
       ),
@@ -277,7 +302,10 @@ class _TotalsCard extends StatelessWidget {
 class _Row extends StatelessWidget {
   const _Row(this.label, this.value, {this.emphasize = false});
   final String label;
-  final double value;
+
+  /// Null while the document is waiting for HQ pricing.
+  final double? value;
+
   final bool emphasize;
 
   @override
@@ -295,13 +323,14 @@ class _Row extends StatelessWidget {
                     fontSize: emphasize ? 15 : 13,
                     fontWeight: emphasize ? FontWeight.w800 : FontWeight.w500)),
           ),
-          Text('\$${value.toStringAsFixed(2)}',
-              style: TextStyle(
-                  color: emphasize
-                      ? Theme.of(context).colorScheme.primary
-                      : colors.textPrimary,
-                  fontSize: emphasize ? 16 : 13,
-                  fontWeight: emphasize ? FontWeight.w900 : FontWeight.w600)),
+          if (!PricingText.isHidden(value))
+            Text(PricingText.amount(value),
+                style: TextStyle(
+                    color: emphasize
+                        ? Theme.of(context).colorScheme.primary
+                        : colors.textPrimary,
+                    fontSize: emphasize ? 16 : 13,
+                    fontWeight: emphasize ? FontWeight.w900 : FontWeight.w600)),
         ],
       ),
     );

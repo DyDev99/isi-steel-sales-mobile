@@ -11,6 +11,7 @@ import 'package:isi_steel_sales_mobile/core/device/device_insets.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
+import 'package:isi_steel_sales_mobile/core/logging/debug_trace.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/add_customer_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/geo_location/domain/entities/geo_address.dart';
@@ -18,6 +19,11 @@ import 'package:isi_steel_sales_mobile/features/geo_location/domain/usecases/res
 import 'package:isi_steel_sales_mobile/features/geo_location/presentation/widgets/geo_location_selector.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/services/order_location_service.dart';
+import 'package:isi_steel_sales_mobile/core/camera/image_capture_service.dart';
+
+/// Console tracer, sharing the registration channel so the form's own steps
+/// interleave with the bloc's and the HTTP calls' in one readable sequence.
+const _trace = DebugTrace('registration');
 
 class AddCustomerBottomSheet extends StatelessWidget {
   final bool isTablet;
@@ -198,11 +204,26 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
           }
         }
         if (state.status == AddCustomerStatus.success) {
+          // The customer is saved either way. An evidence slot that did not
+          // reach the server is reported here rather than as a failure,
+          // because the registration itself succeeded — but staying silent
+          // would leave the rep believing photographs were filed that are not.
+          final unsent = state.unsentDocuments.length;
+          final message = switch (state) {
+            _ when state.queuedOffline => 'add_customer.queued_offline'.tr,
+            _ when unsent > 0 => 'add_customer.documents_partially_sent'
+                .trParams({'count': unsent}),
+            _ => 'add_customer.success'.tr,
+          };
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.queuedOffline
-                  ? 'add_customer.queued_offline'.tr
-                  : 'add_customer.success'.tr),
+              backgroundColor: unsent > 0 && !state.queuedOffline
+                  ? context.appColors.warning
+                  : null,
+              duration: unsent > 0
+                  ? const Duration(seconds: 6)
+                  : const Duration(seconds: 4),
+              content: Text(message),
             ),
           );
           Navigator.pop(context, true);
@@ -1084,8 +1105,7 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
     try {
       fix = await sl<OrderLocationService>().captureOnce();
     } catch (error) {
-      debugPrint('[CustomerRegistration][GPS] Capture unexpectedly failed: '
-          '$error');
+      _trace.fail('gps', 'capture failed', {'error': error.runtimeType});
     }
     if (!mounted) return;
     setState(() => _capturingGps = false);
@@ -1096,8 +1116,7 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
         ? false
         : _isCambodiaCoordinate(originalFix.lat, originalFix.lng);
     if (kDebugMode && !hasCambodiaFix) {
-      debugPrint('[CustomerRegistration][GPS] Using development Cambodia '
-          'fallback because the captured location is unavailable or outside Cambodia.');
+      _trace.warn('gps', 'development fallback — fix absent or outside KH');
       capturedFix = (
         lat: _developmentCambodiaLatitude,
         lng: _developmentCambodiaLongitude,
@@ -1113,8 +1132,11 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
     // Full precision — SAP stores 11.531871600000001, not 11.53187.
     final latitude = capturedFix.lat;
     final longitude = capturedFix.lng;
-    debugPrint('[CustomerRegistration][GPS] Saving fix to draft: '
-        'lat=$latitude, lng=$longitude');
+    // A shop's position is customer data: whether a fix was captured is
+    // traceable, the coordinates themselves are not (FS-SEC-2).
+    _trace.ok('gps', 'fix saved to draft', {
+      'inKH': DebugTrace.yesNo(_isCambodiaCoordinate(latitude, longitude)),
+    });
     _edit((d) => d.geoFix = GeoFix(
           latitude: latitude,
           longitude: longitude,
@@ -1210,6 +1232,11 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
   // ===========================================================================
   Widget _buildSalesTermsStep(Map<String, String> errors) {
     final draft = _bloc.state.draft;
+    // The ERP's own catalogues, falling back per-dropdown to the built-in lists
+    // when they have not been loaded. The built-in lists are materially shorter
+    // than SAP's — payment terms 4 vs 28, customer groups 5 vs 8 — so a rep
+    // picking from them can choose a code the push will be rejected for.
+    final refs = _bloc.state.references;
     final needsCredit =
         SapMasterData.paymentTermNeedsCreditApproval(draft.paymentTerm);
 
@@ -1219,7 +1246,7 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
         _label('add_customer.customer_group'.tr, required: true),
         _dropdown(
           value: draft.customerGroup,
-          options: SapMasterData.customerGroup,
+          options: refs.customerGroup,
           hint: 'add_customer.pick_one'.tr,
           error: errors['customerGroup'],
           onChanged: (v) => _edit((d) => d.customerGroup = v),
@@ -1236,7 +1263,7 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
         _label('add_customer.payment_term'.tr, required: true),
         _dropdown(
           value: draft.paymentTerm,
-          options: SapMasterData.paymentTerm,
+          options: refs.paymentTerm,
           error: errors['paymentTerm'],
           onChanged: (v) => _edit((d) => d.paymentTerm = v),
         ),
@@ -1269,10 +1296,37 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
         ),
         if (_showAdvancedTerms) ...[
           _gap(),
+          _label('add_customer.sales_org'.tr, required: true),
+          _dropdown(
+            value: draft.salesOrg,
+            options: refs.salesOrg,
+            hint: 'add_customer.pick_one'.tr,
+            error: errors['salesOrg'],
+            onChanged: (v) => _edit((d) => d.salesOrg = v),
+          ),
+          _gap(),
+          _label('add_customer.sales_office'.tr, required: true),
+          _dropdown(
+            value: draft.salesOffice,
+            options: refs.salesOffice,
+            hint: 'add_customer.pick_one'.tr,
+            error: errors['salesOffice'],
+            onChanged: (v) => _edit((d) => d.salesOffice = v),
+          ),
+          _gap(),
+          _label('add_customer.sales_group'.tr, required: true),
+          _dropdown(
+            value: draft.salesGroupCode,
+            options: refs.salesGroup,
+            hint: 'add_customer.pick_one'.tr,
+            error: errors['salesGroup'],
+            onChanged: (v) => _edit((d) => d.salesGroupCode = v),
+          ),
+          _gap(),
           _label('add_customer.distribution_channel'.tr, required: true),
           _dropdown(
             value: draft.distributionChannel,
-            options: SapMasterData.distributionChannel,
+            options: refs.distributionChannel,
             error: errors['distributionChannel'],
             onChanged: (v) => _edit((d) => d.distributionChannel = v),
           ),
@@ -1280,7 +1334,7 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
           _label('add_customer.division'.tr, required: true),
           _dropdown(
             value: draft.divisionCode,
-            options: SapMasterData.division,
+            options: refs.division,
             error: errors['division'],
             onChanged: (v) => _edit((d) => d.divisionCode = v),
           ),
@@ -1296,7 +1350,7 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
           _label('add_customer.shipping_condition'.tr, required: true),
           _dropdown(
             value: draft.shippingCondition,
-            options: SapMasterData.shippingCondition,
+            options: refs.shippingCondition,
             error: errors['shippingCondition'],
             onChanged: (v) => _edit((d) => d.shippingCondition = v),
           ),
@@ -1765,11 +1819,13 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
   Future<void> _capturePhoto(String kind) async {
     // Camera only — the point is on-site evidence, not a gallery pick.
     // Compress to <=1600px / ~300KB before queueing; reps are on 3G.
-    final photo = await ImagePicker().pickImage(
-      source: ImageSource.camera,
+    //
+    // Resolved from the locator rather than constructed here, so the simulator
+    // gets the stand-in and a device gets the lens without this screen knowing
+    // which (`docs/feature/camera/README.md`).
+    final XFile? photo = await sl<ImageCaptureService>().capture(
       imageQuality: 70,
       maxWidth: 1600,
-      preferredCameraDevice: CameraDevice.rear,
     );
     if (photo == null || !mounted) return;
     _bloc.add(AttachmentAdded(BpAttachment(kind: kind, localPath: photo.path)));
@@ -2092,8 +2148,37 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
     String? hint,
     String? error,
     bool isDisabled = false,
-    bool showCode = true,
+    // Names only, by default.
+    //
+    // A rep picks "Battambang", not "0003". The code is a key SAP needs on the
+    // wire, not something a person in a shop should have to read past —
+    // prefixing every option with it made a 28-entry payment-term list read as
+    // a wall of identifiers. The code is still what gets submitted; only the
+    // label changes.
+    bool showCode = false,
   }) {
+    // The stored value is not guaranteed to be in the list.
+    //
+    // `DropdownButton` asserts that exactly one item matches its value, so an
+    // unmatched code crashes the whole form — which is what a resumed draft
+    // still carrying `T00` did after the payment terms were corrected against
+    // the live catalogue. It also happens whenever SAP retires a code the app
+    // has already stored.
+    //
+    // The value is kept and shown rather than silently dropped: blanking it
+    // would leave the draft holding a code the rep can neither see nor
+    // correct, and submit would carry it to SAP regardless. Surfacing it as
+    // unrecognised lets them pick a real one.
+    final resolved = [...options];
+    final hasValue = value != null && value.isNotEmpty;
+    if (hasValue && !resolved.any((o) => o.code == value)) {
+      resolved.insert(
+        0,
+        SapOption(
+            value, 'add_customer.unrecognised_code'.trParams({'code': value})),
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -2115,7 +2200,9 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
-              value: value,
+              // Empty string is not a selection; passing it would assert for
+              // the same reason an unknown code does.
+              value: hasValue ? value : null,
               isExpanded: true,
               hint: Text(
                 hint ?? '',
@@ -2136,7 +2223,7 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
               ),
               items: isDisabled
                   ? null
-                  : options
+                  : resolved
                       .map((o) => DropdownMenuItem<String>(
                             value: o.code,
                             child: Text(

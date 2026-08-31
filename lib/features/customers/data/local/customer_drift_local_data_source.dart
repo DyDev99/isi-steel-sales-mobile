@@ -155,11 +155,24 @@ class CustomerDriftLocalDataSource implements CustomerLocalDataSource {
   }
 
   @override
-  Future<void> setLastSyncedAt(String entity, DateTime at) async {
+  Future<void> setLastSyncedAt(
+    String entity,
+    DateTime at, {
+    String? language,
+  }) async {
     try {
-      await _dao.setLastSyncedAt(entity, at);
+      await _dao.setLastSyncedAt(entity, at, language: language);
     } catch (e) {
       throw CacheException(message: 'Failed to write sync metadata: $e');
+    }
+  }
+
+  @override
+  Future<String?> getSyncedLanguage(String entity) async {
+    try {
+      return await _dao.getSyncedLanguage(entity);
+    } catch (e) {
+      throw CacheException(message: 'Failed to read sync metadata: $e');
     }
   }
 }

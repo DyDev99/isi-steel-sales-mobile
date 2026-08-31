@@ -131,7 +131,13 @@ class CartLineBinding {
         // Freeze what the card was showing when the rep tapped. Without this
         // the line silently re-prices on the next catalog sync — including on
         // a quotation the customer has already been shown.
-        unitPrice: product.effectivePrice,
+        //
+        // Null when there is nothing to freeze. `effectivePrice` answers `0.0`
+        // for an unpriced material, and snapshotting that zero would make the
+        // line look *priced* — `CartItem.pricingStatus` reads a non-null
+        // override as authoritative — so the quotation would print `$0.00`
+        // instead of "Waiting for HQ".
+        unitPrice: product.pricing.isPriced ? product.effectivePrice : null,
       );
     } else {
       await cart.updateQuantity(existing.id, quantity.toDouble());
@@ -139,12 +145,23 @@ class CartLineBinding {
     return verdict;
   }
 
-  /// "3 × $11.59 = $34.77" for the in-cart confirmation line.
+  /// "3 × \$11.59 = \$34.77" for the in-cart confirmation line, or just the
+  /// quantity while the material has no official price.
   ///
   /// Reads the committed line's own price when there is one, so the label keeps
   /// showing what was agreed rather than what the catalog currently lists.
   String lineTotalLabel(Product product, int quantity) {
-    final unitPrice = lineFor(product)?.unitPrice ?? product.effectivePrice;
+    final line = lineFor(product);
+
+    // A committed line answers for itself; an uncommitted one is pending
+    // exactly when the catalogue has no price for the material. Either way the
+    // quantity is still shown — the line is valid, only the amount is missing.
+    // No amount to show, so none is shown — not a placeholder. The quantity
+    // still confirms the line went in.
+    final pending = line?.isPricePending ?? !product.pricing.isPriced;
+    if (pending) return '$quantity × ${product.unit}';
+
+    final unitPrice = line?.unitPrice ?? product.effectivePrice;
     final total = unitPrice * quantity;
     return '$quantity × \$${unitPrice.toStringAsFixed(2)}'
         ' = \$${total.toStringAsFixed(2)}';

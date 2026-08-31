@@ -17,7 +17,8 @@ void main() {
   setUp(() => handle = SemanticsBinding.instance.ensureSemantics());
   tearDown(() => handle.dispose());
 
-  Widget shellWithSwitcher({required bool useFillLayout, required bool paused}) {
+  Widget shellWithSwitcher(
+      {required bool useFillLayout, required bool paused}) {
     // A real Sliver-backed list, standing in for the coach's anchor target
     // (e.g. the Home tab's MonthlyTargetCard) sitting beneath the switcher —
     // the semantics tree has to merge across both.
@@ -29,7 +30,8 @@ void main() {
     final child = paused
         ? const Align(
             alignment: Alignment.bottomRight,
-            child: SizedBox(width: 120, height: 120, child: ColoredBox(color: Colors.blue)),
+            child: SizedBox(
+                width: 120, height: 120, child: ColoredBox(color: Colors.blue)),
           )
         : Container(
             color: Colors.black.withValues(alpha: 0.6),
@@ -48,8 +50,10 @@ void main() {
                     ? (currentChild, previousChildren) => Stack(
                           fit: StackFit.expand,
                           children: [
-                            for (final c in previousChildren) Positioned.fill(child: c),
-                            if (currentChild != null) Positioned.fill(child: currentChild),
+                            for (final c in previousChildren)
+                              Positioned.fill(child: c),
+                            if (currentChild != null)
+                              Positioned.fill(child: currentChild),
                           ],
                         )
                     : AnimatedSwitcher.defaultLayoutBuilder,
@@ -110,8 +114,8 @@ void main() {
     final stackSize = tester.getSize(find.byType(Scaffold));
     final positioned =
         tester.widgetList<Positioned>(find.byType(Positioned)).toList();
-    final fillPositioned =
-        positioned.where((p) => p.left == 0 && p.right == 0 && p.top == 0 && p.bottom == 0);
+    final fillPositioned = positioned.where(
+        (p) => p.left == 0 && p.right == 0 && p.top == 0 && p.bottom == 0);
     expect(fillPositioned, isNotEmpty);
     expect(stackSize, isNot(const Size(120, 120)));
   });

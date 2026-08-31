@@ -233,8 +233,6 @@ class StopInformationScreen extends StatelessWidget {
   }
 }
 
-
-
 class _HeroCard extends StatefulWidget {
   const _HeroCard({required this.stop});
   final RouteStop stop;
@@ -248,8 +246,8 @@ class _HeroCardState extends State<_HeroCard> {
 
   Future<void> _captureCard() async {
     try {
-      final boundary = _cardKey.currentContext?.findRenderObject()
-          as RenderRepaintBoundary?;
+      final boundary =
+          _cardKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
       if (boundary == null) return;
 
       final image = await boundary.toImage(pixelRatio: 3.0);
@@ -322,23 +320,22 @@ class _HeroCardState extends State<_HeroCard> {
                 ),
               ),
             ),
-          
-              IconButton(
-                icon: Icon(
-                  Icons.camera_alt_outlined,
-                  color: colors.textSecondary,
-                  size: context.rr(22),
-                ),
-                tooltip: 'my_visits.screenshot'.tr,
-                onPressed: _captureCard,
-              )
-            
+            IconButton(
+              icon: Icon(
+                Icons.camera_alt_outlined,
+                color: colors.textSecondary,
+                size: context.rr(22),
+              ),
+              tooltip: 'my_visits.screenshot'.tr,
+              onPressed: _captureCard,
+            )
           ],
         ),
       ),
     );
   }
 }
+
 class _OutletInfoCard extends StatelessWidget {
   const _OutletInfoCard({
     required this.stop,

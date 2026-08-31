@@ -342,10 +342,13 @@ void main() {
   });
 
   group('quantity validation', () {
-    test('cannot order more than the SKU\'s own warehouse holds', () {
+    test('more than the warehouse holds is still allowed', () {
+      // Material selection is independent of stock. This used to be refused,
+      // and for a material from the selection API — which supplies no on-hand
+      // figure at all, so `availableQuantity` is 0 — it refused every line.
       final verdict = validateAgainstSku(sku: branchSku, quantity: 100);
-      expect(verdict.isValid, isFalse);
-      expect(verdict.issue, OrderLineIssue.exceedsAvailableStock);
+      expect(verdict.isValid, isTrue);
+      // Still *reported*, for anything that wants to show it. Just not a gate.
       expect(verdict.availableQuantity, 45);
     });
 
@@ -354,12 +357,12 @@ void main() {
           validateAgainstSku(sku: factorySku, quantity: 100).isValid, isTrue);
     });
 
-    test('lines already in the cart count against availability', () {
+    test('lines already in the cart do not restrict a new one', () {
       expect(
         validateAgainstSku(sku: branchSku, quantity: 30, alreadyInCart: 30)
-            .issue,
-        OrderLineIssue.exceedsAvailableStock,
-        reason: 'two lines that each fit can together over-commit the branch',
+            .isValid,
+        isTrue,
+        reason: 'availability is settled later in the workflow, not here',
       );
     });
 

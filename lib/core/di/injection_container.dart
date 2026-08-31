@@ -2,6 +2,8 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
+import 'package:isi_steel_sales_mobile/core/camera/camera_factory.dart';
+import 'package:isi_steel_sales_mobile/core/camera/image_capture_service.dart';
 import 'package:isi_steel_sales_mobile/core/config/env.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/app_database_rekey_executor.dart';
@@ -40,6 +42,7 @@ import 'package:isi_steel_sales_mobile/features/notification/notification_inject
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/stock_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/profile/profile_injection.dart';
 import 'package:isi_steel_sales_mobile/features/settings/theme/theme_injection.dart';
+import 'package:isi_steel_sales_mobile/routes/app_routes.dart';
 
 /// Global service locator.
 final GetIt sl = GetIt.instance;
@@ -80,6 +83,18 @@ Future<void> initDependencies() async {
 
   // ── Observability (SECURITY.md §10: structured, PII-free) ──────────
   sl.registerLazySingleton<AppLogger>(() => const ConsoleAppLogger());
+
+  // ── Camera ──────────────────────────────────────────────────────────
+  //
+  // The one place the runtime environment is allowed to decide anything about
+  // the camera. Features resolve `ImageCaptureService` and use what they get;
+  // none of them may ask whether it is running on a simulator.
+  //
+  // Under the default `CAMERA_MODE=auto` this is the real camera everywhere
+  // except the iOS Simulator, which has no camera hardware at all. Override
+  // with `--dart-define=CAMERA_MODE=mock|real`.
+  sl.registerLazySingleton<ImageCaptureService>(
+      () => CameraFactory.resolve(navigatorKey: navigatorKey));
 
   // ── Connectivity (ADR-005: real reachability, not interface-up) ─────
   // One instance, app-wide: the UI status pill and the sync drain trigger must

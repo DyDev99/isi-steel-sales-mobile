@@ -2,7 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/utils/colors.dart';
 
-/// The app's standard card: updated to feature an adaptive glassmorphism (blur) 
+/// The app's standard card: updated to feature an adaptive glassmorphism (blur)
 /// effect that shifts between dark and light themes.
 class GlassCard extends StatelessWidget {
   const GlassCard({
@@ -21,12 +21,12 @@ class GlassCard extends StatelessWidget {
     // Check if the current theme is dark or light
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final radius = BorderRadius.circular(AppColors.radius);
-    
+
     // Assign black or white with opacity accordingly
-    final blurColor = isDark 
-        ? Colors.black.withValues(alpha: 0.3) 
+    final blurColor = isDark
+        ? Colors.black.withValues(alpha: 0.3)
         : Colors.white.withValues(alpha: 0.3);
-        
+
     final borderColor = isDark
         ? Colors.white.withValues(alpha: 0.1)
         : Colors.white.withValues(alpha: 0.4);
@@ -40,7 +40,7 @@ class GlassCard extends StatelessWidget {
             color: blurColor,
             borderRadius: radius,
             border: Border.all(color: borderColor, width: 1.5),
-            // Optional: you can add a subtle shadow here if you want to keep 
+            // Optional: you can add a subtle shadow here if you want to keep
             // the colors.cardShadow vibe from the old design.
           ),
           child: Material(
@@ -49,11 +49,11 @@ class GlassCard extends StatelessWidget {
             clipBehavior: Clip.antiAlias,
             child: InkWell(
               onTap: onTap,
-              hoverColor: isDark 
-                  ? Colors.white.withValues(alpha: 0.1) 
+              hoverColor: isDark
+                  ? Colors.white.withValues(alpha: 0.1)
                   : Colors.black.withValues(alpha: 0.05),
               child: Padding(
-                padding: padding, 
+                padding: padding,
                 child: child,
               ),
             ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/pricing_text.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
@@ -23,7 +24,13 @@ class CartSummaryBar extends StatelessWidget {
 
   final int lineCount;
   final double totalQuantity;
-  final double subtotal;
+
+  /// The running total, or **null** while any line is waiting for HQ pricing.
+  ///
+  /// Null renders "Waiting for HQ" rather than a figure. A subtotal that
+  /// silently omits the unpriced lines is a smaller, wronger number than no
+  /// subtotal at all — and it is the one sitting in front of the customer.
+  final double? subtotal;
   final VoidCallback? onTap;
 
   @override
@@ -90,8 +97,8 @@ class CartSummaryBar extends StatelessWidget {
                           ),
                         ),
                         child: Text(
-                          '\$${subtotal.toStringAsFixed(2)}',
-                          key: ValueKey(subtotal.toStringAsFixed(2)),
+                          PricingText.amount(subtotal),
+                          key: ValueKey('subtotal-$subtotal'),
                           style: TextStyle(
                             color: scheme.primary,
                             fontSize: context.rsp(16),

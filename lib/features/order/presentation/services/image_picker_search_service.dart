@@ -1,4 +1,5 @@
 import 'package:image_picker/image_picker.dart';
+import 'package:isi_steel_sales_mobile/core/camera/image_capture_service.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/services/image_search_service.dart';
 
 /// Real `image_picker`-backed implementation of visual product search.
@@ -10,7 +11,11 @@ import 'package:isi_steel_sales_mobile/features/order/domain/services/image_sear
 /// catalog keyword — enough to return genuine product cards and exercise the
 /// whole flow end to end.
 class ImagePickerSearchService implements ImageSearchService {
-  const ImagePickerSearchService();
+  const ImagePickerSearchService(this._capture);
+
+  /// The acquisition seam — real camera on a device, bundled test image on the
+  /// simulator. The keyword matching below is unchanged either way.
+  final ImageCaptureService _capture;
 
   static const List<String> _catalogKeywords = [
     'Rebar',
@@ -31,10 +36,10 @@ class ImagePickerSearchService implements ImageSearchService {
 
   @override
   Future<String?> matchQuery(ImageSearchSource source) async {
-    final XFile? file = await ImagePicker().pickImage(
-      source: source == ImageSearchSource.camera
-          ? ImageSource.camera
-          : ImageSource.gallery,
+    final XFile? file = await _capture.pick(
+      source == ImageSearchSource.camera
+          ? ImageCaptureSource.camera
+          : ImageCaptureSource.gallery,
       imageQuality: 70,
       maxWidth: 1280,
     );

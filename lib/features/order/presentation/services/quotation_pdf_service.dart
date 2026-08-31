@@ -4,6 +4,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/pricing_text.dart';
 
 class QuotationPdfService {
   Future<pw.Document> generateQuotationDocument({
@@ -26,7 +27,8 @@ class QuotationPdfService {
           pw.SizedBox(height: 16),
           _buildItemsTable(items),
           pw.SizedBox(height: 16),
-          _buildSummary(subtotal, discount, tax, total),
+          _buildSummary(subtotal, discount, tax, total,
+              pending: items.hasPendingPricing),
         ],
       ),
     );
@@ -134,35 +136,41 @@ class QuotationPdfService {
               style: const pw.TextStyle(fontSize: 9)),
           pw.Text('${item.quantity.toStringAsFixed(0)} ${item.unit}',
               style: const pw.TextStyle(fontSize: 9)),
-          pw.Text('\$${item.unitPrice.toStringAsFixed(2)}',
+          // Blank rather than `\$0.00`: a quotation is a document the customer
+          // keeps, and a zero on it is a price they can hold the rep to.
+          pw.Text(PricingText.amount(item.unitPriceOrNull),
               style: const pw.TextStyle(fontSize: 9)),
-          pw.Text('\$${item.lineTotal.toStringAsFixed(2)}',
+          pw.Text(PricingText.amount(item.lineTotalOrNull),
               style: const pw.TextStyle(fontSize: 9)),
         ];
       }).toList(),
     );
   }
 
+  /// [pending] blanks every figure rather than printing a total that is
+  /// missing a line. A quotation is a document a customer keeps, so a subtotal
+  /// that silently omits an unpriced material is the worst of the options.
   pw.Widget _buildSummary(
-      double subtotal, double discount, double tax, double total) {
+      double subtotal, double discount, double tax, double total,
+      {required bool pending}) {
     return pw.Align(
       alignment: pw.Alignment.centerRight,
       child: pw.Container(
         width: 200,
         child: pw.Column(
           children: [
-            _summaryRow('Subtotal', subtotal),
-            _summaryRow('Discount', -discount),
-            _summaryRow('Tax (10%)', tax),
+            _summaryRow('Subtotal', pending ? null : subtotal),
+            if (!pending) _summaryRow('Discount', -discount),
+            _summaryRow('Tax (10%)', pending ? null : tax),
             pw.Divider(),
-            _summaryRow('Total Amount', total, isBold: true),
+            _summaryRow('Total Amount', pending ? null : total, isBold: true),
           ],
         ),
       ),
     );
   }
 
-  pw.Widget _summaryRow(String label, double value, {bool isBold = false}) {
+  pw.Widget _summaryRow(String label, double? value, {bool isBold = false}) {
     return pw.Padding(
       padding: const pw.EdgeInsets.symmetric(vertical: 2),
       child: pw.Row(
@@ -176,7 +184,7 @@ class QuotationPdfService {
             ),
           ),
           pw.Text(
-            '\$${value.toStringAsFixed(2)}',
+            PricingText.amount(value),
             style: pw.TextStyle(
               fontWeight: isBold ? pw.FontWeight.bold : pw.FontWeight.normal,
             ),

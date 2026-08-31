@@ -1,4 +1,5 @@
 import 'package:isi_steel_sales_mobile/features/customers/data/models/bp_customer_form_data.dart';
+import 'package:isi_steel_sales_mobile/features/customers/data/models/sap_reference_options.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/remote/customer_datasources.dart';
 
 class BusinessPartnerSubmitResult {
@@ -26,6 +27,15 @@ abstract interface class BusinessPartnerRepository {
     Iterable<String>? kinds,
     String? search,
   });
+
+  /// The ERP catalogues the registration dropdowns read, cache-first.
+  ///
+  /// Never throws and never returns nothing usable: a network failure falls back
+  /// to the last cached copy, and an empty cache falls back to the built-in
+  /// lists. A rep must always be able to finish a registration, so an
+  /// unreachable reference endpoint degrades the *accuracy* of the dropdowns,
+  /// never their availability.
+  Future<SapReferenceOptions> loadReferenceOptions();
 
   /// Resumes the rep's open registration form, or starts a new one.
   ///

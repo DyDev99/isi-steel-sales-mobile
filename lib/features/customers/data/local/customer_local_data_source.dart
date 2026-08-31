@@ -36,5 +36,13 @@ abstract interface class CustomerLocalDataSource {
   Future<void> markDeleted(List<String> ids);
 
   Future<DateTime?> getLastSyncedAt(String entity);
-  Future<void> setLastSyncedAt(String entity, DateTime at);
+  Future<void> setLastSyncedAt(String entity, DateTime at, {String? language});
+
+  /// The `Accept-Language` tag the cached rows were fetched under.
+  ///
+  /// Null means "unknown" — a book synced before the language was recorded.
+  /// Callers treat unknown as a match rather than forcing a resync, because a
+  /// gratuitous 31-request re-page on upgrade is worse than the small chance
+  /// that an old book is in the other language.
+  Future<String?> getSyncedLanguage(String entity);
 }

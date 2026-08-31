@@ -170,8 +170,9 @@ class StopDashboardCubit extends Cubit<StopDashboardState> {
             VisitStatus.checkedIn => VisitStatus.checkedOut,
             _ => stop.status,
           };
-          stops.add(
-              corrected != stop.status ? stop.copyWith(status: corrected) : stop);
+          stops.add(corrected != stop.status
+              ? stop.copyWith(status: corrected)
+              : stop);
         } else {
           stops.add(stop);
         }

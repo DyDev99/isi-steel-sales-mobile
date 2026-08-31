@@ -5,7 +5,7 @@ import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
 /// The single source of truth for the encrypted database's schema version.
 /// Bump this by exactly one whenever a schema change ships, and add the matching
 /// step to [_stepwiseMigrations].
-const int kCurrentSchemaVersion = 20;
+const int kCurrentSchemaVersion = 21;
 
 /// Keys under which the migrator records bookkeeping in `app_metadata`, so the
 /// on-device schema history is auditable and a failed/partial upgrade is
@@ -497,6 +497,23 @@ final Map<int, SchemaMigrationStep> _stepwiseMigrations =
     await _createTableIfMissing(m, db, db.geoDistricts);
     await _createTableIfMissing(m, db, db.geoCommunes);
     await _createTableIfMissing(m, db, db.geoVillages);
+  },
+  // v21: record which language the customer book was synced under.
+  //
+  // Additive and nullable, so this is a pure `addColumn` with no data rewrite.
+  // Null on every existing row, which reads as "unknown language" — the sync
+  // repository treats that as a match rather than forcing every installed
+  // device through a full resync on upgrade for a book that is almost
+  // certainly already in the right language.
+  //
+  // Why it is needed: `shopName` is localised server-side against
+  // `Accept-Language`, and the list summary carries no language-independent
+  // name. A delta cannot fix a stale language because nothing changed
+  // server-side, so without this the directory renders the language it was
+  // first synced in forever.
+  21: (m, db) async {
+    await _addColumnIfMissing(
+        m, db, db.customerSyncMeta, db.customerSyncMeta.syncedLanguage);
   },
 };
 

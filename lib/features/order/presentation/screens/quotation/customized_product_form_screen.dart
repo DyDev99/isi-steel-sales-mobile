@@ -11,6 +11,8 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/customiz
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/customization/customization_state.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/drawing_upload_component.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
+import 'package:isi_steel_sales_mobile/core/camera/image_capture_service.dart';
+import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 
 /// Category-aware product customization. Which measurement fields appear
 /// (length / width / height / thickness / diameter) is driven by the base
@@ -31,7 +33,7 @@ class CustomizedProductFormScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => CustomizationCubit()
+      create: (_) => CustomizationCubit(capture: sl<ImageCaptureService>())
         ..updateUnit(baseProduct.unit)
         ..seedMeasurements(_prefill(baseProduct)),
       child: _CustomizedProductFormView(

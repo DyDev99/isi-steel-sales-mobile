@@ -99,6 +99,25 @@ class CustomerSyncMeta extends Table {
   TextColumn get entity => text()();
   DateTimeColumn get lastSyncedAt => dateTime().nullable()();
 
+  /// The `Accept-Language` tag the stored rows were fetched under (`en-US` /
+  /// `km-KH`), or null for a book synced before this column existed.
+  ///
+  /// ## Why the language has to be recorded (schema v21)
+  ///
+  /// `shopName` is localised **by the server**, against the `Accept-Language`
+  /// header of the request that fetched it. A book pulled under `km-KH` holds
+  /// Khmer names; the same rows pulled under `en-US` hold Latin ones. The list
+  /// summary carries no language-independent name — `enName` and `khName` are
+  /// on the detail aggregate only — so the cached row is only correct for the
+  /// language it arrived in.
+  ///
+  /// A delta cannot repair that: `modifiedSince` returns rows the *server*
+  /// changed, and switching language on the device changes nothing server-side.
+  /// So the directory would keep rendering the old language indefinitely.
+  /// Comparing this against the active language turns that into a one-off full
+  /// resync (`docs/feature/customer/mobile/get-customer.md` §Local schema).
+  TextColumn get syncedLanguage => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {entity};
 }

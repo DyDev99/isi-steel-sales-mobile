@@ -6,6 +6,7 @@ import 'package:isi_steel_sales_mobile/core/localization/localization_services.d
 import 'package:isi_steel_sales_mobile/core/localization/localized_builder.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer.dart';
+import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customer_code_lookup_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customer_sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customers_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customers_event.dart';
@@ -71,6 +72,7 @@ class CustomersScreen extends StatelessWidget {
             create: (_) =>
                 sl<CustomersBloc>()..add(const CustomersLoadRequested())),
         BlocProvider(create: (_) => sl<CustomerSyncCubit>()..syncIfNeeded()),
+        BlocProvider(create: (_) => sl<CustomerCodeLookupCubit>()),
       ],
       child: const _CustomersView(),
     );
@@ -118,28 +120,71 @@ class _CustomersViewState extends State<_CustomersView> {
     return LocalizedBuilder(
       builder: (context) => Scaffold(
         backgroundColor: Theme.of(context).colorScheme.surface,
-        body: BlocBuilder<CustomersBloc, CustomersState>(
-          builder: (context, state) {
-            return switch (state) {
-              CustomersLoaded() => _Loaded(
-                  state: state,
-                  quickAccess: _quickAccess,
-                  onQuickAccessChanged: (q) => setState(() => _quickAccess = q),
-                  scrollController: _scrollController,
-                  onOpenDetail: (id) => _openDetail(context, id),
-                ),
-              CustomersError(:final message) => CustomerErrorState(
-                  message: message,
-                  onRetry: () => context
-                      .read<CustomersBloc>()
-                      .add(const CustomersLoadRequested()),
-                ),
-              _ => const CustomerLoading(),
-            };
-          },
+        // The by-code lookup's three outcomes are handled here, and they are
+        // deliberately not interchangeable: "absent" invites a registration,
+        // "unavailable" must not — offering one when the ERP merely could not
+        // be reached creates a duplicate business partner in SAP.
+        body: BlocListener<CustomerCodeLookupCubit, CustomerCodeLookupState>(
+          listener: _onLookupResult,
+          child: BlocBuilder<CustomersBloc, CustomersState>(
+            builder: (context, state) {
+              return switch (state) {
+                CustomersLoaded() => _Loaded(
+                    state: state,
+                    quickAccess: _quickAccess,
+                    onQuickAccessChanged: (q) =>
+                        setState(() => _quickAccess = q),
+                    scrollController: _scrollController,
+                    onOpenDetail: (id) => _openDetail(context, id),
+                  ),
+                CustomersError(:final message) => CustomerErrorState(
+                    message: message,
+                    onRetry: () => context
+                        .read<CustomersBloc>()
+                        .add(const CustomersLoadRequested()),
+                  ),
+                _ => const CustomerLoading(),
+              };
+            },
+          ),
         ),
       ),
     );
+  }
+
+  void _onLookupResult(BuildContext context, CustomerCodeLookupState state) {
+    final messenger = ScaffoldMessenger.of(context);
+
+    switch (state) {
+      case CodeLookupFound(:final customer):
+        // The portal payload carries the platform id, so the ordinary detail
+        // screen can open it directly — no second resolution step.
+        context.read<CustomerCodeLookupCubit>().reset();
+        _openDetail(context, customer.id);
+
+      case CodeLookupAbsent():
+        // Safe to point the rep at registration: the code exists nowhere.
+        messenger.showSnackBar(
+          SnackBar(content: Text('customers.lookup_absent'.tr)),
+        );
+
+      case CodeLookupUnavailable():
+        // Explicitly NOT an invitation to register.
+        messenger.showSnackBar(SnackBar(
+          backgroundColor: Theme.of(context).colorScheme.error,
+          content: Text('customers.lookup_unavailable'.tr),
+        ));
+
+      case CodeLookupFailed(:final message):
+        messenger.showSnackBar(SnackBar(
+          backgroundColor: Theme.of(context).colorScheme.error,
+          content: Text(message),
+        ));
+
+      case CodeLookupIdle():
+      case CodeLookupInProgress():
+        break;
+    }
   }
 }
 
@@ -283,15 +328,33 @@ class _Loaded extends StatelessWidget {
           ),
           if (items.isEmpty)
             SliverFillRemaining(
-              child: CustomerEmptyState(
-                hasActiveSearchOrFilter:
-                    state.query.isNotEmpty || !state.filter.isEmpty,
-                onClearSearchOrFilter:
-                    state.query.isNotEmpty || !state.filter.isEmpty
-                        ? () => context
-                            .read<CustomersBloc>()
-                            .add(const CustomersFiltersCleared())
-                        : null,
+              child:
+                  BlocBuilder<CustomerCodeLookupCubit, CustomerCodeLookupState>(
+                builder: (context, lookup) {
+                  // Offered only when the term is code-shaped. A rep typing a
+                  // shop name must not be invited to spend a round trip that
+                  // can reach the ERP.
+                  final code = looksLikeCustomerCode(state.query)
+                      ? state.query.trim()
+                      : null;
+                  return CustomerEmptyState(
+                    hasActiveSearchOrFilter:
+                        state.query.isNotEmpty || !state.filter.isEmpty,
+                    onClearSearchOrFilter:
+                        state.query.isNotEmpty || !state.filter.isEmpty
+                            ? () => context
+                                .read<CustomersBloc>()
+                                .add(const CustomersFiltersCleared())
+                            : null,
+                    lookupCode: code,
+                    onLookupCode: code == null
+                        ? null
+                        : () => context
+                            .read<CustomerCodeLookupCubit>()
+                            .lookup(code),
+                    isLookingUp: lookup is CodeLookupInProgress,
+                  );
+                },
               ),
             )
           else

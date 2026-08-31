@@ -111,6 +111,11 @@ class _SalesOrderScreenState extends State<SalesOrderScreen> {
                   children: [
                     for (final item in items)
                       QuotationLineTile(
+                        // Keyed by line: the quantity stepper inside holds a
+                        // local value while its write is in flight, and an
+                        // unkeyed list would pass it to whichever line slid
+                        // into that position.
+                        key: ValueKey(item.id),
                         item: item,
                         showStockStatus: true,
                         onQuantityChanged: (q) => context

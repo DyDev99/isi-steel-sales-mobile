@@ -770,8 +770,8 @@ class _InVisitVsAdHocCard extends StatelessWidget {
                                   vertical: context.rh(2),
                                 ),
                                 decoration: BoxDecoration(
-                                  color: scheme.onSurface
-                                      .withValues(alpha: 0.08),
+                                  color:
+                                      scheme.onSurface.withValues(alpha: 0.08),
                                   borderRadius: BorderRadius.circular(
                                     context.rr(10),
                                   ),
@@ -843,8 +843,8 @@ class _InVisitVsAdHocCard extends StatelessWidget {
                                   vertical: context.rh(2),
                                 ),
                                 decoration: BoxDecoration(
-                                  color: scheme.onSurface
-                                      .withValues(alpha: 0.08),
+                                  color:
+                                      scheme.onSurface.withValues(alpha: 0.08),
                                   borderRadius: BorderRadius.circular(
                                     context.rr(10),
                                   ),

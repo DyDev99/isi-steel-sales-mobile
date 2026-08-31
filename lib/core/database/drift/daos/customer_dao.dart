@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/tables/customer_related_tables.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/tables/customers_table.dart';
+import 'package:isi_steel_sales_mobile/core/utils/text_normalization.dart';
 
 part 'customer_dao.g.dart';
 
@@ -63,20 +64,25 @@ class CustomerDao extends DatabaseAccessor<AppDatabase>
         // partial match would silently widen the filter.
         if (salesOrg != null) cond = cond & t.salesOrg.equals(salesOrg);
         if (division != null) cond = cond & t.division.equals(division);
-        final trimmed = query.trim();
+        // Zero-width characters are stripped from the term here and from the
+        // name columns in SQL below, mirroring what the server does. Without
+        // it, roughly a fifth of Khmer names are unfindable by typing the
+        // name shown on screen — see `stripZeroWidth`.
+        final trimmed = normalizeSearchTerm(query);
         if (trimmed.isNotEmpty) {
           // SQLite's LIKE is already case-insensitive for ASCII, which covers
-          // the codes and Latin names searched here.
+          // the codes and Latin names searched here. Khmer has no case, so
+          // folding is a no-op on those columns.
           final like = '%$trimmed%';
           cond = cond &
-              (t.shopName.like(like) |
+              (_searchable(t.shopName).like(like) |
                   t.customerCode.like(like) |
                   t.ownerName.like(like) |
                   t.phone.like(like) |
                   // v9 fields — the brief's requirement that typing "PRD" or
                   // "Steel" finds customers by sales area, not just by name.
-                  t.enName.like(like) |
-                  t.khName.like(like) |
+                  _searchable(t.enName).like(like) |
+                  _searchable(t.khName).like(like) |
                   t.salesOrg.like(like) |
                   t.division.like(like));
         }
@@ -85,6 +91,29 @@ class CustomerDao extends DatabaseAccessor<AppDatabase>
       ..orderBy([(t) => _ordering(t, sort)])
       ..limit(pageSize + 1, offset: page * pageSize);
     return statement.get();
+  }
+
+  /// A name column with SAP's zero-width word-break hints removed, for
+  /// comparison against an equally-stripped search term.
+  ///
+  /// Emits nested `replace()` calls rather than normalising on write, because
+  /// the stored value must stay byte-identical to what SAP sent: it is what the
+  /// list renders, and a delivery note carries the shopfront name exactly as
+  /// the ERP holds it.
+  ///
+  /// The term itself is still a bound parameter — the column name is the only
+  /// thing interpolated, and it comes from the generated schema, never from
+  /// user input.
+  Expression<String> _searchable(GeneratedColumn<String> column) {
+    Expression<String> stripped = column;
+    for (final character in kZeroWidthCharacters) {
+      stripped = FunctionCallExpression('replace', [
+        stripped,
+        Variable<String>(character),
+        const Constant<String>(''),
+      ]);
+    }
+    return stripped;
   }
 
   OrderingTerm _ordering($CustomersTable t, CustomerBrowseSort sort) {
@@ -255,12 +284,31 @@ class CustomerDao extends DatabaseAccessor<AppDatabase>
     return row?.lastSyncedAt;
   }
 
-  Future<void> setLastSyncedAt(String entity, DateTime at) {
+  /// Records the watermark and, when supplied, the language the rows were
+  /// fetched under. The two are written together on purpose: a watermark that
+  /// outlived its language would let a delta resume against rows localised for
+  /// a language the user is no longer reading.
+  Future<void> setLastSyncedAt(
+    String entity,
+    DateTime at, {
+    String? language,
+  }) {
     return into(customerSyncMeta).insertOnConflictUpdate(
       CustomerSyncMetaCompanion.insert(
         entity: entity,
         lastSyncedAt: Value(at),
+        syncedLanguage:
+            language == null ? const Value.absent() : Value(language),
       ),
     );
+  }
+
+  /// The `Accept-Language` tag the stored rows were fetched under, or null for
+  /// a book synced before the column existed.
+  Future<String?> getSyncedLanguage(String entity) async {
+    final row = await (select(customerSyncMeta)
+          ..where((t) => t.entity.equals(entity)))
+        .getSingleOrNull();
+    return row?.syncedLanguage;
   }
 }

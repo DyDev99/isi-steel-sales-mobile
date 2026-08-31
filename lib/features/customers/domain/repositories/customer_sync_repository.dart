@@ -1,5 +1,6 @@
 import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer.dart';
+import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer_code_lookup.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer_draft.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer_sync_result.dart';
 
@@ -37,4 +38,19 @@ abstract interface class CustomerSyncRepository {
   /// allowed to set; persisting the draft instead would put a customer in the
   /// cache that the server would contradict on the next sync.
   ResultFuture<Customer> createCustomer(CustomerDraft draft);
+
+  /// Resolves a customer number the local book does not have.
+  ///
+  /// The server checks its database first and asks SAP only on a miss, which is
+  /// what makes this useful: a customer created in the ERP since the last
+  /// nightly sync is invisible to search but findable here.
+  ///
+  /// **Only for an explicit full-code lookup** — a rep typing or scanning a
+  /// customer number. Never the keystroke path: it can reach the ERP, and the
+  /// browse list is local precisely so search costs nothing.
+  ///
+  /// The outcome is a [CustomerCodeLookup], not a nullable customer, so a
+  /// caller cannot conflate "does not exist" with "could not ask" — see that
+  /// type for why the difference is expensive.
+  ResultFuture<CustomerCodeLookup> lookupByCode(String code);
 }

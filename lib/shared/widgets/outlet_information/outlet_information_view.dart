@@ -292,8 +292,7 @@ class OutletDetailsCard extends StatelessWidget {
       if (data.telegram case final v?)
         _InfoRowSpec(icon: Icons.send_rounded, label: 'Telegram', value: v),
       if (data.email case final v?)
-        _InfoRowSpec(
-            icon: Icons.email_outlined, label: 'Email', value: v),
+        _InfoRowSpec(icon: Icons.email_outlined, label: 'Email', value: v),
       if (data.address case final v?)
         _InfoRowSpec(
             icon: Icons.location_on_outlined,
@@ -373,9 +372,7 @@ class OutletSalesHistoryCard extends StatelessWidget {
             icon: Icons.payments_outlined, label: 'Lifetime Value', value: v),
       if (data.totalOrders case final v?)
         _InfoRowSpec(
-            icon: Icons.shopping_bag_outlined,
-            label: 'Total Orders',
-            value: v),
+            icon: Icons.shopping_bag_outlined, label: 'Total Orders', value: v),
       if (data.averageRevenuePerOrder case final v?)
         _InfoRowSpec(
             icon: Icons.trending_up_rounded,

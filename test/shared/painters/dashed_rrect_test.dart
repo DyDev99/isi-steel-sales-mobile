@@ -44,7 +44,8 @@ void main() {
         const Offset(10, 10),
         const Offset(0, 10),
       ]) {
-        expect(corners.contains(c), isTrue, reason: '$c must be on the outline');
+        expect(corners.contains(c), isTrue,
+            reason: '$c must be on the outline');
       }
     });
   });

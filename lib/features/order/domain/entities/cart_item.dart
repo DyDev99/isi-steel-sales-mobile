@@ -3,6 +3,7 @@ import 'package:isi_steel_sales_mobile/features/order/domain/entities/data_domai
     show CustomizationMeasurement;
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/fulfillment.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/price_tier.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/entities/pricing_status.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.dart';
 
 /// A single line in the cart / quotation.
@@ -98,6 +99,34 @@ class CartItem extends Equatable {
 
   // ── Money ─────────────────────────────────────────────────────────────
 
+  /// Whether this line has an official price yet.
+  ///
+  /// A snapshot taken when the line was added is authoritative — it is a number
+  /// the rep already quoted, so it stays [PricingStatus.available] even if the
+  /// catalogue underneath later loses its price. Otherwise the live catalogue
+  /// decides, and the materials API supplies no price at all, so lines sourced
+  /// from it are pending until HQ says otherwise.
+  /// Resolved from the amount itself, not from whether a field was set.
+  ///
+  /// A snapshot of `0.0` is not a price. Reading a non-null override as proof
+  /// of pricing let a zero through and printed `\$0.00` on a quotation, so the
+  /// test is on the resolved number: anything at or below zero is "no price
+  /// yet", whatever produced it.
+  PricingStatus get pricingStatus =>
+      unitPrice > 0 ? PricingStatus.available : PricingStatus.waitingForHq;
+
+  bool get isPricePending => pricingStatus.isPending;
+
+  /// The agreed unit price, or **null** while waiting for HQ.
+  ///
+  /// Prefer this over [unitPrice] anywhere the value reaches a screen, a
+  /// document or a total. [unitPrice] answers `0.0` for a pending line because
+  /// dozens of arithmetic call sites need a double, and `0.0` rendered as
+  /// `$0.00` is the exact confusion [PricingStatus] exists to prevent.
+  double? get unitPriceOrNull => isPricePending ? null : unitPrice;
+
+  double? get lineTotalOrNull => isPricePending ? null : lineTotal;
+
   double get unitPrice =>
       unitPriceOverride ?? product.pricing.effectivePrice(priceTier);
   double get lineSubtotal => unitPrice * quantity;
@@ -160,4 +189,21 @@ class CartItem extends Equatable {
         drawingImagePath,
         customizationDescription,
       ];
+}
+
+/// Pricing roll-ups over a set of lines.
+///
+/// One place, so the cart bar, the quotation preview, the detail screen and the
+/// PDF cannot disagree about whether a document has a total yet.
+extension CartPricing on Iterable<CartItem> {
+  /// True when at least one line is still waiting for HQ.
+  ///
+  /// One pending line makes the **whole document** pending: a subtotal that
+  /// silently omits a line is a smaller, wronger number than no subtotal at
+  /// all, and it is the one a customer would be shown.
+  bool get hasPendingPricing => any((item) => item.isPricePending);
+
+  /// The document total, or null while any line is pending.
+  double? get pricedSubtotal =>
+      hasPendingPricing ? null : fold<double>(0, (sum, i) => sum + i.lineTotal);
 }

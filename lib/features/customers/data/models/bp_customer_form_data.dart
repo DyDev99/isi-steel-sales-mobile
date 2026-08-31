@@ -17,6 +17,8 @@
 
 import 'package:isi_steel_sales_mobile/features/geo_location/domain/entities/geo_address.dart';
 
+import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer_document.dart';
+
 /// The five capture steps of the "Add Customer" bottom sheet.
 enum BpFormStep {
   identity, // 1. Who is the customer          (BP header + names)
@@ -101,40 +103,138 @@ class SapMasterData {
   // bundled gazetteer. Use `GeoLocationSelector`; see
   // `docs/features/geo-location/README.md`.
 
+  // ── Sales area ─────────────────────────────────────────────────────
+  //
+  // Previously not offered: `salesOrg` and `salesOffice` came from the rep's
+  // session and `salesGroup` was the constant `010`, so a rep registering a
+  // shop in Battambang filed it against Phnom Penh. All three are part of the
+  // sales area SAP requires, and getting one wrong is not a validation error —
+  // it is a customer routed to the wrong office.
+
+  static const List<SapOption> salesOrg = [
+    SapOption('0001', 'Phnom Penh (ISI)'),
+    SapOption('0002', 'Building Solutions'),
+    SapOption('0003', 'Battambang'),
+    SapOption('0004', 'Sihanoukville'),
+    SapOption('0005', 'Kampong Cham'),
+    SapOption('0006', 'Kampong Thom'),
+    SapOption('0007', 'Takeo'),
+    SapOption('0008', 'Svay Rieng'),
+    SapOption('0009', 'Siem Riep'),
+    SapOption('0010', 'Kratie'),
+    SapOption('0011', 'Pursat'),
+    SapOption('0012', 'Banteaymeanchey'),
+    SapOption('0013', 'Kampong Chhang'),
+    SapOption('0014', 'Rorkar Korng'),
+    SapOption('0015', 'Udong'),
+    SapOption('0016', 'Svay Antor'),
+    SapOption('0017', 'Kean Svay'),
+    SapOption('0018', 'Tbong Khmum'),
+    SapOption('0019', 'Phnom Penh (GVM)'),
+    SapOption('0020', 'Export'),
+    SapOption('0021', 'Export (GVM)'),
+    SapOption('9999', 'Internal'),
+  ];
+
+  static const List<SapOption> salesOffice = [
+    SapOption('0001', 'Phnom Penh'),
+    SapOption('0002', 'Building Solutions'),
+    SapOption('0003', 'Battambang'),
+    SapOption('0004', 'Sihanoukville'),
+    SapOption('0005', 'Kampong Cham'),
+    SapOption('0006', 'Kampong Thom'),
+    SapOption('0007', 'Takeo'),
+    SapOption('0008', 'Svay Rieng'),
+    SapOption('0009', 'Siem Riep'),
+    SapOption('0010', 'Kratie'),
+    SapOption('0011', 'Pursat'),
+    SapOption('0012', 'Banteaymeanchey'),
+    SapOption('0013', 'Kampong Chhang'),
+    SapOption('0014', 'Rorkar Korng'),
+    SapOption('0015', 'Udong'),
+    SapOption('0016', 'Svay Antor'),
+    SapOption('0017', 'Kean Svay'),
+    SapOption('0018', 'Tbong Khmum'),
+    SapOption('0019', 'Phnom Penh (GVM)'),
+    SapOption('0020', 'Export'),
+  ];
+
+  static const List<SapOption> salesGroup = [
+    SapOption('010', 'Channel Sales'),
+    SapOption('020', 'Project Sales'),
+    SapOption('030', 'Sales Showroom'),
+    SapOption('040', 'Export Sales'),
+    SapOption('050', 'Key Account Sales'),
+    SapOption('060', 'Digital Sales'),
+  ];
+
   static const List<SapOption> distributionChannel = [
-    SapOption('10', 'End User'),
-    SapOption('20', 'Dealer'),
-    SapOption('30', 'Project'),
+    SapOption('10', 'End-User'),
+    SapOption('20', 'Local Builder'),
+    SapOption('30', 'Craftsman'),
+    SapOption('40', 'PIPE Maker'),
+    SapOption('50', 'Contractor'),
+    SapOption('60', 'Developer'),
+    SapOption('70', 'Distributor'),
+    SapOption('80', 'Exporter'),
+    SapOption('99', 'Internal'),
   ];
 
   static const List<SapOption> division = [
     SapOption('10', 'ISI Steel'),
+    SapOption('20', 'Mekong Homes'),
+    SapOption('30', 'Palm Truss'),
+    SapOption('40', 'Galva Coil'),
+    SapOption('99', 'Internal'),
   ];
 
   /// Replaces the old free-text "Shop Type" dropdown.
   static const List<SapOption> customerGroup = [
-    SapOption('01', 'End User', 'អ្នកប្រើប្រាស់ចុងក្រោយ'),
-    SapOption('02', 'Retailer', 'អ្នកលក់រាយ'),
-    SapOption('03', 'Wholesaler', 'អ្នកលក់ដុំ'),
-    SapOption('04', 'Distributor', 'អ្នកចែកចាយ'),
-    SapOption('05', 'Key Account', 'គណនីសំខាន់'),
+    SapOption('01', 'End-User', 'អ្នកប្រើប្រាស់ចុងក្រោយ'),
+    SapOption('02', 'Local Builder'),
+    SapOption('03', 'Craftsman'),
+    SapOption('04', 'PIPE Maker'),
+    SapOption('05', 'Contractor'),
+    SapOption('06', 'Developer'),
+    SapOption('07', 'Distributor', 'អ្នកចែកចាយ'),
+    SapOption('08', 'Exporter'),
   ];
 
-  /// Price group is normally derived 1:1 from customer group.
+  /// Price group derived from customer group.
+  ///
+  /// **Corrected against the live catalogues.** The previous map emitted `12`,
+  /// `13`, `14` and `15` — none of which exist in SAP's price groups (`11`,
+  /// `21`, `31`, `41`, `51`, `52`, `53`, `61`, `71`). Every registration that
+  /// derived one carried a price group the ERP would reject.
+  ///
+  /// The real relationship is by *name*, not by arithmetic: customer group
+  /// `05 Contractor` pairs with price group `51 Contractor`. This map is the
+  /// offline fallback; when the catalogues are loaded,
+  /// `SapReferenceOptions.priceGroupFor` matches on the name instead, so a new
+  /// pairing added in SAP works without an app release.
+  ///
+  /// `08 Exporter` is deliberately absent — SAP publishes no matching price
+  /// group, and inventing one would be worse than leaving it unset.
   static const Map<String, String> priceGroupByCustomerGroup = {
-    '01': '11', // End User
-    '02': '12', // Retailer
-    '03': '13', // Wholesaler
-    '04': '14', // Distributor
-    '05': '15', // Key Account
+    '01': '11', // End-User
+    '02': '21', // Local Builder
+    '03': '31', // Craftsman
+    '04': '41', // PIPE Maker
+    '05': '51', // Contractor
+    '06': '61', // Developer
+    '07': '71', // Distributor
   };
 
   static const List<SapOption> priceGroup = [
-    SapOption('11', 'End User'),
-    SapOption('12', 'Retailer'),
-    SapOption('13', 'Wholesaler'),
-    SapOption('14', 'Distributor'),
-    SapOption('15', 'Key Account'),
+    SapOption('11', 'End-User'),
+    SapOption('21', 'Local Builder'),
+    SapOption('31', 'Craftsman'),
+    SapOption('41', 'PIPE Maker'),
+    SapOption('51', 'Contractor'),
+    SapOption('52', 'Key Account'),
+    SapOption('53', 'ISI Group'),
+    SapOption('61', 'Developer'),
+    SapOption('71', 'Distributor'),
   ];
 
   static const List<SapOption> deliveryPriority = [
@@ -144,21 +244,59 @@ class SapMasterData {
   ];
 
   static const List<SapOption> shippingCondition = [
-    SapOption('01', 'ISI Service'),
+    SapOption('01', 'ISI Services'),
     SapOption('02', 'Customer Pickup'),
-    SapOption('03', '3rd Party Transport'),
   ];
 
   static const List<SapOption> paymentTerm = [
-    SapOption('T00', 'Cash / Prepayment'),
-    SapOption('T07', '7 days due net'),
-    SapOption('T14', '14 days due net'),
-    SapOption('T30', '30 days due net'),
+    // Cash and cash-equivalent — no credit exposure.
+    SapOption('TCIA', 'CIA-Cash in Advance'),
+    SapOption('TCOD', 'COD-Cash on Delivery'),
+    // Net terms.
+    SapOption('T007', '7 days due net'),
+    SapOption('T014', '14 day due net'),
+    SapOption('T015', '15 days due net'),
+    SapOption('T030', '30 days due net'),
+    SapOption('T045', '45 days due net'),
+    SapOption('T060', '60 days due net'),
+    SapOption('T070', '70 days due net'),
+    SapOption('T075', '75 days due net'),
+    SapOption('T090', '90 days due net'),
+    SapOption('T120', '120 days due net'),
+    // Due on a day of the following month.
+    SapOption('TN05', 'Due 05th next month'),
+    SapOption('TN15', 'Due 15th next month'),
+    SapOption('TN20', 'Due 20th next month'),
+    SapOption('TN25', 'Due 25th next month'),
+    SapOption('TN30', 'Due 30th next month'),
+    SapOption('TN50', 'Due 50th next month'),
+    SapOption('TN60', 'Due 60th next month'),
+    // Letter of credit — export trade.
+    SapOption('LCAS', 'LC At sight'),
+    SapOption('LC30', 'LC after sight 30 days'),
+    SapOption('LC45', 'LC after sight 45 days'),
+    SapOption('LC60', 'LC after sight 60 days'),
+    SapOption('LC90', 'LC after sight 90 days'),
+    SapOption('BL30', 'LC after BL date 30days'),
+    SapOption('BL45', 'LC after BL date 45days'),
+    SapOption('BL60', 'LC after BL date 60days'),
+    SapOption('BL90', 'LC after BL date 90days'),
   ];
 
-  /// Anything other than T00 is a credit sale and needs HQ credit approval.
+  /// Payment terms that settle before or on delivery, so no credit is extended.
+  ///
+  /// The old rule was `code != 'T00'`, against a hard-coded list whose only
+  /// cash term was `T00` — a code SAP does not publish. Every real term
+  /// therefore looked like a credit sale, including cash on delivery.
+  static const Set<String> cashPaymentTerms = {'TCIA', 'TCOD'};
+
+  /// True when the term extends credit and so needs HQ approval.
+  ///
+  /// Unknown codes are treated as credit deliberately: a term this build has
+  /// not seen is more safely routed through an approval it did not need than
+  /// waved through as cash it was not.
   static bool paymentTermNeedsCreditApproval(String? code) =>
-      code != null && code != 'T00';
+      code != null && code.isNotEmpty && !cashPaymentTerms.contains(code);
 
   static const List<SapOption> taxClass = [
     SapOption('0', 'Non VAT'),
@@ -221,18 +359,49 @@ class GeoFix {
       '${latitude.toStringAsFixed(6)}, ${longitude.toStringAsFixed(6)}';
 }
 
-/// One captured document / photo.
+/// One captured document / photo, held on the device until the customer exists.
+///
+/// Evidence cannot be uploaded during the wizard: the documents endpoint is
+/// addressed by customer id, and the customer is not created until submit. So
+/// the rep photographs the shop while standing in it, and the files go up once
+/// the registration has returned an id
+/// (`docs/feature/customer/mobile/customer-documents.md` §Flow).
 class BpAttachment {
   final String
       kind; // outlet_front | outlet_inside | id_card | patent_tax | vat_cert
   final String localPath;
   final String? remoteUrl;
 
-  const BpAttachment({
+  /// When the photograph was taken.
+  ///
+  /// Stamped here rather than at upload because the upload happens after
+  /// submit and may be minutes or hours later; dating the evidence to when the
+  /// connection came back would misrepresent the visit.
+  final DateTime capturedAt;
+
+  BpAttachment({
     required this.kind,
     required this.localPath,
     this.remoteUrl,
-  });
+    DateTime? capturedAt,
+  }) : capturedAt = capturedAt ?? DateTime.now().toUtc();
+
+  /// The form's local slot names, paired with the API's codes.
+  ///
+  /// The two vocabularies are kept apart on purpose: the tile keys are UI
+  /// identifiers with their own history (`outlet_front`), and the codes are the
+  /// wire contract. Renaming either without the other would silently drop a
+  /// photograph, so the pairing lives in exactly one place.
+  static const Map<String, CustomerDocumentType> kindToDocumentType = {
+    'outlet_front': CustomerDocumentType.storefront,
+    'outlet_inside': CustomerDocumentType.insideStore,
+    'id_card': CustomerDocumentType.idCard,
+    'patent_tax': CustomerDocumentType.patentTax,
+    'vat_cert': CustomerDocumentType.vatCertificate,
+  };
+
+  /// The API slot this attachment belongs in, or null for an unrecognised kind.
+  CustomerDocumentType? get documentType => kindToDocumentType[kind];
 
   Map<String, dynamic> toJson() => {
         'kind': kind,
@@ -275,6 +444,14 @@ class BpCustomerDraft {
   String? contactPersonRole;
 
   // --- Step 4: Sales & billing terms ------------------------------------
+  //
+  // The sales area (salesOrg + distributionChannel + division) is one of the
+  // five field groups a record must carry to be registerable in SAP at all —
+  // without it the push is marked `Rejected` without SAP even being called
+  // (`docs/feature/customer/mobile/create-customer.md` §Path B).
+  String? salesOrg; // REP   Sales Organization   *
+  String? salesOffice; // REP   Sales Office      *
+  String? salesGroupCode; // REP   Sales Group     *
   String? distributionChannel; // REP   Distribution Channel *
   String? divisionCode; // REP   Division             *
   String? customerGroup; // REP   Customer Group       *
@@ -314,13 +491,16 @@ class BpCustomerDraft {
     this.faxNumber = '',
     this.contactPersonName = '',
     this.contactPersonRole,
+    this.salesOrg,
+    this.salesOffice,
+    this.salesGroupCode,
     this.distributionChannel = '10',
     this.divisionCode = '10',
     this.customerGroup,
     this.priceGroup,
     this.deliveryPriority = '01',
     this.shippingCondition = '01',
-    this.paymentTerm = 'T00',
+    this.paymentTerm = 'TCOD',
     this.taxClass = '0',
     this.vatTin = '',
     this.currency = 'USD',
@@ -377,6 +557,15 @@ class BpCustomerDraft {
     if (fields.containsKey('contactPersonRole')) {
       contactPersonRole =
           nullableString('contactPersonRole', contactPersonRole);
+    }
+    if (fields.containsKey('salesOrg')) {
+      salesOrg = nullableString('salesOrg', salesOrg);
+    }
+    if (fields.containsKey('salesOffice')) {
+      salesOffice = nullableString('salesOffice', salesOffice);
+    }
+    if (fields.containsKey('salesGroup')) {
+      salesGroupCode = nullableString('salesGroup', salesGroupCode);
     }
     if (fields.containsKey('distributionChannel')) {
       distributionChannel =
@@ -464,7 +653,13 @@ class BpCustomerDraft {
   static const int _sapStreetMaxLength = 60;
 
   /// Keep the derived fields consistent whenever a driver field changes.
-  void applyDerivations() {
+  /// [priceGroupResolver] resolves the price group from the customer group,
+  /// normally `SapReferenceOptions.priceGroupFor`, which matches the two ERP
+  /// catalogues by name.
+  ///
+  /// Optional so the model stays usable without the catalogues loaded; when it
+  /// is absent the built-in pairing is used instead.
+  void applyDerivations({String? Function(String?)? priceGroupResolver}) {
     // The postal code is NOT derived here any more. It comes from the selected
     // commune, via the gazetteer (`GeoAddress.postalCode`), and the selector
     // writes it onto the draft.
@@ -478,7 +673,11 @@ class BpCustomerDraft {
     // place. `validateStep` blocks submission instead, and the rep types the
     // real code — never a silently wrong one (§10).
     if (customerGroup != null) {
-      priceGroup = SapMasterData.priceGroupByCustomerGroup[customerGroup!];
+      // The resolver matches the ERP's own customer-group and price-group
+      // catalogues by name, so a pairing added in SAP works without an app
+      // release. The built-in map is the offline fallback.
+      priceGroup = priceGroupResolver?.call(customerGroup) ??
+          SapMasterData.priceGroupByCustomerGroup[customerGroup!];
     }
     if (searchTerm.isEmpty && nameEn.isNotEmpty) {
       searchTerm = nameEn.split(RegExp(r'\s+')).first.toUpperCase();
@@ -545,6 +744,13 @@ class BpCustomerDraft {
         break;
 
       case BpFormStep.salesTerms:
+        // Treated as required even though the server accepts them absent: a
+        // record missing the sales area saves happily and can then never be
+        // delivered to SAP, which is worse than a validation error the rep can
+        // fix while still standing in the shop.
+        if (salesOrg == null) e['salesOrg'] = 'error.required';
+        if (salesOffice == null) e['salesOffice'] = 'error.required';
+        if (salesGroupCode == null) e['salesGroup'] = 'error.required';
         if (distributionChannel == null) {
           e['distributionChannel'] = 'error.required';
         }
@@ -613,14 +819,17 @@ class BpCustomerDraft {
       'contactPersonName': contactPersonName.trim(),
       'contactPersonRole': contactPersonRole,
       'language': language,
-      'salesOrg': rep.salesOrganization,
+      // The rep's own selection, falling back to their session's sales area.
+      // This previously always sent the session value, so a rep registering a
+      // shop outside their home office filed it against the wrong one.
+      'salesOrg': salesOrg ?? rep.salesOrganization,
       'distributionChannel': distributionChannel,
       'division': divisionCode,
       'customerGroup': customerGroup,
       'deliveryPriority': deliveryPriority,
       'shippingCondition': shippingCondition,
-      'salesOffice': rep.salesOffice,
-      'salesGroup': SapBpConst.salesGroup,
+      'salesOffice': salesOffice ?? rep.salesOffice,
+      'salesGroup': salesGroupCode ?? SapBpConst.salesGroup,
       'currency': currency,
       'priceGroup': priceGroup,
       'paymentTerms': paymentTerm,

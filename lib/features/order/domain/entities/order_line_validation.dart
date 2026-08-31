@@ -12,12 +12,13 @@ enum OrderLineIssue {
   /// none of it, so this never silently becomes a delete.
   nonPositiveQuantity,
 
-  /// The SKU is inactive/discontinued, or has nothing sellable at its
-  /// warehouse. Lowering the quantity cannot fix it.
+  /// The SKU no longer resolves — a deleted or re-keyed material.
+  ///
+  /// An **identity** problem, not an availability one. This is deliberately no
+  /// longer raised for a material that merely has nothing on hand: material
+  /// selection is independent of stock, and refusing the line on a synced
+  /// figure the materials API never supplies blocked every order.
   skuUnavailable,
-
-  /// More than the SKU's own warehouse can currently back.
-  exceedsAvailableStock,
 }
 
 /// The verdict on one requested SKU + quantity, with the numbers the UI needs
@@ -59,8 +60,6 @@ class OrderLineValidation extends Equatable {
           'orders.order_line.error_quantity_positive',
         OrderLineIssue.skuUnavailable =>
           'orders.order_line.error_sku_unavailable',
-        OrderLineIssue.exceedsAvailableStock =>
-          'orders.order_line.error_exceeds_stock',
       };
 
   @override

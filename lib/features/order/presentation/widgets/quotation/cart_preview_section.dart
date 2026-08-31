@@ -6,12 +6,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/pricing_text.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/material_availability.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product_material_number.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_state.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/stock_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/catalog/stock_availability_badge.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/cart_quantity_stepper.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// The cart, reviewed before saving — and the one place stock is checked
@@ -100,6 +102,13 @@ class _CartPreviewSectionState extends State<CartPreviewSection> {
                           itemBuilder: (context, index) {
                             final item = items[index];
                             return _CartPreviewRow(
+                              // Keyed by the line, not the position. The
+                              // stepper holds a local quantity so it can move
+                              // before the cart write returns; without a key,
+                              // removing a line slides the next one into that
+                              // slot and it inherits the previous line's
+                              // pending number.
+                              key: ValueKey(item.id),
                               item: item,
                               stock: stock[item.product.materialNumber],
                               // Address the line by its own id — customized
@@ -125,6 +134,7 @@ class _CartPreviewSectionState extends State<CartPreviewSection> {
 
 class _CartPreviewRow extends StatelessWidget {
   const _CartPreviewRow({
+    super.key,
     required this.item,
     required this.onQuantityChanged,
     required this.onRemove,
@@ -154,10 +164,7 @@ class _CartPreviewRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppThemeColors>()!;
     final specs = _customSpecs;
-    // Status only. The band never gates: `Low` is a warning about how much,
-    // not a refusal, and there is no on-hand figure in this API to cap against.
-    final canIncrease = stock?.canOrder ?? true;
-
+    final lineTotal = PricingText.amountOrNull(item.lineTotalOrNull);
     return Row(
       children: [
         if (item.isCustomized) ...[
@@ -218,14 +225,17 @@ class _CartPreviewRow extends StatelessWidget {
               SizedBox(height: context.rh(2)),
               Row(
                 children: [
-                  Text(
-                    '\$${item.lineTotal.toStringAsFixed(2)}',
-                    style: TextStyle(
-                      color: colors.accentPurple,
-                      fontSize: context.rsp(12),
-                      fontWeight: FontWeight.w700,
+                  // Omitted entirely while unpriced rather than shown as a
+                  // placeholder — see [PricingText].
+                  if (lineTotal != null)
+                    Text(
+                      lineTotal,
+                      style: TextStyle(
+                        color: colors.accentPurple,
+                        fontSize: context.rsp(12),
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                  ),
                   if (stock != null) ...[
                     SizedBox(width: context.rw(6)),
                     Flexible(
@@ -238,40 +248,17 @@ class _CartPreviewRow extends StatelessWidget {
             ],
           ),
         ),
-        Container(
-          decoration: BoxDecoration(
-            color: colors.surfaceSoft,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: colors.border),
-          ),
-          child: Row(
-            children: [
-              // Always live. Reducing or removing a line must survive a
-              // refusal — it is the response a refusal calls for.
-              _QtyButton(
-                icon: Icons.remove_rounded,
-                iconColor: colors.textPrimary,
-                onTap: () => onQuantityChanged(item.quantity - 1),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Text(
-                  item.quantity.toStringAsFixed(0),
-                  style: TextStyle(
-                    color: colors.textPrimary,
-                    fontSize: context.rsp(12),
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              _QtyButton(
-                icon: Icons.add_rounded,
-                iconColor: colors.textPrimary,
-                enabled: canIncrease,
-                onTap: () => onQuantityChanged(item.quantity + 1),
-              ),
-            ],
-          ),
+        // The same control the product card uses, rather than a second
+        // hand-rolled pair of buttons.
+        //
+        // The pair it replaces had no number entry at all: the quantity was a
+        // `Text`, so a rep correcting a line to 250 held `+` two hundred and
+        // fifty times or deleted the line and started again. It also carried
+        // its own copy of the enable rule, which is exactly how two controls
+        // for one value drift apart.
+        CartQuantityStepper(
+          quantity: item.quantity.round(),
+          onChanged: (value) => onQuantityChanged(value.toDouble()),
         ),
         SizedBox(width: context.rw(8)),
         Material(
@@ -290,47 +277,6 @@ class _CartPreviewRow extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _QtyButton extends StatelessWidget {
-  const _QtyButton({
-    required this.icon,
-    required this.iconColor,
-    required this.onTap,
-    this.enabled = true,
-  });
-
-  final IconData icon;
-  final Color iconColor;
-  final VoidCallback onTap;
-  final bool enabled;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<AppThemeColors>()!;
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: enabled ? onTap : null,
-        borderRadius: BorderRadius.circular(6),
-        child: Opacity(
-          opacity: enabled ? 1 : 0.35,
-          child: Container(
-            width: 24,
-            height: context.rh(24),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: colors.card,
-              borderRadius: BorderRadius.circular(6),
-              boxShadow: colors.cardShadow,
-            ),
-            child: Icon(icon, size: context.rr(14), color: iconColor),
-          ),
-        ),
-      ),
     );
   }
 }

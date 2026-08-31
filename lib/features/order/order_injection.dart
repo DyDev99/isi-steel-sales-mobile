@@ -106,6 +106,7 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/sync/pen
 import 'package:isi_steel_sales_mobile/features/order/presentation/services/geolocator_order_location_service.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/services/image_picker_search_service.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/services/speech_voice_search_service.dart';
+import 'package:isi_steel_sales_mobile/core/camera/image_capture_service.dart';
 
 /// Registers the product catalog + quotation/sales-order + sync engine that
 /// live inside the Orders feature.
@@ -150,7 +151,7 @@ Future<void> registerOrderFeature(GetIt sl) async {
   sl.registerLazySingleton<VoiceSearchService>(
       () => const SpeechVoiceSearchService());
   sl.registerLazySingleton<ImageSearchService>(
-      () => const ImagePickerSearchService());
+      () => ImagePickerSearchService(sl<ImageCaptureService>()));
   sl.registerLazySingleton<MtoPricingService>(
       () => MockMtoPricingService(sl()));
   sl.registerLazySingleton<CreditService>(() => const MockCreditService());

@@ -560,9 +560,6 @@ class _ProductStage extends StatelessWidget {
               onCustomize: onCustomize,
               onTap: onProductTap,
               specLineBuilder: _specLine,
-              // Sparse by design: only the material the rep named at the SKU
-              // step has been checked, so only its card carries a badge.
-              availabilityFor: (product) => state.availabilityFor(product.code),
             ),
           ),
           if (state.hasMore)
@@ -620,7 +617,10 @@ class _CartFooter extends StatelessWidget {
 
         final totalQuantity =
             items.fold<double>(0, (sum, item) => sum + item.quantity);
-        final subtotal = cartState is CartLoaded ? cartState.subtotal : 0.0;
+        // Null as soon as one line is unpriced — see [CartSummaryBar.subtotal].
+        final subtotal = cartState is CartLoaded
+            ? (items.hasPendingPricing ? null : cartState.subtotal)
+            : 0.0;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,

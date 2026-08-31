@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
-import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.dart';
-import 'package:isi_steel_sales_mobile/features/order/domain/entities/material_availability.dart';
-import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/catalog/stock_availability_badge.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/cart_quantity_stepper.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
@@ -22,16 +19,19 @@ import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 /// card's identity line. It is not decoration; it is the whole difference
 /// between the rows.
 ///
-/// The stock badge is *categorical*, never a raw number: the quantity is the
-/// condition, the label is a status. A rep deciding whether to quote needs
-/// "can I sell this", not an inventory readout — and an exact count on a card
-/// is a number they will read as a promise the moment it goes stale.
+/// ## No stock, no price
 ///
-/// [Product.availableQuantity] selects the band:
-/// - `'products.status.out_of_stock'.tr` — nothing sellable
-/// - `'products.status.low_stock'.tr` — <= [lowStockThreshold]
-/// - `'products.status.in_stock'.tr` — up to [mediumStockThreshold]
-/// - `'products.status.high_stock'.tr` — above it
+/// This card identifies a material and nothing more. Material selection is
+/// independent of stock and pricing: a rep may put any catalogue material on a
+/// quotation, and HQ prices it afterwards.
+///
+/// Showing either here was worse than useless. The materials API supplies no
+/// on-hand quantity and no price, so a band read "No stock" and an amount read
+/// `$0.00` for materials that were perfectly orderable — and both then gated
+/// the `+`. A rep declined sales over data the server had never sent.
+///
+/// Stock and price are still fetched and still shown further down the flow,
+/// where they inform rather than block.
 class ProductResultCard extends StatelessWidget {
   const ProductResultCard({
     super.key,
@@ -44,9 +44,6 @@ class ProductResultCard extends StatelessWidget {
     this.lineTotalLabel,
     this.onTap,
     this.onCustomize,
-    this.lowStockThreshold = 10,
-    this.mediumStockThreshold = 50,
-    this.availability,
   });
 
   final Product product;
@@ -67,90 +64,18 @@ class ProductResultCard extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onCustomize;
 
-  /// Custom threshold boundaries for stock categories
-  final int lowStockThreshold;
-  final int mediumStockThreshold;
-
-  /// SAP's live sellability verdict, once asked for.
-  ///
-  /// Asked exactly once per flow, when the rep answers the SKU step — that is
-  /// the moment they name a material rather than narrow towards one, and the
-  /// only moment worth a live ERP round trip. Null everywhere else, and null
-  /// renders no badge at all.
-  ///
-  /// Takes precedence over the local quantity band below it when both exist:
-  /// the ERP's verdict is current, and a synced quantity is as old as the last
-  /// sync.
-  final MaterialAvailability? availability;
-
-  /// Maps the available quantity onto a status band. The quantity itself is
-  /// never rendered — it only decides which band applies.
-  ///
-  /// Returns null when there is no quantity to band. **The materials API has
-  /// no on-hand stock endpoint at all** — no level in units, no warehouse
-  /// balance, no ATP — so a material read from it carries
-  /// `stockKnown: false`. Banding that as "out of stock" would turn a gap in
-  /// the data into a claim about the yard, and a rep would decline a sale on
-  /// it. No badge is the honest render.
-  _StockStatus? _resolveStockStatus(BuildContext context) {
-    final colors = context.appColors;
-    final scheme = Theme.of(context).colorScheme;
-
-    // SAP's own block flag is a verdict rather than a quantity, so it is worth
-    // showing even where nothing else about stock is known — it is the one
-    // thing that definitely stops an order line.
-    if (product.isBlocked) {
-      return _StockStatus(
-        label: 'products.status.blocked'.tr,
-        color: scheme.error,
-      );
-    }
-
-    if (!product.stockKnown) return null;
-
-    // `availableQuantity`, not `stockQuantity`: reserved units are already
-    // spoken for and cannot be quoted, so counting them would badge a SKU as
-    // "high stock" that a rep cannot actually sell. `isAvailable` is derived
-    // from the same figure, which keeps the badge and the stepper's enabled
-    // state agreeing with each other.
-    final available = product.availableQuantity;
-
-    if (!product.isAvailable) {
-      return _StockStatus(
-        label: 'products.status.out_of_stock'.tr,
-        color: scheme.error,
-      );
-    }
-
-    if (available <= lowStockThreshold) {
-      return _StockStatus(
-        label: 'products.status.low_stock'.tr,
-        color: colors.warning,
-      );
-    } else if (available <= mediumStockThreshold) {
-      return _StockStatus(
-        label: 'products.status.in_stock'.tr,
-        color: scheme.primary,
-      );
-    } else {
-      return _StockStatus(
-        label: 'products.status.high_stock'.tr,
-        color: colors.success,
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
-    // The live verdict wins where we have one: it is current, and it is the
-    // only thing that actually knows whether SAP will accept the line. Falling
-    // back to the product's own flags keeps the offline catalog working, and
-    // an unanswered check never blocks the rep — see [MaterialAvailability.canOrder].
-    final available = availability?.canOrder ?? product.isAvailable;
     final inCart = quantity > 0;
-    final stockStatus = _resolveStockStatus(context);
+
+    // What the material *is*: the group it belongs to and the unit it sells
+    // by. Both come with the row; neither needs a stock or price read.
+    final identity = [
+      if (product.familyName.isNotEmpty) product.familyName,
+      if (product.unit.isNotEmpty) product.unit,
+    ].join(' · ');
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 240),
@@ -234,76 +159,21 @@ class ProductResultCard extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // SAP's live verdict wins where it exists; the
-                          // banded local quantity is the fallback for the
-                          // offline catalog, whose rows do carry a figure.
-                          if (availability != null) ...[
-                            StockAvailabilityBadge(availability: availability),
-                            SizedBox(height: context.rh(4)),
-                          ] else if (stockStatus != null) ...[
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color:
-                                    stockStatus.color.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(
-                                stockStatus.label,
-                                style: TextStyle(
-                                  color: stockStatus.color,
-                                  fontSize: context.rsp(10.5),
-                                  fontWeight: FontWeight.w800,
-                                ),
+                          // Identification only — no band, no amount.
+                          // Category and unit say what the material *is*;
+                          // stock and price are neither known here nor needed
+                          // to add it to the cart.
+                          if (identity.isNotEmpty)
+                            Text(
+                              identity,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: colors.textSecondary,
+                                fontSize: context.rsp(11.5),
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
-                            SizedBox(height: context.rh(4)),
-                          ],
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.baseline,
-                            textBaseline: TextBaseline.alphabetic,
-                            children: [
-                              // Shown only when an amount was actually
-                              // received. The materials API returns no price
-                              // of any kind — no list, no condition, no
-                              // currency — and `\$0.00` would read as free
-                              // rather than as missing.
-                              if (product.pricing.isPriced) ...[
-                                Text(
-                                  '\$${product.effectivePrice.toStringAsFixed(2)}',
-                                  style: TextStyle(
-                                    color: colors.textPrimary,
-                                    fontSize: context.rsp(16),
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                                SizedBox(width: context.rw(4)),
-                              ] else ...[
-                                Text(
-                                  'products.price_unavailable'.tr,
-                                  style: TextStyle(
-                                    color: colors.textSecondary,
-                                    fontSize: context.rsp(11.5),
-                                    fontWeight: FontWeight.w700,
-                                    fontStyle: FontStyle.italic,
-                                  ),
-                                ),
-                                SizedBox(width: context.rw(4)),
-                              ],
-                              if (product.unit.isNotEmpty)
-                                Text(
-                                  '/ ${product.unit}',
-                                  style: TextStyle(
-                                    color: colors.textSecondary,
-                                    fontSize: context.rsp(11),
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                            ],
-                          ),
                         ],
                       ),
                     ),
@@ -316,27 +186,10 @@ class ProductResultCard extends StatelessWidget {
                       ),
                       SizedBox(width: context.rw(8)),
                     ],
+                    // Ungated. Any catalogue material may be added; stock and
+                    // price are settled later in the flow, not here.
                     CartQuantityStepper(
                       quantity: quantity,
-                      enabled: available,
-                      // Capped at what this SKU's own warehouse can back, so
-                      // the `+` stops rather than the rep discovering the
-                      // limit only after tapping.
-                      //
-                      // Two cases are deliberately *uncapped*, and conflating
-                      // either with "zero available" is what silently kills
-                      // the `+` button:
-                      //
-                      //  * a made-to-order SKU is produced against the order,
-                      //    so stock is not its constraint;
-                      //  * a material from the selection API has no on-hand
-                      //    figure at all — `stockKnown` is false and the zero
-                      //    is an absence, not a limit. It reports a *band*,
-                      //    which is advisory, and the sellable verdict is
-                      //    carried by `enabled` above.
-                      max: product.isMto || !product.stockKnown
-                          ? null
-                          : product.availableQuantity.floor(),
                       onChanged: onQuantityChanged,
                     ),
                     SizedBox(width: context.rw(4)),
@@ -379,19 +232,6 @@ class ProductResultCard extends StatelessWidget {
   }
 }
 
-class _StockStatus {
-  const _StockStatus({required this.label, required this.color});
-  final String label;
-  final Color color;
-}
-
-/// The SKU code and the warehouse holding it — the two facts that separate one
-/// result card from its siblings for the same material.
-///
-/// The warehouse is a chip rather than more grey text because "which location"
-/// is a decision the rep makes, not a reference number they read. Falls back to
-/// the material code when SAP publishes no distinct SKU string, so the line is
-/// never blank.
 class _SkuIdentityLine extends StatelessWidget {
   const _SkuIdentityLine({required this.product});
 
