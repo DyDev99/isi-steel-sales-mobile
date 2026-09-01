@@ -7,7 +7,10 @@ import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/filter/filter_option.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/filter/filter_step.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/entities/promotion/promotion_evaluation.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/promotion/promotion_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/promotion/promotion_detail_sheet.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_state.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/product_filter_flow/product_filter_flow_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/product_filter_flow/product_filter_flow_event.dart';
@@ -550,16 +553,44 @@ class _ProductStage extends StatelessWidget {
           // that produced it — the stepper is the commit, so it has to show
           // the committed value, not a local echo of it.
           BlocBuilder<CartCubit, CartState>(
-            builder: (context, _) => ProductResultGrid(
-              products: state.products,
-              favoriteIds: favoriteIds,
-              quantityFor: quantityFor,
-              lineTotalBuilder: lineTotalFor,
-              onQuantityChanged: onQuantityChanged,
-              onToggleFavorite: onToggleFavorite,
-              onCustomize: onCustomize,
-              onTap: onProductTap,
-              specLineBuilder: _specLine,
+            builder: (context, _) =>
+                BlocBuilder<PromotionCubit, Map<String, PromotionEvaluation>>(
+              builder: (context, promotions) {
+                // Ask about every material on screen, at the quantity it is
+                // currently at. The cubit debounces and skips anything already
+                // answered, so this is safe to run on every rebuild — and it is
+                // what makes the strip follow the stepper instead of going
+                // stale the moment a rep changes their mind.
+                for (final product in state.products) {
+                  context.read<PromotionCubit>().evaluate(
+                        materialCode: product.materialCode,
+                        categoryCode: product.categoryId,
+                        quantity: quantityFor(product),
+                      );
+                }
+
+                return ProductResultGrid(
+                  products: state.products,
+                  favoriteIds: favoriteIds,
+                  quantityFor: quantityFor,
+                  lineTotalBuilder: lineTotalFor,
+                  onQuantityChanged: onQuantityChanged,
+                  onToggleFavorite: onToggleFavorite,
+                  onCustomize: onCustomize,
+                  onTap: onProductTap,
+                  specLineBuilder: _specLine,
+                  promotionFor: (product) => promotions[product.materialCode],
+                  onPromotionTap: (product) {
+                    final evaluation = promotions[product.materialCode];
+                    if (evaluation == null) return;
+                    showPromotionDetailSheet(
+                      context,
+                      promotion: evaluation.promotion,
+                      evaluation: evaluation,
+                    );
+                  },
+                );
+              },
             ),
           ),
           if (state.hasMore)

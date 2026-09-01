@@ -434,6 +434,33 @@
       "error_exceeds_stock": "Only {available} {unit} available at {location}. Lower the quantity or pick another location.",
       "stock_as_of_sync": "Stock as of last sync",
       "price_locked": "Price locked for this quotation"
+    },
+    "promotion": {
+      "section_title": "Promotions",
+      "section_subtitle": "Available for your customers",
+      "badge": "PROMOTION",
+      "free_goods": "Free Goods",
+      "view_products": "View Products",
+      "buy_get": "Buy {qty} {unit} → Free {free}",
+      "eligible_free": "Eligible: Free {free}",
+      "buy_more": "Buy {qty} more {unit} → Free {free}",
+      "valid_until": "Valid until {date}",
+      "starts": "Starts {date}",
+      "details_title": "Promotion Details",
+      "qualification": "Qualification",
+      "min_quantity": "Minimum quantity",
+      "free_quantity": "Eligible free quantity",
+      "tiers": "Tiers",
+      "continue_shopping": "Continue Shopping",
+      "applied": "Promotion Applied",
+      "paid_quantity": "Paid Quantity",
+      "free_quantity_label": "Free Quantity",
+      "tab_available": "Available",
+      "tab_upcoming": "Upcoming",
+      "tab_applied": "Applied",
+      "none_available": "No promotions running for this customer",
+      "none_upcoming": "No promotions scheduled",
+      "none_applied": "No promotions applied yet"
     }
   },
   "leads": {
@@ -1115,7 +1142,8 @@
       "system": "System",
       "announce": "Announcements",
       "security": "Security",
-      "other": "Other"
+      "other": "Other",
+      "admin": "Admin"
     },
     "confirm": {
       "title": "Are you sure?",
@@ -1253,7 +1281,7 @@
     "city": "City / province",
     "city_hint": "e.g. Phnom Penh",
     "gps_failed": "No GPS fix was captured. Move to an open area and try again, or save without a location.",
-    "grouping": "Customer grouping",
+    "grouping": "Partner Grouping",
     "title_field": "Title",
     "name_en": "Name (English)",
     "name_en_hint": "Enter English business name",
@@ -1284,7 +1312,7 @@
     "sales_office": "Sales office",
     "sales_group": "Sales group",
     "division": "Division",
-    "customer_group": "Customer group",
+    "customer_group": "Customer group (trade type)",
     "price_group_auto": "Price group is set automatically",
     "delivery_priority": "Delivery priority",
     "shipping_condition": "Shipping condition",

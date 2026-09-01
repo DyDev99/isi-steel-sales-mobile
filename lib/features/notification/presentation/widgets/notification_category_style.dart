@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/notification/domain/entities/notification_category.dart';
-import 'package:isi_steel_sales_mobile/features/notification/domain/entities/notification_priority.dart';
 
-/// How a category is drawn: an icon and an accent colour.
+/// How a notification category presents itself in the inbox.
+@immutable
 class NotificationCategoryStyle {
   const NotificationCategoryStyle({required this.icon, required this.color});
 
@@ -12,23 +12,18 @@ class NotificationCategoryStyle {
   final Color color;
 }
 
-/// Icon, colour and label for a notification category.
+/// Icon, colour and label for each [NotificationCategory].
 ///
-/// ## Tokens only
+/// Extends the **domain** enum. An earlier version extended a two-value
+/// `NotificationCategory` stub that lived next door in `presentation/widgets/`,
+/// while every consumer imported the domain one — so the extension silently did
+/// not apply, `label` and `style` came back undefined, and the import that was
+/// supposed to supply them was reported unused. Two enums of the same name in
+/// one feature is the whole bug; the stub is gone.
 ///
-/// Every colour comes from `context.appColors` or the active `ColorScheme`, so
-/// the inbox restyles with the app in light and dark without a single raw hex —
-/// `docs/skills/FEATURE_UI_STANDARD.md` §14 makes that a blocking rule, and a
-/// hand-picked red here is exactly the kind of thing that reads fine in light
-/// mode and disappears in dark.
-///
-/// ## The unknown category is drawn, not hidden
-///
-/// [NotificationCategory.unknown] gets a neutral bell rather than being filtered
-/// out. The backend's category list grows independently of the app's release
-/// cycle, and a notification a rep cannot see is far worse than one with a
-/// generic icon — §5.1 keeps every notification findable precisely because a rep
-/// who half-remembers being told something has to be able to look it up.
+/// Presentation-only, and deliberately an extension rather than fields on the
+/// enum: the domain entity must not import Flutter (ADR-003), and an icon is
+/// not something the backend's category list has an opinion about.
 extension NotificationCategoryPresentation on NotificationCategory {
   NotificationCategoryStyle style(BuildContext context) {
     final colors = context.appColors;
@@ -36,62 +31,85 @@ extension NotificationCategoryPresentation on NotificationCategory {
 
     return switch (this) {
       NotificationCategory.assignment => NotificationCategoryStyle(
-          icon: Icons.route_rounded, color: colors.accentPurple),
+          icon: Icons.assignment_turned_in_rounded, color: colors.info),
       NotificationCategory.quote => NotificationCategoryStyle(
-          icon: Icons.request_quote_rounded, color: colors.info),
+          icon: Icons.request_quote_rounded, color: colors.accentPurple),
       NotificationCategory.order => NotificationCategoryStyle(
-          icon: Icons.receipt_long_rounded, color: scheme.primary),
+          icon: Icons.receipt_long_rounded, color: colors.warning),
       NotificationCategory.finance => NotificationCategoryStyle(
-          icon: Icons.account_balance_wallet_rounded, color: colors.warning),
+          icon: Icons.payments_rounded, color: colors.success),
       NotificationCategory.kpi => NotificationCategoryStyle(
-          icon: Icons.insights_rounded, color: colors.success),
+          icon: Icons.insights_rounded, color: colors.info),
       NotificationCategory.approval => NotificationCategoryStyle(
-          icon: Icons.fact_check_rounded, color: colors.warningAlt),
+          icon: Icons.verified_rounded, color: colors.success),
       NotificationCategory.account => NotificationCategoryStyle(
           icon: Icons.storefront_rounded, color: colors.brandNavy),
       NotificationCategory.system => NotificationCategoryStyle(
           icon: Icons.settings_suggest_rounded, color: colors.iconMuted),
       NotificationCategory.announce => NotificationCategoryStyle(
-          icon: Icons.campaign_rounded, color: colors.info),
+          icon: Icons.campaign_rounded, color: colors.accentPurple),
+      // The only category drawn in an alarm colour. Everything else is
+      // informational; a security notice is the one a rep must not scroll past.
       NotificationCategory.security => NotificationCategoryStyle(
           icon: Icons.shield_rounded, color: scheme.error),
+      // A category this build has never heard of still renders — a
+      // notification the rep cannot see is worse than a generic icon.
       NotificationCategory.unknown => NotificationCategoryStyle(
           icon: Icons.notifications_none_rounded, color: colors.iconMuted),
     };
   }
 
-  /// The chip and section label.
-  ///
-  /// A local translation, not the server's `displayName`. The two serve
-  /// different surfaces: the **settings screen** must render the server's list
-  /// verbatim so a category added server-side appears without a release (§13),
-  /// while these filter chips are drawn from the enum and can be translated
-  /// properly — including into Khmer, which the server's English `displayName`
-  /// would not be.
+  /// Localised name. Keys already exist for every category under
+  /// `notifications.category.*`; [NotificationCategory.unknown] maps to
+  /// `other` rather than getting a key of its own, because "unknown" is a
+  /// parsing outcome and not a word to show a rep.
   String get label => switch (this) {
-        NotificationCategory.assignment =>
-          'notifications.category.assignment'.tr,
-        NotificationCategory.quote => 'notifications.category.quote'.tr,
-        NotificationCategory.order => 'notifications.category.order'.tr,
-        NotificationCategory.finance => 'notifications.category.finance'.tr,
-        NotificationCategory.kpi => 'notifications.category.kpi'.tr,
-        NotificationCategory.approval => 'notifications.category.approval'.tr,
-        NotificationCategory.account => 'notifications.category.account'.tr,
-        NotificationCategory.system => 'notifications.category.system'.tr,
-        NotificationCategory.announce => 'notifications.category.announce'.tr,
-        NotificationCategory.security => 'notifications.category.security'.tr,
         NotificationCategory.unknown => 'notifications.category.other'.tr,
+        _ => 'notifications.category.$name'.tr,
       };
 }
 
-/// The accent for a priority tier, for the leading stripe on a P1.
+/// The two buckets the inbox filters by.
 ///
-/// Only P1 is marked. §5.2 makes P1 the tier that bypasses both quiet hours and
-/// the rep's own opt-out — a route cancelled at midnight for an 06:00 start —
-/// and giving every tier its own colour would spend the emphasis that makes P1
-/// legible at a glance.
-extension NotificationPriorityPresentation on NotificationPriority {
-  Color? accent(BuildContext context) => this == NotificationPriority.p1
-      ? Theme.of(context).colorScheme.error
-      : null;
+/// The backend's category list has ten entries and grows on its own release
+/// cycle; ten chips is a filter row nobody reads. A rep only ever asks one of
+/// two questions — *is this the company telling me something, or the app?* — so
+/// the chips answer that, while each row keeps its own precise icon from
+/// [NotificationCategoryPresentation.style].
+///
+/// Grouping lives here, in presentation, rather than in the query: the wire
+/// contract still carries the real category, so nothing about the backend or
+/// the sync layer changes, and restoring per-category chips later is a UI edit.
+enum NotificationFilterGroup {
+  /// Everything the business sends a rep: work, money, approvals, security.
+  admin,
+
+  /// The app talking about itself.
+  system;
+
+  /// [NotificationCategory.unknown] belongs to neither on purpose. It is a
+  /// parsing outcome rather than a thing anyone chose to send, so it stays
+  /// visible under "All" instead of being filed under a bucket that would
+  /// imply someone meant it.
+  bool contains(NotificationCategory category) => switch (this) {
+        NotificationFilterGroup.system =>
+          category == NotificationCategory.system,
+        NotificationFilterGroup.admin =>
+          category != NotificationCategory.system &&
+              category != NotificationCategory.unknown,
+      };
+
+  String get label => switch (this) {
+        NotificationFilterGroup.admin => 'notifications.category.admin'.tr,
+        NotificationFilterGroup.system => 'notifications.category.system'.tr,
+      };
+
+  /// Borrows the colour of a representative category, so a chip and the rows it
+  /// selects share an accent.
+  Color color(BuildContext context) => switch (this) {
+        NotificationFilterGroup.admin =>
+          NotificationCategory.approval.style(context).color,
+        NotificationFilterGroup.system =>
+          NotificationCategory.system.style(context).color,
+      };
 }

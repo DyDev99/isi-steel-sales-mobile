@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/entities/promotion/promotion_evaluation.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/cart_quantity_stepper.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/promotion/promotion_inline_block.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// One matched SKU, and the only place a product enters the quotation.
@@ -44,6 +46,8 @@ class ProductResultCard extends StatelessWidget {
     this.lineTotalLabel,
     this.onTap,
     this.onCustomize,
+    this.promotion,
+    this.onPromotionTap,
   });
 
   final Product product;
@@ -63,6 +67,19 @@ class ProductResultCard extends StatelessWidget {
 
   final VoidCallback? onTap;
   final VoidCallback? onCustomize;
+
+  /// What this customer earns on this material at the current quantity.
+  ///
+  /// Null is the common case and renders nothing — an empty promotion strip on
+  /// every unpromoted product would be permanent noise on the busiest screen
+  /// in the app.
+  ///
+  /// Resolved upstream by `PromotionCubit`; the card never works out
+  /// eligibility for itself, so it cannot disagree with the rule that will be
+  /// applied to the order.
+  final PromotionEvaluation? promotion;
+
+  final VoidCallback? onPromotionTap;
 
   @override
   Widget build(BuildContext context) {
@@ -151,6 +168,16 @@ class ProductResultCard extends StatelessWidget {
                     ),
                   ],
                 ),
+                // Between "what is it" and "how many" — the promotion is an
+                // input to the quantity decision, so it has to be read before
+                // the stepper, not after it.
+                if (promotion != null) ...[
+                  SizedBox(height: context.rh(8)),
+                  PromotionInlineBlock(
+                    evaluation: promotion,
+                    onTap: onPromotionTap,
+                  ),
+                ],
                 SizedBox(height: context.rh(10)),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.end,

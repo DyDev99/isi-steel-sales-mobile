@@ -26,6 +26,7 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/sync_state.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/product_filter_flow/product_filter_flow_bloc.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/promotion/promotion_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/product_filter_flow/product_filter_flow_event.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/customized_product_form_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/promotion_section.dart.dart';
@@ -242,6 +243,12 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
         // belongs to the State so that `_setLineQuantity` can use it without a
         // context lookup that would search above this provider.
         BlocProvider<StockCubit>.value(value: _stock),
+        // Scoped to this quotation's customer. Entitlements are per account:
+        // a negotiated deal for one shop must never surface against another,
+        // and a walk-in sees only unscoped promotions.
+        BlocProvider<PromotionCubit>(
+          create: (_) => sl<PromotionCubit>()..setCustomer(widget.customer?.id),
+        ),
       ],
       child: BlocListener<SyncCubit, SyncState>(
         listenWhen: (a, b) => b is SyncSucceeded,

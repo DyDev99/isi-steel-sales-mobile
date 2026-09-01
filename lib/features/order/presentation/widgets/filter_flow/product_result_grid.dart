@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/entities/promotion/promotion_evaluation.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/filter_flow_transition.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/product_result_card.dart';
 
@@ -22,6 +23,8 @@ class ProductResultGrid extends StatelessWidget {
     this.onCustomize,
     this.specLineBuilder,
     this.lineTotalBuilder,
+    this.promotionFor,
+    this.onPromotionTap,
   });
 
   final List<Product> products;
@@ -40,6 +43,14 @@ class ProductResultGrid extends StatelessWidget {
 
   final String Function(Product product)? specLineBuilder;
   final String Function(Product product, int quantity)? lineTotalBuilder;
+
+  /// The promotion verdict for a product, or null when none applies.
+  ///
+  /// A builder rather than a map so this grid stays reusable on screens that
+  /// have no promotion context — they pass nothing and no card shows a strip.
+  final PromotionEvaluation? Function(Product product)? promotionFor;
+
+  final ValueChanged<Product>? onPromotionTap;
 
   @override
   Widget build(BuildContext context) {
@@ -69,6 +80,10 @@ class ProductResultGrid extends StatelessWidget {
                   onTap: onTap == null ? null : () => onTap!(product),
                   onCustomize:
                       onCustomize == null ? null : () => onCustomize!(product),
+                  promotion: promotionFor?.call(product),
+                  onPromotionTap: onPromotionTap == null
+                      ? null
+                      : () => onPromotionTap!(product),
                 );
               }),
             ),

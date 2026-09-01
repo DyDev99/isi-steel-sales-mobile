@@ -8,16 +8,12 @@ class CustomerSearchBar extends StatefulWidget {
     super.key,
     required this.query,
     required this.onSearchChanged,
-    required this.onFilterTap,
-    required this.hasActiveFilters,
-    required this.onAddTap, // 1. Added the required callback parameter
+    required this.onAddTap,
   });
 
   final String query;
   final ValueChanged<String> onSearchChanged;
-  final VoidCallback onFilterTap;
-  final bool hasActiveFilters;
-  final VoidCallback onAddTap; // 2. Declared the parameter
+  final VoidCallback onAddTap;
 
   @override
   State<CustomerSearchBar> createState() => _CustomerSearchBarState();
@@ -25,65 +21,103 @@ class CustomerSearchBar extends StatefulWidget {
 
 class _CustomerSearchBarState extends State<CustomerSearchBar> {
   late final TextEditingController _controller;
+  late final FocusNode _focusNode;
+  
+  bool _isHoveringAdd = false;
+  bool _isPressedAdd = false;
 
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController(text: widget.query);
+    _controller = TextEditingController(text: widget.query); //
+    
+    // Add FocusNode to animate the search bar when the user taps into it
+    _focusNode = FocusNode();
+    _focusNode.addListener(() {
+      setState(() {});
+    });
   }
 
   @override
   void didUpdateWidget(covariant CustomerSearchBar oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.query != oldWidget.query && _controller.text != widget.query) {
+    if (widget.query != oldWidget.query && _controller.text != widget.query) { //
       _controller.value = TextEditingValue(
         text: widget.query,
-        selection: TextSelection.collapsed(offset: widget.query.length),
+        selection: TextSelection.collapsed(offset: widget.query.length), //[cite: 24]
       );
     }
   }
 
   @override
   void dispose() {
-    _controller.dispose();
-    super.dispose();
+    _focusNode.dispose();
+    _controller.dispose(); //[cite: 24]
+    super.dispose(); //[cite: 24]
   }
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors; //[cite: 24]
     final scheme = Theme.of(context).colorScheme;
-    final colors = context.appColors; //[cite: 3]
+    final isFocused = _focusNode.hasFocus;
+
     return Row(
       children: [
-        Expanded(
-          child: Container(
-            height: context.rh(44),
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+        Expanded( //[cite: 24]
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeOutCubic,
+            height: context.rh(44), //[cite: 24]
+            padding: const EdgeInsets.symmetric(horizontal: 12), //[cite: 24]
             decoration: BoxDecoration(
-              color: colors.card, //[cite: 3]
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: colors.border), //[cite: 3]
+              color: isFocused ? colors.card : colors.card.withValues(alpha: 0.7),
+              borderRadius: BorderRadius.circular(14), //[cite: 24]
+              // Premium style: primary color border when focused, default otherwise
+              border: Border.all(
+                color: isFocused ? scheme.primary : colors.border,
+                width: isFocused ? 1.5 : 1.0,
+              ),
+              // Premium style: subtle glowing drop shadow when focused
+              boxShadow: [
+                BoxShadow(
+                  color: isFocused 
+                      ? scheme.primary.withValues(alpha: 0.15) 
+                      : Colors.black.withValues(alpha: 0.02),
+                  blurRadius: isFocused ? 12 : 4,
+                  offset: const Offset(0, 2),
+                )
+              ],
             ),
             child: Row(
               children: [
-                Icon(Icons.search_rounded,
-                    color: colors.textSecondary,
-                    size: context.rr(20)), //[cite: 3]
-                SizedBox(width: context.rw(8)),
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  child: Icon(
+                    Icons.search_rounded, //[cite: 24]
+                    key: ValueKey(isFocused),
+                    color: isFocused ? scheme.primary : colors.textSecondary,
+                    size: context.rr(20), //[cite: 24]
+                  ),
+                ),
+                SizedBox(width: context.rw(8)), //[cite: 24]
                 Expanded(
                   child: TextField(
-                    controller: _controller,
-                    onChanged: widget.onSearchChanged, //[cite: 3]
+                    controller: _controller, //[cite: 24]
+                    focusNode: _focusNode,
+                    onChanged: widget.onSearchChanged, //[cite: 24]
                     style: TextStyle(
-                        color: colors.textPrimary,
-                        fontSize: context.rsp(13.5)), //[cite: 3]
+                      color: colors.textPrimary, //[cite: 24]
+                      fontSize: context.rsp(13.5), //[cite: 24]
+                    ),
                     decoration: InputDecoration(
-                      isDense: true,
-                      border: InputBorder.none,
-                      hintText: 'customers.search_hint'.tr, //[cite: 3]
+                      isDense: true, //[cite: 24]
+                      border: InputBorder.none, //[cite: 24]
+                      hintText: 'customers.search_hint'.tr, //[cite: 24]
                       hintStyle: TextStyle(
-                          color: colors.textSecondary,
-                          fontSize: context.rsp(13.5)), //[cite: 3]
+                        color: colors.textSecondary, //[cite: 24]
+                        fontSize: context.rsp(13.5), //[cite: 24]
+                      ),
                     ),
                   ),
                 ),
@@ -91,50 +125,60 @@ class _CustomerSearchBarState extends State<CustomerSearchBar> {
             ),
           ),
         ),
-        SizedBox(width: context.rw(10)),
-        InkWell(
-          onTap: widget.onFilterTap, //[cite: 3]
-          borderRadius: BorderRadius.circular(14),
-          child: Container(
-            width: 44,
-            height: context.rh(44),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: widget.hasActiveFilters
-                  ? scheme.primary.withValues(alpha: 0.18) //[cite: 3]
-                  : colors.card, //[cite: 3]
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                  color: widget.hasActiveFilters
-                      ? scheme.primary
-                      : colors.border), //[cite: 3]
-            ),
-            child: Icon(Icons.tune_rounded,
-                color: widget.hasActiveFilters
-                    ? scheme.primary
-                    : colors.textPrimary, //[cite: 3]
-                size: context.rr(20)),
-          ),
-        ),
-        SizedBox(width: context.rw(10)), // Space between filter and add button
-
-        // 3. New Add Customer Button on the right of filter
-        InkWell(
-          onTap: widget.onAddTap,
-          borderRadius: BorderRadius.circular(14),
-          child: Container(
-            width: 44,
-            height: context.rh(44),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: colors.card,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: colors.border),
-            ),
-            child: Icon(
-              Icons.person_add_alt_1_rounded,
-              color: colors.textPrimary,
-              size: context.rr(20),
+        SizedBox(width: context.rw(10)), //[cite: 24]
+        
+        // Premium Hover & Tap Animated Button
+        MouseRegion(
+          onEnter: (_) => setState(() => _isHoveringAdd = true),
+          onExit: (_) => setState(() => _isHoveringAdd = false),
+          child: GestureDetector(
+            onTapDown: (_) => setState(() => _isPressedAdd = true),
+            onTapUp: (_) {
+              setState(() => _isPressedAdd = false);
+              widget.onAddTap(); //[cite: 24]
+            },
+            onTapCancel: () => setState(() => _isPressedAdd = false),
+            child: AnimatedScale(
+              duration: const Duration(milliseconds: 150),
+              curve: Curves.easeInOut,
+              // Shrinks slightly on press, grows slightly on hover for tactile feel
+              scale: _isPressedAdd ? 0.95 : (_isHoveringAdd ? 1.02 : 1.0),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                height: context.rh(44), //[cite: 24]
+                // Dynamic padding instead of fixed 44 width to prevent text overflow
+                padding: EdgeInsets.symmetric(horizontal: context.rw(12)),
+                alignment: Alignment.center, //[cite: 24]
+                decoration: BoxDecoration(
+                  color: _isHoveringAdd ? scheme.primary.withValues(alpha: 0.05) : colors.card,
+                  borderRadius: BorderRadius.circular(14), //[cite: 24]
+                  border: Border.all(
+                    color: _isHoveringAdd ? scheme.primary.withValues(alpha: 0.5) : colors.border,
+                  ),
+                  boxShadow: _isHoveringAdd 
+                      ? [BoxShadow(color: scheme.primary.withValues(alpha: 0.1), blurRadius: 8, offset: const Offset(0, 2))]
+                      : [],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min, //[cite: 24]
+                  children: [
+                    Icon(
+                      Icons.add_rounded, //[cite: 24]
+                      color: _isHoveringAdd ? scheme.primary : colors.textPrimary, 
+                      size: context.rr(20), //[cite: 24]
+                    ),
+                    SizedBox(width: context.rw(4)), //[cite: 24]
+                    Text(
+                      'add_customer.title'.tr, //[cite: 24]
+                      style: TextStyle(
+                        color: _isHoveringAdd ? scheme.primary : colors.textPrimary,
+                        fontSize: context.rsp(13.5), //[cite: 24]
+                        fontWeight: _isHoveringAdd ? FontWeight.w600 : FontWeight.normal,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ),

@@ -3,9 +3,14 @@ import 'package:isi_steel_sales_mobile/features/customers/domain/repositories/bu
 import 'package:isi_steel_sales_mobile/features/customers/data/local/customer_reference_cache.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/models/bp_customer_form_data.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/models/sap_reference_options.dart';
+import 'package:isi_steel_sales_mobile/core/logging/debug_trace.dart';
 
 /// Submission is server-queued: a successful response means the platform
 /// accepted the BP for HQ/SAP processing, not that SAP assigned a number.
+/// Console tracer, sharing the registration channel so the reference load
+/// reads in sequence with the draft and submit steps.
+const _trace = DebugTrace('registration');
+
 class BusinessPartnerRepositoryImpl implements BusinessPartnerRepository {
   const BusinessPartnerRepositoryImpl(this._remote, [this._references]);
   final CustomerRemoteDataSource _remote;
@@ -28,25 +33,55 @@ class BusinessPartnerRepositoryImpl implements BusinessPartnerRepository {
     // Fresh cache wins outright — these change rarely and the form opens on a
     // counter in a market, where a needless round trip is a stalled rep.
     final fresh = cache?.readFresh();
-    if (fresh != null && !fresh.isEmpty) return SapReferenceOptions(fresh);
+    if (fresh != null && !fresh.isEmpty) {
+      _trace.ok('refs', 'cache hit', {
+        'catalogues': fresh.catalogues.length,
+        'synced': fresh.synchronisedAt?.toIso8601String(),
+      });
+      return SapReferenceOptions(fresh);
+    }
 
     try {
       final fetched = await _remote.fetchRegistrationReferences();
       if (!fetched.isEmpty) {
         await cache?.write(fetched);
+        _trace.ok('refs', 'loaded from ERP', {
+          'catalogues': fetched.catalogues.length,
+          // The per-catalogue counts, so "did CustomerGroup arrive?" is
+          // answerable at a glance instead of by inspecting a dropdown whose
+          // built-in fallback happens to look identical.
+          'counts': fetched.catalogues.entries
+              .map((e) => '${e.key}:${e.value.length}')
+              .join(' '),
+        });
         return SapReferenceOptions(fetched);
       }
-    } on Object {
-      // Swallowed deliberately. Reference codes are an accuracy improvement on
-      // the built-in lists, not a precondition for registering a shop, so a
-      // failure here must never surface as an error the rep has to clear.
+      _trace.warn('refs', 'server sent no catalogues — using built-in lists');
+    } on Object catch (error) {
+      // Still swallowed: reference codes are an accuracy improvement on the
+      // built-in lists, not a precondition for registering a shop, so a failure
+      // here must never surface as an error the rep has to clear.
+      //
+      // But it is no longer *silent*. The built-in lists were corrected against
+      // the live catalogues, so a failed load renders almost identically to a
+      // successful one — which made "did the ERP data actually load?"
+      // unanswerable without a packet capture.
+      _trace.fail(
+          'refs', 'load failed — falling back', {'error': error.runtimeType});
     }
 
     // Stale beats empty: an out-of-date ERP list still contains the codes a rep
     // needs far more often than the built-in list does.
     final stale = cache?.readStale();
-    if (stale != null && !stale.isEmpty) return SapReferenceOptions(stale);
+    if (stale != null && !stale.isEmpty) {
+      _trace.warn('refs', 'using stale cache', {
+        'catalogues': stale.catalogues.length,
+        'synced': stale.synchronisedAt?.toIso8601String(),
+      });
+      return SapReferenceOptions(stale);
+    }
 
+    _trace.warn('refs', 'using built-in lists — dropdowns are not live');
     return SapReferenceOptions.empty;
   }
 

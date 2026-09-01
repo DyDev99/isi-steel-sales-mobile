@@ -4,7 +4,6 @@ import 'package:isi_steel_sales_mobile/core/localization/localization_services.d
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/notification/domain/entities/notification_action.dart';
-import 'package:isi_steel_sales_mobile/features/notification/domain/entities/notification_category.dart';
 import 'package:isi_steel_sales_mobile/features/notification/domain/entities/notification_message.dart';
 import 'package:isi_steel_sales_mobile/features/notification/domain/entities/notification_query.dart';
 import 'package:isi_steel_sales_mobile/features/notification/presentation/bloc/notification_inbox_cubit.dart';
@@ -26,12 +25,11 @@ import 'package:isi_steel_sales_mobile/features/notification/presentation/widget
 /// optional because §14 puts the explainer and the declined banner *here*,
 /// beside the notifications they are about, and a surface that silently omitted
 /// them would be the one place a rep never learns why nothing is arriving.
-class NotificationInboxView extends StatelessWidget {
+class NotificationInboxView extends StatefulWidget {
   const NotificationInboxView({
     super.key,
     this.onOpenNotification,
     this.onOpenSettings,
-    this.showTabs = true,
   });
 
   /// Called when a row is tapped, after it has been marked read.
@@ -43,9 +41,18 @@ class NotificationInboxView extends StatelessWidget {
   /// Opens the OS notification settings for this app, for the declined banner.
   final VoidCallback? onOpenSettings;
 
-  /// Hidden in the sheet on a compact screen, where three tabs plus filter chips
-  /// plus a list is more chrome than content.
-  final bool showTabs;
+  @override
+  State<NotificationInboxView> createState() => _NotificationInboxViewState();
+}
+
+class _NotificationInboxViewState extends State<NotificationInboxView> {
+  /// Which bucket the rep is filtering by, or null for everything.
+  ///
+  /// Held here rather than pushed into the cubit's query: the query carries a
+  /// single wire category down to the repository and the remote, and a group is
+  /// several of them. Filtering the loaded list keeps the whole change in
+  /// presentation — no repository, no data source, no backend.
+  NotificationFilterGroup? _group;
 
   @override
   Widget build(BuildContext context) {
@@ -67,14 +74,26 @@ class NotificationInboxView extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (showTabs) _ScopeTabs(scope: state.query.scope),
-            _CategoryChips(selected: state.query.category),
+            _CategoryChips(
+              selected: _group,
+              // Tapping the active chip clears it, matching the affordance the
+              // customer filter sheet uses so the gesture means one thing
+              // app-wide.
+              onSelect: (group) =>
+                  setState(() => _group = _group == group ? null : group),
+              onClear: () => setState(() => _group = null),
+            ),
             SizedBox(height: context.rh(8)),
             Expanded(
                 child: _Body(
                     state: state,
-                    onOpen: onOpenNotification,
-                    onOpenSettings: onOpenSettings)),
+                    items: _group == null
+                        ? state.items
+                        : state.items
+                            .where((n) => _group!.contains(n.category))
+                            .toList(growable: false),
+                    onOpen: widget.onOpenNotification,
+                    onOpenSettings: widget.onOpenSettings)),
           ],
         );
       },
@@ -82,81 +101,22 @@ class NotificationInboxView extends StatelessWidget {
   }
 }
 
-/// Inbox · Action needed · History (§5.1, §5.4).
-class _ScopeTabs extends StatelessWidget {
-  const _ScopeTabs({required this.scope});
-
-  final NotificationScope scope;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-    final scheme = Theme.of(context).colorScheme;
-
-    Widget tab(NotificationScope value, String label) {
-      final selected = value == scope;
-      return Expanded(
-        child: InkWell(
-          onTap: () => context.read<NotificationInboxCubit>().setScope(value),
-          borderRadius: BorderRadius.circular(10),
-          child: Container(
-            // ≥48dp target height (FEATURE_UI_STANDARD §14).
-            constraints: BoxConstraints(minHeight: context.rh(40)),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: selected ? scheme.primary.withValues(alpha: 0.1) : null,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Text(
-              label,
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              // Khmer runs longer than Latin and cannot break on spaces, so the
-              // tab labels are the first place the type scale bites on a tablet.
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: selected ? scheme.primary : colors.textSecondary,
-                fontSize: context.rsp(12),
-                fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Padding(
-      padding: EdgeInsets.only(bottom: context.rh(8)),
-      child: Row(
-        children: [
-          tab(NotificationScope.inbox, 'notifications.tab.inbox'.tr),
-          tab(NotificationScope.actionNeeded,
-              'notifications.tab.action_needed'.tr),
-          tab(NotificationScope.history, 'notifications.tab.history'.tr),
-        ],
-      ),
-    );
-  }
-}
-
-/// Category filter chips.
-///
-/// Drawn from [NotificationCategory.addressable] — the compile-time enum — and
-/// **not** from the preferences API. That is the opposite of the settings screen
-/// on purpose: §13 requires *settings* to render the server's list so a new
-/// category is manageable without a release, while these chips need a
-/// translated Khmer label and an icon, neither of which the server's English
-/// `displayName` provides. A category this build has not heard of still appears
-/// in the list itself, under `unknown`.
 class _CategoryChips extends StatelessWidget {
-  const _CategoryChips({required this.selected});
+  const _CategoryChips({
+    required this.selected,
+    required this.onSelect,
+    required this.onClear,
+  });
 
-  final NotificationCategory? selected;
+  final NotificationFilterGroup? selected;
+  final ValueChanged<NotificationFilterGroup> onSelect;
+
+  /// Clears the group. Separate from [onSelect] because "All" is the absence
+  /// of a group rather than one of them.
+  final VoidCallback onClear;
 
   @override
   Widget build(BuildContext context) {
-    final cubit = context.read<NotificationInboxCubit>();
-
     return SizedBox(
       height: context.rh(38),
       child: ListView(
@@ -165,18 +125,17 @@ class _CategoryChips extends StatelessWidget {
           _Chip(
             label: 'notifications.filter.all'.tr,
             selected: selected == null,
-            onTap: () => cubit.setCategory(null),
+            // Clears the *group*, not the cubit's query. The query is never
+            // narrowed now — grouping happens over the loaded list — so
+            // calling setCategory here would look right and do nothing.
+            onTap: onClear,
           ),
-          for (final category in NotificationCategory.addressable)
+          for (final group in NotificationFilterGroup.values)
             _Chip(
-              label: category.label,
-              color: category.style(context).color,
-              selected: selected == category,
-              // Tapping the active chip clears it — the same affordance the
-              // customer filter sheet uses, so the gesture means one thing
-              // app-wide.
-              onTap: () =>
-                  cubit.setCategory(selected == category ? null : category),
+              label: group.label,
+              color: group.color(context),
+              selected: selected == group,
+              onTap: () => onSelect(group),
             ),
         ],
       ),
@@ -232,11 +191,17 @@ class _Chip extends StatelessWidget {
 class _Body extends StatelessWidget {
   const _Body({
     required this.state,
+    required this.items,
     required this.onOpen,
     required this.onOpenSettings,
   });
 
   final NotificationInboxState state;
+
+  /// The rows to draw — [state.items] narrowed to the selected filter group.
+  /// Passed in rather than read off `state` so the filter stays a presentation
+  /// concern and `_Body` has one source of rows.
+  final List<NotificationMessage> items;
   final void Function(NotificationMessage notification)? onOpen;
   final VoidCallback? onOpenSettings;
 
@@ -264,7 +229,7 @@ class _Body extends StatelessWidget {
 
     return RefreshIndicator(
       onRefresh: cubit.refresh,
-      child: state.items.isEmpty
+      child: items.isEmpty
           // `AlwaysScrollableScrollPhysics` is what keeps pull-to-refresh
           // working on an empty inbox — which is precisely when a rep is most
           // likely to pull, wondering where their route went.
@@ -280,15 +245,14 @@ class _Body extends StatelessWidget {
               physics: const AlwaysScrollableScrollPhysics(),
               // +1 when a permission surface is present, so it scrolls with the
               // list instead of pinning and stealing height from it.
-              itemCount:
-                  state.items.length + (permissionHeader == null ? 0 : 1),
+              itemCount: items.length + (permissionHeader == null ? 0 : 1),
               separatorBuilder: (_, __) => SizedBox(height: context.rh(2)),
               itemBuilder: (context, index) {
                 if (permissionHeader != null) {
                   if (index == 0) return permissionHeader;
                   index -= 1;
                 }
-                final notification = state.items[index];
+                final notification = items[index];
                 return _SwipeableTile(
                   notification: notification,
                   actionInFlight: state.actionInFlightId == notification.id,

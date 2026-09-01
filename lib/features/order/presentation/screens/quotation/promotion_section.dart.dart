@@ -7,9 +7,6 @@ class PromotionSectionWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -18,7 +15,8 @@ class PromotionSectionWidget extends StatelessWidget {
           context,
           title: 'Depot Discount (On Invoice)',
           count: 4,
-          onSeeAll: () => _navigateToDetail(context, 'Depot Discount (On Invoice)'),
+          onSeeAll: () =>
+              _navigateToDetail(context, 'Depot Discount (On Invoice)'),
         ),
         SizedBox(height: context.rh(8)),
         _buildInvoiceDiscountCard(
@@ -42,7 +40,8 @@ class PromotionSectionWidget extends StatelessWidget {
           context,
           title: 'Invoice COD / Pickup Discount',
           count: 3,
-          onSeeAll: () => _navigateToDetail(context, 'Invoice COD / Pickup Discount'),
+          onSeeAll: () =>
+              _navigateToDetail(context, 'Invoice COD / Pickup Discount'),
         ),
         SizedBox(height: context.rh(8)),
         _buildInvoiceDiscountCard(
@@ -66,7 +65,8 @@ class PromotionSectionWidget extends StatelessWidget {
           context,
           title: 'Depot Promotion Requests',
           count: 4,
-          onSeeAll: () => _navigateToDetail(context, 'Depot Promotion Requests'),
+          onSeeAll: () =>
+              _navigateToDetail(context, 'Depot Promotion Requests'),
         ),
         SizedBox(height: context.rh(8)),
         SizedBox(

@@ -14,6 +14,7 @@ class CustomerCard extends StatelessWidget {
     required this.onTap,
     required this.onFavoriteToggle,
     this.onCreateQuotationTap,
+    this.onAddHcVisitTap,
     this.skipOffVisitCheck = false,
     this.seedSearchTerm,
   });
@@ -23,6 +24,7 @@ class CustomerCard extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onFavoriteToggle;
   final VoidCallback? onCreateQuotationTap;
+  final VoidCallback? onAddHcVisitTap;
   final bool skipOffVisitCheck;
   final String? seedSearchTerm;
 
@@ -37,12 +39,98 @@ class CustomerCard extends StatelessWidget {
     ));
   }
 
+  void _handleCreateQuotationTap(BuildContext context) {
+    if (onCreateQuotationTap != null) {
+      onCreateQuotationTap!();
+    } else {
+      _navigateToOrderEntry(context);
+    }
+  }
+
+  void _handleAddHcVisitTap(BuildContext context) {
+    // Wire this up to the actual "add HC visit" flow once the
+    // corresponding screen/use case is available.
+    onAddHcVisitTap?.call();
+  }
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final colors = context.appColors;
 
-    final cardContent = Container(
+    final infoSection = Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: EdgeInsets.all(context.rr(12)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Customer Code & Name
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (customer.customerCode.isNotEmpty)
+                    Text(
+                      customer.customerCode,
+                      style: TextStyle(
+                        fontSize: context.rsp(11),
+                        fontWeight: FontWeight.w700,
+                        color: scheme.primary,
+                      ),
+                    ),
+                  SizedBox(height: context.rh(2)),
+                  Text(
+                    // Both languages are already on the entity, so a
+                    // language switch re-resolves this line on the next
+                    // rebuild — no re-query, no re-sync.
+                    context.localized(customer.displayName),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: context.rsp(14),
+                      fontWeight: FontWeight.w700,
+                      color: colors.textPrimary,
+                      height: 1.2,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: context.rh(10)),
+              // Bottom Row: Territory / Sub-info
+              if (customer.territory.isNotEmpty)
+                Row(
+                  children: [
+                    Icon(
+                      Icons.location_on_outlined,
+                      size: context.rr(13),
+                      color: colors.textSecondary,
+                    ),
+                    SizedBox(width: context.rw(4)),
+                    Expanded(
+                      child: Text(
+                        customer.territory,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: context.rsp(11.5),
+                          color: colors.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    // Single unified card: info section + vertical divider +
+    // stacked action buttons (Create Quotation / Add HC Visit)
+    return Container(
       decoration: BoxDecoration(
         color: colors.surfaceSoft,
         borderRadius: BorderRadius.circular(16),
@@ -51,136 +139,82 @@ class CustomerCard extends StatelessWidget {
           width: 1,
         ),
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: EdgeInsets.all(context.rr(12)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Top Row: Code & Favorite Toggle
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (customer.customerCode.isNotEmpty)
-                            Text(
-                              customer.customerCode,
-                              style: TextStyle(
-                                fontSize: context.rsp(11),
-                                fontWeight: FontWeight.w700,
-                                color: scheme.primary,
-                              ),
-                            ),
-                          SizedBox(height: context.rh(2)),
-                          Text(
-                            // Both languages are already on the entity, so a
-                            // language switch re-resolves this line on the next
-                            // rebuild — no re-query, no re-sync.
-                            context.localized(customer.displayName),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: context.rsp(14),
-                              fontWeight: FontWeight.w700,
-                              color: colors.textPrimary,
-                              height: 1.2,
-                            ),
-                          ),
-                        ],
-                      ),
+      clipBehavior: Clip.antiAlias,
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Customer Info
+            Expanded(
+              flex: 7,
+              child: infoSection,
+            ),
+            VerticalDivider(
+              width: 1,
+              thickness: 1,
+              color: colors.border,
+            ),
+            // Stacked action buttons
+            Expanded(
+              flex: 3,
+              child: Column(
+                children: [
+                  // Top: Create Quotation
+                  Expanded(
+                    child: _StackedActionButton(
+                      icon: Icons.request_quote_rounded,
+                      label: 'Create Quotation',
+                      color: scheme.primary,
+                      onTap: () => _handleCreateQuotationTap(context),
                     ),
-                    IconButton(
-                      icon: Icon(
-                        isFavorite
-                            ? Icons.star_rounded
-                            : Icons.star_outline_rounded,
-                        color: isFavorite ? Colors.amber : colors.textSecondary,
-                        size: context.rr(22),
-                      ),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      onPressed: onFavoriteToggle,
-                    ),
-                  ],
-                ),
-                SizedBox(height: context.rh(10)),
-                // Bottom Row: Territory / Sub-info
-                if (customer.territory.isNotEmpty)
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.location_on_outlined,
-                        size: context.rr(13),
-                        color: colors.textSecondary,
-                      ),
-                      SizedBox(width: context.rw(4)),
-                      Expanded(
-                        child: Text(
-                          customer.territory,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: context.rsp(11.5),
-                            color: colors.textSecondary,
-                          ),
-                        ),
-                      ),
-                    ],
                   ),
-              ],
+                  Divider(
+                    height: 1,
+                    thickness: 1,
+                    color: colors.border,
+                  ),
+                  // Bottom: Add HC Visit
+                  Expanded(
+                    child: _StackedActionButton(
+                      icon: Icons.add_location_alt_rounded,
+                      label: 'Add HC Visit',
+                      color: scheme.secondary,
+                      onTap: () => _handleAddHcVisitTap(context),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
+          ],
         ),
-      ),
-    );
-
-    // 80% Customer Card + 20% Create Quotation Layout
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // 80% Width: Customer Card
-          Expanded(
-            flex: 8,
-            child: cardContent,
-          ),
-          SizedBox(width: context.rw(8)),
-          // 20% Width: Vertical "Create Quotation" Button
-          Expanded(
-            flex: 2,
-            child: _CreateQuotationButton(
-              onTap: () => _navigateToOrderEntry(context),
-            ),
-          ),
-        ],
       ),
     );
   }
 }
 
-class _CreateQuotationButton extends StatefulWidget {
-  const _CreateQuotationButton({required this.onTap});
+class _StackedActionButton extends StatefulWidget {
+  const _StackedActionButton({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
 
+  final IconData icon;
+  final String label;
+  final Color color;
   final VoidCallback onTap;
 
   @override
-  State<_CreateQuotationButton> createState() => _CreateQuotationButtonState();
+  State<_StackedActionButton> createState() => _StackedActionButtonState();
 }
 
-class _CreateQuotationButtonState extends State<_CreateQuotationButton> {
+class _StackedActionButtonState extends State<_StackedActionButton> {
   bool _isPressed = false;
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final color = widget.color;
 
     return GestureDetector(
       onTapDown: (_) => setState(() => _isPressed = true),
@@ -190,50 +224,39 @@ class _CreateQuotationButtonState extends State<_CreateQuotationButton> {
         widget.onTap();
       },
       onTapCancel: () => setState(() => _isPressed = false),
-      child: AnimatedScale(
-        scale: _isPressed ? 0.94 : 1.0,
+      child: AnimatedContainer(
         duration: const Duration(milliseconds: 100),
-        curve: Curves.decelerate,
-        child: Container(
-          decoration: BoxDecoration(
-            color: scheme.primary.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: scheme.primary.withValues(alpha: 0.22),
-              width: 1,
+        color: _isPressed ? color.withValues(alpha: 0.08) : Colors.transparent,
+        alignment: Alignment.center,
+        padding: EdgeInsets.symmetric(
+          horizontal: context.rw(6),
+          vertical: context.rh(4),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              widget.icon,
+              size: context.rr(16),
+              color: color,
             ),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: EdgeInsets.all(context.rr(8)),
-                decoration: BoxDecoration(
-                  color: scheme.primary.withValues(alpha: 0.12),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.request_quote_rounded,
-                  size: context.rr(20),
-                  color: scheme.primary,
-                ),
-              ),
-              SizedBox(height: context.rh(6)),
-              Text(
-                'Create\nQuotation',
+            SizedBox(width: context.rw(6)),
+            Flexible(
+              child: Text(
+                widget.label,
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  color: scheme.primary,
+                  color: color,
                   fontSize: context.rsp(10.5),
                   fontWeight: FontWeight.w800,
                   height: 1.15,
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

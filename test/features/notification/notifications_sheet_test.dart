@@ -247,7 +247,14 @@ void main() {
   }
 
   /// Pumps the inbox body with a scripted set of notifications.
-  Future<void> openInbox(
+  /// Returns the inbox cubit.
+  ///
+  /// The Inbox / Action needed / History tabs were removed from the view, so
+  /// scope can no longer be selected by tapping. It is still a real feature of
+  /// the cubit and the query, and the content rules below (§5.4 pinning,
+  /// history's resolution note) are worth keeping under test — so the tests
+  /// drive scope directly instead of losing the coverage with the tabs.
+  Future<NotificationInboxCubit> openInbox(
     WidgetTester tester, {
     required Size size,
     required List<NotificationMessage> items,
@@ -286,6 +293,7 @@ void main() {
         ),
       ),
     );
+    return inbox;
   }
 
   double fontSizeOf(WidgetTester tester, String text) =>
@@ -326,13 +334,17 @@ void main() {
       _message('2', category: NotificationCategory.assignment),
     ];
 
-    testWidgets('tabs, filters and rows render without overflow',
-        (tester) async {
+    testWidgets('filters and rows render without overflow', (tester) async {
       await openInbox(tester, size: phone, items: items);
 
-      expect(find.text('Inbox'), findsOneWidget);
-      expect(find.text('History'), findsOneWidget);
+      // The Inbox / Action needed / History tabs were removed; the filter row
+      // is now the only chrome above the list.
+      expect(find.text('Inbox'), findsNothing);
+      expect(find.text('History'), findsNothing);
+
       expect(find.text('All'), findsOneWidget);
+      expect(find.text('Admin'), findsOneWidget);
+      expect(find.text('System'), findsOneWidget);
       expect(find.text('Credit approved'), findsNWidgets(2));
       expect(tester.takeException(), isNull);
     });
@@ -359,18 +371,11 @@ void main() {
         (tester) async {
       await openInbox(tester, size: phone, items: [_message('1')]);
 
-      // The chips live in a lazy horizontal ListView, so a chip far along the
-      // row is not merely off-screen — it has not been built at all, and
-      // `ensureVisible` throws "No element". Scrolling it into view builds it
-      // first. Tapping without this would hit-test empty space and silently do
-      // nothing (only a "warnIfMissed" warning), leaving the filter unapplied.
-      await tester.scrollUntilVisible(
-        find.text('Orders'),
-        200,
-        scrollable: find.byType(Scrollable).first,
-      );
-      await tester.pump();
-      await tester.tap(find.text('Orders'));
+      // The chips are now two buckets rather than one per category, and both
+      // fit on screen — no scrolling needed to build them. The fixture's
+      // notification is `finance`, which belongs to Admin, so filtering to
+      // System must empty the list.
+      await tester.tap(find.text('System'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
@@ -382,7 +387,7 @@ void main() {
         (tester) async {
       // §5.4: `requires_ack` items are the tab's whole content, and §8.3 means a
       // *read* one still belongs here.
-      await openInbox(tester, size: phone, items: [
+      final cubit = await openInbox(tester, size: phone, items: [
         _message('1', title: 'Routine update'),
         _message('2',
             title: 'Acknowledge route',
@@ -390,7 +395,8 @@ void main() {
             state: NotificationState.read),
       ]);
 
-      await tester.tap(find.text('Action needed'));
+      cubit.setScope(NotificationScope.actionNeeded);
+      await tester.pump();
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
@@ -400,9 +406,11 @@ void main() {
 
     testWidgets('an empty Action needed tab reads as good news',
         (tester) async {
-      await openInbox(tester, size: phone, items: [_message('1')]);
+      final cubit =
+          await openInbox(tester, size: phone, items: [_message('1')]);
 
-      await tester.tap(find.text('Action needed'));
+      cubit.setScope(NotificationScope.actionNeeded);
+      await tester.pump();
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
@@ -416,13 +424,14 @@ void main() {
         (tester) async {
       // §5.1: nothing is ever deleted, and a greyed row without a reason reads
       // as a bug rather than as information.
-      await openInbox(tester, size: phone, items: [
+      final cubit = await openInbox(tester, size: phone, items: [
         _message('1',
             title: 'Order on credit hold',
             state: NotificationState.resolvedElsewhere),
       ]);
 
-      await tester.tap(find.text('History'));
+      cubit.setScope(NotificationScope.history);
+      await tester.pump();
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 

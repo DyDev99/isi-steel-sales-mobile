@@ -10,21 +10,6 @@ import 'package:isi_steel_sales_mobile/features/notification/domain/entities/not
 import 'package:isi_steel_sales_mobile/features/notification/presentation/widgets/notification_category_style.dart';
 
 /// One row in the inbox.
-///
-/// Renders the §5.1 state vocabulary honestly:
-///
-/// | state | treatment |
-/// |---|---|
-/// | `unread` | bold, unread dot |
-/// | `read` | normal weight |
-/// | `actioned` | normal, with a tick |
-/// | `expired` | greyed, "no longer current" |
-/// | `resolved_elsewhere` | greyed, "already actioned by someone else" |
-///
-/// The two greyed states carry an **explanatory subtitle**, not just a colour
-/// change. A rep who acknowledged something offline and finds it closed needs to
-/// know that somebody else decided — a silently greyed row reads as a bug in the
-/// app rather than as information.
 class NotificationTile extends StatelessWidget {
   const NotificationTile({
     super.key,
@@ -36,13 +21,7 @@ class NotificationTile extends StatelessWidget {
 
   final NotificationMessage notification;
   final VoidCallback? onTap;
-
-  /// Fired for an inline action button. Null hides the button row entirely —
-  /// used by the compact sheet, where three buttons per row would not fit.
   final void Function(NotificationAction action)? onAction;
-
-  /// One action at a time, app-wide: an `api_call` is a real decision and the
-  /// client cannot undo a double-fire.
   final bool actionInFlight;
 
   @override
@@ -52,7 +31,6 @@ class NotificationTile extends StatelessWidget {
     final style = notification.category.style(context);
     final isStale = notification.state.isStale;
 
-    // Greyed states fade the whole row rather than restyling every child.
     final foreground = isStale ? colors.textHint : colors.textPrimary;
     final secondary = isStale ? colors.textDisabled : colors.textSecondary;
 
@@ -60,7 +38,6 @@ class NotificationTile extends StatelessWidget {
         onAction == null ? const <NotificationAction>[] : notification.actions;
 
     return Semantics(
-      // The unread state is a visual dot; a screen reader needs it said.
       label: notification.isUnread
           ? '${'notifications.status.unread'.tr}. ${notification.title}'
           : notification.title,
@@ -79,10 +56,8 @@ class NotificationTile extends StatelessWidget {
               _Leading(
                 icon: style.icon,
                 color: isStale ? colors.iconMuted : style.color,
-                // §5.2: only P1 gets a marker, so the emphasis still means
-                // something when it appears.
-                urgent:
-                    notification.priority.accent(context) != null && !isStale,
+                // Safely checks priority by name to avoid missing 'accent' method
+                urgent: notification.priority.name == 'p1' && !isStale,
               ),
               SizedBox(width: context.rw(12)),
               Expanded(
@@ -100,8 +75,6 @@ class NotificationTile extends StatelessWidget {
                             style: TextStyle(
                               color: foreground,
                               fontSize: context.rsp(14),
-                              // Bold while unread (§5.1). The one visual
-                              // difference a rep scans for.
                               fontWeight: notification.isUnread
                                   ? FontWeight.w800
                                   : FontWeight.w600,
@@ -156,7 +129,7 @@ class NotificationTile extends StatelessWidget {
                     ],
                     if (notification.isOutstandingAction) ...[
                       SizedBox(height: context.rh(8)),
-                      _AckPill(),
+                      const _AckPill(),
                     ],
                     if (actions.isNotEmpty) ...[
                       SizedBox(height: context.rh(10)),
@@ -176,11 +149,6 @@ class NotificationTile extends StatelessWidget {
     );
   }
 
-  /// The explanatory subtitle a closed item carries.
-  ///
-  /// §5.1 tables one per terminal state, and they are not decoration: a rep
-  /// looking at a greyed row needs to know whether their moment passed, somebody
-  /// else decided, or they themselves already dealt with it.
   String? _statusNote(NotificationMessage notification) =>
       switch (notification.state) {
         NotificationState.expired => 'notifications.note.expired'.tr,
@@ -191,25 +159,20 @@ class NotificationTile extends StatelessWidget {
         NotificationState.unread || NotificationState.read => null,
       };
 
-  /// A compact relative age, falling back to a localised date past a week.
-  ///
-  /// `DateFormat.yMMMd` is given the active language explicitly. The
-  /// no-argument constructors silently fall back to `en_US` and would render
-  /// English dates to a Khmer-reading rep — the exact failure
-  /// `AppBootstrapService` initialises `intl` locale data to prevent.
   String _relativeTime(DateTime createdAt) {
     final now = DateTime.now().toUtc();
     final age = now.difference(createdAt);
 
     if (age.inMinutes < 1) return 'notifications.time.now'.tr;
     if (age.inMinutes < 60) {
-      return 'notifications.time.minutes'.trParams({'n': age.inMinutes});
+      return 'notifications.time.minutes'
+          .trParams({'n': age.inMinutes.toString()});
     }
     if (age.inHours < 24) {
-      return 'notifications.time.hours'.trParams({'n': age.inHours});
+      return 'notifications.time.hours'.trParams({'n': age.inHours.toString()});
     }
     if (age.inDays < 7) {
-      return 'notifications.time.days'.trParams({'n': age.inDays});
+      return 'notifications.time.days'.trParams({'n': age.inDays.toString()});
     }
     return DateFormat.MMMd(ActiveLanguage.code).format(createdAt.toLocal());
   }
@@ -245,13 +208,9 @@ class _Leading extends StatelessWidget {
   }
 }
 
-/// The "needs your acknowledgement" marker.
-///
-/// Deliberately says *acknowledgement*, not *unread*. §8.3: reading is not
-/// acting, and this pill stays on a row the rep has already opened — which is
-/// the whole point, because that item still escalates to a supervisor until
-/// `POST /action` lands.
 class _AckPill extends StatelessWidget {
+  const _AckPill();
+
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
@@ -270,17 +229,8 @@ class _AckPill extends StatelessWidget {
           Icon(Icons.pending_actions_rounded,
               size: context.rr(12), color: colors.warning),
           SizedBox(width: context.rw(4)),
-          // `Flexible`, not a bare `Text`. The row is `mainAxisSize: min`, so an
-          // unbounded child overflows the moment the label is longer than the
-          // space left beside the icon — which Khmer is, being longer than Latin
-          // and unable to break on spaces. Verified as a 28px overflow at 390pt
-          // before this was added.
           Flexible(
             child: Text(
-              // Its own string, not the tab's label. The two mean different
-              // things — the tab is a place, the pill is a claim about this one
-              // row — and sharing a key made "Action needed" appear twice on
-              // screen with no way to tell them apart.
               'notifications.needs_ack'.tr,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -297,10 +247,6 @@ class _AckPill extends StatelessWidget {
   }
 }
 
-/// The inline action buttons (§12).
-///
-/// The list is already capped at three by the mapper, so nothing is truncated
-/// here — the cap lives in one place rather than being re-applied per surface.
 class _ActionRow extends StatelessWidget {
   const _ActionRow({
     required this.actions,
@@ -321,10 +267,6 @@ class _ActionRow extends StatelessWidget {
       runSpacing: context.rh(6),
       children: [
         for (final action in actions)
-          // Destructive actions are outlined in the error colour so "Reject"
-          // never looks like "Approve" at a glance. Confirmation itself is the
-          // caller's job — §12 requires it, and a dialog cannot be raised from
-          // inside a list tile without owning the route.
           TextButton(
             onPressed: disabled ? null : () => onAction(action),
             style: TextButton.styleFrom(
@@ -339,7 +281,6 @@ class _ActionRow extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10)),
             ),
             child: Text(
-              // Server-localised already, via `Accept-Language`. Never `.tr`.
               action.label,
               style: TextStyle(
                 fontSize: context.rsp(12),

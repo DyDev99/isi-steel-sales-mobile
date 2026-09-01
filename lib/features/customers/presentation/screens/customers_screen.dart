@@ -16,7 +16,6 @@ import 'package:isi_steel_sales_mobile/features/customers/presentation/screens/c
 import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_card.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_empty_state.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_error_state.dart';
-import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_filter_sheet.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_loading.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_search_bar.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_sync_status_banner.dart';
@@ -260,11 +259,6 @@ class _Loaded extends StatelessWidget {
     final items = _visibleItems;
     final rows = _buildRows(items);
 
-    final territories = state.items.map((c) => c.territory).toSet().toList()
-      ..sort();
-    final productCategories =
-        state.items.expand((c) => c.productsPurchased).toSet().toList()..sort();
-
     return RefreshIndicator(
       color: scheme.primary,
       backgroundColor: colors.surfaceSoft,
@@ -286,20 +280,11 @@ class _Loaded extends StatelessWidget {
                   SizedBox(height: context.rh(20)),
                   const CustomerSyncStatusBanner(),
                   CustomerSearchBar(
+
                     query: state.query,
                     onSearchChanged: (q) => context
                         .read<CustomersBloc>()
                         .add(CustomersSearchChanged(q)),
-                    hasActiveFilters: !state.filter.isEmpty,
-                    onFilterTap: () => showCustomerFilterSheet(
-                      context: context,
-                      filter: state.filter,
-                      territories: territories,
-                      productCategories: productCategories,
-                      onApply: (f) => context
-                          .read<CustomersBloc>()
-                          .add(CustomersFilterChanged(f)),
-                    ),
                     // Registers a shop directly. This used to require picking
                     // a won lead first, which meant a rep standing in a shop
                     // that was never in the pipeline could not add it at all.
@@ -320,8 +305,7 @@ class _Loaded extends StatelessWidget {
                     },
                   ),
                   SizedBox(height: context.rh(12)),
-                  _QuickAccessRow(
-                      selected: quickAccess, onChanged: onQuickAccessChanged),
+          
                 ],
               ),
             ),
@@ -338,13 +322,11 @@ class _Loaded extends StatelessWidget {
                       ? state.query.trim()
                       : null;
                   return CustomerEmptyState(
-                    hasActiveSearchOrFilter:
-                        state.query.isNotEmpty || !state.filter.isEmpty,
-                    onClearSearchOrFilter:
-                        state.query.isNotEmpty || !state.filter.isEmpty
+                    hasActiveSearchOrFilter: state.query.isNotEmpty,
+                    onClearSearchOrFilter: state.query.isNotEmpty
                             ? () => context
                                 .read<CustomersBloc>()
-                                .add(const CustomersFiltersCleared())
+                                .add(const CustomersSearchChanged(''))
                             : null,
                     lookupCode: code,
                     onLookupCode: code == null

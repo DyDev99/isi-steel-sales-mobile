@@ -140,7 +140,6 @@ class _SheetInboxState extends State<_SheetInbox> {
         // Tabs are shown here too: "Action needed" is the one surface a rep must
         // be able to reach, and hiding it on a phone would hide the whole point
         // of `requires_ack` (§5.4).
-        showTabs: true,
       ),
     );
   }

@@ -21,6 +21,7 @@ class Customers extends Table {
   String get tableName => 'customers';
 
   TextColumn get id => text()();
+
   /// Nullable *and* unique, deliberately: SQLite counts every NULL as
   /// distinct, so this reads as "at most one row per SAP id, and rows without
   /// one never conflict" — which is exactly the rule for field-created
