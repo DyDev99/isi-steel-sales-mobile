@@ -12,6 +12,14 @@ import 'package:isi_steel_sales_mobile/features/customers/data/remote/customer_d
 /// currency) have no server catalogue and stay on the built-in lists — see
 /// [SapReferenceOptions.forCatalogue].
 abstract final class SapCatalogue {
+  /// BP grouping / account group, as `GET references` spells it.
+  ///
+  /// Note this catalogue is the **whole** BP grouping table — 11 entries
+  /// covering customers, suppliers, loans and employees. Only the customer
+  /// groupings belong in this form; see
+  /// [SapReferenceOptions.partnerGroup].
+  static const String partnerGroup = 'PartnerGroup';
+
   static const String salesOrg = 'SalesOrg';
   static const String salesOffice = 'SalesOffice';
   static const String salesGroup = 'SalesGroup';
@@ -62,6 +70,49 @@ class SapReferenceOptions {
   }) {
     final options = _catalogue?.optionsFor(catalogue) ?? const <SapOption>[];
     return options.isEmpty ? fallback : options;
+  }
+
+  /// Grouping options for **customer** registration.
+  ///
+  /// The ERP catalogue is the full BP grouping table, so it also offers
+  /// `ZBP1 Local Supplier`, `ZSL4 Employee`, `ZSL1 Term Loan` and five more.
+  /// Those are real groupings — for other BP roles. This form creates
+  /// `BpRole: ZFLCU1` (Customer) and sends the grouping as both
+  /// `PartnerGroup` and `AccountGroup`, so offering them here would let a rep
+  /// register a steel shop as a term loan. SAP would reject the push, and the
+  /// rep would have no way to tell that from any other rejection.
+  ///
+  /// Filtered rather than truncated to the three known codes, so a customer
+  /// grouping added in SAP appears without an app release.
+  List<SapOption> get partnerGroup {
+    final all = forCatalogue(
+      SapCatalogue.partnerGroup,
+      fallback: SapMasterData.grouping,
+    );
+    final customerOnly = all.where(_isCustomerGrouping).toList();
+    // If the filter matches nothing the catalogue has been reorganised in a
+    // way this build does not understand. Falling back to the built-in list
+    // beats an empty dropdown, which blocks the registration outright.
+    return customerOnly.isEmpty ? SapMasterData.grouping : customerOnly;
+  }
+
+  /// Every grouping the ERP published, unfiltered. For screens that are not
+  /// customer registration.
+  List<SapOption> get allPartnerGroups => forCatalogue(
+        SapCatalogue.partnerGroup,
+        fallback: SapMasterData.grouping,
+      );
+
+  /// A grouping usable for a customer BP.
+  ///
+  /// Matched on the built-in customer codes **or** the word "customer" in the
+  /// ERP's own name, so `Z00n Project Customer` added later is picked up
+  /// automatically. `Z003 Group Member` has no such word and is included by
+  /// code — it is an intercompany customer, not a supplier.
+  static bool _isCustomerGrouping(SapOption option) {
+    const knownCustomerCodes = {'Z001', 'Z002', 'Z003'};
+    return knownCustomerCodes.contains(option.code) ||
+        option.labelEn.toLowerCase().contains('customer');
   }
 
   List<SapOption> get salesOrg =>

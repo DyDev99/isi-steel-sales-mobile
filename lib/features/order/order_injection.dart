@@ -24,12 +24,15 @@ import 'package:isi_steel_sales_mobile/features/order/data/remote/mock_product_f
 import 'package:isi_steel_sales_mobile/features/order/data/remote/mock_product_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/remote/api_material_selection_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/remote/material_selection_remote_data_source.dart';
+import 'package:isi_steel_sales_mobile/features/order/data/remote/pricing_realtime_data_source.dart';
+import 'package:isi_steel_sales_mobile/features/order/data/remote/pricing_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/remote/product_filter_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/remote/product_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/repositories/cart_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/repositories/category_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/repositories/api_product_filter_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/repositories/material_availability_repository_impl.dart';
+import 'package:isi_steel_sales_mobile/features/order/data/repositories/pricing_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/repositories/product_filter_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/repositories/static_promotion_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/repositories/product_repository_impl.dart';
@@ -43,6 +46,7 @@ import 'package:isi_steel_sales_mobile/features/order/data/services/mock_mto_pri
 import 'package:isi_steel_sales_mobile/features/order/domain/repositories/cart_repository.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/repositories/category_repository.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/repositories/material_availability_repository.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/repositories/pricing_repository.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/repositories/product_filter_repository.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/repositories/promotion_repository.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/repositories/product_repository.dart';
@@ -75,6 +79,7 @@ import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_credit
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/check_material_availability.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_filter_step_options.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/evaluate_promotion.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_customer_material_prices.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_materials.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_promotions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_stock_location_options.dart';
@@ -105,6 +110,7 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/product_detail_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/product_filter_flow/product_filter_flow_bloc.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/pricing/pricing_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/promotion/promotion_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/sync/continue_work_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/sync/pending_sync_cubit.dart';
@@ -142,6 +148,15 @@ Future<void> registerOrderFeature(GetIt sl) async {
   // The guided material finder's four reads. Registered unconditionally: the
   // availability check below needs it even on the offline path, where it is
   // the only thing that can answer "may I sell this?" at all.
+  sl.registerLazySingleton<PricingRemoteDataSource>(
+      () => ApiPricingRemoteDataSource(sl<Dio>()));
+  // TODO(release-gate): replace with a SignalR-backed source once a client
+  // package is approved — no SignalR client is in pubspec today, and
+  // hand-rolling the hub handshake would be a second auth mechanism the spec
+  // forbids. Until then every price is REST-fetched and nothing claims to be
+  // live that is not.
+  sl.registerLazySingleton<PricingRealtimeSource>(
+      () => DisconnectedPricingRealtimeSource());
   sl.registerLazySingleton<MaterialSelectionRemoteDataSource>(
       () => ApiMaterialSelectionRemoteDataSource(sl<Dio>()));
   sl.registerLazySingleton<ProductFilterLocalDataSource>(
@@ -191,6 +206,9 @@ Future<void> registerOrderFeature(GetIt sl) async {
   // TODO(release-gate): swap for an API-backed implementation when the
   // promotions endpoint ships. Everything above `PromotionRepository` already
   // talks to the interface, so this line is the whole migration.
+  sl.registerLazySingleton<PricingRepository>(
+    () => PricingRepositoryImpl(remote: sl(), network: sl<NetworkInfo>()),
+  );
   sl.registerLazySingleton<PromotionRepository>(
       () => const StaticPromotionRepositoryImpl());
   sl.registerLazySingleton<MaterialAvailabilityRepository>(
@@ -248,6 +266,7 @@ Future<void> registerOrderFeature(GetIt sl) async {
   sl.registerLazySingleton(() => CheckMaterialAvailability(sl()));
   sl.registerLazySingleton(() => GetPromotions(sl()));
   sl.registerLazySingleton(() => EvaluatePromotion(sl()));
+  sl.registerLazySingleton(() => GetCustomerMaterialPrices(sl()));
 
   sl.registerLazySingleton(() => FetchCart(sl()));
   sl.registerLazySingleton(() => AddToCart(sl()));
@@ -311,6 +330,9 @@ Future<void> registerOrderFeature(GetIt sl) async {
   // A factory, not a singleton: it holds per-material debounce timers and a
   // customer scope, both of which belong to one screen's lifetime.
   sl.registerFactory(() => PromotionCubit(evaluate: sl()));
+  // A factory: it owns a customer scope and hub subscription that belong to
+  // one quotation's lifetime, and must be torn down with the screen.
+  sl.registerFactory(() => PricingCubit(getPrices: sl(), realtime: sl()));
   sl.registerFactory(() => PendingSyncCubit(repository: sl(), processor: sl()));
   sl.registerFactory(() => ContinueWorkCubit(
         watchQuotations: sl(),

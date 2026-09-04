@@ -280,7 +280,6 @@ class _Loaded extends StatelessWidget {
                   SizedBox(height: context.rh(20)),
                   const CustomerSyncStatusBanner(),
                   CustomerSearchBar(
-
                     query: state.query,
                     onSearchChanged: (q) => context
                         .read<CustomersBloc>()
@@ -305,7 +304,6 @@ class _Loaded extends StatelessWidget {
                     },
                   ),
                   SizedBox(height: context.rh(12)),
-          
                 ],
               ),
             ),
@@ -324,10 +322,10 @@ class _Loaded extends StatelessWidget {
                   return CustomerEmptyState(
                     hasActiveSearchOrFilter: state.query.isNotEmpty,
                     onClearSearchOrFilter: state.query.isNotEmpty
-                            ? () => context
-                                .read<CustomersBloc>()
-                                .add(const CustomersSearchChanged(''))
-                            : null,
+                        ? () => context
+                            .read<CustomersBloc>()
+                            .add(const CustomersSearchChanged(''))
+                        : null,
                     lookupCode: code,
                     onLookupCode: code == null
                         ? null

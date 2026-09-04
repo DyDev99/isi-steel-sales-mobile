@@ -1,7 +1,12 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:isi_steel_sales_mobile/core/constants/app_constant.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/remote/customer_datasources.dart';
+import 'package:isi_steel_sales_mobile/features/customers/data/datasources/business_partner_remote_data_source.dart';
+import 'package:isi_steel_sales_mobile/features/customers/data/local/bp_draft_cache.dart';
+import 'package:isi_steel_sales_mobile/features/customers/data/local/customer_reference_cache.dart';
+import 'package:isi_steel_sales_mobile/features/customers/data/models/bp_customer_form_data.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/repositories/business_partner_repository_impl.dart';
 
 /// End-to-end proof that the **live** `GET /mobile/customers/references`
@@ -12,6 +17,43 @@ import 'package:isi_steel_sales_mobile/features/customers/data/repositories/busi
 /// group the server actually sends end up as the options the rep picks from" —
 /// which spans the endpoint path, the envelope, the catalogue map and the
 /// resolver.
+/// Caches that hold nothing, so every call takes the network path this file is
+/// about. Hand-written rather than mocked: `readFresh` returning null is the
+/// whole behaviour, and a stubbed mock would say it less clearly.
+class _EmptyReferenceCache extends Fake implements CustomerReferenceCache {
+  @override
+  CustomerReferenceCatalogue? readFresh({bool includeInactive = false}) => null;
+
+  @override
+  CustomerReferenceCatalogue? readStale({bool includeInactive = false}) => null;
+
+  @override
+  DateTime? cachedAt({bool includeInactive = false}) => null;
+
+  @override
+  Future<void> write(CustomerReferenceCatalogue catalogue,
+      {bool includeInactive = false}) async {}
+
+  @override
+  Future<void> clear() async {}
+}
+
+/// The draft store is untouched by a reference load.
+class _UnusedDraftCache extends Fake implements BpDraftCache {
+  @override
+  Future<BpCustomerDraft?> read() async => null;
+
+  @override
+  Future<void> write(BpCustomerDraft draft) async {}
+
+  @override
+  Future<void> clear() async {}
+}
+
+/// Never called on this path; the repository requires one to construct.
+/// Never called on this path; `Fake` throws loudly if that ever changes.
+class _UnusedBpRemote extends Fake implements BusinessPartnerRemoteDataSource {}
+
 class _ScriptedAdapter implements HttpClientAdapter {
   _ScriptedAdapter(this.handler);
 
@@ -80,8 +122,12 @@ void main() {
       ..httpClientAdapter = adapter;
     // No cache: this exercises the network path, which is what a first form
     // open on a fresh install does.
-    repository =
-        BusinessPartnerRepositoryImpl(CustomerRemoteDataSourceImpl(dio));
+    repository = BusinessPartnerRepositoryImpl(
+      remote: _UnusedBpRemote(),
+      references: CustomerRemoteDataSourceImpl(dio),
+      referenceCache: _EmptyReferenceCache(),
+      draftCache: _UnusedDraftCache(),
+    );
   });
 
   test('it calls the documented references endpoint', () async {

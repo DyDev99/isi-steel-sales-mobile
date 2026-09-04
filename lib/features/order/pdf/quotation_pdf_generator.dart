@@ -69,7 +69,7 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
   @override
   Future<pw.Document> build(PdfBuildContext context) async {
     final theme = context.theme;
-    final logo = context.assets.logo;
+    final logoSvg = context.assets.logoSvg;
     final doc = pw.Document(
       // Document metadata, not on-screen copy: the *company* is still ISI
       // Steel (that is who quotes the customer), while "SteelForce" is the
@@ -88,7 +88,7 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
 
     // Pass 1 — build and discard every section once so PdfShapedText records
     // each string that needs Khmer shaping, then rasterize them all.
-    _header(theme, logo);
+    _header(theme, logoSvg);
     _continuationBanner(theme);
     _partiesBlock(theme, dateFmt);
     _lineItemsTable(theme, currency);
@@ -108,7 +108,7 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
           margin: const pw.EdgeInsets.fromLTRB(32, 28, 32, 36),
         ),
         header: (ctx) => ctx.pageNumber == 1
-            ? _header(theme, logo)
+            ? _header(theme, logoSvg)
             : _continuationBanner(theme),
         footer: (ctx) => _footer(theme, ctx),
         build: (ctx) => [
@@ -130,7 +130,7 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
   }
 
   // ── Header ─────────────────────────────────────────────────────────────
-  pw.Widget _header(PdfTheme theme, dynamic logoBytes) {
+  pw.Widget _header(PdfTheme theme, String? logoSvg) {
     return pw.Container(
       padding: pw.EdgeInsets.only(bottom: theme.gapMd),
       decoration: pw.BoxDecoration(
@@ -145,8 +145,8 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
           pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              if (logoBytes != null)
-                pw.Image(pw.MemoryImage(logoBytes), height: 34)
+              if (logoSvg != null)
+                pw.SvgImage(svg: logoSvg, height: 34)
               else
                 pw.Text(
                   'ISI STEEL',

@@ -1,126 +1,89 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:isi_steel_sales_mobile/core/animations/app_animations.dart';
+import 'package:isi_steel_sales_mobile/core/animations/fade_slide_transition.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localized_builder.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_content_frame.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/stop_information/promotions_mock_data.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/promotions/promo_card.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/promotions/promo_filter_bar.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/promotions/promo_tone.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/promotions/promo_view.dart';
 
-enum PromoType { onInvoice, offInvoice, contract }
-
-class PromoItem {
-  const PromoItem({
-    required this.id,
-    required this.code,
-    required this.title,
-    required this.description,
-    required this.discountLabel,
-    required this.type,
-    required this.validUntil,
-    required this.minOrderValue,
-    this.appliedCategory,
-  });
-
-  final String id;
-  final String code;
-  final String title;
-  final String description;
-  final String discountLabel;
-  final PromoType type;
-  final String validUntil;
-  final String minOrderValue;
-  final String? appliedCategory;
-}
-
+/// Every promotion a rep can quote at one outlet.
+///
+/// Opened from the visit's stop-information screen, mid-visit, usually
+/// one-handed. The design target is that a rep can answer "what can I offer
+/// this depot today" without reading a single card end to end: the rate leads,
+/// the countdown says whether it still counts, and anything expired sinks to
+/// the bottom instead of competing for the top of the list.
 class PromotionsScreen extends StatefulWidget {
   const PromotionsScreen({
     super.key,
     this.outletName,
+    this.promotions,
+    this.now,
   });
 
   static const String routeName = 'promotions';
+
   final String? outletName;
+
+  /// Injectable so a test can pin the data set. Falls back to the tagged mock
+  /// list until the promotions data layer exists.
+  final List<PromoView>? promotions;
+
+  /// Injectable clock — the countdown and the expired/active split both depend
+  /// on it, and a test that used the real clock would start failing on a date
+  /// nobody chose.
+  final DateTime? now;
 
   @override
   State<PromotionsScreen> createState() => _PromotionsScreenState();
 }
 
 class _PromotionsScreenState extends State<PromotionsScreen> {
-  PromoType? _selectedTypeFilter;
-
-  // Mock promotion dataset representing active outlet promotions
-  static const List<PromoItem> _promotions = [
-    PromoItem(
-      id: 'P001',
-      code: 'ISI-ONINV-5',
-      title: '5% Instant On-Invoice Discount',
-      description:
-          'Get an instant 5% price reduction on all Roofing & Wave Tiles orders over \$2,000.',
-      discountLabel: '5% OFF',
-      type: PromoType.onInvoice,
-      validUntil: '31 Aug 2026',
-      minOrderValue: '\$2,000',
-      appliedCategory: 'Roofing & Tiles',
-    ),
-    PromoItem(
-      id: 'P002',
-      code: 'STEEL-BOX-10',
-      title: 'Square Box Pipe Rebate',
-      description:
-          'Receive \$10 cashback rebate per ton on galvanized square & box pipes.',
-      discountLabel: '\$10/Ton',
-      type: PromoType.onInvoice,
-      validUntil: '15 Sep 2026',
-      minOrderValue: '\$5,000',
-      appliedCategory: 'Pipes & Tubing',
-    ),
-    PromoItem(
-      id: 'P003',
-      code: 'CONTRACT-Q3-ISI',
-      title: 'Q3 Volume Tier Bonus',
-      description:
-          'Quarterly contractual incentive for Diamond tier outlets achieving >50 Tons.',
-      discountLabel: '\$1,500 Rebate',
-      type: PromoType.contract,
-      validUntil: '30 Sep 2026',
-      minOrderValue: '\$25,000',
-      appliedCategory: 'All Structural Steel',
-    ),
-    PromoItem(
-      id: 'P004',
-      code: 'C-PURLIN-SPECIAL',
-      title: 'C-Purlin Direct Discount',
-      description:
-          'Special contractor incentive on high-grade C-Purlin and Z-Purlin orders.',
-      discountLabel: '3% OFF',
-      type: PromoType.onInvoice,
-      validUntil: '20 Sep 2026',
-      minOrderValue: '\$1,500',
-      appliedCategory: 'Structural Steel',
-    ),
-    PromoItem(
-      id: 'P005',
-      code: 'CONTRACT-REBAR-2026',
-      title: 'Deformed Bar Annual Agreement',
-      description:
-          'Special agreed contractual rate for high-volume deformed steel bar purchasing.',
-      discountLabel: 'Special Rate',
-      type: PromoType.contract,
-      validUntil: '31 Dec 2026',
-      minOrderValue: '\$10,000',
-      appliedCategory: 'Rebar & Mesh',
-    ),
+  static const _offeredKinds = [
+    PromoKind.onInvoice,
+    PromoKind.paymentTerm,
+    PromoKind.volumeTier,
   ];
 
+  PromoKind? _kind;
+
+  /// Read once per screen rather than per card, so every countdown on the page
+  /// agrees and `build` stays free of clock reads (FS-PRF-7).
+  late final DateTime _now = widget.now ?? DateTime.now();
+
+  late final List<PromoView> _all = widget.promotions ?? mockOutletPromotions;
+
+  /// Live promotions first, each group by soonest expiry.
+  ///
+  /// Sorting matters more than it looks: an expired scheme quoted by mistake is
+  /// a price the depot was promised and the company has to honour or retract.
+  /// Sinking them is the cheapest guard against that, and putting the soonest
+  /// expiry at the top surfaces the one the rep should mention on this visit.
+  late final List<PromoView> _sorted = [..._all]..sort((a, b) {
+      final aLive = a.isQuotable(_now);
+      final bLive = b.isQuotable(_now);
+      if (aLive != bLive) return aLive ? -1 : 1;
+      return a.endsOn.compareTo(b.endsOn);
+    });
+
+  List<PromoView> get _visible =>
+      _kind == null ? _sorted : _sorted.where((p) => p.kind == _kind).toList();
+
+  int _countOf(PromoKind kind) => _all.where((p) => p.kind == kind).length;
+
   @override
-  Widget build(BuildContext context) =>
-      LocalizedBuilder(builder: _buildContent);
+  Widget build(BuildContext context) => LocalizedBuilder(builder: _build);
 
-  Widget _buildContent(BuildContext context) {
+  Widget _build(BuildContext context) {
     final colors = context.appColors;
-
-    final filteredList = _selectedTypeFilter == null
-        ? _promotions
-        : _promotions.where((p) => p.type == _selectedTypeFilter).toList();
+    final visible = _visible;
+    final quotable = _sorted.where((p) => p.isQuotable(_now)).length;
 
     return Scaffold(
       backgroundColor: colors.canvas,
@@ -128,33 +91,35 @@ class _PromotionsScreenState extends State<PromotionsScreen> {
         backgroundColor: colors.canvas,
         elevation: 0,
         scrolledUnderElevation: 0,
-        toolbarHeight: context.rh(56),
-        iconTheme: IconThemeData(
-          color: colors.textPrimary,
-          size: context.rr(24),
-        ),
+        toolbarHeight: context.rh(60),
+        iconTheme:
+            IconThemeData(color: colors.textPrimary, size: context.rr(24)),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Active Promotions',
+              'promotions.title'.tr,
               style: TextStyle(
                 color: colors.textPrimary,
                 fontSize: context.rsp(17),
                 fontWeight: FontWeight.w800,
               ),
             ),
-            if (widget.outletName != null) ...[
-              SizedBox(height: context.rh(2)),
-              Text(
-                widget.outletName!,
-                style: TextStyle(
-                  color: colors.textSecondary,
-                  fontSize: context.rsp(11.5),
-                  fontWeight: FontWeight.w500,
-                ),
+            SizedBox(height: context.rh(2)),
+            Text(
+              // The outlet name when there is one, and otherwise the count of
+              // what is actually usable — never a blank second line, which
+              // would make the title bar change height between entries.
+              widget.outletName ??
+                  'promotions.quotable_count'.trParams({'count': '$quotable'}),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: colors.textSecondary,
+                fontSize: context.rsp(11.5),
+                fontWeight: FontWeight.w500,
               ),
-            ],
+            ),
           ],
         ),
       ),
@@ -162,78 +127,36 @@ class _PromotionsScreenState extends State<PromotionsScreen> {
         child: ResponsiveContentFrame(
           child: Column(
             children: [
-              // Filter Category Chips
-              Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: context.pagePadding,
-                  vertical: context.rh(8),
-                ),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      _FilterChip(
-                        label: 'ALL (${_promotions.length})',
-                        isSelected: _selectedTypeFilter == null,
-                        onTap: () => setState(() => _selectedTypeFilter = null),
-                      ),
-                      SizedBox(width: context.rw(8)),
-                      _FilterChip(
-                        label:
-                            'ON-INVOICE (${_promotions.where((p) => p.type == PromoType.onInvoice).length})',
-                        isSelected: _selectedTypeFilter == PromoType.onInvoice,
-                        onTap: () => setState(
-                            () => _selectedTypeFilter = PromoType.onInvoice),
-                      ),
-                      SizedBox(width: context.rw(8)),
-                      _FilterChip(
-                        label:
-                            'OFF-INVOICE (${_promotions.where((p) => p.type == PromoType.offInvoice).length})',
-                        isSelected: _selectedTypeFilter == PromoType.offInvoice,
-                        onTap: () => setState(
-                            () => _selectedTypeFilter = PromoType.offInvoice),
-                      ),
-                      SizedBox(width: context.rw(8)),
-                      _FilterChip(
-                        label:
-                            'CONTRACT (${_promotions.where((p) => p.type == PromoType.contract).length})',
-                        isSelected: _selectedTypeFilter == PromoType.contract,
-                        onTap: () => setState(
-                            () => _selectedTypeFilter = PromoType.contract),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
               SizedBox(height: context.rh(4)),
-
-              // Promotion List
+              PromoFilterBar<PromoKind>(
+                selected: _kind,
+                onChanged: (kind) => setState(() => _kind = kind),
+                options: [
+                  PromoFilterOption(
+                    value: null,
+                    label: 'promotions.filter.all'.tr,
+                    count: _all.length,
+                    icon: Icons.apps_rounded,
+                  ),
+                  // The three mechanisms a depot can be offered (BRD §6.1),
+                  // fixed rather than derived from the data. A bar whose
+                  // options appear and vanish as promotions expire gives the
+                  // rep no stable place to tap; a mechanism with none left
+                  // still renders, disabled, and its zero is the answer.
+                  for (final kind in _offeredKinds)
+                    PromoFilterOption(
+                      value: kind,
+                      label: promoToneFor(context, kind).labelKey.tr,
+                      count: _countOf(kind),
+                      icon: promoToneFor(context, kind).icon,
+                    ),
+                ],
+              ),
+              SizedBox(height: context.rh(8)),
               Expanded(
-                child: filteredList.isEmpty
-                    ? Center(
-                        child: Text(
-                          'No promotions available for this category.',
-                          style: TextStyle(
-                            color: colors.textSecondary,
-                            fontSize: context.rsp(14),
-                          ),
-                        ),
-                      )
-                    : ListView.separated(
-                        padding: EdgeInsets.fromLTRB(
-                          context.pagePadding,
-                          context.rh(8),
-                          context.pagePadding,
-                          context.rh(24),
-                        ),
-                        itemCount: filteredList.length,
-                        separatorBuilder: (_, __) =>
-                            SizedBox(height: context.rh(14)),
-                        itemBuilder: (context, index) {
-                          final promo = filteredList[index];
-                          return _PromotionCard(promo: promo);
-                        },
-                      ),
+                child: visible.isEmpty
+                    ? _EmptyState(filtered: _kind != null)
+                    : _PromoList(promos: visible, now: _now),
               ),
             ],
           ),
@@ -243,345 +166,141 @@ class _PromotionsScreenState extends State<PromotionsScreen> {
   }
 }
 
-class _FilterChip extends StatelessWidget {
-  const _FilterChip({
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-  });
+/// The list itself, kept separate so the screen's own build stays readable.
+class _PromoList extends StatelessWidget {
+  const _PromoList({required this.promos, required this.now});
 
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
+  final List<PromoView> promos;
+  final DateTime now;
+
+  /// Entrance stagger stops after this many cards. Past roughly six the
+  /// cascade stops reading as polish and starts reading as a slow list
+  /// (FS-ANI-6).
+  static const _maxStaggered = 6;
+
+  /// The narrowest a promotion card may be laid out at.
+  ///
+  /// The card is composed horizontally — value tile, then body — so squeezing
+  /// it does not shorten the text, it starves the body. Derived on device: at
+  /// 600pt the size class is already `medium`, which multiplies every box by
+  /// 1.30, so a naive two-column split left the body about 60pt wide and the
+  /// metadata chips overflowed their own row.
+  static const _minCardWidth = 340.0;
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.appColors;
-    final scheme = Theme.of(context).colorScheme;
-
-    return InkWell(
-      onTap: () {
-        HapticFeedback.selectionClick();
-        onTap();
+    // Columns come from the width actually available, not from the size class
+    // (FS-RSP-4). Keying off `medium` put the second column in at exactly
+    // 600pt, which is a real device width and far too narrow for two of these
+    // — the precise failure mode FS-RSP-6 warns about.
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final available = constraints.maxWidth - 2 * context.pagePadding;
+        final columns =
+            (available / context.rw(_minCardWidth)).floor().clamp(1, 3);
+        return _buildList(context, columns);
       },
-      borderRadius: BorderRadius.circular(context.rr(10)),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        padding: EdgeInsets.symmetric(
-          horizontal: context.rw(14),
-          vertical: context.rh(8),
-        ),
-        decoration: BoxDecoration(
-          color: isSelected ? scheme.primary : colors.card,
-          borderRadius: BorderRadius.circular(context.rr(10)),
-          border: Border.all(
-            color: isSelected ? scheme.primary : colors.border,
-          ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: scheme.primary.withValues(alpha: 0.25),
-                    blurRadius: 6,
-                    offset: const Offset(0, 3),
-                  )
-                ]
-              : null,
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? scheme.onPrimary : colors.textPrimary,
-            fontSize: context.rsp(11.5),
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-      ),
     );
   }
-}
 
-class _PromotionCard extends StatelessWidget {
-  const _PromotionCard({required this.promo});
-
-  final PromoItem promo;
-
-  Color _badgeBgColor(PromoType type) {
-    switch (type) {
-      case PromoType.onInvoice:
-        return Colors.blue.shade100;
-      case PromoType.offInvoice:
-        return Colors.grey.shade200;
-      case PromoType.contract:
-        return Colors.teal.shade100;
-    }
-  }
-
-  Color _badgeTextColor(PromoType type) {
-    switch (type) {
-      case PromoType.onInvoice:
-        return Colors.blue.shade900;
-      case PromoType.offInvoice:
-        return Colors.grey.shade800;
-      case PromoType.contract:
-        return Colors.teal.shade900;
-    }
-  }
-
-  String _typeLabel(PromoType type) {
-    switch (type) {
-      case PromoType.onInvoice:
-        return 'ON-INVOICE';
-      case PromoType.offInvoice:
-        return 'OFF-INVOICE';
-      case PromoType.contract:
-        return 'CONTRACT';
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-    final scheme = Theme.of(context).colorScheme;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: colors.card,
-        borderRadius: BorderRadius.circular(context.rr(16)),
-        border: Border.all(color: colors.border),
-        boxShadow: colors.cardShadow,
+  Widget _buildList(BuildContext context, int columns) {
+    return ListView.separated(
+      padding: EdgeInsets.fromLTRB(
+        context.pagePadding,
+        context.rh(6),
+        context.pagePadding,
+        context.rh(24),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Card Header with Type Badge & Discount Label
-          Container(
-            padding: EdgeInsets.all(context.rr(14)),
-            decoration: BoxDecoration(
-              color: scheme.primary.withValues(alpha: 0.04),
-              borderRadius: BorderRadius.vertical(
-                top: Radius.circular(context.rr(16)),
-              ),
-              border:
-                  Border(bottom: BorderSide(color: colors.border, width: 0.8)),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: context.rw(10),
-                    vertical: context.rh(4),
-                  ),
-                  decoration: BoxDecoration(
-                    color: _badgeBgColor(promo.type),
-                    borderRadius: BorderRadius.circular(context.rr(6)),
-                  ),
-                  child: Text(
-                    _typeLabel(promo.type),
-                    style: TextStyle(
-                      color: _badgeTextColor(promo.type),
-                      fontSize: context.rsp(11),
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: context.rw(10),
-                    vertical: context.rh(4),
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.amber.shade100,
-                    borderRadius: BorderRadius.circular(context.rr(6)),
-                  ),
-                  child: Text(
-                    promo.discountLabel,
-                    style: TextStyle(
-                      color: Colors.amber.shade900,
-                      fontSize: context.rsp(12),
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+      itemCount: (promos.length / columns).ceil(),
+      separatorBuilder: (_, __) => SizedBox(height: context.rh(12)),
+      itemBuilder: (context, rowIndex) {
+        final row = promos.skip(rowIndex * columns).take(columns).toList();
 
-          // Content Body
-          Padding(
-            padding: EdgeInsets.all(context.rr(16)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  promo.title,
-                  style: TextStyle(
-                    color: colors.textPrimary,
-                    fontSize: context.rsp(15.5),
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                SizedBox(height: context.rh(6)),
-                Text(
-                  promo.description,
-                  style: TextStyle(
-                    color: colors.textSecondary,
-                    fontSize: context.rsp(13),
-                    height: 1.4,
-                  ),
-                ),
-                SizedBox(height: context.rh(14)),
-
-                // Promo Code Copy Box
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: context.rw(12),
-                    vertical: context.rh(8),
-                  ),
-                  decoration: BoxDecoration(
-                    color: colors.surfaceSoft,
-                    borderRadius: BorderRadius.circular(context.rr(10)),
-                    border: Border.all(color: colors.border),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.local_offer_outlined,
-                            size: context.rr(18),
-                            color: scheme.primary,
-                          ),
-                          SizedBox(width: context.rw(8)),
-                          Text(
-                            promo.code,
-                            style: TextStyle(
-                              color: colors.textPrimary,
-                              fontSize: context.rsp(13),
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ],
-                      ),
-                      InkWell(
-                        onTap: () {
-                          Clipboard.setData(ClipboardData(text: promo.code));
-                          HapticFeedback.lightImpact();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Promo code ${promo.code} copied!'),
-                              duration: const Duration(seconds: 2),
-                            ),
-                          );
-                        },
-                        child: Padding(
-                          padding: EdgeInsets.all(context.rr(4)),
-                          child: Row(
-                            children: [
-                              Text(
-                                'COPY',
-                                style: TextStyle(
-                                  color: scheme.primary,
-                                  fontSize: context.rsp(11.5),
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                              SizedBox(width: context.rw(4)),
-                              Icon(
-                                Icons.copy_rounded,
-                                size: context.rr(14),
-                                color: scheme.primary,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: context.rh(14)),
-
-                // Footer Metadata Details
-                Row(
-                  children: [
+        final content = columns == 1
+            ? PromoCard(promo: row.first, now: now)
+            : Row(
+                // Top-aligned, not stretched: a `Row` inside a `ListView` item
+                // has no bounded height to stretch into, so cross-axis stretch
+                // is a layout assertion rather than an alignment. Cards in a
+                // row differ in height anyway — a summary line here, none
+                // there — and forcing them equal would only add whitespace.
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (var i = 0; i < columns; i++) ...[
+                    if (i != 0) SizedBox(width: context.rw(12)),
                     Expanded(
-                      child: _MetaItem(
-                        icon: Icons.calendar_today_outlined,
-                        label: 'Valid Until',
-                        value: promo.validUntil,
-                      ),
+                      child: i < row.length
+                          ? PromoCard(promo: row[i], now: now)
+                          // Holds the last row's column width so a lone final
+                          // card does not stretch to twice its neighbours'.
+                          : const SizedBox.shrink(),
                     ),
-                    Expanded(
-                      child: _MetaItem(
-                        icon: Icons.shopping_bag_outlined,
-                        label: 'Min Spend',
-                        value: promo.minOrderValue,
-                      ),
-                    ),
-                    if (promo.appliedCategory != null)
-                      Expanded(
-                        child: _MetaItem(
-                          icon: Icons.category_outlined,
-                          label: 'Applies To',
-                          value: promo.appliedCategory!,
-                        ),
-                      ),
                   ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+                ],
+              );
+
+        return FadeSlideIn(
+          key: ValueKey(row.first.id),
+          delay: AppDurations.stagger * (rowIndex.clamp(0, _maxStaggered)),
+          child: content,
+        );
+      },
     );
   }
 }
 
-class _MetaItem extends StatelessWidget {
-  const _MetaItem({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
+/// What the rep sees when there is nothing to show — which is a state that says
+/// what to do next, not a bare sentence in grey (FS-UX-1).
+class _EmptyState extends StatelessWidget {
+  const _EmptyState({required this.filtered});
 
-  final IconData icon;
-  final String label;
-  final String value;
+  /// Distinguishes "this depot has no promotions" from "your filter has no
+  /// promotions". They call for different next actions, and the old screen said
+  /// the same thing for both.
+  final bool filtered;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.all(context.pagePadding),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: context.rr(12), color: colors.textSecondary),
-            SizedBox(width: context.rw(4)),
+            Icon(
+              Icons.local_offer_rounded,
+              size: context.rr(44),
+              color: colors.iconMuted,
+            ),
+            SizedBox(height: context.rh(14)),
             Text(
-              label,
+              filtered
+                  ? 'promotions.empty.filtered_title'.tr
+                  : 'promotions.empty.title'.tr,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: colors.textPrimary,
+                fontSize: context.rsp(15),
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            SizedBox(height: context.rh(6)),
+            Text(
+              filtered
+                  ? 'promotions.empty.filtered_body'.tr
+                  : 'promotions.empty.body'.tr,
+              textAlign: TextAlign.center,
               style: TextStyle(
                 color: colors.textSecondary,
-                fontSize: context.rsp(10.5),
+                fontSize: context.rsp(13),
+                height: 1.4,
               ),
             ),
           ],
         ),
-        SizedBox(height: context.rh(2)),
-        Text(
-          value,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            color: colors.textPrimary,
-            fontSize: context.rsp(12),
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

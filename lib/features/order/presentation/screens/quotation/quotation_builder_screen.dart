@@ -29,7 +29,8 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/product_
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/promotion/promotion_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/product_filter_flow/product_filter_flow_event.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/customized_product_form_screen.dart';
-import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/promotion_section.dart.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/promotion_section.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/promotions/promo_view.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/quotation_detail_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/quotation_preview_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/catalog/sync_status_banner.dart';
@@ -373,9 +374,17 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                         });
                       },
                     ),
-                    // Place inside ListView children in QuotationBuilderScreen build method:
                     SizedBox(height: context.rh(16)),
-                    const PromotionSectionWidget(),
+                    // Fed from the shipment state above, so the block
+                    // re-evaluates on every change: the COD / Pickup discount
+                    // is earned by collecting from the depot, and switching to
+                    // Delivery must take it off the table rather than leave a
+                    // rate on screen that the invoice will not honour.
+                    PromotionSectionWidget(
+                      terms: OrderTerms(
+                        isPickup: _shipmentMethod == ShipmentMethod.pickup,
+                      ),
+                    ),
                     SizedBox(height: context.rh(16)),
                     const CartPreviewSection(),
                     BlocBuilder<CartCubit, CartState>(

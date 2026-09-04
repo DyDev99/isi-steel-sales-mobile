@@ -80,10 +80,22 @@ class SapBpConst {
 // the backend exposes it — the shape (SapOption) stays the same.
 // -----------------------------------------------------------------------------
 class SapMasterData {
+  /// Customer groupings — the offline fallback for the ERP's `PartnerGroup`
+  /// catalogue.
+  ///
+  /// `Z003` is **Group Member** (an intercompany customer), not "One-time
+  /// Customer" as this list previously claimed. The label is the ERP's own, so
+  /// the offline list and the loaded catalogue now name the same code the same
+  /// way — a rep who picks `Z003` offline and sees it renamed after a sync has
+  /// no way to tell whether their registration changed meaning.
+  ///
+  /// Deliberately only the customer subset. The server publishes 11 groupings
+  /// including `ZBP1 Local Supplier` and `ZSL4 Employee`; those are filtered
+  /// out by [SapReferenceOptions.partnerGroup] and must not be added here.
   static const List<SapOption> grouping = [
     SapOption('Z001', 'Local Customer', 'អតិថិជនក្នុងស្រុក'),
     SapOption('Z002', 'Export Customer', 'អតិថិជននាំចេញ'),
-    SapOption('Z003', 'One-time Customer', 'អតិថិជនម្តង'),
+    SapOption('Z003', 'Group Member', 'សមាជិកក្រុម'),
   ];
 
   static const List<SapOption> title = [
@@ -303,6 +315,16 @@ class SapMasterData {
     SapOption('1', 'VAT (Liable)'),
   ];
 
+  /// `Language` — the customer's correspondence language.
+  ///
+  /// App-side codes, not SAP's. `sapLanguageKey` in the mapper converts them:
+  /// SAP wants the single character `E` for English, which is why this cannot
+  /// simply be sent through.
+  static const List<SapOption> language = [
+    SapOption('EN', 'English', 'អង់គ្លេស'),
+    SapOption('KM', 'Khmer', 'ខ្មែរ'),
+  ];
+
   static const List<SapOption> currency = [
     SapOption('USD', 'US Dollar'),
     SapOption('KHR', 'Riel'),
@@ -420,8 +442,29 @@ class BpCustomerDraft {
   String nameEn; // REP   Name 1 (EN)        *
   String nameKh; // REP   Name 3 (KH)        *
   String name2; // REP   Name 2              (optional)
-  String searchTerm; // REP   Search Name 1/2      (optional, auto-suggest)
+  /// `SearchTerm1` on the wire. Holds the *place* — the sample payload sends
+  /// `PHNOM PENH` here and the shop shorthand in `SearchTerm2`.
+  ///
+  /// Left as `searchTerm` rather than renamed to `searchTerm1`, because the
+  /// name is persisted in locally saved drafts and in `applyServerFields`; a
+  /// rename would strand every draft already on a device.
+  String searchTerm; // REP   Search Term 1        (optional, auto-derived)
+
+  /// `SearchTerm2`. The shop shorthand a rep would say out loud — the sample
+  /// sends `BAYON STEEL SENSOK`, i.e. brand plus district.
+  ///
+  /// A second field rather than a longer first one: SAP's `SORT1` and `SORT2`
+  /// are 20 characters each and are indexed separately, so a single 40-char
+  /// term would be truncated to 20 and the rest lost silently.
+  String searchTerm2; // REP   Search Term 2        (optional, auto-derived)
   String coName; // REP   CO-Name             (optional)
+
+  /// `CustomerNumber`. Empty for a new registration.
+  ///
+  /// Set only when the call is correcting or extending a partner SAP already
+  /// holds. Carried on the draft rather than passed at submit so a resumed
+  /// correction does not silently become a create.
+  String customerNumber;
 
   // --- Step 2: Address --------------------------------------------------
   String street; // REP   Street / House Number
@@ -434,6 +477,14 @@ class BpCustomerDraft {
   GeoFix? geoFix; // REP   Latitude / Longitude *
   String language; // REP   Language            (default EN)
   GeoAddress? geoAddress; // Domain gazetteer address
+
+  /// `Region`. SAP's region key, not the gazetteer province.
+  ///
+  /// Still a constant default (`R01`) because SAP publishes no region
+  /// catalogue this app can read, and the 25 provinces do not map onto it
+  /// one-to-one. It is a field rather than a hard-coded literal so the value
+  /// can be corrected from a reference catalogue without touching the mapper.
+  String regionCode;
 
   // --- Step 3: Contact --------------------------------------------------
   String mobilePhone; // REP   Mobile Phone        *
@@ -455,7 +506,14 @@ class BpCustomerDraft {
   String? distributionChannel; // REP   Distribution Channel *
   String? divisionCode; // REP   Division             *
   String? customerGroup; // REP   Customer Group       *
-  String? priceGroup; // DERIVE Price Group          *
+  String? priceGroup; // DERIVE+REP Price Group      *
+
+  /// True once the rep has chosen a price group by hand.
+  ///
+  /// Needed because [applyDerivations] runs on every edit: without this, a
+  /// manual pick is silently overwritten the next time the rep touches any
+  /// field, which reads as the dropdown refusing to hold its value.
+  bool priceGroupOverridden = false;
   String? deliveryPriority; // REP   Delivery Priority    *
   String? shippingCondition; // REP   Shipping Condition   *
   String? paymentTerm; // REP   Payment Term         *
@@ -474,7 +532,9 @@ class BpCustomerDraft {
     this.nameKh = '',
     this.name2 = '',
     this.searchTerm = '',
+    this.searchTerm2 = '',
     this.coName = '',
+    this.customerNumber = '',
     this.street = '',
     this.houseNumber = '',
     this.cityCode,
@@ -485,6 +545,7 @@ class BpCustomerDraft {
     this.geoFix,
     this.language = SapBpConst.defaultLanguage,
     this.geoAddress,
+    this.regionCode = SapBpConst.region,
     this.mobilePhone = '',
     this.telephone = '',
     this.telephoneSameAsMobile = true,
@@ -530,7 +591,9 @@ class BpCustomerDraft {
     name2 = stringValue('name2', name2);
     nameKh = stringValue('name3', nameKh);
     searchTerm = stringValue('searchTerm1', searchTerm);
+    searchTerm2 = stringValue('searchTerm2', searchTerm2);
     coName = stringValue('coName', coName);
+    customerNumber = stringValue('customerNumber', customerNumber);
     street = stringValue('street', street);
     houseNumber = stringValue('houseNo', houseNumber);
     if (fields.containsKey('city')) cityCode = nullableString('city', cityCode);
@@ -548,6 +611,7 @@ class BpCustomerDraft {
       villageCode = nullableString('villageCode', villageCode);
     }
     postalCode = stringValue('postalCode', postalCode);
+    regionCode = stringValue('region', regionCode);
     language = stringValue('language', language);
     mobilePhone = stringValue('mobilePhone', mobilePhone);
     telephone = stringValue('telephone', telephone);
@@ -606,6 +670,103 @@ class BpCustomerDraft {
         capturedAt: DateTime.now(),
       );
     }
+  }
+
+  // ---------------------------------------------------------------------
+  // Local draft persistence.
+  //
+  // Deliberately NOT the wire payload. The mapper drops everything SAP has no
+  // field for — `vatTin`, the contact person, the remark, the photographs.
+  // Persisting through it would mean a rep who resumed a saved form silently
+  // lost the four fields the form had just made them fill in.
+  //
+  // Keys are the same camelCase names `applyServerFields` reads, so one
+  // vocabulary covers both paths.
+  // ---------------------------------------------------------------------
+  Map<String, dynamic> toDraftJson() => {
+        'accountGroup': grouping,
+        'title': title,
+        'name1': nameEn,
+        'name2': name2,
+        'name3': nameKh,
+        'coName': coName,
+        'searchTerm1': searchTerm,
+        'searchTerm2': searchTerm2,
+        'customerNumber': customerNumber,
+        'street': street,
+        'houseNo': houseNumber,
+        'city': cityCode,
+        'district': districtCode,
+        'commune': communeCode,
+        'village': villageCode,
+        'postalCode': postalCode,
+        'region': regionCode,
+        'language': language,
+        'mobilePhone': mobilePhone,
+        'telephone': telephone,
+        'telephoneSameAsMobile': telephoneSameAsMobile,
+        'faxNumber': faxNumber,
+        'contactPersonName': contactPersonName,
+        'contactPersonRole': contactPersonRole,
+        'salesOrg': salesOrg,
+        'salesOffice': salesOffice,
+        'salesGroup': salesGroupCode,
+        'distributionChannel': distributionChannel,
+        'division': divisionCode,
+        'customerGroup': customerGroup,
+        'priceGroup': priceGroup,
+        'priceGroupOverridden': priceGroupOverridden,
+        'deliveryPriority': deliveryPriority,
+        'shippingCondition': shippingCondition,
+        'paymentTerms': paymentTerm,
+        'taxClass': taxClass,
+        'vatTin': vatTin,
+        'currency': currency,
+        'remark': remark,
+        'latitude': geoFix?.latitude,
+        'longitude': geoFix?.longitude,
+        'attachments': attachments
+            .map((a) => {
+                  'kind': a.kind,
+                  'local_path': a.localPath,
+                  if (a.remoteUrl != null) 'url': a.remoteUrl,
+                  'captured_at': a.capturedAt.toIso8601String(),
+                })
+            .toList(),
+      };
+
+  /// Rebuilds a saved form.
+  ///
+  /// Reuses [applyServerFields] for the shared keys and then restores the
+  /// fields that only exist locally. The gazetteer `GeoAddress` is *not*
+  /// restored — only the four codes are, and `GeoLocationSelector` re-resolves
+  /// them from `initialCodes` on build. Persisting the resolved object would
+  /// pin a rep to a gazetteer revision that a later app version has corrected.
+  static BpCustomerDraft fromDraftJson(Map<String, dynamic> json) {
+    final draft = BpCustomerDraft()..applyServerFields(json);
+
+    final sameAsMobile = json['telephoneSameAsMobile'];
+    if (sameAsMobile is bool) draft.telephoneSameAsMobile = sameAsMobile;
+
+    final overridden = json['priceGroupOverridden'];
+    if (overridden is bool) draft.priceGroupOverridden = overridden;
+
+    final attachments = json['attachments'];
+    if (attachments is List) {
+      for (final raw in attachments.whereType<Map>()) {
+        final kind = raw['kind']?.toString();
+        final path = raw['local_path']?.toString();
+        if (kind == null || path == null || path.isEmpty) continue;
+        final capturedAt = raw['captured_at']?.toString();
+        draft.attachments.add(BpAttachment(
+          kind: kind,
+          localPath: path,
+          remoteUrl: raw['url']?.toString(),
+          capturedAt: capturedAt == null ? null : DateTime.tryParse(capturedAt),
+        ));
+      }
+    }
+    return draft;
   }
 
   bool get hasKhmerName => RegExp(r'[\u1780-\u17FF]').hasMatch(nameKh);
@@ -672,15 +833,36 @@ class BpCustomerDraft {
     // and filling it from the *district* would ship a code for a different
     // place. `validateStep` blocks submission instead, and the rep types the
     // real code — never a silently wrong one (§10).
-    if (customerGroup != null) {
+    // A hand-picked price group wins over the derived one. The pairing is
+    // derived because it is usually mechanical, not because the rep is never
+    // right — and the reference payload pairs customer group `01` with price
+    // group `21` where both catalogues pair it with `11`, so the two do
+    // disagree in practice.
+    if (customerGroup != null && !priceGroupOverridden) {
       // The resolver matches the ERP's own customer-group and price-group
       // catalogues by name, so a pairing added in SAP works without an app
       // release. The built-in map is the offline fallback.
       priceGroup = priceGroupResolver?.call(customerGroup) ??
           SapMasterData.priceGroupByCustomerGroup[customerGroup!];
     }
-    if (searchTerm.isEmpty && nameEn.isNotEmpty) {
-      searchTerm = nameEn.split(RegExp(r'\s+')).first.toUpperCase();
+    // `SearchTerm1` is the place, matching the sample payload. The city name
+    // comes from the gazetteer when a commune has been picked; before that
+    // there is nothing to derive from and the field stays empty rather than
+    // borrowing the shop name, which belongs in `SearchTerm2`.
+    if (searchTerm.isEmpty) {
+      final city = geoAddress?.province?.name.resolve('en').trim() ?? '';
+      if (city.isNotEmpty) searchTerm = city.toUpperCase();
+    }
+
+    // `SearchTerm2` is the shop shorthand: brand plus district, which is how
+    // a rep or a phone operator actually refers to an outlet. Derived only
+    // while untouched, so a rep who types their own is never overwritten by a
+    // later district change.
+    if (searchTerm2.isEmpty && nameEn.isNotEmpty) {
+      final brand = nameEn.split(RegExp(r'\s+')).first.toUpperCase();
+      final district = geoAddress?.district?.name.resolve('en').trim() ?? '';
+      searchTerm2 =
+          district.isEmpty ? brand : '$brand ${district.toUpperCase()}';
     }
   }
 
@@ -790,60 +972,18 @@ class BpCustomerDraft {
 
   bool get isReadyToSubmit => BpFormStep.values.every(isStepComplete);
 
-  // ---------------------------------------------------------------------
-  // Outbound payload — mirrors the SAP BP structure so the middleware maps
-  // 1:1 without guessing.
-  // ---------------------------------------------------------------------
-  Map<String, dynamic> toSapPayload(RepSalesContext rep) {
-    applyDerivations();
-
-    return {
-      'name1': nameEn.trim(),
-      'name2': name2.trim(),
-      'name3': nameKh.trim(),
-      'title': title,
-      'partnerCategory': SapBpConst.partnerCategory,
-      'partnerGroup': grouping,
-      'bpRole': SapBpConst.bpRole,
-      'accountGroup': grouping,
-      'country': SapBpConst.country,
-      'region': SapBpConst.region,
-      'city': cityCode,
-      'district': districtCode,
-      'street': sapStreetLine,
-      'houseNo': houseNumber.trim(),
-      'postalCode': postalCode,
-      'mobilePhone': mobilePhone,
-      'telephone': effectiveTelephone,
-      'faxNumber': faxNumber,
-      'contactPersonName': contactPersonName.trim(),
-      'contactPersonRole': contactPersonRole,
-      'language': language,
-      // The rep's own selection, falling back to their session's sales area.
-      // This previously always sent the session value, so a rep registering a
-      // shop outside their home office filed it against the wrong one.
-      'salesOrg': salesOrg ?? rep.salesOrganization,
-      'distributionChannel': distributionChannel,
-      'division': divisionCode,
-      'customerGroup': customerGroup,
-      'deliveryPriority': deliveryPriority,
-      'shippingCondition': shippingCondition,
-      'salesOffice': salesOffice ?? rep.salesOffice,
-      'salesGroup': salesGroupCode ?? SapBpConst.salesGroup,
-      'currency': currency,
-      'priceGroup': priceGroup,
-      'paymentTerms': paymentTerm,
-      'taxClass': taxClass,
-      'vatTin': taxClass == '1' ? vatTin.trim() : null,
-      'searchTerm1': searchTerm.trim(),
-      'latitude': geoFix?.latitude,
-      'longitude': geoFix?.longitude,
-      'territory': null,
-      'submitToSap': true,
-      'attachments': attachments.map((a) => a.toJson()).toList(),
-      'remark': remark.trim(),
-    };
-  }
+  // The outbound payload used to be built here, by `toSapPayload`. It has been
+  // removed rather than deprecated.
+  //
+  // It emitted the old camelCase keys (`name1`, `salesOrg`, `postalCode`) for
+  // the retired three-call draft protocol. The live endpoint takes PascalCase
+  // SAP field names (`Name1`, `SalesOrg`, `PostalCode`) and silently drops keys
+  // it does not recognise — so leaving the method in place, even marked
+  // deprecated, meant one wrong call site produced a registration that the
+  // server accepted and SAP received almost entirely blank.
+  //
+  // The mapping now lives in exactly one place:
+  // `data/mappers/bp_draft_to_business_partner.dart`.
 }
 
 // =============================================================================

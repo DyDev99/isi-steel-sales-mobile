@@ -8,6 +8,7 @@ import 'package:isi_steel_sales_mobile/core/network/network_info.dart';
 import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/local/customer_drift_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/local/customer_local_data_source.dart';
+import 'package:isi_steel_sales_mobile/features/customers/data/local/bp_draft_cache.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/local/customer_reference_cache.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/local/master_data_cache.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/remote/api_customer_remote_data_source.dart';
@@ -18,6 +19,7 @@ import 'package:isi_steel_sales_mobile/features/customers/data/remote/customer_d
 import 'package:isi_steel_sales_mobile/features/customers/data/repositories/customer_document_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/repositories/customer_document_repository.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/repositories/customer_repository_impl.dart';
+import 'package:isi_steel_sales_mobile/features/customers/data/datasources/business_partner_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/repositories/business_partner_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/remote/customer_datasources.dart'
     as bp;
@@ -29,6 +31,7 @@ import 'package:isi_steel_sales_mobile/features/customers/domain/repositories/cu
 import 'package:isi_steel_sales_mobile/features/customers/domain/repositories/master_data_repository.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/add_customer_activity.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/add_customer_note.dart';
+import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/create_business_partner.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/create_customer.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/browse_customers.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/fetch_customer_activities.dart';
@@ -49,7 +52,34 @@ import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/cust
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customer_sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customers_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/add_customer_bloc.dart';
+import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/business_partner_submission.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/models/bp_customer_form_data.dart';
+
+/// Sales-area context used until the session carries one.
+///
+/// `salesEmployeeId` becomes `PersonnelNumber` on the BP payload, and SAP's
+/// `PERNR` is a **numeric** field. The previous placeholder was the literal
+/// string `'mobile'`, which the middleware accepted and the SAP push then
+/// rejected — producing a registration that existed on the backend and never
+/// in the ERP, with nothing in the mobile log to say why.
+///
+/// The number below is the one from the reference payload, so registrations
+/// land against a real personnel record while this is still a placeholder. It
+/// is wrong for every rep who is not that person, which is why it must not
+/// survive to release.
+///
+/// TODO(sales-context): read from `SessionManager` — the rep's own
+/// `salesOrganization`, `salesOffice` and personnel number. All three are
+/// already wrong here, and the sales area decides which office a customer is
+/// routed to.
+const _fallbackRepContext = RepSalesContext(
+  salesOrganization: '0001',
+  salesOrganizationName: 'ISI',
+  salesOffice: '0001',
+  salesOfficeName: 'Phnom Penh',
+  salesEmployeeId: '100389',
+  salesEmployeeName: 'Mobile user',
+);
 
 /// Registers the approved-customer directory. Persistence is the single
 /// SQLCipher-encrypted Drift database (`AppDatabase`) via [CustomerDao] — the
@@ -98,10 +128,24 @@ Future<void> registerCustomerFeature(GetIt sl) async {
             remote: sl<CustomerDocumentRemoteDataSource>(),
             logger: sl<AppLogger>(),
           ));
+  // The single-write registration endpoint,
+  // `POST /api/v1/mobile/customers/business-partner`. Separate from
+  // `bp.CustomerRemoteDataSource`, which still owns `GET /references` and the
+  // retired draft routes — the two are different types and both are needed.
+  sl.registerLazySingleton<BusinessPartnerRemoteDataSource>(
+      () => BusinessPartnerRemoteDataSourceImpl(sl<Dio>()));
+
+  // Hive, not Drift: an in-progress form is UI state that survives a process
+  // kill, not a business record, so it needs no schema migration (ADR-009).
+  sl.registerLazySingleton<BpDraftCache>(
+      () => BpDraftCache(LocalCache(HiveService.cacheBox)));
+
   sl.registerLazySingleton<BusinessPartnerRepository>(
       () => BusinessPartnerRepositoryImpl(
-            sl<bp.CustomerRemoteDataSource>(),
-            sl<CustomerReferenceCache>(),
+            remote: sl<BusinessPartnerRemoteDataSource>(),
+            references: sl<bp.CustomerRemoteDataSource>(),
+            referenceCache: sl<CustomerReferenceCache>(),
+            draftCache: sl<BpDraftCache>(),
           ));
   sl.registerLazySingleton<CustomerSyncRepository>(
     () => CustomerSyncRepositoryImpl(
@@ -119,6 +163,8 @@ Future<void> registerCustomerFeature(GetIt sl) async {
   // ── Use cases ───────────────────────────────────────────────────────
   sl.registerLazySingleton(() => BrowseCustomers(sl()));
   sl.registerLazySingleton(() => CreateCustomer(sl()));
+  sl.registerLazySingleton(() => CreateBusinessPartner(sl()));
+  sl.registerLazySingleton(() => ValidateBusinessPartner(sl()));
   sl.registerLazySingleton(() => GetCustomerById(sl()));
   sl.registerLazySingleton(() => ToggleFavoriteCustomer(sl()));
   sl.registerLazySingleton(() => FetchFavoriteCustomers(sl()));
@@ -141,17 +187,19 @@ Future<void> registerCustomerFeature(GetIt sl) async {
         fetchRecentCustomers: sl(),
         toggleFavoriteCustomer: sl(),
       ));
+  // Holds the draft -> payload mapping. A singleton rather than part of the
+  // bloc so the mapping can be unit-tested, and so a future offline replay
+  // worker builds the payload the same way the wizard does.
+  sl.registerLazySingleton(() => BusinessPartnerSubmission(
+        createBusinessPartner: sl(),
+        validateBusinessPartner: sl(),
+      ));
+
   sl.registerFactory(() => AddCustomerBloc(
         repository: sl(),
         documents: sl<CustomerDocumentRepository>(),
-        rep: const RepSalesContext(
-          salesOrganization: '0001',
-          salesOrganizationName: 'ISI',
-          salesOffice: '0001',
-          salesOfficeName: 'Phnom Penh',
-          salesEmployeeId: 'mobile',
-          salesEmployeeName: 'Mobile user',
-        ),
+        submission: sl<BusinessPartnerSubmission>(),
+        rep: _fallbackRepContext,
       ));
   sl.registerFactory(() => CustomerDetailCubit(
         getCustomerById: sl(),

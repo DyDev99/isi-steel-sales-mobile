@@ -1,160 +1,242 @@
-import 'package:isi_steel_sales_mobile/features/customers/data/remote/customer_datasources.dart';
-import 'package:isi_steel_sales_mobile/features/customers/domain/repositories/business_partner_repository.dart';
+import 'package:isi_steel_sales_mobile/core/error/exceptions.dart';
+import 'package:isi_steel_sales_mobile/core/error/failures.dart';
+import 'package:isi_steel_sales_mobile/core/logging/debug_trace.dart';
+import 'package:isi_steel_sales_mobile/core/utils/result.dart';
+import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
+import 'package:isi_steel_sales_mobile/features/customers/data/datasources/business_partner_remote_data_source.dart';
+import 'package:isi_steel_sales_mobile/features/customers/data/local/bp_draft_cache.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/local/customer_reference_cache.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/models/bp_customer_form_data.dart';
+import 'package:isi_steel_sales_mobile/features/customers/data/models/business_partner_request_model.dart';
+import 'package:isi_steel_sales_mobile/features/customers/data/models/business_partner_response_model.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/models/sap_reference_options.dart';
-import 'package:isi_steel_sales_mobile/core/logging/debug_trace.dart';
+import 'package:isi_steel_sales_mobile/features/customers/data/remote/customer_datasources.dart'
+    as legacy;
+import 'package:isi_steel_sales_mobile/features/customers/domain/entities/business_partner_request.dart';
+import 'package:isi_steel_sales_mobile/features/customers/domain/entities/business_partner_result.dart';
+import 'package:isi_steel_sales_mobile/features/customers/domain/repositories/business_partner_repository.dart';
 
-/// Submission is server-queued: a successful response means the platform
-/// accepted the BP for HQ/SAP processing, not that SAP assigned a number.
-/// Console tracer, sharing the registration channel so the reference load
-/// reads in sequence with the draft and submit steps.
 const _trace = DebugTrace('registration');
 
 class BusinessPartnerRepositoryImpl implements BusinessPartnerRepository {
-  const BusinessPartnerRepositoryImpl(this._remote, [this._references]);
-  final CustomerRemoteDataSource _remote;
+  const BusinessPartnerRepositoryImpl({
+    required BusinessPartnerRemoteDataSource remote,
+    required legacy.CustomerRemoteDataSource references,
+    required CustomerReferenceCache referenceCache,
+    required BpDraftCache draftCache,
+  })  : _remote = remote,
+        _references = references,
+        _referenceCache = referenceCache,
+        _draftCache = draftCache;
 
-  /// Optional so an existing test can construct this without a Hive box; when
-  /// absent the dropdowns fall back to the built-in lists.
-  final CustomerReferenceCache? _references;
+  /// The single-write registration endpoint.
+  final BusinessPartnerRemoteDataSource _remote;
+
+  /// `GET /references` still lives on the older data source. Kept there rather
+  /// than duplicated onto [_remote]: the catalogues are unrelated to the write
+  /// and are also read by other screens.
+  final legacy.CustomerRemoteDataSource _references;
+
+  final CustomerReferenceCache _referenceCache;
+  final BpDraftCache _draftCache;
+
+  // ---------------------------------------------------------------------
+  // Write
+  // ---------------------------------------------------------------------
 
   @override
-  Future<CustomerReferenceCatalogue> fetchReferences({
-    Iterable<String>? kinds,
-    String? search,
-  }) =>
-      _remote.fetchRegistrationReferences(kinds: kinds, search: search);
+  ResultFuture<BusinessPartnerResult> createBusinessPartner(
+    BusinessPartnerRequest request,
+  ) =>
+      _send(request.copyWith(commit: true, submitToSap: true));
 
   @override
-  Future<SapReferenceOptions> loadReferenceOptions() async {
-    final cache = _references;
+  ResultFuture<BusinessPartnerResult> validateBusinessPartner(
+    BusinessPartnerRequest request,
+  ) =>
+      // `submitToSap` stays true: the point of a dry run is to exercise the
+      // SAP path. `Commit: false` is what makes it a dry run — with
+      // `submitToSap: false` the middleware would park the record and answer
+      // without asking SAP anything, which validates nothing.
+      _send(request.copyWith(commit: false, submitToSap: true));
 
-    // Fresh cache wins outright — these change rarely and the form opens on a
-    // counter in a market, where a needless round trip is a stalled rep.
-    final fresh = cache?.readFresh();
-    if (fresh != null && !fresh.isEmpty) {
-      _trace.ok('refs', 'cache hit', {
-        'catalogues': fresh.catalogues.length,
-        'synced': fresh.synchronisedAt?.toIso8601String(),
+  ResultFuture<BusinessPartnerResult> _send(
+    BusinessPartnerRequest request,
+  ) async {
+    // Refused here rather than at the data source so a queued replay is caught
+    // too. A record without a sales area is accepted by the endpoint and then
+    // cannot be delivered to SAP, so the rep would be told it worked and HQ
+    // would find it stuck.
+    final missing = request.missingForRegistration;
+    if (missing.isNotEmpty) {
+      _trace.fail('bp', 'blocked before send', {
+        'missing': DebugTrace.names(missing),
       });
+      return Failed(
+        ServerFailure(
+          message: 'Cannot register: ${missing.join(', ')} '
+              '${missing.length == 1 ? 'is' : 'are'} missing.',
+          statusCode: 422,
+        ),
+      );
+    }
+
+    _trace.send('bp', request.commit ? 'POST commit' : 'POST dry-run', {
+      'sales_area':
+          '${request.salesOrg}/${request.distributionChannel}/${request.division}',
+      'existing': request.customerNumber.isEmpty ? 'create' : 'extend',
+    });
+
+    try {
+      final result = await _remote.createBusinessPartner(
+        BusinessPartnerRequestModel.fromEntity(request),
+      );
+
+      // SAP's business rejection arrives as HTTP 200 with error rows. Mapped
+      // to a Left so the bloc has one failure path, and carrying SAP's own
+      // wording — the rep can act on "payment term T015 not defined for sales
+      // organisation 0003" and cannot act on "submission failed".
+      if (result.hasError) {
+        _trace.fail('bp', 'rejected by SAP', {
+          'messages': result.errors.length,
+          'code': result.errors.first.code,
+        });
+        return Failed(
+          ServerFailure(
+            message: result.primaryMessage ?? 'SAP rejected the registration',
+            statusCode: 422,
+          ),
+        );
+      }
+
+      // A missing customer number is NOT a failure.
+      //
+      // This endpoint returns `customerCode: null` with `sapStatus:
+      // PENDING_HQ` for a record it has stored and will push to SAP after
+      // approval. The earlier check required a number and so reported every
+      // pending registration as failed — which sends the rep back to
+      // re-enter a shop that is already on file, and hands HQ a duplicate.
+      //
+      // What is checked instead is whether the server gave us *any* handle on
+      // the record. With no id, no number and no status there is nothing to
+      // attach documents to and nothing to show the rep, and that genuinely
+      // did fail.
+      if (request.commit && !result.isAccepted) {
+        _trace.fail('bp', 'response carried no usable record', {
+          // The received field names, so a shape change is diagnosable from
+          // one log line instead of a debugger session.
+          'keys': result is BusinessPartnerResponseModel
+              ? DebugTrace.names(result.receivedKeys)
+              : null,
+          'status': result.status.name,
+        });
+        return const Failed(
+          ServerFailure(
+            message: 'The server accepted the registration but returned no '
+                'reference for it. Check the customer list before submitting '
+                'again.',
+            // 422, not 5xx. The call reached the server and the server
+            // answered; a 5xx here would be classified downstream as a
+            // gateway failure and reported to the rep as "held, will retry",
+            // which is exactly the wrong advice when the record may exist.
+            statusCode: 422,
+          ),
+        );
+      }
+
+      if (!request.commit) {
+        _trace.ok('bp', 'dry-run passed', const {});
+      } else if (result.isPendingApproval) {
+        _trace.ok('bp', 'stored, awaiting HQ approval', {
+          'record': DebugTrace.id(result.localId),
+          'status': result.status.name,
+        });
+      } else {
+        _trace.ok('bp', 'created in SAP', {
+          'customer': DebugTrace.id(result.customerNumber),
+          'record': DebugTrace.id(result.localId),
+        });
+      }
+      return Success(result);
+    } on NetworkException catch (e) {
+      // Nothing reached SAP. Mapped to `NetworkFailure` so the caller can
+      // requeue without a duplicate check.
+      _trace.warn('bp', 'not sent — no connection', const {});
+      return Failed(NetworkFailure(message: e.message));
+    } on ServerException catch (e) {
+      _trace.fail('bp', 'transport failed', {'status': e.statusCode});
+      return Failed(
+        ServerFailure(message: e.message, statusCode: e.statusCode),
+      );
+    }
+  }
+
+  // ---------------------------------------------------------------------
+  // Reference catalogues
+  // ---------------------------------------------------------------------
+
+  @override
+  Future<SapReferenceOptions> loadReferenceOptions({
+    bool includeInactive = false,
+  }) async {
+    // Fresh cache first — the org structure changes rarely and the form must
+    // open instantly.
+    final fresh = _referenceCache.readFresh(includeInactive: includeInactive);
+    if (fresh != null && !fresh.isEmpty) {
+      _trace.step('refs', 'cache hit (fresh)');
       return SapReferenceOptions(fresh);
     }
 
     try {
-      final fetched = await _remote.fetchRegistrationReferences();
+      final fetched = await _references.fetchRegistrationReferences(
+        includeInactive: includeInactive,
+      );
       if (!fetched.isEmpty) {
-        await cache?.write(fetched);
-        _trace.ok('refs', 'loaded from ERP', {
+        await _referenceCache.write(
+          fetched,
+          includeInactive: includeInactive,
+        );
+        _trace.ok('refs', 'fetched', {
           'catalogues': fetched.catalogues.length,
-          // The per-catalogue counts, so "did CustomerGroup arrive?" is
-          // answerable at a glance instead of by inspecting a dropdown whose
-          // built-in fallback happens to look identical.
-          'counts': fetched.catalogues.entries
-              .map((e) => '${e.key}:${e.value.length}')
-              .join(' '),
         });
         return SapReferenceOptions(fetched);
       }
-      _trace.warn('refs', 'server sent no catalogues — using built-in lists');
-    } on Object catch (error) {
-      // Still swallowed: reference codes are an accuracy improvement on the
-      // built-in lists, not a precondition for registering a shop, so a failure
-      // here must never surface as an error the rep has to clear.
-      //
-      // But it is no longer *silent*. The built-in lists were corrected against
-      // the live catalogues, so a failed load renders almost identically to a
-      // successful one — which made "did the ERP data actually load?"
-      // unanswerable without a packet capture.
-      _trace.fail(
-          'refs', 'load failed — falling back', {'error': error.runtimeType});
+    } on Object catch (e) {
+      // Swallowed on purpose. This method is contracted never to throw: the
+      // registration form must open with no signal, and the fallbacks below
+      // are strictly better than an error screen.
+      _trace.warn('refs', 'fetch failed, falling back', {
+        'error': e.runtimeType,
+      });
     }
 
-    // Stale beats empty: an out-of-date ERP list still contains the codes a rep
-    // needs far more often than the built-in list does.
-    final stale = cache?.readStale();
+    // Stale beats empty. A dropdown built from a week-old catalogue may offer
+    // a code SAP has since retired; an empty one offers nothing and the rep
+    // cannot register at all.
+    final stale = _referenceCache.readStale(includeInactive: includeInactive);
     if (stale != null && !stale.isEmpty) {
-      _trace.warn('refs', 'using stale cache', {
-        'catalogues': stale.catalogues.length,
-        'synced': stale.synchronisedAt?.toIso8601String(),
+      _trace.warn('refs', 'cache hit (stale)', {
+        'at': _referenceCache
+            .cachedAt(includeInactive: includeInactive)
+            ?.toIso8601String(),
       });
       return SapReferenceOptions(stale);
     }
 
-    _trace.warn('refs', 'using built-in lists — dropdowns are not live');
+    _trace.warn('refs', 'built-in lists');
     return SapReferenceOptions.empty;
   }
 
-  @override
-  Future<OpenedRegistrationDraft> openDraft() async {
-    // Ask what the rep already has before making anything. Creating first and
-    // reconciling later would strand the half-finished form they left behind.
-    final active = await _remote.fetchActiveRegistrationDraft();
-
-    if (active != null && active.isResumable) {
-      return OpenedRegistrationDraft(draft: active, resumed: true);
-    }
-
-    // Either nothing is open, or what is open has already been submitted and
-    // can no longer be edited. Both mean: start a fresh form.
-    return OpenedRegistrationDraft(
-      draft: await _remote.createRegistrationDraft(),
-      resumed: false,
-    );
-  }
+  // ---------------------------------------------------------------------
+  // Local form
+  // ---------------------------------------------------------------------
 
   @override
-  Future<CustomerRegistrationDraft> createServerDraft() =>
-      _remote.createRegistrationDraft();
+  Future<BpCustomerDraft?> loadDraft() => _draftCache.read();
 
   @override
-  Future<CustomerRegistrationDraft> updateServerDraft({
-    required String draftId,
-    required Map<String, dynamic> changedFields,
-  }) =>
-      _remote.updateRegistrationDraft(
-        draftId: draftId,
-        changedFields: changedFields,
-      );
+  Future<void> saveDraft(BpCustomerDraft draft) => _draftCache.write(draft);
 
   @override
-  Future<BusinessPartnerSubmitResult> submitServerDraft(String draftId) async {
-    final response = await _remote.submitRegistrationDraft(draftId);
-    return _submitResult(response);
-  }
-
-  @override
-  Future<List<CustomerRegistrationDraft>> fetchServerDrafts() =>
-      _remote.fetchRegistrationDrafts();
-
-  @override
-  Future<CustomerRegistrationDraft> fetchServerDraft(String draftId) =>
-      _remote.fetchRegistrationDraft(draftId);
-
-  @override
-  Future<void> deleteServerDraft(String draftId) =>
-      _remote.deleteRegistrationDraft(draftId);
-
-  @override
-  Future<BusinessPartnerSubmitResult> submit(
-      Map<String, dynamic> payload) async {
-    final response = await _remote.createBusinessPartner(payload);
-    return _submitResult(response);
-  }
-
-  BusinessPartnerSubmitResult _submitResult(CreateBpResponse response) =>
-      BusinessPartnerSubmitResult(
-        localId: response.localId,
-        customerCode: response.customerCode,
-        // "Submitted" means accepted by the platform and awaiting SAP push;
-        // it is successful, not an offline queue fallback.
-        queuedOffline: false,
-      );
-
-  // Draft persistence will be backed by the encrypted draft store once its
-  // schema is added. These no-ops deliberately do not affect submission.
-  @override
-  Future<void> saveDraft(BpCustomerDraft draft) async {}
-  @override
-  Future<void> clearDraft() async {}
+  Future<void> clearDraft() => _draftCache.clear();
 }

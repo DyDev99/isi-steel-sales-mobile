@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:pdf/widgets.dart' as pw;
 
@@ -28,7 +26,7 @@ class PdfAssets {
   pw.Font? _bold;
   pw.Font? _khmer;
   pw.Font? _khmerBold;
-  Uint8List? _logo;
+  String? _logoSvg;
   bool _loaded = false;
 
   pw.Font get base => _base!;
@@ -36,9 +34,14 @@ class PdfAssets {
   pw.Font get khmer => _khmer!;
   pw.Font get khmerBold => _khmerBold!;
 
-  /// The ISI logo bytes, or `null` if the asset could not be read (the
-  /// generator degrades gracefully to a text wordmark).
-  Uint8List? get logo => _logo;
+  /// The ISI Group wordmark as raw SVG source, or `null` if the asset could
+  /// not be read (the generator degrades gracefully to a text wordmark).
+  ///
+  /// Vector rather than the old `isi_steel_logo.png`: a quotation is printed
+  /// and re-scaled by whoever receives it, which is precisely where a 34pt
+  /// bitmap header shows its pixels. The **dark** ink variant is the only
+  /// correct one here — the document is drawn on white paper.
+  String? get logoSvg => _logoSvg;
 
   bool get isLoaded => _loaded;
 
@@ -59,11 +62,11 @@ class PdfAssets {
     );
 
     try {
-      final data = await rootBundle.load('assets/logos/isi_steel_logo.png');
-      _logo = data.buffer.asUint8List();
+      _logoSvg =
+          await rootBundle.loadString('assets/logos/ISI-Group-Logo-Dark.svg');
     } catch (_) {
       // Missing/renamed logo must never fail an export — fall back to wordmark.
-      _logo = null;
+      _logoSvg = null;
     }
 
     _loaded = true;

@@ -15,11 +15,24 @@ class AppColors {
   AppColors._();
 
   // ── Brand / Primary ───────────────────────────────────────────────
-  static const primary = Color(0xFF2563EB); // brand blue — primary actions
-  static const primaryHover = Color(0xFF1D4ED8); // pressed/hover state
-  static const primaryLight = Color(0xFFDBEAFE); // tint bg for selected/active
-  static const secondary = Color(0xFF3B82F6); // secondary blue accent
-  static const secondaryLight = Color(0xFF60A5FA); // secondary gradient partner
+  //
+  // Values are the ISI Group Brand Guide (WIP V1-R08) §07, not approximations
+  // of it. Every colour below is quoted from that document with its Pantone
+  // reference, so a future change is a question for the guide rather than a
+  // matter of taste.
+  //
+  // Apex Blue is the *interactive* brand colour rather than Ironclad Blue,
+  // which is the primary. Ironclad (#011E41) is near-black: correct for deep
+  // surfaces and headings, unusable as a button fill, where it reads as
+  // disabled rather than tappable. Ironclad is [brandNavy] below.
+  static const primary = Color(0xFF004A98); // Apex Blue · Pantone 2945 C
+  static const primaryHover =
+      Color(0xFF00366E); // Apex Blue, dark tint (§07.02)
+  // Foundational White as the selected/active tint: the guide's own neutral,
+  // and the only light value it sanctions for backgrounds behind brand colour.
+  static const primaryLight = Color(0xFFDCE3EB); // Foundational White · 656 C
+  static const secondary = Color(0xFF4C82BA); // Apex Blue, light tint (§07.02)
+  static const secondaryLight = Color(0xFF99AABF); // Ironclad, light tint
 
   // ── Surfaces / Backgrounds ───────────────────────────────────────
   static const background = Color(0xFFFFFFFF); // main app background
@@ -29,7 +42,10 @@ class AppColors {
   static const surface = Color(0xFFFFFFFF); // card / sheet surface
   static const surfaceStrong = Color(0xFFDBEAFE); // primary-light tint surface
   static const card = Color(0xFFFFFFFF);
-  static const canvas = Color(0xFFF3F5F7); // home/shell scaffold background
+  // Foundational White (§07.05). The guide is explicit that this exists "to
+  // calm down noise" behind the dominant colours, which is exactly what a
+  // scaffold background is for.
+  static const canvas = Color(0xFFDCE3EB); // Foundational White · Pantone 656 C
 
   // ── Border / Divider / Shadow ─────────────────────────────────────
   static const border = Color(0xFFE5E7EB);
@@ -37,7 +53,7 @@ class AppColors {
   static const shadow = Color(0xFF1F2937);
 
   // ── Status ─────────────────────────────────────────────────────────
-  static const success = Color.fromARGB(255, 47, 199, 103);
+  static const success = Color(0xFF2C9942); // Sustainable Green · 7739 C
   static const warning = Color(
       0xFFF59E0B); // canonical warning (existing "amber" token, 50+ call sites)
   static const warningAlt = Color(
@@ -70,8 +86,12 @@ class AppColors {
   // the Home/Shell/Lead screens. NOTE: [brandNavy] is a *second* brand
   // blue distinct from [primary] — kept separate to preserve current
   // appearance until design confirms which is canonical.
-  static const brandNavy = Color(0xFF00569B);
-  static const brandNavyDark = Color(0xFF0F2547);
+  // Resolved against the brand guide. The note above asked which blue was
+  // canonical; §07.01 answers it — Ironclad Blue is the primary brand colour,
+  // and it belongs here rather than on [primary] for the contrast reason
+  // explained at the top of this class.
+  static const brandNavy = Color(0xFF011E41); // Ironclad Blue · Pantone 282 C
+  static const brandNavyDark = Color(0xFF002169); // Dark Sapphire · 280 C
   static const accentPurple = Color(0xFF7C3AED);
   static const slate = Color(0xFF1E293B);
 

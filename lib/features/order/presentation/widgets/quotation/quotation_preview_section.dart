@@ -6,6 +6,7 @@ import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/pricing_text.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/brand_logo.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/painters/dashed_rrect.dart';
 
 class QuotationPreviewSection extends StatelessWidget {
@@ -31,14 +32,10 @@ class QuotationPreviewSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppThemeColors>()!;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // One pending line makes the whole document pending: a subtotal that
     // silently drops a line is a smaller, wronger number than none at all.
     final pending = items.hasPendingPricing;
-    final logoAsset = isDark
-        ? 'assets/logos/darkmood_logo.jpg'
-        : 'assets/logos/isi_main_screen_logo.png';
 
     return CustomPaint(
       painter: _DottedBorderPainter(
@@ -73,17 +70,14 @@ class QuotationPreviewSection extends StatelessWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Image.asset(
-                        logoAsset,
-                        height: context.rh(40),
-                        width: context.rh(120),
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Icon(
-                          Icons.business,
-                          color: colors.brandNavy,
-                          size: context.rr(20),
-                        ),
-                      ),
+                      // The ISI Group wordmark, ink chosen from the theme —
+                      // this preview sits on `colors.card`, which follows the
+                      // app theme, so dark ink in light mode and light ink in
+                      // dark. Replaces the two hand-picked rasters
+                      // (`isi_main_screen_logo.png` / `darkmood_logo.jpg`),
+                      // which were drawn `BoxFit.cover` into a 120x40 box the
+                      // artwork does not fit — that cropped the wordmark.
+                      BrandLogo(height: context.rh(40)),
                       SizedBox(height: context.rh(6)),
                       Text(
                         'orders.quotation.builder_title'.tr,

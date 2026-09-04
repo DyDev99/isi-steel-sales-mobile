@@ -161,9 +161,18 @@ class CreateBpResponse {
 }
 
 abstract class CustomerRemoteDataSource {
+  /// The SAP reference catalogues.
+  ///
+  /// [includeInactive] adds retired codes to the response. **Leave it false
+  /// for the registration form.** A retired code renders in the dropdown
+  /// exactly like a live one, and a rep who picks it gets the registration
+  /// rejected on the SAP push with no way to see why. It exists for reading
+  /// *existing* records, whose stored codes may since have been retired — the
+  /// detail screen needs the name for a code the rep can no longer choose.
   Future<CustomerReferenceCatalogue> fetchRegistrationReferences({
     Iterable<String>? kinds,
     String? search,
+    bool includeInactive = false,
   });
   Future<CustomerRegistrationDraft> createRegistrationDraft();
 
@@ -206,14 +215,20 @@ class CustomerRemoteDataSourceImpl implements CustomerRemoteDataSource {
   Future<CustomerReferenceCatalogue> fetchRegistrationReferences({
     Iterable<String>? kinds,
     String? search,
+    bool includeInactive = false,
   }) async {
     final query = <String, dynamic>{
       if (kinds != null && kinds.isNotEmpty) 'kinds': kinds.join(','),
       if (search != null && search.trim().isNotEmpty) 'search': search.trim(),
+      // Sent only when true. Omitting it leaves the server on its own default
+      // rather than this client asserting one, which matters if that default
+      // ever changes.
+      if (includeInactive) 'includeInactive': 'true',
     };
     _trace.send('http', 'GET references', {
       'kinds': kinds?.join(',') ?? 'all',
       'search': search?.trim().isEmpty ?? true ? null : 'yes',
+      'inactive': DebugTrace.yesNo(includeInactive),
     });
     final response = await _get(
       '${AppConstants.customersEndpoint}/references',

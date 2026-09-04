@@ -25,38 +25,56 @@ class CustomerReferenceCache {
   /// still self-healing without a manual cache clear.
   final Duration ttl;
 
-  static const String _freshKey = 'sap_customer_references';
-  static const String _staleKey = 'sap_customer_references:stale';
-  static const String _stampKey = 'sap_customer_references:at';
+  static const String _base = 'sap_customer_references';
+
+  /// The active-only and include-inactive responses are **different payloads
+  /// and are cached apart.**
+  ///
+  /// One key for both would mean whichever screen loaded first decided what
+  /// the other saw: open a customer's detail page (which needs retired codes
+  /// to name a stored value) and the registration form would then offer those
+  /// retired codes in its dropdowns. That is a rejected SAP push caused by
+  /// nothing more than screen order.
+  static String _variant(bool includeInactive) =>
+      includeInactive ? '$_base:all' : _base;
 
   /// Non-expired catalogues, or null once the TTL has lapsed.
-  CustomerReferenceCatalogue? readFresh() =>
-      _decode(_cache.get<String>(_freshKey));
+  CustomerReferenceCatalogue? readFresh({bool includeInactive = false}) =>
+      _decode(_cache.get<String>(_variant(includeInactive)));
 
   /// The last successfully-fetched catalogues regardless of age. Only surfaced
   /// when the network could not be reached.
-  CustomerReferenceCatalogue? readStale() =>
-      _decode(_cache.get<String>(_staleKey));
+  CustomerReferenceCatalogue? readStale({bool includeInactive = false}) =>
+      _decode(_cache.get<String>('${_variant(includeInactive)}:stale'));
 
-  DateTime? cachedAt() {
-    final raw = _cache.get<int>(_stampKey);
+  DateTime? cachedAt({bool includeInactive = false}) {
+    final raw = _cache.get<int>('${_variant(includeInactive)}:at');
     return raw == null ? null : DateTime.fromMillisecondsSinceEpoch(raw);
   }
 
-  Future<void> write(CustomerReferenceCatalogue catalogue) async {
+  Future<void> write(
+    CustomerReferenceCatalogue catalogue, {
+    bool includeInactive = false,
+  }) async {
     // Stored as a JSON string rather than a nested map: Hive round-trips
     // `Map<dynamic, dynamic>` for nested structures, and the cast back is where
     // this kind of cache usually starts throwing.
     final encoded = jsonEncode(catalogue.values);
-    await _cache.set(_freshKey, encoded, ttl: ttl);
-    await _cache.set(_staleKey, encoded);
-    await _cache.set(_stampKey, DateTime.now().millisecondsSinceEpoch);
+    final key = _variant(includeInactive);
+    await _cache.set(key, encoded, ttl: ttl);
+    await _cache.set('$key:stale', encoded);
+    await _cache.set('$key:at', DateTime.now().millisecondsSinceEpoch);
   }
 
+  /// Drops both variants. Called on sign-out and on a manual refresh — leaving
+  /// one behind would resurrect the other screen's copy.
   Future<void> clear() async {
-    await _cache.remove(_freshKey);
-    await _cache.remove(_staleKey);
-    await _cache.remove(_stampKey);
+    for (final includeInactive in const [false, true]) {
+      final key = _variant(includeInactive);
+      await _cache.remove(key);
+      await _cache.remove('$key:stale');
+      await _cache.remove('$key:at');
+    }
   }
 
   /// Tolerates a shape change in cached JSON by discarding it rather than

@@ -60,9 +60,14 @@ abstract interface class CustomerDocumentRepository {
   /// succeeded by the time this runs; HQ blocks approval on the server's own
   /// `isComplete` rather than the app refusing to save
   /// (`docs/feature/customer/mobile/customer-documents.md` §The checklist).
+  /// [onProgress] is called after each file settles, with the number
+  /// completed so far. Reported per file because there is no batch endpoint —
+  /// each upload is its own request, and a rep on a market connection should
+  /// see the count move rather than watch one long spinner.
   ResultFuture<CustomerDocumentUploadOutcome> uploadAll({
     required String customerId,
     required List<PendingCustomerDocument> documents,
+    void Function(int completed, int total)? onProgress,
   });
 
   ResultFuture<void> delete({

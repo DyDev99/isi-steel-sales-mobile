@@ -133,6 +133,10 @@ class _VisitsPainter extends CustomPainter {
   final double t;
   final Color accent;
 
+  // Premium touch: a soft companion tone for glows/shadows so the accent
+  // color doesn't have to do double duty as both fill and depth cue.
+  Color get _glow => accent.withValues(alpha: 0.35);
+
   @override
   void paint(Canvas canvas, Size size) {
     final s = size.width / 100.0;
@@ -149,6 +153,15 @@ class _VisitsPainter extends CustomPainter {
       canvas.scale(shopIn);
       canvas.translate(-70 * s, -30 * s);
 
+      // soft grounded shadow — reads as depth, not a flat sticker
+      canvas.drawOval(
+        Rect.fromCenter(
+            center: Offset(71 * s, 50 * s), width: 34 * s, height: 6 * s),
+        Paint()
+          ..color = _ink.withValues(alpha: 0.12)
+          ..maskFilter = MaskFilter.blur(BlurStyle.normal, 3 * s),
+      );
+
       // body
       final body = RRect.fromRectAndRadius(
         Rect.fromLTWH(56 * s, 24 * s, 30 * s, 24 * s),
@@ -159,7 +172,7 @@ class _VisitsPainter extends CustomPainter {
         body,
         Paint()
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 2.4 * s
+          ..strokeWidth = 2.8 * s // was 2.4 — a touch bolder, less thin/wiry
           ..color = _ink,
       );
       // awning
@@ -176,10 +189,14 @@ class _VisitsPainter extends CustomPainter {
         ),
         Paint()..color = _shade,
       );
+
+      // "Outlet" label — makes the destination legible at a glance
+      _label(canvas, 'Outlet', Offset(71 * s, 15 * s), s);
+
       canvas.restore();
     }
 
-    // ── The route ─────────────────────────────────────────────────────────
+    // ── The route (depot → outlet) ──────────────────────────────────────
     final path = Path()
       ..moveTo(16 * s, 84 * s)
       ..cubicTo(14 * s, 66 * s, 34 * s, 64 * s, 38 * s, 52 * s)
@@ -193,38 +210,65 @@ class _VisitsPainter extends CustomPainter {
       path,
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 4 * s
+        ..strokeWidth = 6 * s // was 4 — visible as a real "road", not a hairline
         ..strokeCap = StrokeCap.round
-        ..color = accent.withValues(alpha: 0.18),
+        ..strokeJoin = StrokeJoin.round
+        ..color = accent.withValues(alpha: 0.16),
     );
 
-    final travelled = _phase(t, 0.18, 0.56);
+    // Smoother pacing: ease-in-out instead of linear, so the walk along the
+    // route accelerates/decelerates naturally rather than moving at a
+    // constant, slightly robotic speed.
+    final travelled = _phase(t, 0.18, 0.56, Curves.easeInOutCubic);
     if (travelled > 0) {
+      final travelledPath = metric.extractPath(0, metric.length * travelled);
+
+      // subtle glow pass underneath the solid line = premium "lit" look
       canvas.drawPath(
-        metric.extractPath(0, metric.length * travelled),
+        travelledPath,
         Paint()
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 4 * s
+          ..strokeWidth = 11 * s
           ..strokeCap = StrokeCap.round
+          ..strokeJoin = StrokeJoin.round
+          ..color = _glow
+          ..maskFilter = MaskFilter.blur(BlurStyle.normal, 3 * s),
+      );
+      canvas.drawPath(
+        travelledPath,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 6 * s
+          ..strokeCap = StrokeCap.round
+          ..strokeJoin = StrokeJoin.round
           ..color = accent,
       );
     }
 
-    // origin dot
-    canvas.drawCircle(Offset(16 * s, 84 * s), 4.5 * s, Paint()..color = _paper);
+    // origin dot ("Depot") — bolder ring + label so the start point is
+    // unambiguous even to someone glancing at the animation for a second
     canvas.drawCircle(
       Offset(16 * s, 84 * s),
-      4.5 * s,
+      6.5 * s, // was 4.5
+      Paint()
+        ..color = _ink.withValues(alpha: 0.10)
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, 2 * s),
+    );
+    canvas.drawCircle(Offset(16 * s, 84 * s), 5.5 * s, Paint()..color = _paper);
+    canvas.drawCircle(
+      Offset(16 * s, 84 * s),
+      5.5 * s,
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.2 * s
+        ..strokeWidth = 2.8 * s // was 2.2
         ..color = _ink,
     );
+    _label(canvas, 'Depot', Offset(16 * s, 94 * s), s);
 
     // ── The pin: rides the route, then settles on the shop ────────────────
     if (travelled > 0.02) {
-      final at =
-          metric.getTangentForOffset(metric.length * travelled)!.position;
+      final tangent = metric.getTangentForOffset(metric.length * travelled)!;
+      final at = tangent.position;
       final landed = _phase(t, 0.52, 0.62, Curves.easeOutBack);
       // A gentle hop as it arrives, rather than a drop from off-screen: the
       // brief asked for natural and calm, and gravity here would read as
@@ -232,21 +276,42 @@ class _VisitsPainter extends CustomPainter {
       final lift = -6 * s * math.sin(landed * math.pi);
       final centre = Offset(at.dx, at.dy + lift);
 
-      // arrival pulse
+      // arrival pulse — wider and bolder so "you've arrived" actually reads
       if (landed > 0) {
         final ring = _phase(t, 0.58, 0.80, Curves.easeOut);
         if (ring > 0 && ring < 1) {
           canvas.drawCircle(
             centre,
-            (6 + 16 * ring) * s,
+            (7 + 20 * ring) * s, // was 6 + 16
             Paint()
               ..style = PaintingStyle.stroke
-              ..strokeWidth = 2 * s
-              ..color = accent.withValues(alpha: 0.45 * (1 - ring)),
+              ..strokeWidth = 3 * s // was 2
+              ..color = accent.withValues(alpha: 0.5 * (1 - ring)),
+          );
+          // a second, faster inner pulse for a richer "double ripple" feel
+          canvas.drawCircle(
+            centre,
+            (4 + 12 * ring) * s,
+            Paint()
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = 1.8 * s
+              ..color = accent.withValues(alpha: 0.35 * (1 - ring)),
           );
         }
       }
-      _drawPin(canvas, centre, 9 * s, accent);
+
+      // soft drop shadow under the pin so it feels lifted off the route
+      canvas.drawOval(
+        Rect.fromCenter(
+            center: Offset(centre.dx, at.dy + 2 * s),
+            width: 12 * s,
+            height: 4 * s),
+        Paint()
+          ..color = _ink.withValues(alpha: 0.14)
+          ..maskFilter = MaskFilter.blur(BlurStyle.normal, 2 * s),
+      );
+
+      _drawPin(canvas, centre, 11 * s, accent); // was 9 — a bigger, easier target
     }
 
     canvas.restore();
@@ -260,8 +325,36 @@ class _VisitsPainter extends CustomPainter {
       ..lineTo(c.dx, c.dy + r * 1.9)
       ..lineTo(c.dx + r * 0.62, c.dy + r * 0.62)
       ..close();
+
+    // slim outline first, so the pin holds its shape crisply at any size
+    canvas.drawPath(
+      p,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.6 * (r / 9)
+        ..strokeJoin = StrokeJoin.round
+        ..color = _ink.withValues(alpha: 0.25),
+    );
     canvas.drawPath(p, Paint()..color = color);
     canvas.drawCircle(c, r * 0.38, Paint()..color = _paper);
+  }
+
+  // Small caption under a landmark so the scene explains itself without
+  // needing outside context — "what is this?" answered in the frame.
+  void _label(Canvas canvas, String text, Offset anchor, double s) {
+    final tp = TextPainter(
+      text: TextSpan(
+        text: text,
+        style: TextStyle(
+          fontSize: 7 * s,
+          fontWeight: FontWeight.w600,
+          color: _ink.withValues(alpha: 0.55),
+          letterSpacing: 0.2,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    tp.paint(canvas, Offset(anchor.dx - tp.width / 2, anchor.dy));
   }
 
   @override

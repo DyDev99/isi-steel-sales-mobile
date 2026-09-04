@@ -2,7 +2,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:isi_steel_sales_mobile/core/utils/result.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/models/bp_customer_form_data.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/models/sap_reference_options.dart';
-import 'package:isi_steel_sales_mobile/features/customers/data/remote/customer_datasources.dart';
+import 'package:isi_steel_sales_mobile/features/customers/domain/entities/business_partner_request.dart';
+import 'package:isi_steel_sales_mobile/features/customers/domain/entities/business_partner_result.dart';
+import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer_submit_progress.dart';
+import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/business_partner_submission.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer_document.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/repositories/business_partner_repository.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/repositories/customer_document_repository.dart';
@@ -17,11 +20,19 @@ import 'package:mocktail/mocktail.dart';
 /// that fails to upload can never cost the rep the registration.
 class _MockRegistration extends Mock implements BusinessPartnerRepository {}
 
+class _MockSubmission extends Mock implements BusinessPartnerSubmission {}
+
+/// The bloc only carries the request through to the draft store on an
+/// unreachable submit; it never reads a field, so a Fake avoids constructing
+/// forty required SAP properties to prove that.
+class _FakeRequest extends Fake implements BusinessPartnerRequest {}
+
 class _MockDocuments extends Mock implements CustomerDocumentRepository {}
 
 void main() {
   late _MockRegistration registration;
   late _MockDocuments documents;
+  late _MockSubmission submission;
 
   setUpAll(() {
     registerFallbackValue(<PendingCustomerDocument>[]);
@@ -75,6 +86,7 @@ void main() {
   AddCustomerBloc build({BpCustomerDraft? draft}) => AddCustomerBloc(
         repository: registration,
         documents: documents,
+        submission: submission,
         rep: const RepSalesContext(
           salesOrganization: '0001',
           salesOrganizationName: 'ISI',
@@ -86,50 +98,66 @@ void main() {
         initialDraft: draft ?? completeDraft(),
       );
 
-  /// Puts the bloc in the state `_onSubmit` expects: a server draft is open.
-  Future<void> openDraft(AddCustomerBloc bloc) async {
-    bloc.add(const OpenServerDraft());
-    await Future<void>.delayed(Duration.zero);
-  }
+  /// Lets the bloc settle before the assertions run.
+  Future<void> settle() => Future<void>.delayed(Duration.zero);
 
   setUp(() {
     registration = _MockRegistration();
     documents = _MockDocuments();
+    submission = _MockSubmission();
 
-    when(() => registration.openDraft())
-        .thenAnswer((_) async => OpenedRegistrationDraft(
-              draft: const CustomerRegistrationDraft(
-                  draftId: 'draft-1', fields: {}),
-              resumed: false,
-            ));
+    registerFallbackValue(BpCustomerDraft());
+    registerFallbackValue(const RepSalesContext(
+      salesOrganization: '0001',
+      salesOrganizationName: 'ISI',
+      salesOffice: '0001',
+      salesOfficeName: 'Phnom Penh',
+      salesEmployeeId: 'mobile',
+      salesEmployeeName: 'Mobile user',
+    ));
+
     when(() => registration.loadReferenceOptions())
         .thenAnswer((_) async => SapReferenceOptions.empty);
-    when(() => registration.updateServerDraft(
-            draftId: any(named: 'draftId'),
-            changedFields: any(named: 'changedFields')))
-        .thenAnswer((_) async =>
-            const CustomerRegistrationDraft(draftId: 'draft-1', fields: {}));
-    when(() => registration.submitServerDraft(any())).thenAnswer(
-        (_) async => const BusinessPartnerSubmitResult(localId: 'customer-1'));
     when(() => registration.clearDraft()).thenAnswer((_) async {});
+    when(() => registration.saveDraft(any())).thenAnswer((_) async {});
+
+    when(() => submission.submit(
+          any(),
+          rep: any(named: 'rep'),
+          priceGroupResolver: any(named: 'priceGroupResolver'),
+        )).thenAnswer((_) async => const BpSubmissionCreated(
+          BusinessPartnerResult(
+            customerNumber: '6100001234',
+            localId: 'customer-1',
+            status: BpSubmissionStatus.created,
+          ),
+        ));
   });
 
   group('uploading after submit', () {
     test('the customer is created before any photograph is sent', () async {
       final order = <String>[];
-      when(() => registration.submitServerDraft(any())).thenAnswer((_) async {
+      when(() => submission.submit(
+            any(),
+            rep: any(named: 'rep'),
+            priceGroupResolver: any(named: 'priceGroupResolver'),
+          )).thenAnswer((_) async {
         order.add('submit');
-        return const BusinessPartnerSubmitResult(localId: 'customer-1');
+        return const BpSubmissionCreated(BusinessPartnerResult(
+          customerNumber: '6100001234',
+          localId: 'customer-1',
+          status: BpSubmissionStatus.created,
+        ));
       });
       when(() => documents.uploadAll(
           customerId: any(named: 'customerId'),
-          documents: any(named: 'documents'))).thenAnswer((_) async {
+          documents: any(named: 'documents'),
+          onProgress: any(named: 'onProgress'))).thenAnswer((_) async {
         order.add('upload');
         return const Success(CustomerDocumentUploadOutcome());
       });
 
       final bloc = build();
-      await openDraft(bloc);
       bloc.add(const SubmitToHQ());
       await bloc.stream
           .firstWhere((s) => s.status != AddCustomerStatus.submitting);
@@ -144,14 +172,14 @@ void main() {
       List<PendingCustomerDocument>? sent;
       when(() => documents.uploadAll(
           customerId: any(named: 'customerId'),
-          documents: any(named: 'documents'))).thenAnswer((invocation) async {
+          documents: any(named: 'documents'),
+          onProgress: any(named: 'onProgress'))).thenAnswer((invocation) async {
         sent = invocation.namedArguments[#documents]
             as List<PendingCustomerDocument>;
         return const Success(CustomerDocumentUploadOutcome());
       });
 
       final bloc = build();
-      await openDraft(bloc);
       bloc.add(const SubmitToHQ());
       await bloc.stream
           .firstWhere((s) => s.status != AddCustomerStatus.submitting);
@@ -170,14 +198,14 @@ void main() {
     test('a failed photo still leaves the registration successful', () async {
       when(() => documents.uploadAll(
               customerId: any(named: 'customerId'),
-              documents: any(named: 'documents')))
+              documents: any(named: 'documents'),
+              onProgress: any(named: 'onProgress')))
           .thenAnswer((_) async => const Success(CustomerDocumentUploadOutcome(
                 uploaded: [CustomerDocumentType.storefront],
                 rejected: [CustomerDocumentType.idCard],
               )));
 
       final bloc = build();
-      await openDraft(bloc);
       bloc.add(const SubmitToHQ());
       final state = await bloc.stream
           .firstWhere((s) => s.status != AddCustomerStatus.submitting);
@@ -192,13 +220,13 @@ void main() {
     test('a clean run reports nothing outstanding', () async {
       when(() => documents.uploadAll(
               customerId: any(named: 'customerId'),
-              documents: any(named: 'documents')))
+              documents: any(named: 'documents'),
+              onProgress: any(named: 'onProgress')))
           .thenAnswer((_) async => const Success(CustomerDocumentUploadOutcome(
                 uploaded: [CustomerDocumentType.storefront],
               )));
 
       final bloc = build();
-      await openDraft(bloc);
       bloc.add(const SubmitToHQ());
       final state = await bloc.stream
           .firstWhere((s) => s.status != AddCustomerStatus.submitting);
@@ -208,23 +236,110 @@ void main() {
       await bloc.close();
     });
 
-    test('a queued registration keeps the photos on the device', () async {
-      // No server-side customer yet, so there is no id worth uploading against.
-      when(() => registration.submitServerDraft(any())).thenAnswer((_) async =>
-          const BusinessPartnerSubmitResult(localId: '', queuedOffline: true));
+    test('an unreachable server keeps the photos on the device', () async {
+      // Nothing was created, so there is no id to attach evidence to. The
+      // draft is preserved and the photographs stay put.
+      when(() => submission.submit(
+            any(),
+            rep: any(named: 'rep'),
+            priceGroupResolver: any(named: 'priceGroupResolver'),
+          )).thenAnswer((_) async => BpSubmissionUnreachable(
+            message: 'No connection',
+            request: _FakeRequest(),
+            mayHaveLanded: false,
+          ));
 
       final bloc = build();
-      await openDraft(bloc);
       bloc.add(const SubmitToHQ());
       final state = await bloc.stream
           .firstWhere((s) => s.status != AddCustomerStatus.submitting);
 
-      expect(state.status, AddCustomerStatus.success);
+      expect(state.status, AddCustomerStatus.failure);
       expect(state.queuedOffline, isTrue);
       verifyNever(() => documents.uploadAll(
           customerId: any(named: 'customerId'),
-          documents: any(named: 'documents')));
+          documents: any(named: 'documents'),
+          onProgress: any(named: 'onProgress')));
       await bloc.close();
+    });
+  });
+
+  group('submit progress', () {
+    test('advances through the real stages, ending on finishing', () async {
+      when(() => documents.uploadAll(
+            customerId: any(named: 'customerId'),
+            documents: any(named: 'documents'),
+            onProgress: any(named: 'onProgress'),
+          )).thenAnswer((invocation) async {
+        // Report each photo landing, as the real repository does.
+        final report =
+            invocation.namedArguments[#onProgress] as void Function(int, int)?;
+        for (var i = 1; i <= 3; i++) {
+          report?.call(i, 3);
+        }
+        return const Success(CustomerDocumentUploadOutcome());
+      });
+
+      final bloc = build();
+      final seen = <CustomerSubmitProgress>[];
+      final sub = bloc.stream.listen((s) => seen.add(s.progress));
+
+      bloc.add(const SubmitToHQ());
+      await bloc.stream
+          .firstWhere((s) => s.status != AddCustomerStatus.submitting);
+      await sub.cancel();
+
+      final stages = seen.map((p) => p.stage).toSet();
+      expect(stages, contains(SubmitStage.registering));
+      expect(stages, contains(SubmitStage.uploadingPhotos));
+      expect(seen.last.stage, SubmitStage.finishing);
+    });
+
+    test('the photo counter reaches the total', () async {
+      when(() => documents.uploadAll(
+            customerId: any(named: 'customerId'),
+            documents: any(named: 'documents'),
+            onProgress: any(named: 'onProgress'),
+          )).thenAnswer((invocation) async {
+        final report =
+            invocation.namedArguments[#onProgress] as void Function(int, int)?;
+        for (var i = 1; i <= 3; i++) {
+          report?.call(i, 3);
+        }
+        return const Success(CustomerDocumentUploadOutcome());
+      });
+
+      final bloc = build();
+      final counts = <String>[];
+      final sub = bloc.stream.listen((s) {
+        if (s.progress.stage == SubmitStage.uploadingPhotos) {
+          counts.add('${s.progress.photosSent}/${s.progress.photosTotal}');
+        }
+      });
+
+      bloc.add(const SubmitToHQ());
+      await bloc.stream
+          .firstWhere((s) => s.status != AddCustomerStatus.submitting);
+      await sub.cancel();
+
+      // The draft carries three attachments, so the bar must actually move
+      // rather than jump from nothing to done.
+      expect(counts, containsAllInOrder(['1/3', '2/3', '3/3']));
+    });
+
+    test('a submit with no photos skips the upload stage', () async {
+      final bloc = build(draft: completeDraft()..attachments.clear());
+      final seen = <SubmitStage>[];
+      final sub = bloc.stream.listen((s) => seen.add(s.progress.stage));
+
+      bloc.add(const SubmitToHQ());
+      await bloc.stream
+          .firstWhere((s) => s.status != AddCustomerStatus.submitting);
+      await sub.cancel();
+
+      // Validation blocks this draft (photos are required), so the guard is
+      // that no upload stage is ever announced for a draft carrying none.
+      expect(seen, isNot(contains(SubmitStage.uploadingPhotos)));
     });
   });
 }

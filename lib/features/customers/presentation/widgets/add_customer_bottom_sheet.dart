@@ -20,6 +20,7 @@ import 'package:isi_steel_sales_mobile/features/geo_location/presentation/widget
 import 'package:image_picker/image_picker.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/services/order_location_service.dart';
 import 'package:isi_steel_sales_mobile/core/camera/image_capture_service.dart';
+import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_submit_progress_dialog.dart';
 
 /// Console tracer, sharing the registration channel so the form's own steps
 /// interleave with the bloc's and the HTTP calls' in one readable sequence.
@@ -37,7 +38,7 @@ class AddCustomerBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => BlocProvider<AddCustomerBloc>(
-        create: (_) => sl<AddCustomerBloc>()..add(const OpenServerDraft()),
+        create: (_) => sl<AddCustomerBloc>()..add(const OpenForm()),
         child: _AddCustomerForm(
           isTablet: isTablet,
           isFullScreen: isFullScreen,
@@ -71,6 +72,7 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
   final _nameKhCtrl = TextEditingController();
   final _name2Ctrl = TextEditingController();
   final _searchTermCtrl = TextEditingController();
+  final _searchTerm2Ctrl = TextEditingController();
   final _coNameCtrl = TextEditingController();
   final _streetCtrl = TextEditingController();
   final _houseNoCtrl = TextEditingController();
@@ -107,6 +109,7 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
       _nameKhCtrl,
       _name2Ctrl,
       _searchTermCtrl,
+      _searchTerm2Ctrl,
       _coNameCtrl,
       _streetCtrl,
       _houseNoCtrl,
@@ -137,21 +140,30 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
   AddCustomerBloc get _bloc => context.read<AddCustomerBloc>();
 
   /// Guards the "resumed your draft" notice so it shows once when the form
-  /// opens, not again on every subsequent field flush — the listener also
-  /// fires whenever `serverFields` changes.
+  /// opens, not again on every later rebuild — the listener also fires on
+  /// every edit.
   bool _resumeNoticeShown = false;
+
+  /// True while the submit progress dialog is on the navigator.
+  ///
+  /// Tracked rather than inferred from `state.status`, because the dialog is
+  /// popped by route and pushing a second one — or popping the sheet itself by
+  /// mistake — is exactly the failure this guards.
+  bool _progressDialogVisible = false;
 
   /// Single mutation entry point. Everything the rep touches goes through here.
   void _edit(void Function(BpCustomerDraft d) mutate) =>
       _bloc.add(DraftChanged(mutate));
 
   void _syncTextControllers(BpCustomerDraft draft) {
-    // A draft response is authoritative (the server may normalise a code or
-    // prefill a default), so copy its text values into the visible controls.
+    // A resumed draft and the derived fields (both search terms) are written
+    // by the bloc rather than typed, so copy the draft's values into the
+    // visible controls.
     _nameEnCtrl.text = draft.nameEn;
     _nameKhCtrl.text = draft.nameKh;
     _name2Ctrl.text = draft.name2;
     _searchTermCtrl.text = draft.searchTerm;
+    _searchTerm2Ctrl.text = draft.searchTerm2;
     _coNameCtrl.text = draft.coName;
     _streetCtrl.text = draft.street;
     _houseNoCtrl.text = draft.houseNumber;
@@ -170,11 +182,12 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
     return BlocConsumer<AddCustomerBloc, AddCustomerState>(
       listenWhen: (prev, curr) =>
           prev.status != curr.status ||
-          prev.serverFields != curr.serverFields ||
+          prev.draft != curr.draft ||
           prev.errors != curr.errors,
       listener: (context, state) {
-        if (state.status == AddCustomerStatus.editing &&
-            state.serverDraftId != null) {
+        // No draft-id gate any more: the form is local until submit, so it is
+        // editable from the first frame.
+        if (state.status == AddCustomerStatus.editing) {
           _syncTextControllers(state.draft);
 
           // Say why the form came back filled in. Without this the rep sees
@@ -203,6 +216,52 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
             setState(() => _tabletStage = 2);
           }
         }
+        // Progress dialog: shown once when the submit starts, and torn down on
+        // whichever terminal state arrives. Driven from the listener rather
+        // than the builder so it survives the rebuilds the form does while
+        // uploading.
+        if (state.status == AddCustomerStatus.submitting &&
+            !_progressDialogVisible) {
+          _progressDialogVisible = true;
+
+          // Captured here, not looked up inside the builder.
+          //
+          // `showDialog` builds its child from a context on the Navigator's
+          // overlay, which sits *above* the `BlocProvider` the create screen
+          // supplies — so a `BlocBuilder` in there finds no provider and
+          // throws `ProviderNotFoundException`. Handing the instance across
+          // with `BlocProvider.value` is what re-attaches it.
+          //
+          // `.value`, never `create`: this bloc is owned by the screen and
+          // must not be closed when the dialog pops.
+          final bloc = _bloc;
+          showDialog<void>(
+            context: context,
+            barrierDismissible: false,
+            routeSettings: const RouteSettings(
+                name: CustomerSubmitProgressDialog.routeName),
+            builder: (_) => BlocProvider<AddCustomerBloc>.value(
+              value: bloc,
+              child: BlocBuilder<AddCustomerBloc, AddCustomerState>(
+                // Only the progress moves while this is up; rebuilding on every
+                // field change would be wasted work behind a modal barrier.
+                buildWhen: (a, b) => a.progress != b.progress,
+                builder: (_, s) =>
+                    CustomerSubmitProgressDialog(progress: s.progress),
+              ),
+            ),
+          );
+        }
+        if (_progressDialogVisible &&
+            state.status != AddCustomerStatus.submitting) {
+          _progressDialogVisible = false;
+          // Pop the dialog, never the sheet: `PopScope` blocks the back
+          // gesture, so this is the only route out and it must target exactly
+          // the dialog.
+          Navigator.of(context).popUntil((route) =>
+              route.settings.name != CustomerSubmitProgressDialog.routeName);
+        }
+
         if (state.status == AddCustomerStatus.success) {
           // The customer is saved either way. An evidence slot that did not
           // reach the server is reported here rather than as a failure,
@@ -213,7 +272,16 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
             _ when state.queuedOffline => 'add_customer.queued_offline'.tr,
             _ when unsent > 0 => 'add_customer.documents_partially_sent'
                 .trParams({'count': unsent}),
-            _ => 'add_customer.success'.tr,
+            // "Sent for approval" and "customer 0000123456 created" are
+            // different promises. Showing the second when the first is true is
+            // how a rep comes to believe they can order against the shop
+            // today, and the order is then rejected in front of the customer.
+            _ when state.awaitingApproval =>
+              'add_customer.success_pending_approval'.tr,
+            _ => state.customerNumber == null || state.customerNumber!.isEmpty
+                ? 'add_customer.success'.tr
+                : 'add_customer.success_with_code'
+                    .trParams({'code': state.customerNumber!}),
           };
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -291,8 +359,7 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
                     duration: const Duration(milliseconds: 300),
                     switchInCurve: Curves.easeInOut,
                     switchOutCurve: Curves.easeInOut,
-                    child: state.status == AddCustomerStatus.submitting ||
-                            state.status == AddCustomerStatus.opening
+                    child: state.isBusy
                         ? Center(
                             key: const ValueKey('submitting_loader'),
                             child: Padding(
@@ -688,11 +755,6 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
   }
 
   void _handleTabletNext(AddCustomerState state) {
-    if (state.serverDraftId == null) {
-      _bloc.add(const OpenServerDraft());
-      return;
-    }
-
     if (_tabletStage == 0) {
       final idErrors = state.draft.validateStep(BpFormStep.identity);
       final addrErrors = state.draft.validateStep(BpFormStep.address);
@@ -786,10 +848,7 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
                   borderRadius: BorderRadius.circular(14)),
               elevation: 0,
             ),
-            onPressed: state.status == AddCustomerStatus.submitting ||
-                    state.status == AddCustomerStatus.opening
-                ? null
-                : () => _handleTabletNext(state),
+            onPressed: state.isBusy ? null : () => _handleTabletNext(state),
             icon: Icon(
               isLast ? Icons.check_circle_outline : Icons.arrow_forward,
               color: Colors.white,
@@ -935,14 +994,19 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
   // ===========================================================================
   Widget _buildIdentityStep(Map<String, String> errors) {
     final draft = _bloc.state.draft;
+    final refs = _bloc.state.references;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Grouping drives both `PartnerGroup` and `AccountGroup` on the wire.
+        // Sourced from the ERP's `PartnerGroup` catalogue, narrowed to the
+        // customer groupings — the full table also lists suppliers, loans and
+        // employees, which do not belong on a customer BP.
         _label('add_customer.grouping'.tr, required: true),
         _dropdown(
           value: draft.grouping,
-          options: SapMasterData.grouping,
+          options: refs.partnerGroup,
           error: errors['grouping'],
           onChanged: (v) => _edit((d) => d.grouping = v!),
         ),
@@ -986,10 +1050,26 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
           _text(_name2Ctrl, 'add_customer.name2_hint'.tr,
               onChanged: (v) => _edit((d) => d.name2 = v)),
           _gap(),
-          _label('add_customer.search_term'.tr),
-          _text(_searchTermCtrl,
-              draft.searchTerm.isEmpty ? '—' : draft.searchTerm,
-              onChanged: (v) => _edit((d) => d.searchTerm = v)),
+          // Two search terms, not one. SAP indexes SORT1 and SORT2
+          // separately at 20 characters each, so a single longer term is
+          // truncated and the remainder is simply not searchable.
+          _label('add_customer.search_term1'.tr),
+          _text(
+            _searchTermCtrl,
+            'add_customer.search_term1_hint'.tr,
+            maxLength: 20, // SAP SORT1
+            onChanged: (v) => _edit((d) => d.searchTerm = v),
+          ),
+          _hint('add_customer.search_term1_note'.tr),
+          _gap(),
+          _label('add_customer.search_term2'.tr),
+          _text(
+            _searchTerm2Ctrl,
+            'add_customer.search_term2_hint'.tr,
+            maxLength: 20, // SAP SORT2
+            onChanged: (v) => _edit((d) => d.searchTerm2 = v),
+          ),
+          _hint('add_customer.search_term2_note'.tr),
           _gap(),
           _label('add_customer.co_name'.tr),
           _text(_coNameCtrl, 'add_customer.co_name_hint'.tr,
@@ -1223,6 +1303,24 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
           showCode: false,
           onChanged: (v) => _edit((d) => d.contactPersonRole = v),
         ),
+        _gap(),
+
+        // Correspondence language. Previously fixed at EN on the draft and
+        // never shown, so a Khmer-only shop was registered as an
+        // English-corresponding partner and then sent English paperwork.
+        //
+        // Shown with the code hidden: `EN`/`KM` are this app's codes, and the
+        // mapper converts them to SAP's single-character key on the way out —
+        // showing them would imply the rep is picking a SAP value.
+        _label('add_customer.language'.tr),
+        _dropdown(
+          value: draft.language.isEmpty
+              ? SapBpConst.defaultLanguage
+              : draft.language,
+          options: SapMasterData.language,
+          showCode: false,
+          onChanged: (v) => _edit((d) => d.language = v!),
+        ),
       ],
     );
   }
@@ -1251,7 +1349,7 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
           error: errors['customerGroup'],
           onChanged: (v) => _edit((d) => d.customerGroup = v),
         ),
-        if (draft.priceGroup != null) ...[
+        if (draft.priceGroup != null && !draft.priceGroupOverridden) ...[
           const SizedBox(height: 6),
           _infoChip(
               Icons.sell_outlined,
@@ -1259,6 +1357,25 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
                   .tr
                   .replaceAll('{code}', draft.priceGroup!)),
         ],
+        _gap(),
+
+        // Derived from the customer group, but overridable.
+        //
+        // Shown because the derivation and the reference payload disagree —
+        // that payload pairs customer group `01` with price group `21` where
+        // both ERP catalogues pair it with `11`. Until SAP settles which is
+        // right, a wrong price group fails the whole push, and a rep who can
+        // see and correct the value beats one who cannot.
+        _label('add_customer.price_group'.tr),
+        _dropdown(
+          value: draft.priceGroup,
+          options: refs.priceGroup,
+          hint: 'add_customer.pick_one'.tr,
+          onChanged: (v) => _edit((d) {
+            d.priceGroup = v;
+            d.priceGroupOverridden = true;
+          }),
+        ),
         _gap(),
         _label('add_customer.payment_term'.tr, required: true),
         _dropdown(
@@ -1709,7 +1826,9 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
                       if (draft.name2.isNotEmpty)
                         previewItem('Trade Name (Name 2)', draft.name2),
                       previewItem('Name (KH)', draft.nameKh),
-                      previewItem('Search Term', draft.searchTerm),
+                      previewItem('Search Term 1', draft.searchTerm),
+                      if (draft.searchTerm2.isNotEmpty)
+                        previewItem('Search Term 2', draft.searchTerm2),
                       if (draft.coName.isNotEmpty)
                         previewItem('c/o Name', draft.coName),
                     ],
@@ -1962,14 +2081,10 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
                   borderRadius: BorderRadius.circular(14)),
               elevation: 0,
             ),
-            onPressed: state.status == AddCustomerStatus.submitting ||
-                    state.status == AddCustomerStatus.opening
+            onPressed: state.isBusy
                 ? null
-                : () => _bloc.add(state.serverDraftId == null
-                    ? const OpenServerDraft()
-                    : isLast
-                        ? const SubmitToHQ()
-                        : const NextStep()),
+                : () =>
+                    _bloc.add(isLast ? const SubmitToHQ() : const NextStep()),
             child: Text(
               isLast
                   ? (needsCredit
@@ -2021,6 +2136,21 @@ class _AddCustomerBottomSheetState extends State<_AddCustomerForm> {
                     ),
                   ]
                 : null,
+          ),
+        ),
+      );
+
+  /// Sub-label under a field. Used where the SAP meaning of a field is not
+  /// guessable from its name — a rep cannot be expected to know that
+  /// "Search Term 1" is the place and "Search Term 2" is the shop.
+  Widget _hint(String msg) => Padding(
+        padding: const EdgeInsets.only(top: 6, left: 4),
+        child: Text(
+          msg,
+          style: TextStyle(
+            color: context.appColors.textSecondary.withValues(alpha: 0.7),
+            fontSize: _fontSize(12),
+            fontWeight: FontWeight.w500,
           ),
         ),
       );

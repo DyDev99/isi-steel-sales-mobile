@@ -15,6 +15,7 @@ import 'package:isi_steel_sales_mobile/features/authentication/presentation/widg
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/status_pill.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/vibe_field.dart';
 import 'package:isi_steel_sales_mobile/routes/app_routes.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/brand_logo.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/glass_card.dart';
 
 /// "Trad-Z" Sign-in for ISI Steel Mobile.
@@ -330,11 +331,35 @@ class _HeaderSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // The mark gives up its space to the form while the keyboard is open, for
+    // exactly the reason the footer below does: on a 390x844 phone a 336pt
+    // keyboard leaves 508pt of viewport and this panel is 85 of them. It
+    // carries no action, and the screen it identifies is the screen the rep is
+    // already looking at, so collapsing it costs nothing and buys back the
+    // Sign In button.
+    //
+    // Worth recording why this only surfaced now. The mark used to be
+    // `isi_app_logo.png`, and `Image.asset` resolves asynchronously — under
+    // `flutter_test` it never decodes, so it measured *zero* and the header
+    // looked 160pt shorter to CI than it was on a phone. `BrandLogo` sizes
+    // from the artwork's own viewBox, so the widget test now measures what the
+    // device measures, and `login_keyboard_insets_test` is guarding the real
+    // layout rather than an empty box.
+    final keyboardOpen = context.deviceInsets.isKeyboardOpen;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        const _Brand(),
-        SizedBox(height: context.rh(24)),
+        AnimatedSize(
+          duration: AppDurations.fast,
+          curve: AppCurves.standard,
+          child: keyboardOpen
+              ? const SizedBox(width: double.infinity)
+              : Padding(
+                  padding: EdgeInsets.only(bottom: context.rh(24)),
+                  child: const _Brand(),
+                ),
+        ),
         Text(
           'auth.welcome_back'.tr,
           textAlign: TextAlign.center,
@@ -397,11 +422,12 @@ class _Brand extends StatelessWidget {
               width: 1.2,
             ),
           ),
-          child: Image.asset(
-            "assets/logos/isi_app_logo.png",
-            width: context.rr(160),
-            fit: BoxFit.contain,
-          ),
+          // Light ink, pinned rather than resolved from the theme. This panel
+          // is 15%-white glass over `isi_building.png` under a black gradient
+          // — it is the darkest surface in the app in *both* themes, so the
+          // dark mark used everywhere else would be #15213A on near-black and
+          // simply vanish here. This is the one screen that has to opt out.
+          child: BrandLogo(width: context.rr(180), ink: BrandInk.light),
         ),
       ),
     );

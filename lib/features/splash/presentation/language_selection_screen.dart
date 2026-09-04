@@ -9,6 +9,7 @@ import 'package:isi_steel_sales_mobile/shared/widgets/aurora_background.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/glass_card.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/gradient_button.dart';
 import 'package:isi_steel_sales_mobile/routes/app_routes.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/brand_logo.dart';
 
 /// Shown once, right after splash. Lets the user pick a display language
 /// before they ever see the login form. Same visual language as
@@ -101,11 +102,11 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             Center(
-                              child: Image.asset(
-                                'assets/logos/isi_app_logo.png',
-                                width: 160,
-                                fit: BoxFit.contain,
-                              ),
+                              // The full ISI Group wordmark in dark ink, not
+                              // the blue seal on its own: `Vibe.bg` is
+                              // `AppColors.background` (white), so this is a
+                              // light surface and the dark mark belongs.
+                              child: const BrandLogo(width: 200),
                             ),
                             const SizedBox(height: 12),
                             Text(

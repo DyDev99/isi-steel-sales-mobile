@@ -22,7 +22,7 @@ class CustomerSearchBar extends StatefulWidget {
 class _CustomerSearchBarState extends State<CustomerSearchBar> {
   late final TextEditingController _controller;
   late final FocusNode _focusNode;
-  
+
   bool _isHoveringAdd = false;
   bool _isPressedAdd = false;
 
@@ -30,7 +30,7 @@ class _CustomerSearchBarState extends State<CustomerSearchBar> {
   void initState() {
     super.initState();
     _controller = TextEditingController(text: widget.query); //
-    
+
     // Add FocusNode to animate the search bar when the user taps into it
     _focusNode = FocusNode();
     _focusNode.addListener(() {
@@ -41,10 +41,12 @@ class _CustomerSearchBarState extends State<CustomerSearchBar> {
   @override
   void didUpdateWidget(covariant CustomerSearchBar oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.query != oldWidget.query && _controller.text != widget.query) { //
+    if (widget.query != oldWidget.query && _controller.text != widget.query) {
+      //
       _controller.value = TextEditingValue(
         text: widget.query,
-        selection: TextSelection.collapsed(offset: widget.query.length), //[cite: 24]
+        selection:
+            TextSelection.collapsed(offset: widget.query.length), //[cite: 24]
       );
     }
   }
@@ -64,14 +66,16 @@ class _CustomerSearchBarState extends State<CustomerSearchBar> {
 
     return Row(
       children: [
-        Expanded( //[cite: 24]
+        Expanded(
+          //[cite: 24]
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 250),
             curve: Curves.easeOutCubic,
             height: context.rh(44), //[cite: 24]
             padding: const EdgeInsets.symmetric(horizontal: 12), //[cite: 24]
             decoration: BoxDecoration(
-              color: isFocused ? colors.card : colors.card.withValues(alpha: 0.7),
+              color:
+                  isFocused ? colors.card : colors.card.withValues(alpha: 0.7),
               borderRadius: BorderRadius.circular(14), //[cite: 24]
               // Premium style: primary color border when focused, default otherwise
               border: Border.all(
@@ -81,8 +85,8 @@ class _CustomerSearchBarState extends State<CustomerSearchBar> {
               // Premium style: subtle glowing drop shadow when focused
               boxShadow: [
                 BoxShadow(
-                  color: isFocused 
-                      ? scheme.primary.withValues(alpha: 0.15) 
+                  color: isFocused
+                      ? scheme.primary.withValues(alpha: 0.15)
                       : Colors.black.withValues(alpha: 0.02),
                   blurRadius: isFocused ? 12 : 4,
                   offset: const Offset(0, 2),
@@ -126,7 +130,7 @@ class _CustomerSearchBarState extends State<CustomerSearchBar> {
           ),
         ),
         SizedBox(width: context.rw(10)), //[cite: 24]
-        
+
         // Premium Hover & Tap Animated Button
         MouseRegion(
           onEnter: (_) => setState(() => _isHoveringAdd = true),
@@ -150,13 +154,22 @@ class _CustomerSearchBarState extends State<CustomerSearchBar> {
                 padding: EdgeInsets.symmetric(horizontal: context.rw(12)),
                 alignment: Alignment.center, //[cite: 24]
                 decoration: BoxDecoration(
-                  color: _isHoveringAdd ? scheme.primary.withValues(alpha: 0.05) : colors.card,
+                  color: _isHoveringAdd
+                      ? scheme.primary.withValues(alpha: 0.05)
+                      : colors.card,
                   borderRadius: BorderRadius.circular(14), //[cite: 24]
                   border: Border.all(
-                    color: _isHoveringAdd ? scheme.primary.withValues(alpha: 0.5) : colors.border,
+                    color: _isHoveringAdd
+                        ? scheme.primary.withValues(alpha: 0.5)
+                        : colors.border,
                   ),
-                  boxShadow: _isHoveringAdd 
-                      ? [BoxShadow(color: scheme.primary.withValues(alpha: 0.1), blurRadius: 8, offset: const Offset(0, 2))]
+                  boxShadow: _isHoveringAdd
+                      ? [
+                          BoxShadow(
+                              color: scheme.primary.withValues(alpha: 0.1),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2))
+                        ]
                       : [],
                 ),
                 child: Row(
@@ -164,16 +177,21 @@ class _CustomerSearchBarState extends State<CustomerSearchBar> {
                   children: [
                     Icon(
                       Icons.add_rounded, //[cite: 24]
-                      color: _isHoveringAdd ? scheme.primary : colors.textPrimary, 
+                      color:
+                          _isHoveringAdd ? scheme.primary : colors.textPrimary,
                       size: context.rr(20), //[cite: 24]
                     ),
                     SizedBox(width: context.rw(4)), //[cite: 24]
                     Text(
                       'add_customer.title'.tr, //[cite: 24]
                       style: TextStyle(
-                        color: _isHoveringAdd ? scheme.primary : colors.textPrimary,
+                        color: _isHoveringAdd
+                            ? scheme.primary
+                            : colors.textPrimary,
                         fontSize: context.rsp(13.5), //[cite: 24]
-                        fontWeight: _isHoveringAdd ? FontWeight.w600 : FontWeight.normal,
+                        fontWeight: _isHoveringAdd
+                            ? FontWeight.w600
+                            : FontWeight.normal,
                       ),
                     ),
                   ],

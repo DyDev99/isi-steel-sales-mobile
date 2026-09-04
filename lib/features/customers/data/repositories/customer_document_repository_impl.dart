@@ -49,7 +49,9 @@ class CustomerDocumentRepositoryImpl implements CustomerDocumentRepository {
   ResultFuture<CustomerDocumentUploadOutcome> uploadAll({
     required String customerId,
     required List<PendingCustomerDocument> documents,
+    void Function(int completed, int total)? onProgress,
   }) async {
+    var completed = 0;
     final uploaded = <CustomerDocumentType>[];
     final failed = <CustomerDocumentType>[];
     final rejected = <CustomerDocumentType>[];
@@ -63,6 +65,7 @@ class CustomerDocumentRepositoryImpl implements CustomerDocumentRepository {
         _logger.warning('customers.documents.upload.fileMissing',
             fields: {'slot': pending.type.code});
         rejected.add(pending.type);
+        onProgress?.call(++completed, documents.length);
         continue;
       }
 
@@ -108,6 +111,9 @@ class CustomerDocumentRepositoryImpl implements CustomerDocumentRepository {
         });
         failed.add(pending.type);
       }
+      // Ticked whatever the outcome: a rejected photo is still one fewer for
+      // the rep to wait on, and a bar that stalls on a failure reads as a hang.
+      onProgress?.call(++completed, documents.length);
     }
 
     _logger.info('customers.documents.upload.done', fields: {

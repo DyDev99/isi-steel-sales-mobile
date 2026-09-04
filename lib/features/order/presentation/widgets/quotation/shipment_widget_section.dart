@@ -136,6 +136,12 @@ class ShipmentSelectionWidget extends StatelessWidget {
           if (pickupLocation == PickupLocation.factory) ...[
             SizedBox(height: isTablet ? 18 : 14),
             DropdownButtonFormField<String>(
+              // Without this the button sizes itself to its widest *item*, and
+              // "Main Factory - Veng Sreng" is wider than the field on every
+              // phone — the row overflowed by 113pt at 360 and still by 43pt on
+              // a 430pt Pro Max. Expanding lets the label ellipsize into the
+              // space that exists instead of demanding space that does not.
+              isExpanded: true,
               initialValue: _mockFactories.contains(selectedFactory)
                   ? selectedFactory
                   : _mockFactories.first,
@@ -166,6 +172,8 @@ class ShipmentSelectionWidget extends StatelessWidget {
           if (pickupLocation == PickupLocation.branch) ...[
             SizedBox(height: isTablet ? 18 : 14),
             DropdownButtonFormField<String>(
+              // Same reason as the factory dropdown above.
+              isExpanded: true,
               initialValue: _mockBranches.contains(selectedBranch)
                   ? selectedBranch
                   : _mockBranches.first,

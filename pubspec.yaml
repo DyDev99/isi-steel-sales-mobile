@@ -34,6 +34,10 @@ dependencies:
   crypto: ^3.0.0
   fl_chart: 0.66.0
   cached_network_image: ^3.3.1
+  # Vector brand marks (the ISI Group wordmark on the sign-in screen).
+  # Already resolved transitively via `printing`; declared directly because
+  # application code now imports it.
+  flutter_svg: ^2.3.0
   badges: 3.1.2
   lottie: ^3.1.2
   flutter_screenutil: ^5.9.3

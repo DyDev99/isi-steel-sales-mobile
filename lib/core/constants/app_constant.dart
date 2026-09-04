@@ -133,6 +133,19 @@ class AppConstants {
   static String materialAvailabilityEndpoint(String material) =>
       '$apiPrefix/materials/$material/availability';
 
+  /// Customer-specific prices for one or more materials.
+  ///
+  /// `GET /mobile/pricing/customers/{customerId}?materials=A&materials=B` —
+  /// the `materials` parameter repeats rather than taking a delimited list, so
+  /// a quotation with eight lines is one round trip instead of eight.
+  static String customerPricingEndpoint(String customerId) =>
+      '$apiPrefix/mobile/pricing/customers/$customerId';
+
+  /// The realtime pricing hub. The access token rides on the query string,
+  /// which is the transport's own contract — browsers and sockets cannot set
+  /// an Authorization header on the handshake.
+  static const String pricingHubPath = '/hubs/pricing';
+
   /// The material list is one-based, like every other paged mobile endpoint.
   static const int firstPage = 1;
 

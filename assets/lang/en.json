@@ -1338,7 +1338,17 @@
     "draft_resumed": "Resumed your unfinished registration",
     "send_for_credit_approval": "Send for credit approval",
     "commune": "Commune / Sangkat",
-    "unrecognised_code": "{code} (not in the current list)"
+    "unrecognised_code": "{code} (not in the current list)",
+    "submit_progress": {
+      "title": "Registering customer",
+      "validating": "Checking the form",
+      "registering": "Saving to the server",
+      "uploading_photos": "Uploading photos",
+      "uploading_photos_count": "Uploading photos ({sent} of {total})",
+      "finishing": "Finishing up",
+      "sap_note": "Sent to the office. Delivery to SAP happens later — you do not need to wait.",
+      "keep_open": "Keep this screen open"
+    }
   },
   "add_customer.shop_types": {
     "hardware_shop": "Hardware Shop",
@@ -1815,6 +1825,70 @@
       "postal_unavailable": "Postal code is unavailable for this location",
       "load_failed": "Unable to load locations.",
       "seed_failed": "Unable to prepare location data."
+    }
+  },
+  "promotions": {
+    "title": "Promotions",
+    "section_title": "Promotions",
+    "count": "{count} promotions",
+    "quotable_count": "{count} available now",
+    "summary": "{count} available",
+    "summary_with_urgent": "{count} available · {soon} ending this week",
+    "see_all": "See all {count}",
+    "copy": "Copy",
+    "copy_code": "Copy promo code {code}",
+    "copied": "Copied {code}",
+    "filter": {
+      "all": "All"
+    },
+    "kind": {
+      "on_invoice": "On invoice",
+      "payment_term": "COD / Pickup",
+      "volume_tier": "Volume tier",
+      "buy_x_get_y": "Free goods",
+      "depot_request": "Depot request"
+    },
+    "status": {
+      "active": "Active",
+      "approved": "Approved",
+      "pending": "In approval",
+      "expired": "Ended"
+    },
+    "value": {
+      "discount": "DISCOUNT",
+      "rebate": "REBATE",
+      "per_unit": "PER {unit}"
+    },
+    "buy_get": {
+      "buy": "BUY",
+      "get_free": "GET FREE"
+    },
+    "expiry": {
+      "ends_today": "Ends today",
+      "ends_tomorrow": "Ends tomorrow",
+      "ends_in_days": "Ends in {days} days",
+      "ended": "Ended"
+    },
+    "meta": {
+      "applies_to": "Applies to",
+      "depots": "Depots",
+      "min_spend": "Minimum spend"
+    },
+    "group": {
+      "depot_discount": "Depot discount (on invoice)",
+      "cod_pickup": "COD / Pickup discount",
+      "depot_requests": "Depot discount requests",
+      "free_goods": "Free goods (buy X get Y)"
+    },
+    "empty": {
+      "title": "No promotions for this outlet",
+      "body": "Nothing is running here right now. Head office adds promotions once they finish approval.",
+      "filtered_title": "Nothing in this category",
+      "filtered_body": "This outlet has no promotions of this kind. Choose another category to see the rest."
+    },
+    "blocked": {
+      "pickup_only": "Only on Pick up",
+      "pickup_only_hint": "Set Method of shipment to Pick up to use this discount."
     }
   }
 }
