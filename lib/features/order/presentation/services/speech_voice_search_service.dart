@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/services/voice_search_service.dart';
-import 'package:isi_steel_sales_mobile/features/order/presentation/screens/voice_search_screen.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/screens/catalog/voice_search_screen.dart';
 import 'package:isi_steel_sales_mobile/routes/app_routes.dart';
 
 /// Real `speech_to_text`-backed implementation. Pushes the listening UI via the
@@ -14,7 +14,8 @@ class SpeechVoiceSearchService implements VoiceSearchService {
     final navigator = navigatorKey.currentState;
     if (navigator == null) return null;
     return navigator.push<String>(
-      MaterialPageRoute(fullscreenDialog: true, builder: (_) => const VoiceSearchScreen()),
+      MaterialPageRoute(
+          fullscreenDialog: true, builder: (_) => const VoiceSearchScreen()),
     );
   }
 }

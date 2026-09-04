@@ -1,3 +1,4 @@
+import 'package:isi_steel_sales_mobile/core/utils/enum_parse.dart';
 import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product_pricing.dart';
@@ -19,6 +20,10 @@ class ProductModel extends Product {
     required super.barcode,
     required super.name,
     required super.description,
+    super.nameKh,
+    super.color,
+    super.specification,
+    super.createdAt,
     required super.categoryId,
     required super.subCategory,
     required super.brand,
@@ -58,7 +63,10 @@ class ProductModel extends Product {
         materialCode: json['materialCode'] as String,
         barcode: json['barcode'] as String,
         name: json['name'] as String,
+        nameKh: json['nameKh'] as String? ?? '',
         description: json['description'] as String,
+        color: json['color'] as String? ?? '',
+        specification: json['specification'] as String? ?? '',
         categoryId: json['categoryId'] as String,
         subCategory: json['subCategory'] as String,
         brand: json['brand'] as String,
@@ -77,7 +85,9 @@ class ProductModel extends Product {
         businessUnit: json['businessUnit'] as String,
         imageUrl: json['imageUrl'] as String,
         isMto: json['isMto'] as bool,
-        status: ProductStatus.values.byName(json['status'] as String),
+        status: ProductStatus.values.byNameOr(
+            json['status'] as String?, ProductStatus.values.first,
+            context: 'product.json.status'),
         updatedAt: DateTime.parse(json['updatedAt'] as String),
         deleted: json['deleted'] as bool? ?? false,
         pricing: _pricingFromJson(json['pricing'] as DataMap),
@@ -99,7 +109,9 @@ class ProductModel extends Product {
         promotionPrice: (json['promotionPrice'] as num?)?.toDouble(),
         promotionType: json['promotionType'] == null
             ? null
-            : PromotionType.values.byName(json['promotionType'] as String),
+            : PromotionType.values.byNameOr(
+                json['promotionType'] as String?, PromotionType.values.first,
+                context: 'product.json.promo'),
         promotionLabel: json['promotionLabel'] as String?,
       );
 
@@ -112,7 +124,10 @@ class ProductModel extends Product {
         materialCode: row['material_code'] as String,
         barcode: row['barcode'] as String,
         name: row['name'] as String,
+        nameKh: row['name_kh'] as String? ?? '',
         description: row['description'] as String,
+        color: row['color'] as String? ?? '',
+        specification: row['specification'] as String? ?? '',
         categoryId: row['category_id'] as String,
         subCategory: row['sub_category'] as String,
         brand: row['brand'] as String,
@@ -131,7 +146,9 @@ class ProductModel extends Product {
         businessUnit: row['business_unit'] as String,
         imageUrl: row['image_url'] as String,
         isMto: (row['is_mto'] as int) == 1,
-        status: ProductStatus.values.byName(row['status'] as String? ?? 'active'),
+        status: ProductStatus.values.byNameOr(
+            row['status'] as String?, ProductStatus.values.first,
+            context: 'product.row.status'),
         updatedAt: DateTime.parse(row['updated_at'] as String),
         deleted: (row['deleted'] as int? ?? 0) == 1,
         pricing: ProductPricing(
@@ -146,7 +163,9 @@ class ProductModel extends Product {
           promotionPrice: (row['promotion_price'] as num?)?.toDouble(),
           promotionType: row['promotion_type'] == null
               ? null
-              : PromotionType.values.byName(row['promotion_type'] as String),
+              : PromotionType.values.byNameOr(
+                  row['promotion_type'] as String?, PromotionType.values.first,
+                  context: 'product.row.promo'),
           promotionLabel: row['promotion_label'] as String?,
         ),
         stockQuantity: (row['stock_quantity'] as num?)?.toDouble() ?? 0,
@@ -164,7 +183,10 @@ class ProductModel extends Product {
         'material_code': materialCode,
         'barcode': barcode,
         'name': name,
+        'name_kh': nameKh,
         'description': description,
+        'color': color,
+        'specification': specification,
         'category_id': categoryId,
         'sub_category': subCategory,
         'brand': brand,

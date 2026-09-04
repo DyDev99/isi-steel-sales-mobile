@@ -1,45 +1,48 @@
-# Miscellaneous
-*.class
-*.log
-*.pyc
-*.swp
-.DS_Store
-.atom/
-.build/
-.buildlog/
-.history
-.svn/
-.swiftpm/
-migrate_working_dir/
+# Secrets.
+#
+# `lib/core/config/env.dart` documents .env as "the git-ignored `.env` file",
+# but no .gitignore existed, so nothing enforced that. .env now carries DB_SALT
+# — the salt for the SQLCipher key derivation — and .env.example exists to be
+# committed in its place.
+.env
+.test
+.docs
+.env.*
+!.env.example
 
-# IntelliJ related
-*.iml
-*.ipr
-*.iws
-.idea/
+# Generated from .env by `dart run tool/generate_ios_env.dart`; carries the
+# Google Maps key that SECURITY.md §9 keeps out of git history.
+ios/Flutter/Env.xcconfig
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
-
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
+# Note: build/ and .dart_tool/ are deliberately NOT listed here. This repo
+# already tracks files under both, so ignoring them now would only hide further
+# changes without untracking what is committed. Removing them is a separate,
+# deliberate cleanup:
+#   git rm -r --cached build .dart_tool
+# Flutter / Dart build artifacts
 .dart_tool/
+build/
+.flutter-plugins
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
-/build/
-/coverage/
 
-# Symbolication related
-app.*.symbols
+# iOS build artifacts
+ios/Pods/
+ios/Runner.xcworkspace
+.DS_Store
 
-# Obfuscation related
-app.*.map.json
+# Graphify knowledge graph (rebuildable artifact: `graphify update .`)
+graphify-out/
 
-# Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release
+# Envied output. Deliberately the ONE generated file that is not committed:
+# unlike the drift *.g.dart files, it embeds the obfuscated SAP gateway URL and
+# the database salt. Obfuscation is defense-in-depth, not a secret store
+# (docs/SECURITY.md §4), so it is regenerated at build time instead.
+lib/core/config/env.g.dart
+
+# Machine-specific Claude Code settings: the graphify PreToolUse hooks embed an
+# ABSOLUTE path to the executable, which differs per OS and per user. Committing
+# them breaks every other developer's machine, so each developer generates their
+# own with `graphify claude install`. See docs/GRAPHIFY.md.
+.claude/settings.local.json

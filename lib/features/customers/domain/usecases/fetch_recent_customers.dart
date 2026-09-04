@@ -8,5 +8,6 @@ class FetchRecentCustomers extends UseCase<List<Customer>, NoParams> {
   final CustomerRepository _repository;
 
   @override
-  ResultFuture<List<Customer>> call(NoParams params) => _repository.fetchRecent();
+  ResultFuture<List<Customer>> call(NoParams params) =>
+      _repository.fetchRecent();
 }

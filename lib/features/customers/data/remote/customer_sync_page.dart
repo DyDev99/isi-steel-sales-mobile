@@ -1,13 +1,44 @@
 import 'package:isi_steel_sales_mobile/features/customers/data/models/customer_model.dart';
 
+/// One page of the initial (full) sync.
 class CustomerInitialPage {
-  const CustomerInitialPage({required this.items, required this.hasMore});
+  const CustomerInitialPage({
+    required this.items,
+    required this.hasMore,
+    this.syncTimestamp,
+    this.pageSize,
+  });
+
   final List<CustomerModel> items;
   final bool hasMore;
+
+  /// The server's clock, from `metadata.syncTimestamp`. The watermark for the
+  /// next delta comes from here and **never** from the device clock.
+  final DateTime? syncTimestamp;
+
+  /// The size the server actually used. It clamps rather than rejects, so this
+  /// may be smaller than what was asked for.
+  final int? pageSize;
 }
 
+/// One delta response, already split into upserts and tombstones.
 class CustomerDeltaPage {
-  const CustomerDeltaPage({required this.upserted, required this.deletedIds});
+  const CustomerDeltaPage({
+    required this.upserted,
+    required this.deletedIds,
+    this.hasMore = false,
+    this.syncTimestamp,
+  });
+
   final List<CustomerModel> upserted;
+
+  /// Ids of rows the server reported as `deleted: true`.
+  ///
+  /// **These must be applied.** Without tombstones a record deleted on the
+  /// server simply stops appearing in the delta and lingers on the phone
+  /// indefinitely — the classic offline-sync data leak.
   final List<String> deletedIds;
+
+  final bool hasMore;
+  final DateTime? syncTimestamp;
 }

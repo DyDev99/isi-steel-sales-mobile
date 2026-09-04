@@ -9,5 +9,6 @@ class GetCustomerById extends UseCase<Customer, CustomerIdParams> {
   final CustomerRepository _repository;
 
   @override
-  ResultFuture<Customer> call(CustomerIdParams params) => _repository.getById(params.customerId);
+  ResultFuture<Customer> call(CustomerIdParams params) =>
+      _repository.getById(params.customerId);
 }

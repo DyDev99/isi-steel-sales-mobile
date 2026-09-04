@@ -2,6 +2,7 @@
 import 'package:flutter/widgets.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 /// Route name constants. Plain strings — no framework dependency, so this
 /// file is identical whether you use GetX or BLoC.
 class Static {
@@ -17,8 +18,17 @@ class Static {
   static const String home = '/home';
   static const String lead = '/lead';
   static const String chooseLanguage = '/choose-language';
+  // First-run only. Language selection leads here, and finishing or
+  // skipping it flips `isOnboardingComplete`, after which splash routes
+  // straight to the shell and this is never seen again.
+  static const String onboarding = '/onboarding';
   static const String customer = '/customer';
   static const String profile = '/profile';
-  static const String routes = '/routes';
+  static const String myVisits = '/my-visits';
   static const String order = '/order';
+  static const String forgotPassword = '/forgot-password';
+  static const String verifyOtp = '/verify-otp';
+  static const String createNewPassword = '/create-new-password';
+  static const String resetPasswordSuccess = '/reset-password-success';
+  static const String revenue = '/revenue';
 }

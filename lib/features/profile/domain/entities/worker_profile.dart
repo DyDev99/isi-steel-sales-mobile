@@ -13,7 +13,7 @@ class WorkerProfile extends Equatable {
     required this.phone,
     required this.territory,
     required this.region,
-    required this.joinedAt,
+    this.joinedAt,
     this.avatarUrl,
     this.isActive = true,
   });
@@ -26,7 +26,12 @@ class WorkerProfile extends Equatable {
   final String phone;
   final String territory;
   final String region;
-  final DateTime joinedAt;
+
+  /// Nullable because **`GET /auth/me` does not return a start date.** It was
+  /// non-null only while this feature ran on mock data that invented one.
+  /// The row is hidden when absent rather than filled with a placeholder — a
+  /// made-up joining date on an employee record is worse than a missing one.
+  final DateTime? joinedAt;
   final String? avatarUrl;
   final bool isActive;
 
@@ -55,6 +60,17 @@ class WorkerProfile extends Equatable {
   }
 
   @override
-  List<Object?> get props =>
-      [id, fullName, employeeCode, role, email, phone, territory, region, joinedAt, avatarUrl, isActive];
+  List<Object?> get props => [
+        id,
+        fullName,
+        employeeCode,
+        role,
+        email,
+        phone,
+        territory,
+        region,
+        joinedAt,
+        avatarUrl,
+        isActive
+      ];
 }

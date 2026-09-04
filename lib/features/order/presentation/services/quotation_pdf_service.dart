@@ -1,0 +1,196 @@
+import 'package:isi_steel_sales_mobile/core/localization/active_language.dart';
+import 'package:isi_steel_sales_mobile/core/platform/local_files.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+
+import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/pricing_text.dart';
+
+class QuotationPdfService {
+  Future<pw.Document> generateQuotationDocument({
+    required String quotationNumber,
+    required String customerName,
+    required List<CartItem> items,
+    required double subtotal,
+    required double discount,
+    required double tax,
+    required double total,
+  }) async {
+    final pdf = pw.Document();
+
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(24),
+        build: (pw.Context context) => [
+          _buildHeader(quotationNumber, customerName),
+          pw.SizedBox(height: 16),
+          _buildItemsTable(items),
+          pw.SizedBox(height: 16),
+          _buildSummary(subtotal, discount, tax, total,
+              pending: items.hasPendingPricing),
+        ],
+      ),
+    );
+
+    return pdf;
+  }
+
+  pw.Widget _buildHeader(String quotationNumber, String customerName) {
+    return pw.Row(
+      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+      children: [
+        pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Text(
+              'ISI STEEL SALES QUOTATION',
+              style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+            ),
+            pw.Text('Customer: $customerName'),
+          ],
+        ),
+        pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.end,
+          children: [
+            pw.Text('Quotation #: $quotationNumber',
+                style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+            pw.Text('Date: ${DateTime.now().toString().split(' ')[0]}'),
+          ],
+        ),
+      ],
+    );
+  }
+
+  pw.Widget _buildItemsTable(List<CartItem> items) {
+    final headers = [
+      'Image / Drawing',
+      'Product Details',
+      'Qty',
+      'Unit Price',
+      'Total'
+    ];
+
+    return pw.TableHelper.fromTextArray(
+      headers: headers,
+      border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
+      headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
+      cellAlignment: pw.Alignment.centerLeft,
+      cellHeight: 50,
+      columnWidths: {
+        0: const pw.FixedColumnWidth(80),
+        1: const pw.FlexColumnWidth(3),
+        2: const pw.FlexColumnWidth(1),
+        3: const pw.FlexColumnWidth(1),
+        4: const pw.FlexColumnWidth(1),
+      },
+      data: items.map((item) {
+        // Image resolution logic
+        pw.Widget imageCell;
+        if (item.isCustomized &&
+            item.drawingImagePath != null &&
+            localFileExists(item.drawingImagePath!)) {
+          try {
+            final imageBytes = readLocalFileSync(item.drawingImagePath!)!;
+            imageCell = pw.Container(
+              height: 45,
+              width: 70,
+              alignment: pw.Alignment.center,
+              child: pw.Image(
+                pw.MemoryImage(imageBytes),
+                fit: pw.BoxFit.contain,
+              ),
+            );
+          } catch (_) {
+            imageCell = pw.Text('[Drawing Error]');
+          }
+        } else {
+          imageCell = pw.Text('[Standard]');
+        }
+
+        // Details column formatting
+        // Resolved through [ActiveLanguage] rather than a `BuildContext`: the
+        // PDF is composed outside the widget tree, and a Khmer session must
+        // produce a Khmer document (LOCALIZATION.md §8) rather than silently
+        // falling back to the English material description.
+        final detailText =
+            StringBuffer(ActiveLanguage.resolve(item.product.displayName));
+        if (item.isCustomized) {
+          detailText.write('\n(Customized Request)');
+          if (item.measurements != null) {
+            detailText
+                .write('\nSpecs: ${item.measurements!.toSummaryString()}');
+          }
+          if (item.appearance != null && item.appearance!.isNotEmpty) {
+            detailText.write('\nFinish: ${item.appearance}');
+          }
+          if (item.customizationDescription != null &&
+              item.customizationDescription!.isNotEmpty) {
+            detailText.write('\nNotes: ${item.customizationDescription}');
+          }
+        }
+
+        return [
+          imageCell,
+          pw.Text(detailText.toString(),
+              style: const pw.TextStyle(fontSize: 9)),
+          pw.Text('${item.quantity.toStringAsFixed(0)} ${item.unit}',
+              style: const pw.TextStyle(fontSize: 9)),
+          // Blank rather than `\$0.00`: a quotation is a document the customer
+          // keeps, and a zero on it is a price they can hold the rep to.
+          pw.Text(PricingText.amount(item.unitPriceOrNull),
+              style: const pw.TextStyle(fontSize: 9)),
+          pw.Text(PricingText.amount(item.lineTotalOrNull),
+              style: const pw.TextStyle(fontSize: 9)),
+        ];
+      }).toList(),
+    );
+  }
+
+  /// [pending] blanks every figure rather than printing a total that is
+  /// missing a line. A quotation is a document a customer keeps, so a subtotal
+  /// that silently omits an unpriced material is the worst of the options.
+  pw.Widget _buildSummary(
+      double subtotal, double discount, double tax, double total,
+      {required bool pending}) {
+    return pw.Align(
+      alignment: pw.Alignment.centerRight,
+      child: pw.Container(
+        width: 200,
+        child: pw.Column(
+          children: [
+            _summaryRow('Subtotal', pending ? null : subtotal),
+            if (!pending) _summaryRow('Discount', -discount),
+            _summaryRow('Tax (10%)', pending ? null : tax),
+            pw.Divider(),
+            _summaryRow('Total Amount', pending ? null : total, isBold: true),
+          ],
+        ),
+      ),
+    );
+  }
+
+  pw.Widget _summaryRow(String label, double? value, {bool isBold = false}) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.symmetric(vertical: 2),
+      child: pw.Row(
+        // Fixed typo here: replaced mainpw with mainAxisAlignment
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        children: [
+          pw.Text(
+            label,
+            style: pw.TextStyle(
+              fontWeight: isBold ? pw.FontWeight.bold : pw.FontWeight.normal,
+            ),
+          ),
+          pw.Text(
+            PricingText.amount(value),
+            style: pw.TextStyle(
+              fontWeight: isBold ? pw.FontWeight.bold : pw.FontWeight.normal,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

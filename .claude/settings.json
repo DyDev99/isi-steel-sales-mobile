@@ -1,0 +1,79 @@
+{
+"permissions": {
+"allow": [
+"Bash(graphify update *)",
+"Bash(graphify query *)",
+"Bash(graphify path *)",
+"Bash(graphify explain *)",
+"Bash(graphify affected *)",
+"Bash(graphify god-nodes *)",
+"Bash(graphify export *)",
+"Bash(graphify benchmark *)",
+
+
+  "Bash(flutter pub get)",
+  "Bash(flutter analyze)",
+  "Bash(flutter test *)",
+  "Bash(flutter build *)",
+  "Bash(dart format *)",
+  "Bash(dart analyze *)",
+  "Bash(dart run build_runner *)",
+
+  "Bash(git status)",
+  "Bash(git diff *)",
+  "Bash(git log *)",
+  "Bash(git show *)",
+  "Bash(git branch *)",
+  "Bash(git rev-parse *)",
+
+  "Bash(pwd)",
+  "Bash(ls *)",
+  "Bash(find *)",
+  "Bash(grep *)",
+  "Bash(rg *)"
+],
+
+"deny": [
+  "Bash(rm -rf *)",
+  "Bash(sudo *)",
+  "Bash(chmod 777 *)",
+  "Bash(git push *)",
+  "Bash(git reset --hard *)",
+  "Bash(git clean -fd *)",
+  "Bash(git clean -fdx *)",
+
+  "Bash(cat .env*)",
+  "Bash(printenv *)",
+  "Bash(env)",
+  "Bash(security find-generic-password *)",
+
+  "Bash(curl *|*sh*)",
+  "Bash(wget *|*sh*)"
+]
+
+
+},
+
+"hooks": {
+"PreToolUse": [
+{
+"matcher": "Bash|Grep",
+"hooks": [
+{
+"type": "command",
+"command": "/Users/chandyneat/.local/bin/graphify hook-guard search"
+}
+]
+},
+{
+"matcher": "Read|Glob",
+"hooks": [
+{
+"type": "command",
+"command": "/Users/chandyneat/.local/bin/graphify hook-guard read"
+}
+]
+}
+]
+}
+}

@@ -9,5 +9,6 @@ class FetchCustomerNotes extends UseCase<List<CustomerNote>, CustomerIdParams> {
   final CustomerRepository _repository;
 
   @override
-  ResultFuture<List<CustomerNote>> call(CustomerIdParams params) => _repository.fetchNotes(params.customerId);
+  ResultFuture<List<CustomerNote>> call(CustomerIdParams params) =>
+      _repository.fetchNotes(params.customerId);
 }

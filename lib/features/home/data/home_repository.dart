@@ -28,7 +28,6 @@ class HomeRepositoryImpl implements HomeRepository {
           title: 'PO #4821 confirmed',
           subtitle: 'Mekong Construction · 24t rebar',
           timeAgo: '12m',
-
         ),
         ActivityItem(
           kind: ActivityKind.lead,

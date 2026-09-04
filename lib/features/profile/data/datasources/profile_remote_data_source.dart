@@ -8,7 +8,8 @@ import 'package:isi_steel_sales_mobile/features/profile/data/models/worker_profi
 abstract class ProfileRemoteDataSource {
   Future<WorkerProfileModel> fetchProfile();
   Future<WorkerProfileModel> updateProfile(WorkerProfileModel profile);
-  Future<void> changePassword({required String currentPassword, required String newPassword});
+  Future<void> changePassword(
+      {required String currentPassword, required String newPassword});
   Future<void> logout();
 }
 
@@ -43,7 +44,8 @@ class MockProfileRemoteDataSource implements ProfileRemoteDataSource {
   }
 
   @override
-  Future<void> changePassword({required String currentPassword, required String newPassword}) async {
+  Future<void> changePassword(
+      {required String currentPassword, required String newPassword}) async {
     await Future<void>.delayed(const Duration(milliseconds: 300));
     // TODO: validate currentPassword against backend once wired up.
   }

@@ -20,5 +20,6 @@ abstract interface class ProductRemoteDataSource {
   });
 
   /// Only what changed (products, prices, stock, deletions) since [since].
-  Future<RemoteDeltaPage> fetchDelta({required SyncScope scope, required DateTime since});
+  Future<RemoteDeltaPage> fetchDelta(
+      {required SyncScope scope, required DateTime since});
 }

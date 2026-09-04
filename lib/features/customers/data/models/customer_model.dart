@@ -1,3 +1,4 @@
+import 'package:isi_steel_sales_mobile/core/utils/enum_parse.dart';
 import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/models/customer_contact_model.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer.dart';
@@ -9,7 +10,7 @@ import 'package:isi_steel_sales_mobile/features/customers/domain/entities/custom
 class CustomerModel extends Customer {
   const CustomerModel({
     required super.id,
-    required super.sapCustomerId,
+    super.sapCustomerId,
     required super.customerCode,
     required super.shopName,
     required super.ownerName,
@@ -34,6 +35,18 @@ class CustomerModel extends Customer {
     super.lastVisitDate,
     super.lifetimeValue,
     super.openOpportunityCount,
+    super.salesOrg,
+    super.division,
+    super.distributionChannel,
+    super.customerGroup,
+    super.priceGroup,
+    super.enName,
+    super.khName,
+    super.taxNumber,
+    super.creditBalance,
+    super.currency,
+    super.totalOrders,
+    super.createdAt,
     this.deleted = false,
   });
 
@@ -41,7 +54,7 @@ class CustomerModel extends Customer {
 
   factory CustomerModel.fromJson(DataMap json) => CustomerModel(
         id: json['id'] as String,
-        sapCustomerId: json['sapCustomerId'] as String,
+        sapCustomerId: json['sapCustomerId'] as String?,
         customerCode: json['customerCode'] as String,
         shopName: json['shopName'] as String,
         ownerName: json['ownerName'] as String,
@@ -55,30 +68,53 @@ class CustomerModel extends Customer {
         latitude: (json['latitude'] as num).toDouble(),
         longitude: (json['longitude'] as num).toDouble(),
         creditLimit: (json['creditLimit'] as num).toDouble(),
-        status: CustomerStatus.values.byName(json['status'] as String),
+        status: CustomerStatus.values.byNameOr(
+            json['status'] as String?, CustomerStatus.draft,
+            context: 'customer.json.status'),
         assignedRepId: json['assignedRepId'] as String,
         assignedRepName: json['assignedRepName'] as String,
         updatedAt: DateTime.parse(json['updatedAt'] as String),
         originLeadId: json['originLeadId'] as String?,
-        productsPurchased: (json['productsPurchased'] as List<dynamic>? ?? const [])
-            .map((e) => e as String)
-            .toList(),
+        productsPurchased:
+            (json['productsPurchased'] as List<dynamic>? ?? const [])
+                .map((e) => e as String)
+                .toList(),
         contacts: (json['contacts'] as List<dynamic>? ?? const [])
             .map((e) => CustomerContactModel.fromRow(e as DataMap))
             .toList(),
-        lastOrderDate:
-            json['lastOrderDate'] == null ? null : DateTime.parse(json['lastOrderDate'] as String),
-        lastVisitDate:
-            json['lastVisitDate'] == null ? null : DateTime.parse(json['lastVisitDate'] as String),
+        lastOrderDate: json['lastOrderDate'] == null
+            ? null
+            : DateTime.parse(json['lastOrderDate'] as String),
+        lastVisitDate: json['lastVisitDate'] == null
+            ? null
+            : DateTime.parse(json['lastVisitDate'] as String),
         lifetimeValue: (json['lifetimeValue'] as num?)?.toDouble() ?? 0,
         openOpportunityCount: json['openOpportunityCount'] as int? ?? 0,
+        // SAP sales area / commercial block. Keys match the SAP Customer (BP)
+        // API field names in `SapAPI_Technical_Document_v1_BP.docx` §5.4, so a
+        // real SAP payload deserialises here unchanged (ADR-009 decision 4).
+        salesOrg: json['salesOrg'] as String?,
+        division: json['division'] as String?,
+        distributionChannel: json['distributionChannel'] as String?,
+        customerGroup: json['customerGroup'] as String?,
+        priceGroup: json['priceGroup'] as String?,
+        enName: json['enName'] as String?,
+        khName: json['khName'] as String?,
+        taxNumber: json['taxNumber'] as String?,
+        creditBalance: (json['creditBalance'] as num?)?.toDouble() ?? 0,
+        currency: json['currency'] as String? ?? 'USD',
+        totalOrders: json['totalOrders'] as int? ?? 0,
+        createdAt: json['createdAt'] == null
+            ? null
+            : DateTime.parse(json['createdAt'] as String),
         deleted: json['deleted'] as bool? ?? false,
       );
 
-  factory CustomerModel.fromRow(DataMap row, {List<CustomerContactModel> contacts = const []}) =>
+  factory CustomerModel.fromRow(DataMap row,
+          {List<CustomerContactModel> contacts = const []}) =>
       CustomerModel(
         id: row['id'] as String,
-        sapCustomerId: row['sap_customer_id'] as String,
+        sapCustomerId: row['sap_customer_id'] as String?,
         customerCode: row['customer_code'] as String,
         shopName: row['shop_name'] as String,
         ownerName: row['owner_name'] as String,
@@ -92,7 +128,9 @@ class CustomerModel extends Customer {
         latitude: (row['latitude'] as num).toDouble(),
         longitude: (row['longitude'] as num).toDouble(),
         creditLimit: (row['credit_limit'] as num).toDouble(),
-        status: CustomerStatus.values.byName(row['status'] as String),
+        status: CustomerStatus.values.byNameOr(
+            row['status'] as String?, CustomerStatus.draft,
+            context: 'customer.row.status'),
         assignedRepId: row['assigned_rep_id'] as String,
         assignedRepName: row['assigned_rep_name'] as String,
         updatedAt: DateTime.parse(row['updated_at'] as String),
@@ -102,10 +140,12 @@ class CustomerModel extends Customer {
             .where((e) => e.isNotEmpty)
             .toList(),
         contacts: contacts,
-        lastOrderDate:
-            row['last_order_date'] == null ? null : DateTime.parse(row['last_order_date'] as String),
-        lastVisitDate:
-            row['last_visit_date'] == null ? null : DateTime.parse(row['last_visit_date'] as String),
+        lastOrderDate: row['last_order_date'] == null
+            ? null
+            : DateTime.parse(row['last_order_date'] as String),
+        lastVisitDate: row['last_visit_date'] == null
+            ? null
+            : DateTime.parse(row['last_visit_date'] as String),
         lifetimeValue: (row['lifetime_value'] as num?)?.toDouble() ?? 0,
         openOpportunityCount: row['open_opportunity_count'] as int? ?? 0,
         deleted: (row['deleted'] as int? ?? 0) == 1,

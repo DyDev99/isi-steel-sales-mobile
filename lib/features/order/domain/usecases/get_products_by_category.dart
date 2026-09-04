@@ -5,12 +5,14 @@ import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.da
 import 'package:isi_steel_sales_mobile/features/order/domain/repositories/product_repository.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/catalog_params.dart';
 
-class GetProductsByCategory extends UseCase<PagedResult<Product>, CategoryPageParams> {
+class GetProductsByCategory
+    extends UseCase<PagedResult<Product>, CategoryPageParams> {
   const GetProductsByCategory(this._repository);
   final ProductRepository _repository;
 
   @override
-  ResultFuture<PagedResult<Product>> call(CategoryPageParams params) => _repository.getProductsByCategory(
+  ResultFuture<PagedResult<Product>> call(CategoryPageParams params) =>
+      _repository.getProductsByCategory(
         categoryId: params.categoryId,
         page: params.page,
         pageSize: params.pageSize,

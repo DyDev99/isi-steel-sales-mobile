@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/theme/auth_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
+import 'package:isi_steel_sales_mobile/core/utils/colors.dart';
 
 class GradientButton extends StatelessWidget {
   const GradientButton({
@@ -16,42 +17,47 @@ class GradientButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final disabled = loading || onPressed == null;
+    final borderRadius = BorderRadius.circular(context.rr(AppColors.radius));
+
     return Opacity(
       opacity: disabled ? 0.7 : 1,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          gradient: Vibe.cta,
-          borderRadius: BorderRadius.circular(Vibe.radius),
+          gradient: AppColors.ctaGradient,
+          borderRadius: borderRadius,
           boxShadow: [
             BoxShadow(
-              color: Vibe.pink.withValues(alpha: 0.35),
-              blurRadius: 24,
-              offset: const Offset(0, 10),
+              color: Theme.of(context)
+                  .colorScheme
+                  .secondary
+                  .withValues(alpha: 0.35),
+              blurRadius: context.rr(24),
+              offset: Offset(0, context.rh(10)),
             ),
           ],
         ),
         child: Material(
           color: Colors.transparent,
           child: InkWell(
-            borderRadius: BorderRadius.circular(Vibe.radius),
+            borderRadius: borderRadius,
             onTap: disabled ? null : onPressed,
             child: SizedBox(
-              height: 56,
+              height: context.rh(56),
               child: Center(
                 child: loading
-                    ? const SizedBox(
-                        width: 22,
-                        height: 22,
-                        child: CircularProgressIndicator(
+                    ? SizedBox(
+                        width: context.rr(22),
+                        height: context.rr(22),
+                        child: const CircularProgressIndicator(
                           strokeWidth: 2.4,
                           valueColor: AlwaysStoppedAnimation(Colors.white),
                         ),
                       )
                     : Text(
                         label,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
-                          fontSize: 16,
+                          fontSize: context.rsp(16),
                           fontWeight: FontWeight.w800,
                           letterSpacing: 0.2,
                         ),
