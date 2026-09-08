@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_note.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_photo.dart';
@@ -17,11 +18,13 @@ import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubi
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/state/route_sync_state.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/state/stop_dashboard_state.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/models/today_stop.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/navigation/open_quotation.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/navigation/open_stop_information.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/calendar/calendar_widget_section.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/stop_card.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/stop_card_skeleton.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/today_visits_progress_cart.dart';
+import 'package:isi_steel_sales_mobile/core/animations/fade_slide_transition.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// The primary My Visits entry point: today's stops, sorted nearest-first by
@@ -58,6 +61,25 @@ class _StopDashboardScreenState extends State<StopDashboardScreen> {
     final sync = context.read<RouteSyncCubit>();
     await sync.refresh();
     await sync.pushPending();
+  }
+
+  /// The basket action on a stop card: quote this shop.
+  ///
+  /// Goes straight to the Quotation Builder with the outlet already chosen,
+  /// through the same `openQuotationForCustomer` the guided visit flow and
+  /// "Continue Working" use — so a quotation raised from the dashboard is
+  /// built, priced and filed identically to one raised mid-visit.
+  ///
+  /// Not gated here. `StopCard` already decides when the basket is offered at
+  /// all — it is hidden while the stop is still `pending` — so re-checking the
+  /// status on the way out would only add a second, silently disagreeing rule.
+  void _openQuotation(BuildContext context, TodayStop todayStop) {
+    final customer = todayStop.stop.customer;
+    unawaited(openQuotationForCustomer(
+      context,
+      customerId: customer.id,
+      customerName: context.localized(customer.displayName),
+    ));
   }
 
   void _openStop(
@@ -150,6 +172,7 @@ class _StopDashboardScreenState extends State<StopDashboardScreen> {
                   state: state,
                   onRefresh: () => _refresh(context),
                   onTapStop: (s) => _openStop(context, s, state.visibleStops),
+                  onQuotationStop: (s) => _openQuotation(context, s),
                   onSkipStop: (s, reason, photoPath) =>
                       _skipStop(context, s, reason, photoPath),
                   onFilter: (f) =>
@@ -171,6 +194,7 @@ class _LoadedView extends StatefulWidget {
     required this.state,
     required this.onRefresh,
     required this.onTapStop,
+    required this.onQuotationStop,
     required this.onSkipStop,
     required this.onFilter,
     required this.onQuery,
@@ -179,6 +203,7 @@ class _LoadedView extends StatefulWidget {
   final StopDashboardLoaded state;
   final Future<void> Function() onRefresh;
   final void Function(TodayStop stop) onTapStop;
+  final void Function(TodayStop stop) onQuotationStop;
   final void Function(TodayStop stop, String reason, String? photoPath)
       onSkipStop;
   final void Function(StopFilter filter) onFilter;
@@ -261,15 +286,26 @@ class _LoadedViewState extends State<_LoadedView> {
                 itemCount: visible.length,
                 itemBuilder: (context, index) {
                   final todayStop = visible[index];
-                  return StopCard(
-                    todayStop: todayStop,
-                    isToday: isSelectedToday,
-                    onTap: () => widget.onTapStop(todayStop),
-                    onQuotationTap: () {
-                      // Navigate to Ad-Hoc order screen
-                    },
-                    onSkipSubmitted: (reason, photoPath) =>
-                        widget.onSkipStop(todayStop, reason, photoPath),
+                  return FadeSlideIn(
+                    // Keyed by stop, so a card that survives a filter or a
+                    // status change is not torn down and re-entered. Without
+                    // this the whole list replays its entrance every time the
+                    // rep types in the search box.
+                    key: ValueKey(todayStop.stop.id),
+                    // FS-ANI-6: the stagger stops after the sixth card. A
+                    // route can hold twenty stops, and twenty cascading
+                    // entrances reads as a slow app, not a considered one —
+                    // everything past the visible handful arrives together.
+                    delay: FadeSlideIn.staggerDelay(
+                        index < _kStaggerLimit ? index : _kStaggerLimit),
+                    child: StopCard(
+                      todayStop: todayStop,
+                      isToday: isSelectedToday,
+                      onTap: () => widget.onTapStop(todayStop),
+                      onQuotationTap: () => widget.onQuotationStop(todayStop),
+                      onSkipSubmitted: (reason, photoPath) =>
+                          widget.onSkipStop(todayStop, reason, photoPath),
+                    ),
                   );
                 },
               ),
@@ -279,6 +315,9 @@ class _LoadedViewState extends State<_LoadedView> {
     );
   }
 }
+
+/// How many stop cards stagger before the rest arrive together (FS-ANI-6).
+const int _kStaggerLimit = 6;
 
 class _EmptyState extends StatelessWidget {
   const _EmptyState({required this.hasAnyStops});

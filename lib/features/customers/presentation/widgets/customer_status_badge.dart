@@ -54,12 +54,27 @@ class CustomerStatusBadge extends StatelessWidget {
         color: color.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Text(
-        status.localizedLabel,
-        style: TextStyle(
-            color: color,
-            fontSize: context.rsp(11),
-            fontWeight: FontWeight.w700),
+      // A Row wrapping a Flexible Text, not a bare Text: a Container sizes to
+      // its child, so an inflexible label makes this badge un-shrinkable and it
+      // overflows whatever Row it is dropped into once the text grows — at
+      // 200% scale, or in Khmer, or on "Pending approval". The parent still has
+      // to hand it bounded width (`Flexible`); this is the half that lets it
+      // use it.
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Flexible(
+            child: Text(
+              status.localizedLabel,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                  color: color,
+                  fontSize: context.rsp(11),
+                  fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
       ),
     );
   }

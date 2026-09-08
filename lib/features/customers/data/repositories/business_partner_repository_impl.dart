@@ -125,9 +125,9 @@ class BusinessPartnerRepositoryImpl implements BusinessPartnerRepository {
         _trace.fail('bp', 'response carried no usable record', {
           // The received field names, so a shape change is diagnosable from
           // one log line instead of a debugger session.
-          'keys': result is BusinessPartnerResponseModel
-              ? DebugTrace.names(result.receivedKeys)
-              : null,
+          // `result` is always a BusinessPartnerResponseModel here, so the
+          // old `is` check only ever took this branch.
+          'keys': DebugTrace.names(result.receivedKeys),
           'status': result.status.name,
         });
         return const Failed(

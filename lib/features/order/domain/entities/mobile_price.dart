@@ -76,9 +76,8 @@ class MobilePrice extends Equatable {
   });
 
   /// The material has been selected but nothing has been asked yet.
-  const MobilePrice.initial(String material)
-      : material = material,
-        state = PricingState.initial,
+  const MobilePrice.initial(this.material)
+      : state = PricingState.initial,
         price = null,
         currency = '',
         validFrom = null,
@@ -87,9 +86,8 @@ class MobilePrice extends Equatable {
         errorKind = PricingErrorKind.none,
         isStale = false;
 
-  const MobilePrice.loading(String material)
-      : material = material,
-        state = PricingState.loading,
+  const MobilePrice.loading(this.material)
+      : state = PricingState.loading,
         price = null,
         currency = '',
         validFrom = null,

@@ -36,6 +36,7 @@ final class GeofenceStatusChanged extends ActiveRouteEvent {
     required this.isMocked,
     required this.latitude,
     required this.longitude,
+    this.customerLocationKnown = true,
   });
 
   final bool insideGeofence;
@@ -45,6 +46,16 @@ final class GeofenceStatusChanged extends ActiveRouteEvent {
   final double latitude;
   final double longitude;
 
+  /// False when the *customer* has no recorded position, in which case
+  /// [insideGeofence] and [distanceMeters] carry no meaning.
+  ///
+  /// A third outcome, not a failure — `GeofenceService.evaluate` says the same
+  /// thing in its own docs. The rep is not outside the geofence; there is no
+  /// geofence. Without carrying this through, an ungeotagged shop reaches the
+  /// bloc as `insideGeofence: false` and blocks a rep who is standing in
+  /// exactly the right place.
+  final bool customerLocationKnown;
+
   @override
   List<Object?> get props => [
         insideGeofence,
@@ -52,12 +63,26 @@ final class GeofenceStatusChanged extends ActiveRouteEvent {
         accuracyMeters,
         isMocked,
         latitude,
-        longitude
+        longitude,
+        customerLocationKnown,
       ];
 }
 
 final class CheckInRequested extends ActiveRouteEvent {
-  const CheckInRequested();
+  const CheckInRequested({this.overrideReason});
+
+  /// The rep's written justification for checking in from outside the
+  /// geofence, or on a fix too coarse to judge.
+  ///
+  /// Null on an ordinary check-in. When present and long enough
+  /// (`FraudPolicy.minOverrideReasonLength`), it carries the check-in past the
+  /// two location-derived rules — and only those. It is recorded, not
+  /// consumed: a `VisitNote` goes with the visit and a `FraudFlag` goes in the
+  /// audit trail, so an override is always visible afterwards.
+  final String? overrideReason;
+
+  @override
+  List<Object?> get props => [overrideReason];
 }
 
 final class CheckOutRequested extends ActiveRouteEvent {

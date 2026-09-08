@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'dart:async';
 import 'dart:ui' as ui;
 import 'package:flutter/rendering.dart';
 import 'package:gal/gal.dart'; // Optional: for saving to gallery
 
+import 'package:isi_steel_sales_mobile/core/animations/page_transition.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localized_builder.dart';
@@ -15,8 +17,11 @@ import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/core/utils/page_transitions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_stop.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_status.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/geofence_service.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/active_route_bloc.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/state/active_route_state.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/navigation/end_visit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/location_tracking_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/visit_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/state/location_tracking_state.dart';
@@ -62,6 +67,25 @@ class StopInformationScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Ends the visit from here, without walking the guided task chain first.
+  ///
+  /// The chain — check-in → stock count → completion screen → "Complete Visit"
+  /// — held the only live check-out control in the feature, so every optional
+  /// task in it was effectively mandatory. Nothing downstream ever required an
+  /// order line or a stock count (`CompleteVisitCheckOut` guards on one thing:
+  /// the stop being `checkedIn`), but a rep could not *reach* the button that
+  /// says so. This is that button, at the point where a visit that turns out
+  /// to have no work in it actually ends.
+  ///
+  /// Delegates to [endVisitAndSync] rather than dispatching `CheckOutRequested`:
+  /// that helper already sequences the check-out write before the push batch is
+  /// assembled, which is the ordering the check-out row depends on to catch the
+  /// very push its own button triggers.
+  void _completeVisit(BuildContext context) {
+    HapticFeedback.mediumImpact();
+    unawaited(endVisitAndSync(context));
   }
 
   static T _resolveBloc<T extends StateStreamableSource<Object?>>(
@@ -228,7 +252,12 @@ class StopInformationScreen extends StatelessWidget {
           ),
         ),
       ),
-      bottomNavigationBar: _StartVisitBar(onStart: () => _startVisit(context)),
+      bottomNavigationBar: _StopActionBar(
+        stop: stop,
+        bloc: _resolveBloc<ActiveRouteBloc>(context),
+        onStart: () => _startVisit(context),
+        onComplete: () => _completeVisit(context),
+      ),
     );
   }
 }
@@ -492,7 +521,7 @@ class _PromoListCard extends StatelessWidget {
           onTap: () {
             HapticFeedback.lightImpact();
             Navigator.of(context).push(
-              MaterialPageRoute(
+              AppPageRoute<void>.sharedAxisVertical(
                 builder: (_) => PromotionsScreen(
                   outletName: context.localized(stop.customer.displayName),
                 ),
@@ -673,7 +702,7 @@ class _SalesHistoryDetailCard extends StatelessWidget {
             last: true,
             onTap: () {
               Navigator.of(context).push(
-                MaterialPageRoute(
+                AppPageRoute<void>.sharedAxisVertical(
                   builder: (_) => OrderHistoryScreen(
                     outletName: context.localized(stop.customer.displayName),
                   ),
@@ -893,14 +922,200 @@ class _ActionIconButtonState extends State<_ActionIconButton> {
   }
 }
 
-class _StartVisitBar extends StatelessWidget {
-  const _StartVisitBar({required this.onStart});
+/// The bottom action bar, which changes with the stop's live status.
+///
+/// | Status | Bar |
+/// |---|---|
+/// | not yet checked in | **Start Visit** alone |
+/// | checked in | **Continue Visit** + **Complete Visit** |
+/// | checked out / missed | a flat "Completed" marker, no actions |
+///
+/// It reads the status from [ActiveRouteBloc] rather than from the [RouteStop]
+/// the screen was constructed with. That stop is a snapshot taken when the
+/// screen was pushed; a rep who checks in, walks back here, and finds a Start
+/// Visit button is looking at a stale copy of their own work.
+///
+/// The bloc is passed in rather than looked up from `context`. This screen is
+/// reachable on paths that do not provide it (the resume dispatcher builds it
+/// from the service locator), and the caller already resolves it with the
+/// `context.read` → `sl` fallback the rest of the screen uses.
+class _StopActionBar extends StatelessWidget {
+  const _StopActionBar({
+    required this.stop,
+    required this.bloc,
+    required this.onStart,
+    required this.onComplete,
+  });
+
+  final RouteStop stop;
+  final ActiveRouteBloc bloc;
   final VoidCallback onStart;
+  final VoidCallback onComplete;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ActiveRouteBloc, ActiveRouteState>(
+      bloc: bloc,
+      builder: (context, state) => _bar(context, _liveStatus(state)),
+    );
+  }
+
+  /// This stop's status as the bloc currently holds it, falling back to the
+  /// snapshot when the route is not loaded or no longer carries this stop.
+  VisitStatus _liveStatus(ActiveRouteState state) {
+    if (state is! ActiveRouteReady) return stop.status;
+    for (final s in state.route.stops) {
+      if (s.id == stop.id) return s.status;
+    }
+    return stop.status;
+  }
+
+  Widget _bar(BuildContext context, VisitStatus status) {
+    if (status == VisitStatus.checkedOut || status == VisitStatus.missed) {
+      return _Chrome(child: _DoneMarker(status: status));
+    }
+
+    if (status != VisitStatus.checkedIn) {
+      return _Chrome(child: _PrimaryAction(onPressed: onStart));
+    }
+
+    // Checked in: the visit is open, so the bar has to offer both directions.
+    //
+    // Complete Visit is the secondary of the two on purpose. Continuing into
+    // the tasks is the common path, and a check-out is not undoable from the
+    // UI — an outlined button next to a filled one is hard to hit by accident
+    // while still being obviously available.
+    return _Chrome(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _PrimaryAction(
+            onPressed: onStart,
+            icon: Icons.arrow_forward_rounded,
+            labelKey: 'my_visits.stop_info.start_visit',
+          ),
+          SizedBox(height: context.rh(10)),
+          SizedBox(
+            width: double.infinity,
+            height: context.rh(48),
+            child: OutlinedButton.icon(
+              onPressed: onComplete,
+              icon: Icon(Icons.stop_circle_rounded, size: context.rr(20)),
+              label: Text(
+                // Reused, not duplicated: the inventory completion screen
+                // already ships this exact action under this exact key, and
+                // this is the same action. Two keys for one button is how the
+                // two wordings drift apart in translation.
+                'my_visits.inventory.completion.complete_visit'.tr,
+                style: TextStyle(
+                  fontSize: context.rsp(14.5),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.error,
+                side: BorderSide(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .error
+                      .withValues(alpha: 0.5),
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(context.rr(14)),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A stop that is already resolved gets a statement, not a control.
+class _DoneMarker extends StatelessWidget {
+  const _DoneMarker({required this.status});
+  final VisitStatus status;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final done = status == VisitStatus.checkedOut;
+    return SizedBox(
+      height: context.rh(52),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            done ? Icons.check_circle_rounded : Icons.remove_circle_outline,
+            size: context.rr(20),
+            color: done ? colors.success : colors.textSecondary,
+          ),
+          SizedBox(width: context.rw(8)),
+          Text(
+            status.label,
+            style: TextStyle(
+              fontSize: context.rsp(14.5),
+              fontWeight: FontWeight.w800,
+              color: done ? colors.success : colors.textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PrimaryAction extends StatelessWidget {
+  const _PrimaryAction({
+    required this.onPressed,
+    this.icon = Icons.play_arrow_rounded,
+    this.labelKey = 'my_visits.stop_info.start_visit',
+  });
+
+  final VoidCallback onPressed;
+  final IconData icon;
+  final String labelKey;
+
+  @override
+  Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    return SizedBox(
+      width: double.infinity,
+      height: context.rh(52),
+      child: ElevatedButton.icon(
+        onPressed: onPressed,
+        icon: Icon(icon, size: context.rr(22)),
+        label: Text(
+          labelKey.tr,
+          style: TextStyle(
+            fontSize: context.rsp(15),
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: scheme.primary,
+          foregroundColor: scheme.onPrimary,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(context.rr(14)),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The surface the bar sits on — surface colour, top border, shadow, safe area
+/// and the max-width clamp. Extracted so the three bar states cannot drift
+/// apart in padding or elevation.
+class _Chrome extends StatelessWidget {
+  const _Chrome({required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
 
     return Container(
       decoration: BoxDecoration(
@@ -930,29 +1145,7 @@ class _StartVisitBar extends StatelessWidget {
                 context.pagePadding,
                 context.rh(12),
               ),
-              child: SizedBox(
-                width: double.infinity,
-                height: context.rh(52),
-                child: ElevatedButton.icon(
-                  onPressed: onStart,
-                  icon: Icon(Icons.play_arrow_rounded, size: context.rr(22)),
-                  label: Text(
-                    'my_visits.stop_info.start_visit'.tr,
-                    style: TextStyle(
-                      fontSize: context.rsp(15),
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: scheme.primary,
-                    foregroundColor: scheme.onPrimary,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(context.rr(14)),
-                    ),
-                  ),
-                ),
-              ),
+              child: child,
             ),
           ),
         ),

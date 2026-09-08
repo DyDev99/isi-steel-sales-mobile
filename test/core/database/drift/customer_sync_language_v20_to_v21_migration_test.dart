@@ -56,14 +56,17 @@ void main() {
     raw.dispose();
   }
 
-  test('the upgrade runs and lands on v21', () async {
+  test('the upgrade runs and lands on the current version', () async {
     await createV20Fixture();
 
     final db = AppDatabase(NativeDatabase(dbFile));
     addTearDown(db.close);
 
+    // Opening a v20 file replays every step up to whatever ships today, not
+    // just this one. Asserting a literal `21` here made a correct later schema
+    // bump look like a broken migration.
     final version = await db.customSelect('PRAGMA user_version;').getSingle();
-    expect(version.data['user_version'], 21);
+    expect(version.data['user_version'], kCurrentSchemaVersion);
   });
 
   test('an existing watermark survives, with the language left unknown',
@@ -114,13 +117,13 @@ void main() {
     expect(await db.customerDao.getSyncedLanguage('customers'), 'en-US');
   });
 
-  test('the migration step is registered for the current version', () {
-    // The pin, handed on from `geo_v19_to_v20_migration_test.dart`.
-    //
-    // `kCurrentSchemaVersion` and the step map are edited in two places, and
-    // bumping one without the other silently skips the migration for every
-    // existing installation. Move this pin — and add the step — together, with
-    // the next schema change.
-    expect(kCurrentSchemaVersion, 21);
+  test('v21 still upgrades from v20 after later schema changes', () {
+    // The version pin has moved on to
+    // `check_in_override_reason_v21_to_v22_migration_test.dart`, as this
+    // test's own instruction said it should when the next schema change
+    // landed. What stays here is the part that keeps mattering: v20 databases
+    // are still in the field, and this file is what proves they can still get
+    // here.
+    expect(kCurrentSchemaVersion, greaterThanOrEqualTo(21));
   });
 }

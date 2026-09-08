@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localized_text.dart';
+import 'package:isi_steel_sales_mobile/features/customers/data/mappers/bp_draft_to_business_partner.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/models/bp_customer_form_data.dart';
+import 'package:isi_steel_sales_mobile/features/customers/data/models/business_partner_request_model.dart';
 import 'package:isi_steel_sales_mobile/features/geo_location/domain/entities/geo_address.dart';
 import 'package:isi_steel_sales_mobile/features/geo_location/domain/entities/geo_unit.dart';
 
@@ -63,28 +65,41 @@ const _rep = RepSalesContext(
   salesEmployeeName: 'Mengchou CHORN',
 );
 
+/// The wire body exactly as the endpoint receives it: draft → request →
+/// PascalCase JSON. It goes through the mapper because that is now the single
+/// place the outbound shape is built — `toSapPayload` was deleted rather than
+/// deprecated, since it emitted camelCase keys the live endpoint drops in
+/// silence.
+Map<String, dynamic> _payload(BpCustomerDraft draft) =>
+    BusinessPartnerRequestModel.fromEntity(
+      draft.toBusinessPartnerRequest(rep: _rep),
+    ).toJson();
+
 void main() {
   group('SAP payload', () {
-    test('sends province and district as their own coded fields', () {
-      final payload = _draft().toSapPayload(_rep);
-      expect(payload['city'], '12');
-      expect(payload['district'], '1201');
-      expect(payload['postalCode'], '120101');
+    test('sends province and district as their own fields, by name', () {
+      // `City` and `District` carry the English *name*, not the gazetteer
+      // code: SAP's address structure stores free-text place names and has no
+      // notion of Cambodia's numeric codes. The postal code stays a code.
+      final payload = _payload(_draft());
+      expect(payload['City'], 'Phnom Penh');
+      expect(payload['District'], 'Chamkar Mon');
+      expect(payload['PostalCode'], '120101');
     });
 
     test('folds commune and village into street — SAP has no field for them',
         () {
-      final payload = _draft().toSapPayload(_rep);
+      final payload = _payload(_draft());
       expect(
-          payload['street'], 'Street 271, Phum Ou Thum, Sangkat Tonle Basak');
+          payload['Street'], 'Street 271, Phum Ou Thum, Sangkat Tonle Basak');
     });
 
     test('does not send commune or village as their own keys', () {
       // SAP's BP structure has no such fields; sending them would leave the
       // two levels to be dropped by a middleware that does not model them.
-      final payload = _draft().toSapPayload(_rep);
-      expect(payload.containsKey('commune'), isFalse);
-      expect(payload.containsKey('village'), isFalse);
+      final payload = _payload(_draft());
+      expect(payload.containsKey('Commune'), isFalse);
+      expect(payload.containsKey('Village'), isFalse);
     });
 
     test('uses Khum for a commune and Sangkat for a sangkat', () {
@@ -94,8 +109,8 @@ void main() {
         commune: _u(GeoLevel.commune, '010201', 'Banteay Neang',
             unit: 'Commune', postal: '010201'),
       );
-      final payload = _draft(address: rural).toSapPayload(_rep);
-      expect(payload['street'], endsWith('Khum Banteay Neang'));
+      final payload = _payload(_draft(address: rural));
+      expect(payload['Street'], endsWith('Khum Banteay Neang'));
     });
 
     test('omits the levels that are not selected', () {
@@ -104,21 +119,20 @@ void main() {
         district: _address.district,
         commune: _address.commune,
       );
-      final payload = _draft(address: partial).toSapPayload(_rep);
-      expect(payload['street'], 'Street 271, Sangkat Tonle Basak');
+      final payload = _payload(_draft(address: partial));
+      expect(payload['Street'], 'Street 271, Sangkat Tonle Basak');
     });
 
     test('stays within SAP\'s 60-character street field', () {
-      final payload = _draft(street: 'A' * 80).toSapPayload(_rep);
-      expect((payload['street'] as String).length, lessThanOrEqualTo(60));
+      final payload = _payload(_draft(street: 'A' * 80));
+      expect((payload['Street'] as String).length, lessThanOrEqualTo(60));
     });
 
     test(
         'keeps the street text when truncating, since it truncates from the '
         'end', () {
-      final payload =
-          _draft(street: 'National Road 5, Building C').toSapPayload(_rep);
-      expect(payload['street'], startsWith('National Road 5, Building C'));
+      final payload = _payload(_draft(street: 'National Road 5, Building C'));
+      expect(payload['Street'], startsWith('National Road 5, Building C'));
     });
   });
 

@@ -18,7 +18,8 @@ app working with no signal.
 |---|---|
 | [architecture.md](architecture.md) | The architecture report and redesign plan — every screen, bloc, nav helper, and the `WorkflowSession` resume path, traced from source. |
 | [workflow.md](workflow.md) | Folder structure and the step-by-step visit workflow. |
-| [api.md](api.md) | Backend API specification for routes and visits. **Status: proposal to the backend team**, derived from the shipped client — where the client already parses a field, that field is a hard requirement. Items marked **OPEN** are still undecided. |
+| [backend-integration.md](backend-integration.md) | **Start here for integration work.** Which capabilities need an API, the endpoint inventory (5 total — **all 5 now live**), cross-team dependencies, which push lists actually carry data today, and the remaining client-side task list. |
+| [api.md](api.md) | Backend API specification for routes and visits. **Status: implemented** — no longer a proposal. Every **OPEN** item is decided; §10 records each resolution and which ones imply client work. |
 
 ---
 
@@ -132,8 +133,16 @@ route feed fixtures, screen layout.
   renders **mock data** from its own file instead. Either wire the cubit or
   remove the registration; leaving both invites someone to "fix" the mock by
   duplicating the cubit's logic a third time.
-- **[api.md](api.md) is a proposal, not a contract.** Items marked **OPEN** are
-  unresolved with the backend team.
+- **Photo sync needs the client upload step.** The multipart endpoint is live
+  (api.md §6.2), but the client still sends `"photos": []` on every push and holds
+  each photo pending. Check-in requires a shopfront proof photo, so **no visit
+  evidence reaches the server today.** Upload first, rewrite `url`, then push.
+- **Telemetry is not wired.** The endpoint is live (api.md §6.3) and the app
+  captures location samples and fraud flags on every route, but nothing calls it,
+  so that compliance data still never leaves the device. Chunking is required.
+- **`discardedIds` is unread.** The push response now distinguishes "retry later"
+  from "never storable" (api.md §6.1). Until the client reads the new bucket, a
+  permanently bad row keeps retrying forever.
 - **No requirement documents** — geofence tolerance, fraud policy, and check-in
   rules are enforced in code without testable acceptance criteria.
 

@@ -37,10 +37,14 @@ class PdfAssets {
   /// The ISI Group wordmark as raw SVG source, or `null` if the asset could
   /// not be read (the generator degrades gracefully to a text wordmark).
   ///
-  /// Vector rather than the old `isi_steel_logo.png`: a quotation is printed
-  /// and re-scaled by whoever receives it, which is precisely where a 34pt
-  /// bitmap header shows its pixels. The **dark** ink variant is the only
-  /// correct one here — the document is drawn on white paper.
+  /// Vector rather than a bitmap: a quotation is printed and re-scaled by
+  /// whoever receives it, which is precisely where a 34pt bitmap header shows
+  /// its pixels.
+  ///
+  /// `isi-steel-dark.svg` — the **navy** (`#011E41`) mark — is the only correct
+  /// one here: a PDF is drawn on white paper. Loading `isi-steel-light.svg`
+  /// would emit a near-white wordmark onto white, and the header would come out
+  /// blank on a document that still saves and still reaches the customer.
   String? get logoSvg => _logoSvg;
 
   bool get isLoaded => _loaded;
@@ -62,8 +66,7 @@ class PdfAssets {
     );
 
     try {
-      _logoSvg =
-          await rootBundle.loadString('assets/logos/ISI-Group-Logo-Dark.svg');
+      _logoSvg = await rootBundle.loadString('assets/logos/isi-steel-dark.svg');
     } catch (_) {
       // Missing/renamed logo must never fail an export — fall back to wordmark.
       _logoSvg = null;

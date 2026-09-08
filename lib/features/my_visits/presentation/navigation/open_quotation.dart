@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:isi_steel_sales_mobile/core/animations/page_transition.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localized_builder.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_cubit.dart';
@@ -19,7 +20,7 @@ Future<void> openQuotationForCustomer(
   required String customerId,
   required String customerName,
 }) {
-  return Navigator.of(context).push(MaterialPageRoute(
+  return Navigator.of(context).push(AppPageRoute<void>.sharedAxisVertical(
     settings: const RouteSettings(name: QuotationBuilderScreen.routeName),
     builder: (_) => MultiBlocProvider(
       providers: [
@@ -30,6 +31,17 @@ Future<void> openQuotationForCustomer(
       ],
       child: LocalizedBuilder(
         builder: (_) => QuotationBuilderScreen(
+          // Passed twice, on purpose. `leadId` is what the cart and the saved
+          // quotation have always keyed off on this path, and changing that
+          // would rewrite how lines merge and how the quotation is filed — so
+          // it stays exactly as it was.
+          //
+          // `customerId` is the same id said honestly, for everything scoped
+          // to the account: pricing and promotions. Without it they read null
+          // and served a rep standing in a shop they had just checked into as
+          // though it were a walk-in — no price and no promotion on any card —
+          // while the id sat right here in the argument.
+          customerId: customerId,
           leadId: customerId,
           leadDisplayName: customerName,
         ),

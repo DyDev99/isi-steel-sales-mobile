@@ -4,6 +4,8 @@ import 'package:isi_steel_sales_mobile/core/platform/local_files.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/promotion/demo_cart_promotions.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/line_discount_chips.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/pricing_text.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/brand_logo.dart';
@@ -184,14 +186,25 @@ class QuotationPreviewSection extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Qty
-                      SizedBox(
-                        width: context.rw(30),
-                        child: Text(
-                          '${qty}x',
-                          style: TextStyle(
-                            fontSize: context.rsp(13),
-                            fontWeight: FontWeight.w600,
-                            color: colors.textPrimary,
+                      // A minimum rather than a fixed width. At 30 a
+                      // three-digit quantity wrapped, so "300x" broke into
+                      // "300" above a lone "x" — on the one screen a customer
+                      // reads over the rep's shoulder. Quantities here run to
+                      // four figures, and a column sized to the common case
+                      // mangles the rest.
+                      ConstrainedBox(
+                        constraints: BoxConstraints(minWidth: context.rw(30)),
+                        child: Padding(
+                          padding: EdgeInsets.only(right: context.rw(4)),
+                          child: Text(
+                            '$qty×',
+                            maxLines: 1,
+                            softWrap: false,
+                            style: TextStyle(
+                              fontSize: context.rsp(13),
+                              fontWeight: FontWeight.w600,
+                              color: colors.textPrimary,
+                            ),
                           ),
                         ),
                       ),
@@ -262,6 +275,17 @@ class QuotationPreviewSection extends StatelessWidget {
                                   color: colors.textSecondary,
                                 ),
                               ),
+
+                            // What came off this line, and on whose authority.
+                            //
+                            // Rendered from the percentage and the promotion
+                            // rule, never from the money — so it survives an
+                            // unpriced line intact. A rep whose pricing call
+                            // has not come back still needs to be able to say
+                            // "ten percent, and one in forty free"; blanking
+                            // the entitlement alongside the amount makes the
+                            // discount look like it was never applied.
+                            LineDiscountChips(item: item),
                           ],
                         ),
                       ),
@@ -313,13 +337,37 @@ class QuotationPreviewSection extends StatelessWidget {
             // Discount Row
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'orders.quotation_extra.discount'.tr,
-                  style: TextStyle(
-                    fontSize: context.rsp(14),
-                    fontWeight: FontWeight.w500,
-                    color: colors.textPrimary,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'orders.quotation_extra.discount'.tr,
+                        style: TextStyle(
+                          fontSize: context.rsp(14),
+                          fontWeight: FontWeight.w500,
+                          color: colors.textPrimary,
+                        ),
+                      ),
+                      // Says what the number is made of. Printed even while
+                      // the amount is blank, because the *composition* of a
+                      // discount is known long before its value is — the
+                      // percentages and the free-goods ladders do not depend
+                      // on a price coming back.
+                      if (_discountSummary(items) != null)
+                        Padding(
+                          padding: EdgeInsets.only(top: context.rh(2)),
+                          child: Text(
+                            _discountSummary(items)!,
+                            style: TextStyle(
+                              fontSize: context.rsp(10.5),
+                              color: colors.textSecondary,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
                 Text(
@@ -403,6 +451,40 @@ class QuotationPreviewSection extends StatelessWidget {
       ),
     );
   }
+}
+
+/// One line summarising what the document's discount is made of, or null when
+/// nothing was discounted.
+///
+/// Counts lines rather than adding percentages together. Two lines at ten
+/// percent are not twenty percent off anything, and a screen that implies they
+/// are will be read that way by whoever is holding it.
+String? _discountSummary(List<CartItem> items) {
+  final discounted = items.where((i) => i.discountPercent > 0).toList();
+  final freeUnits = items.fold<int>(
+    0,
+    (sum, i) => sum + DemoCartPromotions.freeQuantityFor(i),
+  );
+
+  final parts = <String>[];
+
+  if (discounted.isNotEmpty) {
+    final percents = discounted.map((i) => i.discountPercent).toSet().toList()
+      ..sort();
+    final range = percents.length == 1
+        ? '${percents.first.toStringAsFixed(0)}%'
+        : '${percents.first.toStringAsFixed(0)}-'
+            '${percents.last.toStringAsFixed(0)}%';
+    parts.add('Rep discount $range on ${discounted.length} '
+        '${discounted.length == 1 ? 'line' : 'lines'}');
+  }
+
+  if (freeUnits > 0) {
+    parts.add('Promotion · $freeUnits free unit'
+        '${freeUnits == 1 ? '' : 's'}');
+  }
+
+  return parts.isEmpty ? null : parts.join(' · ');
 }
 
 class _DottedBorderPainter extends CustomPainter {

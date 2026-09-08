@@ -13,10 +13,23 @@ import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/stat
 
 const _trailCap = 500;
 
-/// Starts/stops the real GPS stream for the active route, persists every
-/// sample durably, and screens each one for impossible-travel-speed fraud
-/// (mock-location/accuracy are checked at check-in time instead, in
+/// Starts/stops the real GPS stream, persists every sample durably, and screens
+/// each one for impossible-travel-speed fraud (mock-location/accuracy are
+/// checked at check-in time instead, in
 /// `FraudDetectionService.validateCheckIn`).
+///
+/// Two modes, because a rep walking a route and a rep looking at one screen
+/// need very different things from the battery:
+///
+/// * [start] — the route-scoped stream, behind a real foreground service so it
+///   survives the screen going off. Every sample is stored; this is what the
+///   GPS trail is made of.
+/// * [observeForScreen] — foreground-only, no service and no notification, for
+///   a screen that needs to know where the rep is *right now* — the check-in
+///   verification and the nearest-first stop sort. Released on [stopObserving].
+///
+/// Both write [LocationTrackingState.current], which is what anything asking
+/// "where is the rep" reads.
 class LocationTrackingCubit extends Cubit<LocationTrackingState> {
   LocationTrackingCubit({
     required LocationTrackingService trackingService,
@@ -35,6 +48,7 @@ class LocationTrackingCubit extends Cubit<LocationTrackingState> {
   final FraudDetectionService _fraudDetectionService;
 
   StreamSubscription<LocationSample>? _subscription;
+  StreamSubscription<LocationSample>? _observation;
   static const _policy = FraudPolicy();
 
   Future<bool> start(String routeId, {bool background = false}) async {
@@ -79,6 +93,45 @@ class LocationTrackingCubit extends Cubit<LocationTrackingState> {
     }
   }
 
+  /// A light, screen-scoped position stream.
+  ///
+  /// Without this nothing ever called [start] either, so
+  /// [LocationTrackingState.current] was **always null**: the check-in screen
+  /// could not measure the rep against the outlet, `GeofenceStatusChanged` was
+  /// never dispatched, and `insideGeofence` kept its optimistic default. The
+  /// app looked like it verified location and never actually read the GPS.
+  ///
+  /// Samples from here are *not* persisted. They are a live reading for the UI,
+  /// not the audit trail — that is [start]'s job, and writing a row every time
+  /// a rep opens a screen would pad the trail with points that say nothing
+  /// about where they travelled.
+  ///
+  /// Safe to call repeatedly: a second call replaces the first rather than
+  /// stacking subscriptions. Returns false when permission was refused, with
+  /// `permissionDenied` set so the UI can explain itself.
+  Future<bool> observeForScreen({int distanceFilterMeters = 10}) async {
+    final granted = await _trackingService.ensurePermission();
+    if (!granted) {
+      emit(state.copyWith(permissionDenied: true));
+      return false;
+    }
+    emit(state.copyWith(permissionDenied: false));
+
+    await _observation?.cancel();
+    _observation = _trackingService
+        .observe(distanceFilterMeters: distanceFilterMeters)
+        .listen((sample) => emit(state.copyWith(current: sample)));
+    return true;
+  }
+
+  /// Releases [observeForScreen]. Leaves a route-scoped [start] running — the
+  /// two are independent, and a rep closing a screen has not ended their day.
+  Future<void> stopObserving() async {
+    await _observation?.cancel();
+    _observation = null;
+    await _trackingService.stopObserving();
+  }
+
   Future<void> stop() async {
     await _subscription?.cancel();
     _subscription = null;
@@ -89,6 +142,8 @@ class LocationTrackingCubit extends Cubit<LocationTrackingState> {
   @override
   Future<void> close() {
     _subscription?.cancel();
+    _observation?.cancel();
+    _trackingService.stopObserving();
     _trackingService.stop();
     return super.close();
   }

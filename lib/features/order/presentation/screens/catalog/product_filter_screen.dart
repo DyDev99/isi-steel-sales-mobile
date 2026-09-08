@@ -9,6 +9,8 @@ import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.da
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/catalog_params.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/fetch_favorites.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/toggle_favorite.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/pricing/pricing_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/promotion/promotion_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/sync_state.dart';
@@ -45,6 +47,17 @@ class ProductFilterScreen extends StatefulWidget {
         // with nothing synced used to leave an empty category picker with no
         // way out.
         BlocProvider(create: (_) => sl<SyncCubit>()..syncIfNeeded()),
+        // Both are read by the shared product stage, so this screen has to
+        // supply them or the result list throws a ProviderNotFound the moment
+        // it renders a card. Scoped to the customer for the same reason in
+        // both cases: promotions are entitlements per account, and SAP prices
+        // a material *for a customer* — neither means anything unscoped.
+        BlocProvider(
+          create: (_) => sl<PromotionCubit>()..setCustomer(customerId),
+        ),
+        BlocProvider(
+          create: (_) => sl<PricingCubit>()..setCustomer(customerId),
+        ),
       ],
       child: ProductFilterScreen(leadId: leadId, customerId: customerId),
     );

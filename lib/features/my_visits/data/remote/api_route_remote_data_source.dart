@@ -112,6 +112,14 @@ class ApiRouteRemoteDataSource implements RouteRemoteDataSource {
     return RouteSyncPage(
       customers: customers,
       routes: routes,
+      // The server's own clock, echoed back as `since` on the next delta.
+      // Falls back to the envelope's `metadata.syncTimestamp`, which is where
+      // the customer endpoints carry the same fact.
+      generatedAt: parseUtc(envelope.data['generatedAt']) ??
+          envelope.metadata?.syncTimestamp,
+      territories: (envelope.data['territories'] as List<dynamic>? ?? const [])
+          .map((e) => '$e')
+          .toList(),
       // Absent means "no more" — the delta endpoint is a single full page and
       // is not documented to send the flag at all.
       hasMore: envelope.data['hasMore'] as bool? ?? false,

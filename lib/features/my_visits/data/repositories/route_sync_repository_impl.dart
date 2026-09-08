@@ -1,11 +1,13 @@
 import 'package:isi_steel_sales_mobile/core/error/exceptions.dart';
 import 'package:isi_steel_sales_mobile/core/error/failures.dart';
+import 'package:isi_steel_sales_mobile/core/logging/app_logger.dart';
 import 'package:isi_steel_sales_mobile/core/network/api_error.dart';
 import 'package:isi_steel_sales_mobile/core/network/network_info.dart';
 import 'package:isi_steel_sales_mobile/core/utils/result.dart';
 import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/route_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/remote/route_remote_data_source.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/data/remote/route_sync_page.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_sync_result.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_sync_scope.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/repositories/route_sync_repository.dart';
@@ -19,13 +21,40 @@ class RouteSyncRepositoryImpl implements RouteSyncRepository {
     required RouteRemoteDataSource remote,
     required RouteLocalDataSource local,
     required NetworkInfo network,
+    AppLogger? logger,
   })  : _remote = remote,
         _local = local,
-        _network = network;
+        _network = network,
+        _logger = logger;
 
   final RouteRemoteDataSource _remote;
   final RouteLocalDataSource _local;
   final NetworkInfo _network;
+
+  /// Optional so existing tests construct this unchanged.
+  final AppLogger? _logger;
+
+  /// A pull that stored nothing is the ambiguous case worth a line of its own.
+  ///
+  /// Zero routes means either the rep genuinely has no work today, or the
+  /// `territory` filter matches nothing the server holds — and those look
+  /// identical from the app: empty dashboard, no stop to check into, and so
+  /// nothing for "Complete Visit" to close. Logging the territory asked for
+  /// beside the ones the response carried separates them immediately.
+  ///
+  /// A territory code is a routing value, not PII or revenue
+  /// (`docs/skills/security.md` §10), so it is safe to name here — and it is
+  /// the single fact needed to tell the two cases apart.
+  void _logEmptyPull(RouteSyncScope scope, RouteSyncPage page, String kind) {
+    if (page.routes.isNotEmpty) return;
+    _logger?.warning('route_sync.empty', fields: {
+      'kind': kind,
+      'requestedTerritory':
+          scope.territory.isEmpty ? '(unscoped)' : scope.territory,
+      'serverTerritories': page.territories,
+      'customers': page.customers.length,
+    });
+  }
 
   static const _pageSize = 50;
 
@@ -44,6 +73,7 @@ class RouteSyncRepositoryImpl implements RouteSyncRepository {
     try {
       var page = 0;
       var total = 0;
+      DateTime? serverClock;
       while (true) {
         final result = await _remote.fetchInitial(
             scope: scope, page: page, pageSize: _pageSize);
@@ -52,14 +82,18 @@ class RouteSyncRepositoryImpl implements RouteSyncRepository {
           await _local.upsertRoutes(result.routes);
           total += result.routes.length;
         }
+        // The last page read wins: it is the newest view of the server clock,
+        // and anything changed mid-pagination is caught by the next delta.
+        serverClock = result.generatedAt ?? serverClock;
+        if (page == 0) _logEmptyPull(scope, result, 'initial');
         if (!result.hasMore) break;
         page++;
       }
 
-      final now = DateTime.now();
-      await _local.setLastSyncedAt(_routesEntity, now);
+      final syncedAt = _watermark(serverClock);
+      await _local.setLastSyncedAt(_routesEntity, syncedAt);
       return Success(
-          RouteSyncResult(upserted: total, deleted: 0, syncedAt: now));
+          RouteSyncResult(upserted: total, deleted: 0, syncedAt: syncedAt));
     } on ApiException catch (e) {
       return Failed(_failure(e.error));
     } on ServerException catch (e) {
@@ -81,10 +115,39 @@ class RouteSyncRepositoryImpl implements RouteSyncRepository {
       await _local.upsertCustomers(delta.customers);
       if (delta.routes.isNotEmpty) await _local.upsertRoutes(delta.routes);
 
-      final now = DateTime.now();
-      await _local.setLastSyncedAt(_routesEntity, now);
+      _logEmptyPull(scope, delta, 'delta');
+
+      if (delta.routes.isEmpty) {
+        // **An empty delta must not advance the watermark.**
+        //
+        // It used to, unconditionally. That made the empty state
+        // self-sustaining: each empty pull moved `since` forward, so the next
+        // delta asked about an even narrower window, which was also empty. A
+        // delta can never reach back past its own `since`, and `runDeltaSync`
+        // only falls back to an initial pull when the watermark is *null* —
+        // which it never becomes again. A device that once pulled nothing
+        // pulls nothing forever, with a 200 and a clean log every time.
+        //
+        // Holding the watermark still keeps the window widening instead, so a
+        // route published just before the last sync is inside the next one.
+        if ((await _local.fetchAllRoutes()).isEmpty) {
+          // Nothing stored *and* nothing arriving is the stronger signal: the
+          // watermark is hiding a route the device has never seen. Only a full
+          // pull can reach it.
+          //
+          // Costs one extra request per dashboard open while the rep genuinely
+          // has no routes — an empty initial pull is a single page. That is
+          // the right trade against a rep whose day never loads.
+          return runInitialSync(scope);
+        }
+        return Success(
+            RouteSyncResult(upserted: 0, deleted: 0, syncedAt: since));
+      }
+
+      final syncedAt = _watermark(delta.generatedAt);
+      await _local.setLastSyncedAt(_routesEntity, syncedAt);
       return Success(RouteSyncResult(
-          upserted: delta.routes.length, deleted: 0, syncedAt: now));
+          upserted: delta.routes.length, deleted: 0, syncedAt: syncedAt));
     } on ApiException catch (e) {
       return Failed(_failure(e.error));
     } on ServerException catch (e) {
@@ -123,4 +186,20 @@ class RouteSyncRepositoryImpl implements RouteSyncRepository {
       statusCode: error.statusCode,
     );
   }
+
+  /// The watermark to persist, preferring the **server's** clock.
+  ///
+  /// `since` on the next delta is this value, and the API rejects one more
+  /// than five minutes in the future with a 400 (api.md §5.2). Storing
+  /// `DateTime.now()` — which this used to do unconditionally — meant a
+  /// handset running fast poisoned its own watermark: every subsequent delta
+  /// failed, and before the API started rejecting it, it instead returned an
+  /// empty page that the client stored and never synced from again.
+  ///
+  /// The device clock remains the fallback for a feed that omits
+  /// `generatedAt`. That is the old behaviour, kept deliberately: a mocked or
+  /// older server should still sync rather than never advancing its watermark,
+  /// and the live contract puts the field on every response anyway.
+  static DateTime _watermark(DateTime? serverClock) =>
+      serverClock ?? DateTime.now();
 }

@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
 import 'package:isi_steel_sales_mobile/core/database/hive/hive_service.dart';
+import 'package:isi_steel_sales_mobile/core/logging/app_logger.dart';
 import 'package:isi_steel_sales_mobile/core/network/network_info.dart';
 import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/depot_selection_store.dart';
@@ -126,7 +127,10 @@ Future<void> registerMyVisitsFeature(GetIt sl) async {
       () => LocationSampleRepositoryImpl(sl()));
   sl.registerLazySingleton<RouteSyncRepository>(
     () => RouteSyncRepositoryImpl(
-        remote: sl(), local: sl(), network: sl<NetworkInfo>()),
+        remote: sl(),
+        local: sl(),
+        network: sl<NetworkInfo>(),
+        logger: sl<AppLogger>()),
   );
   sl.registerLazySingleton<VisitSyncRepository>(
     () => VisitSyncRepositoryImpl(
@@ -174,7 +178,8 @@ Future<void> registerMyVisitsFeature(GetIt sl) async {
   // Deferred check-out: closes the visit off the persisted pointer (no live
   // ActiveRouteBloc needed) — triggered by the explicit "Check out" on the
   // Continue-Working card now that Stock Count no longer auto-checks-out.
-  sl.registerLazySingleton(() => CompleteVisitCheckOut(sl(), sl(), sl(), sl()));
+  sl.registerLazySingleton(
+      () => CompleteVisitCheckOut(sl(), sl(), sl(), sl(), sl<AppLogger>()));
 
   // ── Presentation ────────────────────────────────────────────────────
   sl.registerFactory(() => RouteDashboardCubit(watchAllRoutes: sl()));

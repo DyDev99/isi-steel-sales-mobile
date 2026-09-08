@@ -10,6 +10,7 @@ class CheckInRecord extends Equatable {
     required this.accuracyMeters,
     required this.distanceFromCustomerMeters,
     required this.isMocked,
+    this.overrideReason,
   });
 
   final String id;
@@ -21,6 +22,15 @@ class CheckInRecord extends Equatable {
   final double distanceFromCustomerMeters;
   final bool isMocked;
 
+  /// What the rep wrote when checking in from outside the geofence.
+  ///
+  /// Null on an ordinary check-in, and the two are meaningfully different on
+  /// the server: an `OutsideGeofence` verdict with no reason is a rep who was
+  /// not there, one with a reason is a rep who said why. Carried on this row
+  /// rather than as a separate note so the reason and the verdict it explains
+  /// are the same record.
+  final String? overrideReason;
+
   @override
   List<Object?> get props => [
         id,
@@ -30,6 +40,7 @@ class CheckInRecord extends Equatable {
         longitude,
         accuracyMeters,
         distanceFromCustomerMeters,
-        isMocked
+        isMocked,
+        overrideReason,
       ];
 }

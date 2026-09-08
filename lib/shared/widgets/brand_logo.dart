@@ -3,11 +3,16 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 /// Which ink the ISI Group wordmark is drawn in.
 ///
-/// The two are the *same* artwork, not two logos: `ISI-Group-Logo-Dark.svg`
-/// fills at `#15213A` and `ISI-Group-Logo-Light.svg` at `#E0E4EE`. Which one
-/// is correct is a property of the surface behind it, never of the screen —
-/// picking by surface is the whole reason this widget exists, because the
-/// wrong choice does not look slightly off, it disappears.
+/// The two are the *same* artwork, not two logos: one fills navy (`#011E41`),
+/// the other near-white (`#DCE3EB`). Which one is correct is a property of the
+/// surface behind it, never of the screen — picking by surface is the whole
+/// reason this widget exists, because the wrong choice does not look slightly
+/// off, it disappears.
+///
+/// The filenames name the **ink**, matching this enum: `isi-steel-dark.svg` is
+/// the navy mark and `isi-steel-light.svg` the near-white one. Each file's
+/// `<title>` states the surface it belongs on, which is the thing to read if
+/// there is ever any doubt.
 enum BrandInk {
   /// Near-black navy. The default, and the one to use on white, on the
   /// canvas tint, and on any card.
@@ -53,13 +58,17 @@ class BrandLogo extends StatelessWidget {
 
   final String semanticsLabel;
 
-  // From each file's own viewBox: the two exports are cropped slightly
-  // differently, so they do not share a ratio and must not share a constant.
-  static const _darkRatio = 780.832031 / 271.0; // ≈ 2.881
-  static const _lightRatio = 533.535156 / 180.0; // ≈ 2.964
+  // Both exports share `viewBox="409.45 340 1101.1 400"`, so unlike the
+  // previous pair — which were cropped differently and needed a ratio each —
+  // one constant covers both. Re-read the viewBox if the artwork is replaced.
+  static const _ratio = 1101.1 / 400.0; // ≈ 2.753
 
-  static const _darkAsset = 'assets/logos/ISI-Group-Logo-Dark.svg';
-  static const _lightAsset = 'assets/logos/ISI-Group-Logo-Light.svg';
+  // Named for the ink, so these map straight across. Getting them the wrong
+  // way round does not look slightly off — a near-white mark on a white card
+  // is simply gone — so `brand_logo_asset_test.dart` asserts each file's fill
+  // rather than trusting the filename.
+  static const _darkInkAsset = 'assets/logos/isi-steel-dark.svg'; // #011E41
+  static const _lightInkAsset = 'assets/logos/isi-steel-light.svg'; // #DCE3EB
 
   @override
   Widget build(BuildContext context) {
@@ -68,16 +77,15 @@ class BrandLogo extends StatelessWidget {
             ? BrandInk.light
             : BrandInk.dark);
     final isDarkInk = resolved == BrandInk.dark;
-    final ratio = isDarkInk ? _darkRatio : _lightRatio;
 
     // Both dimensions are given rather than one, so the box is known before
     // the picture decodes. With only a width the widget is unbounded
     // vertically for a frame and whatever sits under it jumps once.
-    final w = width ?? height! * ratio;
-    final h = height ?? width! / ratio;
+    final w = width ?? height! * _ratio;
+    final h = height ?? width! / _ratio;
 
     return SvgPicture.asset(
-      isDarkInk ? _darkAsset : _lightAsset,
+      isDarkInk ? _darkInkAsset : _lightInkAsset,
       width: w,
       height: h,
       fit: BoxFit.contain,

@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:isi_steel_sales_mobile/core/constants/app_constant.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/remote/customer_datasources.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/datasources/business_partner_remote_data_source.dart';

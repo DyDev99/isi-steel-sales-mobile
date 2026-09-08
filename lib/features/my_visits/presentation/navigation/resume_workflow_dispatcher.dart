@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/animations/page_transition.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localized_builder.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/screens/customer_detail_screen.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/active_workflow.dart';
@@ -46,10 +47,13 @@ final Map<String, ResumeBuilder> _navigationRegistry = {
     if (customerId == null) return null;
     final customerName =
         w.navigationArguments?['customerName'] as String? ?? w.shopName ?? '';
+    final stopId =
+        w.navigationArguments?['stopId'] as String? ?? w.currentStopId;
     return openInventoryVisibilityForCustomer(
       context,
       customerId: customerId,
       customerName: customerName,
+      stopId: stopId,
     );
   },
 
@@ -61,10 +65,13 @@ final Map<String, ResumeBuilder> _navigationRegistry = {
     if (customerId == null) return null;
     final customerName =
         w.navigationArguments?['customerName'] as String? ?? w.shopName ?? '';
+    final stopId =
+        w.navigationArguments?['stopId'] as String? ?? w.currentStopId;
     return openInventoryCompletion(
       context,
       customerId: customerId,
       customerName: customerName,
+      stopId: stopId,
     );
   },
 
@@ -156,7 +163,7 @@ Future<void> resumeActiveWorkflow(
 }
 
 Future<void> _push(BuildContext context, String routeName, Widget screen) {
-  return Navigator.of(context).push(MaterialPageRoute(
+  return Navigator.of(context).push(AppPageRoute<void>.fadeThrough(
     settings: RouteSettings(name: routeName),
     builder: (_) => LocalizedBuilder(builder: (_) => screen),
   ));

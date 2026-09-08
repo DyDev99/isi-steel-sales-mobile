@@ -13,12 +13,14 @@ import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/cust
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customers_state.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/screens/customer_detail_screen.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/screens/customer_create_screen.dart';
+import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_audience_filter.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_card.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_empty_state.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_error_state.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_loading.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_search_bar.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_sync_status_banner.dart';
+import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/non_customers_list_view.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/navigation/open_quotation.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
@@ -89,6 +91,13 @@ class _CustomersViewState extends State<_CustomersView> {
   final _scrollController = ScrollController();
   _QuickAccess _quickAccess = _QuickAccess.all;
 
+  /// Which population the list is showing.
+  ///
+  /// Held here rather than in [CustomersBloc] because non-customers are a
+  /// static demo with no repository behind them — putting the switch in the
+  /// BLoC would mean adding events and states for data that does not load.
+  CustomerAudience _audience = CustomerAudience.customers;
+
   @override
   void initState() {
     super.initState();
@@ -127,12 +136,27 @@ class _CustomersViewState extends State<_CustomersView> {
           listener: _onLookupResult,
           child: BlocBuilder<CustomersBloc, CustomersState>(
             builder: (context, state) {
+              // The non-customer list replaces the whole body rather than
+              // filtering the customer list, because the two hold different
+              // types entirely. A shared list filtered by a flag would need
+              // every card, group header and empty state to handle both.
+              if (_audience == CustomerAudience.nonCustomers) {
+                return NonCustomersListView(
+                  audience: _audience,
+                  onAudienceChanged: (a) => setState(() => _audience = a),
+                  customerCount:
+                      state is CustomersLoaded ? state.items.length : 0,
+                );
+              }
+
               return switch (state) {
                 CustomersLoaded() => _Loaded(
                     state: state,
                     quickAccess: _quickAccess,
                     onQuickAccessChanged: (q) =>
                         setState(() => _quickAccess = q),
+                    audience: _audience,
+                    onAudienceChanged: (a) => setState(() => _audience = a),
                     scrollController: _scrollController,
                     onOpenDetail: (id) => _openDetail(context, id),
                   ),
@@ -192,6 +216,8 @@ class _Loaded extends StatelessWidget {
     required this.state,
     required this.quickAccess,
     required this.onQuickAccessChanged,
+    required this.audience,
+    required this.onAudienceChanged,
     required this.scrollController,
     required this.onOpenDetail,
   });
@@ -199,6 +225,8 @@ class _Loaded extends StatelessWidget {
   final CustomersLoaded state;
   final _QuickAccess quickAccess;
   final ValueChanged<_QuickAccess> onQuickAccessChanged;
+  final CustomerAudience audience;
+  final ValueChanged<CustomerAudience> onAudienceChanged;
   final ScrollController scrollController;
   final ValueChanged<String> onOpenDetail;
 
@@ -279,6 +307,16 @@ class _Loaded extends StatelessWidget {
                 children: [
                   SizedBox(height: context.rh(20)),
                   const CustomerSyncStatusBanner(),
+
+                  // Above the search bar, not below it. The search box acts on
+                  // whichever population is selected, so a rep has to be able
+                  // to see which one that is before typing into it.
+                  CustomerAudienceFilter(
+                    selected: audience,
+                    onChanged: onAudienceChanged,
+                    customerCount: state.items.length,
+                  ),
+                  SizedBox(height: context.rh(12)),
                   CustomerSearchBar(
                     query: state.query,
                     onSearchChanged: (q) => context

@@ -13,6 +13,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_status.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_workflow.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/fraud_detection_service.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/outlet_location_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/check_in.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/check_out.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/clear_active_workflow.dart';
@@ -92,7 +93,22 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
   /// (before check-in or after check-out), the workflow fields are cleared so
   /// resume falls back to the guided route flow.
   void _persistWorkflow(ActiveRouteReady state) {
-    if (!state.dayStarted) return;
+    // Gated on `dayStarted` alone, this silently refused to write the pointer
+    // for a stop that was genuinely checked in — the same class of silent
+    // block `_onGeofenceChanged` documents below.
+    //
+    // Entering through Stop Dashboard -> Stop Information -> Check-in loads
+    // the route fresh, so before the fix in `_onLoad` the flag was always down
+    // here. The check-in succeeded and pushed, but no workflow row was
+    // written, so `CompleteVisitCheckOut` had nothing to close: it logged
+    // `visit.checkout.skipped reason=noActiveWorkflow`, wrote no check-out and
+    // no status update, and the stop card sat on "In Progress" forever.
+    //
+    // A checked-in stop *is* a live visit whatever the day flag says, and a
+    // visit that cannot be resumed is a visit that cannot be completed.
+    final stop =
+        state.hasCurrentStop ? state.route.stops[state.currentStopIndex] : null;
+    if (!state.dayStarted && stop?.status != VisitStatus.checkedIn) return;
     unawaited(_writeWorkflowPointer(state));
   }
 
@@ -102,20 +118,30 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
     final isActive = stop != null && stop.status == VisitStatus.checkedIn;
     final now = DateTime.now();
 
+    if (!isActive) {
+      // Only drop the pointer when there is no live visit left anywhere on the
+      // route. Merely *selecting* a different stop while one is still checked
+      // in used to clear it, which is the other way a visit became impossible
+      // to close: the check-out found no workflow and skipped, leaving the
+      // stop on "In Progress" with no way back into it.
+      final hasLiveVisit =
+          state.route.stops.any((s) => s.status == VisitStatus.checkedIn);
+      if (!hasLiveVisit) await _clearActiveWorkflow(const NoParams());
+      return;
+    }
+
     // Baseline for a live visit: the guided Stock Count step, which now sits
     // between check-in and the Quotation Builder. A fresh check-in with no
     // further progress resumes here; [UpdateWorkflowStep] overwrites this once
     // the rep advances into a business task (see the guard below).
-    var workflow = isActive ? VisitWorkflow.stockCount : null;
-    String? screen = isActive ? InventoryVisibilityScreen.routeName : null;
-    Map<String, dynamic>? args = isActive
-        ? {
-            'stopId': stop.id,
-            'customerId': stop.customer.id,
-            'customerName': stop.customer.name,
-            'territory': stop.customer.territory,
-          }
-        : null;
+    VisitWorkflow? workflow = VisitWorkflow.stockCount;
+    String? screen = InventoryVisibilityScreen.routeName;
+    Map<String, dynamic>? args = {
+      'stopId': stop.id,
+      'customerId': stop.customer.id,
+      'customerName': stop.customer.name,
+      'territory': stop.customer.territory,
+    };
 
     // Never *downgrade* a business task the rep already advanced into
     // (Quotation/Sales Order) back to Stock Count when a later route event
@@ -143,7 +169,7 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
         // four items, the app saved them, and the next route rebuild wiped
         // them. Merging keeps the step's own state alive while the baseline
         // stays authoritative for the keys it owns.
-        args = {...?existing.navigationArguments, ...?args};
+        args = {...?existing.navigationArguments, ...args};
         // Keep a more advanced guided screen (e.g. the post-audit decision)
         // rather than resetting to the audit the rep already finished.
         screen = existing.currentScreen ?? screen;
@@ -152,7 +178,7 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
 
     await _saveActiveWorkflow(ActiveWorkflow(
       routeId: state.route.id,
-      currentStopId: stop?.id,
+      currentStopId: stop.id,
       dayStarted: state.dayStarted,
       updatedAt: now,
       customerId: isActive ? stop.customer.id : null,
@@ -171,7 +197,18 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
     final result = await _getRoute(RouteIdParams(event.routeId));
     result.when(
       success: (route) => emit(ActiveRouteReady(
-          route: route, dayStarted: false, currentStopIndex: -1)),
+          route: route,
+          // Read back from the route, not hardcoded `false`.
+          //
+          // `StartDayRequested` persists `RouteStatus.inProgress`, so the
+          // route itself is the durable record of whether the day is running.
+          // Assuming `false` here meant every reload of an already-running
+          // route came back up believing the day had not started — and
+          // `_persistWorkflow` is gated on that flag, so the resume pointer
+          // was never written and the visit could not be closed.
+          dayStarted: route.status == RouteStatus.inProgress ||
+              route.status == RouteStatus.completed,
+          currentStopIndex: -1)),
       failure: (f) => emit(ActiveRouteError(f.message)),
     );
   }
@@ -209,7 +246,7 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
     if (current is! ActiveRouteReady) return;
     final next = current.copyWith(
       currentStopIndex: event.index,
-      insideGeofence: true,
+      insideGeofence: false,
       blockedCheckInReason: () => null,
       checkInWarnings: const [],
     );
@@ -220,16 +257,23 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
   void _onGeofenceChanged(
       GeofenceStatusChanged event, Emitter<ActiveRouteState> emit) {
     final current = state;
-    if (current is! ActiveRouteReady ||
-        !current.dayStarted ||
-        !current.hasCurrentStop) {
+    // Deliberately **not** gated on `dayStarted`. It used to be, and that is
+    // the same class of silent block this whole path suffered from: a rep who
+    // reaches check-in without the day having been marked started gets no
+    // geofence updates at all, so `insideGeofence` stays at the `false` that
+    // `_onStopSelected` wrote and every check-in is refused with a reason the
+    // rep cannot act on. Position evidence is harmless before the day starts.
+    if (current is! ActiveRouteReady || !current.hasCurrentStop) {
       return;
     }
     emit(current.copyWith(
-      insideGeofence: true,
+      insideGeofence: event.insideGeofence,
       distanceMeters: event.distanceMeters,
       accuracyMeters: event.accuracyMeters,
       isMocked: event.isMocked,
+      repLatitude: event.latitude,
+      repLongitude: event.longitude,
+      customerLocationKnown: event.customerLocationKnown,
     ));
   }
 
@@ -247,13 +291,41 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
     }
 
     final vpnDetected = await _fraudDetectionService.detectVpnHeuristic();
+
+    // Three different situations reach the geofence rule, and only one of them
+    // is the rep's doing.
+    //
+    // - Inside / outside a known geofence with a known position → the real
+    //   verdict, enforced.
+    // - **No GPS fix yet** → nothing has been measured. Blocking here is what
+    //   made check-in impossible: `_onStopSelected` writes
+    //   `insideGeofence: false`, and until a fix arrives there is nothing to
+    //   overwrite it with. A rep in a metal-roofed warehouse would wait
+    //   forever for a verdict that says only "we did not look".
+    // - **Customer has no coordinates** → there is no geofence to be outside
+    //   of (`GeofenceService.evaluate` returns `locationKnown: false` for
+    //   exactly this).
+    //
+    // The last two record the visit as *unverifiable* — a warning on the row,
+    // which the server already knows how to read (api.md §8.2: evidence, not a
+    // verdict; a check-in with no fix is stored as unverifiable). They do not
+    // refuse the work.
+    final unverifiable = !current.hasFix || !current.customerLocationKnown;
     final validation = _fraudDetectionService.validateCheckIn(
-      insideGeofence: current.insideGeofence,
+      insideGeofence: unverifiable ? true : current.insideGeofence,
       accuracyMeters: current.accuracyMeters,
       isMocked: current.isMocked,
       vpnDetected: vpnDetected,
       policy: _policy,
     );
+
+    final warnings = <String>[
+      ...validation.warnings,
+      if (!current.hasFix)
+        'No GPS fix yet — this check-in is recorded as unverified.',
+      if (!current.customerLocationKnown)
+        'This customer has no recorded location — the geofence could not be checked.',
+    ];
 
     for (final warning in validation.warnings) {
       unawaited(_recordFraudFlag(FraudFlag(
@@ -269,12 +341,41 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
       )));
     }
 
-    if (!validation.allowed) {
+    // A written reason carries the check-in past the location rules — and only
+    // those. `canOverrideWithReason` is false the moment an integrity rule is
+    // among the blocks, so a mocked position cannot be typed past.
+    final reason = event.overrideReason?.trim() ?? '';
+    final overrideOffered = _policy.allowReasonedCheckInOverride &&
+        validation.canOverrideWithReason;
+    final overrideAccepted =
+        overrideOffered && reason.length >= _policy.minOverrideReasonLength;
+
+    if (!validation.allowed && !overrideAccepted) {
       emit(current.copyWith(
         blockedCheckInReason: () => validation.blockedReasons.join(' '),
-        checkInWarnings: validation.warnings,
+        checkInWarnings: warnings,
+        // Tells the screen whether to offer "check in anyway" or just report
+        // the block. Without it the UI would have to re-derive the rule split
+        // by matching on message text.
+        checkInOverridable: overrideOffered,
       ));
       return;
+    }
+
+    if (overrideAccepted) {
+      // Recorded in the fraud trail, not just in the note. The note travels
+      // with the visit and is what a supervisor reads; the flag is what makes
+      // override *frequency* answerable without parsing free text.
+      unawaited(_recordFraudFlag(FraudFlag(
+        id: _newId(),
+        routeId: current.route.id,
+        stopId: stop.id,
+        type: FraudFlagType.reasonedOverride,
+        detail: '${validation.overridableReasons.join(' ')} Reason: $reason',
+        timestamp: DateTime.now(),
+        blocked: false,
+      )));
+      warnings.add('Checked in outside the geofence. Reason: $reason');
     }
 
     final now = DateTime.now();
@@ -282,11 +383,36 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
       id: _newId(),
       stopId: stop.id,
       timestamp: now,
-      latitude: stop.customer.latitude,
-      longitude: stop.customer.longitude,
+      // **The rep's position, not the shop's.** These two fields are the
+      // geofence evidence the server judges the visit on (api.md §8.2), and
+      // this used to send `stop.customer.latitude/longitude` — the shop's own
+      // pin. Every check-in then arrived reading as exactly on-location,
+      // whoever sent it and from wherever, which makes the server-side check
+      // structurally incapable of catching anything.
+      //
+      // Falls back to the customer pin only when there is no fix at all, and
+      // that row is already flagged unverified in `warnings` above, so the
+      // server can tell the difference between measured and assumed.
+      //
+      // TODO(release-gate): `kUseStaticCheckInPosition` replaces both with the
+      // demo pin in debug builds so the push contract can be exercised without
+      // a usable GPS. It is `kDebugMode`-gated and cannot reach release, but
+      // while it is on every check-in reports the same point — see the flag's
+      // own doc for what that costs.
+      latitude: kUseStaticCheckInPosition
+          ? kStaticCheckInPosition.latitude
+          : current.repLatitude ?? stop.customer.latitude,
+      longitude: kUseStaticCheckInPosition
+          ? kStaticCheckInPosition.longitude
+          : current.repLongitude ?? stop.customer.longitude,
       accuracyMeters: current.accuracyMeters,
       distanceFromCustomerMeters: current.distanceMeters,
       isMocked: current.isMocked,
+      // Travels on the check-in row, so the reason and the verdict it explains
+      // are one record. Null unless the rep actually overrode something —
+      // `overrideAccepted` is false both for an ordinary check-in and for a
+      // reason too short to have been meant.
+      overrideReason: overrideAccepted ? reason : null,
     );
     await _checkIn(record);
     await _updateStopStatus(UpdateStopStatusParams(
@@ -300,7 +426,8 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
               (s) => s.copyWith(
                   status: VisitStatus.checkedIn, actualArrival: now))),
       blockedCheckInReason: () => null,
-      checkInWarnings: validation.warnings,
+      checkInWarnings: warnings,
+      checkInOverridable: false,
     );
     emit(next);
     _persistWorkflow(next);
@@ -321,8 +448,10 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
       id: _newId(),
       stopId: stop.id,
       timestamp: now,
-      latitude: stop.customer.latitude,
-      longitude: stop.customer.longitude,
+      // Same correction as the check-in record above: where the rep was, not
+      // where the shop is.
+      latitude: current.repLatitude ?? stop.customer.latitude,
+      longitude: current.repLongitude ?? stop.customer.longitude,
       durationMinutes: duration,
       visitSummary: event.visitSummary,
     );

@@ -5,6 +5,21 @@ import 'package:isi_steel_sales_mobile/core/localization/localization_services.d
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
+/// True while this screen renders its own hardcoded product list rather than a
+/// real catalog.
+///
+/// Read by `_persistStockUpdates` in `open_inventory_visibility.dart`, which
+/// refuses to write audit rows while it is set. The demo items below carry ids
+/// `'1'`–`'4'`, and a `productId` of `'1'` pushed to
+/// `POST /mobile/visits/push` is a validation failure that takes the whole
+/// batch with it — every unrelated check-in and note in the same request fails
+/// alongside it, and the rows retry forever because nothing marks them synced.
+///
+/// Set to `false` in the same commit that wires a real catalog (the registered
+/// but unconsumed `DepotStockCountCubit` is the intended source). Nothing else
+/// needs to change.
+const bool kInventoryCatalogIsMock = true;
+
 /// Mock model for a depot stock visual audit item.
 class DepotStockItem {
   DepotStockItem({
@@ -67,6 +82,7 @@ class InventoryVisibilityScreen extends StatefulWidget {
     super.key,
     required this.depotName,
     required this.onSubmit,
+    this.onAuditComplete,
     this.initialStatuses = const {},
     this.onProgressChanged,
   });
@@ -78,6 +94,7 @@ class InventoryVisibilityScreen extends StatefulWidget {
 
   final String depotName;
   final VoidCallback onSubmit;
+  final ValueChanged<List<DepotStockItem>>? onAuditComplete;
 
   /// Judgements already recorded for this depot, keyed by item id.
   ///
@@ -239,14 +256,26 @@ class _InventoryVisibilityScreenState extends State<InventoryVisibilityScreen> {
                   ),
                   SizedBox(height: context.rh(8)),
                   ElevatedButton.icon(
-                    // Disabled until every item has been judged — see the note
-                    // on `DepotStockItem.status`.
-                    onPressed: _complete
-                        ? () {
-                            HapticFeedback.mediumImpact();
-                            widget.onSubmit();
-                          }
-                        : null,
+                    // Always enabled — the stock count is optional work.
+                    //
+                    // This used to require all four items before it would
+                    // activate, and because the completion screen behind it
+                    // held the only live "Complete Visit" control, a rep who
+                    // checked in and found the shop shut had no way out of the
+                    // visit but to invent four stock judgements. A gate that
+                    // can only be passed by fabricating data produces worse
+                    // data than no gate.
+                    //
+                    // Partial counts stay honest downstream:
+                    // `_persistStockUpdates` skips items whose status is null,
+                    // so an unjudged rack is recorded as unjudged rather than
+                    // as a guess. The progress line above still shows what is
+                    // outstanding.
+                    onPressed: () {
+                      HapticFeedback.mediumImpact();
+                      widget.onAuditComplete?.call(_items);
+                      widget.onSubmit();
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: scheme.primary,
                       foregroundColor: scheme.onPrimary,

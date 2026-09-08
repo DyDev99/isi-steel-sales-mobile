@@ -7,7 +7,7 @@ import 'package:isi_steel_sales_mobile/core/localization/localization_services.d
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/core/usecase/usecase.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/complete_visit_check_out.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/navigation/end_visit.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/credit_summary.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/off_visit_reason.dart';
@@ -26,6 +26,7 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/sync_state.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/product_filter_flow/product_filter_flow_bloc.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/pricing/pricing_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/promotion/promotion_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/product_filter_flow/product_filter_flow_event.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/customized_product_form_screen.dart';
@@ -48,6 +49,7 @@ class QuotationBuilderScreen extends StatefulWidget {
   const QuotationBuilderScreen({
     super.key,
     this.customer,
+    this.customerId,
     this.leadId,
     this.leadDisplayName,
     this.offVisitReason,
@@ -59,12 +61,42 @@ class QuotationBuilderScreen extends StatefulWidget {
   static const routeName = 'order-quotation-builder';
 
   final Customer? customer;
+
+  /// The customer this quotation is for, when only their id is known.
+  ///
+  /// Several entry points open the builder for a shop the rep has already
+  /// chosen — the customer card's "create quotation", the checked-in visit
+  /// flow, the Continue-Working resume — and have the id without having loaded
+  /// the whole [Customer]. They used to pass it as [leadId], which is the only
+  /// slot that existed, so everything scoped to the customer read null and
+  /// behaved as though the rep were serving a walk-in.
+  ///
+  /// **Read it through [customerContextId], never on its own.** It is
+  /// deliberately not wired into the cart or the saved quotation: those still
+  /// key off [leadId] exactly as before, and changing that would rewrite how
+  /// existing lines merge and how a quotation is filed.
+  final String? customerId;
+
   final String? leadId;
   final String? leadDisplayName;
   final OffVisitReason? offVisitReason;
   final double? gpsLat;
   final double? gpsLng;
   final Quotation? editingQuotation;
+
+  /// Whose account this quotation is being built against, however the caller
+  /// happened to supply it.
+  ///
+  /// The one place anything customer-scoped — pricing, promotions — should ask.
+  /// Null means a genuine walk-in with no account, which is a real state and
+  /// renders as such; it must not be conflated with "the caller only had the
+  /// id", which is what reading `customer?.id` alone did.
+  ///
+  /// [leadId] is **not** a fallback here. A lead is an unregistered shop with
+  /// no SAP account, so sending its id to `/pricing/customers/{id}` would 404
+  /// and surface as "customer not found" — an error, where the honest answer is
+  /// that there is nobody to price for yet.
+  String? get customerContextId => customer?.id ?? customerId;
 
   @override
   State<QuotationBuilderScreen> createState() => _QuotationBuilderScreenState();
@@ -198,9 +230,11 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(key.tr)));
   }
 
+  /// The "Complete Visit" action beside Save. Ends the visit and drains the
+  /// outbound queue — see [endVisitAndSync] for why the check-out is committed
+  /// before the push rather than alongside it.
   void _completeVisit() {
-    unawaited(sl<CompleteVisitCheckOut>()(const NoParams()));
-    Navigator.of(context).popUntil((route) => route.isFirst);
+    unawaited(endVisitAndSync(context));
   }
 
   Future<void> _saveQuotation() async {
@@ -248,7 +282,17 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
         // a negotiated deal for one shop must never surface against another,
         // and a walk-in sees only unscoped promotions.
         BlocProvider<PromotionCubit>(
-          create: (_) => sl<PromotionCubit>()..setCustomer(widget.customer?.id),
+          create: (_) =>
+              sl<PromotionCubit>()..setCustomer(widget.customerContextId),
+        ),
+        // Same scoping, and for a stronger reason: SAP prices a material *for
+        // a customer*, so there is no such thing as this quotation's price
+        // without knowing whose it is. A walk-in has no customer id, and the
+        // cards say "select a customer" rather than showing a figure quoted
+        // for somebody else.
+        BlocProvider<PricingCubit>(
+          create: (_) =>
+              sl<PricingCubit>()..setCustomer(widget.customerContextId),
         ),
       ],
       child: BlocListener<SyncCubit, SyncState>(
@@ -396,9 +440,25 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                             cartState is CartLoaded ? cartState.subtotal : 0.0;
                         final int totalItemsCount = cartItems.length;
 
-                        const double discountAmount = 0;
-                        final double taxAmount = subtotal * _taxRate;
-                        final double finalTotal = subtotal + taxAmount;
+                        // Read off the cart rather than hardcoded to zero.
+                        //
+                        // This was `const double discountAmount = 0`, which is
+                        // why the preview's Discount row was always blank: a
+                        // rep could set 10% on every line, watch each line
+                        // total fall, and still be shown a document claiming
+                        // no discount had been given. `CartLoaded` has summed
+                        // this all along.
+                        final double discountAmount =
+                            cartState is CartLoaded ? cartState.discount : 0.0;
+
+                        // Tax follows the discounted amount, not the gross.
+                        // Taxing the pre-discount subtotal overstates the tax
+                        // on every discounted quotation, and the error grows
+                        // with the discount — so the more a rep gives away,
+                        // the more the document overcharges.
+                        final double taxableAmount = subtotal - discountAmount;
+                        final double taxAmount = taxableAmount * _taxRate;
+                        final double finalTotal = taxableAmount + taxAmount;
 
                         final String displayShopName =
                             widget.customer?.shopName ??
@@ -417,6 +477,17 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                               : () {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
+                                      // QuotationScreen, not
+                                      // QuotationPreviewSection. The section is
+                                      // a bare widget with no Scaffold, so
+                                      // pushing it as a route leaves every Text
+                                      // without a Material ancestor — which is
+                                      // what painted the yellow debug
+                                      // underlines over the whole page, and why
+                                      // the app bar and Download PDF button
+                                      // were missing. The screen wraps the same
+                                      // section and owns the PdfGenerationCubit
+                                      // that the download needs.
                                       builder: (context) => QuotationScreen(
                                         shopName: displayShopName,
                                         subtotal: subtotal,
@@ -424,6 +495,12 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                                         tax: taxAmount,
                                         total: finalTotal,
                                         items: cartItems,
+                                        // Carried so the PDF header identifies
+                                        // the customer by more than a shop
+                                        // name, and so re-exporting an existing
+                                        // quotation reuses its number rather
+                                        // than minting a second one for a
+                                        // document the customer already holds.
                                         quotationNumber:
                                             widget.editingQuotation?.id,
                                         customerPhone: widget.customer?.phone,

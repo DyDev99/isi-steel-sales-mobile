@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localized_text.dart';
+import 'package:isi_steel_sales_mobile/features/customers/data/mappers/bp_draft_to_business_partner.dart';
 import 'package:isi_steel_sales_mobile/features/customers/data/models/bp_customer_form_data.dart';
+import 'package:isi_steel_sales_mobile/features/customers/data/models/business_partner_request_model.dart';
 import 'package:isi_steel_sales_mobile/features/geo_location/domain/entities/geo_address.dart';
 import 'package:isi_steel_sales_mobile/features/geo_location/domain/entities/geo_unit.dart';
 
@@ -13,7 +15,10 @@ void main() {
       expect(errors['city'], 'error.required');
       expect(errors['district'], 'error.required');
       expect(errors['commune'], 'error.required');
-      expect(errors['postalCode'], 'error.postal_5_digits');
+      // Not `postal_5_digits`: the postal scheme is six digits now, and the
+      // five-digit codes still accepted are legacy stored values, so the
+      // message no longer names a length.
+      expect(errors['postalCode'], 'error.postal_code');
       expect(errors['geo'], 'error.gps_required');
     });
 
@@ -118,9 +123,7 @@ void main() {
       expect(draft.contactPersonRole, '01');
     });
 
-    test(
-        'toSapPayload includes city, district, commune, village, sales terms and contact',
-        () {
+    test('the wire payload carries the address codes SAP has fields for', () {
       final draft = BpCustomerDraft(
         street: 'Street 271',
         houseNumber: '217',
@@ -144,18 +147,31 @@ void main() {
         salesEmployeeName: 'Sales Rep',
       );
 
-      final payload = draft.toSapPayload(rep);
-      expect(payload['city'], '12');
-      expect(payload['district'], '1201');
-      expect(payload['commune'], '120101');
-      expect(payload['village'], '12010101');
-      expect(payload['street'], 'Street 271');
-      expect(payload['houseNo'], '217');
-      expect(payload['postalCode'], '12010');
-      expect(payload['deliveryPriority'], '01');
-      expect(payload['shippingCondition'], '02');
-      expect(payload['contactPersonName'], 'John Doe');
-      expect(payload['contactPersonRole'], '01');
+      final payload = BusinessPartnerRequestModel.fromEntity(
+        draft.toBusinessPartnerRequest(rep: rep),
+      ).toJson();
+
+      // With no gazetteer selection on the draft, City and District fall back
+      // to the stored codes; with one they carry the place names instead.
+      expect(payload['City'], '12');
+      expect(payload['District'], '1201');
+      expect(payload['Street'], 'Street 271');
+      expect(payload['HouseNo'], '217');
+      expect(payload['PostalCode'], '12010');
+      expect(payload['DeliveryPriority'], '01');
+      expect(payload['ShippingCondition'], '02');
+
+      // Commune and village have no SAP field — they reach it folded into
+      // Street, and only when the draft carries a GeoAddress to name them.
+      expect(payload.containsKey('Commune'), isFalse);
+      expect(payload.containsKey('Village'), isFalse);
+
+      // The contact person is collected by step 3 and validated as required,
+      // but this endpoint has no key for it, so it does not reach SAP. Asserted
+      // rather than left silent: see BUSINESS_PARTNER_CHANGES.md §7, which
+      // tracks it as an open product decision.
+      expect(payload.containsKey('ContactPersonName'), isFalse);
+      expect(payload.containsKey('ContactPersonRole'), isFalse);
     });
   });
 }

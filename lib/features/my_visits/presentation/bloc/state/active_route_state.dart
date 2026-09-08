@@ -23,6 +23,10 @@ final class ActiveRouteReady extends ActiveRouteState {
     this.blockedCheckInReason,
     this.checkInWarnings = const [],
     this.skipReasons = const {},
+    this.repLatitude,
+    this.repLongitude,
+    this.customerLocationKnown = true,
+    this.checkInOverridable = false,
   });
 
   final RoutePlan route;
@@ -39,6 +43,37 @@ final class ActiveRouteReady extends ActiveRouteState {
   /// display data (the skip itself persists as [VisitStatus.missed]).
   final Map<String, String> skipReasons;
 
+  /// The rep's own last known position, from the live GPS stream.
+  ///
+  /// **Null until a fix arrives**, which is the state that matters: a check-in
+  /// written before the first fix has no evidence of where the rep was, and
+  /// recording the shop's own coordinates in its place — which is what this
+  /// used to do — makes every visit look perfectly on-location and renders the
+  /// geofence evidence in api.md §8.2 incapable of catching anything.
+  final double? repLatitude;
+  final double? repLongitude;
+
+  /// False when the selected stop's customer has no recorded coordinates.
+  ///
+  /// Distinct from [insideGeofence] being false. There is nothing to be
+  /// outside of, so check-in proceeds and records itself as unverifiable
+  /// rather than blocking a rep standing in the right place at a shop nobody
+  /// has geotagged.
+  final bool customerLocationKnown;
+
+  /// True once the device has produced at least one position.
+  bool get hasFix => repLatitude != null && repLongitude != null;
+
+  /// True when the current [blockedCheckInReason] is one a written reason
+  /// could carry the rep past — outside the geofence, or a fix too coarse to
+  /// judge, and no integrity rule among the blocks.
+  ///
+  /// The screen reads this to decide between offering "Check in anyway" and
+  /// simply reporting the block. Carried as a flag rather than re-derived in
+  /// the UI, because the alternative is matching on the text of the reason
+  /// string, which breaks the first time someone rewords it or translates it.
+  final bool checkInOverridable;
+
   bool get hasCurrentStop =>
       currentStopIndex >= 0 && currentStopIndex < route.stops.length;
 
@@ -53,6 +88,10 @@ final class ActiveRouteReady extends ActiveRouteState {
     String? Function()? blockedCheckInReason,
     List<String>? checkInWarnings,
     Map<String, String>? skipReasons,
+    double? repLatitude,
+    double? repLongitude,
+    bool? customerLocationKnown,
+    bool? checkInOverridable,
   }) {
     return ActiveRouteReady(
       route: route ?? this.route,
@@ -67,6 +106,11 @@ final class ActiveRouteReady extends ActiveRouteState {
           : this.blockedCheckInReason,
       checkInWarnings: checkInWarnings ?? this.checkInWarnings,
       skipReasons: skipReasons ?? this.skipReasons,
+      repLatitude: repLatitude ?? this.repLatitude,
+      repLongitude: repLongitude ?? this.repLongitude,
+      customerLocationKnown:
+          customerLocationKnown ?? this.customerLocationKnown,
+      checkInOverridable: checkInOverridable ?? this.checkInOverridable,
     );
   }
 
@@ -81,6 +125,10 @@ final class ActiveRouteReady extends ActiveRouteState {
         blockedCheckInReason,
         checkInWarnings,
         skipReasons,
+        repLatitude,
+        repLongitude,
+        customerLocationKnown,
+        checkInOverridable,
       ];
 }
 

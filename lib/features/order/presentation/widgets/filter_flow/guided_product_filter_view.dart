@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -6,9 +8,12 @@ import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/filter/filter_option.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/filter/filter_step.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/entities/mobile_price.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/entities/product_material_number.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/promotion/promotion_evaluation.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/pricing/pricing_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/promotion/promotion_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/promotion/promotion_detail_sheet.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_state.dart';
@@ -569,26 +574,37 @@ class _ProductStage extends StatelessWidget {
                       );
                 }
 
-                return ProductResultGrid(
+                return _PricedResults(
                   products: state.products,
-                  favoriteIds: favoriteIds,
-                  quantityFor: quantityFor,
-                  lineTotalBuilder: lineTotalFor,
-                  onQuantityChanged: onQuantityChanged,
-                  onToggleFavorite: onToggleFavorite,
-                  onCustomize: onCustomize,
-                  onTap: onProductTap,
-                  specLineBuilder: _specLine,
-                  promotionFor: (product) => promotions[product.materialCode],
-                  onPromotionTap: (product) {
-                    final evaluation = promotions[product.materialCode];
-                    if (evaluation == null) return;
-                    showPromotionDetailSheet(
-                      context,
-                      promotion: evaluation.promotion,
-                      evaluation: evaluation,
-                    );
-                  },
+                  builder: (context, prices) => ProductResultGrid(
+                    products: state.products,
+                    favoriteIds: favoriteIds,
+                    quantityFor: quantityFor,
+                    lineTotalBuilder: lineTotalFor,
+                    onQuantityChanged: onQuantityChanged,
+                    onToggleFavorite: onToggleFavorite,
+                    onCustomize: onCustomize,
+                    onTap: onProductTap,
+                    specLineBuilder: _specLine,
+                    promotionFor: (product) => promotions[product.materialCode],
+                    onPromotionTap: (product) {
+                      final evaluation = promotions[product.materialCode];
+                      if (evaluation == null) return;
+                      showPromotionDetailSheet(
+                        context,
+                        promotion: evaluation.promotion,
+                        evaluation: evaluation,
+                      );
+                    },
+                    // Keyed by SAP material number, not by row id: the pricing
+                    // endpoint answers per material, and the same material
+                    // stocked at three warehouses is three rows that share one
+                    // price.
+                    priceFor: (product) => prices[product.materialNumber],
+                    onPriceRetry: (product) => context
+                        .read<PricingCubit>()
+                        .retry(product.materialNumber),
+                  ),
                 );
               },
             ),
@@ -623,6 +639,75 @@ class _ProductStage extends StatelessWidget {
     return [for (final e in state.selection.entries) e.option.label]
         .join(' · ');
   }
+}
+
+/// Keeps [PricingCubit] asking about exactly the materials on screen, and
+/// hands the resulting prices to [builder].
+///
+/// ## Why this is stateful
+///
+/// [PricingCubit.track] emits its loading state *synchronously*. Calling it
+/// from inside a `build` — which is where the promotion equivalent is called,
+/// because that one is timer-debounced — would mutate a cubit during the build
+/// that is reading it, which Flutter rejects outright. So the request is
+/// scheduled after the frame instead.
+///
+/// ## Why it asks for everything on screen at once
+///
+/// The endpoint takes a repeatable `materials` parameter, so a page of results
+/// costs one round trip rather than one per card. The list is built lazily as
+/// the rep scrolls, which keeps that batch to what is actually being looked at
+/// — the endpoint's own guidance is that naming a few materials is much faster
+/// than naming forty.
+class _PricedResults extends StatefulWidget {
+  const _PricedResults({required this.products, required this.builder});
+
+  final List<Product> products;
+  final Widget Function(BuildContext context, Map<String, MobilePrice> prices)
+      builder;
+
+  @override
+  State<_PricedResults> createState() => _PricedResultsState();
+}
+
+class _PricedResultsState extends State<_PricedResults> {
+  /// What has already been handed to the cubit, so a rebuild does not schedule
+  /// a callback per frame on a list the rep is scrolling.
+  final Set<String> _requested = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _track();
+  }
+
+  @override
+  void didUpdateWidget(covariant _PricedResults oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _track();
+  }
+
+  void _track() {
+    final fresh = <String>{
+      for (final product in widget.products)
+        if (product.materialNumber.trim().isNotEmpty) product.materialNumber,
+    }..removeAll(_requested);
+    if (fresh.isEmpty) return;
+
+    _requested.addAll(fresh);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      // The cubit is idempotent and skips anything already priced, so a
+      // duplicate here costs nothing.
+      unawaited(context.read<PricingCubit>().track(fresh));
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      BlocBuilder<PricingCubit, Map<String, MobilePrice>>(
+        builder: widget.builder,
+      );
 }
 
 // ── Footer ────────────────────────────────────────────────────────────

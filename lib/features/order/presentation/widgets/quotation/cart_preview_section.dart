@@ -6,12 +6,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/promotion/demo_cart_promotions.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/pricing_text.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/material_availability.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product_material_number.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_state.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/stock_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/promotion/cart_promotion_badge.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/promotion/promotion_detail_sheet.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/line_discount_chips.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/catalog/stock_availability_badge.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/cart_quantity_stepper.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
@@ -165,116 +169,159 @@ class _CartPreviewRow extends StatelessWidget {
     final colors = Theme.of(context).extension<AppThemeColors>()!;
     final specs = _customSpecs;
     final lineTotal = PricingText.amountOrNull(item.lineTotalOrNull);
-    return Row(
+
+    // Static while the shape is being reviewed. Swapping this one line for
+    // `context.watch<PromotionCubit>().of(item.product.materialCode)` is the
+    // whole of the real wiring — the badge already takes the same type the
+    // repository returns.
+    final promo = DemoCartPromotions.evaluate(item);
+
+    // Above the row, right-aligned, and *in the flow*. The first attempt
+    // floated it with a Positioned at top-right, which is exactly where the
+    // quantity stepper and the remove button already live — the badge landed
+    // on top of both, and its own text was cut through by the stepper's
+    // border. A row of its own costs ~18dp on promoted lines only.
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        if (item.isCustomized) ...[
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Container(
-              width: 40,
-              height: context.rh(40),
-              color: colors.surfaceSoft,
-              child: _hasDrawing
-                  ? localFileImage((item.drawingImagePath!), fit: BoxFit.cover)
-                  : Icon(Icons.tune_rounded,
-                      size: context.rr(18), color: colors.accentPurple),
+        if (promo != null) ...[
+          Align(
+            alignment: Alignment.centerRight,
+            child: CartPromotionBadge(
+              evaluation: promo,
+              onSeeDetail: () => showPromotionDetailSheet(
+                context,
+                promotion: promo.promotion,
+                evaluation: promo,
+              ),
             ),
           ),
-          SizedBox(width: context.rw(10)),
+          SizedBox(height: context.rh(6)),
         ],
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+        Row(
+          children: [
+            if (item.isCustomized) ...[
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  width: 40,
+                  height: context.rh(40),
+                  color: colors.surfaceSoft,
+                  child: _hasDrawing
+                      ? localFileImage((item.drawingImagePath!),
+                          fit: BoxFit.cover)
+                      : Icon(Icons.tune_rounded,
+                          size: context.rr(18), color: colors.accentPurple),
+                ),
+              ),
+              SizedBox(width: context.rw(10)),
+            ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Flexible(
-                    child: Text(
-                      context.localized(item.product.displayName),
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          context.localized(item.product.displayName),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: colors.textPrimary,
+                            fontSize: context.rsp(13),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      if (item.isCustomized) ...[
+                        SizedBox(width: context.rw(6)),
+                        Text('✏️',
+                            style: TextStyle(
+                                fontSize: context.rsp(11),
+                                color: colors.accentPurple)),
+                      ],
+                    ],
+                  ),
+                  if (specs != null) ...[
+                    SizedBox(height: context.rh(2)),
+                    Text(
+                      specs,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: colors.textPrimary,
-                        fontSize: context.rsp(13),
-                        fontWeight: FontWeight.w600,
+                        color: colors.textSecondary,
+                        fontSize: context.rsp(11),
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
-                  ),
-                  if (item.isCustomized) ...[
-                    SizedBox(width: context.rw(6)),
-                    Text('✏️',
-                        style: TextStyle(
-                            fontSize: context.rsp(11),
-                            color: colors.accentPurple)),
                   ],
-                ],
-              ),
-              if (specs != null) ...[
-                SizedBox(height: context.rh(2)),
-                Text(
-                  specs,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: colors.textSecondary,
-                    fontSize: context.rsp(11),
-                    fontWeight: FontWeight.w500,
+                  SizedBox(height: context.rh(2)),
+                  Row(
+                    children: [
+                      // Omitted entirely while unpriced rather than shown as a
+                      // placeholder — see [PricingText].
+                      if (lineTotal != null)
+                        Text(
+                          lineTotal,
+                          style: TextStyle(
+                            color: colors.accentPurple,
+                            fontSize: context.rsp(12),
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      if (stock != null) ...[
+                        SizedBox(width: context.rw(6)),
+                        Flexible(
+                          child: StockAvailabilityBadge(
+                              availability: stock, compact: true),
+                        ),
+                      ],
+                    ],
                   ),
-                ),
-              ],
-              SizedBox(height: context.rh(2)),
-              Row(
-                children: [
-                  // Omitted entirely while unpriced rather than shown as a
-                  // placeholder — see [PricingText].
-                  if (lineTotal != null)
-                    Text(
-                      lineTotal,
-                      style: TextStyle(
-                        color: colors.accentPurple,
-                        fontSize: context.rsp(12),
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  if (stock != null) ...[
-                    SizedBox(width: context.rw(6)),
-                    Flexible(
-                      child: StockAvailabilityBadge(
-                          availability: stock, compact: true),
-                    ),
-                  ],
+
+                  // The cart is where a rep checks what they have committed to, so
+                  // it is where the discount has to be legible. Until now these
+                  // rows showed a line total quietly reduced by a percentage that
+                  // appeared nowhere — a number the rep could not explain to the
+                  // customer reading over their shoulder.
+                  //
+                  // Compact here: the figure, not its provenance. The full
+                  // attribution is one scroll down in the quotation preview.
+                  LineDiscountChips(item: item, compact: true),
                 ],
-              ),
-            ],
-          ),
-        ),
-        // The same control the product card uses, rather than a second
-        // hand-rolled pair of buttons.
-        //
-        // The pair it replaces had no number entry at all: the quantity was a
-        // `Text`, so a rep correcting a line to 250 held `+` two hundred and
-        // fifty times or deleted the line and started again. It also carried
-        // its own copy of the enable rule, which is exactly how two controls
-        // for one value drift apart.
-        CartQuantityStepper(
-          quantity: item.quantity.round(),
-          onChanged: (value) => onQuantityChanged(value.toDouble()),
-        ),
-        SizedBox(width: context.rw(8)),
-        Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onRemove,
-            borderRadius: BorderRadius.circular(20),
-            child: Padding(
-              padding: EdgeInsets.all(context.rr(6)),
-              child: Icon(
-                Icons.close_rounded,
-                size: context.rr(16),
-                color: colors.textHint,
               ),
             ),
-          ),
+            // The same control the product card uses, rather than a second
+            // hand-rolled pair of buttons.
+            //
+            // The pair it replaces had no number entry at all: the quantity was a
+            // `Text`, so a rep correcting a line to 250 held `+` two hundred and
+            // fifty times or deleted the line and started again. It also carried
+            // its own copy of the enable rule, which is exactly how two controls
+            // for one value drift apart.
+            CartQuantityStepper(
+              quantity: item.quantity.round(),
+              onChanged: (value) => onQuantityChanged(value.toDouble()),
+            ),
+            SizedBox(width: context.rw(8)),
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: onRemove,
+                borderRadius: BorderRadius.circular(20),
+                child: Padding(
+                  padding: EdgeInsets.all(context.rr(6)),
+                  child: Icon(
+                    Icons.close_rounded,
+                    size: context.rr(16),
+                    color: colors.textHint,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );

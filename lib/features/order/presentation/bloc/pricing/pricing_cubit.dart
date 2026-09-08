@@ -95,9 +95,22 @@ class PricingCubit extends Cubit<Map<String, MobilePrice>> {
 
   /// Re-asks for everything currently tracked.
   ///
-  /// The retry behind a failed card's "tap to retry", and the mandatory first
-  /// half of the reconnect sequence.
+  /// The mandatory first half of the reconnect sequence. Not the per-card
+  /// retry — see [retry], which is the one a rep taps.
   Future<void> refresh() => _fetch(_tracked.toList());
+
+  /// Re-asks for one material — the "tap to retry" behind a failed card.
+  ///
+  /// Deliberately not [refresh]: a rep retrying one line must not put every
+  /// other price on the quotation back into a spinner, and one material's
+  /// failure is not a reason to re-ask about seven that answered fine.
+  ///
+  /// A material no longer on the quotation is ignored rather than fetched, so
+  /// a retry racing a line removal cannot resurrect the card.
+  Future<void> retry(String material) {
+    if (!_tracked.contains(material)) return Future.value();
+    return _fetch([material]);
+  }
 
   Future<void> _fetch(List<String> materials) async {
     if (materials.isEmpty) return;

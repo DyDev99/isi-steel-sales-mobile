@@ -93,6 +93,11 @@ extension CheckInRecordApiJson on CheckInRecordModel {
         // A fraud signal, not a reason to withhold the row — a suppressed
         // mock-location check-in is exactly the one worth investigating.
         'isMocked': isMocked,
+        // Omitted entirely on an ordinary check-in rather than sent as null.
+        // The field is optional on the wire (api.md §7.3), and the server reads
+        // its absence as "nobody was asked to explain this row" — which is a
+        // different fact from an override whose reason went missing.
+        if (overrideReason != null) 'overrideReason': overrideReason,
       };
 }
 
@@ -121,14 +126,26 @@ extension VisitOrderLineApiJson on VisitOrderLineModel {
 }
 
 extension VisitStockUpdateApiJson on VisitStockUpdateModel {
+  /// Exactly one of `stopId`/`depotId` is set — a count taken during a visit
+  /// carries `stopId`, a standalone depot audit carries `depotId`.
+  ///
+  /// **The unset one is omitted, not sent as `null`.** It used to be emitted
+  /// explicitly, on the reasoning that a visible null "keeps the distinction
+  /// legible server-side". It does the opposite: the endpoint's `StockUpdate`
+  /// DTO binds `DepotId` as a required value, so an explicit null fails
+  /// ASP.NET model validation before any handler runs — and because that
+  /// validation rejects the *envelope*, one such row 400s the entire push.
+  /// Observed as `General.Validation` with `invalidFields=[StockUpdates[N].DepotId]`
+  /// for every row in the batch, blocking check-ins and notes that had nothing
+  /// wrong with them.
+  ///
+  /// Omission is also what the exactly-one invariant on [VisitStockUpdate]
+  /// actually means. A key that is absent says "this row is not that kind";
+  /// a key present and null says "this row is that kind, and I lost the id".
   DataMap toApiJson() => {
         'id': id,
-        // Both nullable, and exactly one is normally set: a stock count taken
-        // during a visit carries `stopId`, one taken in the standalone depot
-        // flow carries `depotId`. Sending the null rather than omitting the key
-        // keeps that distinction legible server-side.
-        'stopId': stopId,
-        'depotId': depotId,
+        if (stopId != null) 'stopId': stopId,
+        if (depotId != null) 'depotId': depotId,
         'productId': productId,
         'productName': productName,
         'stockLevel': stockLevel.storageName,

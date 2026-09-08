@@ -11,6 +11,7 @@ class CheckInRecordModel extends CheckInRecord {
     required super.accuracyMeters,
     required super.distanceFromCustomerMeters,
     required super.isMocked,
+    super.overrideReason,
   });
 
   factory CheckInRecordModel.fromRow(DataMap row) => CheckInRecordModel(
@@ -23,6 +24,7 @@ class CheckInRecordModel extends CheckInRecord {
         distanceFromCustomerMeters:
             (row['distance_from_customer'] as num).toDouble(),
         isMocked: (row['is_mocked'] as int) == 1,
+        overrideReason: row['override_reason'] as String?,
       );
 
   DataMap toRow() => {
@@ -34,6 +36,7 @@ class CheckInRecordModel extends CheckInRecord {
         'accuracy': accuracyMeters,
         'distance_from_customer': distanceFromCustomerMeters,
         'is_mocked': isMocked ? 1 : 0,
+        'override_reason': overrideReason,
       };
 
   factory CheckInRecordModel.fromEntity(CheckInRecord e) => CheckInRecordModel(
@@ -45,5 +48,6 @@ class CheckInRecordModel extends CheckInRecord {
         accuracyMeters: e.accuracyMeters,
         distanceFromCustomerMeters: e.distanceFromCustomerMeters,
         isMocked: e.isMocked,
+        overrideReason: e.overrideReason,
       );
 }

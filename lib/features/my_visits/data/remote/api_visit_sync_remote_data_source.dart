@@ -62,11 +62,12 @@ class ApiVisitSyncRemoteDataSource implements VisitSyncRemoteDataSource {
       // Held pending and retried later. Ids the client sent that come back in
       // neither list are treated as rejected too — and that falls out for free,
       // because only ids present in `acceptedIds` are ever marked synced.
-      //
-      // TODO(OPEN-2): there is no "permanently invalid, stop sending" bucket,
-      // so a genuinely bad row retries forever. Adding `discardedIds` to the
-      // contract needs a matching change here and in the repository.
       rejectedIds: [..._ids(data['rejectedIds']), ...batch.photosAreBlocked],
+      // OPEN-2, now resolved server-side (api.md §6.1). Absent from older
+      // responses, which `_ids` degrades to an empty list — so this reads
+      // correctly against a backend that has not deployed the bucket yet.
+      discardedIds: _ids(data['discardedIds']),
+      discardReasons: _discardReasons(data['discarded']),
       // The server's own receipt time when it sends one. Falling back to the
       // device clock only affects the "last synced" label; it is never written
       // back over a capture's own timestamp (§8.4).
@@ -83,4 +84,23 @@ class ApiVisitSyncRemoteDataSource implements VisitSyncRemoteDataSource {
   /// cast — a cast would throw on the very shape this exists to absorb.
   static List<String> _ids(Object? raw) =>
       raw is List ? raw.whereType<String>().toList() : const [];
+
+  /// Reads `discarded: [{ id, errorCode, reason }]` into `id → errorCode`.
+  ///
+  /// Same defensiveness as [_ids], and for a sharper reason: this map only
+  /// feeds a log line. An unreadable entry must cost that log line and nothing
+  /// else — never the push, and never the `discardedIds` list beside it, which
+  /// is what actually stops the row cycling.
+  static Map<String, String> _discardReasons(Object? raw) {
+    if (raw is! List) return const {};
+    final out = <String, String>{};
+    for (final entry in raw) {
+      if (entry is! Map) continue;
+      final id = entry['id'];
+      if (id is! String) continue;
+      final code = entry['errorCode'];
+      out[id] = code is String ? code : 'unknown';
+    }
+    return out;
+  }
 }

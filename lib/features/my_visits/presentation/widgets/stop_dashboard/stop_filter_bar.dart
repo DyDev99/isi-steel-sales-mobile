@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:isi_steel_sales_mobile/core/animations/app_animations.dart';
+import 'package:isi_steel_sales_mobile/core/animations/press_scale.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/state/stop_dashboard_state.dart';
@@ -34,14 +36,21 @@ class StopFilterBar extends StatelessWidget {
         itemBuilder: (context, i) {
           final filter = StopFilter.values[i];
           final isSelected = filter == selected;
-          return GestureDetector(
+          return PressScale(
+            // The chip answers the finger on the way down, before the list
+            // has re-filtered. On a long route that re-filter is the slowest
+            // thing on screen, and without this the chip looks unresponsive
+            // for exactly as long as it takes.
             onTap: () {
               if (isSelected) return;
               HapticFeedback.selectionClick();
               onSelected(filter);
             },
+            // Already selected: nothing to press towards.
+            enabled: !isSelected,
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
+              duration: AppDurations.medium,
+              curve: AppCurves.standard,
               alignment: Alignment.center,
               padding: EdgeInsets.symmetric(horizontal: context.rw(14)),
               decoration: BoxDecoration(
@@ -50,13 +59,19 @@ class StopFilterBar extends StatelessWidget {
                 border: Border.all(
                     color: isSelected ? scheme.primary : colors.border),
               ),
-              child: Text(
-                _labelKeys[filter]!.tr,
+              // The label has to travel with the fill. Left as a plain `Text`
+              // it snapped to `onPrimary` on frame one while the background
+              // was still easing, so mid-transition the chip briefly rendered
+              // white-on-grey.
+              child: AnimatedDefaultTextStyle(
+                duration: AppDurations.medium,
+                curve: AppCurves.standard,
                 style: TextStyle(
                   color: isSelected ? scheme.onPrimary : colors.textSecondary,
                   fontSize: context.rsp(12),
                   fontWeight: FontWeight.w700,
                 ),
+                child: Text(_labelKeys[filter]!.tr),
               ),
             ),
           );

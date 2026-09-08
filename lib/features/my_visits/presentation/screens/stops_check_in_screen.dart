@@ -12,8 +12,11 @@ import 'package:isi_steel_sales_mobile/core/localization/localized_builder.dart'
 import 'package:isi_steel_sales_mobile/core/platform/local_files.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/core/utils/offline_banner.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/fraud_policy.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_stop.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_photo.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_status.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/geofence_service.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/proof_photo_service.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/active_route_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/location_tracking_cubit.dart';
@@ -24,11 +27,28 @@ import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/stat
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/state/visit_state.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/navigation/open_inventory_visibility.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/stop_information/stop_information_screen.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/check_in_location_verifier.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/outlet_location_source.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/check_in_confirmation_dialog.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/remote_check_in_sheet.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/widgets/transit_map.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/painters/dashed_rrect.dart';
 
-const bool kDebugForceInsideGeofence = true;
+/// Forces the geo-status banner to read "inside geofence" regardless of the
+/// real verdict.
+///
+/// **Now false, and it should stay false.** It was `true`, and it was OR'd
+/// into the *banner* only — the bloc read `state.insideGeofence` directly and
+/// never saw it. So the screen showed green while the bloc refused the
+/// check-in, which is why this failed silently for so long: the one indicator
+/// a rep could see was wired to a constant.
+///
+/// Nothing depends on it any more. A device with no fix, or a shop with no
+/// recorded pin, now checks in and records itself unverified
+/// (`ActiveRouteBloc._onCheckIn`) instead of needing the banner to lie on its
+/// behalf.
+const bool kDebugForceInsideGeofence = false;
 
 class RouteCheckInScreen extends StatefulWidget {
   const RouteCheckInScreen({
@@ -45,9 +65,113 @@ class RouteCheckInScreen extends StatefulWidget {
 class _RouteCheckInScreenState extends State<RouteCheckInScreen>
     with SingleTickerProviderStateMixin {
   bool _capturing = false;
+
+  /// True between dispatching `CheckInRequested` and the bloc answering.
+  /// Drives the CTA's spinner and gates `_onCheckInSettled`, so a state change
+  /// caused by anything else (a GPS fix, a photo) cannot navigate on its own.
+  bool _submitting = false;
   late AnimationController _entranceController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
+
+  /// Recomputes the geofence verdict for the selected stop and hands it to the
+  /// bloc.
+  ///
+  /// Runs on every new fix. `GeofenceService` is pure, so this is a Haversine
+  /// and nothing else — cheap enough to do per sample rather than on a timer.
+  void _reportGeofence(
+      ActiveRouteBloc bloc, LocationTrackingState locationState) {
+    final sample = locationState.current;
+    if (sample == null) return;
+
+    final state = bloc.state;
+    final RouteStop? stop = widget.stop ??
+        ((state is ActiveRouteReady && state.hasCurrentStop)
+            ? state.route.stops[state.currentStopIndex]
+            : null);
+    if (stop == null) return;
+
+    final result = GeofenceService.evaluate(
+      repLatitude: sample.latitude,
+      repLongitude: sample.longitude,
+      customer: stop.customer,
+    );
+
+    bloc.add(GeofenceStatusChanged(
+      insideGeofence: result.insideGeofence,
+      // NaN when the customer has no pin. Sent as 0 with
+      // `customerLocationKnown: false` beside it rather than as NaN, which
+      // would poison `distanceFromCustomer` on the pushed row — the field is a
+      // number the server reads, and NaN is not one.
+      distanceMeters: result.locationKnown ? result.distanceMeters : 0,
+      accuracyMeters: sample.accuracyMeters,
+      isMocked: sample.isMocked,
+      latitude: sample.latitude,
+      longitude: sample.longitude,
+      customerLocationKnown: result.locationKnown,
+    ));
+  }
+
+  /// Advances only once the check-in has actually landed.
+  ///
+  /// `_submit` used to dispatch and navigate in the same breath, so a refused
+  /// check-in still pushed the rep into the stock count. Nothing was written,
+  /// no workflow pointer was persisted, and the failure surfaced hours later
+  /// as `visit.checkout.skipped reason=noActiveWorkflow` — with the reason the
+  /// rep needed rendered on a screen they had already left.
+  void _onCheckInSettled(BuildContext context, ActiveRouteState state) {
+    if (!_submitting || state is! ActiveRouteReady) return;
+
+    if (state.blockedCheckInReason != null) {
+      setState(() => _submitting = false);
+      // Some blocks a rep can answer for — a depot gate far from the office
+      // pin, a warehouse with no sky. Those get the reason sheet. The rest
+      // (mock location, VPN) only get the banner, which already renders
+      // `blockedCheckInReason` in place.
+      if (state.checkInOverridable) {
+        unawaited(_offerOverride(context, state));
+      }
+      return;
+    }
+
+    if (!state.hasCurrentStop) return;
+    final stop = state.route.stops[state.currentStopIndex];
+    if (stop.status != VisitStatus.checkedIn) return;
+
+    setState(() => _submitting = false);
+    _goToVisit(context, stop);
+  }
+
+  /// Offers the reasoned override, and re-runs check-in with what the rep
+  /// wrote.
+  ///
+  /// The reason rides on the check-in row itself (`CheckInRecord.overrideReason`
+  /// → `overrideReason` on the wire), not as a separate `VisitNote`. Two rows
+  /// would mean the verdict and its explanation live in different tables, and a
+  /// reviewer asking "which overrides happened and why" would be joining a
+  /// flagged check-in to free text somebody hoped was there. One row cannot come
+  /// apart.
+  Future<void> _offerOverride(
+      BuildContext context, ActiveRouteReady state) async {
+    final reason = await RemoteCheckInSheet.show(
+      context,
+      blockedReason: state.blockedCheckInReason ?? '',
+      distanceMeters: state.distanceMeters,
+      minLength: const FraudPolicy().minOverrideReasonLength,
+    );
+    if (reason == null || !mounted) return;
+
+    setState(() => _submitting = true);
+    // `this.context`, not the parameter. `mounted` is the State's flag, so it
+    // only vouches for the State's own context — reading the passed-in one
+    // after an await is guarded by something unrelated to it, which is exactly
+    // what `use_build_context_synchronously` is pointing at. They are the same
+    // element in practice today; using the one the guard covers keeps that
+    // true if a caller ever passes a context from a subtree that can go away
+    // while the sheet is open.
+    _resolveBloc<ActiveRouteBloc>(this.context)
+        .add(CheckInRequested(overrideReason: reason));
+  }
 
   /// Helper to safely obtain BLoC/Cubit instances from BuildContext or Service Locator
   static T _resolveBloc<T extends StateStreamableSource<Object?>>(
@@ -83,6 +207,9 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen>
     final initialStop = widget.stop;
     if (initialStop != null) {
       _resolveBloc<VisitCubit>(context).load(initialStop.id);
+      // Without this the bloc never learns which stop this is, and every
+      // check-in from this entry point is silently discarded.
+      unawaited(_ensureStopSelected(initialStop));
     } else {
       final activeRouteBloc = _resolveBloc<ActiveRouteBloc>(context);
       final state = activeRouteBloc.state;
@@ -92,11 +219,94 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen>
       }
     }
 
+    // Start reading the GPS. Nothing else does.
+    //
+    // This screen used to assume the tracker "is started well before this
+    // screen opens" — nothing ever called `start` or `observeForScreen`, so
+    // `LocationTrackingState.current` was permanently null. The consequence was
+    // quiet and total: `_reportGeofence` returned early on every sample, so
+    // `GeofenceStatusChanged` was never dispatched, `insideGeofence` kept its
+    // optimistic default, and the check-in that claims to verify where a rep is
+    // standing never read the device at all.
+    //
+    // Screen-scoped (`observeForScreen`), not the route stream: this needs a
+    // position while the rep is looking at the screen, and a foreground service
+    // with a persistent notification is not the right price for that. A running
+    // route's own `start` is independent and unaffected.
+    unawaited(_beginObservingLocation());
+
     _entranceController.forward();
+  }
+
+  /// Begins the screen-scoped position stream and seeds the geofence verdict
+  /// from whatever fix already exists.
+  ///
+  /// The seed matters even once observation is running: the listener fires on
+  /// *change*, and a stationary device may not produce one for seconds — or at
+  /// all. Without it the bloc sits on the `insideGeofence: false` that
+  /// `_onStopSelected` wrote and the first check-in is refused for no reason
+  /// the rep can see.
+  /// Puts the bloc into the state the check-in actually needs.
+  ///
+  /// `ActiveRouteBloc` refuses `CheckInRequested` unless it is
+  /// `ActiveRouteReady` **with a stop selected** — and until now nothing on
+  /// this path put it there. `ActiveRouteLoadRequested` was dispatched only
+  /// from the legacy `Static.myVisits` route, and `StopSelected` was dispatched
+  /// *nowhere at all*: only its handler existed.
+  ///
+  /// The result was a check-in that silently did nothing. `_onCheckIn` returned
+  /// on its first guard so no row was written, and `_onCheckInSettled` returned
+  /// on the same guard so `_submitting` was never cleared — the CTA span
+  /// forever while the screen looked entirely healthy, because every *display*
+  /// path falls back to `widget.stop` and so never needed the bloc.
+  Future<void> _ensureStopSelected(RouteStop stop) async {
+    final bloc = _resolveBloc<ActiveRouteBloc>(context);
+
+    var state = bloc.state;
+    if (state is! ActiveRouteReady || state.route.id != stop.routeId) {
+      bloc.add(ActiveRouteLoadRequested(stop.routeId));
+      try {
+        state = await bloc.stream
+            .firstWhere(
+                (s) => s is ActiveRouteReady && s.route.id == stop.routeId)
+            // Bounded: a route that never loads must leave the CTA disabled
+            // rather than hang this future for the life of the screen.
+            .timeout(const Duration(seconds: 10));
+      } on TimeoutException {
+        return;
+      }
+    }
+    if (!mounted || state is! ActiveRouteReady) return;
+
+    final index = state.route.stops.indexWhere((s) => s.id == stop.id);
+    if (index >= 0 && state.currentStopIndex != index) {
+      bloc.add(StopSelected(index));
+    }
+  }
+
+  Future<void> _beginObservingLocation() async {
+    final locationCubit = _resolveBloc<LocationTrackingCubit>(context);
+
+    _reportGeofence(
+        _resolveBloc<ActiveRouteBloc>(context), locationCubit.state);
+
+    // A 10 m filter: the check-in radius is 100 m, so a rep walking the last
+    // few metres to a shopfront needs to see the distance move. The dashboard's
+    // 25 m default would hold a stale reading right where it matters most.
+    await locationCubit.observeForScreen(distanceFilterMeters: 10);
+    if (!mounted) return;
+
+    // Re-seed once a real fix lands: the state read above was almost certainly
+    // still empty.
+    _reportGeofence(
+        _resolveBloc<ActiveRouteBloc>(context), locationCubit.state);
   }
 
   @override
   void dispose() {
+    // Released here rather than left running: the position was for this screen.
+    // A route-scoped `start` is a separate subscription and keeps going.
+    unawaited(_resolveBloc<LocationTrackingCubit>(context).stopObserving());
     _entranceController.dispose();
     super.dispose();
   }
@@ -156,16 +366,87 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen>
     }
   }
 
-  void _submit(RouteStop stop) {
+  /// Where the designated check-in area comes from.
+  ///
+  /// A field, not a literal at the call site, so replacing the demo pin with
+  /// the stop's real coordinates is one word here —
+  /// `StopOutletLocationSource()` — and nothing else moves.
+  static const OutletLocationSource _outletLocations =
+      StaticOutletLocationSource();
+
+  /// Measures the rep against the outlet using the device's own position.
+  ///
+  /// Reads the live sample the tracking cubit already holds rather than asking
+  /// the GPS again: `LocationTrackingCubit` is streaming it for this screen
+  /// anyway, and a second one-shot read would cost a fix the app already has.
+  /// No fix yet is its own verdict, never a guess.
+  CheckInLocationVerdict _verifyLocation(RouteStop stop) {
+    final sample = _resolveBloc<LocationTrackingCubit>(context).state.current;
+
+    // TODO(release-gate): while `kUseStaticCheckInPosition` is on, the rep's
+    // position is a constant rather than the device's.
+    //
+    // Without this the dialog sits on "Locating You" on any handset with no
+    // fix — a simulator, or one that has not granted location — and no check-in
+    // can be made at all. Reading the live sample *only* when the flag is off
+    // keeps the real path intact for a build that has GPS.
+    final deviceLatitude = kUseStaticCheckInPosition
+        ? kStaticCheckInPosition.latitude
+        : sample?.latitude;
+    final deviceLongitude = kUseStaticCheckInPosition
+        ? kStaticCheckInPosition.longitude
+        : sample?.longitude;
+
+    return CheckInLocationVerifier.verify(
+      outlet: _outletLocations.locationFor(stop.customer),
+      deviceLatitude: deviceLatitude,
+      deviceLongitude: deviceLongitude,
+      fallbackRadiusMeters: _outletLocations.radiusMeters,
+    );
+  }
+
+  Future<void> _submit(RouteStop stop) async {
+    if (_submitting) return;
     try {
       HapticFeedback.mediumImpact();
     } catch (_) {}
-    // Fire-and-forget, like every other workflow write in this flow: a
-    // slow/blocked validation surfaces on the next rebuild via
-    // `blockedCheckInReason` (the geo-status banner already renders it), it
-    // just doesn't hold up the guided flow here.
-    _resolveBloc<ActiveRouteBloc>(context).add(const CheckInRequested());
-    _goToVisit(context, stop);
+
+    // Verify, then ask. The check-in is the evidence a visit happened where it
+    // says it did and cannot be taken back from the device, so the rep sees the
+    // distance their record will carry *before* it is written rather than
+    // after.
+    final verdict = _verifyLocation(stop);
+    final choice = await CheckInConfirmationDialog.show(
+      context,
+      outletName: context.localized(stop.customer.displayName),
+      verdict: verdict,
+    );
+    if (choice == null || !mounted) return;
+
+    // Inside the area: nothing more to ask. Outside it, the rep is not blocked
+    // — the check-in just has to carry a written reason, which rides on the
+    // check-in row itself so an out-of-area visit is attributable rather than
+    // merely allowed. Backing out of the reason sheet cancels the check-in;
+    // there is no path that records one with an empty explanation.
+    String? overrideReason;
+    if (choice == CheckInConfirmation.withReason) {
+      overrideReason = await RemoteCheckInSheet.show(
+        context,
+        blockedReason: 'my_visits.check_in_verification.outside_body'.tr,
+        distanceMeters: verdict.distanceMeters,
+        minLength: const FraudPolicy().minOverrideReasonLength,
+      );
+      if (overrideReason == null || !mounted) return;
+    }
+
+    // Dispatch and wait. `_onCheckInSettled` navigates when the stop actually
+    // reaches `checkedIn`, and stays here showing the reason when the bloc
+    // refuses. Navigating alongside the dispatch — which is what this did —
+    // meant a refused check-in was indistinguishable from a successful one
+    // right up until "Complete Visit" found nothing to close.
+    setState(() => _submitting = true);
+    _resolveBloc<ActiveRouteBloc>(context)
+        .add(CheckInRequested(overrideReason: overrideReason));
   }
 
   static List<VisitPhoto> _photosForStop(VisitState state, String stopId) {
@@ -204,6 +485,7 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen>
       navigator.context,
       customerId: stop.customer.id,
       customerName: context.localized(stop.customer.displayName),
+      stopId: stop.id,
     );
   }
 
@@ -234,166 +516,193 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen>
           ),
         ),
       ),
-      body: BlocBuilder<ActiveRouteBloc, ActiveRouteState>(
-        bloc: activeRouteBloc,
-        builder: (context, state) {
-          final RouteStop? stop = widget.stop ??
-              ((state is ActiveRouteReady && state.hasCurrentStop)
-                  ? state.route.stops[state.currentStopIndex]
-                  : null);
+      body: MultiBlocListener(
+        listeners: [
+          // **The missing wire.** `ActiveRouteBloc` registers a handler for
+          // `GeofenceStatusChanged` and nothing ever dispatched it, so
+          // `state.insideGeofence` kept the `false` that `_onStopSelected`
+          // writes and every check-in was refused as "outside the customer's
+          // geofence" — at any distance, including standing in the shop.
+          //
+          // The bloc deliberately does not depend on `LocationTrackingCubit`
+          // (it has no location dependency at all, which is what keeps it
+          // unit-testable), so the bridge belongs here, on the one screen that
+          // needs a live verdict.
+          BlocListener<LocationTrackingCubit, LocationTrackingState>(
+            bloc: _resolveBloc<LocationTrackingCubit>(context),
+            listenWhen: (previous, current) =>
+                previous.current != current.current,
+            listener: (context, locationState) =>
+                _reportGeofence(activeRouteBloc, locationState),
+          ),
+          // Check-in is asynchronous and can be refused. Navigation waits for
+          // the verdict instead of assuming one.
+          BlocListener<ActiveRouteBloc, ActiveRouteState>(
+            bloc: activeRouteBloc,
+            listener: _onCheckInSettled,
+          ),
+        ],
+        child: BlocBuilder<ActiveRouteBloc, ActiveRouteState>(
+          bloc: activeRouteBloc,
+          builder: (context, state) {
+            final RouteStop? stop = widget.stop ??
+                ((state is ActiveRouteReady && state.hasCurrentStop)
+                    ? state.route.stops[state.currentStopIndex]
+                    : null);
 
-          if (stop == null) {
-            return Center(
-              child: CircularProgressIndicator(
-                color: scheme.primary,
-                strokeWidth: 2.8,
-              ),
-            );
-          }
+            if (stop == null) {
+              return Center(
+                child: CircularProgressIndicator(
+                  color: scheme.primary,
+                  strokeWidth: 2.8,
+                ),
+              );
+            }
 
-          final bool dynamicInsideGeofence =
-              (state is ActiveRouteReady ? state.insideGeofence : false) ||
-                  kDebugForceInsideGeofence;
-          final double distanceMeters =
-              state is ActiveRouteReady ? state.distanceMeters : 0.0;
-          final String? blockedReason =
-              state is ActiveRouteReady ? state.blockedCheckInReason : null;
-          final List<String> warnings =
-              state is ActiveRouteReady ? state.checkInWarnings : const [];
+            final bool dynamicInsideGeofence =
+                (state is ActiveRouteReady ? state.insideGeofence : false) ||
+                    kDebugForceInsideGeofence;
+            final double distanceMeters =
+                state is ActiveRouteReady ? state.distanceMeters : 0.0;
+            final String? blockedReason =
+                state is ActiveRouteReady ? state.blockedCheckInReason : null;
+            final List<String> warnings =
+                state is ActiveRouteReady ? state.checkInWarnings : const [];
 
-          return BlocBuilder<VisitCubit, VisitState>(
-            bloc: visitCubit,
-            builder: (context, visitState) {
-              final photos = _photosForStop(visitState, stop.id);
+            return BlocBuilder<VisitCubit, VisitState>(
+              bloc: visitCubit,
+              builder: (context, visitState) {
+                final photos = _photosForStop(visitState, stop.id);
 
-              return FadeTransition(
-                opacity: _fadeAnimation,
-                child: SlideTransition(
-                  position: _slideAnimation,
-                  child: Column(
-                    children: [
-                      const OfflineBanner(margin: EdgeInsets.zero),
+                return FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: SlideTransition(
+                    position: _slideAnimation,
+                    child: Column(
+                      children: [
+                        const OfflineBanner(margin: EdgeInsets.zero),
 
-                      // Segment 1: Customer Header Card
-                      _UnifiedCustomerHeader(
-                        stop: stop,
-                        distanceLabel: _distanceLabel(distanceMeters),
-                        etaMinutes: _etaMinutes(distanceMeters),
-                      ),
-
-                      // Segment 2: Interactive Real-time Map Viewport
-                      Expanded(
-                        flex: 4,
-                        child: BlocBuilder<LocationTrackingCubit,
-                            LocationTrackingState>(
-                          bloc: _resolveBloc<LocationTrackingCubit>(context),
-                          builder: (context, locationState) => Stack(
-                            children: [
-                              Positioned.fill(
-                                child: TransitMap(
-                                  target: stop,
-                                  currentPosition: locationState.current,
-                                ),
-                              ),
-                              Positioned(
-                                right: 14,
-                                top: 14,
-                                child: _MapExpandButton(
-                                  onTap: () => _expandMap(context, stop),
-                                ),
-                              ),
-                            ],
-                          ),
+                        // Segment 1: Customer Header Card
+                        _UnifiedCustomerHeader(
+                          stop: stop,
+                          distanceLabel: _distanceLabel(distanceMeters),
+                          etaMinutes: _etaMinutes(distanceMeters),
                         ),
-                      ),
 
-                      // Segment 3: Workspace Action Board
-                      Expanded(
-                        flex: 5,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: colors.card,
-                            borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(24),
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.05),
-                                blurRadius: 16,
-                                offset: const Offset(0, -6),
-                              )
-                            ],
-                          ),
-                          child: ClipRRect(
-                            borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(24),
-                            ),
-                            child: ListView(
-                              padding:
-                                  const EdgeInsets.fromLTRB(20, 20, 20, 12),
-                              shrinkWrap: true,
+                        // Segment 2: Interactive Real-time Map Viewport
+                        Expanded(
+                          flex: 4,
+                          child: BlocBuilder<LocationTrackingCubit,
+                              LocationTrackingState>(
+                            bloc: _resolveBloc<LocationTrackingCubit>(context),
+                            builder: (context, locationState) => Stack(
                               children: [
-                                _GeoStatusBanner(
-                                  insideGeofence: dynamicInsideGeofence,
-                                  distanceMeters: distanceMeters,
-                                  blockedReason: blockedReason,
-                                  warnings: warnings,
-                                  radiusMeters: stop
-                                      .customer.geofenceRadiusMeters
-                                      .round(),
+                                Positioned.fill(
+                                  child: TransitMap(
+                                    target: stop,
+                                    currentPosition: locationState.current,
+                                  ),
                                 ),
-                                SizedBox(height: context.rh(18)),
-                                Row(
-                                  children: [
-                                    Text(
-                                      'my_visits.flow.proof_photo'.tr,
-                                      style: TextStyle(
-                                        color: colors.textPrimary,
-                                        fontSize: context.rsp(14),
-                                        fontWeight: FontWeight.w800,
-                                      ),
-                                    ),
-                                    const Spacer(),
-                                    if (photos.isEmpty) _PulseIndicator(),
-                                  ],
-                                ),
-                                SizedBox(height: context.rh(12)),
-                                _CameraDropzone(
-                                  photos: photos,
-                                  capturing: _capturing,
-                                  isLocked: false,
-                                  onTap: () => _capture(stop),
-                                ),
-                                SizedBox(height: context.rh(10)),
-                                Text(
-                                  'my_visits.flow.checkin_explainer'.tr,
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: colors.textSecondary,
-                                    fontSize: context.rsp(11.5),
-                                    height: 1.35,
+                                Positioned(
+                                  right: 14,
+                                  top: 14,
+                                  child: _MapExpandButton(
+                                    onTap: () => _expandMap(context, stop),
                                   ),
                                 ),
                               ],
                             ),
                           ),
                         ),
-                      ),
 
-                      // Contextual Bottom CTA
-                      _CheckInBottomBar(
-                        enabled: true,
-                        submitting: false,
-                        hint: null,
-                        onTap: () => _submit(stop),
-                      ),
-                    ],
+                        // Segment 3: Workspace Action Board
+                        Expanded(
+                          flex: 5,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: colors.card,
+                              borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(24),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.05),
+                                  blurRadius: 16,
+                                  offset: const Offset(0, -6),
+                                )
+                              ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(24),
+                              ),
+                              child: ListView(
+                                padding:
+                                    const EdgeInsets.fromLTRB(20, 20, 20, 12),
+                                shrinkWrap: true,
+                                children: [
+                                  _GeoStatusBanner(
+                                    insideGeofence: dynamicInsideGeofence,
+                                    distanceMeters: distanceMeters,
+                                    blockedReason: blockedReason,
+                                    warnings: warnings,
+                                    radiusMeters: stop
+                                        .customer.geofenceRadiusMeters
+                                        .round(),
+                                  ),
+                                  SizedBox(height: context.rh(18)),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        'my_visits.flow.proof_photo'.tr,
+                                        style: TextStyle(
+                                          color: colors.textPrimary,
+                                          fontSize: context.rsp(14),
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
+                                      const Spacer(),
+                                      if (photos.isEmpty) _PulseIndicator(),
+                                    ],
+                                  ),
+                                  SizedBox(height: context.rh(12)),
+                                  _CameraDropzone(
+                                    photos: photos,
+                                    capturing: _capturing,
+                                    isLocked: false,
+                                    onTap: () => _capture(stop),
+                                  ),
+                                  SizedBox(height: context.rh(10)),
+                                  Text(
+                                    'my_visits.flow.checkin_explainer'.tr,
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: colors.textSecondary,
+                                      fontSize: context.rsp(11.5),
+                                      height: 1.35,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        // Contextual Bottom CTA
+                        _CheckInBottomBar(
+                          enabled: !_submitting,
+                          submitting: _submitting,
+                          hint: blockedReason,
+                          onTap: () => unawaited(_submit(stop)),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              );
-            },
-          );
-        },
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }
@@ -469,7 +778,15 @@ class _UnifiedCustomerHeader extends StatelessWidget {
                 ),
                 SizedBox(width: context.rw(5)),
                 Text(
-                  '$distanceLabel • ~$etaMinutes ${'my_visits.flow.minutes_shortTemplate'.tr}',
+                  // `trParams`, not `.tr` with the number glued on outside.
+                  // `minutes_shortTemplate` is `'{minutes} min'`, so the old
+                  // form rendered the placeholder literally — "~4 {minutes}
+                  // min" — which is the exact failure FS-LOC-3 exists to
+                  // catch, and it was on screen.
+                  '$distanceLabel • ~'
+                  '${'my_visits.flow.minutes_shortTemplate'.trParams({
+                        'minutes': etaMinutes,
+                      })}',
                   style: TextStyle(
                     color: scheme.primary,
                     fontSize: context.rsp(11.5),

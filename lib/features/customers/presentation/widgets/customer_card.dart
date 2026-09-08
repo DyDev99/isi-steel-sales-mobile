@@ -4,6 +4,7 @@ import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer.dart';
+import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_status_badge.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/shop/shop_order_entry_screen.dart'; // Adjust path if needed
 
 // Static fallback values used whenever real customer data is missing,
@@ -11,7 +12,8 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/screens/shop/
 const String _fallbackCustomerCode = 'CUS-00000';
 const String _fallbackTerritory = 'Phnom Penh';
 const String _fallbackChannel = 'Wholesale';
-const String _fallbackTier = 'Silver'; // Fallback / mock field from customer entity
+const String _fallbackTier =
+    'Silver'; // Fallback / mock field from customer entity
 
 class CustomerCard extends StatelessWidget {
   const CustomerCard({
@@ -82,8 +84,9 @@ class CustomerCard extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final colors = context.appColors;
 
-    final customerCode =
-        customer.customerCode.isNotEmpty ? customer.customerCode : _fallbackCustomerCode;
+    final customerCode = customer.customerCode.isNotEmpty
+        ? customer.customerCode
+        : _fallbackCustomerCode;
     final territory =
         customer.territory.isNotEmpty ? customer.territory : _fallbackTerritory;
     final tierColors = _getTierColors(_fallbackTier);
@@ -108,33 +111,42 @@ class CustomerCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Top Row: Customer Code, Name & Favorite Toggle
+              // Top Row: name + trading status
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        
-                        Text(
-                          // Both languages are already on the entity, so a
-                          // language switch re-resolves this line on the
-                          // next rebuild — no re-query, no re-sync.
-                          context.localized(customer.displayName),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: colors.textPrimary,
-                            fontSize: context.rsp(15),
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ],
+                    child: Text(
+                      // Both languages are already on the entity, so a
+                      // language switch re-resolves this line on the
+                      // next rebuild — no re-query, no re-sync.
+                      context.localized(customer.displayName),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: colors.textPrimary,
+                        fontSize: context.rsp(15),
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ),
-
-                 
+                  SizedBox(width: context.rw(8)),
+                  // Read straight off the entity — `CustomerStatusBadge`
+                  // resolves both the label and the colour from the stable
+                  // `status` code, so an offline row reads in the current
+                  // language rather than the one it was synced under.
+                  //
+                  // Beside the name on purpose: suspended, closed and
+                  // credit-hold all mean "do not start writing an order", and
+                  // a rep needs that before they tap through, not after. Same
+                  // placement `shop_tile.dart` uses.
+                  // Flexible, not bare: at large text scales the label alone
+                  // is wider than the space left beside the name, and an
+                  // unconstrained badge overflows the card rather than
+                  // ellipsizing.
+                  Flexible(
+                    child: CustomerStatusBadge(status: customer.status),
+                  ),
                 ],
               ),
               SizedBox(height: context.rh(10)),

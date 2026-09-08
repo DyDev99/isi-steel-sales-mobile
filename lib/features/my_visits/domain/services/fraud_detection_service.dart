@@ -5,13 +5,33 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/locati
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/geofence_service.dart';
 
 class CheckInValidation {
-  const CheckInValidation(
-      {required this.allowed,
-      required this.blockedReasons,
-      required this.warnings});
+  const CheckInValidation({
+    required this.allowed,
+    required this.blockedReasons,
+    required this.warnings,
+    this.overridableReasons = const [],
+    this.integrityReasons = const [],
+  });
+
   final bool allowed;
   final List<String> blockedReasons;
   final List<String> warnings;
+
+  /// Blocks a rep can answer for: outside the geofence, or a fix too coarse to
+  /// judge. Both are statements about the *place*, and a place can have a
+  /// legitimate explanation — a depot gate far from the office pin, a steel
+  /// roof killing the fix.
+  final List<String> overridableReasons;
+
+  /// Blocks about whether the device is telling the truth — a mock location
+  /// provider, a VPN. **Never overridable.** A free-text box cannot answer
+  /// "is this position real", and letting it try would turn the one control
+  /// that catches faked visits into a formality.
+  final List<String> integrityReasons;
+
+  /// True when a written reason could carry this check-in through.
+  bool get canOverrideWithReason =>
+      integrityReasons.isEmpty && overridableReasons.isNotEmpty;
 }
 
 /// Anti-fraud checks for check-in/out and the continuous location trail.
@@ -30,32 +50,41 @@ class FraudDetectionService {
     required bool vpnDetected,
     required FraudPolicy policy,
   }) {
-    final blocked = <String>[];
+    final overridable = <String>[];
+    final integrity = <String>[];
     final warnings = <String>[];
 
-    if (!insideGeofence) blocked.add("You're outside the customer's geofence.");
+    if (!insideGeofence) {
+      overridable.add("You're outside the customer's geofence.");
+    }
     if (accuracyMeters > policy.maxAccuracyMeters) {
-      blocked.add(
+      overridable.add(
           'GPS accuracy too low (±${accuracyMeters.toStringAsFixed(0)}m) — move to open sky and retry.');
     }
     if (isMocked) {
       if (policy.blockOnMockLocation) {
-        blocked.add('Mock/fake location detected.');
+        integrity.add('Mock/fake location detected.');
       } else {
         warnings.add('Simulated location detected (allowed in this build).');
       }
     }
     if (vpnDetected) {
       if (policy.blockOnVpn) {
-        blocked.add('Disable your VPN to check in.');
+        integrity.add('Disable your VPN to check in.');
       } else {
         warnings.add(
             'VPN or proxy detected — location verification may be unreliable.');
       }
     }
 
+    final blocked = [...overridable, ...integrity];
     return CheckInValidation(
-        allowed: blocked.isEmpty, blockedReasons: blocked, warnings: warnings);
+      allowed: blocked.isEmpty,
+      blockedReasons: blocked,
+      warnings: warnings,
+      overridableReasons: overridable,
+      integrityReasons: integrity,
+    );
   }
 
   /// Flags a consecutive sample pair as an "impossible travel" / teleport

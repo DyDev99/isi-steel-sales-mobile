@@ -11,15 +11,23 @@ import 'package:pdf/widgets.dart' as pw;
 /// reaches the customer — and swapping the two ink variants produces a mark
 /// the same colour as the surface behind it, which is equally invisible and
 /// equally undetectable from a green test run.
+///
+/// The filenames name the ink, and each file's `<title>` names the surface it
+/// belongs on. This suite trusts neither: it reads the actual fill, because a
+/// swap here is invisible in review and invisible on screen.
 void main() {
-  const darkPath = 'assets/logos/ISI-Group-Logo-Dark.svg';
-  const lightPath = 'assets/logos/ISI-Group-Logo-Light.svg';
+  /// Navy `#011E41` — drawn on light surfaces and on PDF paper.
+  const darkInkPath = 'assets/logos/isi-steel-dark.svg';
+
+  /// Near-white `#DCE3EB` — drawn on dark surfaces.
+  const lightInkPath = 'assets/logos/isi-steel-light.svg';
 
   test('both ink variants exist and are declared under a bundled directory',
       () {
-    expect(File(darkPath).existsSync(), isTrue, reason: '$darkPath is missing');
-    expect(File(lightPath).existsSync(), isTrue,
-        reason: '$lightPath is missing');
+    expect(File(darkInkPath).existsSync(), isTrue,
+        reason: '$darkInkPath is missing');
+    expect(File(lightInkPath).existsSync(), isTrue,
+        reason: '$lightInkPath is missing');
     expect(
       File('pubspec.yaml').readAsStringSync(),
       contains('- assets/logos/'),
@@ -29,17 +37,38 @@ void main() {
 
   test('the ink variants are not swapped', () {
     // If these two ever trade places, every surface in the app shows the mark
-    // in the colour of the surface behind it.
-    expect(File(darkPath).readAsStringSync(), contains('#15213A'));
-    expect(File(lightPath).readAsStringSync(), contains('#E0E4EE'));
+    // in the colour of the surface behind it. This assertion has already caught
+    // that once, from a misread of which file carried which fill.
+    expect(File(darkInkPath).readAsStringSync(), contains('#011E41'),
+        reason: '$darkInkPath must carry the navy ink for light surfaces');
+    expect(File(lightInkPath).readAsStringSync(), contains('#DCE3EB'),
+        reason:
+            '$lightInkPath must carry the near-white ink for dark surfaces');
   });
 
-  test('the dark variant renders through the PDF SVG engine', () async {
+  test('BrandLogo and the PDF header point at the ink these tests assert', () {
+    // The guard above only means something if production reads the same two
+    // files. Asserted against source so a rename in one place cannot quietly
+    // leave this suite testing assets nobody draws.
+    final brandLogo =
+        File('lib/shared/widgets/brand_logo.dart').readAsStringSync();
+    expect(brandLogo, contains("_darkInkAsset = '$darkInkPath'"));
+    expect(brandLogo, contains("_lightInkAsset = '$lightInkPath'"));
+
+    expect(
+      File('lib/core/services/pdf/pdf_assets.dart').readAsStringSync(),
+      contains("loadString('$darkInkPath')"),
+      reason: 'a PDF is drawn on white paper and needs the navy mark',
+    );
+  });
+
+  test('the PDF header variant renders through the PDF SVG engine', () async {
     // `PdfAssets` loads this exact file for the quotation header and
     // `quotation_pdf_generator` draws it with `pw.SvgImage`. The pdf package
     // implements a *subset* of SVG, so "flutter_svg can draw it" is not
-    // evidence the export can.
-    final svg = File(darkPath).readAsStringSync();
+    // evidence the export can — and this artwork was re-exported, so the
+    // subset question is live again rather than settled.
+    final svg = File(darkInkPath).readAsStringSync();
 
     Future<int> lengthOf(pw.Widget child) async {
       final doc = pw.Document();

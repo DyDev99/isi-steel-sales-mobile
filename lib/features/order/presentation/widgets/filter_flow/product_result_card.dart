@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/entities/mobile_price.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/promotion/promotion_evaluation.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/cart_quantity_stepper.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/material_price_view.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/promotion/promotion_inline_block.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
@@ -21,19 +23,26 @@ import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 /// card's identity line. It is not decoration; it is the whole difference
 /// between the rows.
 ///
-/// ## No stock, no price
+/// ## No stock, and no *catalogue* price
 ///
-/// This card identifies a material and nothing more. Material selection is
-/// independent of stock and pricing: a rep may put any catalogue material on a
-/// quotation, and HQ prices it afterwards.
-///
-/// Showing either here was worse than useless. The materials API supplies no
-/// on-hand quantity and no price, so a band read "No stock" and an amount read
-/// `$0.00` for materials that were perfectly orderable — and both then gated
+/// No band is shown: the materials API supplies no on-hand quantity, so one
+/// read "No stock" for materials that were perfectly orderable and then gated
 /// the `+`. A rep declined sales over data the server had never sent.
 ///
-/// Stock and price are still fetched and still shown further down the flow,
-/// where they inform rather than block.
+/// The same was true of the price, and for the same reason — `Product.pricing`
+/// is a catalogue figure, not what this customer pays, so it rendered `$0.00`
+/// against orderable materials. **That figure is still never shown here.**
+///
+/// What is shown now is the customer-specific price from the pricing endpoint,
+/// passed in as [price] and resolved upstream by `PricingCubit`. It is a
+/// different thing: quoted per customer by the backend, carrying its own
+/// currency, and carrying its own states — so "loading", "no price" and "the
+/// request failed" stay distinguishable instead of collapsing into a figure.
+/// The card computes none of it, and [price] being null renders nothing at
+/// all, which is what keeps this card usable on screens with no customer.
+///
+/// Neither stock nor price gates the `+`. Material selection stays independent
+/// of both: a rep may quote any catalogue material.
 class ProductResultCard extends StatelessWidget {
   const ProductResultCard({
     super.key,
@@ -48,6 +57,8 @@ class ProductResultCard extends StatelessWidget {
     this.onCustomize,
     this.promotion,
     this.onPromotionTap,
+    this.price,
+    this.onPriceRetry,
   });
 
   final Product product;
@@ -80,6 +91,17 @@ class ProductResultCard extends StatelessWidget {
   final PromotionEvaluation? promotion;
 
   final VoidCallback? onPromotionTap;
+
+  /// What this customer pays for this material, as the backend last said it.
+  ///
+  /// Null renders nothing — the resting state on any screen without a pricing
+  /// context. Never derived from [Product.pricing]: see the class doc.
+  final MobilePrice? price;
+
+  /// Re-asks for a price that failed. Offered only for a failed request, not
+  /// for a backend that answered "no price" — that is settled, and retrying
+  /// asks the same question again.
+  final VoidCallback? onPriceRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -186,10 +208,21 @@ class ProductResultCard extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Identification only — no band, no amount.
-                          // Category and unit say what the material *is*;
-                          // stock and price are neither known here nor needed
-                          // to add it to the cart.
+                          // The price leads this column: it is the number
+                          // the rep says out loud, and it has to be readable
+                          // without hunting. Renders nothing when there is no
+                          // pricing context, so the identity line simply
+                          // moves up.
+                          if (price != null) ...[
+                            MaterialPriceView(
+                              price: price,
+                              unit: product.unit,
+                              onRetry: onPriceRetry,
+                            ),
+                            SizedBox(height: context.rh(3)),
+                          ],
+                          // Identification — no band, no catalogue amount.
+                          // Category and unit say what the material *is*.
                           if (identity.isNotEmpty)
                             Text(
                               identity,

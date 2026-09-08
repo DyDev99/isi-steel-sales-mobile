@@ -461,6 +461,19 @@
       "none_available": "No promotions running for this customer",
       "none_upcoming": "No promotions scheduled",
       "none_applied": "No promotions applied yet"
+    },
+    "pricing": {
+      "loading": "Loading current price…",
+      "live": "Live",
+      "not_live": "Not live",
+      "retry": "Retry",
+      "unavailable": "Price unavailable",
+      "no_price": "No price for this customer",
+      "no_customer": "Select a customer to see pricing",
+      "not_priceable": "Customer not set up for pricing",
+      "unauthorized": "Not allowed to see pricing",
+      "backend_down": "Pricing service unavailable",
+      "offline": "Offline — price not available"
     }
   },
   "leads": {
@@ -1059,6 +1072,23 @@
         "next_question": "What would you like to do next?",
         "complete_visit": "Complete visit"
       }
+    },
+    "check_in_verification": {
+      "title": "Location Verification",
+      "within_title": "Within Check-In Radius",
+      "outside_title": "Outside Check-In Radius",
+      "within_body": "You are within the designated check-in area for this outlet.",
+      "outside_body": "You are outside the designated check-in area for this outlet. You may still check in, but a reason is required.",
+      "distance_label": "Distance from outlet",
+      "radius_label": "Allowed radius",
+      "meters": "{value} m",
+      "confirm": "Confirm Check-In",
+      "check_again": "Check Again",
+      "no_fix_title": "Locating You",
+      "no_fix_body": "Waiting for a GPS fix. Move to open sky, then check again.",
+      "no_outlet_title": "Outlet Location Unavailable",
+      "no_outlet_body": "This outlet has no recorded location, so your distance cannot be verified.",
+      "continue_with_reason": "Continue with Reason"
     }
   },
   "completed": {

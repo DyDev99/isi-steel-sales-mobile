@@ -5,7 +5,7 @@ import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
 /// The single source of truth for the encrypted database's schema version.
 /// Bump this by exactly one whenever a schema change ships, and add the matching
 /// step to [_stepwiseMigrations].
-const int kCurrentSchemaVersion = 21;
+const int kCurrentSchemaVersion = 22;
 
 /// Keys under which the migrator records bookkeeping in `app_metadata`, so the
 /// on-device schema history is auditable and a failed/partial upgrade is
@@ -514,6 +514,22 @@ final Map<int, SchemaMigrationStep> _stepwiseMigrations =
   21: (m, db) async {
     await _addColumnIfMissing(
         m, db, db.customerSyncMeta, db.customerSyncMeta.syncedLanguage);
+  },
+  // v22: carry the rep's reason for checking in outside the geofence.
+  //
+  // Additive and nullable, so a pure `addColumn` with no data rewrite. Null on
+  // every existing row is the correct reading: those check-ins were either
+  // inside the geofence or recorded before an override was possible, and
+  // neither has a reason to give.
+  //
+  // Why it is needed: the override was built end to end — the event, the bloc,
+  // the entity, the row mapper and the push payload all carry
+  // `overrideReason` — but the column was never added, so
+  // `visit_drift_mappers.dart` referenced a field the generated row did not
+  // have and the whole app stopped compiling.
+  22: (m, db) async {
+    await _addColumnIfMissing(
+        m, db, db.visitCheckIns, db.visitCheckIns.overrideReason);
   },
 };
 

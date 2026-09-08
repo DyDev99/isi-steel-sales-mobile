@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:isi_steel_sales_mobile/core/logging/app_logger.dart';
 import 'package:isi_steel_sales_mobile/core/usecase/usecase.dart';
 import 'package:isi_steel_sales_mobile/core/utils/result.dart';
 import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
@@ -9,6 +10,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/repositories/active_workflow_repository.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/repositories/route_repository.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/check_out.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/fetch_location_samples.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/routes_params.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/update_stop_status.dart';
 
@@ -31,13 +33,33 @@ class CompleteVisitCheckOut extends UseCase<bool, NoParams> {
     this._workflowRepository,
     this._routeRepository,
     this._checkOut,
-    this._updateStopStatus,
-  );
+    this._updateStopStatus, [
+    this._logger,
+    this._fetchLocationSamples,
+  ]);
 
   final ActiveWorkflowRepository _workflowRepository;
   final RouteRepository _routeRepository;
   final CheckOut _checkOut;
   final UpdateStopStatus _updateStopStatus;
+
+  /// The route's recorded GPS trail, used only for its newest sample.
+  ///
+  /// Optional because this use case is constructed positionally in DI and in
+  /// tests, and because a check-out must never fail for want of a position.
+  /// **Register it** (`my_visits_injection.dart`) or every check-out keeps
+  /// falling back to the shop's own pin — see [_recordFor].
+  final FetchLocationSamples? _fetchLocationSamples;
+
+  /// Optional so existing tests construct this unchanged.
+  ///
+  /// Every branch below that declines to write is logged. All three look
+  /// identical from the outside — the rep taps "Complete Visit", the screen
+  /// closes, and nothing happens: no check-out row, so the push finds an empty
+  /// queue and makes no request, and no status write, so the outlet still reads
+  /// as not visited. Without a line saying *which* precondition was missing,
+  /// that is indistinguishable from a broken button.
+  final AppLogger? _logger;
 
   @override
   ResultFuture<bool> call(NoParams params) async {
@@ -46,6 +68,10 @@ class CompleteVisitCheckOut extends UseCase<bool, NoParams> {
         workflowResult.when(success: (w) => w, failure: (_) => null);
     final stopId = workflow?.currentStopId;
     if (workflow == null || stopId == null) {
+      _logger?.warning('visit.checkout.skipped', fields: {
+        'reason': workflow == null ? 'noActiveWorkflow' : 'noCurrentStopId',
+        'routeId': workflow?.routeId,
+      });
       return _clearAndReturn(false);
     }
 
@@ -60,27 +86,90 @@ class CompleteVisitCheckOut extends UseCase<bool, NoParams> {
         }
       }
     }
-    if (stop == null) return _clearAndReturn(true);
+    if (stop == null) {
+      _logger?.warning('visit.checkout.skipped', fields: {
+        'reason': route == null ? 'routeNotFound' : 'stopNotOnRoute',
+        'routeId': workflow.routeId,
+        'stopId': stopId,
+      });
+      return _clearAndReturn(true);
+    }
 
     // Already resolved — nothing to write, just drop the pointer (idempotent).
-    if (stop.status != VisitStatus.checkedIn) return _clearAndReturn(true);
+    if (stop.status != VisitStatus.checkedIn) {
+      // The one worth reading twice in a bug report: a stop still `pending` or
+      // `arrived` means check-in never completed, so there is nothing to close.
+      _logger?.warning('visit.checkout.skipped', fields: {
+        'reason': 'stopNotCheckedIn',
+        'stopId': stopId,
+        'status': stop.status.name,
+      });
+      return _clearAndReturn(true);
+    }
 
     final now = DateTime.now();
-    final checkOutResult = await _checkOut(_recordFor(stop, now));
+    final position = await _lastKnownPosition(workflow.routeId);
+    if (position == null) {
+      _logger?.warning('visit.checkout.position_unavailable', fields: {
+        'stopId': stop.id,
+        'routeId': workflow.routeId,
+        'reason': _fetchLocationSamples == null ? 'notWired' : 'noSamples',
+      });
+    }
+    final checkOutResult = await _checkOut(_recordFor(stop, now, position));
     if (checkOutResult is Failed<CheckOutRecord>) {
       return Failed(checkOutResult.failure);
     }
     await _updateStopStatus(UpdateStopStatusParams(
         stopId: stop.id, status: VisitStatus.checkedOut, actualDeparture: now));
+    _logger?.info('visit.checkout.completed',
+        fields: {'stopId': stop.id, 'routeId': workflow.routeId});
     return _clearAndReturn(true);
   }
 
-  CheckOutRecord _recordFor(RouteStop stop, DateTime now) => CheckOutRecord(
+  /// The newest GPS sample recorded on this route, or null.
+  ///
+  /// `LocationTrackingCubit` writes these continuously while a route runs, so
+  /// on any real visit there is one. Null means either the dependency is
+  /// unregistered or tracking never started — both worth a log line, neither
+  /// worth refusing a check-out over.
+  Future<({double latitude, double longitude})?> _lastKnownPosition(
+      String routeId) async {
+    final fetch = _fetchLocationSamples;
+    if (fetch == null) return null;
+
+    final result = await fetch(RouteIdParams(routeId));
+    final samples = result.when(success: (s) => s, failure: (_) => null);
+    if (samples == null || samples.isEmpty) return null;
+
+    var newest = samples.first;
+    for (final sample in samples) {
+      if (sample.timestamp.isAfter(newest.timestamp)) newest = sample;
+    }
+    return (latitude: newest.latitude, longitude: newest.longitude);
+  }
+
+  /// **Where the rep was, not where the shop is.**
+  ///
+  /// These coordinates used to be `stop.customer.latitude/longitude`
+  /// unconditionally — the shop's own pin, recorded as the rep's position. A
+  /// check-out written that way always reads as exactly on-location, so it is
+  /// worthless as the location evidence api.md §8.2 treats it as.
+  ///
+  /// The customer pin remains the fallback when no sample exists, because a
+  /// check-out that fails to write is worse than one written from a weaker
+  /// source — but that case is logged rather than passed off as measured.
+  CheckOutRecord _recordFor(
+    RouteStop stop,
+    DateTime now,
+    ({double latitude, double longitude})? position,
+  ) =>
+      CheckOutRecord(
         id: '${now.microsecondsSinceEpoch}-${Random().nextInt(99999)}',
         stopId: stop.id,
         timestamp: now,
-        latitude: stop.customer.latitude,
-        longitude: stop.customer.longitude,
+        latitude: position?.latitude ?? stop.customer.latitude,
+        longitude: position?.longitude ?? stop.customer.longitude,
         durationMinutes: stop.actualArrival == null
             ? 0
             : now.difference(stop.actualArrival!).inMinutes,

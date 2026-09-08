@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:isi_steel_sales_mobile/core/animations/animated_card.dart';
+import 'package:isi_steel_sales_mobile/core/animations/app_animations.dart';
+import 'package:isi_steel_sales_mobile/core/animations/press_scale.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_status.dart';
@@ -86,67 +89,103 @@ class StopCard extends StatelessWidget {
 
     return Padding(
       padding: EdgeInsets.only(bottom: context.rh(12)),
-      child: InkWell(
+      // `AnimatedCard` rather than a bare `InkWell` over a `Container`: the
+      // rest state is pixel-identical (same colour, border, radius, shadow),
+      // and the card gains the press scale, ripple and shadow-settle every
+      // other pressable surface in the app already has. A stop card is the
+      // primary target on this screen — it should answer a finger.
+      child: AnimatedCard(
         onTap: canStartVisit ? onTap : null,
+        color: colors.card,
+        border: Border.all(color: colors.border),
         borderRadius: BorderRadius.circular(context.rr(16)),
-        child: Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: context.rw(16),
-            vertical: context.rh(14),
-          ),
-          decoration: BoxDecoration(
-            color: colors.card,
-            borderRadius: BorderRadius.circular(context.rr(16)),
-            border: Border.all(color: colors.border),
-            boxShadow: colors.cardShadow,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Top Row: Outlet Name, Address & Status Pill
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          formattedOutletName,
-                          style: TextStyle(
-                            color: colors.textPrimary,
-                            fontSize: context.rsp(15),
-                            fontWeight: FontWeight.w800,
-                          ),
+        restShadow: colors.cardShadow,
+        // A card that cannot be opened must not pretend otherwise.
+        enableHoverScale: canStartVisit,
+        pressedScale: canStartVisit ? AppScale.pressedCard : 1.0,
+        padding: EdgeInsets.symmetric(
+          horizontal: context.rw(16),
+          vertical: context.rh(14),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Top Row: Outlet Name, Address & Status Pill
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        formattedOutletName,
+                        style: TextStyle(
+                          color: colors.textPrimary,
+                          fontSize: context.rsp(15),
+                          fontWeight: FontWeight.w800,
                         ),
-                        SizedBox(height: context.rh(4)),
-                        Text(
-                          customer.address,
-                          style: TextStyle(
-                            color: colors.textSecondary,
-                            fontSize: context.rsp(11.5),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                      ),
+                      SizedBox(height: context.rh(4)),
+                      Text(
+                        customer.address,
+                        style: TextStyle(
+                          color: colors.textSecondary,
+                          fontSize: context.rsp(11.5),
                         ),
-                      ],
-                    ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
-                  SizedBox(width: context.rw(12)),
+                ),
+                SizedBox(width: context.rw(12)),
 
-                  // Status Pill
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: context.rw(10),
-                      vertical: context.rh(4),
+                // Status pill.
+                //
+                // Animated because this is the one thing on the card that
+                // *changes*, and it is the app's whole answer to "did my
+                // visit register?". `WatchAllRoutes` pushes the new status
+                // in live, so with a static pill the label simply teleports
+                // from "In Progress" to "Visited" — easy to miss, and the
+                // rep is left tapping Complete Visit again. The colour eases
+                // and the wording cross-fades, so the change is witnessed.
+                AnimatedContainer(
+                  duration: AppDurations.medium,
+                  curve: AppCurves.standard,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: context.rw(10),
+                    vertical: context.rh(4),
+                  ),
+                  decoration: BoxDecoration(
+                    color: statusStyle.color.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(context.rr(12)),
+                  ),
+                  child: AnimatedSwitcher(
+                    duration: AppDurations.medium,
+                    switchInCurve: AppCurves.standard,
+                    switchOutCurve: AppCurves.standard,
+                    // Size-transition too, so a pill going from "Pending" to
+                    // "In Progress" grows into the wider word instead of
+                    // clipping it mid-fade.
+                    transitionBuilder: (child, animation) => FadeTransition(
+                      opacity: animation,
+                      child: SizeTransition(
+                        axis: Axis.horizontal,
+                        sizeFactor: animation,
+                        child: child,
+                      ),
                     ),
-                    decoration: BoxDecoration(
-                      color: statusStyle.color.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(context.rr(12)),
+                    layoutBuilder: (current, previous) => Stack(
+                      alignment: Alignment.centerRight,
+                      children: [...previous, if (current != null) current],
                     ),
                     child: Text(
                       statusStyle.label,
+                      // Keyed by the status, not the text: without a key
+                      // `AnimatedSwitcher` sees one `Text` and never runs.
+                      key: ValueKey(_status),
                       style: TextStyle(
                         color: statusStyle.color,
                         fontSize: context.rsp(11),
@@ -154,85 +193,85 @@ class StopCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                ],
-              ),
-              SizedBox(height: context.rh(10)),
+                ),
+              ],
+            ),
+            SizedBox(height: context.rh(10)),
 
-              // Middle Row: Territory + Channel + Tier Tags + Action Buttons
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // Tagging Section: Territory, Wholesale/Retail, Diamond/Gold/Silver/Bronze
-                  Expanded(
-                    child: Wrap(
-                      spacing: context.rw(6),
-                      runSpacing: context.rh(4),
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        _TagChip(
-                          label: customer.territory,
-                          color: colors.border,
-                        ),
-                        _TagChip(
-                          label: channelTag,
-                          color: Colors.amber.shade100,
-                          textColor: Colors.amber.shade900,
-                        ),
-                        _TagChip(
-                          label: tierTag,
-                          color: tierColors.bg,
-                          textColor: tierColors.text,
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Action Buttons Section
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
+            // Middle Row: Territory + Channel + Tier Tags + Action Buttons
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Tagging Section: Territory, Wholesale/Retail, Diamond/Gold/Silver/Bronze
+                Expanded(
+                  child: Wrap(
+                    spacing: context.rw(6),
+                    runSpacing: context.rh(4),
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
-                      // Basket Order Button — hidden when pending
-                      if (_status != VisitStatus.pending)
-                        _ActionButton(
-                          icon: Icons.shopping_basket_rounded,
-                          color: Theme.of(context).colorScheme.primary,
-                          backgroundColor: Theme.of(context)
-                              .colorScheme
-                              .primary
-                              .withValues(alpha: 0.12),
-                          onTap: onQuotationTap,
-                        ),
-
-                      // Skip Visit Button — shown only when pending today
-                      if (canSkip) ...[
-                        SizedBox(width: context.rw(8)),
-                        _ActionButton(
-                          icon: Icons.cancel_rounded,
-                          color: Theme.of(context).colorScheme.error,
-                          backgroundColor: Theme.of(context)
-                              .colorScheme
-                              .error
-                              .withValues(alpha: 0.12),
-                          onTap: () async {
-                            HapticFeedback.mediumImpact();
-                            final result = await showSkipVisitDialog(
-                              context,
-                              customer: customer,
-                            );
-                            if (result != null) {
-                              onSkipSubmitted?.call(
-                                  result.reason, result.photoPath);
-                            }
-                          },
-                        ),
-                      ],
+                      _TagChip(
+                        label: customer.territory,
+                        color: colors.border,
+                      ),
+                      _TagChip(
+                        label: channelTag,
+                        color: Colors.amber.shade100,
+                        textColor: Colors.amber.shade900,
+                      ),
+                      _TagChip(
+                        label: tierTag,
+                        color: tierColors.bg,
+                        textColor: tierColors.text,
+                      ),
                     ],
                   ),
-                ],
-              ),
-            ],
-          ),
+                ),
+
+                // Action Buttons Section
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Basket Order Button — hidden when pending
+                    if (_status != VisitStatus.pending)
+                      _ActionButton(
+                        icon: Icons.shopping_basket_rounded,
+                        color: Theme.of(context).colorScheme.primary,
+                        backgroundColor: Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withValues(alpha: 0.12),
+                        onTap: onQuotationTap,
+                      ),
+
+                    // Skip Visit Button — shown only when pending today
+                    if (canSkip) ...[
+                      SizedBox(width: context.rw(8)),
+                      _ActionButton(
+                        icon: Icons.cancel_rounded,
+                        color: Theme.of(context).colorScheme.error,
+                        backgroundColor: Theme.of(context)
+                            .colorScheme
+                            .error
+                            .withValues(alpha: 0.12),
+                        onTap: () async {
+                          HapticFeedback.mediumImpact();
+                          final result = await showSkipVisitDialog(
+                            context,
+                            customer: customer,
+                          );
+                          if (result != null) {
+                            onSkipSubmitted?.call(
+                                result.reason, result.photoPath);
+                          }
+                        },
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -283,9 +322,14 @@ class _ActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    // `PressScale`, not a bare `InkWell`: these sit *inside* the card's own
+    // ripple, so a tap on the basket used to read as a tap on the card behind
+    // it — the ripple spread across the whole surface and the button itself
+    // did nothing visible. Scaling the button says which of the two nested
+    // targets the finger actually hit.
+    return PressScale(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(context.rr(20)),
+      enabled: onTap != null,
       child: Container(
         padding: EdgeInsets.all(context.rr(6)),
         decoration: BoxDecoration(

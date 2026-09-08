@@ -53,6 +53,7 @@ extension VisitCheckInRowMapper on VisitCheckInRow {
         accuracyMeters: accuracy,
         distanceFromCustomerMeters: distanceFromCustomer,
         isMocked: isMocked,
+        overrideReason: overrideReason,
       );
 }
 
@@ -66,6 +67,7 @@ extension CheckInRecordModelMapper on CheckInRecordModel {
         accuracy: accuracyMeters,
         distanceFromCustomer: distanceFromCustomerMeters,
         isMocked: Value(isMocked),
+        overrideReason: Value(overrideReason),
       );
 }
 

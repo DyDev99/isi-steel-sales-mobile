@@ -143,6 +143,51 @@ void main() {
     });
   });
 
+  group('retrying one card', () {
+    test('re-asks for that material only', () async {
+      // The point of a per-card retry: a rep retrying one failed line must not
+      // put the seven prices that answered fine back into a spinner.
+      repo.priceBook = {'A': 100, 'B': 250, 'C': 75};
+      await cubit.setCustomer('cust_1');
+      await cubit.track(['A', 'B', 'C']);
+      repo.requests.clear();
+
+      await cubit.retry('B');
+
+      expect(repo.requests.single, ['B']);
+      expect(cubit.of('A')?.price, 100, reason: 'untouched by the retry');
+      expect(cubit.of('C')?.price, 75, reason: 'untouched by the retry');
+    });
+
+    test('a failed price becomes real once the retry succeeds', () async {
+      repo.failure = const ServerFailure(message: 'boom');
+      await cubit.setCustomer('cust_1');
+      await cubit.track(['A']);
+      expect(cubit.of('A')?.state, PricingState.error);
+
+      repo.failure = null;
+      repo.priceBook = {'A': 100};
+      await cubit.retry('A');
+
+      expect(cubit.of('A')?.state, PricingState.loaded);
+      expect(cubit.of('A')?.price, 100);
+    });
+
+    test('a material no longer on the quotation is not re-fetched', () async {
+      // A retry racing a line removal must not resurrect the card.
+      repo.priceBook = {'A': 100};
+      await cubit.setCustomer('cust_1');
+      await cubit.track(['A']);
+      cubit.untrack('A');
+      repo.requests.clear();
+
+      await cubit.retry('A');
+
+      expect(repo.requests, isEmpty);
+      expect(cubit.of('A'), isNull);
+    });
+  });
+
   group('realtime updates', () {
     setUp(() async {
       repo.priceBook = {'A': 100, 'B': 250};

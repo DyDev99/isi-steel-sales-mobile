@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:isi_steel_sales_mobile/core/animations/page_transition.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_stop.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/active_route_bloc.dart';
@@ -40,7 +41,7 @@ Future<void> openStopInformation(
   }
 
   return Navigator.of(context).push(
-    MaterialPageRoute(
+    AppPageRoute<void>.sharedAxisVertical(
       settings: const RouteSettings(name: StopInformationScreen.routeName),
       builder: (_) => MultiBlocProvider(
         providers: [

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/promotion/demo_cart_promotions.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/cart_item_tile.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/promotion/promotion_detail_sheet.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/discount_preset_chips.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
@@ -24,6 +26,12 @@ class QuotationLineTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Static while the shape is being reviewed. The real source is
+    // `PromotionCubit`, which returns this same type — but it is not provided
+    // on the sales-order screen this tile also renders on, so reading it here
+    // would crash a screen that never asked about promotions.
+    final promo = DemoCartPromotions.evaluate(item);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -31,6 +39,14 @@ class QuotationLineTile extends StatelessWidget {
           item: item,
           onQuantityChanged: onQuantityChanged,
           onRemove: onRemove,
+          promotion: promo,
+          onPromotionDetail: promo == null
+              ? null
+              : () => showPromotionDetailSheet(
+                    context,
+                    promotion: promo.promotion,
+                    evaluation: promo,
+                  ),
         ),
         Padding(
           padding: const EdgeInsets.only(top: 4, bottom: 10),

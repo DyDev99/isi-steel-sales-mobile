@@ -11752,6 +11752,12 @@ class $VisitCheckInsTable extends VisitCheckIns
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('CHECK ("is_mocked" IN (0, 1))'),
       defaultValue: const Constant(false));
+  static const VerificationMeta _overrideReasonMeta =
+      const VerificationMeta('overrideReason');
+  @override
+  late final GeneratedColumn<String> overrideReason = GeneratedColumn<String>(
+      'override_reason', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -11766,7 +11772,8 @@ class $VisitCheckInsTable extends VisitCheckIns
         longitude,
         accuracy,
         distanceFromCustomer,
-        isMocked
+        isMocked,
+        overrideReason
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -11847,6 +11854,12 @@ class $VisitCheckInsTable extends VisitCheckIns
       context.handle(_isMockedMeta,
           isMocked.isAcceptableOrUnknown(data['is_mocked']!, _isMockedMeta));
     }
+    if (data.containsKey('override_reason')) {
+      context.handle(
+          _overrideReasonMeta,
+          overrideReason.isAcceptableOrUnknown(
+              data['override_reason']!, _overrideReasonMeta));
+    }
     return context;
   }
 
@@ -11883,6 +11896,8 @@ class $VisitCheckInsTable extends VisitCheckIns
           data['${effectivePrefix}distance_from_customer'])!,
       isMocked: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}is_mocked'])!,
+      overrideReason: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}override_reason']),
     );
   }
 
@@ -11919,6 +11934,17 @@ class VisitCheckInRow extends DataClass implements Insertable<VisitCheckInRow> {
   /// to the geofence rule, retained for audit.
   final double distanceFromCustomer;
   final bool isMocked;
+
+  /// Why the rep checked in from outside the geofence, when they did.
+  ///
+  /// Null is the normal case — a check-in that satisfied the rule needs no
+  /// explanation. Non-null means the rep was let through anyway and said why,
+  /// so the row carries its own justification rather than leaving an
+  /// out-of-bounds check-in indistinguishable from a compliant one.
+  ///
+  /// Nullable and additive: the geofence verdict itself stays in
+  /// [distanceFromCustomer], which is what the server re-evaluates.
+  final String? overrideReason;
   const VisitCheckInRow(
       {required this.id,
       required this.updatedAt,
@@ -11932,7 +11958,8 @@ class VisitCheckInRow extends DataClass implements Insertable<VisitCheckInRow> {
       required this.longitude,
       required this.accuracy,
       required this.distanceFromCustomer,
-      required this.isMocked});
+      required this.isMocked,
+      this.overrideReason});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -11951,6 +11978,9 @@ class VisitCheckInRow extends DataClass implements Insertable<VisitCheckInRow> {
     map['accuracy'] = Variable<double>(accuracy);
     map['distance_from_customer'] = Variable<double>(distanceFromCustomer);
     map['is_mocked'] = Variable<bool>(isMocked);
+    if (!nullToAbsent || overrideReason != null) {
+      map['override_reason'] = Variable<String>(overrideReason);
+    }
     return map;
   }
 
@@ -11971,6 +12001,9 @@ class VisitCheckInRow extends DataClass implements Insertable<VisitCheckInRow> {
       accuracy: Value(accuracy),
       distanceFromCustomer: Value(distanceFromCustomer),
       isMocked: Value(isMocked),
+      overrideReason: overrideReason == null && nullToAbsent
+          ? const Value.absent()
+          : Value(overrideReason),
     );
   }
 
@@ -11992,6 +12025,7 @@ class VisitCheckInRow extends DataClass implements Insertable<VisitCheckInRow> {
       distanceFromCustomer:
           serializer.fromJson<double>(json['distanceFromCustomer']),
       isMocked: serializer.fromJson<bool>(json['isMocked']),
+      overrideReason: serializer.fromJson<String?>(json['overrideReason']),
     );
   }
   @override
@@ -12011,6 +12045,7 @@ class VisitCheckInRow extends DataClass implements Insertable<VisitCheckInRow> {
       'accuracy': serializer.toJson<double>(accuracy),
       'distanceFromCustomer': serializer.toJson<double>(distanceFromCustomer),
       'isMocked': serializer.toJson<bool>(isMocked),
+      'overrideReason': serializer.toJson<String?>(overrideReason),
     };
   }
 
@@ -12027,7 +12062,8 @@ class VisitCheckInRow extends DataClass implements Insertable<VisitCheckInRow> {
           double? longitude,
           double? accuracy,
           double? distanceFromCustomer,
-          bool? isMocked}) =>
+          bool? isMocked,
+          Value<String?> overrideReason = const Value.absent()}) =>
       VisitCheckInRow(
         id: id ?? this.id,
         updatedAt: updatedAt ?? this.updatedAt,
@@ -12043,6 +12079,8 @@ class VisitCheckInRow extends DataClass implements Insertable<VisitCheckInRow> {
         accuracy: accuracy ?? this.accuracy,
         distanceFromCustomer: distanceFromCustomer ?? this.distanceFromCustomer,
         isMocked: isMocked ?? this.isMocked,
+        overrideReason:
+            overrideReason.present ? overrideReason.value : this.overrideReason,
       );
   VisitCheckInRow copyWithCompanion(VisitCheckInsCompanion data) {
     return VisitCheckInRow(
@@ -12063,6 +12101,9 @@ class VisitCheckInRow extends DataClass implements Insertable<VisitCheckInRow> {
           ? data.distanceFromCustomer.value
           : this.distanceFromCustomer,
       isMocked: data.isMocked.present ? data.isMocked.value : this.isMocked,
+      overrideReason: data.overrideReason.present
+          ? data.overrideReason.value
+          : this.overrideReason,
     );
   }
 
@@ -12081,7 +12122,8 @@ class VisitCheckInRow extends DataClass implements Insertable<VisitCheckInRow> {
           ..write('longitude: $longitude, ')
           ..write('accuracy: $accuracy, ')
           ..write('distanceFromCustomer: $distanceFromCustomer, ')
-          ..write('isMocked: $isMocked')
+          ..write('isMocked: $isMocked, ')
+          ..write('overrideReason: $overrideReason')
           ..write(')'))
         .toString();
   }
@@ -12100,7 +12142,8 @@ class VisitCheckInRow extends DataClass implements Insertable<VisitCheckInRow> {
       longitude,
       accuracy,
       distanceFromCustomer,
-      isMocked);
+      isMocked,
+      overrideReason);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -12117,7 +12160,8 @@ class VisitCheckInRow extends DataClass implements Insertable<VisitCheckInRow> {
           other.longitude == this.longitude &&
           other.accuracy == this.accuracy &&
           other.distanceFromCustomer == this.distanceFromCustomer &&
-          other.isMocked == this.isMocked);
+          other.isMocked == this.isMocked &&
+          other.overrideReason == this.overrideReason);
 }
 
 class VisitCheckInsCompanion extends UpdateCompanion<VisitCheckInRow> {
@@ -12134,6 +12178,7 @@ class VisitCheckInsCompanion extends UpdateCompanion<VisitCheckInRow> {
   final Value<double> accuracy;
   final Value<double> distanceFromCustomer;
   final Value<bool> isMocked;
+  final Value<String?> overrideReason;
   final Value<int> rowid;
   const VisitCheckInsCompanion({
     this.id = const Value.absent(),
@@ -12149,6 +12194,7 @@ class VisitCheckInsCompanion extends UpdateCompanion<VisitCheckInRow> {
     this.accuracy = const Value.absent(),
     this.distanceFromCustomer = const Value.absent(),
     this.isMocked = const Value.absent(),
+    this.overrideReason = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   VisitCheckInsCompanion.insert({
@@ -12165,6 +12211,7 @@ class VisitCheckInsCompanion extends UpdateCompanion<VisitCheckInRow> {
     required double accuracy,
     required double distanceFromCustomer,
     this.isMocked = const Value.absent(),
+    this.overrideReason = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         stopId = Value(stopId),
@@ -12187,6 +12234,7 @@ class VisitCheckInsCompanion extends UpdateCompanion<VisitCheckInRow> {
     Expression<double>? accuracy,
     Expression<double>? distanceFromCustomer,
     Expression<bool>? isMocked,
+    Expression<String>? overrideReason,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -12204,6 +12252,7 @@ class VisitCheckInsCompanion extends UpdateCompanion<VisitCheckInRow> {
       if (distanceFromCustomer != null)
         'distance_from_customer': distanceFromCustomer,
       if (isMocked != null) 'is_mocked': isMocked,
+      if (overrideReason != null) 'override_reason': overrideReason,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -12222,6 +12271,7 @@ class VisitCheckInsCompanion extends UpdateCompanion<VisitCheckInRow> {
       Value<double>? accuracy,
       Value<double>? distanceFromCustomer,
       Value<bool>? isMocked,
+      Value<String?>? overrideReason,
       Value<int>? rowid}) {
     return VisitCheckInsCompanion(
       id: id ?? this.id,
@@ -12237,6 +12287,7 @@ class VisitCheckInsCompanion extends UpdateCompanion<VisitCheckInRow> {
       accuracy: accuracy ?? this.accuracy,
       distanceFromCustomer: distanceFromCustomer ?? this.distanceFromCustomer,
       isMocked: isMocked ?? this.isMocked,
+      overrideReason: overrideReason ?? this.overrideReason,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -12284,6 +12335,9 @@ class VisitCheckInsCompanion extends UpdateCompanion<VisitCheckInRow> {
     if (isMocked.present) {
       map['is_mocked'] = Variable<bool>(isMocked.value);
     }
+    if (overrideReason.present) {
+      map['override_reason'] = Variable<String>(overrideReason.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -12306,6 +12360,7 @@ class VisitCheckInsCompanion extends UpdateCompanion<VisitCheckInRow> {
           ..write('accuracy: $accuracy, ')
           ..write('distanceFromCustomer: $distanceFromCustomer, ')
           ..write('isMocked: $isMocked, ')
+          ..write('overrideReason: $overrideReason, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -28116,6 +28171,7 @@ typedef $$VisitCheckInsTableCreateCompanionBuilder = VisitCheckInsCompanion
   required double accuracy,
   required double distanceFromCustomer,
   Value<bool> isMocked,
+  Value<String?> overrideReason,
   Value<int> rowid,
 });
 typedef $$VisitCheckInsTableUpdateCompanionBuilder = VisitCheckInsCompanion
@@ -28133,6 +28189,7 @@ typedef $$VisitCheckInsTableUpdateCompanionBuilder = VisitCheckInsCompanion
   Value<double> accuracy,
   Value<double> distanceFromCustomer,
   Value<bool> isMocked,
+  Value<String?> overrideReason,
   Value<int> rowid,
 });
 
@@ -28185,6 +28242,10 @@ class $$VisitCheckInsTableFilterComposer
 
   ColumnFilters<bool> get isMocked => $composableBuilder(
       column: $table.isMocked, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get overrideReason => $composableBuilder(
+      column: $table.overrideReason,
+      builder: (column) => ColumnFilters(column));
 }
 
 class $$VisitCheckInsTableOrderingComposer
@@ -28236,6 +28297,10 @@ class $$VisitCheckInsTableOrderingComposer
 
   ColumnOrderings<bool> get isMocked => $composableBuilder(
       column: $table.isMocked, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get overrideReason => $composableBuilder(
+      column: $table.overrideReason,
+      builder: (column) => ColumnOrderings(column));
 }
 
 class $$VisitCheckInsTableAnnotationComposer
@@ -28285,6 +28350,9 @@ class $$VisitCheckInsTableAnnotationComposer
 
   GeneratedColumn<bool> get isMocked =>
       $composableBuilder(column: $table.isMocked, builder: (column) => column);
+
+  GeneratedColumn<String> get overrideReason => $composableBuilder(
+      column: $table.overrideReason, builder: (column) => column);
 }
 
 class $$VisitCheckInsTableTableManager extends RootTableManager<
@@ -28326,6 +28394,7 @@ class $$VisitCheckInsTableTableManager extends RootTableManager<
             Value<double> accuracy = const Value.absent(),
             Value<double> distanceFromCustomer = const Value.absent(),
             Value<bool> isMocked = const Value.absent(),
+            Value<String?> overrideReason = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               VisitCheckInsCompanion(
@@ -28342,6 +28411,7 @@ class $$VisitCheckInsTableTableManager extends RootTableManager<
             accuracy: accuracy,
             distanceFromCustomer: distanceFromCustomer,
             isMocked: isMocked,
+            overrideReason: overrideReason,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -28358,6 +28428,7 @@ class $$VisitCheckInsTableTableManager extends RootTableManager<
             required double accuracy,
             required double distanceFromCustomer,
             Value<bool> isMocked = const Value.absent(),
+            Value<String?> overrideReason = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               VisitCheckInsCompanion.insert(
@@ -28374,6 +28445,7 @@ class $$VisitCheckInsTableTableManager extends RootTableManager<
             accuracy: accuracy,
             distanceFromCustomer: distanceFromCustomer,
             isMocked: isMocked,
+            overrideReason: overrideReason,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0

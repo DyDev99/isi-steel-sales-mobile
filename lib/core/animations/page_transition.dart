@@ -17,25 +17,34 @@ import 'app_animations.dart';
 /// ```
 class AppPageRoute<T> extends PageRouteBuilder<T> {
   AppPageRoute._({
-    required Widget page,
+    required WidgetBuilder builder,
     required RouteTransitionsBuilder transition,
     super.settings,
     Duration duration = AppDurations.page,
   }) : super(
           transitionDuration: duration,
           reverseTransitionDuration: duration,
-          pageBuilder: (context, animation, secondaryAnimation) => page,
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              builder(context),
           transitionsBuilder: transition,
         );
 
   /// Cross-fade with a gentle scale — good for "replace content" navigation.
+  ///
+  /// Pass [page] for a prebuilt widget, or [builder] when the screen needs the
+  /// route's own `BuildContext` — the same context `MaterialPageRoute.builder`
+  /// hands out, which several call sites capture to pop or push from. Without
+  /// it those sites cannot migrate off `MaterialPageRoute` at all.
   factory AppPageRoute.fadeThrough({
-    required Widget page,
+    Widget? page,
+    WidgetBuilder? builder,
     RouteSettings? settings,
     Duration duration = AppDurations.page,
   }) {
+    assert((page == null) != (builder == null),
+        'Provide exactly one of page or builder');
     return AppPageRoute<T>._(
-      page: page,
+      builder: builder ?? (_) => page!,
       settings: settings,
       duration: duration,
       transition: (context, animation, secondary, child) {
@@ -54,13 +63,18 @@ class AppPageRoute<T> extends PageRouteBuilder<T> {
 
   /// Shared-axis vertical: the incoming screen slides up and fades while the
   /// outgoing one eases away. Good for drill-downs.
+  ///
+  /// Takes [page] or [builder]; see [AppPageRoute.fadeThrough].
   factory AppPageRoute.sharedAxisVertical({
-    required Widget page,
+    Widget? page,
+    WidgetBuilder? builder,
     RouteSettings? settings,
     Duration duration = AppDurations.page,
   }) {
+    assert((page == null) != (builder == null),
+        'Provide exactly one of page or builder');
     return AppPageRoute<T>._(
-      page: page,
+      builder: builder ?? (_) => page!,
       settings: settings,
       duration: duration,
       transition: (context, animation, secondary, child) {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/entities/mobile_price.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/promotion/promotion_evaluation.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/filter_flow_transition.dart';
@@ -25,6 +26,8 @@ class ProductResultGrid extends StatelessWidget {
     this.lineTotalBuilder,
     this.promotionFor,
     this.onPromotionTap,
+    this.priceFor,
+    this.onPriceRetry,
   });
 
   final List<Product> products;
@@ -51,6 +54,17 @@ class ProductResultGrid extends StatelessWidget {
   final PromotionEvaluation? Function(Product product)? promotionFor;
 
   final ValueChanged<Product>? onPromotionTap;
+
+  /// This customer's price for a product, or null when the screen has no
+  /// pricing context.
+  ///
+  /// A builder for the same reason as [promotionFor]: screens with no customer
+  /// — favourites, a plain catalogue browse — pass nothing and no card shows a
+  /// figure, rather than every card showing an empty one.
+  final MobilePrice? Function(Product product)? priceFor;
+
+  /// Re-asks for one product's failed price.
+  final ValueChanged<Product>? onPriceRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -84,6 +98,10 @@ class ProductResultGrid extends StatelessWidget {
                   onPromotionTap: onPromotionTap == null
                       ? null
                       : () => onPromotionTap!(product),
+                  price: priceFor?.call(product),
+                  onPriceRetry: onPriceRetry == null
+                      ? null
+                      : () => onPriceRetry!(product),
                 );
               }),
             ),

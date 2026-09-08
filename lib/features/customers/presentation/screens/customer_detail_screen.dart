@@ -15,7 +15,6 @@ import 'package:isi_steel_sales_mobile/core/responsive/responsive_content_frame.
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer.dart';
-import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer_activity_type.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customer_detail_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customer_detail_state.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/stop_information/order_history_screen.dart';
@@ -265,7 +264,6 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
                                       _SalesHistoryDetailCard(
                                           customer: state.customer),
                                       SizedBox(height: context.rh(40)),
-                                  
                                     ],
                                   ),
                                 ),
@@ -401,7 +399,6 @@ class _HeroCardState extends State<_HeroCard> {
                       fontWeight: FontWeight.w900,
                     ),
                   ),
-                  
                 ],
               ),
             ),
@@ -452,12 +449,14 @@ class _OutletDetailsCard extends StatelessWidget {
         : _fallbackOutletTier;
     final ownerName =
         customer.ownerName.isNotEmpty ? customer.ownerName : _fallbackOwnerName;
-    final phoneNum = customer.phone.isNotEmpty ? customer.phone : _fallbackPhone;
+    final phoneNum =
+        customer.phone.isNotEmpty ? customer.phone : _fallbackPhone;
     final telegram = (customer.whatsapp?.isNotEmpty ?? false)
         ? customer.whatsapp!
         : _fallbackTelegram;
     final addressLine = address.isNotEmpty ? address : _fallbackAddress;
-    final latitude = customer.hasCoordinates ? customer.latitude : _fallbackLatitude;
+    final latitude =
+        customer.hasCoordinates ? customer.latitude : _fallbackLatitude;
     final longitude =
         customer.hasCoordinates ? customer.longitude : _fallbackLongitude;
 

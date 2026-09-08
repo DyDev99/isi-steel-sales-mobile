@@ -19,5 +19,22 @@ Image localFileImage(
   double? width,
   double? height,
 }) {
-  return Image.file(File(path), fit: fit, width: width, height: height);
+  return Image.file(
+    File(path),
+    fit: fit,
+    width: width,
+    height: height,
+    errorBuilder: (context, error, stackTrace) => SizedBox(
+      width: width,
+      height: height,
+      child: const Center(
+        child: Icon(
+          IconData(0xe107,
+              fontFamily: 'MaterialIcons'), // Icons.broken_image_rounded
+          color: Color(0x66000000),
+          size: 24,
+        ),
+      ),
+    ),
+  );
 }

@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/brand_logo.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/animations/press_scale.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -103,15 +104,15 @@ class MainAppBar extends StatelessWidget {
                           label: 'about.title'.tr,
                           child: PressScale(
                             onTap: onLogoTap,
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(12.r),
-                              child: Image.asset(
-                                'assets/images/steelforce_home_logo.png',
-                                height: context.rh(50),
-                                width: context.rw(150),
-                                fit: BoxFit.cover,
-                              ),
-                            ),
+                            // `BrandLogo`, not a raw asset. What stood here
+                            // was `Image.asset` pointed at an `.svg` — which
+                            // Image cannot decode — at a path that does not
+                            // exist, sized 150×50 with `BoxFit.cover`, a box
+                            // narrower than the artwork's 2.75:1 and so
+                            // cropping the wordmark. BrandLogo picks the ink
+                            // from the surface and derives the height from the
+                            // artwork, which is the whole reason it exists.
+                            child: BrandLogo(width: context.rw(120)),
                           ),
                         ),
                       )

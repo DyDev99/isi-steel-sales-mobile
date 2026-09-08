@@ -42,6 +42,17 @@ class VisitCheckIns extends Table with SyncableTable {
   /// to the geofence rule, retained for audit.
   RealColumn get distanceFromCustomer => real()();
   BoolColumn get isMocked => boolean().withDefault(const Constant(false))();
+
+  /// Why the rep checked in from outside the geofence, when they did.
+  ///
+  /// Null is the normal case — a check-in that satisfied the rule needs no
+  /// explanation. Non-null means the rep was let through anyway and said why,
+  /// so the row carries its own justification rather than leaving an
+  /// out-of-bounds check-in indistinguishable from a compliant one.
+  ///
+  /// Nullable and additive: the geofence verdict itself stays in
+  /// [distanceFromCustomer], which is what the server re-evaluates.
+  TextColumn get overrideReason => text().nullable()();
 }
 
 /// Departure from a stop. Unique per stop.

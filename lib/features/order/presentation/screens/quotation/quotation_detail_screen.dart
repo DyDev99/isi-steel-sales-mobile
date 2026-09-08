@@ -45,6 +45,12 @@ class QuotationDetailScreen extends StatelessWidget {
         child: LocalizedBuilder(
           builder: (_) => QuotationBuilderScreen(
             customer: customer,
+            // The lookup above returns null when it fails, which offline is
+            // the normal outcome rather than the exceptional one. The
+            // quotation still records whose it is, so pricing and promotions
+            // stay scoped to the right account instead of degrading to
+            // walk-in because a network read did not land.
+            customerId: quotation.customerId,
             leadId: quotation.leadId,
             leadDisplayName: quotation.leadDisplayName,
             offVisitReason: quotation.offVisitReason,
