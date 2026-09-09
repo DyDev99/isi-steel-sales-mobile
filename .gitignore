@@ -66,3 +66,8 @@ lib/core/config/env.g.dart
 # that happens.
 android/app/google-services.json
 ios/Runner/GoogleService-Info.plist
+
+# Kotlin compile-daemon session markers. Empty, per-machine, recreated on every
+# Gradle run — and one was accidentally committed in `feat: notification
+# integration` because this directory was not ignored.
+android/.kotlin/
