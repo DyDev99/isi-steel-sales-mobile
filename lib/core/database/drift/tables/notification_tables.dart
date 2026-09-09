@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 
 /// The notification inbox, mirrored into the single encrypted database
-/// (`docs/feature/notification/README.md` §1, ADR-001).
+/// (`docs/feature/notification/notification-mobile.md` §1, ADR-001).
 ///
 /// ## Why the inbox is stored at all
 ///
@@ -17,7 +17,7 @@ import 'package:drift/drift.dart';
 ///
 /// A notification body names a customer and a route. That is PII, so it belongs
 /// in the encrypted Drift database and not in Hive
-/// (`docs/skills/SECURITY.md` §3, `docs/blueprints/ARCHITECTURE.md` §3). The FCM payload is
+/// (`docs/skills/security.md` §3, `docs/blueprint/system-architecture.md` §3). The FCM payload is
 /// deliberately thinner for the same reason (§9.2) — no prices, no credit
 /// limits, no phone numbers — because a push renders on a locked screen in front
 /// of whoever is holding the phone.
@@ -143,7 +143,7 @@ class Notifications extends Table {
 }
 
 /// Server-side changes captured while offline, awaiting replay
-/// (`docs/feature/notification/README.md` §8.5).
+/// (`docs/feature/notification/notification-mobile.md` §8.5).
 ///
 /// This is the **outbox** for the notification feature. `notifications` above is
 /// a pull-only mirror and carries no `SyncableTable` bookkeeping of its own,
@@ -151,7 +151,7 @@ class Notifications extends Table {
 /// the discrete act the rep performed. A queue row is that act.
 ///
 /// The pairing is load-bearing and transactional: ADR-006 and
-/// `docs/skills/SYNC_ENGINE.md` §2 require a write to a syncable table to enqueue its
+/// `docs/blueprint/sync-architecture.md` §2 require a write to a syncable table to enqueue its
 /// sync row **in the same Drift transaction**. Here that means a state change on
 /// `notifications` and its queue row commit together or not at all. A visible
 /// state change with no queued call is a route the supervisor still believes was
@@ -164,7 +164,7 @@ class NotificationActionQueue extends Table {
   String get tableName => 'notification_action_queue';
 
   /// Client-generated, so an offline capture needs no server round trip to
-  /// exist (`docs/blueprints/DATABASE_GUIDE.md` §3).
+  /// exist (`docs/blueprint/local-storage-architecture.md` §3).
   TextColumn get id => text()();
 
   /// Empty for a `read_all`, which is not scoped to one item.

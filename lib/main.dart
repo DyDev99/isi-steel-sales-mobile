@@ -83,7 +83,7 @@ Future<void> main() async {
 /// `kDebugMode` is a compile-time constant, so the whole body is **tree-shaken
 /// out of a release build** rather than merely skipped at runtime. That matters:
 /// a registration token is a credential — it addresses pushes to one specific
-/// handset — and `docs/skills/SECURITY.md` §10 keeps credentials out of logs.
+/// handset — and `docs/skills/security.md` §10 keeps credentials out of logs.
 ///
 /// It uses `debugPrint` rather than [AppLogger] deliberately. `LogRedactor`
 /// replaces any field whose key matches `token` with `***REDACTED***`, which is
@@ -99,7 +99,7 @@ Future<void> main() async {
 ///
 /// On a **physical iOS device** it usually means `getToken()` ran before APNs
 /// replied, or before the notification permission was granted — which
-/// `docs/feature/notification/README.md` §14 defers to the in-app explainer, on
+/// `docs/feature/notification/notification-mobile.md` §14 defers to the in-app explainer, on
 /// purpose. Accept the explainer, then relaunch.
 ///
 /// On **web** there is no transport at all (ADR-010).

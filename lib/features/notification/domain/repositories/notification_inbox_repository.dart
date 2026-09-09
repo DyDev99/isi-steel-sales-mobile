@@ -9,7 +9,7 @@ import 'package:isi_steel_sales_mobile/features/notification/domain/entities/not
 ///
 /// ## Reads are local, always
 ///
-/// [watch] and [counts] answer from the device. `docs/feature/notification/README.md`
+/// [watch] and [counts] answer from the device. `docs/feature/notification/notification-mobile.md`
 /// §1 establishes the inbox as the system of record and push as a mere
 /// accelerator; a repository that reached for the network to render a list would
 /// show a rep in a warehouse an empty screen and an error banner, which is
@@ -18,7 +18,7 @@ import 'package:isi_steel_sales_mobile/features/notification/domain/entities/not
 /// ## Writes are local-first
 ///
 /// Every mutation lands in the mirror and enqueues its server call **in the same
-/// transaction** (ADR-006, `docs/skills/SYNC_ENGINE.md` §2). That is a correctness rule,
+/// transaction** (ADR-006, `docs/blueprint/sync-architecture.md` §2). That is a correctness rule,
 /// not a style choice: a state change that is visible to the rep but has no
 /// queued call is a route the supervisor still thinks was never acknowledged.
 abstract interface class NotificationInboxRepository {

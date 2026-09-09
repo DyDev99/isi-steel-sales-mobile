@@ -1,5 +1,5 @@
 /// The Android notification channels this app owns
-/// (`docs/feature/notification/README.md` §9.3).
+/// (`docs/feature/notification/notification-mobile.md` §9.3).
 ///
 /// ## Why these must exist before the first push
 ///
@@ -18,7 +18,7 @@
 /// ## Why this lives in `core/` keyed by a raw string
 ///
 /// The channel table has to exist at boot, before any feature is resolved, and
-/// `core/` must not import a feature (`docs/blueprints/ARCHITECTURE.md` §2). So the key is
+/// `core/` must not import a feature (`docs/blueprint/system-architecture.md` §2). So the key is
 /// the wire category code (`ASSIGNMENT`) rather than the notification feature's
 /// enum, and the feature maps its enum onto it.
 library;

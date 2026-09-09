@@ -15,7 +15,7 @@ import 'package:isi_steel_sales_mobile/features/notification/domain/entities/pus
 import 'package:isi_steel_sales_mobile/features/notification/domain/repositories/push_device_repository.dart';
 
 /// Keeps this installation's push registration current
-/// (`docs/feature/notification/README.md` §4).
+/// (`docs/feature/notification/notification-mobile.md` §4).
 ///
 /// ## The `deviceId` is borrowed, not minted here
 ///
@@ -199,6 +199,8 @@ class PushDeviceRepositoryImpl implements PushDeviceRepository {
         PushAuthorization.authorized => PushPermissionStatus.granted,
         PushAuthorization.provisional => PushPermissionStatus.provisional,
         PushAuthorization.denied => PushPermissionStatus.denied,
+        PushAuthorization.deniedPermanently =>
+          PushPermissionStatus.deniedPermanently,
         PushAuthorization.unsupported => PushPermissionStatus.unsupported,
       };
 

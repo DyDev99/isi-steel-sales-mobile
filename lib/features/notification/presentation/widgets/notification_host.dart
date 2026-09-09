@@ -36,7 +36,7 @@ import 'package:isi_steel_sales_mobile/routes/app_routes.dart';
 /// than sitting beneath it, so `Navigator.of(context)` would not find one. The
 /// app already keeps a `navigatorKey` for exactly this class of need.
 ///
-/// This is not the global-listener anti-pattern `docs/skills/AI_ENGINEERING_PLAYBOOK.md`
+/// This is not the global-listener anti-pattern `docs/skills/ai-engineering-playbook.md`
 /// §12 warns about: that one is a session listener redirecting users who did not
 /// ask to move. Here a rep tapped a notification. Navigation is the only correct
 /// response, and doing it anywhere else would mean every screen re-implementing

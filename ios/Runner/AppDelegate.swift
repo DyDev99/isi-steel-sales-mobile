@@ -35,6 +35,14 @@ import UserNotifications
     // *this* delegate object, so FCM still sees the APNs token and remote
     // deliveries. Assigning the delegate after `super` would be too late for
     // a cold start from a notification tap, which is why it is here.
+    //
+    // ⚠️ Do not delete this on the strength of
+    // `docs/feature/notification/notification-mobile.md` Step 4.2 ("AppDelegate
+    // — no change needed"). That paragraph is about **Firebase**: it is telling
+    // you not to add `FirebaseApp.configure()`, which double-initialises and
+    // throws. `flutter_local_notifications` is a separate plugin, and its
+    // README still requires this delegate assignment (verified against 22.3.0).
+    // Removing it silently breaks taps on locally-drawn alerts.
     UNUserNotificationCenter.current().delegate = self
 
     // Registration itself is deliberately NOT done here. Asking iOS for the

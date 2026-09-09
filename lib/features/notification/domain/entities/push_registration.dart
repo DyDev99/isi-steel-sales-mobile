@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 /// Which platform a registration belongs to
-/// (`docs/feature/notification/README.md` §4.2).
+/// (`docs/feature/notification/notification-mobile.md` §4.2).
 ///
 /// The backend stores an unrecognised value as `Unknown` rather than rejecting
 /// it, so this is a display/routing hint on the server side, never a gate.
@@ -34,10 +34,21 @@ enum PushPermissionStatus {
   /// device in the push audience.
   provisional,
 
-  /// The rep declined. Register anyway with `pushPermissionGranted: false` so
+  /// The rep declined, but the OS may still prompt again — Android's
+  /// "dismissed" case. Register anyway with `pushPermissionGranted: false` so
   /// the inbox keeps syncing and the delivery log reads `NO_DEVICE` instead of
   /// a run of failures.
+  ///
+  /// §14 allows re-offering the explainer here, at most once every 14 days.
   denied,
+
+  /// Declined, and **the OS will not prompt again**.
+  ///
+  /// Registration is treated exactly as [denied] — the device is kept and
+  /// excluded from the push audience. What differs is the UI: offering an
+  /// "Enable" button would be a control that silently does nothing, so the rep
+  /// gets the settings link instead.
+  deniedPermanently,
 
   /// No push transport in this build at all — the web target. Not an error.
   unsupported;
@@ -48,7 +59,20 @@ enum PushPermissionStatus {
 
   /// True when the explainer may still be shown, i.e. asking could change the
   /// answer.
-  bool get canPrompt => this == notDetermined;
+  ///
+  /// Deliberately false for [deniedPermanently]: the OS has said it will not
+  /// prompt again, so a card whose primary action is "Enable" would be
+  /// dishonest.
+  bool get canPrompt => this == notDetermined || this == denied;
+
+  /// True when the only route left is the OS settings app.
+  ///
+  /// Drives the unobtrusive inbox banner §14 asks for, in place of the
+  /// explainer.
+  bool get needsSystemSettings => this == deniedPermanently;
+
+  /// True when the rep has said no, however finally.
+  bool get isDeclined => this == denied || this == deniedPermanently;
 }
 
 /// What this installation tells `POST /mobile/devices/register` about itself.

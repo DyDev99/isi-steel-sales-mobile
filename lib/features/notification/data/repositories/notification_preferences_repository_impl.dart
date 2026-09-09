@@ -12,13 +12,13 @@ import 'package:isi_steel_sales_mobile/features/notification/domain/entities/not
 import 'package:isi_steel_sales_mobile/features/notification/domain/repositories/notification_preferences_repository.dart';
 
 /// Notification settings, server-owned with a local cache
-/// (`docs/feature/notification/README.md` §13).
+/// (`docs/feature/notification/notification-mobile.md` §13).
 ///
 /// ## Why Hive and not the encrypted database
 ///
 /// These are the rep's own toggles and quiet-hours window — settings, not
 /// business records and not PII — and they are regenerable from the server on
-/// demand. `docs/blueprints/ARCHITECTURE.md` §3 puts exactly that class of data in the
+/// demand. `docs/blueprint/system-architecture.md` §3 puts exactly that class of data in the
 /// key-value cache, which also means adding this feature needed no schema
 /// migration for it. The **notifications themselves** do go in the encrypted
 /// database, because a title and body name a customer and a route.

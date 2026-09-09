@@ -427,7 +427,7 @@ class _Brand extends StatelessWidget {
           // — it is the darkest surface in the app in *both* themes, so the
           // dark mark used everywhere else would be #15213A on near-black and
           // simply vanish here. This is the one screen that has to opt out.
-          child: BrandLogo(width: context.rr(180), ink: BrandInk.light),
+          child: BrandLogo(width: context.rr(180)),
         ),
       ),
     );

@@ -27,7 +27,7 @@ import 'package:isi_steel_sales_mobile/features/notification/domain/repositories
 /// ## The shape of every write
 ///
 /// 1. Mutate the local mirror **and enqueue the server call in one transaction**
-///    (the DAO enforces this — ADR-006, `docs/skills/SYNC_ENGINE.md` §2).
+///    (the DAO enforces this — ADR-006, `docs/blueprint/sync-architecture.md` §2).
 /// 2. Try to drain the queue immediately.
 /// 3. Return success either way.
 ///
@@ -36,7 +36,7 @@ import 'package:isi_steel_sales_mobile/features/notification/domain/repositories
 /// everything asked of them; surfacing a network failure would tell them their
 /// work did not count, and they would tap again — producing two acknowledgements
 /// of one route. The queue is the promise that it will reach the server, and
-/// `docs/skills/OFFLINE_FIRST.md` treats offline as a normal state rather than an error
+/// `docs/blueprint/offline-architecture.md` treats offline as a normal state rather than an error
 /// state (ADR-002 §4).
 ///
 /// Failures are returned for the things a rep can actually act on: a refused

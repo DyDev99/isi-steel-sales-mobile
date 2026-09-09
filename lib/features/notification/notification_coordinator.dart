@@ -34,7 +34,7 @@ class ForegroundNotification {
 ///
 /// ## What this class is for
 ///
-/// `docs/feature/notification/README.md` §16 is a checklist of things that are
+/// `docs/feature/notification/notification-mobile.md` §16 is a checklist of things that are
 /// each individually easy to forget and individually invisible when missed:
 /// channels created before the first push, `getInitialMessage()` checked at
 /// startup, `onTokenRefresh` wired to registration, catch-up on start *and* on
@@ -49,7 +49,7 @@ class ForegroundNotification {
 /// **It never navigates.** Deep links are resolved and published on
 /// [destinations]; a widget that owns a `Navigator` listens and moves. A
 /// non-widget class reaching for a global navigator key is the pattern
-/// `docs/skills/AI_ENGINEERING_PLAYBOOK.md` §12 lists as an anti-pattern, and it is how
+/// `docs/skills/ai-engineering-playbook.md` §12 lists as an anti-pattern, and it is how
 /// the app previously ended up with duplicate redirects and guests being yanked
 /// between screens.
 ///

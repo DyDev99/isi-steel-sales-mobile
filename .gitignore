@@ -38,7 +38,7 @@ graphify-out/
 # Envied output. Deliberately the ONE generated file that is not committed:
 # unlike the drift *.g.dart files, it embeds the obfuscated SAP gateway URL and
 # the database salt. Obfuscation is defense-in-depth, not a secret store
-# (docs/SECURITY.md §4), so it is regenerated at build time instead.
+# (docs/skills/security.md §4), so it is regenerated at build time instead.
 lib/core/config/env.g.dart
 
 # Machine-specific Claude Code settings: the graphify PreToolUse hooks embed an
@@ -46,3 +46,23 @@ lib/core/config/env.g.dart
 # them breaks every other developer's machine, so each developer generates their
 # own with `graphify claude install`. See docs/GRAPHIFY.md.
 .claude/settings.local.json
+
+# Firebase per-app config. Not high-severity secrets — they ship inside the
+# binary — but they name the project and its API keys, and
+# `docs/feature/notification/notification-mobile.md` Step 1 asks for them to be
+# kept out of the repo.
+#
+# ⚠️ BOTH FILES ARE STILL TRACKED, so these two lines currently do nothing:
+# .gitignore does not affect a file git already follows. Untracking them is a
+# deliberate, coordinated change — every developer and the CI runner has to
+# obtain them out of band first, or the Android build fails at
+# `processDebugGoogleServices` and iOS silently loses its Firebase config.
+#
+# To complete it, once the team has the files distributed:
+#     git rm --cached android/app/google-services.json \
+#                     ios/Runner/GoogleService-Info.plist
+#
+# These entries are here so a fresh copy is not re-added by accident the moment
+# that happens.
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist

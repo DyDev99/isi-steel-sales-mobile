@@ -19,7 +19,7 @@ class NotificationDestination {
   /// inside `MainShell`'s `IndexedStack` and are reached by selecting a tab
   /// rather than pushing, but the index for a given tab is a UI decision owned
   /// by `ShellTab` — in the home feature, which `core/` must not import
-  /// (`docs/blueprints/ARCHITECTURE.md` §2). So this file names the *destination* and
+  /// (`docs/blueprint/system-architecture.md` §2). So this file names the *destination* and
   /// `NotificationHost` maps it onto a tab. A second copy of the tab indices
   /// here is precisely how a reordered nav bar starts silently opening Orders.
   final String route;
@@ -32,7 +32,7 @@ class NotificationDestination {
 }
 
 /// Maps the backend's `app://…` URIs onto this app's routes
-/// (`docs/feature/notification/README.md` §11).
+/// (`docs/feature/notification/notification-mobile.md` §11).
 ///
 /// ## The backend builds the URI; this only reads it
 ///

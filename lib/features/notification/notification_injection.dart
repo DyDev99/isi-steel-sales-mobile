@@ -32,7 +32,7 @@ import 'package:isi_steel_sales_mobile/features/notification/presentation/bloc/n
 import 'package:isi_steel_sales_mobile/features/notification/presentation/bloc/push_permission_cubit.dart';
 
 /// Registers the notification feature
-/// (`docs/feature/notification/README.md`).
+/// (`docs/feature/notification/notification-mobile.md`).
 ///
 /// ## Ordering
 ///
@@ -105,7 +105,7 @@ void registerNotificationFeature(GetIt sl) {
       remote: sl(),
       // Hive, not the encrypted database: these are the rep's own toggles —
       // settings, regenerable from the server — rather than business records or
-      // PII (`docs/blueprints/ARCHITECTURE.md` §3). The notifications themselves *are*
+      // PII (`docs/blueprint/system-architecture.md` §3). The notifications themselves *are*
       // encrypted, because a title names a customer and a route.
       cache: LocalCache(HiveService.cacheBox),
       session: sl<SessionManager>(),

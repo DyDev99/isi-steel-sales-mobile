@@ -428,12 +428,12 @@ final Map<int, SchemaMigrationStep> _stepwiseMigrations =
   // Purely additive — three new tables, nothing existing is touched, so an
   // upgrade cannot lose or rewrite a row. `IF NOT EXISTS` on the indexes keeps
   // the step re-runnable after a crash mid-upgrade
-  // (`docs/blueprints/DATABASE_GUIDE.md` §5); `createTable` is already idempotent-safe
+  // (`docs/blueprint/local-storage-architecture.md` §5); `createTable` is already idempotent-safe
   // here because these tables cannot exist below v19.
   //
   // ## Why the inbox needs storage at all
   //
-  // `docs/feature/notification/README.md` §1: the inbox *is* the notification
+  // `docs/feature/notification/notification-mobile.md` §1: the inbox *is* the notification
   // and push is only an accelerator, because a push routinely never arrives —
   // a flat battery, a coverage hole, an OEM battery optimiser, a rotated FCM
   // token, or a P4 that is never pushed by design. A client whose only render
@@ -443,7 +443,7 @@ final Map<int, SchemaMigrationStep> _stepwiseMigrations =
   //
   // A notification title and body name a customer and a route, which is PII and
   // therefore belongs in the encrypted store, not a key-value cache
-  // (`docs/skills/SECURITY.md` §3, `docs/blueprints/ARCHITECTURE.md` §3). The FCM payload is
+  // (`docs/skills/security.md` §3, `docs/blueprint/system-architecture.md` §3). The FCM payload is
   // deliberately thinner for the same reason (§9.2): a push renders on a locked
   // screen in front of whoever is holding the phone.
   //

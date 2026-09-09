@@ -26,8 +26,13 @@ class PushPermissionState extends Equatable {
   /// links to system settings (§14).
   ///
   /// Distinct from [showExplainer]: the explainer *asks*, the banner *explains
-  /// why nothing is arriving*. Showing both would be nagging.
-  bool get showDeclinedBanner => status == PushPermissionStatus.denied;
+  /// why nothing is arriving*. Showing both at once would be nagging, which is
+  /// why [showExplainer] wins while it is true.
+  ///
+  /// Covers `deniedPermanently` as well as `denied` — in the permanent case it
+  /// is the *only* surface offered, because the OS will not prompt again and
+  /// settings is the one place the answer can still change.
+  bool get showDeclinedBanner => status.isDeclined && !showExplainer;
 
   PushPermissionState copyWith({
     PushPermissionStatus? status,
@@ -45,7 +50,7 @@ class PushPermissionState extends Equatable {
 }
 
 /// Owns the permission-priming rules of
-/// `docs/feature/notification/README.md` §14.
+/// `docs/feature/notification/notification-mobile.md` §14.
 ///
 /// ## The single most consequential rule in the whole feature
 ///
@@ -155,6 +160,13 @@ class PushPermissionCubit extends Cubit<PushPermissionState> {
   }
 
   bool _mayOffer(PushPermissionStatus status) {
+    // The OS has said it will not prompt again (Android 13+ after a hard
+    // denial). The explainer's primary action is "Enable", which would call
+    // `requestPermission()` and return the same denial without showing
+    // anything — a button that silently does nothing. The settings banner is
+    // the honest surface here, so never offer the card.
+    if (!status.canPrompt) return false;
+
     final lastOffered = _readLastOffered();
     // Never offered: this is the first time the rep has reached the point where
     // the explainer makes sense.

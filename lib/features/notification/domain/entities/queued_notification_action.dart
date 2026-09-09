@@ -40,7 +40,7 @@ enum NotificationMutationKind {
 }
 
 /// One outstanding server-side change captured while offline
-/// (`docs/feature/notification/README.md` §8.5).
+/// (`docs/feature/notification/notification-mobile.md` §8.5).
 ///
 /// ## Why this is queued rather than fired and forgotten
 ///
@@ -76,7 +76,7 @@ class QueuedNotificationAction extends Equatable {
   });
 
   /// Client-generated queue row id, so an offline capture needs no server round
-  /// trip to exist (`docs/blueprints/DATABASE_GUIDE.md` §3).
+  /// trip to exist (`docs/blueprint/local-storage-architecture.md` §3).
   final String id;
 
   /// The notification this change applies to. Empty for

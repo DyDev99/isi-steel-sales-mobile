@@ -29,7 +29,9 @@ class NativeLocalNotificationPresenter implements LocalNotificationPresenter {
     if (_initialized) return;
     try {
       await _plugin.initialize(
-        const InitializationSettings(
+        // Named `settings:` since v19 — it was the first positional argument
+        // before. The rename is the only change; the payload is identical.
+        settings: const InitializationSettings(
           // The monochrome-safe launcher icon. A full-colour icon renders as a
           // white square in the Android status bar.
           android: AndroidInitializationSettings('@mipmap/launcher_icon'),
@@ -108,10 +110,12 @@ class NativeLocalNotificationPresenter implements LocalNotificationPresenter {
 
     try {
       await _plugin.show(
-        _ids.nextInt(1 << 30),
-        title,
-        body,
-        NotificationDetails(
+        // Named arguments since v19; `id`, `title`, `body` and the details were
+        // positional before.
+        id: _ids.nextInt(1 << 30),
+        title: title,
+        body: body,
+        notificationDetails: NotificationDetails(
           android: AndroidNotificationDetails(
             channel.id,
             // Only used if the channel does not already exist; the registrar
@@ -142,7 +146,7 @@ class NativeLocalNotificationPresenter implements LocalNotificationPresenter {
     } catch (error) {
       _logger.warning('local_notifications.show_failed', fields: {
         // Never the title or body: a notification body can name a customer, and
-        // `docs/skills/SECURITY.md` §10 keeps customer information out of logs.
+        // `docs/skills/security.md` §10 keeps customer information out of logs.
         'channel': channel.id,
         'error': error.runtimeType.toString(),
       });

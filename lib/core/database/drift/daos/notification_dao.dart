@@ -5,13 +5,13 @@ import 'package:isi_steel_sales_mobile/core/database/drift/tables/notification_t
 part 'notification_dao.g.dart';
 
 /// The one write path into the notification inbox mirror and its outbox
-/// (ADR-004, `docs/blueprints/DATABASE_GUIDE.md` §4).
+/// (ADR-004, `docs/blueprint/local-storage-architecture.md` §4).
 ///
 /// ## The transactional rule this DAO exists to enforce
 ///
 /// Every method that changes a notification's state also enqueues the server
 /// call for it, **inside one transaction** — ADR-006 and
-/// `docs/skills/SYNC_ENGINE.md` §2 make that a correctness requirement, not a style
+/// `docs/blueprint/sync-architecture.md` §2 make that a correctness requirement, not a style
 /// preference. Splitting them means a state the rep can see with no call queued
 /// to match it: a route the supervisor still believes was never acknowledged, or
 /// a badge that never clears server-side.
@@ -508,7 +508,7 @@ SELECT
 
   /// The four closed states of §5.1. A local mirror of
   /// `NotificationState.isClosed` — the DAO cannot import the domain enum
-  /// (`docs/blueprints/ARCHITECTURE.md` §2: inward dependencies only), and
+  /// (`docs/blueprint/system-architecture.md` §2: inward dependencies only), and
   /// `notification_dao_test.dart` asserts the two lists stay identical so they
   /// cannot drift apart silently.
   static const Set<String> closedStates = {

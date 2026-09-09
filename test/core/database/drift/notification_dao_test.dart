@@ -308,7 +308,7 @@ void main() {
 
   test('the DAO closed-state list matches the domain enum', () {
     // The DAO cannot import the domain enum (inward dependencies only,
-    // `docs/blueprints/ARCHITECTURE.md` §2), so it keeps its own copy of the four closed
+    // `docs/blueprint/system-architecture.md` §2), so it keeps its own copy of the four closed
     // states. This is what stops the two drifting apart silently — the symptom
     // otherwise is a dismissed notification quietly becoming actionable again.
     final fromDomain = NotificationState.values

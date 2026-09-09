@@ -10,7 +10,7 @@ import 'package:isi_steel_sales_mobile/core/notifications/push_message.dart';
 ///    well-behaved no-op. A browser build has no FCM registration here (ADR-010)
 ///    and `firebase_messaging` on web additionally needs a service worker and a
 ///    VAPID key that this app does not ship. **The inbox is unaffected**, which
-///    is exactly the property `docs/feature/notification/README.md` §1 is
+///    is exactly the property `docs/feature/notification/notification-mobile.md` §1 is
 ///    built around: a dropped push must cost nothing.
 ///
 /// Everything here is safe to call whether or not push is available or
@@ -105,7 +105,7 @@ abstract interface class PushMessagingService {
 /// Deliberately separate from the domain's `PushPermissionStatus`: this is what
 /// the platform said, and that is what the feature decided it means. Collapsing
 /// them would put a Firebase concept in the domain layer, which
-/// `docs/blueprints/ARCHITECTURE.md` §2 forbids.
+/// `docs/blueprint/system-architecture.md` §2 forbids.
 enum PushAuthorization {
   /// Not asked yet. The explainer is due — and on iOS this is the only state
   /// from which asking can still change anything.
@@ -118,7 +118,24 @@ enum PushAuthorization {
   /// does arrive.
   provisional,
 
+  /// Declined, but the OS may still prompt again.
+  ///
+  /// On Android this is the "dismissed / not now" case. §14 allows re-offering
+  /// the explainer here, capped at once every 14 days.
   denied,
+
+  /// Declined, and **the OS will not show another prompt**.
+  ///
+  /// New in `firebase_messaging` 16: on Android 13+ the rep must enable
+  /// notifications from system settings, and on Apple platforms permanent
+  /// denial is reported as [denied] instead.
+  ///
+  /// Kept distinct from [denied] because it changes what the UI may honestly
+  /// offer. Asking again does nothing, so an "Enable" button here is a control
+  /// that silently fails — the rep taps it, no prompt appears, and they
+  /// reasonably conclude the app is broken. Only a link to system settings can
+  /// change this answer.
+  deniedPermanently,
 
   /// No push transport in this build. Not an error and not a denial: nothing was
   /// ever asked, and nothing can be.

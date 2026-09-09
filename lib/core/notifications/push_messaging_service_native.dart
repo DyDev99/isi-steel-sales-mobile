@@ -21,7 +21,7 @@ import 'package:isi_steel_sales_mobile/core/notifications/push_messaging_service
 ///     one file is a corruption risk, not a performance question.
 ///  2. It is not needed. The inbox is the system of record and the catch-up call
 ///     on next foreground pulls everything since the cursor
-///     (`docs/feature/notification/README.md` §6.1). A background write would
+///     (`docs/feature/notification/notification-mobile.md` §6.1). A background write would
 ///     duplicate work the foreground path already guarantees, while adding the
 ///     one failure mode the design has no answer for: a half-written encrypted
 ///     row nobody is around to see.
@@ -90,7 +90,7 @@ class FirebasePushMessagingService implements PushMessagingService {
         FirebaseMessaging.onMessageOpenedApp.listen(_emitOpened),
         messaging.onTokenRefresh.listen((token) {
           // The token itself is never logged: it is a per-installation
-          // credential for sending to this handset, and `docs/skills/SECURITY.md` §10
+          // credential for sending to this handset, and `docs/skills/security.md` §10
           // keeps credentials out of logs. That it rotated is the useful fact.
           _logger.info('push.token_rotated');
           if (!_tokens.isClosed) _tokens.add(token);
@@ -121,7 +121,7 @@ class FirebasePushMessagingService implements PushMessagingService {
     } on FirebaseException catch (error) {
       // The **code**, not the runtime type. `FirebaseException` on its own says
       // nothing — every failure here reports it — and an error code is
-      // explicitly allowed in logs by `docs/skills/SECURITY.md` §10. Logging the
+      // explicitly allowed in logs by `docs/skills/security.md` §10. Logging the
       // type instead sent a real debugging session off to check iOS Settings for
       // a permission that was already granted.
       _logger.warning('push.token_unavailable', fields: {
@@ -307,6 +307,8 @@ class FirebasePushMessagingService implements PushMessagingService {
         AuthorizationStatus.authorized => PushAuthorization.authorized,
         AuthorizationStatus.provisional => PushAuthorization.provisional,
         AuthorizationStatus.denied => PushAuthorization.denied,
+        AuthorizationStatus.deniedPermanently =>
+          PushAuthorization.deniedPermanently,
         AuthorizationStatus.notDetermined => PushAuthorization.notDetermined,
       };
 }
