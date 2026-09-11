@@ -58,6 +58,8 @@ class ProductResultCard extends StatelessWidget {
     this.promotion,
     this.onPromotionTap,
     this.price,
+    this.manualPrice,
+    this.onInputPrice,
     this.onPriceRetry,
   });
 
@@ -97,6 +99,12 @@ class ProductResultCard extends StatelessWidget {
   /// Null renders nothing — the resting state on any screen without a pricing
   /// context. Never derived from [Product.pricing]: see the class doc.
   final MobilePrice? price;
+
+  /// A manual unit price override in USD entered by the sales representative.
+  final double? manualPrice;
+
+  /// Action triggered when the rep wants to input or edit the unit price directly.
+  final VoidCallback? onInputPrice;
 
   /// Re-asks for a price that failed. Offered only for a failed request, not
   /// for a backend that answered "no price" — that is settled, and retrying
@@ -213,9 +221,11 @@ class ProductResultCard extends StatelessWidget {
                           // without hunting. Renders nothing when there is no
                           // pricing context, so the identity line simply
                           // moves up.
-                          if (price != null) ...[
+                          if (price != null || manualPrice != null || onInputPrice != null) ...[
                             MaterialPriceView(
                               price: price,
+                              manualPrice: manualPrice,
+                              onInputPrice: onInputPrice,
                               unit: product.unit,
                               onRetry: onPriceRetry,
                             ),

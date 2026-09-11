@@ -49,6 +49,7 @@ class ProductFilterFlowState extends Equatable {
     this.stockLocationCode,
     this.stockLocationsLoading = false,
     this.availability = const {},
+    this.selectedSku,
   });
 
   final FilterFlowStatus status;
@@ -79,6 +80,25 @@ class ProductFilterFlowState extends Equatable {
   /// stage: an experienced rep who already knows the material code should not
   /// have to walk a hierarchy to reach it.
   final String query;
+
+  /// The SKU or product id selected by the user from search results.
+  /// When null, only lightweight SKU cards are rendered during search.
+  /// When non-null, the full ProductCard for this selected SKU is rendered.
+  final String? selectedSku;
+
+  /// The currently selected product in search results, if any.
+  Product? get selectedProduct {
+    if (selectedSku == null) return null;
+    for (final p in products) {
+      if (p.sku == selectedSku ||
+          p.id == selectedSku ||
+          p.code == selectedSku ||
+          p.materialCode == selectedSku) {
+        return p;
+      }
+    }
+    return null;
+  }
 
   /// Result-set preferences set from the Filter sheet. They re-run the product
   /// query but never invalidate a [selection].
@@ -201,6 +221,7 @@ class ProductFilterFlowState extends Equatable {
     String? Function()? stockLocationCode,
     bool? stockLocationsLoading,
     Map<String, MaterialAvailability>? availability,
+    String? Function()? selectedSku,
   }) {
     return ProductFilterFlowState(
       status: status ?? this.status,
@@ -227,6 +248,7 @@ class ProductFilterFlowState extends Equatable {
       stockLocationsLoading:
           stockLocationsLoading ?? this.stockLocationsLoading,
       availability: availability ?? this.availability,
+      selectedSku: selectedSku != null ? selectedSku() : this.selectedSku,
     );
   }
 
@@ -271,5 +293,6 @@ class ProductFilterFlowState extends Equatable {
         stockLocationCode,
         stockLocationsLoading,
         availability,
+        selectedSku,
       ];
 }

@@ -99,7 +99,7 @@ Future<void> main() async {
 ///
 /// On a **physical iOS device** it usually means `getToken()` ran before APNs
 /// replied, or before the notification permission was granted — which
-/// `docs/feature/notification/notification-mobile.md` §14 defers to the in-app explainer, on
+/// `docs/feature/notification/README.md` §14 defers to the in-app explainer, on
 /// purpose. Accept the explainer, then relaunch.
 ///
 /// On **web** there is no transport at all (ADR-010).
@@ -126,6 +126,18 @@ Future<void> printFcmTokenForDebugging() async {
     await messaging.initialize();
 
     final token = await messaging.token();
+
+    // Boxed, so it is findable by eye in a busy console. The previous single
+    // line printed correctly and was simply scrolled past — it lands very early
+    // in boot, hundreds of lines above the device registration it belongs with.
+    void box(List<String> lines) {
+      debugPrint('┌── FCM TOKEN ${'─' * 50}');
+      for (final line in lines) {
+        debugPrint('│ $line');
+      }
+      debugPrint('└${'─' * 64}');
+    }
+
     if (token == null || token.isEmpty) {
       // The preceding `push.token_unavailable` log line carries the Firebase
       // error code and the specific cause; this only points at it.
@@ -135,21 +147,30 @@ Future<void> printFcmTokenForDebugging() async {
       // that, and it was wrong — the usual cause on iOS is a missing APNs device
       // token, which the Simulator never issues no matter how thoroughly
       // notifications are allowed in Settings.
-      debugPrint(
-        '[isi.debug] FCM token: none issued. See the push.token_unavailable '
-        'line above for the reason. On the iOS Simulator this is expected and '
-        'unfixable — FCM needs an APNs device token, which only a physical '
-        'device provides. Android issues one immediately.',
-      );
+      box([
+        'none issued.',
+        'See the push.token_unavailable line above for the reason.',
+        'On the iOS Simulator this is expected and unfixable — FCM needs an',
+        'APNs device token, which only a physical device provides.',
+        'Android issues one immediately.',
+      ]);
       return;
     }
 
-    debugPrint('[isi.debug] FCM token: $token');
+    box([
+      token,
+      '',
+      'Paste this into Firebase Console → Cloud Messaging to test.'
+    ]);
   } catch (error) {
     // Never fatal, and never rethrown into `runGuarded`: a diagnostic aid that
     // can take the app down is worse than no diagnostic aid. The usual cause is
     // a missing or mismatched `google-services.json` / `GoogleService-Info.plist`,
     // which is worth naming because the symptom is otherwise silence.
-    debugPrint('[isi.debug] FCM token unavailable: $error');
+    debugPrint('┌── FCM TOKEN ${'─' * 50}');
+    debugPrint('│ unavailable: $error');
+    debugPrint('│ Usually a missing or mismatched google-services.json /');
+    debugPrint('│ GoogleService-Info.plist.');
+    debugPrint('└${'─' * 64}');
   }
 }

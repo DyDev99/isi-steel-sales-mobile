@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/animations/app_animations.dart';
 import 'package:flutter/services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
@@ -255,9 +256,18 @@ class _CartQuantityStepperState extends State<CartQuantityStepper> {
     final scheme = Theme.of(context).colorScheme;
     final inCart = _local > 0;
 
+    // Reduce-motion collapses every duration in this widget to zero rather than
+    // guarding each one separately (feature-ui-standard §14). The two *timers*
+    // below — the commit debounce and the press-and-hold repeat — are untouched
+    // by it: they are behaviour, not motion, and zeroing them would commit a
+    // quantity on every keystroke and make press-and-hold ungovernable.
+    final motion = (MediaQuery.maybeOf(context)?.disableAnimations ?? false)
+        ? Duration.zero
+        : null;
+
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.easeOutCubic,
+      duration: motion ?? AppDurations.medium,
+      curve: AppCurves.standard,
       decoration: BoxDecoration(
         color: inCart
             ? scheme.primary.withValues(alpha: 0.10)
@@ -321,7 +331,11 @@ class _CartQuantityStepperState extends State<CartQuantityStepper> {
                     behavior: HitTestBehavior.opaque,
                     onTap: _beginEdit,
                     child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 180),
+                      // `fast`, not `medium`. A digit is closest to the token
+                      // doc's "badge swap", but this one is driven by repeated
+                      // taps and press-and-hold — at 250ms the number visibly
+                      // lags behind the finger.
+                      duration: motion ?? AppDurations.fast,
                       transitionBuilder: (child, animation) => FadeTransition(
                         opacity: animation,
                         child: ScaleTransition(scale: animation, child: child),
@@ -394,7 +408,10 @@ class _StepButton extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 8),
           child: AnimatedOpacity(
-            duration: const Duration(milliseconds: 180),
+            // Micro feedback: an affordance dimming as it becomes unavailable.
+            duration: (MediaQuery.maybeOf(context)?.disableAnimations ?? false)
+                ? Duration.zero
+                : AppDurations.fast,
             opacity: enabled ? 1 : 0.3,
             child: Icon(icon, size: context.rr(17), color: colors.textPrimary),
           ),

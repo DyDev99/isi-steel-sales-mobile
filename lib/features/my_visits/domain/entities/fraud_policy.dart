@@ -12,7 +12,7 @@ class FraudPolicy extends Equatable {
   const FraudPolicy({
     this.blockOnMockLocation = false,
     this.blockOnVpn = false,
-    this.maxAccuracyMeters = 30,
+    this.maxAccuracyMeters = 50,
     this.maxSpeedKmh = 150,
     this.allowReasonedCheckInOverride = true,
     this.minOverrideReasonLength = 10,
@@ -20,6 +20,16 @@ class FraudPolicy extends Equatable {
 
   final bool blockOnMockLocation;
   final bool blockOnVpn;
+  /// The coarsest fix (reported accuracy radius, metres) a check-in accepts
+  /// without a written reason.
+  ///
+  /// **50 m, was 30 m.** Indoors — which is where a check-in happens — a
+  /// phone's fused Wi-Fi/cell fix typically reports ±20–60 m. At 30 m a rep
+  /// standing inside the right shop was routinely refused as "accuracy too
+  /// low". 50 m still sits well inside the 100 m check-in radius, so a fix
+  /// accepted here cannot place a rep who is actually outside the area inside
+  /// it by more than half the radius. Anything coarser still checks in — with
+  /// a reason. Set back to 30 for a stricter territory.
   final double maxAccuracyMeters;
   final double maxSpeedKmh;
 

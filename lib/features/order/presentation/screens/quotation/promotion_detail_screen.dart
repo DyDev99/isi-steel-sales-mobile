@@ -6,6 +6,7 @@ import 'package:isi_steel_sales_mobile/core/localization/localized_builder.dart'
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_content_frame.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/promo_quotation_preview_card.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/promotions/promo_card.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/promotions/promo_view.dart';
 
@@ -98,10 +99,17 @@ class PromotionDetailScreen extends StatelessWidget {
             itemBuilder: (context, index) => FadeSlideIn(
               key: ValueKey(ordered[index].id),
               delay: AppDurations.stagger * index.clamp(0, _maxStaggered),
-              child: PromoCard(
-                promo: ordered[index],
-                now: resolvedNow,
-                terms: terms,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  PromoCard(
+                    promo: ordered[index],
+                    now: resolvedNow,
+                    terms: terms,
+                  ),
+                  PromoQuotationPreviewCard(promo: ordered[index]),
+                ],
               ),
             ),
           ),

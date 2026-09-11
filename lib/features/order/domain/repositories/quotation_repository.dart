@@ -13,10 +13,20 @@ abstract interface class QuotationRepository {
     OffVisitReason? offVisitReason,
     double? gpsLat,
     double? gpsLng,
+    double? subtotal,
+    double? discount,
+    double? tax,
+    double? total,
   });
 
-  ResultFuture<Quotation> updateQuotation(Quotation existing,
-      {required List<CartItem> items});
+  ResultFuture<Quotation> updateQuotation(
+    Quotation existing, {
+    required List<CartItem> items,
+    double? subtotal,
+    double? discount,
+    double? tax,
+    double? total,
+  });
 
   ResultFuture<Quotation> markConverted(String quotationId);
 

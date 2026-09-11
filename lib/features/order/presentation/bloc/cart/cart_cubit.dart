@@ -77,6 +77,7 @@ class CartCubit extends Cubit<CartState> {
       String? leadId,
       String? customerId,
       double? unitPrice,
+      bool isManualPrice = false,
       double discountPercent = 0,
       ShipmentSelection? fulfillment}) async {
     // Duplicate lines merge only when the same SKU is added on the same
@@ -113,6 +114,7 @@ class CartCubit extends Cubit<CartState> {
         leadId: leadId,
         customerId: customerId,
         unitPriceOverride: unitPrice,
+        isManualPrice: isManualPrice,
         fulfillment: fulfillment,
       );
       emit(CartLoaded(items: [..._items, newItem]));
@@ -176,6 +178,31 @@ class CartCubit extends Cubit<CartState> {
     if (item.isNotEmpty) await _updateCartItem(item.first);
   }
 
+  /// Sets a manual unit price override (default currency USD) for [cartItemId].
+  ///
+  /// Passing `null` or `<= 0` clears the override back to catalog / pending.
+  Future<void> updateUnitPrice(
+    String cartItemId,
+    double? unitPrice, {
+    bool isManualPrice = true,
+  }) async {
+    final updated = [
+      for (final i in _items)
+        if (i.id == cartItemId)
+          i.copyWith(
+            unitPriceOverride: () =>
+                (unitPrice != null && unitPrice > 0) ? unitPrice : null,
+            isManualPrice:
+                (unitPrice != null && unitPrice > 0) ? isManualPrice : false,
+          )
+        else
+          i,
+    ];
+    emit(CartLoaded(items: updated));
+    final item = updated.where((i) => i.id == cartItemId);
+    if (item.isNotEmpty) await _updateCartItem(item.first);
+  }
+
   Future<void> removeItem(String cartItemId) async {
     emit(CartLoaded(items: _items.where((i) => i.id != cartItemId).toList()));
     await _removeFromCart(CartItemIdParams(cartItemId));
@@ -201,6 +228,10 @@ class CartCubit extends Cubit<CartState> {
     double? gpsLat,
     double? gpsLng,
     Quotation? editing,
+    double? subtotal,
+    double? discount,
+    double? tax,
+    double? total,
   }) async {
     final items = _items;
     final result = editing == null
@@ -213,9 +244,21 @@ class CartCubit extends Cubit<CartState> {
             offVisitReason: offVisitReason,
             gpsLat: gpsLat,
             gpsLng: gpsLng,
+            subtotal: subtotal,
+            discount: discount,
+            tax: tax,
+            total: total,
           ))
         : await _updateQuotation(
-            UpdateQuotationParams(existing: editing, items: items));
+            UpdateQuotationParams(
+              existing: editing,
+              items: items,
+              subtotal: subtotal,
+              discount: discount,
+              tax: tax,
+              total: total,
+            ),
+          );
 
     return result.when(
       success: (quotation) {

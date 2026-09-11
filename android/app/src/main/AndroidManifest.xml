@@ -10,9 +10,22 @@
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <!-- Android 13+ (API 33) gates every notification behind a runtime
          grant. Declared here, requested from the in-app explainer rather
-         than at first launch (docs/features/notification-mobile.md §14):
-         a rep who has not yet seen a route has no reason to say yes, and
-         a denial is sticky. The inbox works fully without it. -->
+         than at first launch
+         (docs/feature/notification/workflow.md §14): a rep who has
+         not yet seen a route has no reason to say yes, and a denial is sticky.
+         The inbox works fully without it.
+
+         Consequence worth knowing before filing a bug: on a fresh API 33+
+         install the app reports `push.permission status=notDetermined` and
+         registers the device with `pushPermissionGranted: false`. That is
+         correct, not a failure — §4.2 requires the registration be kept so the
+         inbox syncs and the delivery log reads `NO_DEVICE` once. Below API 33
+         there is no runtime grant, so the same install reports `authorized`.
+
+         `firebase_messaging` declares this permission in its own manifest too;
+         it is stated here so the app's requested permissions are readable
+         without spelunking plugin manifests, and so removing the plugin cannot
+         silently drop it. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
@@ -104,11 +117,15 @@
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="system" />
-        <!-- Without an explicit small icon Android renders the full-colour
-             launcher icon as a white square in the status bar. -->
+        <!-- A dedicated monochrome silhouette, NOT the launcher icon.
+             Android discards a small icon's colours and fills its alpha
+             silhouette with the accent colour, so an opaque full-colour
+             launcher icon renders as a featureless grey-white block. This
+             pointed at `@mipmap/launcher_icon` and did exactly that.
+             See the header comment in `res/drawable/ic_notification.xml`. -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
-            android:resource="@mipmap/launcher_icon" />
+            android:resource="@drawable/ic_notification" />
 
         <meta-data
             android:name="flutterEmbedding"

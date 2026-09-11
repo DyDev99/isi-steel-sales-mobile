@@ -10,5 +10,12 @@ class UpdateQuotation extends UseCase<Quotation, UpdateQuotationParams> {
 
   @override
   ResultFuture<Quotation> call(UpdateQuotationParams params) =>
-      _repository.updateQuotation(params.existing, items: params.items);
+      _repository.updateQuotation(
+        params.existing,
+        items: params.items,
+        subtotal: params.subtotal,
+        discount: params.discount,
+        tax: params.tax,
+        total: params.total,
+      );
 }

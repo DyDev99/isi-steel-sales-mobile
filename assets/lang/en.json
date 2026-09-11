@@ -1920,5 +1920,33 @@
       "pickup_only": "Only on Pick up",
       "pickup_only_hint": "Set Method of shipment to Pick up to use this discount."
     }
+  },
+  "permissions": {
+    "primer": {
+      "title": "Two quick permissions",
+      "subtitle": "Both keep your day accurate. You can change either one later in Settings.",
+      "subtitle_blocked": "One of these now has to be turned on from your device Settings.",
+      "enable": "Enable both",
+      "open_settings": "Open Settings",
+      "later": "Not now",
+      "footnote": "Your notification inbox and your customer list work either way — these only make them faster and more accurate."
+    },
+    "notifications": {
+      "title": "Notifications",
+      "reason": "Know the moment a route, order or approval needs you — instead of at your next sync.",
+      "blocked": "Turned off for this app. Enable notifications in Settings to receive alerts."
+    },
+    "location": {
+      "title": "Location",
+      "reason": "Saves a shop's exact coordinates and confirms you're on site when you check in.",
+      "blocked": "Location is off. Turn it on in Settings to save coordinates and check in."
+    },
+    "status": {
+      "pending": "Not set",
+      "asking": "Asking now",
+      "granted": "Allowed",
+      "declined": "Not allowed",
+      "blocked": "Needs Settings"
+    }
   }
 }

@@ -45,16 +45,22 @@ class QuotationRepositoryImpl implements QuotationRepository {
     OffVisitReason? offVisitReason,
     double? gpsLat,
     double? gpsLng,
+    double? subtotal,
+    double? discount,
+    double? tax,
+    double? total,
   }) async {
     try {
       if (items.isEmpty) {
         return const Failed(CacheFailure(message: 'Quotation has no items.'));
       }
       final now = DateTime.now();
-      final subtotal = items.fold<double>(0, (sum, i) => sum + i.lineSubtotal);
-      final discount = items.fold<double>(0, (sum, i) => sum + i.lineDiscount);
-      final tax = (subtotal - discount) * 0.10;
-      final total = subtotal - discount + tax;
+      final calcSubtotal =
+          subtotal ?? items.fold<double>(0, (sum, i) => sum + i.lineSubtotal);
+      final calcDiscount =
+          discount ?? items.fold<double>(0, (sum, i) => sum + i.lineDiscount);
+      final calcTax = tax ?? ((calcSubtotal - calcDiscount) * 0.10);
+      final calcTotal = total ?? (calcSubtotal - calcDiscount + calcTax);
 
       final quotation = Quotation(
         id: _newId('QT'),
@@ -63,10 +69,10 @@ class QuotationRepositoryImpl implements QuotationRepository {
         leadId: leadId,
         leadDisplayName: leadDisplayName,
         lines: items,
-        subtotal: subtotal,
-        discount: discount,
-        tax: tax,
-        total: total,
+        subtotal: calcSubtotal,
+        discount: calcDiscount,
+        tax: calcTax,
+        total: calcTotal,
         status: QuotationStatus.saved,
         offVisitReason: offVisitReason,
         gpsLatitude: gpsLat,
@@ -86,16 +92,24 @@ class QuotationRepositoryImpl implements QuotationRepository {
   }
 
   @override
-  ResultFuture<Quotation> updateQuotation(Quotation existing,
-      {required List<CartItem> items}) async {
+  ResultFuture<Quotation> updateQuotation(
+    Quotation existing, {
+    required List<CartItem> items,
+    double? subtotal,
+    double? discount,
+    double? tax,
+    double? total,
+  }) async {
     try {
       if (items.isEmpty) {
         return const Failed(CacheFailure(message: 'Quotation has no items.'));
       }
-      final subtotal = items.fold<double>(0, (sum, i) => sum + i.lineSubtotal);
-      final discount = items.fold<double>(0, (sum, i) => sum + i.lineDiscount);
-      final tax = (subtotal - discount) * 0.10;
-      final total = subtotal - discount + tax;
+      final calcSubtotal =
+          subtotal ?? items.fold<double>(0, (sum, i) => sum + i.lineSubtotal);
+      final calcDiscount =
+          discount ?? items.fold<double>(0, (sum, i) => sum + i.lineDiscount);
+      final calcTax = tax ?? ((calcSubtotal - calcDiscount) * 0.10);
+      final calcTotal = total ?? (calcSubtotal - calcDiscount + calcTax);
 
       final updated = Quotation(
         id: existing.id,
@@ -104,10 +118,10 @@ class QuotationRepositoryImpl implements QuotationRepository {
         leadId: existing.leadId,
         leadDisplayName: existing.leadDisplayName,
         lines: items,
-        subtotal: subtotal,
-        discount: discount,
-        tax: tax,
-        total: total,
+        subtotal: calcSubtotal,
+        discount: calcDiscount,
+        tax: calcTax,
+        total: calcTotal,
         status: existing.status,
         offVisitReason: existing.offVisitReason,
         gpsLatitude: existing.gpsLatitude,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/animations/app_animations.dart';
 import 'package:intl/intl.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
@@ -26,13 +27,18 @@ class MaterialPriceView extends StatelessWidget {
   const MaterialPriceView({
     super.key,
     required this.price,
+    this.manualPrice,
     this.unit,
     this.onRetry,
+    this.onInputPrice,
   });
 
   /// Null when the screen has no pricing context at all — renders nothing,
-  /// which is what keeps the card reusable outside the quotation flow.
+  /// unless a manualPrice or onInputPrice is provided.
   final MobilePrice? price;
+
+  /// A manual unit price override in USD set by the sales rep.
+  final double? manualPrice;
 
   /// The material's selling unit, appended as "/ KG". Identification that
   /// comes off the catalogue row, not from the pricing call.
@@ -40,21 +46,74 @@ class MaterialPriceView extends StatelessWidget {
 
   final VoidCallback? onRetry;
 
+  /// Triggered when the user wants to input or edit the price directly.
+  final VoidCallback? onInputPrice;
+
   @override
   Widget build(BuildContext context) {
     final price = this.price;
-    if (price == null) return const SizedBox.shrink();
+    final manualPrice = this.manualPrice;
 
-    if (price.isBusy) return const _PriceLoading();
-
-    if (price.hasAmount) {
-      return _PriceAmount(price: price, unit: unit);
+    // Outside pricing context: if no price, no manual price, and no input action,
+    // render nothing to keep the card reusable outside quotation flow.
+    if (price == null && manualPrice == null && onInputPrice == null) {
+      return const SizedBox.shrink();
     }
 
-    // A price of zero is not a price. `hasAmount` already treats it as absent,
-    // because `$0.00` on a quotation is a *quoted price of zero* — a promise a
-    // customer can hold the rep to.
-    return _PriceMissing(price: price, onRetry: onRetry);
+    final Widget current;
+    final Object stateKey;
+
+    if (price != null && price.isBusy) {
+      current = const _PriceLoading();
+      stateKey = 'busy';
+    } else if (price != null && price.hasAmount) {
+      // Requirement 1: If material already got price successfully from backend,
+      // hide manual price completely and display official backend price.
+      current = _PriceAmount(price: price, unit: unit);
+      stateKey = 'amount:${price.price}:${price.currency}';
+    } else if (manualPrice != null && manualPrice > 0) {
+      // Requirement 2: Manual price is allowed ONLY when material cannot get
+      // price from backend (price == null or !price.hasAmount).
+      current = _ManualPriceAmount(
+        manualPrice: manualPrice,
+        unit: unit,
+        onInputPrice: onInputPrice,
+      );
+      stateKey = 'manual:$manualPrice';
+    } else {
+      current = _PriceMissing(
+        price: price,
+        onRetry: onRetry,
+        onInputPrice: onInputPrice,
+      );
+      stateKey = 'missing:${price?.errorKind}';
+    }
+
+    if (MediaQuery.maybeOf(context)?.disableAnimations ?? false) {
+      return current;
+    }
+
+    return AnimatedSize(
+      duration: AppDurations.medium,
+      curve: AppCurves.standard,
+      alignment: Alignment.centerLeft,
+      child: AnimatedSwitcher(
+        duration: AppDurations.medium,
+        switchInCurve: AppCurves.emphasized,
+        switchOutCurve: AppCurves.standard,
+        transitionBuilder: (child, animation) => FadeTransition(
+          opacity: animation,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0, 0.25),
+              end: Offset.zero,
+            ).animate(animation),
+            child: child,
+          ),
+        ),
+        child: KeyedSubtree(key: ValueKey(stateKey), child: current),
+      ),
+    );
   }
 }
 
@@ -69,10 +128,13 @@ class _PriceAmount extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final priceColor = isDark ? const Color(0xFF60A5FA) : colors.brandNavy;
     final unit = this.unit?.trim() ?? '';
 
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
       children: [
         Flexible(
           child: Text(
@@ -80,29 +142,26 @@ class _PriceAmount extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              color: colors.textPrimary,
-              fontSize: context.rsp(15),
-              fontWeight: FontWeight.w800,
+              color: priceColor,
+              fontSize: context.rsp(18.5),
+              fontWeight: FontWeight.w900,
+              letterSpacing: -0.3,
               height: 1.1,
             ),
           ),
         ),
         if (unit.isNotEmpty) ...[
-          SizedBox(width: context.rw(3)),
+          SizedBox(width: context.rw(4)),
           Text(
             '/ $unit',
             style: TextStyle(
               color: colors.textSecondary,
-              fontSize: context.rsp(11),
-              fontWeight: FontWeight.w600,
+              fontSize: context.rsp(12),
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],
         SizedBox(width: context.rw(6)),
-        // The live dot is the honest half of this widget: it appears only
-        // while the price is known to be current, so a figure held over a
-        // dropped connection loses the badge rather than keeping a claim
-        // nothing is backing.
         if (price.isLive)
           _PriceTag(
             label: 'orders.pricing.live'.tr,
@@ -115,6 +174,98 @@ class _PriceAmount extends StatelessWidget {
             color: colors.textSecondary,
             dot: false,
           ),
+      ],
+    );
+  }
+}
+
+class _ManualPriceAmount extends StatelessWidget {
+  const _ManualPriceAmount({
+    required this.manualPrice,
+    this.unit,
+    this.onInputPrice,
+  });
+
+  final double manualPrice;
+  final String? unit;
+  final VoidCallback? onInputPrice;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final priceColor = isDark ? const Color(0xFF60A5FA) : colors.brandNavy;
+    final unit = this.unit?.trim() ?? '';
+    final formatted = NumberFormat('#,##0.00').format(manualPrice);
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
+      children: [
+        Flexible(
+          child: Text(
+            '\$$formatted',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: priceColor,
+              fontSize: context.rsp(18.5),
+              fontWeight: FontWeight.w900,
+              letterSpacing: -0.3,
+              height: 1.1,
+            ),
+          ),
+        ),
+        if (unit.isNotEmpty) ...[
+          SizedBox(width: context.rw(4)),
+          Text(
+            '/ $unit',
+            style: TextStyle(
+              color: colors.textSecondary,
+              fontSize: context.rsp(12),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+        SizedBox(width: context.rw(6)),
+        InkWell(
+          onTap: onInputPrice,
+          borderRadius: BorderRadius.circular(context.rr(4)),
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: context.rw(5),
+              vertical: context.rh(2),
+            ),
+            decoration: BoxDecoration(
+              color: scheme.primary.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(context.rr(4)),
+              border: Border.all(
+                color: scheme.primary.withValues(alpha: 0.35),
+                width: 0.8,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '(Manual USD)',
+                  style: TextStyle(
+                    fontSize: context.rsp(9.5),
+                    fontWeight: FontWeight.w800,
+                    color: scheme.primary,
+                  ),
+                ),
+                SizedBox(width: context.rw(2)),
+                Icon(
+                  Icons.edit_outlined,
+                  size: context.rr(10),
+                  color: scheme.primary,
+                ),
+              ],
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -157,59 +308,163 @@ class _PriceLoading extends StatelessWidget {
 
 /// No figure to show — and which of the several reasons it is.
 class _PriceMissing extends StatelessWidget {
-  const _PriceMissing({required this.price, this.onRetry});
+  const _PriceMissing({
+    this.price,
+    this.onRetry,
+    this.onInputPrice,
+  });
 
-  final MobilePrice price;
+  final MobilePrice? price;
   final VoidCallback? onRetry;
+  final VoidCallback? onInputPrice;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
-    final retryable = price.isRetryable && onRetry != null;
+    final retryable = price?.isRetryable == true && onRetry != null;
+    final reasonText = price != null ? _reasonKey(price!).tr : '';
 
-    final label = Text(
-      _reasonKey(price).tr,
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      style: TextStyle(
-        color: colors.textSecondary,
-        fontSize: context.rsp(11.5),
-        fontWeight: FontWeight.w600,
-      ),
-    );
-
-    if (!retryable) return label;
-
-    return InkWell(
-      onTap: onRetry,
-      borderRadius: BorderRadius.circular(6),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Flexible(child: label),
-          SizedBox(width: context.rw(6)),
-          Icon(Icons.refresh_rounded,
-              size: context.rr(13), color: scheme.primary),
-          SizedBox(width: context.rw(3)),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Note: Material doesn't have price
+        Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: context.rw(6),
+            vertical: context.rh(2.5),
+          ),
+          decoration: BoxDecoration(
+            color: colors.warning.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(context.rr(4)),
+            border: Border.all(
+              color: colors.warning.withValues(alpha: 0.4),
+              width: 0.8,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.info_outline_rounded,
+                size: context.rr(11),
+                color: colors.warningAlt,
+              ),
+              SizedBox(width: context.rw(4)),
+              Flexible(
+                child: Text(
+                  "Material doesn't have price",
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: colors.warningAlt,
+                    fontSize: context.rsp(11),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (reasonText.isNotEmpty) ...[
+          SizedBox(height: context.rh(2)),
           Text(
-            'orders.pricing.retry'.tr,
+            reasonText,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              color: scheme.primary,
-              fontSize: context.rsp(11.5),
-              fontWeight: FontWeight.w800,
+              color: colors.textSecondary,
+              fontSize: context.rsp(10.5),
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
+        if (onInputPrice != null) ...[
+          SizedBox(height: context.rh(4)),
+          Wrap(
+            spacing: context.rw(6),
+            runSpacing: context.rh(4),
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              InkWell(
+                onTap: onInputPrice,
+                borderRadius: BorderRadius.circular(context.rr(6)),
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: context.rw(8),
+                    vertical: context.rh(3),
+                  ),
+                  decoration: BoxDecoration(
+                    color: scheme.primary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(context.rr(6)),
+                    border: Border.all(
+                      color: scheme.primary.withValues(alpha: 0.45),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.edit_note_rounded,
+                        size: context.rr(13),
+                        color: scheme.primary,
+                      ),
+                      SizedBox(width: context.rw(3)),
+                      Text(
+                        'Input Price (USD)',
+                        style: TextStyle(
+                          color: scheme.primary,
+                          fontSize: context.rsp(11),
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              if (retryable)
+                _retryButton(context, scheme),
+            ],
+          ),
+        ] else if (retryable) ...[
+          SizedBox(height: context.rh(3)),
+          _retryButton(context, scheme),
+        ],
+      ],
+    );
+  }
+
+  Widget _retryButton(BuildContext context, ColorScheme scheme) {
+    return InkWell(
+      onTap: onRetry,
+      borderRadius: BorderRadius.circular(context.rr(4)),
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: context.rw(4),
+          vertical: context.rh(2),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.refresh_rounded,
+                size: context.rr(12), color: scheme.primary),
+            SizedBox(width: context.rw(3)),
+            Text(
+              'orders.pricing.retry'.tr,
+              style: TextStyle(
+                color: scheme.primary,
+                fontSize: context.rsp(11),
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  /// The reason, kept distinct rather than flattened to one message.
-  ///
-  /// "You are offline" sends a rep to find signal, "this customer is not
-  /// priceable" sends them to the office, and "unauthorized" sends them to IT.
-  /// One generic string sends them nowhere.
   static String _reasonKey(MobilePrice price) => switch (price.errorKind) {
         PricingErrorKind.networkUnavailable => 'orders.pricing.offline',
         PricingErrorKind.backendUnavailable => 'orders.pricing.backend_down',

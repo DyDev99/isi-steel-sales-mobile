@@ -71,6 +71,7 @@ class ProductFilterFlowBloc
         transformer: sequential());
     on<FilterProductSearchChanged>(_onSearchChanged,
         transformer: restartable());
+    on<FilterProductSkuSelected>(_onSkuSelected);
     on<FilterProductsRefreshed>(_onRefreshed, transformer: droppable());
     on<FilterProductsLoadMoreRequested>(_onLoadMore, transformer: droppable());
     // Sequential like the other narrowing events: it re-runs the product query,
@@ -237,6 +238,7 @@ class ProductFilterFlowBloc
         stockLocationCode: () => null,
         stockLocationsLoading: false,
         availability: const {},
+        selectedSku: () => null,
       );
 
   Future<void> _onPreferencesChanged(FilterPreferencesChanged event,
@@ -361,7 +363,10 @@ class ProductFilterFlowBloc
       Emitter<ProductFilterFlowState> emit) async {
     if (event.query == state.query) return;
     await Future<void>.delayed(_searchDebounce);
-    emit(state.copyWith(query: event.query));
+    emit(state.copyWith(
+      query: event.query,
+      selectedSku: () => null,
+    ));
 
     if (state.canRequestMaterials) {
       await _loadProducts(emit, page: AppConstants.firstPage);
@@ -374,6 +379,14 @@ class ProductFilterFlowBloc
       productStatus: ProductListStatus.idle,
       page: 0,
       hasMore: false,
+      selectedSku: () => null,
+    ));
+  }
+
+  void _onSkuSelected(FilterProductSkuSelected event,
+      Emitter<ProductFilterFlowState> emit) {
+    emit(state.copyWith(
+      selectedSku: () => event.sku,
     ));
   }
 

@@ -93,6 +93,10 @@ class SaveQuotationParams extends Equatable {
     this.offVisitReason,
     this.gpsLat,
     this.gpsLng,
+    this.subtotal,
+    this.discount,
+    this.tax,
+    this.total,
   });
   final List<CartItem> items;
   final String? customerId;
@@ -102,6 +106,10 @@ class SaveQuotationParams extends Equatable {
   final OffVisitReason? offVisitReason;
   final double? gpsLat;
   final double? gpsLng;
+  final double? subtotal;
+  final double? discount;
+  final double? tax;
+  final double? total;
   @override
   List<Object?> get props => [
         items,
@@ -111,16 +119,31 @@ class SaveQuotationParams extends Equatable {
         leadDisplayName,
         offVisitReason,
         gpsLat,
-        gpsLng
+        gpsLng,
+        subtotal,
+        discount,
+        tax,
+        total,
       ];
 }
 
 class UpdateQuotationParams extends Equatable {
-  const UpdateQuotationParams({required this.existing, required this.items});
+  const UpdateQuotationParams({
+    required this.existing,
+    required this.items,
+    this.subtotal,
+    this.discount,
+    this.tax,
+    this.total,
+  });
   final Quotation existing;
   final List<CartItem> items;
+  final double? subtotal;
+  final double? discount;
+  final double? tax;
+  final double? total;
   @override
-  List<Object?> get props => [existing, items];
+  List<Object?> get props => [existing, items, subtotal, discount, tax, total];
 }
 
 class QuotationIdParams extends Equatable {

@@ -16,6 +16,7 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/car
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/pricing/pricing_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/promotion/promotion_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/promotion/promotion_detail_sheet.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/manual_price_input_sheet.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_state.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/product_filter_flow/product_filter_flow_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/product_filter_flow/product_filter_flow_event.dart';
@@ -30,8 +31,10 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filte
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/find_new_product_button.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/loading_products.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/product_family_selector.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/product_result_card.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/product_result_grid.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/product_search_bar.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/sku_search_card.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/stock_location_chips.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
@@ -61,6 +64,10 @@ class GuidedProductFilterView extends StatefulWidget {
     this.onImageSearch,
     this.onCartTap,
     this.sticky = true,
+    this.customerId,
+    this.leadId,
+    this.onInputPrice,
+    this.hostManualPriceFor,
   });
 
   final Set<String> favoriteIds;
@@ -86,6 +93,11 @@ class GuidedProductFilterView extends StatefulWidget {
   final VoidCallback? onCartTap;
 
   final bool sticky;
+
+  final String? customerId;
+  final String? leadId;
+  final Future<void> Function(Product product)? onInputPrice;
+  final double? Function(Product product)? hostManualPriceFor;
 
   @override
   State<GuidedProductFilterView> createState() =>
@@ -174,6 +186,10 @@ class _GuidedProductFilterViewState extends State<GuidedProductFilterView> {
           onCustomize: widget.onCustomize,
           onProductTap: widget.onProductTap,
           onFindNewProduct: _findNewProduct,
+          customerId: widget.customerId,
+          leadId: widget.leadId,
+          onInputPrice: widget.onInputPrice,
+          hostManualPriceFor: widget.hostManualPriceFor,
         );
 
         final footer = _CartFooter(
@@ -332,6 +348,10 @@ class _StageContent extends StatelessWidget {
     required this.onCustomize,
     required this.onProductTap,
     required this.onFindNewProduct,
+    this.customerId,
+    this.leadId,
+    this.onInputPrice,
+    this.hostManualPriceFor,
   });
 
   final ProductFilterFlowState state;
@@ -343,6 +363,10 @@ class _StageContent extends StatelessWidget {
   final ValueChanged<Product>? onCustomize;
   final ValueChanged<Product>? onProductTap;
   final VoidCallback onFindNewProduct;
+  final String? customerId;
+  final String? leadId;
+  final Future<void> Function(Product product)? onInputPrice;
+  final double? Function(Product product)? hostManualPriceFor;
 
   @override
   Widget build(BuildContext context) {
@@ -361,6 +385,10 @@ class _StageContent extends StatelessWidget {
             onCustomize: onCustomize,
             onProductTap: onProductTap,
             onFindNewProduct: onFindNewProduct,
+            customerId: customerId,
+            leadId: leadId,
+            onInputPrice: onInputPrice,
+            hostManualPriceFor: hostManualPriceFor,
           ),
       },
     );
@@ -493,6 +521,10 @@ class _ProductStage extends StatelessWidget {
     required this.onCustomize,
     required this.onProductTap,
     required this.onFindNewProduct,
+    this.customerId,
+    this.leadId,
+    this.onInputPrice,
+    this.hostManualPriceFor,
   });
 
   final ProductFilterFlowState state;
@@ -504,6 +536,10 @@ class _ProductStage extends StatelessWidget {
   final ValueChanged<Product>? onCustomize;
   final ValueChanged<Product>? onProductTap;
   final VoidCallback onFindNewProduct;
+  final String? customerId;
+  final String? leadId;
+  final Future<void> Function(Product product)? onInputPrice;
+  final double? Function(Product product)? hostManualPriceFor;
 
   @override
   Widget build(BuildContext context) {
@@ -517,7 +553,9 @@ class _ProductStage extends StatelessWidget {
           children: [
             Expanded(
               child: _StageHeader(
-                title: 'orders.guided_filter.results'.tr,
+                title: state.hasSearch
+                    ? 'Matching Materials'
+                    : 'orders.guided_filter.results'.tr,
                 subtitle: loadingFirstPage
                     ? null
                     : 'orders.guided_filter.results_count'
@@ -546,7 +584,9 @@ class _ProductStage extends StatelessWidget {
         else if (state.products.isEmpty)
           EmptyProducts.noResults(
             title: 'orders.guided_filter.no_results_title'.tr,
-            message: 'orders.guided_filter.no_results_message'.tr,
+            message: state.hasSearch
+                ? 'Try another SKU or material name.'
+                : 'orders.guided_filter.no_results_message'.tr,
             action: TextButton.icon(
               onPressed: () => bloc.add(const FilterFlowBackRequested()),
               icon: Icon(Icons.arrow_back_rounded, size: context.rr(16)),
@@ -558,15 +598,18 @@ class _ProductStage extends StatelessWidget {
           // that produced it — the stepper is the commit, so it has to show
           // the committed value, not a local echo of it.
           BlocBuilder<CartCubit, CartState>(
-            builder: (context, _) =>
+            builder: (context, cartState) =>
                 BlocBuilder<PromotionCubit, Map<String, PromotionEvaluation>>(
               builder: (context, promotions) {
-                // Ask about every material on screen, at the quantity it is
-                // currently at. The cubit debounces and skips anything already
-                // answered, so this is safe to run on every rebuild — and it is
-                // what makes the strip follow the stepper instead of going
-                // stale the moment a rep changes their mind.
-                for (final product in state.products) {
+                // In search mode, evaluate promotions only for the selected product.
+                // In guided filter mode, evaluate for all products in the current step.
+                final productsToEvaluate = state.hasSearch
+                    ? (state.selectedProduct != null
+                        ? [state.selectedProduct!]
+                        : const <Product>[])
+                    : state.products;
+
+                for (final product in productsToEvaluate) {
                   context.read<PromotionCubit>().evaluate(
                         materialCode: product.materialCode,
                         categoryCode: product.categoryId,
@@ -574,37 +617,236 @@ class _ProductStage extends StatelessWidget {
                       );
                 }
 
+                double? manualPriceFor(Product product, Map<String, MobilePrice> prices) {
+                  final p = prices[product.materialNumber];
+                  if (p != null && p.hasAmount) return null;
+
+                  final fromHost = hostManualPriceFor?.call(product);
+                  if (fromHost != null && fromHost > 0) return fromHost;
+
+                  if (cartState is! CartLoaded) return null;
+                  for (final item in cartState.items) {
+                    if (item.product.id == product.id &&
+                        (customerId == null || item.customerId == customerId) &&
+                        (leadId == null || item.leadId == leadId) &&
+                        item.isManualPrice &&
+                        item.unitPriceOverride != null) {
+                      return item.unitPriceOverride;
+                    }
+                  }
+                  for (final item in cartState.items) {
+                    if (item.product.id == product.id &&
+                        item.isManualPrice &&
+                        item.unitPriceOverride != null) {
+                      return item.unitPriceOverride;
+                    }
+                  }
+                  return null;
+                }
+
+                Future<void> handleInputPrice(Product product, Map<String, MobilePrice> prices) async {
+                  final p = prices[product.materialNumber];
+                  if (p != null && p.hasAmount) {
+                    // Backend already succeeded for this material! Manual price is disallowed.
+                    return;
+                  }
+
+                  if (onInputPrice != null) {
+                    await onInputPrice!(product);
+                    return;
+                  }
+
+                  final cart = context.read<CartCubit>();
+                  final cState = cart.state;
+                  CartItem? existingItem;
+                  if (cState is CartLoaded) {
+                    for (final item in cState.items) {
+                      if (item.product.id == product.id &&
+                          (customerId == null || item.customerId == customerId) &&
+                          (leadId == null || item.leadId == leadId)) {
+                        existingItem = item;
+                        break;
+                      }
+                    }
+                    if (existingItem == null) {
+                      for (final item in cState.items) {
+                        if (item.product.id == product.id) {
+                          existingItem = item;
+                          break;
+                        }
+                      }
+                    }
+                  }
+
+                  final entered = await showManualPriceInputSheet(
+                    context: context,
+                    product: product,
+                    unit: product.unit,
+                    currentPrice: existingItem?.isManualPrice == true
+                        ? existingItem?.unitPriceOverride
+                        : manualPriceFor(product, prices),
+                  );
+
+                  if (entered == null || !context.mounted) return;
+
+                  if (existingItem != null) {
+                    await cart.updateUnitPrice(
+                      existingItem.id,
+                      entered > 0 ? entered : null,
+                      isManualPrice: true,
+                    );
+                  } else if (entered > 0) {
+                    await cart.addProduct(
+                      product,
+                      quantity: 1,
+                      unit: product.unit,
+                      customerId: customerId,
+                      leadId: leadId,
+                      unitPrice: entered,
+                      isManualPrice: true,
+                    );
+                  }
+                }
+
+                final productsToPrice = state.hasSearch
+                    ? (state.selectedProduct != null
+                        ? [state.selectedProduct!]
+                        : const <Product>[])
+                    : state.products;
+
                 return _PricedResults(
-                  products: state.products,
-                  builder: (context, prices) => ProductResultGrid(
-                    products: state.products,
-                    favoriteIds: favoriteIds,
-                    quantityFor: quantityFor,
-                    lineTotalBuilder: lineTotalFor,
-                    onQuantityChanged: onQuantityChanged,
-                    onToggleFavorite: onToggleFavorite,
-                    onCustomize: onCustomize,
-                    onTap: onProductTap,
-                    specLineBuilder: _specLine,
-                    promotionFor: (product) => promotions[product.materialCode],
-                    onPromotionTap: (product) {
-                      final evaluation = promotions[product.materialCode];
-                      if (evaluation == null) return;
-                      showPromotionDetailSheet(
-                        context,
-                        promotion: evaluation.promotion,
-                        evaluation: evaluation,
+                  products: productsToPrice,
+                  builder: (context, prices) {
+                    if (state.hasSearch) {
+                      return Column(
+                        children: [
+                          for (var i = 0; i < state.products.length; i++)
+                            Builder(
+                              key: ValueKey(state.products[i].id),
+                              builder: (context) {
+                                final product = state.products[i];
+                                final isSelected = state.selectedSku != null &&
+                                    (state.selectedSku == product.sku ||
+                                        state.selectedSku == product.id ||
+                                        state.selectedSku == product.code ||
+                                        state.selectedSku ==
+                                            product.materialCode);
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 10),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      SkuSearchCard(
+                                        product: product,
+                                        isSelected: isSelected,
+                                        specLine: _specLine(product),
+                                        onTap: () {
+                                          final idToSelect =
+                                              product.sku.isNotEmpty
+                                                  ? product.sku
+                                                  : product.id;
+                                          bloc.add(FilterProductSkuSelected(
+                                              isSelected ? null : idToSelect));
+                                        },
+                                      ),
+                                      if (isSelected) ...[
+                                        SizedBox(height: context.rh(8)),
+                                        ProductResultCard(
+                                          product: product,
+                                          isFavorite: favoriteIds
+                                              .contains(product.id),
+                                          quantity: quantityFor(product),
+                                          specLine: _specLine(product),
+                                          lineTotalLabel: lineTotalFor?.call(
+                                              product,
+                                              quantityFor(product)),
+                                          onQuantityChanged: (value) =>
+                                              onQuantityChanged(
+                                                  product, value),
+                                          onToggleFavorite: () =>
+                                              onToggleFavorite(product),
+                                          onTap: onProductTap == null
+                                              ? null
+                                              : () => onProductTap!(product),
+                                          onCustomize: onCustomize == null
+                                              ? null
+                                              : () => onCustomize!(product),
+                                          promotion: promotions[
+                                              product.materialCode],
+                                          onPromotionTap: () {
+                                            final evaluation = promotions[
+                                                product.materialCode];
+                                            if (evaluation == null) return;
+                                            showPromotionDetailSheet(
+                                              context,
+                                              promotion:
+                                                  evaluation.promotion,
+                                              evaluation: evaluation,
+                                            );
+                                          },
+                                          price: prices[
+                                              product.materialNumber],
+                                          manualPrice: manualPriceFor(
+                                              product, prices),
+                                          onInputPrice: (prices[product
+                                                          .materialNumber]
+                                                      ?.hasAmount ==
+                                                  true)
+                                              ? null
+                                              : () => handleInputPrice(
+                                                  product, prices),
+                                          onPriceRetry: () => context
+                                              .read<PricingCubit>()
+                                              .retry(
+                                                  product.materialNumber),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                        ],
                       );
-                    },
-                    // Keyed by SAP material number, not by row id: the pricing
-                    // endpoint answers per material, and the same material
-                    // stocked at three warehouses is three rows that share one
-                    // price.
-                    priceFor: (product) => prices[product.materialNumber],
-                    onPriceRetry: (product) => context
-                        .read<PricingCubit>()
-                        .retry(product.materialNumber),
-                  ),
+                    }
+
+                    return ProductResultGrid(
+                      products: state.products,
+                      favoriteIds: favoriteIds,
+                      quantityFor: quantityFor,
+                      lineTotalBuilder: lineTotalFor,
+                      onQuantityChanged: onQuantityChanged,
+                      onToggleFavorite: onToggleFavorite,
+                      onCustomize: onCustomize,
+                      onTap: onProductTap,
+                      specLineBuilder: _specLine,
+                      promotionFor: (product) =>
+                          promotions[product.materialCode],
+                      onPromotionTap: (product) {
+                        final evaluation = promotions[product.materialCode];
+                        if (evaluation == null) return;
+                        showPromotionDetailSheet(
+                          context,
+                          promotion: evaluation.promotion,
+                          evaluation: evaluation,
+                        );
+                      },
+                      // Keyed by SAP material number, not by row id: the pricing
+                      // endpoint answers per material, and the same material
+                      // stocked at three warehouses is three rows that share one
+                      // price.
+                      priceFor: (product) =>
+                          prices[product.materialNumber],
+                      manualPriceFor: (product) =>
+                          manualPriceFor(product, prices),
+                      onInputPrice: (product) =>
+                          handleInputPrice(product, prices),
+                      onPriceRetry: (product) => context
+                          .read<PricingCubit>()
+                          .retry(product.materialNumber),
+                    );
+                  },
                 );
               },
             ),

@@ -6,6 +6,7 @@ import 'package:isi_steel_sales_mobile/core/localization/localization_services.d
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/core/usecase/usecase.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/entities/product_material_number.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/catalog_params.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/fetch_favorites.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/toggle_favorite.dart';
@@ -99,6 +100,15 @@ class _ProductFilterScreenState extends State<ProductFilterScreen> {
         cart: context.read<CartCubit>(),
         leadId: widget.leadId,
         customerId: widget.customerId,
+        priceResolver: (product) {
+          try {
+            final p = context
+                .read<PricingCubit>()
+                .state[product.materialNumber];
+            if (p != null && p.hasAmount) return p.price;
+          } catch (_) {}
+          return null;
+        },
       );
 
   /// System back retraces the flow one step at a time before leaving the
@@ -166,6 +176,8 @@ class _ProductFilterScreenState extends State<ProductFilterScreen> {
               .read<ProductFilterFlowBloc>()
               .add(const FilterFlowStarted()),
           child: GuidedProductFilterView(
+            customerId: widget.customerId,
+            leadId: widget.leadId,
             favoriteIds: _favoriteIds,
             onToggleFavorite: _toggleFavorite,
             quantityFor: (product) => _cartLines.quantityFor(product),

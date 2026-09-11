@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
@@ -33,6 +34,10 @@ class RemoteCheckInSheet extends StatefulWidget {
     required this.blockedReason,
     required this.distanceMeters,
     required this.minLength,
+    this.title,
+    this.intro,
+    this.presets,
+    this.icon,
   });
 
   /// What the validator objected to, shown verbatim so the rep is answering
@@ -41,24 +46,55 @@ class RemoteCheckInSheet extends StatefulWidget {
 
   /// Metres from the customer's pin, for the rep's own orientation. Also the
   /// number that goes to the server on the check-in row either way.
-  final double distanceMeters;
+  ///
+  /// Null when nothing was measured (the no-GPS path) — the line is omitted
+  /// rather than printing "NaN m" or a made-up "0 m".
+  final double? distanceMeters;
 
   final int minLength;
+
+  /// Overrides for the no-GPS variant. Defaults are the out-of-area copy.
+  final String? title;
+  final String? intro;
+  final List<String>? presets;
+  final IconData? icon;
+
+  /// Prefills for "Check in without GPS" — the situations that actually
+  /// produce no fix.
+  static const noGpsPresets = <String>[
+    'No GPS signal inside the building',
+    'Location stayed on "searching" for a long time',
+    'Inside a warehouse with a metal roof',
+    'Phone GPS not working today',
+  ];
 
   static Future<String?> show(
     BuildContext context, {
     required String blockedReason,
-    required double distanceMeters,
+    required double? distanceMeters,
     required int minLength,
+    String? title,
+    String? intro,
+    List<String>? presets,
+    IconData? icon,
   }) =>
       showModalBottomSheet<String>(
         context: context,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
+        // A slightly longer, eased entrance than the default snap.
+        sheetAnimationStyle: const AnimationStyle(
+          duration: Duration(milliseconds: 360),
+          reverseDuration: Duration(milliseconds: 240),
+        ),
         builder: (_) => RemoteCheckInSheet(
           blockedReason: blockedReason,
           distanceMeters: distanceMeters,
           minLength: minLength,
+          title: title,
+          intro: intro,
+          presets: presets,
+          icon: icon,
         ),
       );
 
@@ -151,12 +187,23 @@ class _RemoteCheckInSheetState extends State<RemoteCheckInSheet> {
                 SizedBox(height: context.rh(16)),
                 Row(
                   children: [
-                    Icon(Icons.wrong_location_outlined,
-                        color: colors.warning, size: context.rr(22)),
+                    Container(
+                      width: context.rr(36),
+                      height: context.rr(36),
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: colors.warning.withValues(alpha: 0.12),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                          widget.icon ?? Icons.wrong_location_outlined,
+                          color: colors.warning,
+                          size: context.rr(20)),
+                    ),
                     SizedBox(width: context.rw(8)),
                     Expanded(
                       child: Text(
-                        _title,
+                        widget.title ?? _title,
                         style: TextStyle(
                           fontSize: context.rsp(16),
                           fontWeight: FontWeight.w800,
@@ -168,7 +215,7 @@ class _RemoteCheckInSheetState extends State<RemoteCheckInSheet> {
                 ),
                 SizedBox(height: context.rh(8)),
                 Text(
-                  _bodyPrefix,
+                  widget.intro ?? _bodyPrefix,
                   style: TextStyle(
                     fontSize: context.rsp(12.5),
                     color: colors.textSecondary,
@@ -186,8 +233,11 @@ class _RemoteCheckInSheetState extends State<RemoteCheckInSheet> {
                     // The validator's own words plus the measured distance.
                     // The rep is answering a specific objection, and the
                     // number is what makes "the pin is wrong" checkable later.
-                    '${widget.blockedReason}\n'
-                    '${widget.distanceMeters.round()} m from the recorded location.',
+                    widget.distanceMeters == null ||
+                            widget.distanceMeters!.isNaN
+                        ? widget.blockedReason
+                        : '${widget.blockedReason}\n'
+                            '${widget.distanceMeters!.round()} m from the recorded location.',
                     style: TextStyle(
                       fontSize: context.rsp(11.5),
                       fontWeight: FontWeight.w600,
@@ -201,13 +251,12 @@ class _RemoteCheckInSheetState extends State<RemoteCheckInSheet> {
                   spacing: context.rw(8),
                   runSpacing: context.rh(8),
                   children: [
-                    for (final preset in _presets)
-                      ActionChip(
-                        label: Text(
-                          preset,
-                          style: TextStyle(fontSize: context.rsp(11)),
-                        ),
-                        onPressed: () {
+                    for (final preset in widget.presets ?? _presets)
+                      _PresetChip(
+                        label: preset,
+                        selected: _reason == preset,
+                        onTap: () {
+                          HapticFeedback.selectionClick();
                           _controller.text = preset;
                           _controller.selection = TextSelection.fromPosition(
                             TextPosition(offset: _controller.text.length),
@@ -275,6 +324,76 @@ class _RemoteCheckInSheetState extends State<RemoteCheckInSheet> {
                 ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A preset that visibly lights up when its text is what's in the field, so
+/// the rep can see which one they picked (and that editing it un-picks it).
+class _PresetChip extends StatelessWidget {
+  const _PresetChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(99),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
+          padding: EdgeInsets.symmetric(
+              horizontal: context.rw(12), vertical: context.rh(7)),
+          decoration: BoxDecoration(
+            color: selected
+                ? scheme.primary.withValues(alpha: 0.12)
+                : colors.surfaceSoft,
+            borderRadius: BorderRadius.circular(99),
+            border: Border.all(
+              color: selected
+                  ? scheme.primary.withValues(alpha: 0.55)
+                  : colors.border,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedSize(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                child: selected
+                    ? Padding(
+                        padding: EdgeInsets.only(right: context.rw(4)),
+                        child: Icon(Icons.check_rounded,
+                            size: context.rr(14), color: scheme.primary),
+                      )
+                    : const SizedBox.shrink(),
+              ),
+              Flexible(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: context.rsp(11),
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                    color: selected ? scheme.primary : colors.textPrimary,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),

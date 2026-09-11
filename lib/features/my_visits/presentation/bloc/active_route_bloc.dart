@@ -279,18 +279,54 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
 
   Future<void> _onCheckIn(
       CheckInRequested event, Emitter<ActiveRouteState> emit) async {
-    final current = state;
-    if (current is! ActiveRouteReady || !current.hasCurrentStop) return;
+    final initial = state;
+    // Not loaded at all: nothing to answer with. The screen's own watchdog
+    // releases its spinner in that case.
+    if (initial is! ActiveRouteReady) return;
+
+    // Every exit below emits with this, so the screen always gets an answer —
+    // see `ActiveRouteReady.checkInAttempt`.
+    final attempt = initial.checkInAttempt + 1;
+
+    // Check in the stop the screen asked for, not whichever index is current.
+    var current = initial;
+    final requestedId = event.stopId;
+    if (requestedId != null) {
+      final index = current.route.stops.indexWhere((s) => s.id == requestedId);
+      if (index >= 0 && index != current.currentStopIndex) {
+        current = current.copyWith(currentStopIndex: index);
+      }
+    }
+
+    if (!current.hasCurrentStop) {
+      emit(current.copyWith(
+        checkInAttempt: attempt,
+        blockedCheckInReason: () =>
+            'No stop selected — go back and open the stop again.',
+        checkInOverridable: false,
+      ));
+      return;
+    }
     final stop = current.route.stops[current.currentStopIndex];
     // Idempotency guard: a double-tap or a resume-triggered re-entry into
     // RouteCheckInScreen must not create a second `checkins` row for the
-    // same stop (mirrors the existing guard in `_onCheckOut`).
+    // same stop (mirrors the existing guard in `_onCheckOut`). It used to
+    // return *silently*, which left the screen's spinner running forever;
+    // now it answers, and the screen sees the stop is checked in and moves on.
     if (stop.status == VisitStatus.checkedIn ||
         stop.status == VisitStatus.checkedOut) {
+      emit(current.copyWith(
+        checkInAttempt: attempt,
+        blockedCheckInReason: () => null,
+        checkInOverridable: false,
+      ));
       return;
     }
 
-    final vpnDetected = await _fraudDetectionService.detectVpnHeuristic();
+    var vpnDetected = false;
+    try {
+      vpnDetected = await _fraudDetectionService.detectVpnHeuristic();
+    } catch (_) {}
 
     // Three different situations reach the geofence rule, and only one of them
     // is the rep's doing.
@@ -358,8 +394,42 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
         // the block. Without it the UI would have to re-derive the rule split
         // by matching on message text.
         checkInOverridable: overrideOffered,
+        checkInAttempt: attempt,
       ));
       return;
+    }
+
+    // A reason the rep gave that the location rules did not strictly need.
+    //
+    // The main case: no fix at all (or a shop with no pin), which was already
+    // allowed through as *unverified* — and the check-in dialog's "Check in
+    // without GPS" path always asks why. Keep that reason on the row.
+    // Otherwise the check-in with the least location evidence would be the
+    // only kind whose explanation is thrown away.
+    //
+    // Also covers a rep whose screen had no *fresh* fix while this bloc still
+    // held an older one: the rep answered a question, so the answer is kept.
+    final extraReasonGiven =
+        !overrideAccepted && reason.length >= _policy.minOverrideReasonLength;
+    if (extraReasonGiven) {
+      final String situation;
+      if (!current.hasFix) {
+        situation = 'No GPS fix.';
+      } else if (!current.customerLocationKnown) {
+        situation = 'Customer has no recorded location.';
+      } else {
+        situation = 'No fresh GPS fix on screen.';
+      }
+      unawaited(_recordFraudFlag(FraudFlag(
+        id: _newId(),
+        routeId: current.route.id,
+        stopId: stop.id,
+        type: FraudFlagType.reasonedOverride,
+        detail: '$situation Reason: $reason',
+        timestamp: DateTime.now(),
+        blocked: false,
+      )));
+      warnings.add('Checked in without location verification. Reason: $reason');
     }
 
     if (overrideAccepted) {
@@ -412,22 +482,49 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
       // are one record. Null unless the rep actually overrode something —
       // `overrideAccepted` is false both for an ordinary check-in and for a
       // reason too short to have been meant.
-      overrideReason: overrideAccepted ? reason : null,
+      overrideReason:
+          (overrideAccepted || extraReasonGiven) ? reason : null,
     );
-    await _checkIn(record);
-    await _updateStopStatus(UpdateStopStatusParams(
-        stopId: stop.id, status: VisitStatus.checkedIn, actualArrival: now));
+    // A failed write used to throw straight out of the handler: no emission,
+    // spinner forever, and no idea why. Now the rep is told, and can retry.
+    try {
+      await _checkIn(record);
+    } catch (error, stackTrace) {
+      addError(error, stackTrace);
+      final latest = state;
+      emit((latest is ActiveRouteReady ? latest : current).copyWith(
+        checkInAttempt: attempt,
+        blockedCheckInReason: () =>
+            'Could not save the check-in. Please try again.',
+        checkInOverridable: false,
+      ));
+      return;
+    }
+    // The check-in row exists now. If the status update fails, still move the
+    // rep on — retrying would write a second check-in row for the same visit.
+    try {
+      await _updateStopStatus(UpdateStopStatusParams(
+          stopId: stop.id, status: VisitStatus.checkedIn, actualArrival: now));
+    } catch (error, stackTrace) {
+      addError(error, stackTrace);
+    }
 
-    final next = current.copyWith(
-      route: current.route.copyWith(
+    // Built on the *latest* state, not the snapshot from before the awaits:
+    // GPS updates that arrived meanwhile must not be rolled back.
+    final latest = state;
+    final base = latest is ActiveRouteReady ? latest : current;
+    final next = base.copyWith(
+      currentStopIndex: current.currentStopIndex,
+      route: base.route.copyWith(
           stops: _replaceStop(
-              current.route.stops,
+              base.route.stops,
               stop.id,
               (s) => s.copyWith(
                   status: VisitStatus.checkedIn, actualArrival: now))),
       blockedCheckInReason: () => null,
       checkInWarnings: warnings,
       checkInOverridable: false,
+      checkInAttempt: attempt,
     );
     emit(next);
     _persistWorkflow(next);

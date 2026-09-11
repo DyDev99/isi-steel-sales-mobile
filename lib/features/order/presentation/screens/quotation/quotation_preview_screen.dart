@@ -4,9 +4,12 @@ import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_state.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/pdf/pdf_generation_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/pdf/pdf_generation_state.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/quotation_preview_section.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/discount_summary_section.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// Full-screen quotation preview + PDF export entry point.
@@ -22,6 +25,8 @@ class QuotationScreen extends StatelessWidget {
     required this.tax,
     required this.total,
     required this.items,
+    this.invoiceDiscounts = const [],
+    this.isTaxApplicable = true,
     this.quotationNumber,
     this.createdDate,
     this.validUntil,
@@ -37,6 +42,8 @@ class QuotationScreen extends StatelessWidget {
   final double tax;
   final double total;
   final List<CartItem> items;
+  final List<InvoiceDiscountItem> invoiceDiscounts;
+  final bool isTaxApplicable;
 
   /// Optional PDF metadata. Sensible defaults are derived when omitted, so
   /// existing callers keep working.
@@ -63,6 +70,8 @@ class QuotationScreen extends StatelessWidget {
         tax: tax,
         total: total,
         items: items,
+        invoiceDiscounts: invoiceDiscounts,
+        isTaxApplicable: isTaxApplicable,
         quotationNumber: quotationNumber,
         createdDate: createdDate,
         validUntil: validUntil,
@@ -83,6 +92,8 @@ class _QuotationView extends StatelessWidget {
     required this.tax,
     required this.total,
     required this.items,
+    this.invoiceDiscounts = const [],
+    this.isTaxApplicable = true,
     required this.quotationNumber,
     required this.createdDate,
     required this.validUntil,
@@ -98,6 +109,8 @@ class _QuotationView extends StatelessWidget {
   final double tax;
   final double total;
   final List<CartItem> items;
+  final List<InvoiceDiscountItem> invoiceDiscounts;
+  final bool isTaxApplicable;
   final String? quotationNumber;
   final DateTime? createdDate;
   final DateTime? validUntil;
@@ -116,7 +129,28 @@ class _QuotationView extends StatelessWidget {
         '-${two(now.hour)}${two(now.minute)}${two(now.second)}';
   }
 
-  void _download(BuildContext context) {
+  void _download(
+    BuildContext context, {
+    required List<CartItem> activeItems,
+    required double activeSubtotal,
+    required double activeDiscount,
+    required double activeTax,
+    required double activeTotal,
+  }) {
+    final formattedInvoiceDiscounts = invoiceDiscounts.map((inv) {
+      final rule = inv.rule.isNotEmpty ? ' (${inv.rule})' : '';
+      return '${inv.name}$rule: -\$${inv.amount.toStringAsFixed(2)}';
+    }).toList();
+
+    final skuDiscountTotal = activeItems.fold<double>(
+      0.0,
+      (sum, item) => sum + item.lineDiscount,
+    );
+    final invoiceDiscountTotal = invoiceDiscounts.fold<double>(
+      0.0,
+      (sum, inv) => sum + inv.amount,
+    );
+
     context.read<PdfGenerationCubit>().generateQuotationPdf(
           quotationNumber: _resolvedQuotationNumber(),
           // Khmer-safe: PDF values render through PdfShapedText, which shapes
@@ -126,11 +160,15 @@ class _QuotationView extends StatelessWidget {
           customerAddress: customerAddress,
           createdDate: createdDate ?? DateTime.now(),
           validUntil: validUntil ?? DateTime.now().add(const Duration(days: 7)),
-          items: items,
-          subtotal: subtotal,
-          discount: discount,
-          tax: tax,
-          total: total,
+          items: activeItems,
+          subtotal: activeSubtotal,
+          discount: activeDiscount,
+          skuDiscountTotal: skuDiscountTotal,
+          invoiceDiscountTotal: invoiceDiscountTotal,
+          tax: activeTax,
+          total: activeTotal,
+          isTaxApplicable: isTaxApplicable,
+          invoiceDiscounts: formattedInvoiceDiscounts,
           notes: notes,
         );
   }
@@ -139,6 +177,23 @@ class _QuotationView extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeColors = Theme.of(context).extension<AppThemeColors>()!;
     final colorScheme = Theme.of(context).colorScheme;
+
+    CartState? cartState;
+    try {
+      cartState = context.watch<CartCubit>().state;
+    } catch (_) {}
+
+    final activeItems = (cartState is CartLoaded) ? cartState.items : items;
+    final activeSubtotal =
+        (cartState is CartLoaded) ? cartState.subtotal : subtotal;
+    final activeDiscount =
+        (cartState is CartLoaded) ? cartState.discount : discount;
+    final activeTaxable = activeSubtotal - activeDiscount;
+    final activeTax = (cartState is CartLoaded)
+        ? (activeTaxable * (isTaxApplicable ? 0.10 : 0.0))
+        : tax;
+    final activeTotal =
+        (cartState is CartLoaded) ? (activeTaxable + activeTax) : total;
 
     return Scaffold(
       backgroundColor: themeColors.canvas,
@@ -154,11 +209,13 @@ class _QuotationView extends StatelessWidget {
                   children: [
                     QuotationPreviewSection(
                       shopName: shopName,
-                      subtotal: subtotal,
-                      discount: discount,
-                      tax: tax,
-                      total: total,
-                      items: items,
+                      subtotal: activeSubtotal,
+                      discount: activeDiscount,
+                      tax: activeTax,
+                      total: activeTotal,
+                      items: activeItems,
+                      invoiceDiscounts: invoiceDiscounts,
+                      isTaxApplicable: isTaxApplicable,
                     ),
                   ],
                 ),
@@ -219,7 +276,16 @@ class _QuotationView extends StatelessWidget {
                       SizedBox(width: context.rw(12)),
                       Expanded(
                         child: InkWell(
-                          onTap: isGenerating ? null : () => _download(context),
+                          onTap: isGenerating
+                              ? null
+                              : () => _download(
+                                    context,
+                                    activeItems: activeItems,
+                                    activeSubtotal: activeSubtotal,
+                                    activeDiscount: activeDiscount,
+                                    activeTax: activeTax,
+                                    activeTotal: activeTotal,
+                                  ),
                           borderRadius: BorderRadius.circular(context.rr(14)),
                           child: Container(
                             height: context.rh(52),

@@ -32,9 +32,15 @@ class NativeLocalNotificationPresenter implements LocalNotificationPresenter {
         // Named `settings:` since v19 — it was the first positional argument
         // before. The rename is the only change; the payload is identical.
         settings: const InitializationSettings(
-          // The monochrome-safe launcher icon. A full-colour icon renders as a
-          // white square in the Android status bar.
-          android: AndroidInitializationSettings('@mipmap/launcher_icon'),
+          // The dedicated monochrome silhouette, not the launcher icon.
+          //
+          // The comment here used to claim `launcher_icon` was
+          // "monochrome-safe". It is not: it is the full-colour app icon, and
+          // Android fills a small icon's *alpha silhouette* with the accent
+          // colour — so an opaque square renders as an opaque square. Locally
+          // drawn alerts had the same featureless block as the FCM ones, from
+          // the same mistake in two places.
+          android: AndroidInitializationSettings('@drawable/ic_notification'),
           iOS: DarwinInitializationSettings(
             // All three false, deliberately. This plugin would otherwise show
             // the OS permission prompt during startup, and §14 spends iOS's

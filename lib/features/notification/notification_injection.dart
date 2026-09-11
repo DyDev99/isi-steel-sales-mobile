@@ -32,7 +32,7 @@ import 'package:isi_steel_sales_mobile/features/notification/presentation/bloc/n
 import 'package:isi_steel_sales_mobile/features/notification/presentation/bloc/push_permission_cubit.dart';
 
 /// Registers the notification feature
-/// (`docs/feature/notification/notification-mobile.md`).
+/// (`docs/feature/notification/README.md`).
 ///
 /// ## Ordering
 ///

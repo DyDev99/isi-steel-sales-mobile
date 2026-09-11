@@ -27,6 +27,7 @@ final class ActiveRouteReady extends ActiveRouteState {
     this.repLongitude,
     this.customerLocationKnown = true,
     this.checkInOverridable = false,
+    this.checkInAttempt = 0,
   });
 
   final RoutePlan route;
@@ -74,6 +75,17 @@ final class ActiveRouteReady extends ActiveRouteState {
   /// string, which breaks the first time someone rewords it or translates it.
   final bool checkInOverridable;
 
+  /// Increments every time a `CheckInRequested` is answered — success, block,
+  /// already-checked-in, or save failure.
+  ///
+  /// **Why it exists.** The screen waits for the bloc's answer before moving
+  /// on. Bloc never emits a state equal to the current one, so a second
+  /// refusal with the same reason as the first, or a check-in on a stop that
+  /// was already checked in, produced *no* emission at all — and the
+  /// "Check-in & Continue" spinner ran forever. A counter that always moves
+  /// guarantees every attempt gets an answer the screen can see.
+  final int checkInAttempt;
+
   bool get hasCurrentStop =>
       currentStopIndex >= 0 && currentStopIndex < route.stops.length;
 
@@ -92,6 +104,7 @@ final class ActiveRouteReady extends ActiveRouteState {
     double? repLongitude,
     bool? customerLocationKnown,
     bool? checkInOverridable,
+    int? checkInAttempt,
   }) {
     return ActiveRouteReady(
       route: route ?? this.route,
@@ -111,6 +124,7 @@ final class ActiveRouteReady extends ActiveRouteState {
       customerLocationKnown:
           customerLocationKnown ?? this.customerLocationKnown,
       checkInOverridable: checkInOverridable ?? this.checkInOverridable,
+      checkInAttempt: checkInAttempt ?? this.checkInAttempt,
     );
   }
 
@@ -129,6 +143,7 @@ final class ActiveRouteReady extends ActiveRouteState {
         repLongitude,
         customerLocationKnown,
         checkInOverridable,
+        checkInAttempt,
       ];
 }
 

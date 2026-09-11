@@ -1,3 +1,130 @@
+# Fifth pass — check-in button stuck, screen laggy (iOS)
+
+**Symptom.** "Check-in & Continue" stayed faded with a spinner forever; the
+screen felt slow; the banner read "GPS {dist} m away"; the header chip text was
+oddly letter-spaced.
+
+| Cause | Fix |
+|---|---|
+| `_onCheckIn` returned **silently** when the stop was already checked in, no stop was selected, or a DB write threw. Bloc also never emits a state equal to the current one, so a second refusal with the same reason produced no emission. The screen waited for a state change that never came. | New `ActiveRouteReady.checkInAttempt` counter — every exit of `_onCheckIn` emits with it incremented (success, block, already-checked-in, save failure). The screen settles on "counter went up", not "state changed". Write failures now show "Could not save the check-in". |
+| No timeout on the wait. | 15 s watchdog releases the spinner, re-checks the stop, and shows a snackbar if nothing landed. |
+| Check-in targeted `currentStopIndex`, which a late `StopSelected` could move. | `CheckInRequested(stopId:)` — the bloc checks in the exact stop the screen shows. |
+| Tapping on a stop that was already checked in did nothing. | Goes straight to the visit. If the route isn't loaded yet, reloads once, then says so. |
+| Final emit was built from the pre-`await` snapshot, rolling back GPS updates. | Built on the latest state. |
+| Whole page — Google Map included — rebuilt on every GPS sample and every bloc emission. | Page `buildWhen` ignores GPS-only fields; header, banner and map each have their own location builder; the map rebuilds only when the position changes and sits in a `RepaintBoundary`. |
+| Fade/slide entrance animated over the native map view; Expand button used `BackdropFilter` over it. Both are expensive platform-view compositing on iOS. | Map excluded from the entrance animation; blur replaced with a near-opaque card. |
+| `geo_matchedTemplate` rendered without filling `{dist}`. | Filled. |
+| `FontFeature.tabularFigures()` renders letter-spaced with the app font. | Removed. |
+| In debug the verdict uses the static test position, but the map drew the simulator's own location (another continent) — the dotted line across a grey map. | The map uses the same static position while `kUseStaticCheckInPosition` is on. |
+
+Debug builds still use the fixed test position (`kUseStaticCheckInPosition`),
+so "0 m • ~1 min" and "Inside shop area" are expected there. Build in
+`--profile` or `--release` to exercise real GPS.
+
+---
+
+# Fourth pass — "Locating You" never resolved (GPS check-in dead end)
+
+**Symptom.** On a real handset the check-in dialog sat on *Locating You —
+Waiting for a GPS fix* with only **Cancel**, forever. The header above it read
+"0 m • ~1 min". No rep could check in.
+
+## Root causes (four, stacked)
+
+1. **The shared position stream starved the check-in screen.**
+   `GeolocatorTrackingService.observe()` handed every caller one broadcast
+   stream, created with whatever distance filter asked first. The Stop
+   Dashboard opens first (25 m) and consumes the first fix. Check-in then calls
+   `observe(10)`, silently gets the *same* 25 m stream, and — broadcast streams
+   do not replay — a rep standing still in a shop never receives a single
+   sample. Leaving check-in also called `stopObserving()`, killing the
+   dashboard's stream underneath it.
+2. **No fast first fix.** Only a high-accuracy stream; no cached position, no
+   one-shot request, no coarse (Wi-Fi/cell) fallback. Indoors a satellite fix
+   can take minutes or never come. Stream errors (Location switched off) were
+   swallowed, so "off" looked identical to "searching".
+3. **The dialog was frozen.** It was given a verdict computed once at tap time.
+   No fix at that instant → a dialog that could never change and had no action
+   but Cancel — while the bloc underneath would actually have accepted the
+   check-in as unverified.
+4. **Two different geofence rules.** The dialog measured against the outlet
+   source (demo pin, 100 m); the bloc bridge measured `GeofenceService` against
+   the customer pin and territory radius (urban 50 m). The dialog could say
+   "within" and the bloc refuse "outside the geofence".
+
+## What changed
+
+| File | Change |
+|---|---|
+| `domain/services/location_fix_provider.dart` | **New.** `checkAvailability`, `lastKnownFix`, `currentFix(precise/coarse, timeout)`, service-status stream, open settings. Its own interface so existing `LocationTrackingService` fakes still compile. |
+| `data/services/geolocator_tracking_service.dart` | Implements it. `observe()` is now per-listener, **replays** the last sample (≤ 2 min) to new listeners, runs the platform stream at the smallest filter requested, filters per listener, forwards errors, and is reference-counted — one screen closing cannot kill another's stream. |
+| `presentation/bloc/state/location_tracking_state.dart` | `GpsFixStatus` (searching / acquired / servicesDisabled / permissionDenied(Forever) / unavailable), `searchStartedAt`, `currentReceivedAt`, `usableFix()` (≤ 5 min, measured by receipt time so GPS-clock skew cannot stale every fix). |
+| `presentation/bloc/cubit/location_tracking_cubit.dart` | The **fix ladder**: cached fix + precise one-shot (8 s) + coarse one-shot (7 s) + live stream in parallel; 15 s watchdog → `unavailable`; auto-retry when Location is switched back on; `retryFix`, `refreshFix`, `openSettingsForStatus`. Picks the provider up from the tracking service — **no DI change**. |
+| `presentation/models/check_in_gps_phase.dart` | **New.** One pure `CheckInGpsPhase.resolve(...)` + `CheckInReading`, rendered by header, banner and dialog alike. |
+| `presentation/widgets/check_in_confirmation_dialog.dart` | **Rewritten, live.** Re-verifies on every fix, refreshes on open, and every phase has a way forward (table below). |
+| `presentation/screens/stops_check_in_screen.dart` | Bloc bridge uses the **same** verifier as the dialog. Header chip says "Locating…" instead of a fake "0 m". Status banner gains retry / turn-on buttons. Re-searches on return from Settings. |
+| `presentation/widgets/remote_check_in_sheet.dart` | Optional title / intro / presets / icon for the no-GPS variant; distance optional (never prints "0 m" for an unmeasured check-in). |
+| `presentation/bloc/active_route_bloc.dart` | A reason given on an unverified (no-fix) check-in is **kept** on the row as `overrideReason` and logged as a `reasonedOverride` flag. |
+| `domain/entities/fraud_policy.dart` | `maxAccuracyMeters` 30 → **50**. Indoor fused fixes report ±20–60 m; 30 refused reps standing inside the shop. Still half the 100 m radius. |
+| `domain/services/outlet_location_source.dart` | `kUseStopOutletPin` (`--dart-define=USE_STOP_OUTLET_PIN=true`) to measure against each stop's real pin instead of the office demo pin. |
+
+### Every dialog state now has an exit
+
+| Phase | Primary action |
+|---|---|
+| Searching | waits, with progress bar, elapsed seconds, rotating tips |
+| Within (or outlet has no pin) | **Confirm Check-In** |
+| Weak signal / outside | **Continue with reason** (+ Refresh) |
+| Location off | **Turn on location** → system settings, auto-resumes |
+| Permission denied / blocked | **Allow location** / **Open settings** |
+| No fix after 15 s | **Check in without GPS** — reason required, recorded unverified (+ Try again) |
+
+### What did *not* change (anti-fraud)
+
+No position is ever fabricated. Every fix is one the device reported, with its
+own accuracy and mock flag. Mock-location and VPN rules are untouched and still
+cannot be reasoned past. "Without GPS" is only offered after services are on,
+permission is granted, and a full search found nothing — a rep cannot reach it
+by denying permission. It always carries a written reason on the check-in row.
+
+## UI / motion
+
+- Dialog: scale-and-fade entrance with a soft overshoot; radar rings painted
+  straight off the controller (no rebuilds at 60 fps); a celebratory ring +
+  light haptic when the rep lands inside; distance counts up; a proximity track
+  with a marker gliding to the rep's distance; animated signal bars; all
+  content changes cross-fade and lift with one shared transition; the card
+  resizes smoothly between states. No backdrop blur — animating blur is what
+  stutters on mid-range Android.
+- Screen: staggered entrance (header → map → board → CTA) on one ticker;
+  header chip morphs between "Locating…" and the live distance; status pill
+  shimmers while searching; CTA presses in under the finger.
+- Reason sheet: preset chips highlight when selected; eased sheet entrance.
+
+## Testing it
+
+- Office test (current default): build as before. Stops are measured against
+  the demo pin (ISI office), so the dialog should reach **within** in a few
+  seconds indoors via the Wi-Fi fix.
+- Field test: `flutter run --release --dart-define=USE_STOP_OUTLET_PIN=true`.
+- No-GPS path: switch Location off → dialog offers *Turn on location*; turn it
+  on from the shade and it resumes by itself. For *without GPS*, test in a
+  basement / airplane mode with Wi-Fi off and wait 15 s.
+
+## Loose ends
+
+- New strings are English literals marked `TODO(i18n)` (same convention as the
+  reason sheet). Add en/km keys, then swap.
+- Not compiled in this environment (no Flutter SDK available to me). All
+  APIs used target **geolocator 11.1.0** (the pinned version) and Flutter ≥
+  3.27. `getCurrentPosition` uses the 11.x `desiredAccuracy`/`timeLimit`
+  parameters — 11.x has no `locationSettings:` there. Run `flutter analyze`
+  once after merging.
+- The map's destination marker is still the customer pin while the default
+  verdict uses the demo pin — they disagree until `USE_STOP_OUTLET_PIN` is on.
+
+---
+
 # Fixes in this pass
 
 Two problems, one shared symptom: the push endpoint 400s the whole batch, so

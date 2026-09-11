@@ -6,6 +6,7 @@ import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/promotion_detail_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/promotions_mock_data.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/promo_quotation_preview_card.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/promotions/promo_card.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/promotions/promo_view.dart';
 
@@ -214,7 +215,7 @@ class _Header extends StatelessWidget {
 }
 
 /// One group heading plus its most urgent promotion, and a way to the rest.
-class _GroupBlock extends StatelessWidget {
+class _GroupBlock extends StatefulWidget {
   const _GroupBlock({
     required this.group,
     required this.now,
@@ -226,19 +227,24 @@ class _GroupBlock extends StatelessWidget {
   final OrderTerms? terms;
 
   @override
+  State<_GroupBlock> createState() => _GroupBlockState();
+}
+
+class _GroupBlockState extends State<_GroupBlock> {
+  bool _showQuotationPreview = false;
+
+  @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
 
-    final ordered = [...group.promos]
+    final ordered = [...widget.group.promos]
       ..sort((a, b) => a.endsOn.compareTo(b.endsOn));
 
     // Preview the soonest promotion the rep can actually use, and only fall
-    // back to a blocked one when the whole group is blocked. Otherwise a group
-    // whose first entry happens to need pickup would show a greyed card and
-    // hide two live ones behind "See all".
+    // back to a blocked one when the whole group is blocked.
     final preview = ordered.firstWhere(
-      (p) => p.isAvailableFor(now, terms),
+      (p) => p.isAvailableFor(widget.now, widget.terms),
       orElse: () => ordered.first,
     );
     final remaining = ordered.length - 1;
@@ -252,7 +258,7 @@ class _GroupBlock extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  group.titleKey.tr,
+                  widget.group.titleKey.tr,
                   style: TextStyle(
                     color: colors.textPrimary,
                     fontSize: context.rsp(13),
@@ -261,8 +267,6 @@ class _GroupBlock extends StatelessWidget {
                 ),
               ),
               if (remaining > 0)
-                // A 44pt-tall target, not the bare `GestureDetector` on a text
-                // span this replaced — that measured about 70x16 (FS-UX-3).
                 InkWell(
                   onTap: () => _openAll(context, ordered),
                   borderRadius: BorderRadius.circular(context.rr(8)),
@@ -295,13 +299,52 @@ class _GroupBlock extends StatelessWidget {
           SizedBox(height: context.rh(6)),
           PromoCard(
             promo: preview,
-            now: now,
-            terms: terms,
-            // The code belongs on the detail screen; on a preview inside a form
-            // it adds a row and an action to a card that is only a signpost.
+            now: widget.now,
+            terms: widget.terms,
             showCode: false,
             onTap: () => _openAll(context, ordered),
           ),
+          SizedBox(height: context.rh(4)),
+          Align(
+            alignment: Alignment.centerRight,
+            child: InkWell(
+              onTap: () {
+                HapticFeedback.selectionClick();
+                setState(() => _showQuotationPreview = !_showQuotationPreview);
+              },
+              borderRadius: BorderRadius.circular(context.rr(6)),
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: context.rw(8),
+                  vertical: context.rh(4),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      _showQuotationPreview
+                          ? Icons.visibility_off_outlined
+                          : Icons.receipt_long_outlined,
+                      size: context.rw(13),
+                      color: scheme.primary,
+                    ),
+                    SizedBox(width: context.rw(4)),
+                    Text(
+                      _showQuotationPreview
+                          ? 'Hide Quotation Format'
+                          : 'Quotation Format Preview',
+                      style: TextStyle(
+                        fontSize: context.rsp(11),
+                        fontWeight: FontWeight.w700,
+                        color: scheme.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          if (_showQuotationPreview) PromoQuotationPreviewCard(promo: preview),
         ],
       ),
     );
@@ -311,10 +354,10 @@ class _GroupBlock extends StatelessWidget {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => PromotionDetailScreen(
-          title: group.titleKey.tr,
+          title: widget.group.titleKey.tr,
           promos: promos,
-          now: now,
-          terms: terms,
+          now: widget.now,
+          terms: widget.terms,
         ),
       ),
     );

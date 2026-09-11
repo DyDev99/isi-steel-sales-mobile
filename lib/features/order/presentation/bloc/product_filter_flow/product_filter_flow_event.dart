@@ -120,3 +120,12 @@ final class FilterMaterialAvailabilityRequested extends ProductFilterFlowEvent {
   @override
   List<Object?> get props => [material];
 }
+
+/// Selecting a specific SKU from search results to display its full ProductCard.
+/// Pass `null` to collapse or clear the selection.
+final class FilterProductSkuSelected extends ProductFilterFlowEvent {
+  const FilterProductSkuSelected(this.sku);
+  final String? sku;
+  @override
+  List<Object?> get props => [sku];
+}

@@ -27,6 +27,8 @@ class ProductResultGrid extends StatelessWidget {
     this.promotionFor,
     this.onPromotionTap,
     this.priceFor,
+    this.manualPriceFor,
+    this.onInputPrice,
     this.onPriceRetry,
   });
 
@@ -63,6 +65,12 @@ class ProductResultGrid extends StatelessWidget {
   /// figure, rather than every card showing an empty one.
   final MobilePrice? Function(Product product)? priceFor;
 
+  /// Manual unit price override for a product, if entered.
+  final double? Function(Product product)? manualPriceFor;
+
+  /// Handler for inputting or editing a manual price on a product card.
+  final ValueChanged<Product>? onInputPrice;
+
   /// Re-asks for one product's failed price.
   final ValueChanged<Product>? onPriceRetry;
 
@@ -82,6 +90,8 @@ class ProductResultGrid extends StatelessWidget {
               child: Builder(builder: (context) {
                 final product = products[i];
                 final quantity = quantityFor(product);
+                final p = priceFor?.call(product);
+                final hasBackendPrice = p != null && p.hasAmount;
                 return ProductResultCard(
                   product: product,
                   isFavorite: favoriteIds.contains(product.id),
@@ -98,7 +108,11 @@ class ProductResultGrid extends StatelessWidget {
                   onPromotionTap: onPromotionTap == null
                       ? null
                       : () => onPromotionTap!(product),
-                  price: priceFor?.call(product),
+                  price: p,
+                  manualPrice: hasBackendPrice ? null : manualPriceFor?.call(product),
+                  onInputPrice: (hasBackendPrice || onInputPrice == null)
+                      ? null
+                      : () => onInputPrice!(product),
                   onPriceRetry: onPriceRetry == null
                       ? null
                       : () => onPriceRetry!(product),

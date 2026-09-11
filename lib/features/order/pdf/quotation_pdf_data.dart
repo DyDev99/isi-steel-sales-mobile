@@ -2,6 +2,7 @@ import 'package:isi_steel_sales_mobile/core/platform/local_files.dart';
 import 'dart:typed_data';
 
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/promotion/demo_cart_promotions.dart';
 
 /// One priced row on the quotation PDF. Deliberately a flat, Flutter-free value
 /// object rather than a [CartItem]: the generator must not depend on the cart
@@ -9,18 +10,28 @@ import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.
 /// layer stays isolated from catalog/cart refactors.
 class QuotationPdfLine {
   const QuotationPdfLine({
+    required this.sku,
     required this.name,
     required this.description,
     required this.unit,
     required this.quantity,
     required this.unitPrice,
     required this.discountPercent,
+    this.discountAmount = 0.0,
+    this.discountRule,
+    this.discountText,
     required this.lineTotal,
     this.isCustomized = false,
     this.specs,
     this.appearance,
     this.drawingImageBytes,
+    this.promotionName,
+    this.freeQuantity = 0,
+    this.freeQuantityRule,
   });
+
+  /// Material SKU / code (e.g. "SKU-001", "GI-PIPE-01").
+  final String sku;
 
   final String name;
   final String description;
@@ -28,6 +39,16 @@ class QuotationPdfLine {
   final double quantity;
   final double unitPrice;
   final double discountPercent;
+
+  /// Monetary discount calculated specifically for this SKU line.
+  final double discountAmount;
+
+  /// Discount rule description, e.g. "3%", "$1.00", "Buy 10 Get 2 Free".
+  final String? discountRule;
+
+  /// Full formatted text for the dedicated Discount column, e.g. "3% / -$0.60" or "Free 20".
+  final String? discountText;
+
   final double lineTotal;
 
   // ── Customization (empty/false for a plain catalog line) ──────────────
@@ -42,6 +63,15 @@ class QuotationPdfLine {
   /// Decoded bytes of the attached technical drawing, ready for the PDF's
   /// `MemoryImage`. Null when there is no drawing (or it couldn't be read).
   final Uint8List? drawingImageBytes;
+
+  /// Associated promotion name if any (e.g. "Roofing Sheet Free Goods", "Buy More").
+  final String? promotionName;
+
+  /// Free quantity awarded for this line.
+  final int freeQuantity;
+
+  /// Rule for free quantity (e.g. "Buy 40 Free 1").
+  final String? freeQuantityRule;
 }
 
 /// The immutable input to [QuotationPdfGenerator].
@@ -59,8 +89,12 @@ class QuotationPdfData {
     required this.lines,
     required this.subtotal,
     required this.discount,
+    this.skuDiscountTotal = 0.0,
+    this.invoiceDiscountTotal = 0.0,
     required this.tax,
     required this.total,
+    this.isTaxApplicable = true,
+    this.invoiceDiscounts = const [],
     this.customerPhone,
     this.customerAddress,
     this.salesRepContact,
@@ -80,10 +114,25 @@ class QuotationPdfData {
   final List<QuotationPdfLine> lines;
   final double subtotal;
   final double discount;
+
+  /// Combined total of all individual SKU discounts.
+  final double skuDiscountTotal;
+
+  /// Total of invoice-level discounts applied to the entire quotation.
+  final double invoiceDiscountTotal;
+
   final double tax;
   final double total;
+  final bool isTaxApplicable;
+  final List<String> invoiceDiscounts;
   final String? notes;
   final String currencySymbol;
+
+  /// Total discount = SKU Discount Total + Invoice Discount.
+  double get totalDiscount =>
+      (skuDiscountTotal + invoiceDiscountTotal) > 0
+          ? (skuDiscountTotal + invoiceDiscountTotal)
+          : discount;
 
   /// Builds the PDF payload from live cart data. This is the single place cart
   /// entities cross into the PDF layer, so any product-shape change touches
@@ -96,8 +145,12 @@ class QuotationPdfData {
     required List<CartItem> items,
     required double subtotal,
     required double discount,
+    double? skuDiscountTotal,
+    double? invoiceDiscountTotal,
     required double tax,
     required double total,
+    bool isTaxApplicable = true,
+    List<String> invoiceDiscounts = const [],
     String? customerPhone,
     String? customerAddress,
     String? salesRepContact,
@@ -107,6 +160,11 @@ class QuotationPdfData {
   }) {
     final lines = items.map((item) {
       final product = item.product;
+      final sku = product.sku.isNotEmpty
+          ? product.sku
+          : (product.materialCode.isNotEmpty
+              ? product.materialCode
+              : product.code);
       final description = '${product.size} ${product.grade}'.trim();
 
       String? specs;
@@ -120,20 +178,76 @@ class QuotationPdfData {
         drawingBytes = _readDrawing(item.drawingImagePath);
       }
 
+      final freeUnits = DemoCartPromotions.freeQuantityFor(item);
+      final freeRule = DemoCartPromotions.freeRuleFor(item);
+      final promoName = DemoCartPromotions.promotionNameFor(item) ??
+          (item.discountPercent > 0 ? 'Promotion' : null);
+
+      final hasPercent = item.discountPercent > 0;
+      final discountAmount = item.lineDiscount;
+      String? discountRule;
+      String? discountText;
+
+      if (hasPercent) {
+        final percentFormatted = item.discountPercent.truncateToDouble() ==
+                item.discountPercent
+            ? '${item.discountPercent.toStringAsFixed(0)}%'
+            : '${item.discountPercent.toStringAsFixed(1)}%';
+        discountRule = percentFormatted;
+        final promoPrefix = (promoName != null &&
+                promoName.isNotEmpty &&
+                promoName != 'Promotion')
+            ? '$promoName — '
+            : '';
+        discountText = '$promoPrefix$percentFormatted / -\$${discountAmount.toStringAsFixed(2)}';
+      } else if (freeUnits > 0) {
+        final rule = freeRule ?? 'Free $freeUnits';
+        discountRule = rule;
+        final promoPrefix = (promoName != null &&
+                promoName.isNotEmpty &&
+                promoName != 'Promotion')
+            ? '$promoName — '
+            : '';
+        discountText = '$promoPrefix$rule';
+      } else {
+        discountText = '—';
+      }
+
       return QuotationPdfLine(
+        sku: sku,
         name: product.name.isNotEmpty ? product.name : 'Structural Item',
         description: description,
         unit: item.unit,
         quantity: item.quantity,
         unitPrice: item.unitPrice,
         discountPercent: item.discountPercent,
+        discountAmount: discountAmount,
+        discountRule: discountRule,
+        discountText: discountText,
         lineTotal: item.lineTotal,
         isCustomized: item.isCustomized,
         specs: specs,
         appearance: appearance,
         drawingImageBytes: drawingBytes,
+        promotionName: promoName,
+        freeQuantity: freeUnits,
+        freeQuantityRule: freeRule,
       );
     }).toList(growable: false);
+
+    // Compute SKU discounts from line items if not explicitly provided
+    final computedSkuDiscount = lines.fold<double>(
+      0.0,
+      (sum, line) => sum + line.discountAmount,
+    );
+    final resolvedSkuDiscount = skuDiscountTotal ?? computedSkuDiscount;
+
+    // Resolve Invoice Discount: explicit or remainder of discount - SKU discounts
+    final computedInvoiceDiscount = (discount - resolvedSkuDiscount).clamp(
+      0.0,
+      double.infinity,
+    );
+    final resolvedInvoiceDiscount = invoiceDiscountTotal ?? computedInvoiceDiscount;
 
     return QuotationPdfData(
       quotationNumber: quotationNumber,
@@ -147,8 +261,12 @@ class QuotationPdfData {
       lines: lines,
       subtotal: subtotal,
       discount: discount,
+      skuDiscountTotal: resolvedSkuDiscount,
+      invoiceDiscountTotal: resolvedInvoiceDiscount,
       tax: tax,
       total: total,
+      isTaxApplicable: isTaxApplicable,
+      invoiceDiscounts: invoiceDiscounts,
       notes: notes,
       currencySymbol: currencySymbol,
     );
@@ -159,9 +277,6 @@ class QuotationPdfData {
   static Uint8List? _readDrawing(String? path) {
     if (path == null || path.isEmpty) return null;
     try {
-      // Always null on web — there is no local drawing file to read there. That
-      // takes the same "missing drawing" branch this method already had, so the
-      // export still succeeds without the image (see `local_files_web.dart`).
       return readLocalFileSync(path);
     } catch (_) {
       return null;

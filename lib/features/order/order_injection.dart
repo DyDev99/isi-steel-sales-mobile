@@ -149,7 +149,7 @@ Future<void> registerOrderFeature(GetIt sl) async {
   // availability check below needs it even on the offline path, where it is
   // the only thing that can answer "may I sell this?" at all.
   sl.registerLazySingleton<PricingRemoteDataSource>(
-      () => ApiPricingRemoteDataSource(sl<Dio>()));
+      () => ApiPricingRemoteDataSource(sl<Dio>(), sl<AppLogger>()));
   // TODO(release-gate): replace with a SignalR-backed source once a client
   // package is approved — no SignalR client is in pubspec today, and
   // hand-rolling the hub handshake would be a second auth mechanism the spec

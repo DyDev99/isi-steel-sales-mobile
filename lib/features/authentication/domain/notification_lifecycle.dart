@@ -3,7 +3,7 @@
 ///
 /// ## Why this interface exists rather than a direct call
 ///
-/// `docs/feature/notification/notification-mobile.md` §4.4 requires the device
+/// `docs/feature/notification/README.md` §4.4 requires the device
 /// deregistration to happen **before** the access token is discarded, which puts
 /// it squarely inside `AuthBloc._onLogout`. But a feature must not import
 /// another feature's `data/` layer (`docs/skills/ai-engineering-playbook.md` §12), and

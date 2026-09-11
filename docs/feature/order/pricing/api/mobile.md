@@ -80,21 +80,14 @@ empty `items` with `erpAnswered: true`.
   "data": {
     "items": [
       {
-        "material": "1100000000",
-        "price": 1018.25,
+        "material": "2400000466",
+        "price": 100.0,
         "currency": "USD",
-        "validFrom": "2026-01-01",
+        "conditionUnit": "M",
+        "pricingUnit": 1,
+        "validFrom": "2026-09-01",
         "validTo": "9999-12-31",
-        "raw": {
-          "Material": "1100000000",
-          "ConditionType": "PR00",
-          "Amount": "1018.25",
-          "Currency": "USD",
-          "ValidFrom": "20260101",
-          "ValidTo": "99991231",
-          "SalesOrg": "0001",
-          "PriceGroup": "11"
-        }
+        "raw": null
       }
     ],
     "source": {
@@ -151,9 +144,23 @@ the two must never render the same way.
 | 500 | `Sap.*` | SAP unreachable, errored, or the endpoint is missing. **Not** the same as "no prices" |
 
 > [!IMPORTANT]
-> **Today this endpoint returns 500 against the real ERP**: the deployed middleware has
-> no `/api/Pricing` controller. Set `SAP_USE_PRICING_MOCK=true` to develop against
-> invented prices — see [test-data.md](../test-data.md).
+> **The response is one page.** 50 items by default, 200 maximum, and no way to ask
+> for the lot — an unnarrowed price list is 3,869 records. Read `data.page.hasMore`
+> and request `?page=2`; a client that renders `items` as the complete price list will
+> be showing the customer 1.3% of it.
+>
+> **Render the unit.** An item reads *`price` `currency` per `pricingUnit`
+> `conditionUnit`* — above, 100.00 USD per metre. This catalogue is quoted in `BAG`,
+> `KG`, `M`, `PAC`, `PC`, `ROL`, `SET` and `UNI`, so a screen showing `100.00` alone is
+> ambiguous.
+>
+> **`raw` is `null` on a normal row** and populated only when the mapper could not read
+> one — those rows carry `price: 0` and a blank currency, and `source.recordsUnmapped`
+> counts them. Do not bind a feature to `raw`.
+>
+> **One material can return more than one price.** `2400000466` returns two valid
+> condition records in different currencies; do not assume a single price per material.
+> See [test-data.md](../test-data.md).
 
 ---
 

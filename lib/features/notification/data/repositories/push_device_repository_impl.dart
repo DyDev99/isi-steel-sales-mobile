@@ -5,6 +5,7 @@ import 'package:isi_steel_sales_mobile/core/localization/active_language.dart';
 import 'package:isi_steel_sales_mobile/core/logging/app_logger.dart';
 import 'package:isi_steel_sales_mobile/core/network/api_error.dart';
 import 'package:isi_steel_sales_mobile/core/notifications/push_messaging_service.dart';
+import 'package:isi_steel_sales_mobile/core/platform/device_name.dart';
 import 'package:isi_steel_sales_mobile/core/platform/device_os.dart';
 import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
 import 'package:isi_steel_sales_mobile/core/utils/result.dart';
@@ -15,7 +16,7 @@ import 'package:isi_steel_sales_mobile/features/notification/domain/entities/pus
 import 'package:isi_steel_sales_mobile/features/notification/domain/repositories/push_device_repository.dart';
 
 /// Keeps this installation's push registration current
-/// (`docs/feature/notification/notification-mobile.md` §4).
+/// (`docs/feature/notification/README.md` §4).
 ///
 /// ## The `deviceId` is borrowed, not minted here
 ///
@@ -100,13 +101,39 @@ class PushDeviceRepositoryImpl implements PushDeviceRepository {
     }
 
     try {
+      final authorization = await _messaging.authorization();
+
+      // Logged *before* the registration, and separately from it.
+      //
+      // `push.registered permitted=false` on its own is unreadable: it is the
+      // correct, expected state on a fresh Android 13+ install — §14 defers the
+      // prompt to the in-app explainer, so nothing has been asked yet — and it
+      // is *also* what a hard denial looks like. Those need completely
+      // different responses (wait for the explainer vs. send the rep to
+      // Settings), and the single boolean the server echoes cannot tell them
+      // apart. This line names the actual state.
+      _logger.info('push.permission', fields: {
+        'status': authorization.name,
+        'audience': _allowsPush(authorization),
+        // Android reports no `notDetermined` below API 33 — `POST_NOTIFICATIONS`
+        // does not exist, so the plugin answers from
+        // `areNotificationsEnabled()` and a fresh install is already
+        // `authorized`. Recording the platform makes that difference legible
+        // instead of looking like an inconsistency between two handsets.
+        'platform': _platform().code,
+      });
+
       final registration = PushRegistration(
         deviceId: await _identity.deviceId(),
         pushToken: token,
         platform: _platform(),
-        pushPermissionGranted:
-            (await _messaging.authorization()).let(_allowsPush),
-        deviceName: readHostName(),
+        // Deliberately **not** gated on the permission. §4.2: a declined or
+        // not-yet-asked installation is still registered, with
+        // `pushPermissionGranted: false`, so the inbox keeps syncing and the
+        // delivery log records `NO_DEVICE` once rather than a run of failures
+        // against a handset that was never going to ring.
+        pushPermissionGranted: _allowsPush(authorization),
+        deviceName: await readDeviceName(),
         appVersion: DeviceIdentity.appVersion,
         osVersion: readOsVersion(),
         locale: ActiveLanguage.acceptLanguageTag,
@@ -120,6 +147,11 @@ class PushDeviceRepositoryImpl implements PushDeviceRepository {
       _logger.info('push.registered', fields: {
         'active': result.isActive,
         'permitted': result.pushPermissionGranted,
+        // Surfaces a server/client disagreement. The endpoint echoes what it
+        // stored, so if these two ever differ the request was rejected or
+        // normalised and the handset's belief about its own push audience is
+        // wrong.
+        'sentPermitted': registration.pushPermissionGranted,
       });
       return Success(result);
     } on ApiException catch (e) {
@@ -210,10 +242,4 @@ class PushDeviceRepositoryImpl implements PushDeviceRepository {
 
   /// §15. Not one of yours.
   static const String _deviceNotFound = 'Notification.DeviceNotFound';
-}
-
-/// Tiny pipe helper, so the registration literal above reads top-to-bottom
-/// instead of needing a local variable for one boolean.
-extension _Let<T> on T {
-  R let<R>(R Function(T value) transform) => transform(this);
 }

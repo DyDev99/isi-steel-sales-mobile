@@ -75,6 +75,12 @@ dependencies:
   # abbreviation (`ICT`), which is what `DeviceIdentity` already flags as
   # inadequate for exactly this case.
   flutter_timezone: ^4.1.0
+  # The real handset model for the device registry
+  # (`docs/feature/notification/api/devices-register.md` — `deviceName`, shown
+  # to support). `Platform.localHostname` answers "localhost" on Android, so
+  # every registration looked identical in the registry; there is no way to get
+  # the model from `dart:io`.
+  device_info_plus: ^11.2.0
 
 dev_dependencies:
   flutter_test:

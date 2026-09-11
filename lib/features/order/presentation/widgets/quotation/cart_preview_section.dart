@@ -13,11 +13,13 @@ import 'package:isi_steel_sales_mobile/features/order/domain/entities/product_ma
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_state.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/stock_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/pricing/pricing_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/promotion/cart_promotion_badge.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/promotion/promotion_detail_sheet.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/line_discount_chips.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/catalog/stock_availability_badge.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/cart_quantity_stepper.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/manual_price_input_sheet.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// The cart, reviewed before saving — and the one place stock is checked
@@ -170,6 +172,14 @@ class _CartPreviewRow extends StatelessWidget {
     final specs = _customSpecs;
     final lineTotal = PricingText.amountOrNull(item.lineTotalOrNull);
 
+    bool hasBackendPrice = false;
+    try {
+      final p = context.watch<PricingCubit>().state[item.product.materialNumber];
+      if (p != null && p.hasAmount) {
+        hasBackendPrice = true;
+      }
+    } catch (_) {}
+
     // Static while the shape is being reviewed. Swapping this one line for
     // `context.watch<PromotionCubit>().of(item.product.materialCode)` is the
     // whole of the real wiring — the badge already takes the same type the
@@ -257,25 +267,216 @@ class _CartPreviewRow extends StatelessWidget {
                       ),
                     ),
                   ],
-                  SizedBox(height: context.rh(2)),
-                  Row(
+                  SizedBox(height: context.rh(3)),
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: context.rw(6),
+                    runSpacing: context.rh(3),
                     children: [
-                      // Omitted entirely while unpriced rather than shown as a
-                      // placeholder — see [PricingText].
-                      if (lineTotal != null)
+                      if (item.isPricePending) ...[
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: context.rw(6),
+                            vertical: context.rh(2),
+                          ),
+                          decoration: BoxDecoration(
+                            color: colors.warning.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(context.rr(4)),
+                            border: Border.all(
+                              color: colors.warning.withValues(alpha: 0.35),
+                              width: 0.8,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.info_outline_rounded,
+                                size: context.rr(11),
+                                color: colors.warningAlt,
+                              ),
+                              SizedBox(width: context.rw(3)),
+                              Flexible(
+                                child: Text(
+                                  "Material doesn't have price",
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: colors.warningAlt,
+                                    fontSize: context.rsp(10.5),
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        InkWell(
+                          onTap: () async {
+                            final price = await showManualPriceInputSheet(
+                              context: context,
+                              item: item,
+                              currentPrice: item.isManualPrice
+                                  ? item.unitPriceOverride
+                                  : null,
+                            );
+                            if (context.mounted && price != null) {
+                              await context.read<CartCubit>().updateUnitPrice(
+                                    item.id,
+                                    price > 0 ? price : null,
+                                    isManualPrice: true,
+                                  );
+                            }
+                          },
+                          borderRadius: BorderRadius.circular(context.rr(6)),
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: context.rw(8),
+                              vertical: context.rh(3),
+                            ),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .primary
+                                  .withValues(alpha: 0.12),
+                              borderRadius:
+                                  BorderRadius.circular(context.rr(6)),
+                              border: Border.all(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .primary
+                                    .withValues(alpha: 0.4),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.edit_note_rounded,
+                                  size: context.rw(13),
+                                  color:
+                                      Theme.of(context).colorScheme.primary,
+                                ),
+                                SizedBox(width: context.rw(3)),
+                                Flexible(
+                                  child: Text(
+                                    'Input Price (USD)',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: context.rsp(11),
+                                      fontWeight: FontWeight.w800,
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ] else if (item.isManualPrice && !hasBackendPrice) ...[
+                        InkWell(
+                          onTap: () async {
+                            final price = await showManualPriceInputSheet(
+                              context: context,
+                              item: item,
+                              currentPrice: item.unitPriceOverride,
+                            );
+                            if (context.mounted && price != null) {
+                              await context.read<CartCubit>().updateUnitPrice(
+                                    item.id,
+                                    price > 0 ? price : null,
+                                    isManualPrice: true,
+                                  );
+                            }
+                          },
+                          borderRadius: BorderRadius.circular(context.rr(4)),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                '\$${item.unitPrice.toStringAsFixed(2)}/${item.unit}',
+                                style: TextStyle(
+                                  color: Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? const Color(0xFF60A5FA)
+                                      : colors.brandNavy,
+                                  fontSize: context.rsp(13),
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              SizedBox(width: context.rw(4)),
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: context.rw(4),
+                                  vertical: context.rh(1.5),
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .primary
+                                      .withValues(alpha: 0.1),
+                                  borderRadius:
+                                      BorderRadius.circular(context.rr(4)),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      '(Manual USD)',
+                                      style: TextStyle(
+                                        fontSize: context.rsp(9.5),
+                                        fontWeight: FontWeight.w800,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary,
+                                      ),
+                                    ),
+                                    SizedBox(width: context.rw(2)),
+                                    Icon(
+                                      Icons.edit_outlined,
+                                      size: context.rw(9),
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .primary,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ] else ...[
+                        Text(
+                          '\$${item.unitPrice.toStringAsFixed(2)}/${item.unit}',
+                          style: TextStyle(
+                            color: Theme.of(context).brightness ==
+                                    Brightness.dark
+                                ? const Color(0xFF60A5FA)
+                                : colors.brandNavy,
+                            fontSize: context.rsp(13),
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                      if (lineTotal != null) ...[
                         Text(
                           lineTotal,
                           style: TextStyle(
-                            color: colors.accentPurple,
-                            fontSize: context.rsp(12),
-                            fontWeight: FontWeight.w700,
+                            color: Theme.of(context).brightness ==
+                                    Brightness.dark
+                                ? const Color(0xFF60A5FA)
+                                : colors.brandNavy,
+                            fontSize: context.rsp(13.5),
+                            fontWeight: FontWeight.w900,
                           ),
                         ),
+                      ],
                       if (stock != null) ...[
-                        SizedBox(width: context.rw(6)),
-                        Flexible(
-                          child: StockAvailabilityBadge(
-                              availability: stock, compact: true),
+                        StockAvailabilityBadge(
+                          availability: stock,
+                          compact: true,
                         ),
                       ],
                     ],

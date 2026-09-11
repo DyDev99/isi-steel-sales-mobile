@@ -1,4 +1,6 @@
 // cspell:ignore Sokha
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/features/about/presentation/screens/about_hub_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -24,7 +26,9 @@ import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubi
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/route_sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/stop_dashboard_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/stop_dashboard/stop_dashboard_screen.dart';
+import 'package:isi_steel_sales_mobile/core/permissions/presentation/app_permissions_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/notification/notification_coordinator.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/permission/permission_primer_dialog.dart';
 import 'package:isi_steel_sales_mobile/features/notification/presentation/screen/notifications_sheet.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/sync/continue_work_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/sync/pending_sync_cubit.dart';
@@ -77,6 +81,20 @@ class _MainShellState extends State<MainShell> {
     _builtTabs.add(_index);
     _tabController.addListener(_onTabChanged);
     sl<ResumableVisitCubit>().refresh();
+
+    // Prime the OS permissions once, here.
+    //
+    // Reaching `MainShell` *is* the moment
+    // `docs/feature/notification/README.md` §14 describes: it means
+    // the rep is signed in and past onboarding, so "get notified the moment a
+    // route needs you" is about work they can already see. Asking any earlier
+    // spends iOS's single prompt on somebody with nothing to be notified about.
+    //
+    // The cubit decides whether to actually show anything — it checks what is
+    // still unanswered and honours the 14-day re-offer cap — so this is safe to
+    // call on every shell build.
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => unawaited(_maybePrimePermissions()));
     // Customer sync is deliberately *not* kicked off here.
     //
     // `CustomersScreen` already does it (`sl<CustomerSyncCubit>()
@@ -85,6 +103,27 @@ class _MainShellState extends State<MainShell> {
     // state no widget was watching. That is the duplicate
     // `customers.sync.initial.start` visible in the logs: two full page runs
     // on every cold start, for one set of rows.
+  }
+
+  /// Shows the permission primer if anything is still unanswered.
+  ///
+  /// Guests are skipped: a guest has no device to register and no route to be
+  /// notified about, and burning the prompt before sign-in is exactly what §14
+  /// rules out.
+  Future<void> _maybePrimePermissions() async {
+    if (!_session.isAuthenticated) return;
+
+    final cubit = sl<AppPermissionsCubit>();
+    try {
+      if (!await cubit.shouldPrompt(hasSeenFirstRoute: true)) return;
+      if (!mounted) return;
+
+      await showPermissionPrimerDialog(context: context, cubit: cubit);
+    } finally {
+      // Factory-registered, so this instance is ours to close. Skipping it
+      // leaks the cubit on every shell build.
+      await cubit.close();
+    }
   }
 
   @override

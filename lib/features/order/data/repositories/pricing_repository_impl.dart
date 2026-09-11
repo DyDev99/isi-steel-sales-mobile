@@ -33,7 +33,11 @@ class PricingRepositoryImpl implements PricingRepository {
     required String customerId,
     required List<String> materials,
   }) async {
-    final wanted = materials.where((m) => m.trim().isNotEmpty).toSet().toList();
+    final wanted = materials
+        .map((m) => m.trim())
+        .where((m) => m.isNotEmpty)
+        .toSet()
+        .toList();
     if (wanted.isEmpty) return const Success(<MobilePrice>[]);
 
     if (customerId.trim().isEmpty) {

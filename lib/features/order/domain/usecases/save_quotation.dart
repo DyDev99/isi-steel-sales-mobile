@@ -19,5 +19,9 @@ class SaveQuotation extends UseCase<Quotation, SaveQuotationParams> {
         offVisitReason: params.offVisitReason,
         gpsLat: params.gpsLat,
         gpsLng: params.gpsLng,
+        subtotal: params.subtotal,
+        discount: params.discount,
+        tax: params.tax,
+        total: params.total,
       );
 }

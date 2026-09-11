@@ -143,3 +143,15 @@ const ({double latitude, double longitude}) kStaticCheckInPosition = (
   latitude: StaticOutletLocationSource.kDemoOutletLatitude,
   longitude: StaticOutletLocationSource.kDemoOutletLongitude,
 );
+
+/// Which outlet pin the check-in measures against.
+///
+/// `false` (default) keeps the current behaviour: every stop is measured
+/// against the fixed demo pin ([StaticOutletLocationSource] — ISI's Phnom Penh
+/// office). That is right for **testing at the office**, and wrong in the
+/// field: a rep standing at the real shop reads as "outside".
+///
+/// Build with `--dart-define=USE_STOP_OUTLET_PIN=true` to measure against each
+/// stop's own synced pin ([StopOutletLocationSource]) — what the map already
+/// shows as the destination marker. Turn this on before field rollout.
+const bool kUseStopOutletPin = bool.fromEnvironment('USE_STOP_OUTLET_PIN');

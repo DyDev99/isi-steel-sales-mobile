@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/mobile_price.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/repositories/pricing_repository.dart';
@@ -48,6 +49,7 @@ class PricingCubit extends Cubit<Map<String, MobilePrice>> {
   /// Everything currently on the quotation, so a reconnect knows what to
   /// re-ask for without the UI having to tell it again.
   final Set<String> _tracked = {};
+  final Set<String> _inFlight = {};
 
   String? get customerId => _customerId;
 
@@ -63,6 +65,10 @@ class PricingCubit extends Cubit<Map<String, MobilePrice>> {
     if (_customerId == customerId) return;
     _customerId = customerId;
     emit(const {});
+
+    if (kDebugMode) {
+      debugPrint('[PricingCubit] setCustomer: $customerId');
+    }
 
     await _realtime.unsubscribe();
     if (customerId == null || customerId.isEmpty) return;
@@ -81,6 +87,10 @@ class PricingCubit extends Cubit<Map<String, MobilePrice>> {
         .where((m) => m.isNotEmpty && !_tracked.contains(m))
         .toSet();
     if (fresh.isEmpty) return;
+
+    if (kDebugMode) {
+      debugPrint('[PricingCubit] track fresh materials: $fresh (customer: $_customerId)');
+    }
 
     _tracked.addAll(fresh);
     await _fetch(fresh.toList());
@@ -131,43 +141,63 @@ class PricingCubit extends Cubit<Map<String, MobilePrice>> {
       return;
     }
 
+    // Skip materials that are already in flight to avoid duplicate concurrent calls.
+    final toFetch = materials.where((m) => !_inFlight.contains(m)).toList();
+    if (toFetch.isEmpty) return;
+
+    _inFlight.addAll(toFetch);
+
     // Only the cards being fetched show a spinner. The rest of the quotation,
     // and every other price on it, stays exactly as it was.
     emit({
       ...state,
-      for (final material in materials) material: MobilePrice.loading(material),
+      for (final material in toFetch) material: MobilePrice.loading(material),
     });
 
-    final result = await _getPrices(CustomerPricesParams(
-      customerId: customerId,
-      materials: materials,
-    ));
-    if (isClosed) return;
+    if (kDebugMode) {
+      debugPrint('[PricingCubit] _fetch: customerId=$customerId, materials=$toFetch');
+    }
 
-    result.when(
-      success: (prices) {
-        final next = {...state};
-        for (final price in prices) {
-          // A material dropped from the quotation while its request was in
-          // flight must not reappear on screen.
-          if (!_tracked.contains(price.material)) continue;
-          next[price.material] = price;
-        }
-        emit(next);
-      },
-      failure: (failure) {
-        final next = {...state};
-        for (final material in materials) {
-          if (!_tracked.contains(material)) continue;
-          next[material] = MobilePrice(
-            material: material,
-            state: PricingState.error,
-            errorKind: PricingErrorKind.unknown,
-          );
-        }
-        emit(next);
-      },
-    );
+    try {
+      final result = await _getPrices(CustomerPricesParams(
+        customerId: customerId,
+        materials: toFetch,
+      ));
+      if (isClosed) return;
+
+      result.when(
+        success: (prices) {
+          if (kDebugMode) {
+            debugPrint('[PricingCubit] _fetch success: ${prices.length} prices received');
+          }
+          final next = {...state};
+          for (final price in prices) {
+            // A material dropped from the quotation while its request was in
+            // flight must not reappear on screen.
+            if (!_tracked.contains(price.material)) continue;
+            next[price.material] = price;
+          }
+          emit(next);
+        },
+        failure: (failure) {
+          if (kDebugMode) {
+            debugPrint('[PricingCubit] _fetch failure: ${failure.message}');
+          }
+          final next = {...state};
+          for (final material in toFetch) {
+            if (!_tracked.contains(material)) continue;
+            next[material] = MobilePrice(
+              material: material,
+              state: PricingState.error,
+              errorKind: PricingErrorKind.unknown,
+            );
+          }
+          emit(next);
+        },
+      );
+    } finally {
+      _inFlight.removeAll(toFetch);
+    }
   }
 
   /// Applies a pushed price, unless it is older than what is already held.

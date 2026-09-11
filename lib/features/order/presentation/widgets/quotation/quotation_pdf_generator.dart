@@ -313,15 +313,12 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
   // ── Line-items table ───────────────────────────────────────────────────
   pw.Widget _lineItemsTable(PdfTheme theme, NumberFormat currency) {
     const cols = <int, pw.TableColumnWidth>{
-      0: pw.FlexColumnWidth(0.5),
-      1: pw.FlexColumnWidth(3.0),
-      2: pw.FlexColumnWidth(0.8),
-      3: pw.FlexColumnWidth(0.9),
-      4: pw.FlexColumnWidth(1.2),
-      // Wider than the money columns either side of it: it carries two short
-      // lines, and an attribution that wraps mid-word is worse than none.
-      5: pw.FlexColumnWidth(1.7),
-      6: pw.FlexColumnWidth(1.3),
+      0: pw.FlexColumnWidth(1.4), // SKU
+      1: pw.FlexColumnWidth(3.2), // PRODUCT
+      2: pw.FlexColumnWidth(0.9), // QTY
+      3: pw.FlexColumnWidth(1.3), // UNIT PRICE
+      4: pw.FlexColumnWidth(1.8), // DISCOUNT
+      5: pw.FlexColumnWidth(1.4), // AMOUNT
     };
 
     return pw.Table(
@@ -342,14 +339,14 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
         {pw.Alignment align = pw.Alignment.centerLeft}) {
       return pw.Container(
         alignment: align,
-        padding: const pw.EdgeInsets.symmetric(vertical: 7, horizontal: 6),
+        padding: const pw.EdgeInsets.symmetric(vertical: 7, horizontal: 5),
         child: _t(
           text,
           fontSize: 8,
           bold: true,
           color: theme.onBrand,
           letterSpacing: 0.4,
-          maxWidth: 190,
+          maxWidth: 180,
         ),
       );
     }
@@ -357,16 +354,15 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
     return pw.TableRow(
       decoration: pw.BoxDecoration(color: theme.brandNavy),
       children: [
-        cell(_l('orders.quotation.pdf.col_no', '#')),
+        cell(_l('orders.quotation.pdf.col_sku', 'SKU')),
         cell(_l('orders.quotation.pdf.col_product', 'PRODUCT')),
-        cell(_l('orders.quotation.pdf.col_unit', 'UNIT')),
         cell(_l('orders.quotation.pdf.col_qty', 'QTY'),
             align: pw.Alignment.centerRight),
         cell(_l('orders.quotation.pdf.col_unit_price', 'UNIT PRICE'),
             align: pw.Alignment.centerRight),
         cell(_l('orders.quotation.pdf.col_discount', 'DISCOUNT'),
             align: pw.Alignment.centerRight),
-        cell(_l('orders.quotation.pdf.col_total', 'TOTAL'),
+        cell(_l('orders.quotation.pdf.col_amount', 'AMOUNT'),
             align: pw.Alignment.centerRight),
       ],
     );
@@ -378,7 +374,7 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
         {pw.Alignment align = pw.Alignment.centerLeft}) {
       return pw.Container(
         alignment: align,
-        padding: const pw.EdgeInsets.symmetric(vertical: 6, horizontal: 6),
+        padding: const pw.EdgeInsets.symmetric(vertical: 6, horizontal: 5),
         child: child,
       );
     }
@@ -392,8 +388,18 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
           ? pw.BoxDecoration(color: theme.zebra)
           : const pw.BoxDecoration(),
       children: [
-        cell(pw.Text('$number',
-            style: pw.TextStyle(fontSize: 8.5, color: theme.muted))),
+        // 1. SKU column
+        cell(
+          _t(
+            line.sku.isNotEmpty ? line.sku : '—',
+            fontSize: 8,
+            bold: true,
+            color: theme.ink,
+            maxWidth: 72,
+          ),
+        ),
+
+        // 2. PRODUCT column
         cell(
           pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -403,10 +409,10 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
                 children: [
                   pw.Flexible(
                     child: _t(line.name,
-                        fontSize: 9,
+                        fontSize: 8.5,
                         bold: true,
                         color: theme.ink,
-                        maxWidth: 170),
+                        maxWidth: 160),
                   ),
                   if (line.isCustomized)
                     pw.Container(
@@ -425,38 +431,38 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
                         bold: true,
                         color: theme.brandAccent,
                         letterSpacing: 0.3,
-                        maxWidth: 60,
+                        maxWidth: 55,
                       ),
                     ),
                 ],
               ),
               if (line.description.isNotEmpty)
                 _t(line.description,
-                    fontSize: 7.5, color: theme.muted, maxWidth: 190),
+                    fontSize: 7, color: theme.muted, maxWidth: 160),
               if (line.specs != null)
                 _t(
                   '${_l('orders.quotation.pdf.specs', 'Specs')}: ${line.specs}',
-                  fontSize: 7.5,
+                  fontSize: 7,
                   bold: true,
                   color: theme.brandNavy,
-                  maxWidth: 190,
+                  maxWidth: 160,
                 ),
               if (line.appearance != null)
                 _t(
                   '${_l('orders.quotation.pdf.finish', 'Finish')}: ${line.appearance}',
-                  fontSize: 7.5,
+                  fontSize: 7,
                   color: theme.ink,
-                  maxWidth: 190,
+                  maxWidth: 160,
                 ),
               if (line.drawingImageBytes != null) ...[
-                pw.SizedBox(height: 4),
+                pw.SizedBox(height: 3),
                 pw.ClipRRect(
                   horizontalRadius: 3,
                   verticalRadius: 3,
                   child: pw.Image(
                     pw.MemoryImage(line.drawingImageBytes!),
-                    height: 54,
-                    width: 78,
+                    height: 44,
+                    width: 65,
                     fit: pw.BoxFit.cover,
                   ),
                 ),
@@ -464,44 +470,59 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
             ],
           ),
         ),
-        cell(_t(line.unit, fontSize: 8.5, color: theme.ink, maxWidth: 55)),
+
+        // 3. QTY column
         cell(
-            pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.end,
-              mainAxisSize: pw.MainAxisSize.min,
-              children: [
-                pw.Text(qty,
-                    style: pw.TextStyle(fontSize: 8.5, color: theme.ink)),
-              ],
-            ),
-            align: pw.Alignment.centerRight),
+          pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.end,
+            mainAxisSize: pw.MainAxisSize.min,
+            children: [
+              pw.Text(qty,
+                  style: pw.TextStyle(
+                      fontSize: 8.5,
+                      color: theme.ink,
+                      fontWeight: pw.FontWeight.bold)),
+              if (line.unit.isNotEmpty)
+                _t(line.unit, fontSize: 7, color: theme.muted, maxWidth: 45),
+            ],
+          ),
+          align: pw.Alignment.centerRight,
+        ),
+
+        // 4. UNIT PRICE column
         cell(
-            pw.Text(currency.format(line.unitPrice),
-                style: pw.TextStyle(fontSize: 8.5, color: theme.ink)),
-            align: pw.Alignment.centerRight),
-        cell(_discountCell(theme, line), align: pw.Alignment.centerRight),
+          pw.Text(currency.format(line.unitPrice),
+              style: pw.TextStyle(fontSize: 8.5, color: theme.ink)),
+          align: pw.Alignment.centerRight,
+        ),
+
+        // 5. DISCOUNT column (SKU-level only)
         cell(
-            pw.Text(currency.format(line.lineTotal),
-                style: pw.TextStyle(
-                    fontSize: 8.5,
-                    color: theme.ink,
-                    fontWeight: pw.FontWeight.bold)),
-            align: pw.Alignment.centerRight),
+          _skuDiscountCell(theme, currency, line),
+          align: pw.Alignment.centerRight,
+        ),
+
+        // 6. AMOUNT column
+        cell(
+          pw.Text(currency.format(line.lineTotal),
+              style: pw.TextStyle(
+                  fontSize: 8.5,
+                  color: theme.ink,
+                  fontWeight: pw.FontWeight.bold)),
+          align: pw.Alignment.centerRight,
+        ),
       ],
     );
   }
 
-  /// What came off this line, and on whose authority.
-  ///
-  /// Up to three short lines, in the order a customer checks them: the
-  /// percentage, the free-goods rule that earned it, then who granted it. A
-  /// line with no reduction prints an em dash rather than "0%" — a zero reads
-  /// as a refusal, which is a more provocative thing to print than "not
-  /// applicable".
-  pw.Widget _discountCell(PdfTheme theme, QuotationPdfLine line) {
-    final hasPercent = line.discountPercent > 0;
+  /// Formats and renders the SKU-specific discount column.
+  /// Shows percentage discount, fixed reduction, or free quantity.
+  pw.Widget _skuDiscountCell(
+      PdfTheme theme, NumberFormat currency, QuotationPdfLine line) {
+    final hasMonetary = line.discountAmount > 0;
+    final hasFree = line.freeQuantity > 0;
 
-    if (!hasPercent) {
+    if (!hasMonetary && !hasFree) {
       return pw.Text('—',
           style: pw.TextStyle(fontSize: 8.5, color: theme.muted));
     }
@@ -510,14 +531,36 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
       crossAxisAlignment: pw.CrossAxisAlignment.end,
       mainAxisSize: pw.MainAxisSize.min,
       children: [
-        if (hasPercent)
+        if (line.promotionName != null &&
+            line.promotionName!.isNotEmpty &&
+            line.promotionName != 'Promotion')
+          _t(
+            line.promotionName!,
+            fontSize: 6.5,
+            color: theme.brandNavy,
+            bold: true,
+            maxWidth: 90,
+          ),
+        if (hasMonetary)
           pw.Text(
-            '-${line.discountPercent.toStringAsFixed(0)}%',
+            line.discountRule != null && line.discountRule!.isNotEmpty
+                ? '${line.discountRule} / -${currency.format(line.discountAmount)}'
+                : '-${currency.format(line.discountAmount)}',
             style: pw.TextStyle(
-              fontSize: 8.5,
+              fontSize: 8,
               color: theme.success,
               fontWeight: pw.FontWeight.bold,
             ),
+          ),
+        if (hasFree)
+          _t(
+            line.freeQuantityRule != null && line.freeQuantityRule!.isNotEmpty
+                ? '${line.freeQuantityRule} (${line.freeQuantity} Free)'
+                : 'Free ${line.freeQuantity} ${line.unit}',
+            fontSize: 7,
+            color: theme.brandNavy,
+            bold: true,
+            maxWidth: 90,
           ),
       ],
     );
@@ -525,24 +568,32 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
 
   // ── Totals ─────────────────────────────────────────────────────────────
   pw.Widget _totalsBlock(PdfTheme theme, NumberFormat currency) {
-    pw.Widget row(String label, String value,
-        {bool grand = false, PdfColor? valueColor}) {
+    pw.Widget row(
+      String label,
+      String value, {
+      bool grand = false,
+      bool bold = false,
+      PdfColor? valueColor,
+    }) {
       return pw.Padding(
-        padding: pw.EdgeInsets.symmetric(vertical: grand ? 6 : 3),
+        padding: pw.EdgeInsets.symmetric(vertical: grand ? 6 : 2.5),
         child: pw.Row(
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
             _t(label,
-                fontSize: grand ? 12 : 9.5,
-                bold: grand,
-                color: grand ? theme.brandNavy : theme.muted,
+                fontSize: grand ? 12 : (bold ? 9.5 : 9),
+                bold: grand || bold,
+                color: grand
+                    ? theme.brandNavy
+                    : (bold ? theme.ink : theme.muted),
                 maxWidth: 130),
             pw.Text(value,
                 style: pw.TextStyle(
-                    fontSize: grand ? 13 : 9.5,
+                    fontSize: grand ? 13 : (bold ? 9.5 : 9),
                     color: valueColor ?? (grand ? theme.brandNavy : theme.ink),
-                    fontWeight:
-                        grand ? pw.FontWeight.bold : pw.FontWeight.normal)),
+                    fontWeight: grand || bold
+                        ? pw.FontWeight.bold
+                        : pw.FontWeight.normal)),
           ],
         ),
       );
@@ -552,7 +603,7 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
       mainAxisAlignment: pw.MainAxisAlignment.end,
       children: [
         pw.Container(
-          width: 230,
+          width: 245,
           padding: pw.EdgeInsets.all(theme.gapMd),
           decoration: pw.BoxDecoration(
             color: theme.panel,
@@ -561,17 +612,67 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
           ),
           child: pw.Column(
             children: [
+              // Subtotal
               row(_l('orders.quotation.pdf.subtotal', 'Subtotal'),
                   currency.format(data.subtotal)),
-              row(_l('orders.quotation.pdf.discount', 'Discount'),
-                  '- ${currency.format(data.discount)}',
-                  valueColor: data.discount > 0 ? theme.success : null),
-              row(_l('orders.quotation.pdf.tax', 'Tax (VAT 10%)'),
-                  currency.format(data.tax)),
+
+              // SKU Discounts
+              row(
+                _l('orders.quotation.pdf.sku_discounts', 'SKU Discounts'),
+                data.skuDiscountTotal > 0
+                    ? '- ${currency.format(data.skuDiscountTotal)}'
+                    : '—',
+                valueColor: data.skuDiscountTotal > 0 ? theme.success : null,
+              ),
+
+              // Invoice Discount
+              row(
+                _l('orders.quotation.pdf.invoice_discount', 'Invoice Discount'),
+                data.invoiceDiscountTotal > 0
+                    ? '- ${currency.format(data.invoiceDiscountTotal)}'
+                    : '—',
+                valueColor: data.invoiceDiscountTotal > 0 ? theme.success : null,
+              ),
+
+              // Itemized invoice discounts
+              for (final inv in data.invoiceDiscounts)
+                pw.Padding(
+                  padding: const pw.EdgeInsets.only(left: 6, bottom: 2),
+                  child: pw.Row(
+                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                    children: [
+                      _t('• $inv',
+                          fontSize: 7, color: theme.muted, maxWidth: 215),
+                    ],
+                  ),
+                ),
+
+              // Total Discount = SKU Discount Total + Invoice Discount
+              row(
+                _l('orders.quotation.pdf.total_discount', 'Total Discount'),
+                data.totalDiscount > 0
+                    ? '- ${currency.format(data.totalDiscount)}'
+                    : '—',
+                bold: true,
+                valueColor: data.totalDiscount > 0 ? theme.success : null,
+              ),
+
+              // Tax
+              row(
+                data.tax <= 0
+                    ? _l('orders.quotation.pdf.tax_exempt', 'Tax (Exempt)')
+                    : _l('orders.quotation.pdf.tax', 'Tax (VAT 10%)'),
+                currency.format(data.tax),
+              ),
+
               pw.Divider(color: theme.hairline, height: theme.gapMd),
-              row(_l('orders.quotation.pdf.grand_total', 'GRAND TOTAL'),
-                  currency.format(data.total),
-                  grand: true),
+
+              // Grand Total
+              row(
+                _l('orders.quotation.pdf.grand_total', 'GRAND TOTAL'),
+                currency.format(data.total),
+                grand: true,
+              ),
             ],
           ),
         ),

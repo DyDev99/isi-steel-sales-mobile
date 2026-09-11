@@ -13,10 +13,12 @@ class ShipmentSelectionWidget extends StatelessWidget {
     required this.pickupLocation,
     required this.deliveryOption,
     required this.isCod,
+    this.isTaxApplicable = true,
     required this.onMethodChanged,
     required this.onPickupLocationChanged,
     required this.onDeliveryOptionChanged,
     required this.onCodChanged,
+    this.onTaxApplicableChanged,
     this.selectedFactory,
     this.selectedBranch,
     this.onFactoryChanged,
@@ -31,11 +33,13 @@ class ShipmentSelectionWidget extends StatelessWidget {
   final PickupLocation? pickupLocation;
   final DeliveryAddressOption? deliveryOption;
   final bool isCod;
+  final bool isTaxApplicable;
 
   final ValueChanged<ShipmentMethod> onMethodChanged;
   final ValueChanged<PickupLocation> onPickupLocationChanged;
   final ValueChanged<DeliveryAddressOption> onDeliveryOptionChanged;
   final ValueChanged<bool> onCodChanged;
+  final ValueChanged<bool>? onTaxApplicableChanged;
 
   final String? selectedFactory;
   final String? selectedBranch;
@@ -273,6 +277,33 @@ class ShipmentSelectionWidget extends StatelessWidget {
                 icon: Icons.money_off_outlined,
                 isSelected: isCod == false,
                 onTap: () => onCodChanged(false),
+              ),
+            ),
+          ],
+        ),
+
+        // 4. Tax Section
+        SizedBox(height: isTablet ? 26 : 20),
+        Text('Tax', style: headerTextStyle),
+        SizedBox(height: isTablet ? 16 : 12),
+
+        Row(
+          children: [
+            Expanded(
+              child: _SelectCard(
+                title: 'Applicable',
+                icon: Icons.receipt_long_outlined,
+                isSelected: isTaxApplicable == true,
+                onTap: () => onTaxApplicableChanged?.call(true),
+              ),
+            ),
+            SizedBox(width: isTablet ? 16 : 12),
+            Expanded(
+              child: _SelectCard(
+                title: 'Exempt',
+                icon: Icons.money_off_csred_outlined,
+                isSelected: isTaxApplicable == false,
+                onTap: () => onTaxApplicableChanged?.call(false),
               ),
             ),
           ],

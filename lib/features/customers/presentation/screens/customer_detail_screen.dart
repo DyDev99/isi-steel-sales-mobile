@@ -21,10 +21,6 @@ import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/s
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/stop_information/promotions_screen.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/app_bottom_sheet.dart';
 
-const double _twoColumnMinWidth = 840;
-
-// Static fallback values used whenever real customer data is missing,
-// mirroring the pattern used in StopInformationScreen.
 const String _fallbackOutletId = 'BP-884920';
 const String _fallbackOutletType = 'WHS / Retail';
 const String _fallbackOutletTier = 'Diamond';
@@ -189,8 +185,6 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
     return LocalizedBuilder(
       builder: (context) {
         final colors = context.appColors;
-        final isTwoColumn =
-            MediaQuery.sizeOf(context).width >= _twoColumnMinWidth;
 
         return Scaffold(
           backgroundColor: colors.canvas,
@@ -198,94 +192,89 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
             backgroundColor: colors.canvas,
             elevation: 0,
             scrolledUnderElevation: 0,
-            toolbarHeight: context.rh(56),
+            toolbarHeight: context.rh(52),
             iconTheme: IconThemeData(
               color: colors.textPrimary,
-              size: context.rr(24),
+              size: context.rr(22),
             ),
             title: Text(
-              'Outlet Information',
+              'Outlet Details',
               style: TextStyle(
                 color: colors.textPrimary,
                 fontSize: context.rsp(17),
                 fontWeight: FontWeight.w800,
               ),
             ),
-            actions: [
-              BlocBuilder<CustomerDetailCubit, CustomerDetailState>(
-                builder: (context, state) => IconButton(
-                  tooltip: 'common.add_note'.tr,
-                  icon: Icon(
-                    Icons.note_add_outlined,
-                    color: colors.textPrimary,
-                    size: context.rr(22),
-                  ),
-                  onPressed: state is CustomerDetailLoaded
-                      ? () => _addNote(context)
-                      : null,
-                ),
-              ),
-            ],
           ),
           body: SafeArea(
             child: BlocBuilder<CustomerDetailCubit, CustomerDetailState>(
               builder: (context, state) {
                 return switch (state) {
                   CustomerDetailLoaded() => ResponsiveContentFrame(
-                      child: ListView(
-                        padding: EdgeInsets.fromLTRB(
-                          context.pagePadding,
-                          context.rh(12),
-                          context.pagePadding,
-                          context.rh(24),
-                        ),
-                        children: [
-                          _HeroCard(customer: state.customer),
-                          SizedBox(height: context.rh(16)),
-                          if (isTwoColumn)
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Expanded(
-                                  flex: 6,
-                                  child: _OutletDetailsCard(
+                      child: DefaultTabController(
+                        length: 3,
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: context.pagePadding,
+                                vertical: context.rh(6),
+                              ),
+                              child: _HeroHeaderCard(
+                                customer: state.customer,
+                                onPhoneTap: _openPhoneOrTelegram,
+                                onLocationTap: _openGoogleMaps,
+                                onAddNoteTap: () => _addNote(context),
+                              ),
+                            ),
+                            SizedBox(height: context.rh(8)),
+                            Container(
+                              margin: EdgeInsets.symmetric(
+                                  horizontal: context.pagePadding),
+                              decoration: BoxDecoration(
+                                color: colors.card,
+                                borderRadius:
+                                    BorderRadius.circular(context.rr(12)),
+                                border: Border.all(color: colors.border),
+                              ),
+                              child: TabBar(
+                                labelColor:
+                                    Theme.of(context).colorScheme.primary,
+                                unselectedLabelColor: colors.textSecondary,
+                                indicatorColor:
+                                    Theme.of(context).colorScheme.primary,
+                                indicatorSize: TabBarIndicatorSize.tab,
+                                indicatorWeight: 3,
+                                labelStyle: TextStyle(
+                                  fontSize: context.rsp(13),
+                                  fontWeight: FontWeight.w800,
+                                ),
+                                unselectedLabelStyle: TextStyle(
+                                  fontSize: context.rsp(13),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                tabs: const [
+                                  Tab(text: 'Overview'),
+                                  Tab(text: 'Sales'),
+                                  Tab(text: 'Promos'),
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                              child: TabBarView(
+                                children: [
+                                  _OverviewTab(
                                     customer: state.customer,
                                     onPhoneTap: _openPhoneOrTelegram,
                                     onLocationTap: _openGoogleMaps,
                                   ),
-                                ),
-                                SizedBox(width: context.rw(16)),
-                                Expanded(
-                                  flex: 5,
-                                  child: Column(
-                                    children: [
-                                      _PromoListCard(customer: state.customer),
-                                      SizedBox(height: context.rh(16)),
-                                      _SalesHistoryDetailCard(
-                                          customer: state.customer),
-                                      SizedBox(height: context.rh(40)),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            )
-                          else
-                            Column(
-                              children: [
-                                _OutletDetailsCard(
-                                  customer: state.customer,
-                                  onPhoneTap: _openPhoneOrTelegram,
-                                  onLocationTap: _openGoogleMaps,
-                                ),
-                                SizedBox(height: context.rh(14)),
-                                _PromoListCard(customer: state.customer),
-                                SizedBox(height: context.rh(14)),
-                                _SalesHistoryDetailCard(
-                                    customer: state.customer),
-                                SizedBox(height: context.rh(40)),
-                              ],
+                                  _SalesTab(customer: state.customer),
+                                  _PromosTab(customer: state.customer),
+                                ],
+                              ),
                             ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   CustomerDetailError(:final message) => Center(
@@ -307,18 +296,24 @@ class _CustomerDetailViewState extends State<_CustomerDetailView> {
   }
 }
 
-/// Hero header card. Mirrors StopInformationScreen's hero: it wraps the
-/// content in a RepaintBoundary so the outlet card can be captured as an
-/// image and saved to the gallery via the camera action.
-class _HeroCard extends StatefulWidget {
-  const _HeroCard({required this.customer});
+class _HeroHeaderCard extends StatefulWidget {
+  const _HeroHeaderCard({
+    required this.customer,
+    required this.onPhoneTap,
+    required this.onLocationTap,
+    required this.onAddNoteTap,
+  });
+
   final Customer customer;
+  final Function(String) onPhoneTap;
+  final Function(double, double) onLocationTap;
+  final VoidCallback onAddNoteTap;
 
   @override
-  State<_HeroCard> createState() => _HeroCardState();
+  State<_HeroHeaderCard> createState() => _HeroHeaderCardState();
 }
 
-class _HeroCardState extends State<_HeroCard> {
+class _HeroHeaderCardState extends State<_HeroHeaderCard> {
   final GlobalKey _cardKey = GlobalKey();
 
   Future<void> _captureCard() async {
@@ -333,7 +328,6 @@ class _HeroCardState extends State<_HeroCard> {
 
       if (pngBytes != null) {
         await Gal.putImageBytes(pngBytes);
-
         if (!mounted) return;
         HapticFeedback.lightImpact();
         ScaffoldMessenger.of(context).showSnackBar(
@@ -358,58 +352,115 @@ class _HeroCardState extends State<_HeroCard> {
     final scheme = Theme.of(context).colorScheme;
     final customer = widget.customer;
 
+    final phoneNum =
+        customer.phone.isNotEmpty ? customer.phone : _fallbackPhone;
+    final latitude =
+        customer.hasCoordinates ? customer.latitude : _fallbackLatitude;
+    final longitude =
+        customer.hasCoordinates ? customer.longitude : _fallbackLongitude;
+    final outletTier = (customer.priceGroup?.isNotEmpty ?? false)
+        ? customer.priceGroup!
+        : _fallbackOutletTier;
+
     return RepaintBoundary(
       key: _cardKey,
       child: Container(
-        padding: EdgeInsets.all(context.rr(16)),
+        padding: EdgeInsets.all(context.rr(14)),
         decoration: BoxDecoration(
           color: colors.card,
           borderRadius: BorderRadius.circular(context.rr(16)),
           border: Border.all(color: colors.border),
           boxShadow: colors.cardShadow,
         ),
-        child: Row(
+        child: Column(
           children: [
-            Container(
-              width: context.rr(52),
-              height: context.rr(52),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: scheme.primary.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(context.rr(12)),
-              ),
-              child: Icon(
-                Icons.storefront_rounded,
-                color: scheme.primary,
-                size: context.rr(26),
-              ),
-            ),
-            SizedBox(width: context.rw(14)),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    context.localized(customer.displayName),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: colors.textPrimary,
-                      fontSize: context.rsp(18),
-                      fontWeight: FontWeight.w900,
-                    ),
+            Row(
+              children: [
+                Container(
+                  width: context.rr(44),
+                  height: context.rr(44),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: scheme.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(context.rr(10)),
                   ),
-                ],
-              ),
+                  child: Icon(
+                    Icons.storefront_rounded,
+                    color: scheme.primary,
+                    size: context.rr(22),
+                  ),
+                ),
+                SizedBox(width: context.rw(12)),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        context.localized(customer.displayName),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: colors.textPrimary,
+                          fontSize: context.rsp(16),
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      SizedBox(height: context.rh(2)),
+                      Row(
+                        children: [
+                          _PillBadge(
+                              label: outletTier,
+                              color: scheme.primary.withValues(alpha: 0.12),
+                              textColor: scheme.primary),
+                          SizedBox(width: context.rw(6)),
+                          Text(
+                            customer.sapCustomerId?.isNotEmpty == true
+                                ? customer.sapCustomerId!
+                                : _fallbackOutletId,
+                            style: TextStyle(
+                              color: colors.textSecondary,
+                              fontSize: context.rsp(11),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            IconButton(
-              icon: Icon(
-                Icons.camera_alt_outlined,
-                color: colors.textSecondary,
-                size: context.rr(22),
-              ),
-              tooltip: 'my_visits.screenshot'.tr,
-              onPressed: _captureCard,
+            SizedBox(height: context.rh(12)),
+            Divider(height: 1, color: colors.border.withValues(alpha: 0.5)),
+            SizedBox(height: context.rh(8)),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _QuickActionButton(
+                  icon: Icons.call_rounded,
+                  label: 'Call',
+                  color: Colors.green,
+                  onTap: () => widget.onPhoneTap(phoneNum),
+                ),
+                _QuickActionButton(
+                  icon: Icons.directions_rounded,
+                  label: 'Map',
+                  color: Colors.blue,
+                  onTap: () => widget.onLocationTap(latitude, longitude),
+                ),
+                _QuickActionButton(
+                  icon: Icons.note_add_outlined,
+                  label: 'Note',
+                  color: scheme.primary,
+                  onTap: widget.onAddNoteTap,
+                ),
+                _QuickActionButton(
+                  icon: Icons.camera_alt_outlined,
+                  label: 'Capture',
+                  color: colors.textSecondary,
+                  onTap: _captureCard,
+                ),
+              ],
             ),
           ],
         ),
@@ -418,8 +469,58 @@ class _HeroCardState extends State<_HeroCard> {
   }
 }
 
-class _OutletDetailsCard extends StatelessWidget {
-  const _OutletDetailsCard({
+class _QuickActionButton extends StatelessWidget {
+  const _QuickActionButton({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        onTap();
+      },
+      borderRadius: BorderRadius.circular(context.rr(8)),
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+            horizontal: context.rw(10), vertical: context.rh(4)),
+        child: Column(
+          children: [
+            Container(
+              padding: EdgeInsets.all(context.rr(8)),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: context.rr(18)),
+            ),
+            SizedBox(height: context.rh(3)),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: context.rsp(11),
+                color: context.appColors.textPrimary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _OverviewTab extends StatelessWidget {
+  const _OverviewTab({
     required this.customer,
     required this.onPhoneTap,
     required this.onLocationTap,
@@ -432,6 +533,7 @@ class _OutletDetailsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+
     final address = [customer.address, customer.district, customer.province]
         .where((part) => part.trim().isNotEmpty)
         .join(', ');
@@ -444,9 +546,6 @@ class _OutletDetailsCard extends StatelessWidget {
     final outletType = (customer.customerGroup?.isNotEmpty ?? false)
         ? customer.customerGroup!
         : _fallbackOutletType;
-    final outletTier = (customer.priceGroup?.isNotEmpty ?? false)
-        ? customer.priceGroup!
-        : _fallbackOutletTier;
     final ownerName =
         customer.ownerName.isNotEmpty ? customer.ownerName : _fallbackOwnerName;
     final phoneNum =
@@ -460,111 +559,199 @@ class _OutletDetailsCard extends StatelessWidget {
     final longitude =
         customer.hasCoordinates ? customer.longitude : _fallbackLongitude;
 
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: context.rr(16),
-        vertical: context.rh(8),
+    return ListView(
+      padding: EdgeInsets.fromLTRB(
+        context.pagePadding,
+        context.rh(12),
+        context.pagePadding,
+        context.rh(20),
       ),
-      decoration: BoxDecoration(
-        color: colors.card,
-        borderRadius: BorderRadius.circular(context.rr(16)),
-        border: Border.all(color: colors.border),
-        boxShadow: colors.cardShadow,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const _SectionHeader(title: 'Outlet Details & Location'),
-          _InfoRow(
-            icon: Icons.tag_rounded,
-            label: 'Outlet ID (BP SAP)',
-            value: outletId,
+      children: [
+        Container(
+          padding: EdgeInsets.symmetric(
+              horizontal: context.rr(14), vertical: context.rh(6)),
+          decoration: BoxDecoration(
+            color: colors.card,
+            borderRadius: BorderRadius.circular(context.rr(16)),
+            border: Border.all(color: colors.border),
+            boxShadow: colors.cardShadow,
           ),
-          _InfoRow(
-            icon: Icons.store_outlined,
-            label: 'Outlet Type',
-            value: outletType,
+          child: Column(
+            children: [
+              _CompactTile(icon: Icons.tag_rounded, label: 'SAP ID', value: outletId),
+              _CompactTile(icon: Icons.store_outlined, label: 'Outlet Type', value: outletType),
+              _CompactTile(icon: Icons.alt_route_rounded, label: 'Action Tag', value: _fallbackOutletAction),
+              _CompactTile(icon: Icons.person_outline_rounded, label: 'Contact Person', value: ownerName),
+              _CompactTile(
+                icon: Icons.call_outlined,
+                label: 'Phone Number',
+                value: phoneNum,
+                onTap: () => onPhoneTap(phoneNum),
+              ),
+              _CompactTile(icon: Icons.send_rounded, label: 'Telegram', value: telegram),
+              _CompactTile(icon: Icons.location_on_outlined, label: 'Address', value: addressLine),
+              _CompactTile(
+                icon: Icons.my_location_rounded,
+                label: 'Coordinates',
+                value: '${latitude.toStringAsFixed(4)}, ${longitude.toStringAsFixed(4)}',
+                last: true,
+                onTap: () => onLocationTap(latitude, longitude),
+              ),
+            ],
           ),
-          _InfoRow(
-            icon: Icons.workspace_premium_outlined,
-            label: 'Outlet Tier',
-            value: outletTier,
-          ),
-          const _InfoRow(
-            icon: Icons.alt_route_rounded,
-            label: 'Outlet Action',
-            value: _fallbackOutletAction,
-          ),
-          _InfoRow(
-            icon: Icons.person_outline_rounded,
-            label: 'Owner / Contact Person (SAP)',
-            value: ownerName,
-          ),
-          _InfoRow(
-            icon: Icons.call_outlined,
-            label: 'Phone Number (SAP)',
-            value: phoneNum,
-            onTap: () => onPhoneTap(phoneNum),
-            actionWidget: _ActionIconButton(
-              icon: Icons.phone_forwarded_rounded,
-              color: Colors.green,
-              onPressed: () => onPhoneTap(phoneNum),
-            ),
-          ),
-          _InfoRow(
-            icon: Icons.send_rounded,
-            label: 'Telegram',
-            value: telegram,
-          ),
-          _InfoRow(
-            icon: Icons.location_on_outlined,
-            label: 'Address Line (SAP)',
-            value: addressLine,
-          ),
-          _InfoRow(
-            icon: Icons.my_location_rounded,
-            label: 'Lat & Long (SAP)',
-            value:
-                '${latitude.toStringAsFixed(5)}, ${longitude.toStringAsFixed(5)}',
-            last: true,
-            onTap: () => onLocationTap(latitude, longitude),
-            actionWidget: _ActionIconButton(
-              icon: Icons.map_rounded,
-              color: Colors.blue,
-              onPressed: () => onLocationTap(latitude, longitude),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
 
-/// Promotions summary card — same layout, badges and navigation pattern as
-/// StopInformationScreen's promo card. Customer entity has no promo data
-/// yet, so the counts are static placeholders until that data is wired up.
-class _PromoListCard extends StatelessWidget {
-  const _PromoListCard({required this.customer});
-
+class _SalesTab extends StatelessWidget {
+  const _SalesTab({required this.customer});
   final Customer customer;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: colors.card,
-        borderRadius: BorderRadius.circular(context.rr(16)),
-        border: Border.all(color: colors.border),
-        boxShadow: colors.cardShadow,
+    return ListView(
+      padding: EdgeInsets.fromLTRB(
+        context.pagePadding,
+        context.rh(12),
+        context.pagePadding,
+        context.rh(20),
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(context.rr(16)),
-          onTap: () {
-            HapticFeedback.lightImpact();
+      children: [
+        Container(
+          padding: EdgeInsets.all(context.rr(14)),
+          decoration: BoxDecoration(
+            color: colors.card,
+            borderRadius: BorderRadius.circular(context.rr(16)),
+            border: Border.all(color: colors.border),
+            boxShadow: colors.cardShadow,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _CompactTile(
+                  icon: Icons.verified_user_outlined,
+                  label: 'Payment Status',
+                  value: 'Good Standing'),
+              _CompactTile(
+                  icon: Icons.account_balance_wallet_outlined,
+                  label: 'Credit Limit',
+                  value: '\$50,000'),
+              _CompactTile(
+                  icon: Icons.calendar_month_outlined,
+                  label: 'Payment Term',
+                  value: '30 Days Net'),
+              _CompactTile(
+                  icon: Icons.trending_up_rounded,
+                  label: 'Avg Rev per Order',
+                  value: '\$12,500'),
+              _CompactTile(
+                  icon: Icons.history_toggle_off_rounded,
+                  label: 'Latest Order',
+                  value: '12 Aug 2026',
+                  last: true),
+            ],
+          ),
+        ),
+        SizedBox(height: context.rh(12)),
+        ElevatedButton.icon(
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => OrderHistoryScreen(
+                  outletName: context.localized(customer.displayName),
+                ),
+              ),
+            );
+          },
+          icon: Icon(Icons.receipt_long_rounded, size: context.rr(18)),
+          label: const Text('View Complete Order History'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            foregroundColor: Theme.of(context).colorScheme.onPrimary,
+            padding: EdgeInsets.symmetric(vertical: context.rh(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(context.rr(12)),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PromosTab extends StatelessWidget {
+  const _PromosTab({required this.customer});
+  final Customer customer;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return ListView(
+      padding: EdgeInsets.fromLTRB(
+        context.pagePadding,
+        context.rh(12),
+        context.pagePadding,
+        context.rh(20),
+      ),
+      children: [
+        Container(
+          padding: EdgeInsets.all(context.rr(16)),
+          decoration: BoxDecoration(
+            color: colors.card,
+            borderRadius: BorderRadius.circular(context.rr(16)),
+            border: Border.all(color: colors.border),
+            boxShadow: colors.cardShadow,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Active Promotions',
+                    style: TextStyle(
+                      color: colors.textPrimary,
+                      fontSize: context.rsp(15),
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  _PillBadge(
+                      label: '25 Available',
+                      color: Colors.amber.shade100,
+                      textColor: Colors.amber.shade900),
+                ],
+              ),
+              SizedBox(height: context.rh(14)),
+              Wrap(
+                spacing: context.rw(8),
+                runSpacing: context.rh(8),
+                children: [
+                  _PillBadge(
+                      label: 'ON-INVOICE (20)',
+                      color: Colors.blue.shade100,
+                      textColor: Colors.blue.shade900),
+                  _PillBadge(
+                      label: 'OFF-INVOICE (0)',
+                      color: Colors.grey.shade200,
+                      textColor: Colors.grey.shade700),
+                  _PillBadge(
+                      label: 'CONTRACT (5)',
+                      color: Colors.teal.shade100,
+                      textColor: Colors.teal.shade900),
+                ],
+              ),
+            ],
+          ),
+        ),
+        SizedBox(height: context.rh(12)),
+        OutlinedButton.icon(
+          onPressed: () {
             Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) => PromotionsScreen(
@@ -573,91 +760,94 @@ class _PromoListCard extends StatelessWidget {
               ),
             );
           },
-          child: Padding(
-            padding: EdgeInsets.all(context.rr(16)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Flexible(
-                      child: Row(
-                        children: [
-                          Icon(Icons.local_offer_outlined,
-                              size: context.rr(20), color: colors.textPrimary),
-                          SizedBox(width: context.rw(8)),
-                          Flexible(
-                            child: Text(
-                              'Promotions',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: colors.textPrimary,
-                                fontSize: context.rsp(15),
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                          ),
-                          SizedBox(width: context.rw(8)),
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: context.rw(8),
-                              vertical: context.rh(2),
-                            ),
-                            decoration: BoxDecoration(
-                              color: colors.border,
-                              borderRadius:
-                                  BorderRadius.circular(context.rr(10)),
-                            ),
-                            child: Text(
-                              '25',
-                              style: TextStyle(
-                                fontSize: context.rsp(11),
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Icon(
-                      Icons.chevron_right_rounded,
-                      size: context.rr(24),
-                      color: colors.textSecondary,
-                    ),
-                  ],
-                ),
-                SizedBox(height: context.rh(14)),
-                Wrap(
-                  spacing: context.rw(8),
-                  runSpacing: context.rh(8),
-                  children: [
-                    _PromoBadge(
-                        label: 'ON-INVOICE (20)',
-                        color: Colors.blue.shade100,
-                        textColor: Colors.blue.shade900),
-                    _PromoBadge(
-                        label: 'OFF-INVOICE (0)',
-                        color: Colors.grey.shade200,
-                        textColor: Colors.grey.shade700),
-                    _PromoBadge(
-                        label: 'CONTRACT (5)',
-                        color: Colors.teal.shade100,
-                        textColor: Colors.teal.shade900),
-                  ],
-                ),
-              ],
+          icon: Icon(Icons.local_offer_outlined, size: context.rr(18)),
+          label: const Text('Browse All Promotions'),
+          style: OutlinedButton.styleFrom(
+            padding: EdgeInsets.symmetric(vertical: context.rh(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(context.rr(12)),
             ),
           ),
+        ),
+      ],
+    );
+  }
+}
+
+class _CompactTile extends StatelessWidget {
+  const _CompactTile({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.last = false,
+    this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+  final bool last;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+
+    return InkWell(
+      onTap: onTap != null
+          ? () {
+              HapticFeedback.selectionClick();
+              onTap!();
+            }
+          : null,
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: context.rh(9)),
+        decoration: BoxDecoration(
+          border: last
+              ? null
+              : Border(bottom: BorderSide(color: colors.border, width: 0.5)),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: context.rr(18), color: colors.textSecondary),
+            SizedBox(width: context.rw(10)),
+            Text(
+              label,
+              style: TextStyle(
+                color: colors.textSecondary,
+                fontSize: context.rsp(12),
+              ),
+            ),
+            SizedBox(width: context.rw(10)),
+            Expanded(
+              child: Text(
+                value,
+                textAlign: TextAlign.end,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: onTap != null
+                      ? Theme.of(context).colorScheme.primary
+                      : colors.textPrimary,
+                  fontSize: context.rsp(12.5),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            if (onTap != null) ...[
+              SizedBox(width: context.rw(4)),
+              Icon(Icons.chevron_right_rounded,
+                  size: context.rr(16), color: colors.textSecondary),
+            ],
+          ],
         ),
       ),
     );
   }
 }
 
-class _PromoBadge extends StatelessWidget {
-  const _PromoBadge({
+class _PillBadge extends StatelessWidget {
+  const _PillBadge({
     required this.label,
     required this.color,
     required this.textColor,
@@ -669,300 +859,21 @@ class _PromoBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 150),
+    return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: context.rw(12),
-        vertical: context.rh(6),
+        horizontal: context.rw(8),
+        vertical: context.rh(3),
       ),
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(context.rr(8)),
+        borderRadius: BorderRadius.circular(context.rr(6)),
       ),
       child: Text(
         label,
         style: TextStyle(
           color: textColor,
-          fontSize: context.rsp(11),
+          fontSize: context.rsp(10.5),
           fontWeight: FontWeight.w800,
-        ),
-      ),
-    );
-  }
-}
-
-/// Sales history card mirroring StopInformationScreen's static financial
-/// summary, with the same "Order History" navigation entry point.
-class _SalesHistoryDetailCard extends StatelessWidget {
-  const _SalesHistoryDetailCard({required this.customer});
-
-  final Customer customer;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: context.rr(16),
-        vertical: context.rh(8),
-      ),
-      decoration: BoxDecoration(
-        color: colors.card,
-        borderRadius: BorderRadius.circular(context.rr(16)),
-        border: Border.all(color: colors.border),
-        boxShadow: colors.cardShadow,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const _SectionHeader(title: 'Sales History Detail'),
-          const _InfoRow(
-            icon: Icons.verified_user_outlined,
-            label: 'Payment/Credit Status',
-            value: 'Good Standing',
-          ),
-          const _InfoRow(
-            icon: Icons.account_balance_wallet_outlined,
-            label: 'Credit Limit (SAP)',
-            value: '\$50,000',
-          ),
-          const _InfoRow(
-            icon: Icons.calendar_month_outlined,
-            label: 'Payment Term (SAP)',
-            value: '30 Days Net',
-          ),
-          const _InfoRow(
-            icon: Icons.trending_up_rounded,
-            label: 'Avg Rev per Order',
-            value: '\$12,500',
-          ),
-          const _InfoRow(
-            icon: Icons.history_toggle_off_rounded,
-            label: 'Latest Order Date (SAP)',
-            value: '12 Aug 2026',
-          ),
-          _InfoRow(
-            icon: Icons.receipt_long_rounded,
-            label: 'Order History (SAP)',
-            value: 'Tap to view outlet orders history',
-            last: true,
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => OrderHistoryScreen(
-                    outletName: context.localized(customer.displayName),
-                  ),
-                ),
-              );
-            },
-            actionWidget: Icon(
-              Icons.arrow_forward_ios_rounded,
-              size: context.rr(14),
-              color: colors.textSecondary,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.title});
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: context.rh(10)),
-      child: Text(
-        title,
-        style: TextStyle(
-          color: colors.textPrimary,
-          fontSize: context.rsp(14.5),
-          fontWeight: FontWeight.w800,
-          letterSpacing: -0.2,
-        ),
-      ),
-    );
-  }
-}
-
-class _InfoRow extends StatefulWidget {
-  const _InfoRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-    this.last = false,
-    this.actionWidget,
-    this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final String value;
-  final bool last;
-  final Widget? actionWidget;
-  final VoidCallback? onTap;
-
-  @override
-  State<_InfoRow> createState() => _InfoRowState();
-}
-
-class _InfoRowState extends State<_InfoRow> {
-  bool _isHovered = false;
-
-  void _copyToClipboard(BuildContext context) {
-    Clipboard.setData(ClipboardData(text: widget.value));
-    HapticFeedback.lightImpact();
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Copied "${widget.value}" to clipboard'),
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.appColors;
-    final isInteractive = widget.onTap != null;
-
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      cursor: SystemMouseCursors.click,
-      child: InkWell(
-        onTap: widget.onTap != null
-            ? () {
-                HapticFeedback.selectionClick();
-                widget.onTap!();
-              }
-            : () => _copyToClipboard(context),
-        onLongPress: () => _copyToClipboard(context),
-        borderRadius: BorderRadius.circular(context.rr(10)),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          curve: Curves.easeInOut,
-          padding: EdgeInsets.symmetric(
-            vertical: context.rh(10),
-            horizontal: _isHovered ? context.rw(8) : 0,
-          ),
-          decoration: BoxDecoration(
-            color: _isHovered
-                ? colors.border.withValues(alpha: 0.3)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(context.rr(10)),
-            border: widget.last
-                ? null
-                : Border(
-                    bottom: BorderSide(
-                      color: colors.border,
-                      width: 0.6,
-                    ),
-                  ),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              AnimatedScale(
-                scale: _isHovered ? 1.15 : 1.0,
-                duration: const Duration(milliseconds: 150),
-                child: Icon(
-                  widget.icon,
-                  size: context.rr(20),
-                  color: isInteractive
-                      ? Theme.of(context).colorScheme.primary
-                      : colors.textSecondary,
-                ),
-              ),
-              SizedBox(width: context.rw(12)),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: colors.textSecondary,
-                        fontSize: context.rsp(11.5),
-                      ),
-                    ),
-                    SizedBox(height: context.rh(2)),
-                    Text(
-                      widget.value,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: colors.textPrimary,
-                        fontSize: context.rsp(13.5),
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _ActionIconButton(
-                    icon: Icons.copy_rounded,
-                    color: colors.textSecondary,
-                    onPressed: () => _copyToClipboard(context),
-                  ),
-                  if (widget.actionWidget != null) widget.actionWidget!,
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ActionIconButton extends StatefulWidget {
-  const _ActionIconButton({
-    required this.icon,
-    required this.color,
-    required this.onPressed,
-  });
-
-  final IconData icon;
-  final Color color;
-  final VoidCallback onPressed;
-
-  @override
-  State<_ActionIconButton> createState() => _ActionIconButtonState();
-}
-
-class _ActionIconButtonState extends State<_ActionIconButton> {
-  bool _isHovered = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      child: AnimatedScale(
-        scale: _isHovered ? 1.15 : 1.0,
-        duration: const Duration(milliseconds: 150),
-        child: IconButton(
-          icon: Icon(widget.icon, color: widget.color, size: context.rr(20)),
-          constraints: BoxConstraints(
-            minWidth: context.rr(36),
-            minHeight: context.rr(36),
-          ),
-          padding: EdgeInsets.all(context.rr(6)),
-          onPressed: () {
-            HapticFeedback.lightImpact();
-            widget.onPressed();
-          },
         ),
       ),
     );

@@ -22,11 +22,19 @@ class CartLineBinding {
     required this.cart,
     this.leadId,
     this.customerId,
+    this.priceResolver,
+    this.isManualPriceResolver,
   });
 
   final CartCubit cart;
   final String? leadId;
   final String? customerId;
+
+  /// Resolves this customer's active price or manual override for [product].
+  final double? Function(Product product)? priceResolver;
+
+  /// Whether the resolved price for [product] is a manual override.
+  final bool Function(Product product)? isManualPriceResolver;
 
   List<CartItem> get _items {
     final state = cart.state;
@@ -122,6 +130,10 @@ class CartLineBinding {
     if (!verdict.isValid) return verdict;
 
     if (existing == null) {
+      final resolvedPrice = priceResolver?.call(product) ??
+          (product.pricing.isPriced ? product.effectivePrice : null);
+      final isManual = isManualPriceResolver?.call(product) ?? false;
+
       await cart.addProduct(
         product,
         quantity: quantity.toDouble(),
@@ -137,12 +149,40 @@ class CartLineBinding {
         // line look *priced* — `CartItem.pricingStatus` reads a non-null
         // override as authoritative — so the quotation would print `$0.00`
         // instead of "Waiting for HQ".
-        unitPrice: product.pricing.isPriced ? product.effectivePrice : null,
+        unitPrice: (resolvedPrice != null && resolvedPrice > 0)
+            ? resolvedPrice
+            : null,
+        isManualPrice: isManual,
       );
     } else {
       await cart.updateQuantity(existing.id, quantity.toDouble());
     }
     return verdict;
+  }
+
+  /// Sets a manual unit price in USD for [product] in this customer context.
+  ///
+  /// If the item is already in the cart, updates its price.
+  /// If the item is not in the cart, adds it with quantity 1 and the manual price.
+  Future<void> setManualPrice(Product product, double? unitPrice) async {
+    final existing = lineFor(product);
+    if (existing != null) {
+      await cart.updateUnitPrice(
+        existing.id,
+        (unitPrice != null && unitPrice > 0) ? unitPrice : null,
+        isManualPrice: true,
+      );
+    } else if (unitPrice != null && unitPrice > 0) {
+      await cart.addProduct(
+        product,
+        quantity: 1,
+        unit: product.unit,
+        leadId: leadId,
+        customerId: customerId,
+        unitPrice: unitPrice,
+        isManualPrice: true,
+      );
+    }
   }
 
   /// "3 × \$11.59 = \$34.77" for the in-cart confirmation line, or just the
@@ -152,16 +192,16 @@ class CartLineBinding {
   /// showing what was agreed rather than what the catalog currently lists.
   String lineTotalLabel(Product product, int quantity) {
     final line = lineFor(product);
+    final unitPrice = line?.unitPrice ??
+        priceResolver?.call(product) ??
+        (product.pricing.isPriced ? product.effectivePrice : null);
 
-    // A committed line answers for itself; an uncommitted one is pending
-    // exactly when the catalogue has no price for the material. Either way the
-    // quantity is still shown — the line is valid, only the amount is missing.
-    // No amount to show, so none is shown — not a placeholder. The quantity
-    // still confirms the line went in.
-    final pending = line?.isPricePending ?? !product.pricing.isPriced;
-    if (pending) return '$quantity × ${product.unit}';
+    final pending = line?.isPricePending ??
+        (unitPrice == null || unitPrice <= 0);
+    if (pending || unitPrice == null || unitPrice <= 0) {
+      return '$quantity × ${product.unit}';
+    }
 
-    final unitPrice = line?.unitPrice ?? product.effectivePrice;
     final total = unitPrice * quantity;
     return '$quantity × \$${unitPrice.toStringAsFixed(2)}'
         ' = \$${total.toStringAsFixed(2)}';

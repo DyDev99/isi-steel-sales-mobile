@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:isi_steel_sales_mobile/core/constants/app_constant.dart';
 import 'package:isi_steel_sales_mobile/core/network/api_envelope.dart';
 import 'package:isi_steel_sales_mobile/core/network/api_error.dart';
@@ -10,7 +13,7 @@ import 'package:isi_steel_sales_mobile/features/notification/domain/entities/not
 import 'package:isi_steel_sales_mobile/features/notification/domain/entities/notification_preferences.dart';
 import 'package:isi_steel_sales_mobile/features/notification/domain/entities/push_registration.dart';
 
-/// The real notification API (`docs/feature/notification/notification-mobile.md` §3).
+/// The real notification API (`docs/feature/notification/README.md` §3).
 ///
 /// ## Two response shapes, one envelope family
 ///
@@ -167,23 +170,55 @@ class ApiNotificationRemoteDataSource implements NotificationRemoteDataSource {
   @override
   Future<PushRegistrationResult> registerDevice(
       PushRegistration registration) async {
+    final body = NotificationApiMapper.registrationToJson(registration);
+
     try {
       final response = await _client.post<DataMap>(
         AppConstants.deviceRegisterEndpoint,
-        data: NotificationApiMapper.registrationToJson(registration),
+        data: body,
       );
+
+      _dump(
+        'DEVICE REGISTER',
+        method: 'POST',
+        path: AppConstants.deviceRegisterEndpoint,
+        request: body,
+        status: response.statusCode,
+        response: response.data,
+      );
+
       final envelope = ApiEnvelope.fromBody(response.data);
       return NotificationApiMapper.registrationFromJson(envelope.data);
     } on DioException catch (e) {
+      // Dumped on the failure path too. A 400 `General.Validation` names the
+      // field it rejected, and that message is the whole diagnosis — losing it
+      // to a thrown exception is how an over-length `deviceName` turns into
+      // "push just doesn't work".
+      _dump(
+        'DEVICE REGISTER — FAILED',
+        method: 'POST',
+        path: AppConstants.deviceRegisterEndpoint,
+        request: body,
+        status: e.response?.statusCode,
+        response: e.response?.data,
+      );
       throw ApiException(ApiError.fromDio(e));
     }
   }
 
   @override
   Future<void> deregisterDevice(String deviceId) async {
+    final path = AppConstants.deviceEndpoint(deviceId);
     try {
-      await _client.delete<void>(AppConstants.deviceEndpoint(deviceId));
+      final response = await _client.delete<void>(path);
+      _dump('DEVICE DEREGISTER',
+          method: 'DELETE', path: path, status: response.statusCode);
     } on DioException catch (e) {
+      _dump('DEVICE DEREGISTER — FAILED',
+          method: 'DELETE',
+          path: path,
+          status: e.response?.statusCode,
+          response: e.response?.data);
       throw ApiException(ApiError.fromDio(e));
     }
   }
@@ -198,6 +233,67 @@ class ApiNotificationRemoteDataSource implements NotificationRemoteDataSource {
     } on DioException catch (e) {
       throw ApiException(ApiError.fromDio(e));
     }
+  }
+
+  /// Prints one device-registry round trip to the console.
+  ///
+  /// TODO(release-gate): debug-only. This must not ship enabled.
+  ///
+  /// ## Why this is fenced rather than logged
+  ///
+  /// The request body carries the **FCM registration token** — a credential
+  /// that addresses pushes to one specific handset — which
+  /// `docs/skills/security.md` §10 keeps out of logs. So it cannot go through
+  /// [AppLogger]: `LogRedactor` would replace `pushToken`, `deviceId` and
+  /// `deviceName` with `***REDACTED***`, which is correct for every other
+  /// caller and would leave this dump showing nothing worth seeing.
+  ///
+  /// `kDebugMode` is a compile-time constant, so the whole body is
+  /// **tree-shaken out of a release build** rather than skipped at runtime.
+  /// That is what makes a deliberate §10 exception acceptable: there is no
+  /// build in which it can leak.
+  ///
+  /// The structured, release-safe view of the same call is
+  /// `push.permission` + `push.registered` in `PushDeviceRepositoryImpl` —
+  /// status, flags and counts, never the token.
+  void _dump(
+    String label, {
+    required String method,
+    required String path,
+    Object? request,
+    int? status,
+    Object? response,
+  }) {
+    if (!kDebugMode) return;
+
+    const encoder = JsonEncoder.withIndent('  ');
+    void write(String line) => debugPrint('│ $line');
+    void writeJson(Object? value) {
+      try {
+        // Line by line: `debugPrint` throttles and Android's logcat drops very
+        // long single lines, so a one-string dump arrives truncated exactly
+        // when it is most needed.
+        for (final line in encoder.convert(value).split('\n')) {
+          write(line);
+        }
+      } catch (_) {
+        write('(unencodable) $value');
+      }
+    }
+
+    debugPrint('┌── $label ${'─' * (46 - label.length).clamp(0, 46)}');
+    write('$method $path');
+    if (request != null) {
+      write('── request ──');
+      writeJson(request);
+    }
+    write('── response ${status ?? '(no status)'} ──');
+    if (response != null) {
+      writeJson(response);
+    } else {
+      write('(no body)');
+    }
+    debugPrint('└${'─' * 64}');
   }
 
   @override

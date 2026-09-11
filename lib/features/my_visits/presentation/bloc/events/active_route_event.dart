@@ -69,7 +69,13 @@ final class GeofenceStatusChanged extends ActiveRouteEvent {
 }
 
 final class CheckInRequested extends ActiveRouteEvent {
-  const CheckInRequested({this.overrideReason});
+  const CheckInRequested({this.overrideReason, this.stopId});
+
+  /// The stop being checked in to. When set, the bloc checks in **this** stop
+  /// rather than whatever `currentStopIndex` happens to point at — the screen
+  /// always knows its stop, and a `StopSelected` still in flight must not
+  /// redirect the check-in to a different one.
+  final String? stopId;
 
   /// The rep's written justification for checking in from outside the
   /// geofence, or on a fix too coarse to judge.
@@ -82,7 +88,7 @@ final class CheckInRequested extends ActiveRouteEvent {
   final String? overrideReason;
 
   @override
-  List<Object?> get props => [overrideReason];
+  List<Object?> get props => [overrideReason, stopId];
 }
 
 final class CheckOutRequested extends ActiveRouteEvent {

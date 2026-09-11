@@ -112,7 +112,18 @@ class MainAppBar extends StatelessWidget {
                             // cropping the wordmark. BrandLogo picks the ink
                             // from the surface and derives the height from the
                             // artwork, which is the whole reason it exists.
-                            child: BrandLogo(width: context.rw(120)),
+                            child: BrandLogo(
+                              width: context.rw(120),
+                              // The two-tone navy mark is the approved
+                              // brand wordmark and the only one used here.
+                              // It is navy-on-navy against the hero
+                              // photography, so contrast comes from a
+                              // near-white plate rather than from swapping
+                              // the ink to the light export — a dark shadow
+                              // behind dark ink would add nothing.
+                              ink: BrandLogoInk.brand,
+                              plate: Colors.white.withValues(alpha: 0.92),
+                            ),
                           ),
                         ),
                       )

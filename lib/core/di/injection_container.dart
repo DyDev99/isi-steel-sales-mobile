@@ -42,6 +42,12 @@ import 'package:isi_steel_sales_mobile/features/notification/notification_inject
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/catalog/stock_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/profile/profile_injection.dart';
 import 'package:isi_steel_sales_mobile/features/settings/theme/theme_injection.dart';
+import 'package:isi_steel_sales_mobile/core/database/hive/local_cache.dart';
+import 'package:isi_steel_sales_mobile/core/permissions/geolocator_location_permission_service.dart';
+import 'package:isi_steel_sales_mobile/core/permissions/location_permission_service.dart';
+import 'package:isi_steel_sales_mobile/core/permissions/presentation/app_permissions_cubit.dart';
+import 'package:isi_steel_sales_mobile/core/usecase/usecase.dart';
+import 'package:isi_steel_sales_mobile/features/notification/domain/usecases/push_device_usecases.dart';
 import 'package:isi_steel_sales_mobile/routes/app_routes.dart';
 
 /// Global service locator.
@@ -139,12 +145,45 @@ Future<void> initDependencies() async {
   registerGeoLocationFeature(sl);
   // After auth, which supplies the authenticated `Dio` and the `DeviceIdentity`
   // whose per-installation id is the upsert key for a push registration
-  // (docs/feature/notification/README.md §4.2). The feed is no longer derived
+  // (docs/feature/notification/api/devices-register.md). The feed is no longer derived
   // from the customer cache — it is the real inbox now.
   registerNotificationFeature(sl);
   await registerMyVisitsFeature(sl);
   registerProfileFeature(sl);
   registerAppCoachFeature(sl);
+
+  // ── OS permissions ─────────────────────────────────────────────────
+  //
+  // Registered after the notification feature because the primer's device
+  // registration resolves `RegisterPushDevice` from it. Both are lazy, so this
+  // is about readability rather than necessity — but the dependency is real and
+  // worth stating where somebody reordering these lines will see it.
+  //
+  // Location lives in `core/` alongside the push transport rather than in a
+  // feature: `features/order` and `features/my_visits` both read a position, and
+  // one dialog primes both permissions, so no single feature can own it without
+  // another importing its internals (playbook §12).
+  sl.registerLazySingleton<LocationPermissionService>(
+    () => GeolocatorLocationPermissionService(sl<AppLogger>()),
+  );
+
+  // A factory: the primer is per-presentation and is closed with the dialog
+  // that built it. A singleton would keep a settled state around and report
+  // "already answered" to the next caller.
+  sl.registerFactory<AppPermissionsCubit>(
+    () => AppPermissionsCubit(
+      messaging: sl(),
+      location: sl(),
+      cache: LocalCache(HiveService.cacheBox),
+      logger: sl<AppLogger>(),
+      // A callback, not a repository. Registering the handset belongs to the
+      // notification feature, and `core/` must not depend on a feature — the
+      // same seam the inbox cubit uses for an action's `api_call`.
+      registerPushDevice: () async {
+        await sl<RegisterPushDevice>()(const NoParams());
+      },
+    ),
+  );
 
   // ── Sign-out fan-out ───────────────────────────────────────────────
   //

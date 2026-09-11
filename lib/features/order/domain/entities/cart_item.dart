@@ -33,6 +33,7 @@ class CartItem extends Equatable {
     this.customerId,
     this.priceTier = PriceTier.standard,
     this.unitPriceOverride,
+    this.isManualPrice = false,
     this.fulfillment,
     this.isCustomized = false,
     this.measurements,
@@ -65,6 +66,10 @@ class CartItem extends Equatable {
   /// printed and handed to a customer must still say the same number tomorrow,
   /// even after SAP pushes a price delta into the `prices` table underneath it.
   final double? unitPriceOverride;
+
+  /// Whether this unit price is an explicit manual override entered by a
+  /// sales rep when backend/SAP pricing was unavailable.
+  final bool isManualPrice;
 
   /// Pickup/delivery terms for this line, or null when the rep added it
   /// straight from the product grid without opening the fulfillment step.
@@ -139,6 +144,7 @@ class CartItem extends Equatable {
     double? discountPercent,
     PriceTier? priceTier,
     double? Function()? unitPriceOverride,
+    bool? isManualPrice,
     ShipmentSelection? Function()? fulfillment,
     bool? isCustomized,
     CustomizationMeasurement? measurements,
@@ -161,6 +167,7 @@ class CartItem extends Equatable {
       unitPriceOverride: unitPriceOverride != null
           ? unitPriceOverride()
           : this.unitPriceOverride,
+      isManualPrice: isManualPrice ?? this.isManualPrice,
       fulfillment: fulfillment != null ? fulfillment() : this.fulfillment,
       isCustomized: isCustomized ?? this.isCustomized,
       measurements: measurements ?? this.measurements,
@@ -182,6 +189,7 @@ class CartItem extends Equatable {
         customerId,
         priceTier,
         unitPriceOverride,
+        isManualPrice,
         fulfillment,
         isCustomized,
         measurements,
