@@ -1,30 +1,28 @@
-import 'package:flutter/material.dart';
+import 'package:isi_steel_sales_mobile/core/utils/colors.dart';
 
 /// Auth-screen visual tokens — kept as a small local class so the login
-/// widgets stay decoupled, but synced to the same Blue & White palette as
-/// [Vibe] (lib/core/utils/app_vibe.dart) so the whole app reads as one
-/// consistent theme.
+/// widgets stay decoupled, but every value delegates to [AppColors]
+/// (lib/core/utils/colors.dart), the single source of truth for the app's
+/// palette, so this can no longer drift from the main [Vibe]
+/// (lib/core/utils/app_vibe.dart) — both previously declared the same hex
+/// values independently.
 class Vibe {
   Vibe._();
 
-  static const bg = Color(0xFFFFFFFF);
-  static const surface = Color(0xFFFFFFFF);
-  static const surfaceStrong = Color(0xFFDBEAFE);
-  static const stroke = Color(0xFFE5E7EB);
-  static const text = Color(0xFF1F2937);
-  static const muted = Color(0xFF6B7280);
+  static const bg = AppColors.background;
+  static const surface = AppColors.surface;
+  static const surfaceStrong = AppColors.surfaceStrong;
+  static const stroke = AppColors.border;
+  static const text = AppColors.textPrimary;
+  static const muted = AppColors.textSecondary;
 
-  static const violet = Color(0xFF2563EB);
-  static const pink = Color(0xFF3B82F6);
-  static const mint = Color(0xFF0EA5E9);
-  static const danger = Color(0xFFEF4444);
-  static const success = Color(0xFF22C55E);
+  static const violet = AppColors.primary;
+  static const pink = AppColors.secondary;
+  static const mint = AppColors.info;
+  static const danger = AppColors.error;
+  static const success = AppColors.success;
 
-  static const radius = 16.0;
+  static const radius = AppColors.radius;
 
-  static const cta = LinearGradient(
-    colors: [violet, Color(0xFF1D4ED8)],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
+  static const cta = AppColors.ctaGradient;
 }

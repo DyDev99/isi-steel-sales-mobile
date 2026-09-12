@@ -11,5 +11,6 @@ enum CustomerActivityType {
   final String value;
 
   static CustomerActivityType fromValue(String value) =>
-      CustomerActivityType.values.firstWhere((t) => t.value == value, orElse: () => CustomerActivityType.note);
+      CustomerActivityType.values.firstWhere((t) => t.value == value,
+          orElse: () => CustomerActivityType.note);
 }

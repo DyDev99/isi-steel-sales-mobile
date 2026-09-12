@@ -9,5 +9,6 @@ class RunDeltaSync extends UseCase<SyncResult, SyncScope> {
   final SyncRepository _repository;
 
   @override
-  ResultFuture<SyncResult> call(SyncScope params) => _repository.runDeltaSync(params);
+  ResultFuture<SyncResult> call(SyncScope params) =>
+      _repository.runDeltaSync(params);
 }

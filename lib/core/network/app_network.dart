@@ -1,6 +1,9 @@
 import 'package:dio/dio.dart';
+import 'package:isi_steel_sales_mobile/core/config/app_config.dart';
 import 'package:isi_steel_sales_mobile/core/constants/app_constant.dart';
-import 'package:isi_steel_sales_mobile/core/network/app_middleware.dart';
+import 'package:isi_steel_sales_mobile/core/logging/app_logger.dart';
+import 'package:isi_steel_sales_mobile/core/middleware/app_middleware.dart';
+import 'package:isi_steel_sales_mobile/core/network/api_log_interceptor.dart';
 
 /// Factory for the app's Dio clients. Keeping construction here means the
 /// timeout / header policy lives in exactly one place.
@@ -8,7 +11,12 @@ class AppNetwork {
   AppNetwork._();
 
   static BaseOptions get _baseOptions => BaseOptions(
-        baseUrl: AppConstants.baseUrl,
+        // Environment-driven, never a literal: the target gateway comes from
+        // the `.env` compiled in at build time, so a QA/staging build is a
+        // different `.env` rather than a different source tree.
+        // Via [AppConfig], not [Env] directly, so a
+        // `--dart-define=API_BASE_URL=…` launch override reaches every client.
+        baseUrl: AppConfig.apiBaseUrl,
         connectTimeout: AppConstants.connectTimeout,
         receiveTimeout: AppConstants.receiveTimeout,
         responseType: ResponseType.json,
@@ -16,18 +24,46 @@ class AppNetwork {
       );
 
   /// Bare client with no auth interceptor. Used for the refresh flow and
-  /// public endpoints (e.g. login).
-  static Dio createBareClient() => Dio(_baseOptions);
+  /// public endpoints (login, forgot-password, reset-password).
+  ///
+  /// It still carries [ApiHeadersInterceptor]: `Accept-Language` decides
+  /// whether a rejected login is explained in Khmer or English, and a login
+  /// that fails is exactly the request support most wants a correlation id
+  /// for.
+  ///
+  /// [logger] is optional so the refresh client can be built without one;
+  /// when supplied, every call through this client is traced.
+  static Dio createBareClient({AppLogger? logger}) => Dio(_baseOptions)
+    ..interceptors.addAll([
+      const ApiHeadersInterceptor(),
+      if (logger != null) ApiLogInterceptor(logger),
+    ]);
 
   /// Authenticated client used by feature data sources. Auto-attaches and
   /// refreshes the bearer token.
-  static Dio createAuthedClient({required TokenStore tokenStore}) {
+  ///
+  /// The refresh client is deliberately a *bare* client: replaying through a
+  /// client that carries [AuthInterceptor] would recurse on the next 401.
+  static Dio createAuthedClient({
+    required TokenStore tokenStore,
+    required DeviceIdReader deviceId,
+    AppLogger? logger,
+    void Function()? onSessionExpired,
+  }) {
     return Dio(_baseOptions)
-      ..interceptors.add(
+      ..interceptors.addAll([
+        const ApiHeadersInterceptor(),
+        // Ahead of [AuthInterceptor] so a 401 is logged as it happens, before
+        // the refresh-and-replay swallows it. Otherwise a successfully
+        // recovered request looks like it never failed, and the refresh path —
+        // the part most likely to be misbehaving — leaves no trace at all.
+        if (logger != null) ApiLogInterceptor(logger),
         AuthInterceptor(
           tokenStore: tokenStore,
-          refreshClient: createBareClient(),
+          refreshClient: createBareClient(logger: logger),
+          deviceId: deviceId,
+          onSessionExpired: onSessionExpired,
         ),
-      );
+      ]);
   }
 }

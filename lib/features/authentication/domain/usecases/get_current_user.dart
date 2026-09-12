@@ -1,13 +1,21 @@
 import 'package:isi_steel_sales_mobile/core/usecase/usecase.dart';
 import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
-import 'package:isi_steel_sales_mobile/features/authentication/domain/entities/user.dart';
+import 'package:isi_steel_sales_mobile/features/authentication/domain/entities/auth_profile.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/domain/repositories/auth_repository.dart';
 
-/// Resolves the active session on app start (splash / auth-gate).
-class GetCurrentUser extends UseCase<User, NoParams> {
+/// Restores the cached session on boot.
+///
+/// Returns the full [AuthProfile] rather than the narrower `User`: the profile
+/// carries the permission set, and without it a restored session knows *who*
+/// the user is but not *what they may do* — so every permission-gated feature
+/// would have to assume the worst (and skip) or the best (and fire a request
+/// that comes back 403).
+class GetCurrentUser extends UseCase<AuthProfile, NoParams> {
   const GetCurrentUser(this._repository);
+
   final AuthRepository _repository;
 
   @override
-  ResultFuture<User> call(NoParams params) => _repository.getCurrentUser();
+  ResultFuture<AuthProfile> call(NoParams params) =>
+      _repository.getCurrentUser();
 }

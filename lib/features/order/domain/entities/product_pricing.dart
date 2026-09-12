@@ -29,11 +29,42 @@ class ProductPricing extends Equatable {
   final double cashPrice;
   final String currency;
 
+  /// No price is known for this material.
+  ///
+  /// The material selection API returns **no price of any kind** — no price
+  /// list, no condition, no currency, and `priceGroup` is a classification
+  /// bucket rather than an amount. A material read from it therefore arrives
+  /// unpriced, and this constructor says so explicitly.
+  ///
+  /// The alternative — zeroing the tiers and letting the UI render `$0.00` —
+  /// is the failure this exists to prevent: a rep cannot tell a genuinely free
+  /// line from a price the app never received, and neither can the quotation
+  /// it ends up on. Callers branch on [isPriced] and render an absence.
+  const ProductPricing.unpriced({this.currency = ''})
+      : costPrice = 0,
+        standardPrice = 0,
+        wholesalePrice = 0,
+        dealerPrice = 0,
+        vipPrice = 0,
+        creditPrice = 0,
+        cashPrice = 0,
+        promotionPrice = null,
+        promotionType = null,
+        promotionLabel = null;
+
   final double? promotionPrice;
   final PromotionType? promotionType;
   final String? promotionLabel;
 
-  bool get hasPromotion => promotionPrice != null && promotionPrice! < standardPrice;
+  /// Whether an amount was actually received for this material.
+  ///
+  /// False for anything sourced from the selection API until a pricing
+  /// endpoint exists. A false here must reach the screen as "price not
+  /// available", never as a zero — see [ProductPricing.unpriced].
+  bool get isPriced => standardPrice > 0;
+
+  bool get hasPromotion =>
+      promotionPrice != null && promotionPrice! < standardPrice;
 
   double priceFor(PriceTier tier) => switch (tier) {
         PriceTier.standard => standardPrice,

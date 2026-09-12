@@ -1,3 +1,4 @@
+import 'package:isi_steel_sales_mobile/core/utils/enum_parse.dart';
 import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/domain/entities/user.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/domain/entities/user_role.dart';
@@ -20,7 +21,10 @@ class UserModel extends User {
         fullName: (map['full_name'] ?? map['name']) as String? ?? '',
         // 2. Safely maps the incoming JSON array to a Set of UserRole enums
         roles: ((map['roles'] ?? map['user_roles']) as List<dynamic>?)
-                ?.map((e) => UserRole.values.byName(e as String))
+                // `guest`, never `UserRole.values.first` — that is `admin`,
+                // so an unrecognised role string would silently escalate.
+                ?.map((e) => UserRole.values
+                    .byNameOr('$e', UserRole.guest, context: 'user.roles'))
                 .toSet() ??
             {},
         company: map['company'] as String?,

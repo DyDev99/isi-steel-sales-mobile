@@ -13,7 +13,7 @@ class WorkerProfileModel extends WorkerProfile {
     required super.phone,
     required super.territory,
     required super.region,
-    required super.joinedAt,
+    super.joinedAt,
     super.avatarUrl,
     super.isActive,
   });
@@ -28,7 +28,9 @@ class WorkerProfileModel extends WorkerProfile {
       phone: json['phone'] as String,
       territory: json['territory'] as String,
       region: json['region'] as String,
-      joinedAt: DateTime.parse(json['joinedAt'] as String),
+      joinedAt: json['joinedAt'] == null
+          ? null
+          : DateTime.parse(json['joinedAt'] as String),
       avatarUrl: json['avatarUrl'] as String?,
       isActive: json['isActive'] as bool? ?? true,
     );
@@ -57,7 +59,7 @@ class WorkerProfileModel extends WorkerProfile {
         'phone': phone,
         'territory': territory,
         'region': region,
-        'joinedAt': joinedAt.toIso8601String(),
+        'joinedAt': joinedAt?.toIso8601String(),
         'avatarUrl': avatarUrl,
         'isActive': isActive,
       };

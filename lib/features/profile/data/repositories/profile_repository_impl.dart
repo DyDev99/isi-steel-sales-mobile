@@ -32,7 +32,8 @@ class ProfileRepositoryImpl implements ProfileRepository {
   @override
   Future<Result<WorkerProfile>> updateProfile(WorkerProfile profile) async {
     try {
-      final updated = await _remoteDataSource.updateProfile(WorkerProfileModel.fromEntity(profile));
+      final updated = await _remoteDataSource
+          .updateProfile(WorkerProfileModel.fromEntity(profile));
       return Success(updated);
     } catch (e) {
       return Failed(ServerFailure(message: e.toString()));
@@ -40,9 +41,11 @@ class ProfileRepositoryImpl implements ProfileRepository {
   }
 
   @override
-  Future<Result<void>> changePassword({required String currentPassword, required String newPassword}) async {
+  Future<Result<void>> changePassword(
+      {required String currentPassword, required String newPassword}) async {
     try {
-      await _remoteDataSource.changePassword(currentPassword: currentPassword, newPassword: newPassword);
+      await _remoteDataSource.changePassword(
+          currentPassword: currentPassword, newPassword: newPassword);
       return const Success(null);
     } catch (e) {
       return Failed(ServerFailure(message: e.toString()));

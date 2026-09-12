@@ -8,5 +8,6 @@ class RecordViewed extends UseCase<void, ProductIdParams> {
   final ProductRepository _repository;
 
   @override
-  ResultFuture<void> call(ProductIdParams params) => _repository.recordViewed(params.productId);
+  ResultFuture<void> call(ProductIdParams params) =>
+      _repository.recordViewed(params.productId);
 }

@@ -9,5 +9,6 @@ class GetProductByBarcode extends UseCase<Product, BarcodeParams> {
   final ProductRepository _repository;
 
   @override
-  ResultFuture<Product> call(BarcodeParams params) => _repository.searchBarcode(params.barcode);
+  ResultFuture<Product> call(BarcodeParams params) =>
+      _repository.searchBarcode(params.barcode);
 }

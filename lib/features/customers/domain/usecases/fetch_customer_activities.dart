@@ -4,7 +4,8 @@ import 'package:isi_steel_sales_mobile/features/customers/domain/entities/custom
 import 'package:isi_steel_sales_mobile/features/customers/domain/repositories/customer_repository.dart';
 import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/customer_params.dart';
 
-class FetchCustomerActivities extends UseCase<List<CustomerActivity>, CustomerIdParams> {
+class FetchCustomerActivities
+    extends UseCase<List<CustomerActivity>, CustomerIdParams> {
   const FetchCustomerActivities(this._repository);
   final CustomerRepository _repository;
 

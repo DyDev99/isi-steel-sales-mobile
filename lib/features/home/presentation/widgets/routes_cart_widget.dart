@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/home/presentation/widgets/dashboard_kpi_card.dart';
 
 /// Routes summary card. Headline = total routes; badge calls out missed
@@ -23,21 +23,35 @@ class RoutesCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final int remaining = (totalRoutes - todayRoutesCount - missedRoutesCount).clamp(0, totalRoutes);
+    final int remaining = (totalRoutes - todayRoutesCount - missedRoutesCount)
+        .clamp(0, totalRoutes);
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
 
     return DashboardKpiCard(
       title: title ?? 'home.quick_access.routes'.tr,
       icon: Icons.alt_route_rounded,
-      iconColor: Vibe.amber,
+      iconColor: colors.warning,
       headline: '$totalRoutes',
       headlineCaption: 'home.quick_access.total_routes'.tr,
       badge: missedRoutesCount > 0
-          ? KpiBadge(label: '$missedRoutesCount ${'home.quick_access.missed'.tr}', color: Vibe.danger)
+          ? KpiBadge(
+              label: '$missedRoutesCount ${'home.quick_access.missed'.tr}',
+              color: scheme.error)
           : null,
       segments: [
-        KpiSegment(label: 'home.quick_access.today_active'.tr, value: todayRoutesCount, color: Vibe.amber),
-        KpiSegment(label: 'home.quick_access.missed'.tr, value: missedRoutesCount, color: Vibe.danger),
-        KpiSegment(label: 'home.quick_access.remaining'.tr, value: remaining, color: Vibe.stroke),
+        KpiSegment(
+            label: 'home.quick_access.today_active'.tr,
+            value: todayRoutesCount,
+            color: colors.warning),
+        KpiSegment(
+            label: 'home.quick_access.missed'.tr,
+            value: missedRoutesCount,
+            color: scheme.error),
+        KpiSegment(
+            label: 'home.quick_access.remaining'.tr,
+            value: remaining,
+            color: colors.border),
       ],
       onTap: onTap,
     );

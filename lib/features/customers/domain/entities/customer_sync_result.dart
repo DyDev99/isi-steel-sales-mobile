@@ -1,7 +1,8 @@
 import 'package:equatable/equatable.dart';
 
 class CustomerSyncResult extends Equatable {
-  const CustomerSyncResult({required this.upserted, required this.deleted, required this.syncedAt});
+  const CustomerSyncResult(
+      {required this.upserted, required this.deleted, required this.syncedAt});
 
   final int upserted;
   final int deleted;
