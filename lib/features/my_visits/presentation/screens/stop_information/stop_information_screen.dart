@@ -685,6 +685,7 @@ class _PromosTab extends StatelessWidget {
             Navigator.of(context).push(
               AppPageRoute<void>.sharedAxisVertical(
                 builder: (_) => PromotionsScreen(
+                  customerId: stop.customer.id,
                   outletName: context.localized(stop.customer.displayName),
                 ),
               ),

@@ -12,6 +12,7 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quota
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/quotation_items_table.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/brand_logo.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/painters/dashed_rrect.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/entities/quotation_api_entities.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/discount_summary_section.dart';
 
 class QuotationPreviewSection extends StatelessWidget {
@@ -25,9 +26,15 @@ class QuotationPreviewSection extends StatelessWidget {
     required this.items,
     this.invoiceDiscounts = const [],
     this.isTaxApplicable = true,
+    this.currency = 'USD',
+    this.isEstimate = false,
+    this.requiredApprovalLevel = 0,
+    this.warnings = const [],
+    this.agreements = const [],
     this.onEnlargeTap,
     this.isEditable = true,
     this.onEditPrice,
+    this.onEditDiscount,
   });
 
   final String? shopName;
@@ -38,9 +45,15 @@ class QuotationPreviewSection extends StatelessWidget {
   final List<CartItem> items;
   final List<InvoiceDiscountItem> invoiceDiscounts;
   final bool isTaxApplicable;
+  final String currency;
+  final bool isEstimate;
+  final int requiredApprovalLevel;
+  final List<QuotationWarning> warnings;
+  final List<CustomerAgreement> agreements;
   final VoidCallback? onEnlargeTap;
   final bool isEditable;
   final void Function(CartItem item)? onEditPrice;
+  final void Function(CartItem item)? onEditDiscount;
 
   @override
   Widget build(BuildContext context) {
@@ -110,6 +123,94 @@ class QuotationPreviewSection extends StatelessWidget {
                           color: colors.textSecondary,
                         ),
                       ),
+                      SizedBox(height: context.rh(8)),
+                      // Server status chips: estimate & approval level
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        spacing: 8,
+                        runSpacing: 4,
+                        children: [
+                          if (isEstimate)
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: context.rw(8),
+                                vertical: context.rh(3),
+                              ),
+                              decoration: BoxDecoration(
+                                color: colors.warning.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(context.rr(6)),
+                                border: Border.all(
+                                  color: colors.warning.withValues(alpha: 0.35),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.schedule_rounded,
+                                    size: context.rw(11),
+                                    color: colors.warningAlt,
+                                  ),
+                                  SizedBox(width: context.rw(4)),
+                                  Text(
+                                    'Estimate (SAP Offline)',
+                                    style: TextStyle(
+                                      fontSize: context.rsp(10.5),
+                                      fontWeight: FontWeight.w700,
+                                      color: colors.warningAlt,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: context.rw(8),
+                              vertical: context.rh(3),
+                            ),
+                            decoration: BoxDecoration(
+                              color: (requiredApprovalLevel > 0
+                                      ? colors.warning
+                                      : colors.success)
+                                  .withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(context.rr(6)),
+                              border: Border.all(
+                                color: (requiredApprovalLevel > 0
+                                        ? colors.warning
+                                        : colors.success)
+                                    .withValues(alpha: 0.35),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  requiredApprovalLevel > 0
+                                      ? Icons.shield_outlined
+                                      : Icons.check_circle_outline_rounded,
+                                  size: context.rw(11),
+                                  color: requiredApprovalLevel > 0
+                                      ? colors.warningAlt
+                                      : colors.success,
+                                ),
+                                SizedBox(width: context.rw(4)),
+                                Text(
+                                  requiredApprovalLevel > 0
+                                      ? 'Level $requiredApprovalLevel Approval Required'
+                                      : 'Auto-Approved',
+                                  style: TextStyle(
+                                    fontSize: context.rsp(10.5),
+                                    fontWeight: FontWeight.w700,
+                                    color: requiredApprovalLevel > 0
+                                        ? colors.warningAlt
+                                        : colors.success,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
@@ -153,6 +254,92 @@ class QuotationPreviewSection extends StatelessWidget {
                   ),
               ],
             ),
+
+            // Standing customer agreement chips
+            if (agreements.isNotEmpty) ...[
+              SizedBox(height: context.rh(12)),
+              Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                children: agreements.map((ag) {
+                  return Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: context.rw(8),
+                      vertical: context.rh(3),
+                    ),
+                    decoration: BoxDecoration(
+                      color: colors.surfaceSoft,
+                      borderRadius: BorderRadius.circular(context.rr(6)),
+                      border: Border.all(color: colors.border),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.lock_outline_rounded,
+                          size: context.rw(11),
+                          color: colors.brandNavy,
+                        ),
+                        SizedBox(width: context.rw(4)),
+                        Text(
+                          'Agreement: ${ag.percent.toStringAsFixed(1)}% (${ag.category})',
+                          style: TextStyle(
+                            fontSize: context.rsp(10.5),
+                            fontWeight: FontWeight.w600,
+                            color: colors.brandNavy,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+
+            // Server warnings alert
+            if (warnings.isNotEmpty) ...[
+              SizedBox(height: context.rh(12)),
+              Container(
+                padding: EdgeInsets.all(context.rw(10)),
+                decoration: BoxDecoration(
+                  color: colors.warning.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(context.rr(8)),
+                  border: Border.all(
+                    color: colors.warning.withValues(alpha: 0.25),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: warnings.map((w) {
+                    return Padding(
+                      padding: EdgeInsets.symmetric(vertical: context.rh(2)),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            Icons.warning_amber_rounded,
+                            size: context.rw(14),
+                            color: colors.warningAlt,
+                          ),
+                          SizedBox(width: context.rw(6)),
+                          Expanded(
+                            child: Text(
+                              w.message ?? w.code,
+                              style: TextStyle(
+                                fontSize: context.rsp(11),
+                                color: colors.warningAlt,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
+
             SizedBox(height: context.rh(16)),
             const _DashedDivider(),
             SizedBox(height: context.rh(16)),
@@ -161,8 +348,10 @@ class QuotationPreviewSection extends StatelessWidget {
             QuotationItemsTable(
               items: items,
               isEditable: isEditable,
+              currency: currency,
               onEditPrice: onEditPrice ??
                   (item) => _handleEditPrice(context, item),
+              onEditDiscount: onEditDiscount,
             ),
 
             SizedBox(height: context.rh(8)),
@@ -182,7 +371,11 @@ class QuotationPreviewSection extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  PricingText.amount(pending ? null : subtotal, decimals: 0),
+                  PricingText.amount(
+                    pending ? null : subtotal,
+                    decimals: 2,
+                    currency: currency,
+                  ),
                   style: TextStyle(
                     fontSize: context.rsp(14),
                     fontWeight: FontWeight.w600,
@@ -252,7 +445,8 @@ class QuotationPreviewSection extends StatelessWidget {
                 Text(
                   PricingText.amount(
                     pending ? null : (isTaxApplicable ? tax : 0.0),
-                    decimals: 0,
+                    decimals: 2,
+                    currency: currency,
                   ),
                   style: TextStyle(
                     fontSize: context.rsp(14),
@@ -279,7 +473,11 @@ class QuotationPreviewSection extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  PricingText.amount(pending ? null : total, decimals: 0),
+                  PricingText.amount(
+                    pending ? null : total,
+                    decimals: 2,
+                    currency: currency,
+                  ),
                   style: TextStyle(
                     fontSize: context.rsp(16),
                     fontWeight: FontWeight.w900,

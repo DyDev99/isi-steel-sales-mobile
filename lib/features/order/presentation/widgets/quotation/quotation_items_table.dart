@@ -23,11 +23,15 @@ class QuotationItemsTable extends StatelessWidget {
     required this.items,
     this.isEditable = false,
     this.onEditPrice,
+    this.onEditDiscount,
+    this.currency = 'USD',
   });
 
   final List<CartItem> items;
   final bool isEditable;
   final void Function(CartItem item)? onEditPrice;
+  final void Function(CartItem item)? onEditDiscount;
+  final String currency;
 
   @override
   Widget build(BuildContext context) {
@@ -84,7 +88,7 @@ class QuotationItemsTable extends StatelessWidget {
               ),
               SizedBox(width: context.rw(8)),
               Text(
-                'Currency: USD',
+                'Currency: $currency',
                 style: TextStyle(
                   fontSize: context.rsp(11),
                   fontWeight: FontWeight.w600,
@@ -103,6 +107,8 @@ class QuotationItemsTable extends StatelessWidget {
             item: items[i],
             isEditable: isEditable,
             onEditPrice: onEditPrice,
+            onEditDiscount: onEditDiscount,
+            currency: currency,
           ),
           if (i < items.length - 1) SizedBox(height: context.rh(10)),
         ],
@@ -117,12 +123,16 @@ class _QuotationItemCard extends StatelessWidget {
     required this.item,
     required this.isEditable,
     this.onEditPrice,
+    this.onEditDiscount,
+    this.currency = 'USD',
   });
 
   final int index;
   final CartItem item;
   final bool isEditable;
   final void Function(CartItem item)? onEditPrice;
+  final void Function(CartItem item)? onEditDiscount;
+  final String currency;
 
   @override
   Widget build(BuildContext context) {
@@ -473,19 +483,59 @@ class _QuotationItemCard extends StatelessWidget {
                     // Discount
                     Expanded(
                       flex: 2,
-                      child: _MetricColumn(
-                        label: 'Discount',
-                        value: discountFormatted ?? '—',
-                        valueColor: item.discountPercent > 0
-                            ? colors.success
-                            : colors.textSecondary,
+                      child: InkWell(
+                        onTap: (isEditable && onEditDiscount != null)
+                            ? () => onEditDiscount!(item)
+                            : null,
+                        borderRadius: BorderRadius.circular(context.rr(4)),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'Discount',
+                                  style: TextStyle(
+                                    fontSize: context.rsp(10),
+                                    fontWeight: FontWeight.w600,
+                                    color: colors.textSecondary,
+                                  ),
+                                ),
+                                if (isEditable && onEditDiscount != null) ...[
+                                  SizedBox(width: context.rw(3)),
+                                  Icon(
+                                    Icons.edit_outlined,
+                                    size: context.rw(11),
+                                    color: scheme.primary,
+                                  ),
+                                ],
+                              ],
+                            ),
+                            SizedBox(height: context.rh(2)),
+                            Text(
+                              discountFormatted ?? '—',
+                              style: TextStyle(
+                                fontSize: context.rsp(12),
+                                fontWeight: FontWeight.w600,
+                                color: item.discountPercent > 0
+                                    ? colors.success
+                                    : (isEditable && onEditDiscount != null
+                                        ? scheme.primary
+                                        : colors.textSecondary),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                     // Total
                     Expanded(
                       flex: 3,
                       child: _MetricColumn(
-                        label: 'Total (USD)',
+                        label: 'Total ($currency)',
                         value: totalFormatted ?? 'Pending',
                         valueColor: colors.brandNavy,
                         isBold: true,

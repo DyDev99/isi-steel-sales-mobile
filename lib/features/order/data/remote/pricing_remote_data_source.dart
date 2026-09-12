@@ -281,16 +281,4 @@ class ApiPricingRemoteDataSource implements PricingRemoteDataSource {
       debugPrint('│   (unencodable) $body');
     }
   }
-
-  /// Prints the raw pricing response to the console.
-  /// Kept for backward compatibility.
-  void _dumpForDebugging(String path, List<String> materials, Object? body) {
-    if (!kDebugMode) return;
-
-    debugPrint('┌── PRICING ${'─' * 52}');
-    debugPrint('│ GET $path');
-    debugPrint('│ materials: ${materials.join(', ')}');
-    _printFormattedBody(body);
-    debugPrint('└${'─' * 64}');
-  }
 }

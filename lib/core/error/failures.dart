@@ -13,7 +13,12 @@ sealed class Failure extends Equatable {
 }
 
 final class ServerFailure extends Failure {
-  const ServerFailure({required super.message, super.statusCode});
+  const ServerFailure({required super.message, super.statusCode, this.code});
+
+  final String? code;
+
+  @override
+  List<Object?> get props => [message, statusCode, code];
 }
 
 final class CacheFailure extends Failure {

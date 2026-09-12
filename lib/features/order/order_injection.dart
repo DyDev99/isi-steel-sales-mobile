@@ -22,6 +22,7 @@ import 'package:isi_steel_sales_mobile/features/order/data/local/sync_queue_loca
 import 'package:isi_steel_sales_mobile/features/order/data/local/sales_order_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/remote/mock_product_filter_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/remote/mock_product_remote_data_source.dart';
+import 'package:isi_steel_sales_mobile/features/order/data/remote/quotation_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/remote/api_material_selection_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/remote/material_selection_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/remote/pricing_realtime_data_source.dart';
@@ -36,7 +37,13 @@ import 'package:isi_steel_sales_mobile/features/order/data/repositories/pricing_
 import 'package:isi_steel_sales_mobile/features/order/data/repositories/product_filter_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/repositories/static_promotion_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/repositories/product_repository_impl.dart';
+import 'package:isi_steel_sales_mobile/features/order/data/repositories/quotation_api_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/repositories/quotation_repository_impl.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/repositories/quotation_api_repository.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/usecases/quotation_api_usecases.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/quotation/quotation_list_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/quotation/quotation_detail_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/quotation/quotation_builder_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/repositories/sales_order_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/repositories/sync_queue_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/order/data/repositories/sync_repository_impl.dart';
@@ -143,6 +150,8 @@ Future<void> registerOrderFeature(GetIt sl) async {
       () => SalesOrderLocalDataSourceImpl(sl<AppDatabase>().salesOrderDao));
   sl.registerLazySingleton<ProductRemoteDataSource>(
       () => MockProductRemoteDataSource());
+  sl.registerLazySingleton<QuotationRemoteDataSource>(
+      () => ApiQuotationRemoteDataSource(sl<Dio>()));
   sl.registerLazySingleton<ProductFilterRemoteDataSource>(
       () => MockProductFilterRemoteDataSource());
   // The guided material finder's four reads. Registered unconditionally: the
@@ -221,6 +230,8 @@ Future<void> registerOrderFeature(GetIt sl) async {
       () => CartRepositoryImpl(cartLocal: sl(), productLocal: sl()));
   sl.registerLazySingleton<QuotationRepository>(
       () => QuotationRepositoryImpl(local: sl(), productLocal: sl()));
+  sl.registerLazySingleton<QuotationApiRepository>(
+      () => QuotationApiRepositoryImpl(remote: sl(), network: sl<NetworkInfo>()));
   sl.registerLazySingleton<SalesOrderRepository>(
       () => SalesOrderRepositoryImpl(local: sl(), productLocal: sl()));
   sl.registerLazySingleton<SyncRepository>(
@@ -291,6 +302,25 @@ Future<void> registerOrderFeature(GetIt sl) async {
   sl.registerLazySingleton(() => RunDeltaSync(sl()));
   sl.registerLazySingleton(() => GetLastSyncedAt(sl()));
 
+  // Quotation API Use Cases
+  sl.registerLazySingleton(() => GetQuotationsList(sl()));
+  sl.registerLazySingleton(() => OpenQuotation(sl()));
+  sl.registerLazySingleton(() => GetQuotationDetail(sl()));
+  sl.registerLazySingleton(() => UpdateQuotationHeader(sl()));
+  sl.registerLazySingleton(() => AddQuotationLine(sl()));
+  sl.registerLazySingleton(() => UpdateQuotationLine(sl()));
+  sl.registerLazySingleton(() => DeleteQuotationLineItem(sl()));
+  sl.registerLazySingleton(() => SetQuotationDiscounts(sl()));
+  sl.registerLazySingleton(() => GetQuotationPreview(sl()));
+  sl.registerLazySingleton(() => RepriceQuotation(sl()));
+  sl.registerLazySingleton(() => SubmitQuotation(sl()));
+  sl.registerLazySingleton(() => CancelQuotation(sl()));
+  sl.registerLazySingleton(() => GetQuotationHistory(sl()));
+  sl.registerLazySingleton(() => GetCustomerAgreements(sl()));
+  sl.registerLazySingleton(() => GetCustomerIncentives(sl()));
+  sl.registerLazySingleton(() => GetCustomerPromotions(sl()));
+  sl.registerLazySingleton(() => GetDiscountAuthority(sl()));
+
   // ── Presentation ────────────────────────────────────────────────────
   sl.registerFactory(
       () => CatalogBloc(browseProducts: sl(), fetchBrands: sl()));
@@ -338,6 +368,27 @@ Future<void> registerOrderFeature(GetIt sl) async {
         watchQuotations: sl(),
         syncQueue: sl(),
         deleteQuotation: sl(),
+      ));
+
+  sl.registerFactory(() => QuotationListCubit(getQuotationsList: sl()));
+  sl.registerFactory(() => QuotationDetailCubit(
+        getQuotationDetail: sl(),
+        submitQuotation: sl(),
+        repriceQuotation: sl(),
+        cancelQuotation: sl(),
+        getQuotationHistory: sl(),
+      ));
+  sl.registerFactory(() => QuotationBuilderCubit(
+        openQuotation: sl(),
+        getQuotationDetail: sl(),
+        updateQuotationHeader: sl(),
+        addQuotationLine: sl(),
+        updateQuotationLine: sl(),
+        deleteQuotationLineItem: sl(),
+        setQuotationDiscounts: sl(),
+        getQuotationPreview: sl(),
+        getCustomerAgreements: sl(),
+        getDiscountAuthority: sl(),
       ));
 
   // PDF export for quotation documents. Core PDF services are registered in

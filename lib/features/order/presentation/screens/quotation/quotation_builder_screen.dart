@@ -42,8 +42,11 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quota
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/manual_price_input_sheet.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/quotation_bottom_bar.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/quotation_preview_section.dart';
-import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/discount_summary_section.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/manual_discount_input_sheet.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/shipment_widget_section.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/entities/quotation_api_entities.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/quotation/quotation_builder_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/quotation/quotation_builder_state.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/back_to_home.dart';
 
 /// Quotation builder — a guided product finder rather than a catalog dump.
@@ -58,6 +61,7 @@ class QuotationBuilderScreen extends StatefulWidget {
     this.gpsLat,
     this.gpsLng,
     this.editingQuotation,
+    this.editingQuotationId,
   });
 
   static const routeName = 'order-quotation-builder';
@@ -85,6 +89,10 @@ class QuotationBuilderScreen extends StatefulWidget {
   final double? gpsLat;
   final double? gpsLng;
   final Quotation? editingQuotation;
+  final String? editingQuotationId;
+
+  String? get effectiveQuotationId =>
+      editingQuotationId ?? editingQuotation?.id;
 
   /// Whose account this quotation is being built against, however the caller
   /// happened to supply it.
@@ -117,25 +125,16 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
   PickupLocation? _pickupLocation = PickupLocation.factory;
   DeliveryAddressOption? _deliveryOption;
   bool _isCod = false; // COD state defaulting to 'No'
-  bool _isTaxApplicable = true; // Tax state: Applicable (10%) or Exempt (0%)
+  bool _isTaxApplicable = true; // Tax state: Tax Invoice (10%) or Commercial Invoice (0%)
 
   final TextEditingController _newAddressController = TextEditingController();
   final TextEditingController _newPhoneController = TextEditingController();
 
   /// Owned here rather than looked up from `context`.
-  ///
-  /// The provider is created in this widget's own `build`, which makes the
-  /// State's `context` an *ancestor* of it — `context.read<StockCubit>()` from
-  /// a State method therefore searches above the provider and finds nothing.
-  /// Holding the instance directly sidesteps the lookup entirely, and
-  /// `BlocProvider.value` still hands the same instance down to the cards and
-  /// steppers below.
-  ///
-  /// Owning it also means closing it: `BlocProvider.value` does not dispose
-  /// what it did not create.
   late final StockCubit _stock = sl<StockCubit>();
   late final PricingCubit _pricing =
       sl<PricingCubit>()..setCustomer(widget.customerContextId);
+  late final QuotationBuilderCubit _builderCubit = sl<QuotationBuilderCubit>();
 
   @override
   void initState() {
@@ -143,6 +142,18 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
 
     context.read<SyncCubit>().syncIfNeeded();
     _loadFavorites();
+
+    if (widget.customerContextId != null) {
+      _builderCubit.initialize(
+        customerId: widget.customerContextId!,
+        existingQuotationId: widget.effectiveQuotationId,
+        shipmentType:
+            _shipmentMethod == ShipmentMethod.pickup ? 'Pickup' : 'Delivery',
+        shipTo: _deliveryOption == DeliveryAddressOption.newAddress
+            ? _newAddressController.text
+            : widget.customer?.address,
+      );
+    }
 
     if (widget.customer != null) {
       _summaryFuture = sl<GetCreditSummary>()(
@@ -159,6 +170,7 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
     _newPhoneController.dispose();
     _stock.close();
     _pricing.close();
+    _builderCubit.close();
     super.dispose();
   }
 
@@ -270,6 +282,31 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
     // for five minutes and deduplicated, so this costs nothing per tap.
     unawaited(_stock.ensure(product.materialNumber));
     await _writeLine(product, quantity);
+
+    final bState = _builderCubit.state;
+    if (bState is QuotationBuilderReady) {
+      final existingLine = bState.quotation.lines
+          .cast<QuotationLineItem?>()
+          .firstWhere(
+            (l) => l?.materialNumber == product.materialNumber,
+            orElse: () => null,
+          );
+      if (quantity <= 0 && existingLine != null) {
+        unawaited(_builderCubit.deleteLine(existingLine.id));
+      } else if (existingLine != null) {
+        unawaited(_builderCubit.updateLineQuantity(
+          lineId: existingLine.id,
+          quantity: quantity.toDouble(),
+          unit: product.unit,
+        ));
+      } else if (quantity > 0) {
+        unawaited(_builderCubit.addLine(
+          materialNumber: product.materialNumber,
+          quantity: quantity.toDouble(),
+          unit: product.unit,
+        ));
+      }
+    }
   }
 
   /// The single write into the quotation, and the only place its rejections
@@ -294,24 +331,21 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
   }
 
   Future<void> _saveQuotation() async {
+    final bState = _builderCubit.state;
+    final serverTotals =
+        bState is QuotationBuilderReady ? bState.effectiveTotals : null;
+
     final cartState = context.read<CartCubit>().state;
-    final double subtotal =
-        cartState is CartLoaded ? cartState.subtotal : 0.0;
-    final double skuDiscount =
-        cartState is CartLoaded ? cartState.discount : 0.0;
-
-    double invoiceDiscount = 0.0;
-    if (_isCod) invoiceDiscount += subtotal * 0.01;
-    if (_shipmentMethod == ShipmentMethod.pickup) {
-      invoiceDiscount += subtotal * 0.01;
-    }
-
-    final double totalDiscount = skuDiscount + invoiceDiscount;
-    final double effectiveTaxRate = _isTaxApplicable ? _taxRate : 0.0;
-    final double taxableAmount =
-        (subtotal - totalDiscount).clamp(0.0, double.infinity);
-    final double taxAmount = taxableAmount * effectiveTaxRate;
-    final double finalTotal = taxableAmount + taxAmount;
+    final double subtotal = serverTotals?.gross ??
+        (cartState is CartLoaded ? cartState.subtotal : 0.0);
+    final double totalDiscount = serverTotals?.discountTotal ??
+        (cartState is CartLoaded ? cartState.discount : 0.0);
+    final double taxAmount = serverTotals?.tax ??
+        (_isTaxApplicable
+            ? (subtotal - totalDiscount).clamp(0.0, double.infinity) * _taxRate
+            : 0.0);
+    final double finalTotal = serverTotals?.net ??
+        ((subtotal - totalDiscount).clamp(0.0, double.infinity) + taxAmount);
 
     final quotation = await context.read<CartCubit>().saveQuotation(
           customerId: widget.customer?.id,
@@ -329,7 +363,11 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
         );
 
     if (!mounted) return;
-    if (quotation == null) {
+    final effectiveId = (bState is QuotationBuilderReady
+            ? bState.quotation.id
+            : null) ??
+        quotation?.id;
+    if (effectiveId == null && quotation == null) {
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('orders.quotation_extra.save_failed'.tr)));
       return;
@@ -337,7 +375,10 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
 
     Navigator.of(context).pushReplacement(MaterialPageRoute(
       settings: const RouteSettings(name: QuotationDetailScreen.routeName),
-      builder: (_) => QuotationDetailScreen(quotation: quotation),
+      builder: (_) => QuotationDetailScreen(
+        quotationId: effectiveId,
+        quotation: quotation,
+      ),
     ));
   }
 
@@ -371,6 +412,9 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
         // for somebody else.
         BlocProvider<PricingCubit>.value(
           value: _pricing,
+        ),
+        BlocProvider<QuotationBuilderCubit>.value(
+          value: _builderCubit,
         ),
       ],
       child: BlocListener<SyncCubit, SyncState>(
@@ -486,6 +530,15 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                             _pickupLocation = null;
                           }
                         });
+                        unawaited(_builderCubit.updateHeader(
+                          shipmentType: method == ShipmentMethod.pickup
+                              ? 'Pickup'
+                              : 'Delivery',
+                          shipTo: _deliveryOption ==
+                                  DeliveryAddressOption.newAddress
+                              ? _newAddressController.text
+                              : widget.customer?.address,
+                        ));
                       },
                       onPickupLocationChanged: (location) {
                         setState(() {
@@ -496,6 +549,14 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                         setState(() {
                           _deliveryOption = option;
                         });
+                        if (_shipmentMethod == ShipmentMethod.delivery) {
+                          unawaited(_builderCubit.updateHeader(
+                            shipmentType: 'Delivery',
+                            shipTo: option == DeliveryAddressOption.newAddress
+                                ? _newAddressController.text
+                                : widget.customer?.address,
+                          ));
+                        }
                       },
                       onCodChanged: (isCod) {
                         setState(() {
@@ -515,132 +576,186 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                     // Delivery must take it off the table rather than leave a
                     // rate on screen that the invoice will not honour.
                     PromotionSectionWidget(
+                      customerId: widget.customerContextId,
                       terms: OrderTerms(
                         isPickup: _shipmentMethod == ShipmentMethod.pickup,
                       ),
                     ),
                     SizedBox(height: context.rh(16)),
                     const CartPreviewSection(),
-                    BlocBuilder<CartCubit, CartState>(
-                      builder: (context, cartState) {
-                        final List<CartItem> cartItems = cartState is CartLoaded
-                            ? cartState.items
-                            : const <CartItem>[];
-                        final double subtotal =
-                            cartState is CartLoaded ? cartState.subtotal : 0.0;
-                        final int totalItemsCount = cartItems.length;
+                    BlocBuilder<QuotationBuilderCubit, QuotationBuilderState>(
+                      builder: (context, builderState) {
+                        return BlocBuilder<CartCubit, CartState>(
+                          builder: (context, cartState) {
+                            final List<CartItem> cartItems = cartState is CartLoaded
+                                ? cartState.items
+                                : const <CartItem>[];
+                            final int totalItemsCount = cartItems.length;
 
-                        // Invoice-level discounts (e.g. COD discount, Depot Pickup discount)
-                        final activeInvoiceDiscounts = <InvoiceDiscountItem>[];
-                        if (_isCod) {
-                          activeInvoiceDiscounts.add(
-                            InvoiceDiscountItem(
-                              name: 'Cash on Delivery (COD) Discount',
-                              rule: '1%',
-                              amount: subtotal * 0.01,
-                            ),
-                          );
-                        }
-                        if (_shipmentMethod == ShipmentMethod.pickup) {
-                          activeInvoiceDiscounts.add(
-                            InvoiceDiscountItem(
-                              name: 'Depot Pickup Discount',
-                              rule: '1%',
-                              amount: subtotal * 0.01,
-                            ),
-                          );
-                        }
+                            final bool hasServerPreview =
+                                builderState is QuotationBuilderReady;
+                            final QuotationTotals? serverTotals =
+                                hasServerPreview
+                                    ? builderState.effectiveTotals
+                                    : null;
 
-                        final double invoiceDiscountTotal =
-                            activeInvoiceDiscounts.fold(
-                          0.0,
-                          (sum, inv) => sum + inv.amount,
-                        );
+                            // Cardinal rule: Compute nothing on client.
+                            // Server-calculated totals from preview/detail endpoints.
+                            final double subtotal = serverTotals?.gross ??
+                                (cartState is CartLoaded
+                                    ? cartState.subtotal
+                                    : 0.0);
+                            final double totalDiscount =
+                                serverTotals?.discountTotal ??
+                                    (cartState is CartLoaded
+                                        ? cartState.discount
+                                        : 0.0);
+                            final double taxAmount = serverTotals?.tax ??
+                                (_isTaxApplicable
+                                    ? (subtotal - totalDiscount).clamp(
+                                            0.0, double.infinity) *
+                                        _taxRate
+                                    : 0.0);
+                            final double finalTotal = serverTotals?.net ??
+                                ((subtotal - totalDiscount)
+                                        .clamp(0.0, double.infinity) +
+                                    taxAmount);
+                            final String currency =
+                                serverTotals?.currency ?? 'USD';
+                            final bool isEstimate =
+                                serverTotals?.isEstimate ?? false;
+                            final int approvalLevel = hasServerPreview
+                                ? builderState.requiredApprovalLevel
+                                : 0;
+                            final warnings = hasServerPreview
+                                ? builderState.warnings
+                                : const <QuotationWarning>[];
+                            final agreements = hasServerPreview
+                                ? builderState.agreements
+                                : const <CustomerAgreement>[];
 
-                        // Read off the cart rather than hardcoded to zero.
-                        final double skuDiscountAmount =
-                            cartState is CartLoaded ? cartState.discount : 0.0;
-                        final double totalDiscount =
-                            skuDiscountAmount + invoiceDiscountTotal;
+                            final String displayShopName =
+                                widget.customer?.shopName ??
+                                    widget.leadDisplayName ??
+                                    'orders.quotation_extra.walk_in'.tr;
 
-                        // Tax follows the discounted amount, not the gross.
-                        // When exempt, effective tax rate is 0.0 ($0.00).
-                        final double effectiveTaxRate =
-                            _isTaxApplicable ? _taxRate : 0.0;
-                        final double taxableAmount =
-                            (subtotal - totalDiscount).clamp(0.0, double.infinity);
-                        final double taxAmount = taxableAmount * effectiveTaxRate;
-                        final double finalTotal = taxableAmount + taxAmount;
+                            return QuotationPreviewSection(
+                              shopName: displayShopName,
+                              items: cartItems,
+                              subtotal: subtotal,
+                              discount: totalDiscount,
+                              tax: taxAmount,
+                              total: finalTotal,
+                              currency: currency,
+                              isEstimate: isEstimate,
+                              requiredApprovalLevel: approvalLevel,
+                              warnings: warnings,
+                              agreements: agreements,
+                              isTaxApplicable: _isTaxApplicable,
+                              onEditDiscount: (item) async {
+                                final double maxLimit = hasServerPreview
+                                    ? builderState.manualDiscountLimit
+                                    : 10.0;
+                                final cartCubit = context.read<CartCubit>();
+                                final double? newPercent =
+                                    await showManualDiscountInputSheet(
+                                  context: context,
+                                  item: item,
+                                  currentDiscountPercent: item.discountPercent,
+                                  maxDiscountPercent: maxLimit,
+                                  agreements: agreements,
+                                  suggestedChips: hasServerPreview
+                                      ? builderState.discountAuthority?.suggestedChips
+                                      : null,
+                                );
+                                if (newPercent == null || !mounted) return;
 
-                        final String displayShopName =
-                            widget.customer?.shopName ??
-                                widget.leadDisplayName ??
-                                'orders.quotation_extra.walk_in'.tr;
+                                await cartCubit.updateDiscount(
+                                      item.id,
+                                      newPercent,
+                                    );
 
-                        return QuotationPreviewSection(
-                          shopName: displayShopName,
-                          items: cartItems,
-                          subtotal: subtotal,
-                          discount: totalDiscount,
-                          tax: taxAmount,
-                          total: finalTotal,
-                          invoiceDiscounts: activeInvoiceDiscounts,
-                          isTaxApplicable: _isTaxApplicable,
-                          onEditPrice: (item) async {
-                            final p = _pricing.state[item.product.materialNumber];
-                            if (p != null && p.hasAmount) return;
-
-                            final cartCubit = context.read<CartCubit>();
-                            final price = await showManualPriceInputSheet(
-                              context: context,
-                              item: item,
-                              currentPrice: item.isManualPrice
-                                  ? item.unitPriceOverride
-                                  : null,
-                            );
-                            if (price != null && mounted) {
-                              setState(() {
-                                if (price > 0) {
-                                  _manualPrices[item.product.id] = price;
-                                  _manualPrices[item.product.materialNumber] = price;
-                                } else {
-                                  _manualPrices.remove(item.product.id);
-                                  _manualPrices.remove(item.product.materialNumber);
+                                if (hasServerPreview) {
+                                  final line = builderState.quotation.lines
+                                      .cast<QuotationLineItem?>()
+                                      .firstWhere(
+                                        (l) =>
+                                            l?.materialNumber ==
+                                            item.product.materialNumber,
+                                        orElse: () => null,
+                                      );
+                                  if (line != null) {
+                                    await _builderCubit.setDiscounts([
+                                      QuotationDiscountIntent(
+                                        lineId: line.id,
+                                        percent: newPercent,
+                                      ),
+                                    ]);
+                                  }
                                 }
-                              });
-                              await cartCubit.updateUnitPrice(
+                              },
+                              onEditPrice: (item) async {
+                                final p = _pricing
+                                    .state[item.product.materialNumber];
+                                if (p != null && p.hasAmount) return;
+
+                                final cartCubit = context.read<CartCubit>();
+                                final price = await showManualPriceInputSheet(
+                                  context: context,
+                                  item: item,
+                                  currentPrice: item.isManualPrice
+                                      ? item.unitPriceOverride
+                                      : null,
+                                );
+                                if (price != null && mounted) {
+                                  setState(() {
+                                    if (price > 0) {
+                                      _manualPrices[item.product.id] = price;
+                                      _manualPrices[
+                                          item.product.materialNumber] = price;
+                                    } else {
+                                      _manualPrices.remove(item.product.id);
+                                      _manualPrices.remove(
+                                          item.product.materialNumber);
+                                    }
+                                  });
+                                  await cartCubit.updateUnitPrice(
                                     item.id,
                                     price > 0 ? price : null,
                                     isManualPrice: true,
                                   );
-                            }
-                          },
-                          onEnlargeTap: totalItemsCount == 0
-                              ? null
-                              : () {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (_) => BlocProvider.value(
-                                        value: context.read<CartCubit>(),
-                                        child: QuotationScreen(
-                                          shopName: displayShopName,
-                                          subtotal: subtotal,
-                                          discount: totalDiscount,
-                                          tax: taxAmount,
-                                          total: finalTotal,
-                                          items: cartItems,
-                                          invoiceDiscounts: activeInvoiceDiscounts,
-                                          isTaxApplicable: _isTaxApplicable,
-                                          quotationNumber:
-                                              widget.editingQuotation?.id,
-                                          customerPhone: widget.customer?.phone,
-                                          customerAddress:
-                                              widget.customer?.address,
+                                }
+                              },
+                              onEnlargeTap: totalItemsCount == 0
+                                  ? null
+                                  : () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (_) => BlocProvider.value(
+                                            value: context.read<CartCubit>(),
+                                            child: QuotationScreen(
+                                              shopName: displayShopName,
+                                              subtotal: subtotal,
+                                              discount: totalDiscount,
+                                              tax: taxAmount,
+                                              total: finalTotal,
+                                              items: cartItems,
+                                              isTaxApplicable: _isTaxApplicable,
+                                              currency: currency,
+                                              quotationNumber: hasServerPreview
+                                                  ? builderState.quotation.number
+                                                  : widget.effectiveQuotationId,
+                                              customerPhone:
+                                                  widget.customer?.phone,
+                                              customerAddress:
+                                                  widget.customer?.address,
+                                            ),
+                                          ),
                                         ),
-                                      ),
-                                    ),
-                                  );
-                                },
+                                      );
+                                    },
+                            );
+                          },
                         );
                       },
                     ),

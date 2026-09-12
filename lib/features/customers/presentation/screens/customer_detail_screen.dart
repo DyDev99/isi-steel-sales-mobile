@@ -755,6 +755,7 @@ class _PromosTab extends StatelessWidget {
             Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) => PromotionsScreen(
+                  customerId: customer.id,
                   outletName: context.localized(customer.displayName),
                 ),
               ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:isi_steel_sales_mobile/core/animations/app_animations.dart';
 import 'package:isi_steel_sales_mobile/core/animations/fade_slide_transition.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
@@ -7,6 +8,7 @@ import 'package:isi_steel_sales_mobile/core/responsive/responsive_content_frame.
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/stop_information/promotions_mock_data.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/usecases/quotation_api_usecases.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/promotions/promo_card.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/promotions/promo_filter_bar.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/promotions/promo_tone.dart';
@@ -22,12 +24,16 @@ import 'package:isi_steel_sales_mobile/shared/widgets/promotions/promo_view.dart
 class PromotionsScreen extends StatefulWidget {
   const PromotionsScreen({
     super.key,
+    this.customerId,
     this.outletName,
     this.promotions,
     this.now,
   });
 
   static const String routeName = 'promotions';
+
+  /// The customer/outlet ID to fetch promotions for.
+  final String? customerId;
 
   final String? outletName;
 
@@ -57,20 +63,52 @@ class _PromotionsScreenState extends State<PromotionsScreen> {
   /// agrees and `build` stays free of clock reads (FS-PRF-7).
   late final DateTime _now = widget.now ?? DateTime.now();
 
-  late final List<PromoView> _all = widget.promotions ?? mockOutletPromotions;
+  late List<PromoView> _all = widget.promotions ?? mockOutletPromotions;
 
-  /// Live promotions first, each group by soonest expiry.
-  ///
-  /// Sorting matters more than it looks: an expired scheme quoted by mistake is
-  /// a price the depot was promised and the company has to honour or retract.
-  /// Sinking them is the cheapest guard against that, and putting the soonest
-  /// expiry at the top surfaces the one the rep should mention on this visit.
-  late final List<PromoView> _sorted = [..._all]..sort((a, b) {
+  late List<PromoView> _sorted = _sortPromos(_all);
+
+  List<PromoView> _sortPromos(List<PromoView> list) {
+    return [...list]..sort((a, b) {
       final aLive = a.isQuotable(_now);
       final bLive = b.isQuotable(_now);
       if (aLive != bLive) return aLive ? -1 : 1;
       return a.endsOn.compareTo(b.endsOn);
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchPromotionsIfNeeded();
+  }
+
+  Future<void> _fetchPromotionsIfNeeded() async {
+    if (widget.promotions != null ||
+        widget.customerId == null ||
+        widget.customerId!.isEmpty) {
+      return;
+    }
+    if (!GetIt.I.isRegistered<GetCustomerPromotions>()) {
+      return;
+    }
+    final result = await GetIt.I<GetCustomerPromotions>()(
+      CustomerPromotionsParams(widget.customerId!),
+    );
+    if (!mounted) return;
+    result.when(
+      success: (promos) {
+        if (promos.isNotEmpty) {
+          setState(() {
+            _all = promos;
+            _sorted = _sortPromos(promos);
+          });
+        }
+      },
+      failure: (_) {
+        // Fall back gracefully
+      },
+    );
+  }
 
   List<PromoView> get _visible =>
       _kind == null ? _sorted : _sorted.where((p) => p.kind == _kind).toList();

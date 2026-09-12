@@ -102,7 +102,7 @@ void main() {
   });
 
   group('Tax Section in ShipmentSelectionWidget', () {
-    testWidgets('renders Tax section under COD with Applicable and Exempt options',
+    testWidgets('renders Tax section under COD with Tax Invoice and Commercial Invoice options',
         (tester) async {
       bool? selectedTax;
 
@@ -127,21 +127,21 @@ void main() {
       expect(find.text('Yes'), findsOneWidget);
       expect(find.text('No'), findsOneWidget);
 
-      // Verify Tax Section exists directly under COD
-      expect(find.text('Tax'), findsOneWidget);
-      expect(find.text('Applicable'), findsOneWidget);
-      expect(find.text('Exempt'), findsOneWidget);
+      // Verify Type of Invoice Section exists directly under COD
+      expect(find.text('Type of Invoice'), findsOneWidget);
+      expect(find.text('Tax Invoice'), findsOneWidget);
+      expect(find.text('Commercial Invoice'), findsOneWidget);
 
-      // Tap Exempt
-      await tester.tap(find.text('Exempt'));
+      // Tap Commercial Invoice
+      await tester.tap(find.text('Commercial Invoice'));
       expect(selectedTax, isFalse);
 
-      // Tap Applicable
-      await tester.tap(find.text('Applicable'));
+      // Tap Tax Invoice
+      await tester.tap(find.text('Tax Invoice'));
       expect(selectedTax, isTrue);
     });
 
-    testWidgets('shows active selection for Exempt when isTaxApplicable is false',
+    testWidgets('shows active selection for Commercial Invoice when isTaxApplicable is false',
         (tester) async {
       await tester.pumpWidget(_wrap(
         ShipmentSelectionWidget(
@@ -159,8 +159,8 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      expect(find.text('Applicable'), findsOneWidget);
-      expect(find.text('Exempt'), findsOneWidget);
+      expect(find.text('Tax Invoice'), findsOneWidget);
+      expect(find.text('Commercial Invoice'), findsOneWidget);
     });
   });
 

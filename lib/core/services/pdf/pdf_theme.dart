@@ -14,6 +14,10 @@ class PdfTheme {
   // ── Brand ────────────────────────────────────────────────────────────
   PdfColor get brandNavy => const PdfColor.fromInt(0xFF0A2A4A);
   PdfColor get brandAccent => const PdfColor.fromInt(0xFF1E6FBA);
+  PdfColor get brandGreenDark => const PdfColor.fromInt(0xFF143E2B); // Enterprise dark forest green
+  PdfColor get brandGreen => const PdfColor.fromInt(0xFF2C9942); // ISI Sustainable Green (Pantone 7739 C)
+  PdfColor get brandGreenLight => const PdfColor.fromInt(0xFFEDF7EE); // Subtle green highlight tint
+  PdfColor get borderLight => const PdfColor.fromInt(0xFFE5E7EB); // Clean precision hairline
 
   // ── Text ─────────────────────────────────────────────────────────────
   PdfColor get ink => const PdfColor.fromInt(0xFF1A1F26);

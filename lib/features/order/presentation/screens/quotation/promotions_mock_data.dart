@@ -11,18 +11,6 @@ final DateTime _today = DateTime.now();
 DateTime _inDays(int days) =>
     DateTime(_today.year, _today.month, _today.day + days);
 
-/// One labelled group of promotions, as the quotation builder lists them.
-class PromoGroup {
-  const PromoGroup({
-    required this.titleKey,
-    required this.promos,
-  });
-
-  /// Translation key for the group heading.
-  final String titleKey;
-  final List<PromoView> promos;
-}
-
 final List<PromoGroup> mockQuotationPromoGroups = [
   PromoGroup(
     titleKey: 'promotions.group.depot_discount',

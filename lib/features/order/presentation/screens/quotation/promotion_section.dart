@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get_it/get_it.dart';
 import 'package:isi_steel_sales_mobile/core/animations/app_animations.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/usecases/quotation_api_usecases.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/promotion_detail_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/promotions_mock_data.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/promo_quotation_preview_card.dart';
@@ -26,11 +28,16 @@ import 'package:isi_steel_sales_mobile/shared/widgets/promotions/promo_view.dart
 class PromotionSectionWidget extends StatefulWidget {
   const PromotionSectionWidget({
     super.key,
+    this.customerId,
     this.groups,
     this.now,
     this.terms,
     this.initiallyExpanded = true,
   });
+
+  /// The customer this quotation is for, used to fetch their incentives from
+  /// `GET /customers/{id}/incentives?shipment=`.
+  final String? customerId;
 
   /// Injectable so a test — and later the repository — supplies the data.
   final List<PromoGroup>? groups;
@@ -55,8 +62,55 @@ class PromotionSectionWidget extends StatefulWidget {
 class _PromotionSectionWidgetState extends State<PromotionSectionWidget> {
   late bool _expanded = widget.initiallyExpanded;
   late final DateTime _now = widget.now ?? DateTime.now();
-  late final List<PromoGroup> _groups =
+  late List<PromoGroup> _groups =
       widget.groups ?? mockQuotationPromoGroups;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchIncentivesIfNeeded();
+  }
+
+  @override
+  void didUpdateWidget(PromotionSectionWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.groups != null) {
+      _groups = widget.groups!;
+    } else if (oldWidget.customerId != widget.customerId ||
+        oldWidget.terms?.isPickup != widget.terms?.isPickup) {
+      _fetchIncentivesIfNeeded();
+    }
+  }
+
+  Future<void> _fetchIncentivesIfNeeded() async {
+    if (widget.groups != null ||
+        widget.customerId == null ||
+        widget.customerId!.isEmpty) {
+      return;
+    }
+    if (!GetIt.I.isRegistered<GetCustomerIncentives>()) {
+      return;
+    }
+    final result = await GetIt.I<GetCustomerIncentives>()(
+      CustomerIncentivesParams(
+        customerId: widget.customerId!,
+        shipment: widget.terms?.isPickup == true ? 'Pickup' : 'Delivery',
+      ),
+    );
+    if (!mounted) return;
+    result.when(
+      success: (groups) {
+        if (groups.isNotEmpty) {
+          setState(() {
+            _groups = groups;
+          });
+        }
+      },
+      failure: (_) {
+        // Keeps fallback mock groups on failure or offline
+      },
+    );
+  }
 
   Iterable<PromoView> get _available => _groups
       .expand((g) => g.promos)

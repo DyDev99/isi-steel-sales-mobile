@@ -66,6 +66,41 @@ class AppConstants {
   // ── Mobile customer endpoints ──────────────────────────────────────
   static const String customersEndpoint = '$apiPrefix/mobile/customers';
 
+  /// Customer depot discount agreements / incentives per
+  /// `docs/feature/prom-discount/promotions-discounts-plan.md` §8.1.
+  static String customerAgreementsEndpoint(String customerId) =>
+      '$customersEndpoint/$customerId/agreements';
+
+  static String customerIncentivesEndpoint(String customerId) =>
+      '$customersEndpoint/$customerId/incentives';
+
+  static String customerPromotionsEndpoint(String customerId) =>
+      '$customersEndpoint/$customerId/promotions';
+
+  static const String discountAuthorityEndpoint =
+      '$apiPrefix/mobile/me/discount-authority';
+
+  // ── Mobile quotation endpoints ─────────────────────────────────────
+  // Per `docs/feature/quotation-orders/api/mobile.md`.
+  static const String quotationsEndpoint = '$apiPrefix/mobile/quotations';
+  static String quotationEndpoint(String id) => '$quotationsEndpoint/$id';
+  static String quotationLinesEndpoint(String id) =>
+      '$quotationsEndpoint/$id/lines';
+  static String quotationLineEndpoint(String id, String lineId) =>
+      '$quotationsEndpoint/$id/lines/$lineId';
+  static String quotationDiscountsEndpoint(String id) =>
+      '$quotationsEndpoint/$id/discounts';
+  static String quotationPreviewEndpoint(String id) =>
+      '$quotationsEndpoint/$id/preview';
+  static String quotationRepriceEndpoint(String id) =>
+      '$quotationsEndpoint/$id/reprice';
+  static String quotationSubmitEndpoint(String id) =>
+      '$quotationsEndpoint/$id/submit';
+  static String quotationCancelEndpoint(String id) =>
+      '$quotationsEndpoint/$id/cancel';
+  static String quotationHistoryEndpoint(String id) =>
+      '$quotationsEndpoint/$id/history';
+
   /// `GET /customers/by-code/{code}` — the **portal** surface, deliberately not
   /// under `/mobile`.
   ///

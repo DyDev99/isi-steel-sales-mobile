@@ -87,6 +87,28 @@ enum PromoStatus { active, approved, pending, expired }
 @immutable
 sealed class PromoValue {
   const PromoValue();
+
+  factory PromoValue.fromJson(Map<String, dynamic> json) {
+    final type = json['type'] as String? ?? '';
+    switch (type) {
+      case 'percent':
+        return PromoPercent((json['percent'] as num?)?.toDouble() ?? 0.0);
+      case 'amount':
+        return PromoAmount(
+          json['amount']?.toString() ?? '',
+          per: json['per'] as String?,
+        );
+      case 'buyGet':
+        return PromoBuyGet(
+          buy: json['buy'] as int? ?? 0,
+          get: json['get'] as int? ?? 0,
+          unit: json['unit'] as String? ?? '',
+        );
+      case 'terms':
+      default:
+        return PromoTerms(json['text'] as String? ?? '');
+    }
+  }
 }
 
 /// A percentage off, e.g. `2.0` → "2.00 %".
@@ -157,6 +179,49 @@ class PromoView {
     this.depots,
     this.requires = const {},
   });
+
+  factory PromoView.fromJson(Map<String, dynamic> json) {
+    final kindStr = json['kind'] as String? ?? 'onInvoice';
+    final kind = PromoKind.values.firstWhere(
+      (k) => k.name.toLowerCase() == kindStr.toLowerCase(),
+      orElse: () => PromoKind.onInvoice,
+    );
+
+    final statusStr = json['status'] as String? ?? 'active';
+    final status = PromoStatus.values.firstWhere(
+      (s) => s.name.toLowerCase() == statusStr.toLowerCase(),
+      orElse: () => PromoStatus.active,
+    );
+
+    final rawRequires = json['requires'] as List<dynamic>? ?? const [];
+    final requires = rawRequires
+        .map((r) => r.toString().toLowerCase())
+        .map((r) => r == 'pickup' ? PromoRequirement.pickup : null)
+        .whereType<PromoRequirement>()
+        .toSet();
+
+    final valueMap = json['value'] as Map<String, dynamic>? ?? {};
+
+    return PromoView(
+      id: json['id'] as String? ?? '',
+      title: json['title'] as String? ?? '',
+      summary: json['summary'] as String?,
+      code: json['code'] as String?,
+      kind: kind,
+      value: PromoValue.fromJson(valueMap),
+      status: status,
+      startsOn: json['startsOn'] != null
+          ? DateTime.tryParse(json['startsOn'] as String)
+          : null,
+      endsOn: json['endsOn'] != null
+          ? DateTime.tryParse(json['endsOn'] as String) ?? DateTime.now()
+          : DateTime.now(),
+      minSpend: json['minSpend']?.toString(),
+      category: json['category'] as String?,
+      depots: json['depots'] as String?,
+      requires: requires,
+    );
+  }
 
   final String id;
 
@@ -231,3 +296,30 @@ class PromoView {
   bool isAvailableFor(DateTime now, OrderTerms? terms) =>
       isQuotable(now) && unmetRequirement(terms) == null;
 }
+
+/// One labelled group of promotions, as the quotation builder lists them.
+class PromoGroup {
+  const PromoGroup({
+    required this.titleKey,
+    required this.promos,
+  });
+
+  factory PromoGroup.fromJson(Map<String, dynamic> json) {
+    final rawPromos = json['promos'] as List<dynamic>? ?? const [];
+    return PromoGroup(
+      titleKey: json['titleKey'] as String? ??
+          (json['groupId'] != null
+              ? 'promotions.group.${json['groupId']}'
+              : 'promotions.group.depot_discount'),
+      promos: rawPromos
+          .whereType<Map>()
+          .map((m) => PromoView.fromJson(m.cast<String, dynamic>()))
+          .toList(),
+    );
+  }
+
+  /// Translation key for the group heading.
+  final String titleKey;
+  final List<PromoView> promos;
+}
+

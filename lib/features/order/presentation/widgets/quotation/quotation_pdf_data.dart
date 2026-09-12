@@ -28,6 +28,7 @@ class QuotationPdfLine {
     this.promotionName,
     this.freeQuantity = 0,
     this.freeQuantityRule,
+    this.specification,
   });
 
   /// Material SKU / code (e.g. "SKU-001", "GI-PIPE-01").
@@ -72,6 +73,9 @@ class QuotationPdfLine {
 
   /// Rule for free quantity (e.g. "Buy 40 Free 1").
   final String? freeQuantityRule;
+
+  /// Formatted engineering specification or grade & dimensions (e.g. "Grade: SD390 • Ø16mm • 12m").
+  final String? specification;
 }
 
 /// The immutable input to [QuotationPdfGenerator].
@@ -101,16 +105,34 @@ class QuotationPdfData {
     this.validUntil,
     this.notes,
     this.currencySymbol = r'$',
+    this.companyName,
+    this.customerEmail,
+    this.contactPerson,
+    this.salesTerritory,
+    this.paymentTerms,
+    this.deliveryTerms,
+    this.deliveryLocation,
+    this.estimatedDelivery,
+    this.deliveryFee = 0.0,
   });
 
   final String quotationNumber;
   final String customerName;
   final String? customerPhone;
   final String? customerAddress;
+  final String? customerEmail;
+  final String? companyName;
+  final String? contactPerson;
   final String salesRepName;
   final String? salesRepContact;
+  final String? salesTerritory;
   final DateTime createdDate;
   final DateTime? validUntil;
+  final String? paymentTerms;
+  final String? deliveryTerms;
+  final String? deliveryLocation;
+  final String? estimatedDelivery;
+  final double deliveryFee;
   final List<QuotationPdfLine> lines;
   final double subtotal;
   final double discount;
@@ -153,8 +175,17 @@ class QuotationPdfData {
     List<String> invoiceDiscounts = const [],
     String? customerPhone,
     String? customerAddress,
+    String? customerEmail,
+    String? companyName,
+    String? contactPerson,
     String? salesRepContact,
+    String? salesTerritory,
     DateTime? validUntil,
+    String? paymentTerms,
+    String? deliveryTerms,
+    String? deliveryLocation,
+    String? estimatedDelivery,
+    double deliveryFee = 0.0,
     String? notes,
     String currencySymbol = r'$',
   }) {
@@ -172,10 +203,87 @@ class QuotationPdfData {
       Uint8List? drawingBytes;
       if (item.isCustomized) {
         final m = item.measurements;
-        if (m != null && !m.isEmpty) specs = m.toSummaryString();
+        if (m != null && !m.isEmpty) {
+          final customParts = <String>[];
+          if (m.widthMm != null && m.widthMm! > 0) {
+            final wStr = m.widthMm == m.widthMm!.roundToDouble()
+                ? m.widthMm!.toStringAsFixed(0)
+                : m.widthMm!.toString();
+            customParts.add('Width: $wStr mm');
+          }
+          if (m.lengthMm != null && m.lengthMm! > 0) {
+            final lStr = m.lengthMm == m.lengthMm!.roundToDouble()
+                ? m.lengthMm!.toStringAsFixed(0)
+                : m.lengthMm!.toString();
+            customParts.add('Length: $lStr mm');
+          }
+          if (m.thicknessMm != null && m.thicknessMm! > 0) {
+            final tStr = m.thicknessMm == m.thicknessMm!.roundToDouble()
+                ? m.thicknessMm!.toStringAsFixed(0)
+                : m.thicknessMm!.toString();
+            customParts.add('Thickness: $tStr mm');
+          }
+          if (m.heightMm != null && m.heightMm! > 0) {
+            final hStr = m.heightMm == m.heightMm!.roundToDouble()
+                ? m.heightMm!.toStringAsFixed(0)
+                : m.heightMm!.toString();
+            customParts.add('Height: $hStr mm');
+          }
+          if (m.diameterMm != null && m.diameterMm! > 0) {
+            final dStr = m.diameterMm == m.diameterMm!.roundToDouble()
+                ? m.diameterMm!.toStringAsFixed(0)
+                : m.diameterMm!.toString();
+            customParts.add('Ø: $dStr mm');
+          }
+          specs = customParts.isNotEmpty
+              ? customParts.join(' • ')
+              : m.toSummaryString();
+        }
         final finish = item.appearance?.trim();
         if (finish != null && finish.isNotEmpty) appearance = finish;
         drawingBytes = _readDrawing(item.drawingImagePath);
+      }
+
+      // Build rich engineering specification
+      String? specStr;
+      if (item.isCustomized) {
+        if (specs != null && specs.isNotEmpty) {
+          specStr = specs;
+        } else if (product.specification.isNotEmpty) {
+          specStr = product.specification;
+        }
+      } else {
+        final specParts = <String>[];
+        if (product.grade.isNotEmpty) specParts.add('Grade: ${product.grade}');
+        if (product.diameter > 0) {
+          final diaStr = product.diameter == product.diameter.roundToDouble()
+              ? product.diameter.toStringAsFixed(0)
+              : product.diameter.toString();
+          specParts.add('Ø${diaStr}mm');
+        }
+        if (product.thickness > 0) {
+          final thkStr = product.thickness == product.thickness.roundToDouble()
+              ? product.thickness.toStringAsFixed(0)
+              : product.thickness.toString();
+          specParts.add('${thkStr}mm');
+        } else if (product.size.isNotEmpty &&
+            !specParts.any((p) => p.contains(product.size))) {
+          specParts.add(product.size);
+        }
+        if (product.length > 0) {
+          final lenStr = product.length == product.length.roundToDouble()
+              ? product.length.toStringAsFixed(0)
+              : product.length.toString();
+          specParts.add('${lenStr}m');
+        }
+        if (product.specification.isNotEmpty &&
+            !specParts.contains(product.specification)) {
+          specParts.add(product.specification);
+        }
+        if (specParts.isEmpty && description.isNotEmpty) {
+          specParts.add(description);
+        }
+        if (specParts.isNotEmpty) specStr = specParts.join(' • ');
       }
 
       final freeUnits = DemoCartPromotions.freeQuantityFor(item);
@@ -232,6 +340,7 @@ class QuotationPdfData {
         promotionName: promoName,
         freeQuantity: freeUnits,
         freeQuantityRule: freeRule,
+        specification: specStr,
       );
     }).toList(growable: false);
 
@@ -254,10 +363,20 @@ class QuotationPdfData {
       customerName: customerName,
       customerPhone: customerPhone,
       customerAddress: customerAddress,
+      customerEmail: customerEmail,
+      companyName: companyName ?? customerName,
+      contactPerson: contactPerson ?? customerName,
       salesRepName: salesRepName,
       salesRepContact: salesRepContact,
+      salesTerritory: salesTerritory ?? 'Phnom Penh',
       createdDate: createdDate,
       validUntil: validUntil,
+      paymentTerms: paymentTerms ??
+          '30% advance payment upon confirmation. Remaining balance according to agreed terms.',
+      deliveryTerms: deliveryTerms ?? 'Customer Site / Standard Lead Time',
+      deliveryLocation: deliveryLocation ?? (customerAddress ?? 'Customer Site'),
+      estimatedDelivery: estimatedDelivery ?? '3–5 business days',
+      deliveryFee: deliveryFee,
       lines: lines,
       subtotal: subtotal,
       discount: discount,

@@ -27,6 +27,7 @@ class QuotationScreen extends StatelessWidget {
     required this.items,
     this.invoiceDiscounts = const [],
     this.isTaxApplicable = true,
+    this.currency = 'USD',
     this.quotationNumber,
     this.createdDate,
     this.validUntil,
@@ -44,6 +45,7 @@ class QuotationScreen extends StatelessWidget {
   final List<CartItem> items;
   final List<InvoiceDiscountItem> invoiceDiscounts;
   final bool isTaxApplicable;
+  final String currency;
 
   /// Optional PDF metadata. Sensible defaults are derived when omitted, so
   /// existing callers keep working.
@@ -72,6 +74,7 @@ class QuotationScreen extends StatelessWidget {
         items: items,
         invoiceDiscounts: invoiceDiscounts,
         isTaxApplicable: isTaxApplicable,
+        currency: currency,
         quotationNumber: quotationNumber,
         createdDate: createdDate,
         validUntil: validUntil,
@@ -94,6 +97,7 @@ class _QuotationView extends StatelessWidget {
     required this.items,
     this.invoiceDiscounts = const [],
     this.isTaxApplicable = true,
+    this.currency = 'USD',
     required this.quotationNumber,
     required this.createdDate,
     required this.validUntil,
@@ -111,6 +115,7 @@ class _QuotationView extends StatelessWidget {
   final List<CartItem> items;
   final List<InvoiceDiscountItem> invoiceDiscounts;
   final bool isTaxApplicable;
+  final String currency;
   final String? quotationNumber;
   final DateTime? createdDate;
   final DateTime? validUntil;
@@ -216,6 +221,7 @@ class _QuotationView extends StatelessWidget {
                       items: activeItems,
                       invoiceDiscounts: invoiceDiscounts,
                       isTaxApplicable: isTaxApplicable,
+                      currency: currency,
                     ),
                   ],
                 ),

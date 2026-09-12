@@ -282,31 +282,34 @@ class ShipmentSelectionWidget extends StatelessWidget {
           ],
         ),
 
-        // 4. Tax Section
+        // 4. Type of Invoice Section
         SizedBox(height: isTablet ? 26 : 20),
-        Text('Tax', style: headerTextStyle),
+        Text('Type of Invoice', style: headerTextStyle),
         SizedBox(height: isTablet ? 16 : 12),
 
-        Row(
-          children: [
-            Expanded(
-              child: _SelectCard(
-                title: 'Applicable',
-                icon: Icons.receipt_long_outlined,
-                isSelected: isTaxApplicable == true,
-                onTap: () => onTaxApplicableChanged?.call(true),
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: _SelectCard(
+                  title: 'Tax Invoice',
+                  icon: Icons.receipt_long_outlined,
+                  isSelected: isTaxApplicable == true,
+                  onTap: () => onTaxApplicableChanged?.call(true),
+                ),
               ),
-            ),
-            SizedBox(width: isTablet ? 16 : 12),
-            Expanded(
-              child: _SelectCard(
-                title: 'Exempt',
-                icon: Icons.money_off_csred_outlined,
-                isSelected: isTaxApplicable == false,
-                onTap: () => onTaxApplicableChanged?.call(false),
+              SizedBox(width: isTablet ? 16 : 12),
+              Expanded(
+                child: _SelectCard(
+                  title: 'Commercial Invoice',
+                  icon: Icons.receipt_outlined,
+                  isSelected: isTaxApplicable == false,
+                  onTap: () => onTaxApplicableChanged?.call(false),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     );

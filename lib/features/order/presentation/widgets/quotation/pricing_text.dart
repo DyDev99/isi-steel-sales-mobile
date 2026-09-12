@@ -31,13 +31,20 @@ abstract final class PricingText {
   /// substituting a placeholder. A material with no price yet is a normal,
   /// valid line — the absence of a figure says that more quietly than any
   /// label, and the number appears on its own once HQ supplies it.
-  static String? amountOrNull(double? amount, {int decimals = 2}) =>
-      isHidden(amount) ? null : '\$${amount!.toStringAsFixed(decimals)}';
+  static String? amountOrNull(double? amount,
+      {int decimals = 2, String? currency}) {
+    if (isHidden(amount)) return null;
+    final formatted = amount!.toStringAsFixed(decimals);
+    if (currency == null || currency == 'USD') {
+      return '\$$formatted';
+    }
+    return '$formatted $currency';
+  }
 
   /// The same, as an empty string, for the few slots that must be given a
   /// `String` and render nothing acceptably.
-  static String amount(double? amount, {int decimals = 2}) =>
-      amountOrNull(amount, decimals: decimals) ?? '';
+  static String amount(double? amount, {int decimals = 2, String? currency}) =>
+      amountOrNull(amount, decimals: decimals, currency: currency) ?? '';
 
   /// A document roll-up: the summed amount, or null while **any** line is
   /// unpriced.

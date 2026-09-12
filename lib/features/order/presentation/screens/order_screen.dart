@@ -9,6 +9,9 @@ import 'package:isi_steel_sales_mobile/features/order/domain/entities/quotation_
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/sales_order.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/watch_quotations.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/watch_sales_orders.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/quotation/quotation_list_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/quotation_list_view.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/quotation_detail_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/sales_order/sales_order_detail_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/order_skeletons.dart';
@@ -121,8 +124,16 @@ class _OrderScreenState extends State<OrderScreen> {
                   ],
                 ),
               ),
-              Expanded(
-                child: ListView(
+              if (_selectedFilter == _OrderStatusFilter.quotations)
+                Expanded(
+                  child: BlocProvider<QuotationListCubit>(
+                    create: (_) => sl<QuotationListCubit>()..load(),
+                    child: const QuotationListView(),
+                  ),
+                )
+              else
+                Expanded(
+                  child: ListView(
                   padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
                   children: [
                     Text('orders.recent'.tr,
@@ -207,8 +218,7 @@ class _OrderScreenState extends State<OrderScreen> {
                                     isTablet ? 4 : 2, // Responsive columns
                                 crossAxisSpacing: context.rw(12),
                                 mainAxisSpacing: context.rh(12),
-                                childAspectRatio:
-                                    1.0, // Strictly square proportion
+                                childAspectRatio: isTablet ? 1.05 : 0.85,
                               ),
                               itemCount: entries.length,
                               itemBuilder: (context, index) {
@@ -350,7 +360,7 @@ class _OrderTile extends StatelessWidget {
             // Top Row: Icon and Status Pill
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Container(
                   padding: EdgeInsets.all(context.rr(8)),
@@ -360,19 +370,24 @@ class _OrderTile extends StatelessWidget {
                   ),
                   child: Icon(iconData, color: iconColor, size: context.rr(18)),
                 ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: colors.warning.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    entry.statusLabel,
-                    style: TextStyle(
-                      color: colors.warning,
-                      fontSize: context.rsp(10),
-                      fontWeight: FontWeight.w800,
+                SizedBox(width: context.rw(6)),
+                Flexible(
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: colors.warning.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      entry.statusLabel,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: colors.warning,
+                        fontSize: context.rsp(10),
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ),
                 ),
@@ -400,30 +415,54 @@ class _OrderTile extends StatelessWidget {
                 Icon(Icons.calendar_today_rounded,
                     size: context.rr(10), color: colors.textSecondary),
                 SizedBox(width: context.rw(4)),
-                Text(
-                  _formatDate(entry.date),
-                  style: TextStyle(
-                    color: colors.textSecondary,
-                    fontSize: context.rsp(11),
+                Expanded(
+                  child: Text(
+                    _formatDate(entry.date),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: colors.textSecondary,
+                      fontSize: context.rsp(11),
+                    ),
                   ),
                 ),
               ],
             ),
 
-            SizedBox(height: context.rh(8)),
+            SizedBox(height: context.rh(6)),
             Divider(height: 1, color: colors.divider.withValues(alpha: 0.5)),
-            SizedBox(height: context.rh(8)),
+            SizedBox(height: context.rh(6)),
 
-            // Bottom: Total Price
-            Text(
-              '\$${entry.total.toStringAsFixed(2)}',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: colors.accentPurple, // Utilizing accent for modern feel
-                fontSize: context.rsp(15.5),
-                fontWeight: FontWeight.w900,
-              ),
+            // Bottom: Total Price with Label
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Expanded(
+                  child: Text(
+                    'orders.quotation_extra.total'.tr,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: colors.textSecondary,
+                      fontSize: context.rsp(11),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                SizedBox(width: context.rw(4)),
+                Text(
+                  '\$${entry.total.toStringAsFixed(2)}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.end,
+                  style: TextStyle(
+                    color: colors.accentPurple,
+                    fontSize: context.rsp(14),
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
