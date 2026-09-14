@@ -21,6 +21,7 @@ class PostalCodeField extends StatefulWidget {
     required this.onChanged,
     this.errorText,
     this.isRequired = true,
+    this.compact = false,
   });
 
   /// The effective code — the commune's, or what the rep typed.
@@ -35,6 +36,7 @@ class PostalCodeField extends StatefulWidget {
   final ValueChanged<String> onChanged;
   final String? errorText;
   final bool isRequired;
+  final bool compact;
 
   @override
   State<PostalCodeField> createState() => _PostalCodeFieldState();
@@ -70,71 +72,288 @@ class _PostalCodeFieldState extends State<PostalCodeField> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final hasError = widget.errorText != null;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: 6),
-          child: RichText(
-            text: TextSpan(
-              text: 'geo.postal_code'.tr,
-              style: theme.textTheme.labelLarge?.copyWith(
-                color: theme.colorScheme.onSurface,
-                fontWeight: FontWeight.w500,
-              ),
+    final card = Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: widget.compact ? 10 : 12,
+        vertical: widget.compact ? 8 : 10,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: hasError
+              ? theme.colorScheme.error
+              : const Color(0xFFE2E8F0),
+          width: 1.1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 6,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: widget.compact
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                if (widget.isRequired)
-                  TextSpan(
-                    text: ' *',
-                    style: TextStyle(color: theme.colorScheme.error),
+                Row(
+                  children: [
+                    Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEFF6FF),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Center(
+                        child: Icon(
+                          Icons.mail_outline,
+                          color: theme.colorScheme.primary,
+                          size: 14,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: RichText(
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        text: TextSpan(
+                          text: 'geo.postal_code'.tr,
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            color: theme.colorScheme.onSurface,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12,
+                          ),
+                          children: [
+                            if (widget.isRequired)
+                              TextSpan(
+                                text: ' *',
+                                style: TextStyle(
+                                  color: theme.colorScheme.error,
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 12,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 5),
+                TextField(
+                  controller: _controller,
+                  readOnly: !widget.isEditable,
+                  enabled: widget.isEditable || widget.isDerived,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(6),
+                  ],
+                  onChanged: widget.onChanged,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 1.1,
+                    fontSize: 12,
                   ),
+                  decoration: InputDecoration(
+                    isDense: true,
+                    filled: true,
+                    fillColor: widget.isDerived
+                        ? const Color(0xFFF1F5F9)
+                        : const Color(0xFFF8FAFC),
+                    hintText: widget.isEditable ? 'geo.postal_hint'.tr : 'Enter code',
+                    hintStyle: const TextStyle(
+                      color: Color(0xFF94A3B8),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                      letterSpacing: 0,
+                    ),
+                    suffixIcon: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      child: Icon(
+                        widget.isDerived
+                            ? Icons.lock_outline
+                            : Icons.qr_code_scanner_rounded,
+                        size: 16,
+                        color: const Color(0xFF3B82F6),
+                      ),
+                    ),
+                    suffixIconConstraints: const BoxConstraints(
+                      minWidth: 24,
+                      minHeight: 16,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 6,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: theme.colorScheme.primary),
+                    ),
+                    disabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                    ),
+                  ),
+                ),
+              ],
+            )
+          : Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Center(
+                    child: Icon(
+                      Icons.mail_outline,
+                      color: theme.colorScheme.primary,
+                      size: 18,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      RichText(
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        text: TextSpan(
+                          text: 'geo.postal_code'.tr,
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            color: theme.colorScheme.onSurface,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
+                          ),
+                          children: [
+                            if (widget.isRequired)
+                              TextSpan(
+                                text: ' *',
+                                style: TextStyle(
+                                  color: theme.colorScheme.error,
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 13,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      TextField(
+                        controller: _controller,
+                        readOnly: !widget.isEditable,
+                        enabled: widget.isEditable || widget.isDerived,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(6),
+                        ],
+                        onChanged: widget.onChanged,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 1.1,
+                          fontSize: 13,
+                        ),
+                        decoration: InputDecoration(
+                          isDense: true,
+                          filled: true,
+                          fillColor: widget.isDerived
+                              ? const Color(0xFFF1F5F9)
+                              : const Color(0xFFF8FAFC),
+                          hintText: widget.isEditable ? 'geo.postal_hint'.tr : 'Enter postal code',
+                          hintStyle: const TextStyle(
+                            color: Color(0xFF94A3B8),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w400,
+                            letterSpacing: 0,
+                          ),
+                          suffixIcon: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            child: Icon(
+                              widget.isDerived
+                                  ? Icons.lock_outline
+                                  : Icons.qr_code_scanner_rounded,
+                              size: 18,
+                              color: const Color(0xFF3B82F6),
+                            ),
+                          ),
+                          suffixIconConstraints: const BoxConstraints(
+                            minWidth: 28,
+                            minHeight: 18,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 7,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: theme.colorScheme.primary),
+                          ),
+                          disabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
-          ),
-        ),
-        TextField(
-          controller: _controller,
-          readOnly: !widget.isEditable,
-          enabled: widget.isEditable || widget.isDerived,
-          keyboardType: TextInputType.number,
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-            // Cambodia Post's codes are six digits. The legacy five-digit
-            // Phnom Penh codes the app used to hardcode are a different,
-            // superseded scheme — see docs/features/geo-location/api.md.
-            LengthLimitingTextInputFormatter(6),
-          ],
-          onChanged: widget.onChanged,
-          style: theme.textTheme.bodyLarge?.copyWith(
-            fontWeight: FontWeight.w500,
-            letterSpacing: 1.2,
-          ),
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: widget.isDerived
-                ? theme.colorScheme.surfaceContainerHighest
-                    .withValues(alpha: 0.4)
-                : theme.colorScheme.surfaceContainerHighest
-                    .withValues(alpha: 0.15),
-            hintText: widget.isEditable ? 'geo.postal_hint'.tr : '—',
-            errorText: widget.errorText,
-            helperText:
-                widget.isEditable ? 'geo.postal_manual_notice'.tr : null,
-            helperMaxLines: 2,
-            suffixIcon: Icon(
-              widget.isDerived ? Icons.lock_outline : Icons.edit_outlined,
-              size: 20,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        ),
-      ],
     );
+
+    if (hasError || (widget.isEditable && !widget.isDerived)) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          card,
+          if (hasError)
+            Padding(
+              padding: const EdgeInsets.only(top: 6, left: 4),
+              child: Text(
+                widget.errorText!,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.error,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            )
+          else if (widget.isEditable)
+            Padding(
+              padding: const EdgeInsets.only(top: 6, left: 4),
+              child: Text(
+                'geo.postal_manual_notice'.tr,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: const Color(0xFF64748B),
+                ),
+              ),
+            ),
+        ],
+      );
+    }
+    return card;
   }
 }

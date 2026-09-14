@@ -19,13 +19,14 @@ import 'package:isi_steel_sales_mobile/features/geo_location/domain/entities/geo
 
 import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer_document.dart';
 
-/// The five capture steps of the "Add Customer" bottom sheet.
+/// The six capture steps of the "Add Customer" bottom sheet.
 enum BpFormStep {
   identity, // 1. Who is the customer          (BP header + names)
   address, // 2. Where are they                (standard address + GPS)
   contact, // 3. How do we reach them          (phones + contact person)
   salesTerms, // 4. How do we sell to them     (sales area + billing/tax)
-  documents, // 5. Proof + review              (photos, submit)
+  documents, // 5. Proof                       (photos)
+  review, // 6. Review                         (submit)
 }
 
 extension BpFormStepX on BpFormStep {
@@ -37,6 +38,7 @@ extension BpFormStepX on BpFormStep {
         BpFormStep.contact => 'add_customer.steps.contact',
         BpFormStep.salesTerms => 'add_customer.steps.sales_terms',
         BpFormStep.documents => 'add_customer.steps.documents',
+        BpFormStep.review => 'add_customer.review',
       };
 }
 
@@ -963,6 +965,10 @@ class BpCustomerDraft {
         if (taxClass == '1' && !hasAttachment('vat_cert')) {
           e['vat_cert'] = 'error.photo_required';
         }
+        break;
+
+      case BpFormStep.review:
+        // No specific validation on the review step itself.
         break;
     }
     return e;

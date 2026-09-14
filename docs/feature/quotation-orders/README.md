@@ -2,10 +2,10 @@
 
 **Purpose:** a priced offer to one customer, authored on the handset, approved in the
 portal, and totalled by one server-side calculator.
-**Scope:** the quotation aggregate, the calculator, the mobile authoring surface and
-the admin approval surface. **No SAP document is created**, there are no promotions,
-no orders and no PDF — see [Not built yet](#not-built-yet).
-**Status:** Active (phase Q1 + approval) · **Last updated:** 2026-09-11
+**Scope:** the quotation aggregate, the calculator, the mobile authoring surface, the
+admin approval surface, and the administrator-only SAP submission. There are no orders
+and no PDF — see [Not built yet](#not-built-yet).
+**Status:** Active (Q1 authoring + approval + SAP submission) · **Last updated:** 2026-09-14
 
 **Implementation:** `src/ISI.Domain/Modules/Quotations/` ·
 `src/ISI.Application/Features/Quotations/` · `src/ISI.Api/Controllers/Quotations/` ·
@@ -22,9 +22,9 @@ no orders and no PDF — see [Not built yet](#not-built-yet).
 | [data-model.md](data-model.md) | Tables, columns, indexes and why each exists | ✅ |
 | [testing.md](testing.md) | What is covered, and what could not be covered here | ⚠️ |
 | [api/mobile.md](api/mobile.md) | The Flutter authoring surface | ✅ |
-| [api/admin.md](api/admin.md) | The portal approval queue | ✅ |
+| [api/admin.md](api/admin.md) | The portal: approval queue and SAP submission | ✅ |
 | [quotation-orders-plan.md](quotation-orders-plan.md) | The full programme this is phase one of | 📋 Proposal |
-| [../prom-discount/promotions-discounts-plan.md](../prom-discount/promotions-discounts-plan.md) | Promotions, agreements and rebates | 📋 Proposal |
+| [../prom-discount/](../prom-discount/README.md) | Promotions, agreements and rebates — designed, not built | 📋 Proposal |
 
 ---
 
@@ -37,6 +37,18 @@ comes from one `IQuotationCalculator`, so the preview, the stored document, the 
 queue and the list row cannot disagree. Submission re-reads prices from SAP and refuses
 a document whose prices moved. An approver in the portal approves, returns or rejects
 it, and cannot act on a quotation they raised themselves.
+
+---
+
+## Who may do what
+
+| Surface | May | May not |
+|---|---|---|
+| **Mobile** (`quotations.create`, `.update`, `.read`) | Author a draft, price it, submit it for review, cancel it | **Reach SAP.** No route, no permission, no transition |
+| **Admin portal** (`quotations.approve`) | Approve, return, reject | Submit to SAP — that is a separate permission |
+| **Admin portal** (`quotations.sap`) | Put an approved quotation into SAP, retry a refused one, read the attempt log | Approve — separation of duties is preserved in both directions |
+
+A representative's responsibility ends at **Admin Review**.
 
 ---
 
@@ -67,7 +79,9 @@ Deliberate omissions, each blocked on something outside the code:
 
 | Missing | Blocked on |
 |---|---|
-| SAP quotation creation, readback, reconciliation | The `CreateQuot` request contract is unverified, and there is no non-production SAP connection to write test documents into |
+| Readback of SAP's own net values (`GetQuotItemByPaging`) | Nothing reads the priced document back, so `sapNet` stays null and totals stay estimates even after SAP has the quotation |
+| A reconciliation job for unresolved attempts | An attempt that timed out sits in `Unknown` until somebody submits again, which adopts the document if SAP holds it. There is no background sweep |
+| Automatic submission on approval | Deliberate. Submission is an explicit administrative act, not a side effect of approving |
 | Sales orders and the customer accept/decline path | No sales-order endpoint exists in the middleware |
 | Promotions, depot agreements, rebates, campaigns | A separate feature; see the promotions plan. A quotation line already carries a `Agreement` discount kind for it to write into |
 | Price requests (a manual price on an unpriced line) | An open business decision about who may set a price |

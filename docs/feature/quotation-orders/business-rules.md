@@ -149,6 +149,41 @@ closed by the decision, not by its author changing their mind.
 
 ---
 
+## Submitting to SAP
+
+| Rule | Where | Answer |
+|---|---|---|
+| Only `quotations.sap` may submit | `SubmitQuotationToSapCommand` attribute | `403` |
+| Only an **approved** quotation may be submitted | `Quotation.BeginSapSubmission` | `409 Quotation.NotApprovedForSap` |
+| A quotation SAP already holds is never sent again | `Quotation.BeginSapSubmission` | `409 Quotation.AlreadyInSap` |
+| An attempt in flight or unresolved blocks a new one | `Quotation.BeginSapSubmission` | `409 Quotation.SapSubmissionInFlight` |
+| A retry is allowed only from `SapFailed` | same guard | — |
+| A 2xx with no document number is not a success | `Quotation.RecordSapQuotationCreated` | recorded as `Failed` |
+| Every attempt is recorded before anything is sent | `SapSubmission` | — |
+| SAP's error text never leaves the server | `SapSubmissionDto` omits it | — |
+| Submission is disabled unless configured | `SapQuotationService.EnsureEnabled` | recorded as `Failed` |
+
+**Mobile cannot reach SAP, structurally.** Three independent things would each have to
+be undone: the permission (held by no mobile role), the absence of any mobile route
+dispatching the command, and the aggregate refusing to begin from anything but
+`Approved`.
+
+**A SAP refusal is a successful command.** The pipeline rolls a transaction back on a
+failure result, which would discard the attempt record and the status change that say
+what SAP refused. So anything SAP *answered* completes successfully and the outcome is
+read from `sapQuotationStatus`.
+
+**A timeout is not a failure.** If the request left the wire and no answer came, SAP may
+hold the document. That is `Unknown`, and it is deliberately not retryable — the next
+submission looks the quotation number up first and adopts the document if SAP has it.
+Resending would commit a customer to two quotations, and SAP has no way to know the
+second was an accident.
+
+**Look before creating, always.** One extra call per submission, and it is what turns an
+unresolved attempt into a resolved one.
+
+---
+
 ## Logging
 
 Ids, numbers, statuses and counts. **No amounts, no prices, no customer commercial

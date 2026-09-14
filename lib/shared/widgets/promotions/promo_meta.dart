@@ -141,26 +141,26 @@ class PromoMetaChip extends StatelessWidget {
           borderRadius: BorderRadius.circular(context.rr(8)),
           border: Border.all(color: colors.border),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: context.rr(12), color: colors.iconMuted),
-            SizedBox(width: context.rw(5)),
-            // Flexible, not a bare Text: the chip sizes to its content, so at
-            // 200% text scale a long category ("All Structural Steel") is wider
-            // than the card and overflows the row rather than wrapping
-            // (FS-A11Y-2).
-            Flexible(
-              child: Text(
-                value,
+        child: Text.rich(
+          TextSpan(
+            children: [
+              WidgetSpan(
+                alignment: PlaceholderAlignment.middle,
+                child: Padding(
+                  padding: EdgeInsets.only(right: context.rw(5)),
+                  child: Icon(icon, size: context.rr(12), color: colors.iconMuted),
+                ),
+              ),
+              TextSpan(
+                text: value,
                 style: TextStyle(
                   color: colors.textSecondary,
                   fontSize: context.rsp(11),
                   fontWeight: FontWeight.w600,
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -190,22 +190,26 @@ class PromoStatusChip extends StatelessWidget {
         color: tone.surfaceOn(context),
         borderRadius: BorderRadius.circular(context.rr(20)),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(tone.icon, size: context.rr(12), color: tone.accent),
-          SizedBox(width: context.rw(4)),
-          Flexible(
-            child: Text(
-              tone.labelKey.tr,
+      child: Text.rich(
+        TextSpan(
+          children: [
+            WidgetSpan(
+              alignment: PlaceholderAlignment.middle,
+              child: Padding(
+                padding: EdgeInsets.only(right: context.rw(4)),
+                child: Icon(tone.icon, size: context.rr(12), color: tone.accent),
+              ),
+            ),
+            TextSpan(
+              text: tone.labelKey.tr,
               style: TextStyle(
                 color: tone.accent,
                 fontSize: context.rsp(10.5),
                 fontWeight: FontWeight.w800,
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

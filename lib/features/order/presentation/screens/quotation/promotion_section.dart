@@ -9,6 +9,7 @@ import 'package:isi_steel_sales_mobile/features/order/domain/usecases/quotation_
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/promotion_detail_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/quotation/promotions_mock_data.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quotation/promo_quotation_preview_card.dart';
+
 import 'package:isi_steel_sales_mobile/shared/widgets/promotions/promo_card.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/promotions/promo_view.dart';
 
@@ -168,17 +169,43 @@ class _PromotionSectionWidgetState extends State<PromotionSectionWidget> {
                       context.rw(12),
                       context.rh(12),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        for (final group in _groups)
-                          if (group.promos.isNotEmpty)
-                            _GroupBlock(
-                              group: group,
-                              now: _now,
-                              terms: widget.terms,
-                            ),
-                      ],
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final groups = _groups.where((g) => g.promos.isNotEmpty).toList();
+                        
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            for (int i = 0; i < groups.length; i += 2)
+                              Padding(
+                                padding: EdgeInsets.only(bottom: context.rh(16)),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      child: _GroupBlock(
+                                        group: groups[i],
+                                        now: _now,
+                                        terms: widget.terms,
+                                      ),
+                                    ),
+                                    SizedBox(width: context.rw(12)),
+                                    if (i + 1 < groups.length)
+                                      Expanded(
+                                        child: _GroupBlock(
+                                          group: groups[i + 1],
+                                          now: _now,
+                                          terms: widget.terms,
+                                        ),
+                                      )
+                                    else
+                                      const Expanded(child: SizedBox()),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        );
+                      }
                     ),
                   )
                 : const SizedBox(width: double.infinity),
@@ -295,112 +322,123 @@ class _GroupBlockState extends State<_GroupBlock> {
     final ordered = [...widget.group.promos]
       ..sort((a, b) => a.endsOn.compareTo(b.endsOn));
 
-    // Preview the soonest promotion the rep can actually use, and only fall
-    // back to a blocked one when the whole group is blocked.
-    final preview = ordered.firstWhere(
-      (p) => p.isAvailableFor(widget.now, widget.terms),
-      orElse: () => ordered.first,
-    );
-    final remaining = ordered.length - 1;
+    final displayCount = ordered.length;
 
-    return Padding(
-      padding: EdgeInsets.only(bottom: context.rh(14)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  widget.group.titleKey.tr,
-                  style: TextStyle(
-                    color: colors.textPrimary,
-                    fontSize: context.rsp(13),
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-              if (remaining > 0)
-                InkWell(
-                  onTap: () => _openAll(context, ordered),
-                  borderRadius: BorderRadius.circular(context.rr(8)),
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: context.rw(8),
-                      vertical: context.rh(10),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'promotions.see_all'
-                              .trParams({'count': '${ordered.length}'}),
-                          style: TextStyle(
-                            color: scheme.primary,
-                            fontSize: context.rsp(12),
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        SizedBox(width: context.rw(2)),
-                        Icon(Icons.chevron_right_rounded,
-                            size: context.rr(16), color: scheme.primary),
-                      ],
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          SizedBox(height: context.rh(6)),
-          PromoCard(
-            promo: preview,
-            now: widget.now,
-            terms: widget.terms,
-            showCode: false,
-            onTap: () => _openAll(context, ordered),
-          ),
-          SizedBox(height: context.rh(4)),
-          Align(
-            alignment: Alignment.centerRight,
-            child: InkWell(
-              onTap: () {
-                HapticFeedback.selectionClick();
-                setState(() => _showQuotationPreview = !_showQuotationPreview);
-              },
-              borderRadius: BorderRadius.circular(context.rr(6)),
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: context.rw(8),
-                  vertical: context.rh(4),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      _showQuotationPreview
-                          ? Icons.visibility_off_outlined
-                          : Icons.receipt_long_outlined,
-                      size: context.rw(13),
-                      color: scheme.primary,
-                    ),
-                    SizedBox(width: context.rw(4)),
-                    Text(
-                      _showQuotationPreview
-                          ? 'Hide Quotation Format'
-                          : 'Quotation Format Preview',
-                      style: TextStyle(
-                        fontSize: context.rsp(11),
-                        fontWeight: FontWeight.w700,
-                        color: scheme.primary,
-                      ),
-                    ),
-                  ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                widget.group.titleKey.tr,
+                style: TextStyle(
+                  color: colors.textPrimary,
+                  fontSize: context.rsp(12),
+                  fontWeight: FontWeight.w800,
                 ),
               ),
             ),
+            if (displayCount > 1)
+              InkWell(
+                onTap: () => _openAll(context, ordered),
+                borderRadius: BorderRadius.circular(context.rr(8)),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: context.rw(4),
+                    vertical: context.rh(4),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'See all $displayCount',
+                        style: TextStyle(
+                          color: scheme.primary,
+                          fontSize: context.rsp(11),
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      Icon(Icons.chevron_right_rounded,
+                          size: context.rr(14), color: scheme.primary),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
+        SizedBox(height: context.rh(8)),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            // Give the PromoCard 42% more layout width (1 / 0.7 = 1.428) 
+            // so that when FittedBox scales it back down to constraints.maxWidth, 
+            // it is exactly 30% smaller (0.7 scale).
+            return FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.topCenter,
+              child: SizedBox(
+                width: constraints.maxWidth / 0.7,
+                child: PromoCard(
+                  promo: ordered.first,
+                  now: widget.now,
+                  terms: widget.terms,
+                  onTap: () => _openAll(context, ordered),
+                  showCode: false,
+                ),
+              ),
+            );
+          }
+        ),
+        SizedBox(height: context.rh(8)),
+        Align(
+          alignment: Alignment.centerRight,
+          child: InkWell(
+            onTap: () {
+              HapticFeedback.selectionClick();
+              setState(() => _showQuotationPreview = !_showQuotationPreview);
+            },
+            borderRadius: BorderRadius.circular(context.rr(6)),
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: context.rw(4),
+                vertical: context.rh(4),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    _showQuotationPreview
+                        ? Icons.visibility_off_outlined
+                        : Icons.receipt_long_outlined,
+                    size: context.rw(12),
+                    color: scheme.primary,
+                  ),
+                  SizedBox(width: context.rw(4)),
+                  Flexible(
+                    child: Text(
+                      _showQuotationPreview
+                          ? 'Hide Preview'
+                          : 'Quotation Format Preview',
+                      style: TextStyle(
+                        fontSize: context.rsp(10.5),
+                        fontWeight: FontWeight.w700,
+                        color: scheme.primary,
+                      ),
+                      textAlign: TextAlign.right,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-          if (_showQuotationPreview) PromoQuotationPreviewCard(promo: preview),
+        ),
+        if (_showQuotationPreview) ...[
+          SizedBox(height: context.rh(4)),
+          PromoQuotationPreviewCard(promo: ordered.first),
         ],
-      ),
+      ],
     );
   }
 

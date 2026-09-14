@@ -2,7 +2,7 @@
 
 **What it is:** the three tables the feature owns, and why each column is there.
 **Status:** Active · **Last updated:** 2026-09-11
-**Migration:** `20260911082009_AddQuotations`
+**Migrations:** `20260911082009_AddQuotations`, `20260914065631_AddSapSubmissions`
 
 PostgreSQL through EF Core. GUID v7 keys, snake_case columns, `timestamptz`
 throughout, audit columns stamped by `AuditableEntityInterceptor`.
@@ -33,9 +33,11 @@ the platform's `version` column.
 | `revision` | int | Incremented on every return |
 | `required_approval_level` | int | Computed at submit from the largest manual discount, and stored so the queue can filter and the audit can say *why* |
 | `submitted_at` · `decided_by` · `decided_at` · `decision_reason` | — | The approval trail's summary; the full trail is in `approval_records` |
-| `sap_quotation_number` · `sap_order_number` | varchar(32) | Always null in this release |
+| `sap_quotation_number` | varchar(32) | SAP's document number, set when a submission succeeds |
+| `sap_order_number` | varchar(32) | Always null — sales orders are not built |
+| `sap_submitted_at` · `sap_confirmed_at` | timestamptz, null | When the last attempt began, and when its answer was recorded |
 | `estimate_net` | numeric(18,6) | The calculator's document total |
-| `sap_net` | numeric(18,6), null | SAP's. Null until readback exists — and `totals.isEstimate` is derived from it being null |
+| `sap_net` | numeric(18,6), null | SAP's. **Still null** — nothing reads the priced document back yet, so totals stay estimates even after SAP holds the quotation |
 
 **Why `numeric(18,6)` and not the platform's default `(18,4)`?** A `US3` unit price of
 0.475 multiplied over a tonnage carries more significant digits than an invoice total
@@ -98,6 +100,39 @@ One row per deduction, **not** one column per kind.
 line can carry several at once. Columns would mean a migration every time the business
 invents a ninth, and no way to record the one thing that matters most — which rule or
 approval produced *this* reduction.
+
+---
+
+## `sap_submissions`
+
+The outbox. One row per attempt to put a document into SAP.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | uuid | |
+| `quotation_id` | uuid | **No foreign key**, deliberately — an attempt record must outlive whatever happens to the quotation |
+| `kind` | int | `Quotation` = 0, `SalesOrder` = 1 (declared, never written) |
+| `attempt` | int | 1-based, per quotation |
+| `idempotency_ref` | varchar(64) | The platform quotation number, sent as `PurchaseOrderNo`. **The key lookup-before-create searches on** |
+| `state` | int | `Pending` · `Sent` · `Unknown` · `Succeeded` · `Failed` |
+| `request_json` | jsonb | The payload, verbatim. A refusal is almost always explained by exactly what was sent |
+| `response_status` | int, null | The HTTP status SAP answered with |
+| `sap_document_number` | varchar(32), null | What SAP created |
+| `sap_error_code` | varchar(64), null | Stable code, safe to return to a client |
+| `sap_error_text` | varchar(4000), null | **SAP's own words. Server-side only** — names hosts, connection ids and ABAP objects |
+| `correlation_id` | varchar(128), null | Joins a row to a log line |
+| `started_at` · `completed_at` | timestamptz | |
+
+**Indexes** — `(quotation_id, attempt)` for the attempt log, `state` for finding
+unresolved attempts, `idempotency_ref` for reconciliation.
+
+**Rows are appended and settled, never rewritten.** The history is the point: it is what
+a support desk reads when a customer asks why their quotation is not in SAP, and what
+stops a document SAP already holds being sent twice.
+
+**`Unknown` is the state this table exists for.** A request that timed out after the
+payload left the wire has not failed — SAP may hold the document — and retrying such an
+attempt is how duplicates are made.
 
 ---
 

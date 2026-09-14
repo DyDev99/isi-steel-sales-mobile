@@ -21,6 +21,7 @@ class GeoLevelField extends StatelessWidget {
     required this.onTap,
     this.errorText,
     this.isRequired = false,
+    this.compact = false,
   });
 
   final GeoLevel level;
@@ -29,6 +30,7 @@ class GeoLevelField extends StatelessWidget {
   final VoidCallback onTap;
   final String? errorText;
   final bool isRequired;
+  final bool compact;
 
   bool get _isLocked => levelState.status == GeoLevelStatus.locked;
   bool get _isLoading => levelState.status == GeoLevelStatus.loading;
@@ -38,95 +40,260 @@ class GeoLevelField extends StatelessWidget {
   /// stay tappable, because the retry lives inside the sheet it opens.
   bool get _isEnabled => !_isLocked && !_isLoading;
 
+  IconData get _icon => switch (level) {
+        GeoLevel.province => Icons.account_balance_outlined,
+        GeoLevel.district => Icons.location_on_outlined,
+        GeoLevel.commune => Icons.groups_outlined,
+        GeoLevel.village => Icons.home_outlined,
+      };
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final hasError = errorText != null;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: 6),
-          child: RichText(
-            text: TextSpan(
-              text: level.labelKey.tr,
-              style: theme.textTheme.labelLarge?.copyWith(
-                color: theme.colorScheme.onSurface,
-                fontWeight: FontWeight.w500,
-              ),
-              children: [
-                if (isRequired)
-                  TextSpan(
-                    text: ' *',
-                    style: TextStyle(color: theme.colorScheme.error),
-                  ),
-              ],
-            ),
-          ),
+    final card = Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: compact ? 10 : 12,
+        vertical: compact ? 8 : 10,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: hasError
+              ? theme.colorScheme.error
+              : const Color(0xFFE2E8F0),
+          width: 1.1,
         ),
-        Semantics(
-          button: true,
-          enabled: _isEnabled,
-          // Spoken as "District, Chamkar Mon, button" rather than as a bare
-          // "button" — the label is a sibling widget, so it is not announced
-          // with the value unless it is repeated here.
-          label: level.labelKey.tr,
-          value: _valueLabel(context),
-          child: InkWell(
-            onTap: _isEnabled ? onTap : null,
-            borderRadius: BorderRadius.circular(12),
-            child: InputDecorator(
-              isEmpty: false,
-              decoration: InputDecoration(
-                enabled: _isEnabled,
-                filled: true,
-                fillColor: _isLocked
-                    ? theme.colorScheme.surfaceContainerHighest
-                        .withValues(alpha: 0.4)
-                    : theme.colorScheme.surfaceContainerHighest
-                        .withValues(alpha: 0.15),
-                errorText: errorText,
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 6,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: compact
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEFF6FF),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Center(
+                        child: Icon(
+                          _icon,
+                          color: theme.colorScheme.primary,
+                          size: 14,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: RichText(
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        text: TextSpan(
+                          text: level.labelKey.tr,
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            color: theme.colorScheme.onSurface,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12,
+                          ),
+                          children: [
+                            if (isRequired)
+                              TextSpan(
+                                text: ' *',
+                                style: TextStyle(
+                                  color: theme.colorScheme.error,
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 12,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                suffixIcon: _suffix(theme),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      _valueLabel(context),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        color: selected != null
-                            ? theme.colorScheme.onSurface
-                            : theme.colorScheme.onSurfaceVariant,
-                        fontWeight: selected != null
-                            ? FontWeight.w500
-                            : FontWeight.w400,
+                const SizedBox(height: 5),
+                Semantics(
+                  button: true,
+                  enabled: _isEnabled,
+                  label: level.labelKey.tr,
+                  value: _valueLabel(context),
+                  child: InkWell(
+                    onTap: _isEnabled ? onTap : null,
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _isLocked
+                            ? const Color(0xFFF1F5F9)
+                            : const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: const Color(0xFFE2E8F0),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              _valueLabel(context),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: selected != null
+                                    ? theme.colorScheme.onSurface
+                                    : const Color(0xFF94A3B8),
+                                fontWeight: selected != null
+                                    ? FontWeight.w600
+                                    : FontWeight.w400,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                          _suffix(theme),
+                        ],
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
+            )
+          : Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Center(
+                    child: Icon(
+                      _icon,
+                      color: theme.colorScheme.primary,
+                      size: 18,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      RichText(
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        text: TextSpan(
+                          text: level.labelKey.tr,
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            color: theme.colorScheme.onSurface,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
+                          ),
+                          children: [
+                            if (isRequired)
+                              TextSpan(
+                                text: ' *',
+                                style: TextStyle(
+                                  color: theme.colorScheme.error,
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 13,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      Semantics(
+                        button: true,
+                        enabled: _isEnabled,
+                        label: level.labelKey.tr,
+                        value: _valueLabel(context),
+                        child: InkWell(
+                          onTap: _isEnabled ? onTap : null,
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 7,
+                            ),
+                            decoration: BoxDecoration(
+                              color: _isLocked
+                                  ? const Color(0xFFF1F5F9)
+                                  : const Color(0xFFF8FAFC),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: const Color(0xFFE2E8F0),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    _valueLabel(context),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: selected != null
+                                          ? theme.colorScheme.onSurface
+                                          : const Color(0xFF94A3B8),
+                                      fontWeight: selected != null
+                                          ? FontWeight.w600
+                                          : FontWeight.w400,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ),
+                                _suffix(theme),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ),
-        ),
-        if (_hasFailed && !hasError)
+    );
+
+    if (hasError || _hasFailed) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          card,
           Padding(
             padding: const EdgeInsets.only(top: 6, left: 4),
             child: Text(
-              'geo.error.load_failed'.tr,
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: theme.colorScheme.error),
+              errorText ?? 'geo.error.load_failed'.tr,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.error,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
-      ],
-    );
+        ],
+      );
+    }
+    return card;
   }
 
   Widget _suffix(ThemeData theme) {

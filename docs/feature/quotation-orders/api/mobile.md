@@ -7,13 +7,17 @@
 
 ---
 
-## The two rules a client must follow
+## The three rules a client must follow
 
 1. **Compute nothing.** Render `totals` and each line's `gross` / `discountTotal` /
    `net` exactly as they arrive. Every write returns the recalculated document, and
    `GET .../preview` returns it without changing anything.
 2. **Send intent, never money.** Material codes, quantities and discount *percentages*
    go up. Prices, amounts, totals, tax and approval levels come down.
+3. **The app never sends a quotation to SAP.** A representative's responsibility ends
+   at **Admin Review**. There is no mobile route that reaches SAP, no mobile role holds
+   `quotations.sap`, and the aggregate refuses a submission that is not approved — so
+   this is not a rule the app has to remember, it is one it cannot break.
 
 Render a price as all four of its fields — `0.475 US3 / KG`, or
 `47.50 US3 / 100 KG` when `pricingUnit` is not 1. The amount alone means eight
@@ -58,7 +62,31 @@ An unrecognised `status` matches **nothing**, not everything — a typo that sil
 returned the whole list is how a representative ends up looking at another tab's
 documents.
 
-A representative sees their own book. `quotations.readall` widens it.
+### Filtering by sales representative
+
+**There is no `ownerUserId` parameter, and the app must not send one.** The scoping is
+automatic and comes from the access token:
+
+| Caller | Sees | How |
+|---|---|---|
+| A representative (`quotations.read`) | **Only the quotations they raised** | The handler adds `WHERE owner_user_id = <caller>` before any other filter |
+| A supervisor who also holds `quotations.readall` | Everyone's | The ownership filter is skipped |
+
+So "my quotations" needs no filter at all — `GET /api/v1/mobile/quotations` already
+returns exactly that for a representative. The owner is `owner_user_id`, set to the
+user who created the quotation and never reassigned.
+
+**This is enforced, not a convenience.** A representative cannot widen it by sending a
+parameter, and another representative's quotation answers `404` on the detail route
+rather than `403` — naming it would confirm a commercial document they have no right
+to know exists.
+
+> **Gap, if the app has a supervisor view.** A supervisor holding `quotations.readall`
+> sees the whole team's book on mobile with **no way to narrow it to one
+> representative** — the parameter exists on the query but the mobile controller pins
+> it to null. The admin surface does expose it
+> (`GET /api/v1/quotations?ownerUserId=…`, see [admin.md](admin.md)). Ask before
+> building a per-rep filter against this endpoint.
 
 ### The five tab groups
 
@@ -239,9 +267,32 @@ cannot be reopened. Confirm it in the app.
 
 ---
 
-## After submit
+## After submit — "Admin Review"
 
-The document is `PendingApproval` and read-only. An approver in the portal approves,
+The document is `PendingApproval` and read-only. **Show `statusDisplay`, branch on
+`status`.**
+
+```json
+{ "status": "PendingApproval", "statusGroup": "Waiting", "statusDisplay": "Admin Review" }
+```
+
+`statusDisplay` is localised server-side (EN/KM) from the request's language, so the
+business can rename the step without breaking a client. `status` is the stable code and
+is what your `switch` should read; `statusGroup` drives the tabs.
+
+From here the document is out of the representative's hands. An administrator approves,
+returns or rejects it, and — as a **separate** action in the web portal — puts it into
+SAP. Statuses a client will then see:
+
+| `status` | `statusDisplay` | What happened |
+|---|---|---|
+| `Approved` | Approved | Released internally. **Not yet in SAP** |
+| `SubmittingToSap` | Submitting to SAP | An administrator triggered the submission |
+| `Quoted` | Submitted to SAP | SAP holds it; `sapQuotationNumber` is set |
+| `SapFailed` | SAP submission failed | SAP refused. An administrator will retry |
+
+Handle all of them. A client that throws on an unknown `status` will break the first
+time a quotation reaches SAP. An approver in the portal approves,
 returns or rejects it.
 
 - **Returned** makes it editable again with `revision` incremented and

@@ -347,13 +347,13 @@ class AddCustomerBloc extends Bloc<AddCustomerEvent, AddCustomerState> {
 
   void _onNextStep(NextStep event, Emitter<AddCustomerState> emit) {
     _trace.step('next',
-        '${state.currentStep.number}/5 ${state.currentStep.name}', const {});
+        '${state.currentStep.number}/6 ${state.currentStep.name}', const {});
 
     final errors = state.draft.validateStep(state.currentStep);
     if (errors.isNotEmpty) {
       _trace.fail(
         'step',
-        '${state.currentStep.number}/5 ${state.currentStep.name}',
+        '${state.currentStep.number}/6 ${state.currentStep.name}',
         {'missing': DebugTrace.names(errors.keys)},
       );
       emit(state.copyWith(errors: errors));
@@ -367,7 +367,7 @@ class AddCustomerBloc extends Bloc<AddCustomerEvent, AddCustomerState> {
       currentStep: BpFormStep.values[state.currentStep.index + 1],
       status: AddCustomerStatus.editing,
     ));
-    _trace.ok('step', '${state.currentStep.number}/5 ${state.currentStep.name}',
+    _trace.ok('step', '${state.currentStep.number}/6 ${state.currentStep.name}',
         const {});
     _persistDraft();
   }

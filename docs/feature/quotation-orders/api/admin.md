@@ -18,6 +18,8 @@
 | `POST` | `/{id}/approve` | `quotations.approve` | Accept |
 | `POST` | `/{id}/return` | `quotations.approve` | Send back for rework, with a reason |
 | `POST` | `/{id}/reject` | `quotations.approve` | Refuse outright, with a reason |
+| `POST` | `/{id}/submit-to-sap` | **`quotations.sap`** | Create the SAP sales quotation. Also the retry |
+| `GET` | `/{id}/sap-submissions` | **`quotations.sap`** | Every attempt, for troubleshooting |
 
 The three decisions are **verbs, not a status assignment**. A single "set status"
 endpoint would let a caller move a quotation anywhere the enum allows, which is exactly
@@ -75,15 +77,83 @@ would leave nobody able to explain why a refused document is being worked on aga
 
 ## What approval does **not** do
 
-**It does not create a SAP quotation.** That path is a background job with an outbox,
-lookup-before-create and an honest "unknown" outcome for a request that timed out after
-the payload left the wire — and it does not exist yet, because the `CreateQuot` request
-contract is unverified and there is no non-production SAP connection to write test
-documents into.
+**It does not create a SAP quotation.** Approving releases the document inside the
+platform and nothing else; it leaves `sapQuotationStatus: "NotSent"`. Putting the
+quotation into SAP is a separate, explicitly triggered act with its own permission —
+so approving cannot have an ERP side effect somebody did not intend.
 
-An approved quotation rests at `Approved`, with `sapQuotationStatus: "NotSent"` and
-`sapQuotationNumber: null`. That is exactly what it is, and the API says so rather than
-implying a document exists in the ERP.
+---
+
+## `POST /{id}/submit-to-sap` — the only path to a SAP document
+
+**Not on the mobile surface, and not reachable from it.** A representative's
+responsibility ends at Admin Review.
+
+### Guards, all server-side
+
+| Guard | Answer |
+|---|---|
+| Caller lacks `quotations.sap` | `403` |
+| The quotation is not approved | `409 Quotation.NotApprovedForSap` |
+| SAP already holds it | `409 Quotation.AlreadyInSap` |
+| An attempt is in flight or unresolved | `409 Quotation.SapSubmissionInFlight` |
+
+### A SAP refusal returns `200`
+
+This looks wrong and is deliberate. The command pipeline rolls a transaction back when
+a handler returns a failure — which would discard the attempt record and the status
+change that say what SAP refused. So anything SAP *answered*, rejection included,
+completes successfully.
+
+**Read the outcome from the returned document, not the HTTP status:**
+
+| `sapQuotationStatus` | Meaning | Next step |
+|---|---|---|
+| `Created` | SAP holds it; `sapQuotationNumber` is set | Nothing |
+| `Failed` | SAP answered and refused | Read `GET .../sap-submissions`, fix, submit again |
+| `Unknown` | Sent, answer never arrived | **Do not resubmit.** Submitting again looks it up first and adopts the document if SAP has it |
+
+Only a guard violation — where nothing was attempted — returns an error status.
+
+### Lookup before create
+
+Every submission asks SAP whether it already holds a quotation carrying this
+document's number (`purchaseOrderNo`) before creating one. That is what turns an
+attempt whose outcome was never seen into a resolved one instead of a second sales
+document.
+
+### Retry
+
+The same endpoint. Allowed only from `SapFailed`, where SAP answered and said no, so
+nothing was created. An `Unknown` attempt is deliberately **not** retryable.
+
+### It ships disabled
+
+Until `SAP:QuotationSubmissionEnabled` is set, the call records a failed attempt with
+`Quotation.SapSubmissionDisabled` and nothing leaves the process. Two more settings
+matter before it is switched on:
+
+| Setting | Default | Why |
+|---|---|---|
+| `SAP:QuotationSubmissionEnabled` | `false` | Off until an environment is deliberately pointed at SAP |
+| `SAP:QuotationTestRun` | `true` | Asks SAP to validate and roll back. Proves the payload against real validation without creating a document |
+| `SAP:QuotationDocType` | *none* | No safe default — the wrong type creates a valid document of the wrong kind. SD owns it |
+
+**The request contract is specified** (`QuotCreateRequestDto` is fully declared in the
+middleware's OpenAPI document) but **every response is a bare `200 OK` with no
+schema**, so the document number is read tolerantly across several plausible field
+names and the names SAP actually sent are logged when none match.
+
+---
+
+## `GET /{id}/sap-submissions` — the attempt log
+
+One row per attempt: number, state, the reference SAP was asked to carry, the document
+number it returned, and a stable error code.
+
+**SAP's own error text is not in the response.** It names hosts, connection ids and
+ABAP objects; it is kept in the `sap_submissions` row for an administrator with
+database access.
 
 ---
 

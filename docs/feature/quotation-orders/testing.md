@@ -12,13 +12,14 @@ dotnet test tests/ISI.Application.UnitTests/ISI.Application.UnitTests.csproj \
   --filter "FullyQualifiedName~Quotations"
 ```
 
-27 tests, all passing. The whole `ISI.Application.UnitTests` suite is 335 tests, all
-passing — the quotation work introduced no regression.
+41 tests, all passing. The whole `ISI.Application.UnitTests` suite is 390, all passing
+— no regression.
 
 | File | Covers |
 |---|---|
 | `QuotationCalculatorTests` | The arithmetic: the plan's worked example, `pricingUnit ≠ 1`, `US3` versus `USD` rounding, additive stacking, the per-line cap, a deduction larger than the line, mixed currency, unit mismatch, approval-level routing, the ageing-price warning |
-| `QuotationStateMachineTests` | Every transition the diagram draws and the ones it does not: submit guards, four eyes, approve twice, return as a new revision, reject as terminal, cancel before and after a decision, duplicate lines, the document currency released with the last line, and `Expire()` refused everywhere |
+| `QuotationStateMachineTests` | Every transition the diagram draws and the ones it does not: submit guards, four eyes, approve twice, return as a new revision, reject as terminal, cancel before and after a decision, duplicate lines, the document currency released with the last line |
+| `QuotationSapSubmissionTests` | The duplicate guards: submission refused unless approved, refused once SAP holds it, refused while an attempt is in flight or unresolved; retry allowed only from `SapFailed`; a 2xx with no document number treated as a failure; an `Unknown` attempt resolved by adopting SAP's document; the outbox recording what was sent and what came back |
 
 ---
 
@@ -40,6 +41,18 @@ number* rather than a visible failure, which is the failure mode worth paying fo
 
 ---
 
+## Verified by hand for the SAP flow
+
+| Check | Result |
+|---|---|
+| Mobile cannot reach SAP | The generated OpenAPI document has **no `/mobile/` path containing `sap`** |
+| The submission endpoints are admin-only | Tagged `Admin.Quotations` / `HeadSales.Quotations`, never `Mobile.Quotations` |
+| No mobile role holds `quotations.sap` | Granted to Sales Manager, Head of Sales and Finance only |
+| `statusDisplay` reaches the clients | Present on `QuotationDetailDto` and `QuotationSummaryDto` in the schema |
+| The migration is contained | Two columns on `quotations` plus `sap_submissions`; no drift |
+
+---
+
 ## What is not covered, and why
 
 | Not covered | Reason |
@@ -48,7 +61,9 @@ number* rather than a visible failure, which is the failure mode worth paying fo
 | `IQuotationLinePricer` against real SAP responses | Needs captured `GetPriceByPaging` fixtures for the multi-price and unmapped-row cases |
 | The unique index on `number`, and the concurrent-create race | EF Core's in-memory provider cannot enforce a unique index. This belongs in an integration test against PostgreSQL |
 | Optimistic concurrency between two editors | Same: needs a real database |
-| Anything involving SAP documents | The submission path does not exist |
+| `SapQuotationService` against a real middleware | No captured `CreateQuot` or `GetQuotByPaging` **response** — the OpenAPI document declares both as a bare `200 OK`. The document-number reader tries several plausible names and logs what SAP actually sent |
+| The submission handler end to end | Needs the fake context plus a stubbed `ISapQuotationService`. The domain guards are covered; the orchestration is not |
+| Network-kill during `CreateQuot` producing exactly one document | Needs a fake client that commits then drops the connection. **The highest-value gap on this list** |
 
 ---
 

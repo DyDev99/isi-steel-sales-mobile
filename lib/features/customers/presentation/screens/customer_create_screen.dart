@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/add_customer_bottom_sheet.dart';
 
 /// Full-screen Create Business Partner flow.
@@ -15,21 +13,28 @@ class CustomerCreateScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isTablet = MediaQuery.sizeOf(context).width >= 600;
-    final colors = context.appColors;
+    final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: colors.canvas,
-      appBar: AppBar(
-        backgroundColor: colors.canvas,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        title: Text('customers.add'.tr),
-      ),
-      body: SafeArea(
-        top: false,
-        child: AddCustomerBottomSheet(
-          isTablet: isTablet,
-          isFullScreen: true,
+      extendBodyBehindAppBar: true,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              scheme.primary,
+              scheme.primary.withValues(alpha: 0.2), // Fades down
+            ],
+            stops: const [0.0, 0.5],
+          ),
+        ),
+        child: SafeArea(
+          bottom: false,
+          child: AddCustomerBottomSheet(
+            isTablet: isTablet,
+            isFullScreen: true,
+          ),
         ),
       ),
     );

@@ -1254,6 +1254,9 @@
   "add_customer": {
     "compliance": "Compliance Documents",
     "contact_name": "Contact Name",
+    "review_title": "Review Customer Information",
+    "language": "Language",
+    "price_group": "Price Group",
     "contact_name_hint": "Enter contact person's name",
     "credit_notice": "Customer will be eligible for credit once this information is approved by HQ.",
     "error": {

@@ -39,7 +39,10 @@ class GeoLocationSelector extends StatelessWidget {
     this.title,
     this.showTitle = true,
     this.spacing = 16,
+    this.twoColumn = false,
   });
+
+  final bool twoColumn;
 
   /// Fired on every change, including the resets a parent change causes — so a
   /// host form never has to derive "what did that clear?" itself.
@@ -78,6 +81,7 @@ class GeoLocationSelector extends StatelessWidget {
         title: title,
         showTitle: showTitle,
         spacing: spacing,
+        twoColumn: twoColumn,
       ),
     );
   }
@@ -115,6 +119,7 @@ class _GeoLocationSelectorView extends StatefulWidget {
     required this.title,
     required this.showTitle,
     required this.spacing,
+    this.twoColumn = false,
   });
 
   final ValueChanged<GeoAddress> onChanged;
@@ -122,6 +127,7 @@ class _GeoLocationSelectorView extends StatefulWidget {
   final String? title;
   final bool showTitle;
   final double spacing;
+  final bool twoColumn;
 
   @override
   State<_GeoLocationSelectorView> createState() =>
@@ -248,27 +254,99 @@ class _GeoLocationSelectorViewState extends State<_GeoLocationSelectorView> {
               ),
               SizedBox(height: widget.spacing),
             ],
-            for (final level in GeoLevel.values) ...[
-              GeoLevelField(
-                level: level,
-                levelState: state.levelState(level),
-                selected: state.address.unitAt(level),
-                isRequired: _isRequired(level, state.requirement),
-                errorText: errorFor(_missingErrorFor(level)) ??
-                    (level == GeoLevel.village ? hierarchyError : null),
-                onTap: () => _openPicker(level),
+            if (widget.twoColumn) ...[
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: GeoLevelField(
+                      level: GeoLevel.province,
+                      levelState: state.levelState(GeoLevel.province),
+                      selected: state.address.unitAt(GeoLevel.province),
+                      isRequired: _isRequired(GeoLevel.province, state.requirement),
+                      errorText: errorFor(_missingErrorFor(GeoLevel.province)),
+                      compact: true,
+                      onTap: () => _openPicker(GeoLevel.province),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: GeoLevelField(
+                      level: GeoLevel.district,
+                      levelState: state.levelState(GeoLevel.district),
+                      selected: state.address.unitAt(GeoLevel.district),
+                      isRequired: _isRequired(GeoLevel.district, state.requirement),
+                      errorText: errorFor(_missingErrorFor(GeoLevel.district)),
+                      compact: true,
+                      onTap: () => _openPicker(GeoLevel.district),
+                    ),
+                  ),
+                ],
               ),
               SizedBox(height: widget.spacing),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: GeoLevelField(
+                      level: GeoLevel.commune,
+                      levelState: state.levelState(GeoLevel.commune),
+                      selected: state.address.unitAt(GeoLevel.commune),
+                      isRequired: _isRequired(GeoLevel.commune, state.requirement),
+                      errorText: errorFor(_missingErrorFor(GeoLevel.commune)),
+                      compact: true,
+                      onTap: () => _openPicker(GeoLevel.commune),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: GeoLevelField(
+                      level: GeoLevel.village,
+                      levelState: state.levelState(GeoLevel.village),
+                      selected: state.address.unitAt(GeoLevel.village),
+                      isRequired: _isRequired(GeoLevel.village, state.requirement),
+                      errorText: errorFor(_missingErrorFor(GeoLevel.village)) ??
+                          hierarchyError,
+                      compact: true,
+                      onTap: () => _openPicker(GeoLevel.village),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: widget.spacing),
+              PostalCodeField(
+                value: state.address.postalCode,
+                isDerived: state.address.isPostalCodeDerived,
+                isEditable: state.isPostalCodeEditable,
+                isRequired: state.requirement.postalCode,
+                errorText: errorFor(GeoAddressError.postalCodeUnavailable),
+                compact: false,
+                onChanged: (v) =>
+                    context.read<GeoLocationBloc>().add(GeoPostalCodeEntered(v)),
+              ),
+            ] else ...[
+              for (final level in GeoLevel.values) ...[
+                GeoLevelField(
+                  level: level,
+                  levelState: state.levelState(level),
+                  selected: state.address.unitAt(level),
+                  isRequired: _isRequired(level, state.requirement),
+                  errorText: errorFor(_missingErrorFor(level)) ??
+                      (level == GeoLevel.village ? hierarchyError : null),
+                  onTap: () => _openPicker(level),
+                ),
+                SizedBox(height: widget.spacing),
+              ],
+              PostalCodeField(
+                value: state.address.postalCode,
+                isDerived: state.address.isPostalCodeDerived,
+                isEditable: state.isPostalCodeEditable,
+                isRequired: state.requirement.postalCode,
+                errorText: errorFor(GeoAddressError.postalCodeUnavailable),
+                onChanged: (v) =>
+                    context.read<GeoLocationBloc>().add(GeoPostalCodeEntered(v)),
+              ),
             ],
-            PostalCodeField(
-              value: state.address.postalCode,
-              isDerived: state.address.isPostalCodeDerived,
-              isEditable: state.isPostalCodeEditable,
-              isRequired: state.requirement.postalCode,
-              errorText: errorFor(GeoAddressError.postalCodeUnavailable),
-              onChanged: (v) =>
-                  context.read<GeoLocationBloc>().add(GeoPostalCodeEntered(v)),
-            ),
           ],
         );
       },

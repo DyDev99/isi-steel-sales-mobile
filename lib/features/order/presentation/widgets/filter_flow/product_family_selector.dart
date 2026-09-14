@@ -30,28 +30,37 @@ class ProductFamilySelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        for (var i = 0; i < options.length; i++)
-          FilterFlowStaggeredItem(
-            index: i,
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: _FamilyRow(
-                option: options[i],
-                selected: options[i].value == selectedValue,
-                countLabel: countLabelBuilder?.call(options[i].matchCount),
-                onTap: () => onSelect(options[i]),
-              ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = constraints.maxWidth > 520 ? 4 : 3;
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          padding: EdgeInsets.zero,
+          itemCount: options.length,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: columns,
+            mainAxisSpacing: 8,
+            crossAxisSpacing: 8,
+            childAspectRatio: 1.5,
+          ),
+          itemBuilder: (context, index) => FilterFlowStaggeredItem(
+            index: index,
+            child: _FamilyCard(
+              option: options[index],
+              selected: options[index].value == selectedValue,
+              countLabel: countLabelBuilder?.call(options[index].matchCount),
+              onTap: () => onSelect(options[index]),
             ),
           ),
-      ],
+        );
+      },
     );
   }
 }
 
-class _FamilyRow extends StatelessWidget {
-  const _FamilyRow({
+class _FamilyCard extends StatelessWidget {
+  const _FamilyCard({
     required this.option,
     required this.selected,
     required this.countLabel,
@@ -68,63 +77,65 @@ class _FamilyRow extends StatelessWidget {
     final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
 
-    return AnimatedContainer(
+    return AnimatedScale(
+      scale: selected ? 1.02 : 1,
       duration: FilterFlowTransition.duration,
       curve: FilterFlowTransition.curve,
-      decoration: BoxDecoration(
-        color: selected
-            ? scheme.primary.withValues(alpha: 0.10)
-            : colors.surfaceSoft,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: selected ? scheme.primary : colors.border,
-          width: selected ? 1.4 : 1,
-        ),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
+      child: AnimatedContainer(
+        duration: FilterFlowTransition.duration,
+        curve: FilterFlowTransition.curve,
+        decoration: BoxDecoration(
+          color: selected
+              ? scheme.primary.withValues(alpha: 0.10)
+              : colors.surfaceSoft,
           borderRadius: BorderRadius.circular(14),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        option.label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: selected ? scheme.primary : colors.textPrimary,
-                          fontSize: context.rsp(14),
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      if (countLabel != null) ...[
-                        SizedBox(height: context.rh(2)),
+          border: Border.all(
+            color: selected ? scheme.primary : colors.border,
+            width: selected ? 1.4 : 1,
+          ),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(14),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              child: Stack(
+                children: [
+                  Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
                         Text(
-                          countLabel!,
+                          option.label,
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            color: colors.textSecondary,
-                            fontSize: context.rsp(11.5),
+                            color: selected ? scheme.primary : colors.textPrimary,
+                            fontSize: context.rsp(13),
+                            fontWeight: FontWeight.w800,
+                            height: 1.2,
                           ),
                         ),
+                        
                       ],
-                    ],
+                    ),
                   ),
-                ),
-                Icon(
-                  selected
-                      ? Icons.check_circle_rounded
-                      : Icons.chevron_right_rounded,
-                  size: selected ? 20 : 22,
-                  color: selected ? scheme.primary : colors.iconMuted,
-                ),
-              ],
+                  if (selected)
+                    Positioned(
+                      top: 0,
+                      right: 0,
+                      child: Icon(
+                        Icons.check_circle_rounded,
+                        size: context.rsp(16),
+                        color: scheme.primary,
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
         ),

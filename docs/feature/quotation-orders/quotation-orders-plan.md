@@ -354,7 +354,7 @@ controller, handler or job writes `Status`. This is what makes the table-driven 
 > [!NOTE]
 > The full promotions design — incentive specifications, agreement lifecycle, approval
 > engine, SAP mapping, rebates, data model and screens — is in
-> [promotions-discounts-plan.md](promotions-discounts-plan.md), which is authoritative
+> [promotions-discounts-plan.md](../prom-discount/promotions-discounts-plan.md), which is authoritative
 > where the two differ (it adds *campaigns* as an eighth incentive and decisions D19–D33).
 > This section keeps what the quotation feature needs.
 

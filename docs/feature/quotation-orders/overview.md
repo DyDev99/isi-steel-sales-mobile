@@ -27,22 +27,86 @@ it is true says so on the page.
 
 ## The flow that is built
 
-```text
-Rep: POST /mobile/quotations                    → Draft
-     POST .../lines          (server prices each material from SAP)
-     PUT  .../discounts      (percentage intents, never amounts)
-     GET  .../preview        (one call for the whole draft, debounced)
-     POST .../submit         (prices re-read; refuses if any moved) → PendingApproval
+**Two halves, two surfaces, one hand-off.** A representative authors and submits for
+review; an administrator reviews and, as a separate act, puts the document into SAP.
+The mobile app has no route that reaches SAP — not as a rule somebody enforces, but
+because no such route exists and no mobile role holds the permission.
 
-Admin: GET  /quotations?status=PendingApproval
-       POST /quotations/{id}/approve            → Approved
-            /quotations/{id}/return  {reason}   → Returned  (editable, revision + 1)
-            /quotations/{id}/reject  {reason}   → Rejected  (terminal)
+```text
+MOBILE                                        ADMIN PORTAL
+──────                                        ────────────
+POST /mobile/quotations            → Draft
+POST   .../lines                              (server prices each line from SAP)
+PUT    .../discounts                          (percentage intents only)
+GET    .../preview                            (one call, whole draft)
+POST   .../submit                  → PendingApproval  ← shown as "Admin Review"
+                                              GET  /quotations?status=PendingApproval
+                                              POST /quotations/{id}/approve   → Approved
+                                              POST /quotations/{id}/return    → Returned
+                                              POST /quotations/{id}/reject    → Rejected
+                                              POST /quotations/{id}/submit-to-sap
+                                                      ↓
+                                              SubmittingToSap → Quoted | SapFailed
 ```
 
-`Approved` is where a document rests today. The step after it — a background job that
-creates the SAP quotation through an outbox — does not exist, and nothing pretends it
-does.
+### End to end
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Rep as Sales Rep (Mobile)
+    participant API as Backend API
+    participant DB as PostgreSQL
+    actor Admin as Admin (Web Portal)
+    participant SAP as SAP middleware
+
+    Rep->>API: POST /mobile/quotations (+ lines, discounts)
+    API->>SAP: GET pricing (read-only, per line)
+    SAP-->>API: price + currency + units
+    API->>DB: store quotation, lines, price snapshot
+    Note over API,DB: Status = Draft. Nothing is written to SAP.
+
+    Rep->>API: POST /mobile/quotations/{id}/submit
+    API->>SAP: re-read prices
+    alt a price moved
+        API-->>Rep: 409 Quotation.PriceChanged
+    else prices unchanged
+        API->>DB: Status = PendingApproval
+        API-->>Rep: 200 — statusDisplay "Admin Review"
+    end
+
+    Admin->>API: GET /quotations?status=PendingApproval
+    API-->>Admin: the review queue
+    Admin->>API: POST /quotations/{id}/approve
+    API->>DB: Status = Approved
+    Note over Admin,API: Approving does not call SAP.
+
+    Admin->>API: POST /quotations/{id}/submit-to-sap
+    API->>DB: open sap_submissions attempt, Status = SubmittingToSap
+    API->>SAP: GetQuotByPaging?purchaseOrderNo=QT-…
+    alt SAP already holds it
+        SAP-->>API: existing document
+        API->>DB: adopt number, Status = Quoted
+    else not found
+        API->>SAP: CreateQuot
+        alt created
+            SAP-->>API: document number
+            API->>DB: Status = Quoted, attempt Succeeded
+        else refused
+            SAP-->>API: error
+            API->>DB: Status = SapFailed, attempt Failed + SAP message
+        else timed out after sending
+            API->>DB: Status stays SubmittingToSap, attempt Unknown
+            Note over API,DB: Never retried — SAP may hold it.
+        end
+    end
+    API-->>Admin: 200 with the document and its SAP status
+```
+
+**Why the hand-off is structural, not procedural.** Three independent things would each
+have to be undone for a handset to reach SAP: the `quotations.sap` permission (held by
+no mobile role), the absence of any mobile route dispatching the command, and the
+aggregate's refusal to begin a submission from anything but `Approved`.
 
 ---
 
@@ -51,16 +115,21 @@ does.
 | Dimension | Values | Reachable today |
 |---|---|---|
 | Approval | `NotSubmitted` · `Pending` · `Approved` · `Returned` · `Rejected` | all |
-| SAP quotation | `NotSent` · `Sending` · `Unknown` · `Created` · `Failed` | `NotSent` only |
+| SAP quotation | `NotSent` · `Sending` · `Unknown` · `Created` · `Failed` | **all five** |
 | SAP order | same | `NotSent` only |
 | Customer answer | `Undecided` · `Accepted` · `Declined` | `Undecided` only |
 | Closure | `Cancelled` · `Expired` | `Cancelled` only |
 
 `Quotation.RecomputeStatus()` folds those into one of fifteen `QuotationStatus`
-values. Six are reachable in this release: `Draft`, `PendingApproval`, `Returned`,
-`Approved`, `Rejected`, `Cancelled`. The other nine are declared so that the
-derivation is written once rather than widened later — and `QuotationStateMachineTests`
-asserts that `Expire()` is refused everywhere, which is the honest current answer.
+values. Nine are reachable: `Draft`, `PendingApproval`, `Returned`, `Approved`, `Rejected`,
+`Cancelled`, `SubmittingToSap`, `Quoted` and `SapFailed`. The remaining six belong to
+the customer decision and sales-order phases, which are not built. The rest are declared so the derivation was written once rather than widened later.
+
+**`PendingApproval` is what the business calls "Admin Review".** The stored value and
+the wire value stay `PendingApproval`; `statusDisplay` carries the label, localised, so
+renaming the step never breaks a client that switches on the code. Adding a second
+status for the same state would have meant two names, stored integers to migrate, and
+somewhere switching on the wrong one.
 
 The handset does not show fifteen states. `QuotationStatusGroups` maps them onto five
 tabs — **Drafts**, **Waiting**, **With customer**, **Won**, **Closed** — and the

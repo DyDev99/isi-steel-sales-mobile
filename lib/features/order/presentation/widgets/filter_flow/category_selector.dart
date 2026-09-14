@@ -5,6 +5,7 @@ import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/material_category.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/filter_flow_transition.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
+import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/category_icons/category_icon.dart';
 
 /// Responsive grid selector featuring a 3D tactile card design with dual ambient shadows,
 /// bevel gradients, and a premium "Read More" expander button.
@@ -246,10 +247,12 @@ class _CategoryTile extends StatelessWidget {
                       ),
                     ],
                   ),
-                  child: Icon(
-                    _iconFor(category.icon ?? category.code),
-                    size: context.rsp(20),
-                    color: selected ? scheme.primary : colors.iconMuted,
+                  child: CategoryIcon(
+                    code: category.icon ?? category.code,
+                    name: context.localized(category.name),
+                    active: selected,
+                    showChip: false,
+                    size: context.rsp(24),
                   ),
                 ),
                 SizedBox(height: context.rh(6)),
@@ -266,26 +269,7 @@ class _CategoryTile extends StatelessWidget {
                     height: 1.15,
                   ),
                 ),
-                // How big a haystack this is, before the rep spends a tap.
-                // Hidden rather than zeroed when the count is unknown — the
-                // offline catalog knows a category holds products without
-                // knowing how many, and "0" would read as an empty branch.
-                if (category.materialCount > 0) ...[
-                  SizedBox(height: context.rh(2)),
-                  Text(
-                    _compactCount(category.materialCount),
-                    maxLines: 1,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: selected
-                          ? scheme.primary.withValues(alpha: 0.75)
-                          : colors.textSecondary,
-                      fontSize: context.rsp(8.5),
-                      fontWeight: FontWeight.w600,
-                      height: 1.1,
-                    ),
-                  ),
-                ],
+               
               ],
             ),
           ),
@@ -294,110 +278,5 @@ class _CategoryTile extends StatelessWidget {
     );
   }
 
-  /// Compact enough to sit under a two-line label on a four-column grid.
-  ///
-  /// Exact below a thousand, thousands abbreviated above it: the figure is
-  /// there to convey scale ("this is a big category"), and rendering `1,549`
-  /// in an 8.5pt tile buys precision nobody is acting on at the cost of the
-  /// label above it.
-  static String _compactCount(int count) =>
-      count >= 1000 ? '${(count / 1000).toStringAsFixed(1)}k' : '$count';
-
-  /// Product-specific icon mapping for ISI Steel & building material product lines.
-  static IconData _iconFor(String name) {
-    final n = name.toLowerCase();
-
-    // 1. Roofing, Tiles, Panels & Trusses
-    if (n.contains('tile') || n.contains('wave')) return Icons.roofing_rounded;
-    if (n.contains('deck') || n.contains('panel')) {
-      return Icons.view_quilt_rounded;
-    }
-    if (n.contains('truss') || n.contains('palm') || n.contains('inno')) {
-      return Icons.architecture_rounded;
-    }
-    if (n.contains('roof')) return Icons.roofing_rounded;
-
-    // 2. Flashing, Gutters & Ridge Caps
-    if (n.contains('gutter') ||
-        n.contains('flashing') ||
-        n.contains('ridge') ||
-        n.contains('cap')) {
-      return Icons.border_top_rounded;
-    }
-
-    // 3. Fasteners, Hardware, Screws & Tools
-    if (n.contains('screw') || n.contains('bolt') || n.contains('fastener')) {
-      return Icons.build_circle_outlined;
-    }
-    if (n.contains('weld') || n.contains('electrode')) {
-      return Icons.flash_on_rounded;
-    }
-    if (n.contains('hardware') || n.contains('tool')) {
-      return Icons.hardware_rounded;
-    }
-
-    // 4. Pipes & Tubing (Round, Square, Rectangular)
-    if (n.contains('square') || n.contains('box pipe')) {
-      return Icons.crop_square_rounded;
-    }
-    if (n.contains('pipe') || n.contains('tube') || n.contains('hollow')) {
-      return Icons.circle_outlined;
-    }
-
-    // 5. Structural Steel (Beams, Columns, Purlins, Channels, Angle Bars)
-    if (n.contains('h-beam') || n.contains('i-beam') || n.contains('beam')) {
-      return Icons.table_rows_rounded;
-    }
-    if (n.contains('purlin') ||
-        n.contains('c-purlin') ||
-        n.contains('z-purlin') ||
-        n.contains('cam')) {
-      return Icons.view_week_rounded;
-    }
-    if (n.contains('angle') || n.contains('channel')) {
-      return Icons.turn_right_rounded;
-    }
-    if (n.contains('structural') || n.contains('steel')) {
-      return Icons.grid_goldenratio;
-    }
-
-    // 6. Rebar, Deformed Bars & Wire Mesh
-    if (n.contains('mesh') || n.contains('fence') || n.contains('net')) {
-      return Icons.grid_4x4_rounded;
-    }
-    if (n.contains('rebar') ||
-        n.contains('deformed') ||
-        n.contains('bar') ||
-        n.contains('rod')) {
-      return Icons.straighten_rounded;
-    }
-
-    // 7. Coils, Flat Sheets & Plates
-    if (n.contains('coil') || n.contains('roll')) {
-      return Icons.motion_photos_on_rounded;
-    }
-    if (n.contains('checkered') || n.contains('plate')) {
-      return Icons.grid_on_rounded;
-    }
-    if (n.contains('flat') || n.contains('sheet') || n.contains('slitted')) {
-      return Icons.layers_outlined;
-    }
-
-    // 8. Ceiling, Drywall & Interior
-    if (n.contains('ceiling') ||
-        n.contains('drywall') ||
-        n.contains('stud') ||
-        n.contains('track')) {
-      return Icons.space_dashboard_rounded;
-    }
-    if (n.contains('interior')) return Icons.chair_outlined;
-
-    // 9. Construction / General Building
-    if (n.contains('construction') || n.contains('foundation')) {
-      return Icons.foundation_outlined;
-    }
-
-    // Fallback icon for unrecognized product codes
-    return Icons.inventory_2_outlined;
-  }
+ 
 }

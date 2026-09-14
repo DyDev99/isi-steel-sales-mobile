@@ -1108,6 +1108,9 @@
   "add_customer": {
     "compliance": "ឯកសារអាជ្ញាប័ណ្ណ",
     "contact_name": "ឈ្មោះអ្នកទំនាក់ទំនង",
+    "review_title": "ពិនិត្យមើលព័ត៌មានអតិថិជន",
+    "language": "ភាសា",
+    "price_group": "ក្រុមតម្លៃ",
     "contact_name_hint": "បញ្ចូលឈ្មោះ",
     "credit_notice": "អតិថិជននឹងទទួលបានក្រហមនៅពេលដែលព័ត៌មានត្រូវបានអនុម័ត។",
     "error": {
