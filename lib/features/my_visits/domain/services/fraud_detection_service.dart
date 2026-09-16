@@ -55,7 +55,7 @@ class FraudDetectionService {
     final warnings = <String>[];
 
     if (!insideGeofence) {
-      overridable.add("You're outside the customer's geofence.");
+      overridable.add("You're outside the depot's geofence.");
     }
     if (accuracyMeters > policy.maxAccuracyMeters) {
       overridable.add(

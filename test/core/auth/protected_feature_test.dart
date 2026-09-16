@@ -12,15 +12,15 @@ const _user = User(
   roles: {UserRole.salesRep},
 );
 
-/// A loader that needs the customer directory, like `CustomerSyncCubit`.
-class _CustomerLoader with ProtectedFeature {
-  _CustomerLoader(this.session);
+/// A loader that needs the depot directory, like `DepotSyncCubit`.
+class _DepotLoader with ProtectedFeature {
+  _DepotLoader(this.session);
 
   @override
   final SessionManager session;
 
   @override
-  Set<String> get requiredPermissions => Permissions.canReadCustomers;
+  Set<String> get requiredPermissions => Permissions.canReadDepots;
 
   int runs = 0;
 
@@ -42,11 +42,11 @@ void main() {
   tearDown(() => session.dispose());
 
   test('a signed-in user without the grant cannot load', () async {
-    // A role with neither spelling of the customer grant. Gating on the
+    // A role with neither spelling of the depot grant. Gating on the
     // permission the profile already reports avoids a round trip that could
     // only come back 403.
     session.setUser(_user, permissions: {'visits.create'});
-    final loader = _CustomerLoader(session);
+    final loader = _DepotLoader(session);
 
     expect(session.canCallProtectedApi, isTrue, reason: 'session is fine');
     expect(loader.canLoad, isFalse, reason: 'the grant is what is missing');
@@ -58,9 +58,9 @@ void main() {
 
   test('the outlets spelling grants the same capability', () async {
     // The running backend spells it `outlets.read`. Requiring only
-    // `customers.read` refused a call every rep was entitled to make.
+    // `depots.read` refused a call every rep was entitled to make.
     session.setUser(_user, permissions: {Permissions.outletsRead});
-    final loader = _CustomerLoader(session);
+    final loader = _DepotLoader(session);
 
     expect(loader.canLoad, isTrue);
     await loader.load();
@@ -68,8 +68,8 @@ void main() {
   });
 
   test('a signed-in user with the grant loads', () async {
-    session.setUser(_user, permissions: {Permissions.customersRead});
-    final loader = _CustomerLoader(session);
+    session.setUser(_user, permissions: {Permissions.depotsRead});
+    final loader = _DepotLoader(session);
 
     expect(loader.canLoad, isTrue);
     await loader.load();
@@ -77,20 +77,20 @@ void main() {
   });
 
   test('no session blocks even when the grant would be held', () async {
-    final loader = _CustomerLoader(session); // still initializing
+    final loader = _DepotLoader(session); // still initializing
 
     expect(loader.canLoad, isFalse);
     expect(loader.blockedReason, 'session:initializing');
   });
 
   test('permissions are dropped on sign-out and on expiry', () {
-    session.setUser(_user, permissions: {Permissions.customersRead});
-    expect(session.hasPermission(Permissions.customersRead), isTrue);
+    session.setUser(_user, permissions: {Permissions.depotsRead});
+    expect(session.hasPermission(Permissions.depotsRead), isTrue);
 
     session.clear();
     expect(session.permissions, isEmpty);
 
-    session.setUser(_user, permissions: {Permissions.customersRead});
+    session.setUser(_user, permissions: {Permissions.depotsRead});
     session.expire();
     expect(session.permissions, isEmpty,
         reason: 'a dead session grants nothing');
@@ -106,7 +106,7 @@ void main() {
 
   test('guardedCall distinguishes "sign in" from "not allowed"', () async {
     session.setUser(_user, permissions: const {});
-    final loader = _CustomerLoader(session);
+    final loader = _DepotLoader(session);
 
     final denied = await loader.guardedCall(() async => throw StateError('no'));
     denied.when(

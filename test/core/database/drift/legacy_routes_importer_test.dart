@@ -45,11 +45,11 @@ void main() {
   setUp(() => db = AppDatabase(NativeDatabase.memory()));
   tearDown(() => db.close());
 
-  Future<void> seedCustomer(String id) => db.into(db.customers).insert(
-        CustomersCompanion.insert(
+  Future<void> seedDepot(String id) => db.into(db.depots).insert(
+        DepotsCompanion.insert(
           id: id,
-          sapCustomerId: Value('SAP-$id'),
-          customerCode: 'C-$id',
+          sapDepotId: Value('SAP-$id'),
+          depotCode: 'C-$id',
           shopName: 'Shop $id',
           ownerName: 'Owner',
           phone: '012000000',
@@ -68,7 +68,7 @@ void main() {
       );
 
   Map<String, List<Map<String, Object?>>> legacyFixture() => {
-        'customers': [
+        'depots': [
           {
             'id': 'cust-1',
             'name': 'ISI Hardware',
@@ -100,7 +100,7 @@ void main() {
           {
             'id': 's-1',
             'route_id': 'r-1',
-            'customer_id': 'cust-1',
+            'depot_id': 'cust-1',
             'sequence': 1,
             'planned_arrival': '2026-07-15T09:00:00.000Z',
             'planned_departure': '2026-07-15T10:00:00.000Z',
@@ -131,7 +131,7 @@ void main() {
             'latitude': 11.55,
             'longitude': 104.91,
             'accuracy': 5.0,
-            'distance_from_customer': 12.0,
+            'distance_from_depot': 12.0,
             'is_mocked': 0,
             'sync_status': 'pending',
           },
@@ -193,7 +193,7 @@ void main() {
     });
 
     test('a completed import never runs twice', () async {
-      await seedCustomer('cust-1');
+      await seedDepot('cust-1');
       final source = _FakeLegacySource(legacyFixture());
       await importerFor(source).import();
 
@@ -204,7 +204,7 @@ void main() {
     });
 
     test('re-running is idempotent — no duplicate rows', () async {
-      await seedCustomer('cust-1');
+      await seedDepot('cust-1');
       // Force a genuine second pass by clearing the completion marker.
       await importerFor(_FakeLegacySource(legacyFixture())).import();
       await db.appMetadataDao.setValue(LegacyRoutesImporter.importedAtKey, '');
@@ -220,7 +220,7 @@ void main() {
   });
 
   group('mapping', () {
-    setUp(() => seedCustomer('cust-1'));
+    setUp(() => seedDepot('cust-1'));
 
     test('routes and stops import with legacy ISO dates parsed', () async {
       await importerFor(_FakeLegacySource(legacyFixture())).import();
@@ -290,20 +290,20 @@ void main() {
     });
   });
 
-  group('customer reconciliation', () {
-    test('the legacy customer copy is absorbed, never imported as a customer',
+  group('depot reconciliation', () {
+    test('the legacy depot copy is absorbed, never imported as a depot',
         () async {
-      await seedCustomer('cust-1');
+      await seedDepot('cust-1');
 
       await importerFor(_FakeLegacySource(legacyFixture())).import();
 
-      final customers = await db.select(db.customers).get();
+      final depots = await db.select(db.depots).get();
       expect(
-        customers,
+        depots,
         hasLength(1),
         reason: 'the legacy denormalised copy must not create a second row',
       );
-      final c = customers.single;
+      final c = depots.single;
       // Only the two genuinely-unique fields are taken.
       expect(c.territoryType, 'urban');
       expect(c.geofenceRadiusOverride, 150.0);
@@ -311,13 +311,13 @@ void main() {
       // different name ('ISI Hardware') and no credit limit at all.
       expect(c.shopName, 'Shop cust-1');
       expect(c.creditLimit, 5000);
-      expect(c.sapCustomerId, 'SAP-cust-1');
+      expect(c.sapDepotId, 'SAP-cust-1');
     });
   });
 
   group('orphan reconciliation — the reason this is not a blind copy', () {
-    test('a stop whose customer never synced is skipped, not fatal', () async {
-      // No seedCustomer: the directory does not know cust-1.
+    test('a stop whose depot never synced is skipped, not fatal', () async {
+      // No seedDepot: the directory does not know cust-1.
       final result =
           await importerFor(_FakeLegacySource(legacyFixture())).import();
 
@@ -351,7 +351,7 @@ void main() {
     });
 
     test('a clean import is safe to purge', () async {
-      await seedCustomer('cust-1');
+      await seedDepot('cust-1');
 
       final result =
           await importerFor(_FakeLegacySource(legacyFixture())).import();
@@ -362,7 +362,7 @@ void main() {
 
     test('a fraud flag with a dangling stop survives with a null stop',
         () async {
-      await seedCustomer('cust-1');
+      await seedDepot('cust-1');
 
       await importerFor(_FakeLegacySource(legacyFixture())).import();
 
@@ -379,7 +379,7 @@ void main() {
   group('failure handling', () {
     test('a malformed row rolls the whole import back and leaves no marker',
         () async {
-      await seedCustomer('cust-1');
+      await seedDepot('cust-1');
       final broken = legacyFixture();
       // A route with an unparseable required date: `_dt(...)!` throws.
       broken['routes']!.add({
@@ -411,14 +411,14 @@ void main() {
 
   group('purge', () {
     test('purge empties every business table and closes the source', () async {
-      await seedCustomer('cust-1');
+      await seedDepot('cust-1');
       final source = _FakeLegacySource(legacyFixture());
       final importer = importerFor(source);
       await importer.import();
 
       await importer.purgeLegacyData();
 
-      expect(source.purged, containsAll(['customers', 'stops', 'routes']));
+      expect(source.purged, containsAll(['depots', 'stops', 'routes']));
       expect(
         source.purged,
         isNot(contains('workflow_state')),

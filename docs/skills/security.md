@@ -3,7 +3,7 @@
 > ISI Steel Sales Mobile — Offline-First Enterprise CRM (Flutter)
 > Security architecture, implementation standards, and development guidelines. Implements `docs/skills/engineering-standard.md`; encryption implementation detail lives in `docs/blueprint/local-storage-architecture.md`; release-pipeline security gates reference `docs/blueprint/migration-plan.md`'s DevOps section.
 
-This app handles customer information, sales leads, opportunity data, revenue, offline data, business documents, authentication, and user sessions. Because it is offline-first, meaningful volumes of sensitive data sit on the device between syncs — security is a core architectural concern here, not an add-on.
+This app handles depot information, sales leads, opportunity data, revenue, offline data, business documents, authentication, and user sessions. Because it is offline-first, meaningful volumes of sensitive data sit on the device between syncs — security is a core architectural concern here, not an add-on.
 
 This project follows the **OWASP Mobile Application Security Testing Guide (MASTG)**, the **OWASP MASVS** (Mobile Application Security Verification Standard), and the **OWASP API Security Top 10**. MASVS organizes controls into eight categories — `STORAGE`, `CRYPTO`, `AUTH`, `NETWORK`, `PLATFORM`, `CODE`, `RESILIENCE`, `PRIVACY` — and this document is structured to map cleanly onto them. ([OWASP MAS](https://mas.owasp.org/))
 
@@ -11,7 +11,7 @@ This project follows the **OWASP Mobile Application Security Testing Guide (MAST
 
 ## 1. Security goals
 
-Protect customer information and company business data; prevent unauthorized access; secure offline storage; secure API communication; detect tampering; resist reverse engineering; protect authentication tokens; secure application releases.
+Protect depot information and company business data; prevent unauthorized access; secure offline storage; secure API communication; detect tampering; resist reverse engineering; protect authentication tokens; secure application releases.
 
 ---
 
@@ -50,7 +50,7 @@ Never store passwords, access tokens, or refresh tokens in any of the above. The
 
 Must use encrypted storage: access token, refresh token, user session, API credentials, encryption keys.
 
-Offline-specific data requiring protection (this app's core feature is offline capture, so this list is not optional): customers, leads, opportunities, revenue, orders, draft forms, visit reports, attachments. Requirements: local database encryption, file encryption, cache protection, queue protection (the sync queue itself carries business data and is encrypted as part of the same Drift database), secure synchronization (HTTPS + authenticated requests — §6).
+Offline-specific data requiring protection (this app's core feature is offline capture, so this list is not optional): depots, leads, opportunities, revenue, orders, draft forms, visit reports, attachments. Requirements: local database encryption, file encryption, cache protection, queue protection (the sync queue itself carries business data and is encrypted as part of the same Drift database), secure synchronization (HTTPS + authenticated requests — §6).
 
 ---
 
@@ -113,7 +113,7 @@ Never commit: API keys, Firebase keys, JWT secrets, passwords, certificates, pri
 
 ## 10. Secure logging (MASVS-PRIVACY / MASVS-CODE)
 
-**Never log**: passwords, JWT tokens, API keys, customer information, phone numbers, emails, revenue data.
+**Never log**: passwords, JWT tokens, API keys, depot information, phone numbers, emails, revenue data.
 
 **Allowed**: API endpoint, response code, error code, exception stack traces (development builds only — stripped from release, §11).
 

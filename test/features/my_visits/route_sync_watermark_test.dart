@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isi_steel_sales_mobile/core/network/network_info.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/route_local_data_source.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/data/models/customer_stop_info_model.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/data/models/depot_stop_info_model.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/models/route_plan_model.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/remote/route_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/remote/route_sync_page.dart';
@@ -36,7 +36,7 @@ class _StubRemote implements RouteRemoteDataSource {
   final List<DateTime> sinceSeen = [];
 
   RouteSyncPage _page({required bool hasMore, DateTime? at}) => RouteSyncPage(
-        customers: const <CustomerStopInfoModel>[],
+        depots: const <DepotStopInfoModel>[],
         routes: const <RoutePlanModel>[],
         hasMore: hasMore,
         generatedAt: at ?? generatedAt,
@@ -76,7 +76,7 @@ class _FakeLocal implements RouteLocalDataSource {
       watermark = at;
 
   @override
-  Future<void> upsertCustomers(List<CustomerStopInfoModel> customers) async {}
+  Future<void> upsertDepots(List<DepotStopInfoModel> depots) async {}
   @override
   Future<void> upsertRoutes(List<RoutePlanModel> routes) async {}
   @override

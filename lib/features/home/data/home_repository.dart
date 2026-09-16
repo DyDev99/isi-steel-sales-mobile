@@ -17,7 +17,7 @@ class HomeRepositoryImpl implements HomeRepository {
       openOpportunities: 5,
       wonDeals: 80,
       openOrders: 8,
-      totalCustomers: 120,
+      totalDepots: 120,
       totalRoutes: 5,
       revenueMtd: '\$48.2k',
       winRate: 0.34,

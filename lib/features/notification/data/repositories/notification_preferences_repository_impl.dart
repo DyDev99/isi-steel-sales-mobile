@@ -21,7 +21,7 @@ import 'package:isi_steel_sales_mobile/features/notification/domain/repositories
 /// demand. `docs/blueprint/system-architecture.md` §3 puts exactly that class of data in the
 /// key-value cache, which also means adding this feature needed no schema
 /// migration for it. The **notifications themselves** do go in the encrypted
-/// database, because a title and body name a customer and a route.
+/// database, because a title and body name a depot and a route.
 ///
 /// ## The cache is never authoritative
 ///

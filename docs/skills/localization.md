@@ -14,7 +14,7 @@ broken" reports:
 
 | | **UI copy** | **Master data** |
 |---|---|---|
-| What | Labels, buttons, errors, empty states | Product / category / customer / lead / stop names |
+| What | Labels, buttons, errors, empty states | Product / category / depot / lead / stop names |
 | Source | `assets/lang/<code>.json` | The record itself, carrying both languages |
 | Read via | `'key'.tr` | `context.localized(x.displayName)` |
 | Switch cost | Re-read a map | A rebuild — nothing is re-fetched |
@@ -179,12 +179,12 @@ will.
 |---|---|---|---|
 | `Product` | `name` (SAP `MaterialDes`) | `nameKh` (`MaterialDesKH`) | `displayName` |
 | `Category` | `name.en` | `name.km` | `name` (already a `LocalizedText`) |
-| `Customer` | `shopName` | `khName` (SAP `name3`) | `displayName` |
-| `CustomerStopInfo` | `name` | `nameKh` (projected from the directory) | `displayName` |
+| `Depot` | `shopName` | `khName` (SAP `name3`) | `displayName` |
+| `DepotStopInfo` | `name` | `nameKh` (projected from the directory) | `displayName` |
 | `Lead` | `companyName` | `companyNameKh` | `displayName` |
-| `VisitRecord` | `customerName` | `customerNameKh` | `displayName` |
+| `VisitRecord` | `depotName` | `depotNameKh` | `displayName` |
 
-English resolves to the *always-populated* field (`shopName`, not `enName`) so a customer
+English resolves to the *always-populated* field (`shopName`, not `enName`) so a depot
 SAP has thin master data for still renders. Khmer falls back to English when absent — a
 Latin name a rep can match against the shop sign beats a blank row.
 
@@ -194,7 +194,7 @@ Search matches **both** languages regardless of the active locale. A rep who kno
 by its Khmer sign types that whether or not the UI is in Khmer; returning nothing would be
 a defect, not correct locale handling.
 
-- **SQL**: `CustomerDao.browse` and `CatalogDao` both `LIKE` across the Latin *and* Khmer
+- **SQL**: `DepotDao.browse` and `CatalogDao` both `LIKE` across the Latin *and* Khmer
   columns. `CatalogDao` also sanitises the query with a Unicode-aware pattern
   (`\p{L}\p{N}\p{M}`) — `\w` is ASCII-only and silently deleted every Khmer character,
   which read as "no text filter" and returned the whole catalog.
@@ -269,7 +269,7 @@ a correctly-synced bilingual catalog decayed back to English the longer the app 
 - **Persisted document snapshots** — `quotations.shop_name`, `sales_orders.shop_name` and
   the resumable-workflow `shop_name` record the name *as it was when the document was
   raised*. They are frozen history, not live master data, and must not re-resolve.
-- **Form input values** — the add-customer sheet prefills `shop_name` from the lead's Latin
+- **Form input values** — the add-depot sheet prefills `shop_name` from the lead's Latin
   name even in a Khmer session: the field becomes SAP `name1`, which is Latin-only.
 - The quotation **PDF** localizes through its own `_l(key, fallback)` helper against
   `orders.quotation.pdf.*`, and product lines through `ActiveLanguage` — a Khmer session
@@ -281,7 +281,7 @@ a correctly-synced bilingual catalog decayed back to English the longer the app 
   English sentence templates — `"{company} moved from Leads to Opportunities."`. Localizing
   them needs parameterised keys per activity kind, which is a separate change from this
   master-data work.
-- **`ownerName` / contact names** have no Khmer column in `customers`; adding one is a
+- **`ownerName` / contact names** have no Khmer column in `depots`; adding one is a
   schema migration. Person names are commonly written in Latin in Cambodian business
   systems, so this is deferred rather than forced.
 - **`RoutePlan.name`** carries a translation key for mock plans and a verbatim SAP

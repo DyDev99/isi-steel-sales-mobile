@@ -63,19 +63,29 @@ class AppConstants {
     mobileLoginEndpoint,
   };
 
-  // ── Mobile customer endpoints ──────────────────────────────────────
-  static const String customersEndpoint = '$apiPrefix/mobile/customers';
+  // ── Mobile depot endpoints ──────────────────────────────────────
+  static const String depotsEndpoint = '$apiPrefix/mobile/depots';
 
-  /// Customer depot discount agreements / incentives per
+  /// Depot discount agreements / incentives per
   /// `docs/feature/prom-discount/promotions-discounts-plan.md` §8.1.
-  static String customerAgreementsEndpoint(String customerId) =>
-      '$customersEndpoint/$customerId/agreements';
+  static String depotAgreementsEndpoint(String depotId) =>
+      '$depotsEndpoint/$depotId/agreements';
 
-  static String customerIncentivesEndpoint(String customerId) =>
-      '$customersEndpoint/$customerId/incentives';
+  static String depotIncentivesEndpoint(String depotId) =>
+      '$depotsEndpoint/$depotId/incentives';
 
-  static String customerPromotionsEndpoint(String customerId) =>
-      '$customersEndpoint/$customerId/promotions';
+  static String depotPromotionsEndpoint(String depotId) =>
+      '$depotsEndpoint/$depotId/promotions';
+
+  /// The outlet profile and credit position shown on a visit's stop screen.
+  ///
+  /// Fetched when a stop is opened, **not** with the route sync: the route feed
+  /// carries only what a stop card and a map pin need, and this is the rest.
+  ///
+  /// `{depotId}` is the same GUID the route sync already puts on every stop.
+  /// See `docs/feature/depot/mobile/backend-change-notice.md` §2.
+  static String depotStopInformationEndpoint(String depotId) =>
+      '$depotsEndpoint/$depotId/stop-information';
 
   static const String discountAuthorityEndpoint =
       '$apiPrefix/mobile/me/discount-authority';
@@ -101,15 +111,15 @@ class AppConstants {
   static String quotationHistoryEndpoint(String id) =>
       '$quotationsEndpoint/$id/history';
 
-  /// `GET /customers/by-code/{code}` — the **portal** surface, deliberately not
+  /// `GET /depots/by-code/{code}` — the **portal** surface, deliberately not
   /// under `/mobile`.
   ///
   /// It answers with the portal envelope (`data` + `meta`, no `success`) and the
-  /// portal customer shape (`code` not `customerCode`, a nested `address`, a
+  /// portal depot shape (`code` not `depotCode`, a nested `address`, a
   /// bare `creditLimit` number), so it needs its own parser. Documented as a
   /// rough edge rather than a design — see
-  /// `docs/feature/customer/mobile/mobile.md` §Looking a customer up by code.
-  static const String customersByCodeEndpoint = '$apiPrefix/customers/by-code';
+  /// `docs/feature/depot/mobile/mobile.md` §Looking a depot up by code.
+  static const String depotsByCodeEndpoint = '$apiPrefix/depots/by-code';
 
   /// The server clamps `pageSize` to this rather than rejecting a larger
   /// value, so the real size must be read back from `metadata.pageSize`.
@@ -168,13 +178,13 @@ class AppConstants {
   static String materialAvailabilityEndpoint(String material) =>
       '$apiPrefix/materials/$material/availability';
 
-  /// Customer-specific prices for one or more materials.
+  /// Depot-specific prices for one or more materials.
   ///
-  /// `GET /mobile/pricing/customers/{customerId}?materials=A&materials=B` —
+  /// `GET /mobile/pricing/depots/{depotId}?materials=A&materials=B` —
   /// the `materials` parameter repeats rather than taking a delimited list, so
   /// a quotation with eight lines is one round trip instead of eight.
-  static String customerPricingEndpoint(String customerId) =>
-      '$apiPrefix/mobile/pricing/customers/$customerId';
+  static String depotPricingEndpoint(String depotId) =>
+      '$apiPrefix/mobile/pricing/depots/$depotId';
 
   /// The realtime pricing hub. The access token rides on the query string,
   /// which is the transport's own contract — browsers and sockets cannot set
@@ -191,7 +201,7 @@ class AppConstants {
   // as an authorisation claim — a client-supplied rep identity is not trusted
   // and is not sent.
   /// `GET` — the rep's routes, paginated, with a flat de-duplicated
-  /// `customers` list each stop joins to by `customerId`.
+  /// `depots` list each stop joins to by `depotId`.
   static const String visitRoutesEndpoint = '$apiPrefix/mobile/visits/routes';
 
   /// `GET` — same body shape as [visitRoutesEndpoint], narrowed by `since`.

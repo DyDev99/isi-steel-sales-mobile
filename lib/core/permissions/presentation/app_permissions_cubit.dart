@@ -100,9 +100,9 @@ class AppPermissionsState extends Equatable {
 /// ## Why one dialog for two permissions
 ///
 /// The app needs notifications (a route assignment has to reach the rep) and
-/// foreground location (a customer's coordinates, and check-in verification).
+/// foreground location (a depot's coordinates, and check-in verification).
 /// Both were previously requested cold — push from the inbox card, location from
-/// inside the customer form when the rep tapped "Save GPS". Two unexplained
+/// inside the depot form when the rep tapped "Save GPS". Two unexplained
 /// system prompts at two unrelated moments is the worst possible framing, and on
 /// iOS each one is close to a single chance.
 ///

@@ -77,7 +77,7 @@ class _NotificationInboxViewState extends State<NotificationInboxView> {
             _CategoryChips(
               selected: _group,
               // Tapping the active chip clears it, matching the affordance the
-              // customer filter sheet uses so the gesture means one thing
+              // depot filter sheet uses so the gesture means one thing
               // app-wide.
               onSelect: (group) =>
                   setState(() => _group = _group == group ? null : group),

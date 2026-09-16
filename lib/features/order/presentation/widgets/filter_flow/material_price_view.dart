@@ -6,19 +6,19 @@ import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/mobile_price.dart';
 
-/// What this customer pays for one material, as the backend last said it.
+/// What this depot pays for one material, as the backend last said it.
 ///
 /// ## Nothing here computes a price
 ///
 /// The amount and the currency are transcribed from `MobilePrice`, which is
 /// transcribed from the pricing endpoint. SAP's conditions are not re-derived
 /// on the handset and the catalogue figure on `Product.pricing` is never used
-/// as a stand-in — a quoted price a customer can hold a rep to has exactly one
+/// as a stand-in — a quoted price a depot can hold a rep to has exactly one
 /// source, and a plausible local substitute is worse than an honest absence.
 ///
 /// ## Why the states are not collapsed
 ///
-/// "Loading", "this customer has no price for this material" and "the request
+/// "Loading", "this depot has no price for this material" and "the request
 /// failed" are three different things a rep has to act on differently: wait,
 /// call the office, or retry. Rendering them as one grey dash sends a rep
 /// nowhere. Only [PricingState.error] offers a retry — [PricingState.unavailable]
@@ -424,8 +424,7 @@ class _PriceMissing extends StatelessWidget {
                   ),
                 ),
               ),
-              if (retryable)
-                _retryButton(context, scheme),
+              if (retryable) _retryButton(context, scheme),
             ],
           ),
         ] else if (retryable) ...[
@@ -469,8 +468,8 @@ class _PriceMissing extends StatelessWidget {
         PricingErrorKind.networkUnavailable => 'orders.pricing.offline',
         PricingErrorKind.backendUnavailable => 'orders.pricing.backend_down',
         PricingErrorKind.unauthorized => 'orders.pricing.unauthorized',
-        PricingErrorKind.customerNotFound => 'orders.pricing.no_customer',
-        PricingErrorKind.customerNotPriceable => 'orders.pricing.not_priceable',
+        PricingErrorKind.depotNotFound => 'orders.pricing.no_depot',
+        PricingErrorKind.depotNotPriceable => 'orders.pricing.not_priceable',
         PricingErrorKind.noPrice => 'orders.pricing.no_price',
         PricingErrorKind.none => price.state == PricingState.error
             ? 'orders.pricing.unavailable'

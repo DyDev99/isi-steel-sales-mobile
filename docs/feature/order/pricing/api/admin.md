@@ -9,19 +9,19 @@ the field are the same number from the same SAP call.
 
 ---
 
-## `GET /api/v1/pricing/customers/{customerId}`
+## `GET /api/v1/pricing/depots/{depotId}`
 
-Current SAP prices for one customer.
+Current SAP prices for one depot.
 
-**Permission:** `customers.read`, plus the same row-level scoping the field app gets.
-Portal users normally hold `customers.readall` and pass it trivially, but the check is
+**Permission:** `depots.read`, plus the same row-level scoping the field app gets.
+Portal users normally hold `depots.readall` and pass it trivially, but the check is
 not skipped on that assumption — see [security.md](../security.md).
 
 ### Narrowing to specific materials
 
 | Parameter | Meaning |
 |---|---|
-| `materials` | Material codes to price. Omit for everything priced for the customer |
+| `materials` | Material codes to price. Omit for everything priced for the depot |
 | `material` | Singular alias for the same thing |
 
 Repeated, comma-separated, semicolon-separated and the singular name are all accepted
@@ -83,49 +83,49 @@ internal to the SAP client.
 
 | Status | Code | Meaning |
 |---|---|---|
-| 401 / 403 | — | Unauthenticated, or lacks `customers.read` |
-| 404 | `Pricing.CustomerNotFound` | No such customer, or not one this caller may see |
-| 422 | `Pricing.CustomerNotPriceable` | Customer has no SAP sales area |
+| 401 / 403 | — | Unauthenticated, or lacks `depots.read` |
+| 404 | `Pricing.DepotNotFound` | No such depot, or not one this caller may see |
+| 422 | `Pricing.DepotNotPriceable` | Depot has no SAP sales area |
 | 500 | `Sap.*` | SAP unreachable, errored, or the endpoint is missing |
 
 ---
 
-## `POST /api/v1/pricing/customers/{customerId}/publish`
+## `POST /api/v1/pricing/depots/{depotId}/publish`
 
-Re-reads the customer's pricing from SAP and pushes it to every handset currently
-subscribed to that customer.
+Re-reads the depot's pricing from SAP and pushes it to every handset currently
+subscribed to that depot.
 
-**Permission:** `customers.read` **plus row-level ownership** ·
+**Permission:** `depots.read` **plus row-level ownership** ·
 **Audience:** `Admin | Mobile | Integration`
 
-A field representative can publish for customers assigned to them; an administrator
-holding `customers.readall` can publish for anyone. Publishing for a customer you may
+A field representative can publish for depots assigned to them; an administrator
+holding `depots.readall` can publish for anyone. Publishing for a depot you may
 not see returns **404**, the same answer the reads give.
 
-It deliberately does **not** require `customers.sync`. That permission also carries the
-full customer and material master walks — six thousand rows and about a minute of ERP
+It deliberately does **not** require `depots.sync`. That permission also carries the
+full depot and material master walks — six thousand rows and about a minute of ERP
 time — and putting those on every field handset to enable a pricing refresh would be a
 far larger grant than this feature needs.
 
 | Query | Type | Meaning |
 |---|---|---|
-| `materials` | string, repeatable | Restrict the re-read. Omit to republish everything priced for the customer |
+| `materials` | string, repeatable | Restrict the re-read. Omit to republish everything priced for the depot |
 
 Use it after a price change is made in SAP, so the field sees the new terms without
 waiting for a pull-to-refresh.
 
 ### 204
 
-Published. **Publishing to a customer nobody is subscribed to succeeds and reaches no
+Published. **Publishing to a depot nobody is subscribed to succeeds and reaches no
 one** — that is a normal outcome, not an error.
 
 ### Errors
 
 | Status | Code | Meaning |
 |---|---|---|
-| 401 / 403 | — | Unauthenticated, or lacks `customers.sync` |
-| 404 | `Pricing.CustomerNotFound` | No such customer, **or** not one this caller may publish for |
-| 422 | `Pricing.CustomerNotPriceable` | Customer has no SAP sales area |
+| 401 / 403 | — | Unauthenticated, or lacks `depots.sync` |
+| 404 | `Pricing.DepotNotFound` | No such depot, **or** not one this caller may publish for |
+| 422 | `Pricing.DepotNotPriceable` | Depot has no SAP sales area |
 | 500 | `Sap.*` | SAP unreachable — **nothing was published**, and handsets keep the prices they hold |
 
 ---

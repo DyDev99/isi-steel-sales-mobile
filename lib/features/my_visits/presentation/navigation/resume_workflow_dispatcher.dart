@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/animations/page_transition.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localized_builder.dart';
-import 'package:isi_steel_sales_mobile/features/customers/presentation/screens/customer_detail_screen.dart';
+import 'package:isi_steel_sales_mobile/features/depots/presentation/screens/depot_detail_screen.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/active_workflow.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_plan.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_workflow.dart';
@@ -40,19 +40,19 @@ final Map<String, ResumeBuilder> _navigationRegistry = {
   },
 
   // Stock count task — resume straight into the Inventory Visibility step for
-  // the checked-in customer. The baseline pointer `_writeWorkflowPointer`
+  // the checked-in depot. The baseline pointer `_writeWorkflowPointer`
   // writes at check-in, before the rep advances into a business task.
   InventoryVisibilityScreen.routeName: (context, route, w) {
-    final customerId = w.navigationArguments?['customerId'] as String?;
-    if (customerId == null) return null;
-    final customerName =
-        w.navigationArguments?['customerName'] as String? ?? w.shopName ?? '';
+    final depotId = w.navigationArguments?['depotId'] as String?;
+    if (depotId == null) return null;
+    final depotName =
+        w.navigationArguments?['depotName'] as String? ?? w.shopName ?? '';
     final stopId =
         w.navigationArguments?['stopId'] as String? ?? w.currentStopId;
-    return openInventoryVisibilityForCustomer(
+    return openInventoryVisibilityForDepot(
       context,
-      customerId: customerId,
-      customerName: customerName,
+      depotId: depotId,
+      depotName: depotName,
       stopId: stopId,
     );
   },
@@ -61,30 +61,30 @@ final Map<String, ResumeBuilder> _navigationRegistry = {
   // back into the audit. The rep already walked the racks; sending them there
   // again is how a resume feature teaches people not to trust it.
   InventoryCompletionScreen.routeName: (context, route, w) {
-    final customerId = w.navigationArguments?['customerId'] as String?;
-    if (customerId == null) return null;
-    final customerName =
-        w.navigationArguments?['customerName'] as String? ?? w.shopName ?? '';
+    final depotId = w.navigationArguments?['depotId'] as String?;
+    if (depotId == null) return null;
+    final depotName =
+        w.navigationArguments?['depotName'] as String? ?? w.shopName ?? '';
     final stopId =
         w.navigationArguments?['stopId'] as String? ?? w.currentStopId;
     return openInventoryCompletion(
       context,
-      customerId: customerId,
-      customerName: customerName,
+      depotId: depotId,
+      depotName: depotName,
       stopId: stopId,
     );
   },
 
-  // Quotation task — resume straight into the Quotation Builder for the checked-in customer.
+  // Quotation task — resume straight into the Quotation Builder for the checked-in depot.
   QuotationBuilderScreen.routeName: (context, route, w) {
-    final customerId = w.navigationArguments?['customerId'] as String?;
-    if (customerId == null) return null;
-    final customerName =
-        w.navigationArguments?['customerName'] as String? ?? w.shopName ?? '';
-    return openQuotationForCustomer(
+    final depotId = w.navigationArguments?['depotId'] as String?;
+    if (depotId == null) return null;
+    final depotName =
+        w.navigationArguments?['depotName'] as String? ?? w.shopName ?? '';
+    return openQuotationForDepot(
       context,
-      customerId: customerId,
-      customerName: customerName,
+      depotId: depotId,
+      depotName: depotName,
     );
   },
 
@@ -99,14 +99,14 @@ final Map<String, ResumeBuilder> _navigationRegistry = {
     );
   },
 
-  // Customer profile.
-  CustomerDetailScreen.routeName: (context, route, w) {
-    final customerId = w.navigationArguments?['customerId'] as String?;
-    if (customerId == null) return null;
+  // Depot profile.
+  DepotDetailScreen.routeName: (context, route, w) {
+    final depotId = w.navigationArguments?['depotId'] as String?;
+    if (depotId == null) return null;
     return _push(
       context,
-      CustomerDetailScreen.routeName,
-      CustomerDetailScreen(customerId: customerId),
+      DepotDetailScreen.routeName,
+      DepotDetailScreen(depotId: depotId),
     );
   },
 };

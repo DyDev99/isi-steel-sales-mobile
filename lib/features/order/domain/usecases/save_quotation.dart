@@ -12,7 +12,7 @@ class SaveQuotation extends UseCase<Quotation, SaveQuotationParams> {
   ResultFuture<Quotation> call(SaveQuotationParams params) =>
       _repository.saveQuotation(
         items: params.items,
-        customerId: params.customerId,
+        depotId: params.depotId,
         shopName: params.shopName,
         leadId: params.leadId,
         leadDisplayName: params.leadDisplayName,

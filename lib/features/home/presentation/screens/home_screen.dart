@@ -214,7 +214,7 @@ class HomeScreen extends StatelessWidget {
           icon: Icons.people_alt_rounded,
           accent: scheme.primary,
           value: '10',
-          label: 'home.quick_access.customers'.tr,
+          label: 'home.quick_access.depots'.tr,
         ),
         _buildGridCard(
           context,

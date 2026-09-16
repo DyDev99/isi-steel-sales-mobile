@@ -1,5 +1,3 @@
-
-
 enum QuotationStatus {
   draft('Draft'),
   returned('Returned'),
@@ -33,7 +31,7 @@ enum QuotationStatus {
 enum QuotationStatusGroup {
   drafts('Drafts'),
   waiting('Waiting'),
-  withCustomer('WithCustomer'),
+  withDepot('WithDepot'),
   won('Won'),
   closed('Closed'),
   unknown('Unknown');

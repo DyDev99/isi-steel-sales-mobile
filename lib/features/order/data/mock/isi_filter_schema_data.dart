@@ -16,7 +16,7 @@ import 'package:isi_steel_sales_mobile/features/order/data/mock/isi_demo_catalog
 /// specified across an ISI counter — which is why no two are the same shape:
 ///
 ///  * roofing is chosen by profile, then coating line, then gauge, then colour
-///    (colour last, because a customer changes their mind about colour and
+///    (colour last, because a depot changes their mind about colour and
 ///    never about profile);
 ///  * a PU panel adds the core depth between profile and gauge, since PU20 vs
 ///    PU40 is a different product at the same steel thickness;
@@ -27,7 +27,7 @@ import 'package:isi_steel_sales_mobile/features/order/data/mock/isi_demo_catalog
 ///  * slit and folded sheet have no family step at all, because the whole
 ///    category is one product described by two dimensions;
 ///  * traded reinforcement puts the *mill* where roofing puts the coating
-///    line, because it is bought-in stock and the mill is what a customer
+///    line, because it is bought-in stock and the mill is what a depot
 ///    with a spec actually cares about;
 ///  * K-Pipe and traded beams stop at two steps, because SAP holds no brand
 ///    or grade variation on those lines and a one-chip step is a wasted tap.
@@ -297,7 +297,7 @@ class IsiFilterSchemaData {
   ///
   /// The only category where `brand` is a *supplier* rather than an ISI
   /// coating line: this is bought-in stock (MaterialType HAWA), and Tung Ho
-  /// vs Hoa Phat vs Hai Sheng is a real decision for a customer working to a
+  /// vs Hoa Phat vs Hai Sheng is a real decision for a depot working to a
   /// spec. Mill sits above grade because a mill only certifies some grades.
   ///
   /// Bar diameter arrives in SAP's `SaleThickness_mm` column, but it is a

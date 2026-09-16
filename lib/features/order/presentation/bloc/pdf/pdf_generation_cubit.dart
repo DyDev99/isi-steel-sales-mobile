@@ -45,7 +45,7 @@ class PdfGenerationCubit extends Cubit<PdfGenerationState> {
   /// free of session lookups.
   Future<void> generateQuotationPdf({
     required String quotationNumber,
-    required String customerName,
+    required String depotName,
     required DateTime createdDate,
     required List<CartItem> items,
     required double subtotal,
@@ -56,9 +56,9 @@ class PdfGenerationCubit extends Cubit<PdfGenerationState> {
     required double total,
     bool isTaxApplicable = true,
     List<String> invoiceDiscounts = const [],
-    String? customerPhone,
-    String? customerAddress,
-    String? customerEmail,
+    String? depotPhone,
+    String? depotAddress,
+    String? depotEmail,
     String? companyName,
     String? contactPerson,
     String? salesTerritory,
@@ -77,10 +77,10 @@ class PdfGenerationCubit extends Cubit<PdfGenerationState> {
       final user = _session.currentUser;
       final data = QuotationPdfData.fromCart(
         quotationNumber: quotationNumber,
-        customerName: customerName,
-        customerPhone: customerPhone,
-        customerAddress: customerAddress,
-        customerEmail: customerEmail,
+        depotName: depotName,
+        depotPhone: depotPhone,
+        depotAddress: depotAddress,
+        depotEmail: depotEmail,
         companyName: companyName,
         contactPerson: contactPerson,
         salesRepName: user?.fullName ?? 'app.title'.tr,
@@ -121,7 +121,7 @@ class PdfGenerationCubit extends Cubit<PdfGenerationState> {
       );
     } catch (error, stackTrace) {
       // No PII in the event name/fields per SECURITY.md §10; the exception is
-      // redacted by the logger. Never log customer names or prices.
+      // redacted by the logger. Never log depot names or prices.
       _logger?.error(
         'pdf_generation_failed',
         error: error,

@@ -162,7 +162,7 @@ edge relations (counts from the current build):
 | `inherits` | 1011 | `extends StatelessWidget`, `extends Bloc<E,S>` |
 | `contains` | 745 | structural nesting |
 | `calls` | 216 | resolved call edges |
-| `implements` | 110 | `CustomerRepositoryImpl → CustomerRepository` |
+| `implements` | 110 | `DepotRepositoryImpl → DepotRepository` |
 | `mixes_in` | 40 | Dart mixins |
 | `navigates` | 22 | screen → route transitions |
 
@@ -175,7 +175,7 @@ Dart self-imports resolve to a **`package:` URI node, not the file node**. All
 677 such nodes have **zero outgoing edges**. So this fails:
 
 ```bash
-graphify path "customer_repository_impl.dart" "customer_local_data_source.dart"
+graphify path "depot_repository_impl.dart" "depot_local_data_source.dart"
 # No directed path found
 ```
 
@@ -183,11 +183,11 @@ Cross-file traversal works through **`references`**, which *does* resolve to the
 real symbol. Query **class-to-class**, or file-to-class — not file-to-file:
 
 ```bash
-graphify path "customer_repository_impl.dart" "CustomerLocalDataSource"
-#   customer_repository_impl.dart --references [EXTRACTED]--> CustomerLocalDataSource
+graphify path "depot_repository_impl.dart" "DepotLocalDataSource"
+#   depot_repository_impl.dart --references [EXTRACTED]--> DepotLocalDataSource
 
-graphify path "CustomerRepositoryImpl" "CustomerRepository"
-#   CustomerRepositoryImpl --implements [EXTRACTED]--> CustomerRepository
+graphify path "DepotRepositoryImpl" "DepotRepository"
+#   DepotRepositoryImpl --implements [EXTRACTED]--> DepotRepository
 ```
 
 **Rule of thumb: name the class, not the file.**
@@ -220,7 +220,7 @@ shared infrastructure, get the real blast radius:
 
 ```
 $ graphify affected "AppDatabase" --depth 1
-- AppMetadataDao, CartDao, CatalogDao, CustomerDao, QuotationDao,
+- AppMetadataDao, CartDao, CatalogDao, DepotDao, QuotationDao,
   SalesOrderDao, app_bootstrap_service.dart, app_database_rekey_executor.dart …
 ```
 

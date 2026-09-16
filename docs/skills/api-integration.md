@@ -2,7 +2,7 @@
 
 How the Flutter client implements the contracts in
 [Authentication-guild-integratemobile.md](../feature/authentication/integration-guide.md)
-and [customers-guidline-integrateion-mobile.md](../feature/customer/api.md).
+and [depots-guidline-integrateion-mobile.md](../feature/depot/api.md).
 
 Those two documents describe the server. This one describes **our side**: where
 each rule lives in the code, which decisions were compromises, and what is still
@@ -12,7 +12,7 @@ outstanding.
 
 ## Verified against the running API
 
-Login, `/auth/me` and `/mobile/customers` were exercised against a live tunnel
+Login, `/auth/me` and `/mobile/depots` were exercised against a live tunnel
 and the captured payloads are pinned in
 `test/core/network/live_contract_test.dart`. Three things the guide does not
 say, each of which was a real defect:
@@ -28,15 +28,15 @@ say, each of which was a real defect:
   produced a meaningless code. Only `/errors/<Code>` URLs are mined now, and
   anything else falls back to a status-derived code.
 
-### The test rep cannot read customers
+### The test rep cannot read depots
 
 `EMP000202` holds `outlets.read` / `outlets.create` / `outlets.update` but **no
-`customers.*` permission**, so `/api/v1/mobile/customers` answers 403 for it.
+`depots.*` permission**, so `/api/v1/mobile/depots` answers 403 for it.
 The route itself is correct — it returns 403 rather than 404, and the same call
 with an admin account returns the documented envelope.
 
 This is a server-side role configuration matter, not a client one. Either the
-rep role needs `customers.read` granted, or the `outlets.*` permissions are the
+rep role needs `depots.read` granted, or the `outlets.*` permissions are the
 intended names and the endpoint's requirement should match them. Worth
 confirming with the API team; nothing in the client can work around a 403, and
 per the guide it must not try — a 403 hides the action, it never signs the user
@@ -173,20 +173,20 @@ Two parallel refreshes would present an already-rotated token on the second
 call, and the server's reuse detection reads that as theft and revokes the
 session.
 
-### Customer sync
+### Depot sync
 
-`CustomerSyncRepositoryImpl` implements the three load-bearing rules:
+`DepotSyncRepositoryImpl` implements the three load-bearing rules:
 
 1. The watermark is `metadata.syncTimestamp` from the **server**, captured from
    the *first* page and held for the whole run.
 2. It is committed **once**, after every page has been applied.
 3. Tombstones (`deleted: true`) are split out by
-   `ApiCustomerRemoteDataSource.fetchDelta` and applied via `markDeleted`.
+   `ApiDepotRemoteDataSource.fetchDelta` and applied via `markDeleted`.
 
 Paging is one-based. `pageSize` is read back from `metadata`, because the server
 clamps to 200 silently rather than rejecting.
 
-Covered by `test/features/customers/customer_sync_watermark_test.dart`.
+Covered by `test/features/depots/depot_sync_watermark_test.dart`.
 
 ---
 
@@ -200,8 +200,8 @@ rejects `(0, 0)` on write because it is a real point in the Gulf of Guinea.
 Our local Drift columns are non-null `real`, and making them nullable needs a
 schema migration, which needs codegen, which is blocked on `.env`. So `(0, 0)`
 is the local encoding for "unknown", and **`hasCoordinates` is the accessor
-every geographic consumer must use** — it exists on both `Customer` and
-`CustomerStopInfo`. `StopDistanceSorter` and `GeofenceService` both check it;
+every geographic consumer must use** — it exists on both `Depot` and
+`DepotStopInfo`. `StopDistanceSorter` and `GeofenceService` both check it;
 without that they would measure 10 000 km to the Atlantic and either bury an
 unlocated shop at the bottom of the list or fail a check-in the rep is standing
 inside.
@@ -237,21 +237,21 @@ needs a real contact channel rather than an account identifier.
 
 The API returns a pre-translated `statusDisplay` beside the stable `status`
 code. We render a locally translated label keyed off `status`
-(`CustomerStatusL10n.localizedLabel`) instead, because a row rendered from the
+(`DepotStatusL10n.localizedLabel`) instead, because a row rendered from the
 offline cache must read in the user's current language even if it was synced
 under a different one — and because a language switch should be a rebuild, not
 a re-sync. We still never branch on `statusDisplay`.
 
-`CustomerStatus` gained the real API lifecycle (`Draft`, `PendingApproval`,
+`DepotStatus` gained the real API lifecycle (`Draft`, `PendingApproval`,
 `Active`, `Suspended`, `Closed`). The old `dormant` / `creditHold` values were
 local inventions; they remain in the enum so mock rows and already-persisted
-rows still deserialise, and are excluded from `CustomerStatus.selectable` so
+rows still deserialise, and are excluded from `DepotStatus.selectable` so
 they are never sent as a `status` filter.
 
 ### The summary DTO has no street address
 
 The list endpoint returns city, district and territory but no address line —
-by design, it is a fifth of the full customer. A freshly synced row therefore
+by design, it is a fifth of the full depot. A freshly synced row therefore
 shows `"District, City"` as its address until the detail aggregate is fetched
 via `fetchById`, which fills in `addressLine1`, contacts, the SAP block and the
 metric cache.
@@ -278,7 +278,7 @@ IANA zone or a real marketing device name is ever needed.
 Not done, in rough priority order:
 
 1. **Fix `.env`** — see [Blockers](#blockers). Everything below depends on it.
-2. **Schema migration (v16)** making `customers.latitude` / `longitude`
+2. **Schema migration (v16)** making `depots.latitude` / `longitude`
    nullable, and adding `city`, `canTrade` and `metricsCalculatedAt`. Follow the
    ladder in `core/database/drift/migrations/schema_migrations.dart`; the
    nullability change needs a `TableMigration` like the v10 step.
@@ -289,14 +289,14 @@ Not done, in rough priority order:
    are wired through the repository; the existing screens still run against the
    old mock flow. Minimum length is 12. After a successful change, sign out with
    `allDevices: true`.
-5. **Customer create/update** — `POST` and `PUT /mobile/customers` are not
-   implemented. Note when doing so: `customerCode` is immutable on update, the
+5. **Depot create/update** — `POST` and `PUT /mobile/depots` are not
+   implemented. Note when doing so: `depotCode` is immutable on update, the
    SAP block is never writable, and `contacts: []` **wipes every contact** while
    omitting the key leaves them untouched.
 6. **`Retry-After` handling** on 429. `RetryAfter` exists as an extension in
    `api_error.dart` but nothing consumes it yet.
 7. **Metric staleness labels** — `metricsCalculatedAt` is not yet persisted, so
-   the "as of" label the customers guide asks for cannot be rendered. Blocked on
+   the "as of" label the depots guide asks for cannot be rendered. Blocked on
    item 2.
 
 ---
@@ -308,7 +308,7 @@ correlation id, plus row counts and paging metadata for list responses. Records
 go through `AppLogger` (`dart:developer`), so they appear in the `flutter run`
 console and in DevTools, tagged `isi.debug` / `isi.info` / `isi.error`.
 
-Filter for `api.`, `auth.` or `customers.sync.` to follow one flow:
+Filter for `api.`, `auth.` or `depots.sync.` to follow one flow:
 
 ```
 api.request   method=POST path=/api/v1/auth/login signedIn=false language=en-US
@@ -317,21 +317,21 @@ api.response  method=POST path=/api/v1/auth/login status=200 ms=412
 api.response  method=GET  path=/api/v1/auth/me   status=200 ms=155
 auth.login.success permissions=14 roles=[salesRep] territory=PP-NORTH flags=3
 
-customers.sync.initial.start  pageSize=200
-api.response  method=GET path=/api/v1/mobile/customers status=200 ms=890
-              rows=[customers:200] page=1 pageSize=200 records=412 hasNextPage=true
-customers.sync.initial.done   pages=3 upserted=412 watermark=2026-08-12T09:44:12Z
+depots.sync.initial.start  pageSize=200
+api.response  method=GET path=/api/v1/mobile/depots status=200 ms=890
+              rows=[depots:200] page=1 pageSize=200 records=412 hasNextPage=true
+depots.sync.initial.done   pages=3 upserted=412 watermark=2026-08-12T09:44:12Z
 ```
 
 On failure, `api.error` and the matching `auth.login.failed` /
-`customers.sync.*.failed` record carry `errorCode`, `status` and
+`depots.sync.*.failed` record carry `errorCode`, `status` and
 `correlationId` — quote the correlation id and support can find the exact
 request server-side.
 
 ### What is not in the logs, and why
 
 `docs/skills/security.md` §10 forbids logging passwords, tokens, e-mail addresses,
-phone numbers, employee IDs, customer data and money, and `LogRedactor`
+phone numbers, employee IDs, depot data and money, and `LogRedactor`
 enforces it by key name *and* by value shape. Logs outlive the session that
 produced them: they get pasted into bug reports, and on Android any app holding
 `READ_LOGS` can read them.
@@ -402,7 +402,7 @@ asks for.
 (`MockRouteRemoteDataSource`, `MockVisitSyncRemoteDataSource`,
 `assets/mock/routes.json`, `data/mock/mock_route_data.dart` and
 `tool/generate_mock_routes.dart`) have been deleted, and My Visits no longer
-reads `USE_MOCK_DATA` — that flag still switches the catalog and customer
+reads `USE_MOCK_DATA` — that flag still switches the catalog and depot
 features, which keep their fixtures.
 
 Two reasons the route fixtures could not stay. Routes are **rep- and
@@ -422,8 +422,8 @@ using it skipped the JSON parsing the real app has to do.
 
 The interface is **0-based** — that contract was set by the mock, and
 `RouteSyncRepositoryImpl` counts from 0 to match. The API is **1-based**, like
-`/mobile/customers`. `ApiRouteRemoteDataSource` adds one when building the
-query and leaves both sides alone. This is not cosmetic: the customer endpoint
+`/mobile/depots`. `ApiRouteRemoteDataSource` adds one when building the
+query and leaves both sides alone. This is not cosmetic: the depot endpoint
 silently treats page 0 as page 1, so an unconverted first call would fetch page
 one twice and never read the last page.
 

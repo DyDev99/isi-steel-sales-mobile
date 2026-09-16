@@ -73,7 +73,7 @@
 | ID | Rule | Enforced by |
 |---|---|---|
 | BR-SAP1 | Auth never calls SAP directly; identity flows to SAP only through the gateway the bearer token authenticates | Architecture (SAP client is a tracked stub) |
-| BR-SAP2 | Future: the signed-in user's identity/roles scope which SAP data (customers, routes, orders) syncs to the device | `docs/blueprint/sync-architecture.md` (planned) |
+| BR-SAP2 | Future: the signed-in user's identity/roles scope which SAP data (depots, routes, orders) syncs to the device | `docs/blueprint/sync-architecture.md` (planned) |
 
 ## 9. Release rules (compliance)
 

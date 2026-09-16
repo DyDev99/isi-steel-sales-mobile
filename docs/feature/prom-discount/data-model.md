@@ -44,7 +44,7 @@ What was asked for. Soft-deletable, audited, optimistic concurrency via `version
 | `id` | uuid | `AgreementRequestId` |
 | `request_number` | varchar(32) | `AGR-2026-000045`. **Unique** |
 | `scope_type` | int | `Depot` = 0. `Segment` = 1 is declared and refused |
-| `customer_id` | uuid | The depot |
+| `depot_id` | uuid | The depot |
 | `requested_by` | uuid | The representative. The row-level scoping key |
 | `client_request_id` | varchar(64) | **Unique.** The device's own key, so an offline draft syncing twice creates one request |
 | `source_channel` | varchar(16) | `Mobile`, `Portal` or `Import` |
@@ -55,7 +55,7 @@ What was asked for. Soft-deletable, audited, optimistic concurrency via `version
 | `submitted_at` · `completed_at` | timestamptz, null | |
 
 **Indexes** — `number` (unique), `client_request_id` (unique), `(status, current_step)`
-for the approval inbox, `(customer_id, status)`, `requested_by`.
+for the approval inbox, `(depot_id, status)`, `requested_by`.
 
 **Why `client_request_id` is a unique index and not a handler check.** The handler does
 look for an existing request first, but two syncs racing would both find nothing. The
@@ -132,7 +132,7 @@ What four people approved. **Immutable** except `state` and `valid_to`.
 | Column | Type | Notes |
 |---|---|---|
 | `term_number` | varchar(32) | `AG-2026-0045`. **Unique.** What a quotation line points at, and what the SD team quotes |
-| `customer_id` · `category_code` · `nature` | | The scope |
+| `depot_id` · `category_code` · `nature` | | The scope |
 | `percent` | numeric(9,4), null | Null on a tiered term |
 | `currency` | varchar(4) | |
 | `valid_from` · `valid_to` | date | `valid_to` moves on supersede and terminate, and only then |
@@ -142,8 +142,8 @@ What four people approved. **Immutable** except `state` and `valid_to`.
 | `verified_at` | timestamptz, null | |
 | `terminated_by` · `termination_reason` | | |
 
-**Indexes** — `term_number` (unique), `(customer_id, category_code, state)` for the
-lookup a quotation runs on every customer it prices, `(state, valid_from)` for "what is
+**Indexes** — `term_number` (unique), `(depot_id, category_code, state)` for the
+lookup a quotation runs on every depot it prices, `(state, valid_from)` for "what is
 approved but not yet effective", `source_request_id`.
 
 ### The exclusion constraint
@@ -152,7 +152,7 @@ approved but not yet effective", `source_request_id`.
 ALTER TABLE agreement_terms
 ADD CONSTRAINT exclude_overlapping_effective_terms
 EXCLUDE USING gist (
-    customer_id WITH =,
+    depot_id WITH =,
     category_code WITH =,
     nature WITH =,
     daterange(valid_from, COALESCE(valid_to, 'infinity'::date), '[]') WITH &&
@@ -234,7 +234,7 @@ discount is applied anywhere.
 
 | Table | Used for |
 |---|---|
-| `customers` | The depot's trading name, and the ownership rule that scopes every read |
+| `depots` | The depot's trading name, and the ownership rule that scopes every read |
 | `materials` | The price group that resolves a quotation line's category |
 | `quotation_lines` · `quotation_line_discounts` | Where an agreement rate lands as a deduction, with `source_reference` carrying the term number |
 

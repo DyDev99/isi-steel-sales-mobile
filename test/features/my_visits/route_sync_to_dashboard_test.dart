@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
 import 'package:isi_steel_sales_mobile/core/logging/app_logger.dart';
 import 'package:isi_steel_sales_mobile/core/network/network_info.dart';
-import 'package:isi_steel_sales_mobile/features/customers/data/local/customer_drift_local_data_source.dart';
+import 'package:isi_steel_sales_mobile/features/depots/data/local/depot_drift_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/route_drift_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/remote/api_route_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/repositories/route_repository_impl.dart';
@@ -29,7 +29,7 @@ class _AlwaysOnline implements NetworkInfo {
 void main() {
   late AppDatabase db;
   late RouteDriftLocalDataSource local;
-  late CustomerDriftLocalDataSource customers;
+  late DepotDriftLocalDataSource depots;
   late RouteSyncRepositoryImpl sync;
   late RouteRepositoryImpl routes;
 
@@ -38,17 +38,16 @@ void main() {
 
   setUp(() {
     db = AppDatabase(NativeDatabase.memory());
-    customers = CustomerDriftLocalDataSource(db.customerDao);
+    depots = DepotDriftLocalDataSource(db.depotDao);
     local = RouteDriftLocalDataSource(db.routeDao, logger);
-    // Resolved per request, so the feed names whatever customers the test
-    // seeded — `route_stops.customer_id` is a live FK.
+    // Resolved per request, so the feed names whatever depots the test
+    // seeded — `route_stops.depot_id` is a live FK.
     sync = RouteSyncRepositoryImpl(
       remote: ApiRouteRemoteDataSource(
         scriptedRouteFeed(
-          customerIds: () async =>
-              (await customers.browse(page: 0, pageSize: 12))
-                  .map((c) => c.id)
-                  .toList(),
+          depotIds: () async => (await depots.browse(page: 0, pageSize: 12))
+              .map((c) => c.id)
+              .toList(),
         ),
       ),
       local: local,
@@ -58,17 +57,17 @@ void main() {
   });
   tearDown(() => db.close());
 
-  /// The route feed rebases its stops onto the rep's real customer directory
-  /// (`route_stops.customer_id` is a live FK), so the directory has to exist
+  /// The route feed rebases its stops onto the rep's real depot directory
+  /// (`route_stops.depot_id` is a live FK), so the directory has to exist
   /// before any route can be pulled.
-  Future<void> seedCustomers({int count = 12}) async {
+  Future<void> seedDepots({int count = 12}) async {
     final now = DateTime.now().toUtc();
     for (var i = 0; i < count; i++) {
-      await db.into(db.customers).insert(
-            CustomersCompanion.insert(
+      await db.into(db.depots).insert(
+            DepotsCompanion.insert(
               id: 'cust-$i',
-              sapCustomerId: Value('SAP-$i'),
-              customerCode: 'C-$i',
+              sapDepotId: Value('SAP-$i'),
+              depotCode: 'C-$i',
               shopName: 'ISI Hardware $i',
               ownerName: 'Sok Dara',
               phone: '012345678',
@@ -89,18 +88,18 @@ void main() {
     }
   }
 
-  test('a route whose customers are absent from the directory still syncs',
+  test('a route whose depots are absent from the directory still syncs',
       () async {
     // Reverses what this test used to assert (ADR-011).
     //
     // It previously required this sync to FAIL, because route stops carried a
-    // foreign key into the customer directory and the feed "cannot invent
-    // customers". That framing made an ordinary condition fatal: the route and
-    // customer endpoints are separate, independently-paged, and separately
-    // scoped, so a stop referencing a customer the directory has not pulled is
+    // foreign key into the depot directory and the feed "cannot invent
+    // depots". That framing made an ordinary condition fatal: the route and
+    // depot endpoints are separate, independently-paged, and separately
+    // scoped, so a stop referencing a depot the directory has not pulled is
     // routine — and failing meant the rep got no route at all.
     //
-    // The feed carries its own customer rows, so it is self-sufficient. The
+    // The feed carries its own depot rows, so it is self-sufficient. The
     // directory is left empty here on purpose.
     final independent = RouteSyncRepositoryImpl(
       remote: ApiRouteRemoteDataSource(unsatisfiableRouteFeed()),
@@ -120,7 +119,7 @@ void main() {
   });
 
   test('today routes reach the dashboard after a sync', () async {
-    await seedCustomers();
+    await seedDepots();
 
     final result = await sync.runInitialSync(scope);
     final upserted = result.when(success: (r) => r.upserted, failure: (_) => 0);
@@ -134,8 +133,8 @@ void main() {
             "today's list must return them");
   });
 
-  test('synced routes carry stops with customer information', () async {
-    await seedCustomers();
+  test('synced routes carry stops with depot information', () async {
+    await seedDepots();
     await sync.runInitialSync(scope);
 
     final today = (await routes.fetchTodayRoutes())
@@ -145,6 +144,6 @@ void main() {
         reason: 'a route with no stops renders as an empty Stop Dashboard');
 
     final stop = today.firstWhere((r) => r.stops.isNotEmpty).stops.first;
-    expect(stop.customer.name.trim(), isNotEmpty);
+    expect(stop.depot.name.trim(), isNotEmpty);
   });
 }

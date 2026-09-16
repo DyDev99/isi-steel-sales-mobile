@@ -2,8 +2,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/localization/active_language.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
-import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/customer_params.dart';
-import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/get_customer_by_id.dart';
+import 'package:isi_steel_sales_mobile/features/depots/domain/usecases/depot_params.dart';
+import 'package:isi_steel_sales_mobile/features/depots/domain/usecases/get_depot_by_id.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/stock_level.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_stock_update.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/add_stock_update.dart';
@@ -18,27 +18,27 @@ import 'package:isi_steel_sales_mobile/features/order/domain/usecases/run_initia
 /// statuses (status selection is business state, so it lives here — never
 /// `setState`).
 ///
-/// Shop == customer (per the chosen data model): the shop is resolved via
-/// [GetCustomerById] for display/validation, and the SKUs come from the
+/// Shop == depot (per the chosen data model): the shop is resolved via
+/// [GetDepotById] for display/validation, and the SKUs come from the
 /// offline product catalog via [BrowseProducts]. [submit] persists every
 /// selection through [AddStockUpdate] — local-first, `sync_state = 'dirty'`,
 /// so the depot count pushes with the next visit-data drain without any
 /// network dependency.
 class DepotStockCountCubit extends Cubit<DepotStockCountState> {
   DepotStockCountCubit({
-    required GetCustomerById getCustomerById,
+    required GetDepotById getDepotById,
     required BrowseProducts browseProducts,
     required AddStockUpdate addStockUpdate,
     required RunInitialSync runInitialSync,
     required SessionManager sessionManager,
-  })  : _getCustomerById = getCustomerById,
+  })  : _getDepotById = getDepotById,
         _browseProducts = browseProducts,
         _addStockUpdate = addStockUpdate,
         _runInitialSync = runInitialSync,
         _sessionManager = sessionManager,
         super(const DepotStockCountState());
 
-  final GetCustomerById _getCustomerById;
+  final GetDepotById _getDepotById;
   final BrowseProducts _browseProducts;
   final AddStockUpdate _addStockUpdate;
   final RunInitialSync _runInitialSync;
@@ -66,11 +66,11 @@ class DepotStockCountCubit extends Cubit<DepotStockCountState> {
 
     emit(state.copyWith(status: DepotStockCountStatus.loading));
 
-    final customerResult = await _getCustomerById(CustomerIdParams(shopId));
+    final depotResult = await _getDepotById(DepotIdParams(shopId));
     // Resolved here rather than in the widget because the name lands in cubit
     // state and is read back by the stock-count header; a cubit has no
     // BuildContext, so [ActiveLanguage] supplies the locale.
-    final shopName = customerResult.when(
+    final shopName = depotResult.when(
         success: (c) => ActiveLanguage.resolve(c.displayName),
         failure: (_) => null);
     if (shopName == null) {

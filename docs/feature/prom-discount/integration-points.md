@@ -17,7 +17,7 @@ runs two steps before the calculator sees anything:
 1. **Resolve categories.** `IMaterialCategoryResolver` maps each line's material to
    SAP's material price group, and that price group to a category code through
    `category_mappings`. One query for the whole document.
-2. **Resolve standing deductions.** `IAgreementLookup` reads the customer's
+2. **Resolve standing deductions.** `IAgreementLookup` reads the depot's
    **effective, on-invoice** terms valid today, plus the pickup rule when the shipment
    type is `Pickup`. One query for the whole document.
 
@@ -34,7 +34,7 @@ nobody approved the figure that was finally stored.
 
 | Not deducted | Why |
 |---|---|
-| A term in state `Approved` | SAP has not confirmed it. The customer is not being charged it |
+| A term in state `Approved` | SAP has not confirmed it. The depot is not being charged it |
 | A term in state `SapMismatch` | SAP holds something different. Quoting it would quote a price SAP will not honour |
 | A volume rebate, in any state | The month's total is unknowable while the month is running |
 | An immediate-payment term | D22 has not settled what it means |
@@ -97,7 +97,7 @@ Two halves, both in place:
 
 - [`QuotationMapping.ToDto`](../../../src/ISI.Application/Features/Quotations/QuotationMapping.cs)
   sets `Editable = Kind == Manual`, so the mobile contract already marks a non-manual
-  deduction read-only. The app greys the chip rather than hiding it — the customer's
+  deduction read-only. The app greys the chip rather than hiding it — the depot's
   terms stay visible on the quotation that applies them.
 - [`SetQuotationDiscountsCommandHandler`](../../../src/ISI.Application/Features/Quotations/QuotationCommands.cs)
   keeps every non-`Manual` discount when the representative replaces theirs. `PUT
@@ -115,10 +115,10 @@ correct answer rather than a failure.
 
 ### 6. The ownership rule to reuse
 
-`IPricingAudienceResolver` answers *"may this caller see this customer?"* — the
+`IPricingAudienceResolver` answers *"may this caller see this depot?"* — the
 platform's one row-level rule, already used by pricing and quotations. Agreements are
-customer-scoped and should use it rather than growing a second rule. The plan proposes
-renaming it `ICustomerAudienceResolver` when a third feature needs it; this is that
+depot-scoped and should use it rather than growing a second rule. The plan proposes
+renaming it `IDepotAudienceResolver` when a third feature needs it; this is that
 third feature.
 
 ### 7. Mobile UI models and the endpoints behind them
@@ -131,8 +131,8 @@ to. Paths are in the **mobile repository**, not this one.
 
 | Mobile Client Entity | Location | Backend Table | Backend Endpoint |
 |---|---|---|---|
-| `CustomerAgreement` | `quotation_api_entities.dart` | `agreement_terms`, `agreement_term_tiers` | `GET /api/v1/mobile/customers/{id}/agreements` |
-| `PromoView`, `PromoGroup` | `promo_view.dart` | `agreement_terms`, `pickup_rules`, `promotions` | `GET /api/v1/mobile/customers/{id}/incentives?shipment=` |
+| `DepotAgreement` | `quotation_api_entities.dart` | `agreement_terms`, `agreement_term_tiers` | `GET /api/v1/mobile/depots/{id}/agreements` |
+| `PromoView`, `PromoGroup` | `promo_view.dart` | `agreement_terms`, `pickup_rules`, `promotions` | `GET /api/v1/mobile/depots/{id}/incentives?shipment=` |
 | `QuotationLineDiscount` | `quotation_api_entities.dart` | `quotation_line_discounts` | Joined via `source_reference` to `agreement_terms.term_number` |
 | `PromotionEvaluation` | `promotion_evaluation.dart` | `promotions`, `promotion_tiers` | `POST /api/v1/mobile/promotions/evaluate` |
 | `DiscountAuthority` | `manual_discount_input_sheet.dart` | `discount_authorities` | `GET /api/v1/mobile/me/discount-authority` |
@@ -160,7 +160,7 @@ to. Paths are in the **mobile repository**, not this one.
 | Do not | Because |
 |---|---|
 | Renumber `QuotationDiscountKind`, `AgreementTermState` or `AgreementRequestStatus` | All stored as integers on live rows |
-| Deduct a term that is not `Effective` | SAP is not holding it, so the customer is not being charged it |
+| Deduct a term that is not `Effective` | SAP is not holding it, so the depot is not being charged it |
 | Deduct a volume rebate | The month's total is unknowable while the month is running |
 | Let a representative edit a non-`Manual` discount | It carries four signatures. The read-only marking and the preserve-on-replace behaviour are the enforcement |
 | Read rates from an agreement *request* | A returned request stays editable. Read the immutable term |

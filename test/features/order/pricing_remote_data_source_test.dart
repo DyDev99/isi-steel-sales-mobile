@@ -97,13 +97,13 @@ void main() {
     test('reads items[] from the documented payload', () async {
       // The regression this file exists for. The key was `prices`, and
       // `ApiListEnvelope` treats an absent key as an *empty result set* rather
-      // than an error — so the wrong name produced exactly what "this customer
+      // than an error — so the wrong name produced exactly what "this depot
       // has no prices" produces: zero rows, HTTP 200, no exception, no log.
       // Every quotation line rendered unpriced and nothing said why.
       serve((_) async => _json(_specResponse()));
 
       final rows = await source.fetchPrices(
-        customerId: 'c-1',
+        depotId: 'c-1',
         materials: ['2400000466'],
       );
 
@@ -119,7 +119,7 @@ void main() {
       serve((_) async => _json(_specResponse()));
 
       final rows = await source.fetchPrices(
-        customerId: 'c-1',
+        depotId: 'c-1',
         materials: ['2400000466'],
       );
       final price = MobilePriceMapper.fromJson(rows.single);
@@ -131,13 +131,13 @@ void main() {
     });
 
     test('an empty items[] is a real answer, not a failure', () async {
-      // `erpAnswered: true` with no items means "this customer has no prices",
+      // `erpAnswered: true` with no items means "this depot has no prices",
       // which the doc requires be distinguishable from "we could not load
       // prices". It must not throw.
       serve((_) async => _json(_specResponse(items: [])));
 
       expect(
-        await source.fetchPrices(customerId: 'c-1', materials: ['X']),
+        await source.fetchPrices(depotId: 'c-1', materials: ['X']),
         isEmpty,
       );
     });
@@ -150,20 +150,20 @@ void main() {
       serve((_) async => _json(_specResponse(items: [])));
 
       await source.fetchPrices(
-        customerId: 'c-1',
+        depotId: 'c-1',
         materials: ['1100000000', '1100000003'],
       );
 
       final uri = adapter.requests.single.uri;
       expect(uri.queryParametersAll['materials'], ['1100000000', '1100000003']);
-      expect(uri.path, contains('/mobile/pricing/customers/c-1'));
+      expect(uri.path, contains('/mobile/pricing/depots/c-1'));
     });
 
     test('no materials means no round trip at all', () async {
       serve((_) async => _json(_specResponse()));
 
       expect(
-        await source.fetchPrices(customerId: 'c-1', materials: []),
+        await source.fetchPrices(depotId: 'c-1', materials: []),
         isEmpty,
       );
       expect(adapter.requests, isEmpty);
@@ -172,23 +172,22 @@ void main() {
 
   group('failures', () {
     test('a 404 surfaces the platform error code', () async {
-      // `Pricing.CustomerNotFound` is deliberately indistinguishable from "not
+      // `Pricing.DepotNotFound` is deliberately indistinguishable from "not
       // one this caller may see", so the client must branch on the code rather
       // than infer anything from the status alone.
       serve((_) async => _json({
-            'type':
-                'https://docs.isigroup.com.kh/errors/Pricing.CustomerNotFound',
+            'type': 'https://docs.isigroup.com.kh/errors/Pricing.DepotNotFound',
             'title': 'Not found.',
             'status': 404,
-            'errorCode': 'Pricing.CustomerNotFound',
+            'errorCode': 'Pricing.DepotNotFound',
           }, 404));
 
       await expectLater(
-        source.fetchPrices(customerId: 'c-1', materials: ['X']),
+        source.fetchPrices(depotId: 'c-1', materials: ['X']),
         throwsA(isA<ApiException>().having(
           (e) => e.code,
           'code',
-          'Pricing.CustomerNotFound',
+          'Pricing.DepotNotFound',
         )),
       );
     });
@@ -202,7 +201,7 @@ void main() {
           }, 500));
 
       await expectLater(
-        source.fetchPrices(customerId: 'c-1', materials: ['X']),
+        source.fetchPrices(depotId: 'c-1', materials: ['X']),
         throwsA(isA<ApiException>()),
       );
     });
@@ -224,7 +223,7 @@ void main() {
           )));
 
       final rows = await source.fetchPrices(
-        customerId: 'c-1',
+        depotId: 'c-1',
         materials: ['A', 'B'],
       );
 
@@ -236,7 +235,7 @@ void main() {
       serve((_) async => _json(_specResponse(items: [], erpAnswered: false)));
 
       expect(
-        await source.fetchPrices(customerId: 'c-1', materials: ['X']),
+        await source.fetchPrices(depotId: 'c-1', materials: ['X']),
         isEmpty,
       );
     });

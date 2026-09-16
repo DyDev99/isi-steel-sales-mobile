@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart'; // 👈 ADJUST THIS PATH TO YOUR THEME EXTENSION FILE
-import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer.dart';
-import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/browse_customers.dart';
-import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/customer_params.dart';
-import 'package:isi_steel_sales_mobile/features/customers/presentation/bloc/customer_sync_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/depots/domain/entities/depot.dart';
+import 'package:isi_steel_sales_mobile/features/depots/domain/usecases/browse_depots.dart';
+import 'package:isi_steel_sales_mobile/features/depots/domain/usecases/depot_params.dart';
+import 'package:isi_steel_sales_mobile/features/depots/presentation/bloc/depot_sync_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/screens/shop/shop_list_screen.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/order_skeletons.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
@@ -29,13 +29,13 @@ class _TerritoryScreenState extends State<TerritoryScreen> {
   }
 
   Future<Map<String, int>> _loadTerritories() async {
-    await sl<CustomerSyncCubit>().syncIfNeeded();
-    final result = await sl<BrowseCustomers>()(
-        const BrowseCustomersParams(page: 0, pageSize: 5000));
+    await sl<DepotSyncCubit>().syncIfNeeded();
+    final result = await sl<BrowseDepots>()(
+        const BrowseDepotsParams(page: 0, pageSize: 5000));
     return result.when(
       success: (paged) {
         final counts = <String, int>{};
-        for (final Customer c in paged.items) {
+        for (final Depot c in paged.items) {
           counts[c.territory] = (counts[c.territory] ?? 0) + 1;
         }
         return counts;

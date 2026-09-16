@@ -47,7 +47,7 @@ class StockCubit extends Cubit<Map<String, MaterialAvailability>> {
     );
   }
 
-  /// Drops everything — call on customer switch or catalog sync, when the held
+  /// Drops everything — call on depot switch or catalog sync, when the held
   /// verdicts describe a sales context that no longer applies.
   void invalidate() {
     _inFlight.clear();

@@ -51,19 +51,19 @@ class GuestMyWorkGrid extends StatelessWidget {
 
           SizedBox(height: context.rh(12)),
 
-          // ── Bottom: Customers & Quotes/Orders ─────────────────────────
+          // ── Bottom: Depots & Quotes/Orders ─────────────────────────
           SizedBox(
             height: context.rh(120),
             child: Row(
               children: [
-                // Left: Customers
+                // Left: Depots
                 Expanded(
                   child: FadeSlideIn(
                     delay: FadeSlideIn.staggerDelay(2),
                     child: _GuestWorkCard(
-                      label: 'shell.my_customers'.tr,
+                      label: 'shell.my_depots'.tr,
                       icon: Icons.people_alt_outlined,
-                      kind: WorkIconKind.customers,
+                      kind: WorkIconKind.depots,
                       accent: const Color(0xFFEC3F72),
                       isActive: false,
                       onTap: onRequireLogin,

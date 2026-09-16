@@ -29,7 +29,7 @@ class CartSummaryBar extends StatelessWidget {
   ///
   /// Null renders "Waiting for HQ" rather than a figure. A subtotal that
   /// silently omits the unpriced lines is a smaller, wronger number than no
-  /// subtotal at all — and it is the one sitting in front of the customer.
+  /// subtotal at all — and it is the one sitting in front of the depot.
   final double? subtotal;
   final VoidCallback? onTap;
 

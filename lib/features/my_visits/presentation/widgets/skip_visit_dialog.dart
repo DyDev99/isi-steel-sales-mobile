@@ -5,7 +5,7 @@ import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/platform/local_files.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/customer_stop_info.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/depot_stop_info.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/proof_photo_service.dart';
 
 /// What the rep picked before confirming a skip: a reason is always present
@@ -19,29 +19,29 @@ class SkipVisitResult {
 
 const _presetReasons = [
   'Shop closed',
-  'Customer not available',
+  'Depot not available',
   'No stock needed',
   'Access denied',
 ];
 
-/// Asks the rep why they're skipping [customer] before the stop dashboard
+/// Asks the rep why they're skipping [depot] before the stop dashboard
 /// commits anything — a plain confirm button used to submit a hardcoded
 /// reason with no way to attach proof. Returns `null` if the rep backs out.
 Future<SkipVisitResult?> showSkipVisitDialog(
   BuildContext context, {
-  required CustomerStopInfo customer,
+  required DepotStopInfo depot,
 }) {
   return showModalBottomSheet<SkipVisitResult>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (_) => _SkipVisitSheet(customer: customer),
+    builder: (_) => _SkipVisitSheet(depot: depot),
   );
 }
 
 class _SkipVisitSheet extends StatefulWidget {
-  const _SkipVisitSheet({required this.customer});
-  final CustomerStopInfo customer;
+  const _SkipVisitSheet({required this.depot});
+  final DepotStopInfo depot;
 
   @override
   State<_SkipVisitSheet> createState() => _SkipVisitSheetState();
@@ -64,8 +64,8 @@ class _SkipVisitSheetState extends State<_SkipVisitSheet> {
     setState(() => _capturing = true);
     try {
       final result = await sl<ProofPhotoService>().captureStamped(
-        latitude: widget.customer.latitude,
-        longitude: widget.customer.longitude,
+        latitude: widget.depot.latitude,
+        longitude: widget.depot.longitude,
       );
       if (result != null && mounted) {
         setState(() => _photoPath = result.filePath);
@@ -140,7 +140,7 @@ class _SkipVisitSheetState extends State<_SkipVisitSheet> {
                   ),
                   SizedBox(height: context.rh(4)),
                   Text(
-                    widget.customer.name,
+                    widget.depot.name,
                     style: TextStyle(
                         fontSize: context.rsp(12.5),
                         color: colors.textSecondary),

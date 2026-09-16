@@ -14,7 +14,7 @@ enum CoachAction {
   createLead,
   openMyLeads,
   openMyVisits,
-  openCustomers,
+  openDepots,
   openOrders,
   completeTutorial,
 }

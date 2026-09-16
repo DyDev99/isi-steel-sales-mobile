@@ -28,7 +28,7 @@ void main() {
     });
   });
 
-  group('readBusinessName (customer-master convention)', () {
+  group('readBusinessName (depot-master convention)', () {
     test('prefers enName/khName when SAP populated them', () {
       final text = LocalizedTextCodec.readBusinessName(
         {'enName': 'Golden Sky Depot Co., Ltd', 'khName': 'ឃ្លាំង មាសមេឃ'},

@@ -1,0 +1,703 @@
+Renamed file: lib/core/database/drift/tables/customer_related_tables.dart -> lib/core/database/drift/tables/depot_related_tables.dart
+Renamed file: lib/core/database/drift/tables/customers_table.dart -> lib/core/database/drift/tables/depots_table.dart
+Renamed file: lib/core/database/drift/daos/customer_dao.g.dart -> lib/core/database/drift/daos/depot_dao.g.dart
+Renamed file: lib/core/database/drift/daos/customer_dao.dart -> lib/core/database/drift/daos/depot_dao.dart
+Renamed file: lib/features/customers/data/datasources/non_customer_demo_data.dart -> lib/features/customers/data/datasources/non_bp_depot_demo_data.dart
+Renamed file: lib/features/customers/data/repositories/customer_repository_impl.dart -> lib/features/customers/data/repositories/depot_repository_impl.dart
+Renamed file: lib/features/customers/data/repositories/customer_document_repository_impl.dart -> lib/features/customers/data/repositories/depot_document_repository_impl.dart
+Renamed file: lib/features/customers/data/repositories/customer_sync_repository_impl.dart -> lib/features/customers/data/repositories/depot_sync_repository_impl.dart
+Renamed file: lib/features/customers/data/models/customer_document_mapper.dart -> lib/features/customers/data/models/depot_document_mapper.dart
+Renamed file: lib/features/customers/data/models/customer_note_model.dart -> lib/features/customers/data/models/depot_note_model.dart
+Renamed file: lib/features/customers/data/models/customer_model.dart -> lib/features/customers/data/models/depot_model.dart
+Renamed file: lib/features/customers/data/models/customer_api_mapper.dart -> lib/features/customers/data/models/depot_api_mapper.dart
+Renamed file: lib/features/customers/data/models/bp_customer_form_data.dart -> lib/features/customers/data/models/bp_depot_form_data.dart
+Renamed file: lib/features/customers/data/models/customer_activity_model.dart -> lib/features/customers/data/models/depot_activity_model.dart
+Renamed file: lib/features/customers/data/models/customer_contact_model.dart -> lib/features/customers/data/models/depot_contact_model.dart
+Renamed file: lib/features/customers/data/models/portal_customer_mapper.dart -> lib/features/customers/data/models/portal_depot_mapper.dart
+Renamed file: lib/features/customers/data/local/customer_drift_local_data_source.dart -> lib/features/customers/data/local/depot_drift_local_data_source.dart
+Renamed file: lib/features/customers/data/local/customer_reference_cache.dart -> lib/features/customers/data/local/depot_reference_cache.dart
+Renamed file: lib/features/customers/data/local/customer_local_data_source.dart -> lib/features/customers/data/local/depot_local_data_source.dart
+Renamed file: lib/features/customers/data/local/customer_drift_mappers.dart -> lib/features/customers/data/local/depot_drift_mappers.dart
+Renamed file: lib/features/customers/data/remote/customer_sync_page.dart -> lib/features/customers/data/remote/depot_sync_page.dart
+Renamed file: lib/features/customers/data/remote/customer_remote_data_source.dart -> lib/features/customers/data/remote/depot_remote_data_source.dart
+Renamed file: lib/features/customers/data/remote/api_customer_remote_data_source.dart -> lib/features/customers/data/remote/api_depot_remote_data_source.dart
+Renamed file: lib/features/customers/data/remote/customer_datasources.dart -> lib/features/customers/data/remote/depot_datasources.dart
+Renamed file: lib/features/customers/data/remote/customer_document_remote_data_source.dart -> lib/features/customers/data/remote/depot_document_remote_data_source.dart
+Renamed file: lib/features/customers/domain/repositories/customer_repository.dart -> lib/features/customers/domain/repositories/depot_repository.dart
+Renamed file: lib/features/customers/domain/repositories/customer_document_repository.dart -> lib/features/customers/domain/repositories/depot_document_repository.dart
+Renamed file: lib/features/customers/domain/repositories/customer_sync_repository.dart -> lib/features/customers/domain/repositories/depot_sync_repository.dart
+Renamed file: lib/features/customers/domain/usecases/add_customer_note.dart -> lib/features/customers/domain/usecases/add_depot_note.dart
+Renamed file: lib/features/customers/domain/usecases/get_customer_by_id.dart -> lib/features/customers/domain/usecases/get_depot_by_id.dart
+Renamed file: lib/features/customers/domain/usecases/lookup_customer_by_code.dart -> lib/features/customers/domain/usecases/lookup_depot_by_code.dart
+Renamed file: lib/features/customers/domain/usecases/get_customer_last_synced_at.dart -> lib/features/customers/domain/usecases/get_depot_last_synced_at.dart
+Renamed file: lib/features/customers/domain/usecases/add_customer_activity.dart -> lib/features/customers/domain/usecases/add_depot_activity.dart
+Renamed file: lib/features/customers/domain/usecases/toggle_favorite_customer.dart -> lib/features/customers/domain/usecases/toggle_favorite_depot.dart
+Renamed file: lib/features/customers/domain/usecases/fetch_favorite_customers.dart -> lib/features/customers/domain/usecases/fetch_favorite_depots.dart
+Renamed file: lib/features/customers/domain/usecases/record_customer_viewed.dart -> lib/features/customers/domain/usecases/record_depot_viewed.dart
+Renamed file: lib/features/customers/domain/usecases/run_customer_delta_sync.dart -> lib/features/customers/domain/usecases/run_depot_delta_sync.dart
+Renamed file: lib/features/customers/domain/usecases/customer_params.dart -> lib/features/customers/domain/usecases/depot_params.dart
+Renamed file: lib/features/customers/domain/usecases/create_customer.dart -> lib/features/customers/domain/usecases/create_depot.dart
+Renamed file: lib/features/customers/domain/usecases/browse_customers.dart -> lib/features/customers/domain/usecases/browse_depots.dart
+Renamed file: lib/features/customers/domain/usecases/fetch_customer_activities.dart -> lib/features/customers/domain/usecases/fetch_depot_activities.dart
+Renamed file: lib/features/customers/domain/usecases/fetch_customer_notes.dart -> lib/features/customers/domain/usecases/fetch_depot_notes.dart
+Renamed file: lib/features/customers/domain/usecases/run_customer_initial_sync.dart -> lib/features/customers/domain/usecases/run_depot_initial_sync.dart
+Renamed file: lib/features/customers/domain/usecases/fetch_recent_customers.dart -> lib/features/customers/domain/usecases/fetch_recent_depots.dart
+Renamed file: lib/features/customers/domain/entities/customer.dart -> lib/features/customers/domain/entities/depot.dart
+Renamed file: lib/features/customers/domain/entities/customer_status.dart -> lib/features/customers/domain/entities/depot_status.dart
+Renamed file: lib/features/customers/domain/entities/portal_customer.dart -> lib/features/customers/domain/entities/portal_depot.dart
+Renamed file: lib/features/customers/domain/entities/customer_sync_result.dart -> lib/features/customers/domain/entities/depot_sync_result.dart
+Renamed file: lib/features/customers/domain/entities/customer_draft.dart -> lib/features/customers/domain/entities/depot_draft.dart
+Renamed file: lib/features/customers/domain/entities/customer_code_lookup.dart -> lib/features/customers/domain/entities/depot_code_lookup.dart
+Renamed file: lib/features/customers/domain/entities/customer_contact.dart -> lib/features/customers/domain/entities/depot_contact.dart
+Renamed file: lib/features/customers/domain/entities/customer_activity.dart -> lib/features/customers/domain/entities/depot_activity.dart
+Renamed file: lib/features/customers/domain/entities/customer_activity_type.dart -> lib/features/customers/domain/entities/depot_activity_type.dart
+Renamed file: lib/features/customers/domain/entities/customer_submit_progress.dart -> lib/features/customers/domain/entities/depot_submit_progress.dart
+Renamed file: lib/features/customers/domain/entities/customer_note.dart -> lib/features/customers/domain/entities/depot_note.dart
+Renamed file: lib/features/customers/domain/entities/customer_paged_result.dart -> lib/features/customers/domain/entities/depot_paged_result.dart
+Renamed file: lib/features/customers/domain/entities/customer_filter.dart -> lib/features/customers/domain/entities/depot_filter.dart
+Renamed file: lib/features/customers/domain/entities/customer_document.dart -> lib/features/customers/domain/entities/depot_document.dart
+Renamed file: lib/features/customers/presentation/screens/customer_create_screen.dart -> lib/features/customers/presentation/screens/depot_create_screen.dart
+Renamed file: lib/features/customers/presentation/screens/customer_detail_screen.dart -> lib/features/customers/presentation/screens/depot_detail_screen.dart
+Renamed file: lib/features/customers/presentation/screens/customers_screen.dart -> lib/features/customers/presentation/screens/depots_screen.dart
+Renamed file: lib/features/customers/presentation/widgets/non_customer_card.dart -> lib/features/customers/presentation/widgets/non_bp_depot_card.dart
+Renamed file: lib/features/customers/presentation/widgets/customer_status_badge.dart -> lib/features/customers/presentation/widgets/depot_status_badge.dart
+Renamed file: lib/features/customers/presentation/widgets/customer_card.dart -> lib/features/customers/presentation/widgets/depot_card.dart
+Renamed file: lib/features/customers/presentation/widgets/add_customer_bottom_sheet.dart -> lib/features/customers/presentation/widgets/add_depot_bottom_sheet.dart
+Renamed file: lib/features/customers/presentation/widgets/customer_sync_status_banner.dart -> lib/features/customers/presentation/widgets/depot_sync_status_banner.dart
+Renamed file: lib/features/customers/presentation/widgets/customer_audience_filter.dart -> lib/features/customers/presentation/widgets/depot_audience_filter.dart
+Renamed file: lib/features/customers/presentation/widgets/customer_submit_progress_dialog.dart -> lib/features/customers/presentation/widgets/depot_submit_progress_dialog.dart
+Renamed file: lib/features/customers/presentation/widgets/customer_quick_actions.dart -> lib/features/customers/presentation/widgets/depot_quick_actions.dart
+Renamed file: lib/features/customers/presentation/widgets/customer_empty_state.dart -> lib/features/customers/presentation/widgets/depot_empty_state.dart
+Renamed file: lib/features/customers/presentation/widgets/customer_loading.dart -> lib/features/customers/presentation/widgets/depot_loading.dart
+Renamed file: lib/features/customers/presentation/widgets/non_customer_register_screen.dart -> lib/features/customers/presentation/widgets/non_bp_depot_register_screen.dart
+Renamed file: lib/features/customers/presentation/widgets/customer_error_state.dart -> lib/features/customers/presentation/widgets/depot_error_state.dart
+Renamed file: lib/features/customers/presentation/widgets/customer_search_bar.dart -> lib/features/customers/presentation/widgets/depot_search_bar.dart
+Renamed file: lib/features/customers/presentation/widgets/customer_filter_sheet.dart -> lib/features/customers/presentation/widgets/depot_filter_sheet.dart
+Renamed file: lib/features/customers/presentation/widgets/non_customers_list_view.dart -> lib/features/customers/presentation/widgets/non_bp_depots_list_view.dart
+Renamed dir: lib/features/customers/presentation/widgets/add_customer -> lib/features/customers/presentation/widgets/add_depot
+Renamed file: lib/features/customers/presentation/bloc/add_customer_bloc.dart -> lib/features/customers/presentation/bloc/add_depot_bloc.dart
+Renamed file: lib/features/customers/presentation/bloc/customer_sync_cubit.dart -> lib/features/customers/presentation/bloc/depot_sync_cubit.dart
+Renamed file: lib/features/customers/presentation/bloc/customer_detail_state.dart -> lib/features/customers/presentation/bloc/depot_detail_state.dart
+Renamed file: lib/features/customers/presentation/bloc/customers_state.dart -> lib/features/customers/presentation/bloc/depots_state.dart
+Renamed file: lib/features/customers/presentation/bloc/customer_filter_cubit.dart -> lib/features/customers/presentation/bloc/depot_filter_cubit.dart
+Renamed file: lib/features/customers/presentation/bloc/customers_bloc.dart -> lib/features/customers/presentation/bloc/depots_bloc.dart
+Renamed file: lib/features/customers/presentation/bloc/customer_code_lookup_cubit.dart -> lib/features/customers/presentation/bloc/depot_code_lookup_cubit.dart
+Renamed file: lib/features/customers/presentation/bloc/customers_event.dart -> lib/features/customers/presentation/bloc/depots_event.dart
+Renamed file: lib/features/customers/presentation/bloc/customer_filter_state.dart -> lib/features/customers/presentation/bloc/depot_filter_state.dart
+Renamed file: lib/features/customers/presentation/bloc/customer_sync_state.dart -> lib/features/customers/presentation/bloc/depot_sync_state.dart
+Renamed file: lib/features/customers/presentation/bloc/customer_detail_cubit.dart -> lib/features/customers/presentation/bloc/depot_detail_cubit.dart
+Renamed file: lib/features/customers/customers_injection.dart -> lib/features/customers/depots_injection.dart
+Renamed file: lib/features/order/domain/usecases/get_customer_material_prices.dart -> lib/features/order/domain/usecases/get_depot_material_prices.dart
+Renamed file: lib/features/home/presentation/widgets/customers_card_widget.dart -> lib/features/home/presentation/widgets/depots_card_widget.dart
+Renamed file: lib/features/home/presentation/bloc/add_customer_bloc.dart -> lib/features/home/presentation/bloc/add_depot_bloc.dart
+Renamed file: lib/features/home/presentation/bloc/add_customer_state.dart -> lib/features/home/presentation/bloc/add_depot_state.dart
+Renamed file: lib/features/home/presentation/bloc/add_customer_event.dart -> lib/features/home/presentation/bloc/add_depot_event.dart
+Renamed file: lib/features/my_visits/data/models/customer_stop_info_model.dart -> lib/features/my_visits/data/models/depot_stop_info_model.dart
+Renamed file: lib/features/my_visits/domain/entities/customer_stop_info.dart -> lib/features/my_visits/domain/entities/depot_stop_info.dart
+Renamed dir: lib/features/customers -> lib/features/depots
+Renamed file: docs/adr/ADR-0009-customer-master-data-filter.md -> docs/adr/ADR-0009-depot-master-data-filter.md
+Renamed file: docs/feature/customer/mobile/mobile/get-customer.md -> docs/feature/customer/mobile/mobile/get-depot.md
+Renamed file: docs/feature/customer/mobile/mobile/get-customer-by-id.md -> docs/feature/customer/mobile/mobile/get-depot-by-id.md
+Renamed file: docs/feature/customer/mobile/mobile/edit-customer.md -> docs/feature/customer/mobile/mobile/edit-depot.md
+Renamed file: docs/feature/customer/mobile/mobile/customer-documents.md -> docs/feature/customer/mobile/mobile/depot-documents.md
+Renamed file: docs/feature/customer/mobile/mobile/search-customer.md -> docs/feature/customer/mobile/mobile/search-depot.md
+Renamed file: docs/feature/customer/mobile/mobile/create-customer.md -> docs/feature/customer/mobile/mobile/create-depot.md
+Renamed file: docs/feature/customer/mobile/mobile/filter-customer.md -> docs/feature/customer/mobile/mobile/filter-depot.md
+Renamed file: docs/feature/customer/mobile/get-customer.md -> docs/feature/customer/mobile/get-depot.md
+Renamed file: docs/feature/customer/mobile/get-customer-by-id.md -> docs/feature/customer/mobile/get-depot-by-id.md
+Renamed file: docs/feature/customer/mobile/edit-customer.md -> docs/feature/customer/mobile/edit-depot.md
+Renamed file: docs/feature/customer/mobile/customer-documents.md -> docs/feature/customer/mobile/depot-documents.md
+Renamed file: docs/feature/customer/mobile/search-customer.md -> docs/feature/customer/mobile/search-depot.md
+Renamed file: docs/feature/customer/mobile/create-customer.md -> docs/feature/customer/mobile/create-depot.md
+Renamed file: docs/feature/customer/mobile/filter-customer.md -> docs/feature/customer/mobile/filter-depot.md
+Renamed dir: docs/feature/customer -> docs/feature/depot
+Renamed file: test/core/database/drift/sap_customer_id_nullable_test.dart -> test/core/database/drift/sap_depot_id_nullable_test.dart
+Renamed file: test/core/database/drift/customer_sync_language_v20_to_v21_migration_test.dart -> test/core/database/drift/depot_sync_language_v20_to_v21_migration_test.dart
+Renamed file: test/core/database/drift/customer_sap_schema_migration_test.dart -> test/core/database/drift/depot_sap_schema_migration_test.dart
+Renamed file: test/core/database/drift/customer_dao_test.dart -> test/core/database/drift/depot_dao_test.dart
+Renamed file: test/features/customers/customer_by_code_lookup_test.dart -> test/features/customers/depot_by_code_lookup_test.dart
+Renamed file: test/features/customers/customer_draft_resume_test.dart -> test/features/customers/depot_draft_resume_test.dart
+Renamed file: test/features/customers/add_customer_evidence_test.dart -> test/features/customers/add_depot_evidence_test.dart
+Renamed file: test/features/customers/customer_form_address_test.dart -> test/features/customers/depot_form_address_test.dart
+Renamed file: test/features/customers/customer_sync_recovery_test.dart -> test/features/customers/depot_sync_recovery_test.dart
+Renamed file: test/features/customers/customer_document_test.dart -> test/features/customers/depot_document_test.dart
+Renamed file: test/features/customers/customer_api_mapper_test.dart -> test/features/customers/depot_api_mapper_test.dart
+Renamed file: test/features/customers/customer_code_gate_test.dart -> test/features/customers/depot_code_gate_test.dart
+Renamed file: test/features/customers/customer_card_status_test.dart -> test/features/customers/depot_card_status_test.dart
+Renamed file: test/features/customers/customer_filter_cubit_test.dart -> test/features/customers/depot_filter_cubit_test.dart
+Renamed file: test/features/customers/customer_drift_local_data_source_test.dart -> test/features/customers/depot_drift_local_data_source_test.dart
+Renamed file: test/features/customers/customer_references_live_payload_test.dart -> test/features/customers/depot_references_live_payload_test.dart
+Renamed file: test/features/customers/customer_submit_progress_test.dart -> test/features/customers/depot_submit_progress_test.dart
+Renamed file: test/features/customers/customer_sync_watermark_test.dart -> test/features/customers/depot_sync_watermark_test.dart
+Renamed file: test/features/order/quotation_customer_context_test.dart -> test/features/order/quotation_depot_context_test.dart
+Renamed dir: test/features/customers -> test/features/depots
+Updated content in: lib/core/database/drift/app_database.dart
+Updated content in: lib/core/database/drift/app_database.g.dart
+Updated content in: lib/core/database/drift/tables/visit_tables.dart
+Updated content in: lib/core/database/drift/tables/route_tables.dart
+Updated content in: lib/core/database/drift/tables/depots_table.dart
+Updated content in: lib/core/database/drift/tables/cart_items_table.dart
+Updated content in: lib/core/database/drift/tables/catalog_tables.dart
+Updated content in: lib/core/database/drift/tables/notification_tables.dart
+Updated content in: lib/core/database/drift/tables/workflow_state_table.dart
+Updated content in: lib/core/database/drift/tables/depot_related_tables.dart
+Updated content in: lib/core/database/drift/tables/geo_tables.dart
+Updated content in: lib/core/database/drift/tables/order_tables.dart
+Updated content in: lib/core/database/drift/migrations/legacy_orders_importer.dart
+Updated content in: lib/core/database/drift/migrations/master_data_locale_backfill.dart
+Updated content in: lib/core/database/drift/migrations/legacy_routes_importer.dart
+Updated content in: lib/core/database/drift/migrations/schema_migrations.dart
+Updated content in: lib/core/database/drift/connection/web_database.dart
+Updated content in: lib/core/database/drift/daos/order_dao.dart
+Updated content in: lib/core/database/drift/daos/route_dao.g.dart
+Updated content in: lib/core/database/drift/daos/route_dao.dart
+Updated content in: lib/core/database/drift/daos/depot_dao.dart
+Updated content in: lib/core/database/drift/daos/depot_dao.g.dart
+Updated content in: lib/core/database/drift/daos/workflow_state_dao.dart
+Updated content in: lib/core/di/injection_container.dart
+Updated content in: lib/core/bootstrap/app_bootstrap_service.dart
+Updated content in: lib/core/auth/protected_feature.dart
+Updated content in: lib/core/camera/mock_image_capture_service.dart
+Updated content in: lib/core/camera/mock_camera_asset.dart
+Updated content in: lib/core/camera/image_capture_service.dart
+Updated content in: lib/core/constants/app_constant.dart
+Updated content in: lib/core/platform/captured_media_store_web.dart
+Updated content in: lib/core/platform/runtime_environment_native.dart
+Updated content in: lib/core/platform/captured_media_store_native.dart
+Updated content in: lib/core/network/api_log_interceptor.dart
+Updated content in: lib/core/network/api_envelope.dart
+Updated content in: lib/core/network/api_error.dart
+Updated content in: lib/core/utils/money.dart
+Updated content in: lib/core/utils/enum_parse.dart
+Updated content in: lib/core/utils/text_normalization.dart
+Updated content in: lib/core/permissions/location_permission_service.dart
+Updated content in: lib/core/permissions/presentation/app_permissions_cubit.dart
+Updated content in: lib/core/device/device_insets.dart
+Updated content in: lib/core/logging/debug_trace.dart
+Updated content in: lib/core/logging/app_logger.dart
+Updated content in: lib/core/notifications/notification_deep_link.dart
+Updated content in: lib/core/notifications/local_notification_presenter_native.dart
+Updated content in: lib/core/notifications/push_message.dart
+Updated content in: lib/core/services/pdf/pdf_file_store_native.dart
+Updated content in: lib/core/services/pdf/pdf_document_builder.dart
+Updated content in: lib/core/services/pdf/pdf_file_store_web.dart
+Updated content in: lib/core/services/pdf/pdf_assets.dart
+Updated content in: lib/core/localization/active_language.dart
+Updated content in: lib/core/localization/localized_text_codec.dart
+Updated content in: lib/core/session/session_manager.dart
+Updated content in: lib/core/session/session_scoped_store.dart
+Updated content in: lib/features/order/order_injection.dart
+Updated content in: lib/features/order/pdf/quotation_pdf_data.dart
+Updated content in: lib/features/order/pdf/quotation_pdf_generator.dart
+Updated content in: lib/features/order/data/mock/sap_catalog_facets.dart
+Updated content in: lib/features/order/data/mock/mock_product_data.dart
+Updated content in: lib/features/order/data/mock/isi_demo_catalog.dart
+Updated content in: lib/features/order/data/mock/isi_filter_schema_data.dart
+Updated content in: lib/features/order/data/repositories/sales_order_repository_impl.dart
+Updated content in: lib/features/order/data/repositories/quotation_api_repository_impl.dart
+Updated content in: lib/features/order/data/repositories/static_promotion_repository_impl.dart
+Updated content in: lib/features/order/data/repositories/quotation_repository_impl.dart
+Updated content in: lib/features/order/data/repositories/pricing_repository_impl.dart
+Updated content in: lib/features/order/data/repositories/cart_repository_impl.dart
+Updated content in: lib/features/order/data/models/material_api_mapper.dart
+Updated content in: lib/features/order/data/models/quotation_api_models.dart
+Updated content in: lib/features/order/data/models/mobile_price_model.dart
+Updated content in: lib/features/order/data/local/order_line_codec.dart
+Updated content in: lib/features/order/data/local/cart_drift_local_data_source.dart
+Updated content in: lib/features/order/data/services/mock_mto_pricing_service.dart
+Updated content in: lib/features/order/data/services/mock_credit_service.dart
+Updated content in: lib/features/order/data/services/mock_quotation_sap_service.dart
+Updated content in: lib/features/order/data/remote/api_material_selection_remote_data_source.dart
+Updated content in: lib/features/order/data/remote/quotation_remote_data_source.dart
+Updated content in: lib/features/order/data/remote/pricing_realtime_data_source.dart
+Updated content in: lib/features/order/data/remote/pricing_remote_data_source.dart
+Updated content in: lib/features/order/data/session/order_session_scoped_store.dart
+Updated content in: lib/features/order/domain/repositories/quotation_api_repository.dart
+Updated content in: lib/features/order/domain/repositories/promotion_repository.dart
+Updated content in: lib/features/order/domain/repositories/pricing_repository.dart
+Updated content in: lib/features/order/domain/repositories/quotation_repository.dart
+Updated content in: lib/features/order/domain/usecases/get_promotions.dart
+Updated content in: lib/features/order/domain/usecases/get_depot_material_prices.dart
+Updated content in: lib/features/order/domain/usecases/resolve_outlet_price.dart
+Updated content in: lib/features/order/domain/usecases/save_quotation.dart
+Updated content in: lib/features/order/domain/usecases/evaluate_promotion.dart
+Updated content in: lib/features/order/domain/usecases/catalog_params.dart
+Updated content in: lib/features/order/domain/usecases/quotation_api_usecases.dart
+Updated content in: lib/features/order/domain/usecases/get_credit_summary.dart
+Updated content in: lib/features/order/domain/services/credit_service.dart
+Updated content in: lib/features/order/domain/entities/product.dart
+Updated content in: lib/features/order/domain/entities/sap_submit_result.dart
+Updated content in: lib/features/order/domain/entities/quotation.dart
+Updated content in: lib/features/order/domain/entities/sales_order.dart
+Updated content in: lib/features/order/domain/entities/material_availability.dart
+Updated content in: lib/features/order/domain/entities/credit_note_debit_note.dart
+Updated content in: lib/features/order/domain/entities/mobile_price.dart
+Updated content in: lib/features/order/domain/entities/credit_summary.dart
+Updated content in: lib/features/order/domain/entities/pricing_status.dart
+Updated content in: lib/features/order/domain/entities/order_line_validation.dart
+Updated content in: lib/features/order/domain/entities/price_tier.dart
+Updated content in: lib/features/order/domain/entities/cart_item.dart
+Updated content in: lib/features/order/domain/entities/quotation_api_entities.dart
+Updated content in: lib/features/order/domain/entities/fulfillment.dart
+Updated content in: lib/features/order/domain/entities/promotion/promotion_tier.dart
+Updated content in: lib/features/order/domain/entities/promotion/promotion.dart
+Updated content in: lib/features/order/domain/entities/filter/product_attribute.dart
+Updated content in: lib/features/order/presentation/screens/quotation/quotation_preview_screen.dart
+Updated content in: lib/features/order/presentation/screens/quotation/quotation_builder_screen.dart
+Updated content in: lib/features/order/presentation/screens/quotation/quotation_detail_screen.dart
+Updated content in: lib/features/order/presentation/screens/quotation/promotion_section.dart
+Updated content in: lib/features/order/presentation/screens/quotation/customized_product_form_screen.dart
+Updated content in: lib/features/order/presentation/screens/catalog/product_filter_screen.dart
+Updated content in: lib/features/order/presentation/screens/shop/shop_order_entry_screen.dart
+Updated content in: lib/features/order/presentation/screens/shop/shop_list_screen.dart
+Updated content in: lib/features/order/presentation/screens/territory/territory_screen.dart
+Updated content in: lib/features/order/presentation/screens/sales_order/sales_order_detail_screen.dart
+Updated content in: lib/features/order/presentation/services/geolocator_order_location_service.dart
+Updated content in: lib/features/order/presentation/services/quotation_pdf_service.dart
+Updated content in: lib/features/order/presentation/widgets/quotation/pricing_text.dart
+Updated content in: lib/features/order/presentation/widgets/quotation/manual_discount_input_sheet.dart
+Updated content in: lib/features/order/presentation/widgets/quotation/cart_preview_section.dart
+Updated content in: lib/features/order/presentation/widgets/quotation/quotation_pdf_data.dart
+Updated content in: lib/features/order/presentation/widgets/quotation/quotation_preview_section.dart
+Updated content in: lib/features/order/presentation/widgets/quotation/line_discount_chips.dart
+Updated content in: lib/features/order/presentation/widgets/quotation/quotation_list_view.dart
+Updated content in: lib/features/order/presentation/widgets/quotation/quotation_line_discount.dart
+Updated content in: lib/features/order/presentation/widgets/quotation/quotation_pdf_generator.dart
+Updated content in: lib/features/order/presentation/widgets/promotion/promotion_inline_block.dart
+Updated content in: lib/features/order/presentation/widgets/promotion/cart_promotion_badge.dart
+Updated content in: lib/features/order/presentation/widgets/promotion/promotion_detail_sheet.dart
+Updated content in: lib/features/order/presentation/widgets/promotion/demo_cart_promotions.dart
+Updated content in: lib/features/order/presentation/widgets/filter_flow/cart_line_binding.dart
+Updated content in: lib/features/order/presentation/widgets/filter_flow/guided_product_filter_view.dart
+Updated content in: lib/features/order/presentation/widgets/filter_flow/cart_summary_bar.dart
+Updated content in: lib/features/order/presentation/widgets/filter_flow/product_result_card.dart
+Updated content in: lib/features/order/presentation/widgets/filter_flow/product_result_grid.dart
+Updated content in: lib/features/order/presentation/widgets/filter_flow/material_price_view.dart
+Updated content in: lib/features/order/presentation/widgets/catalog/product_lists_section.dart
+Updated content in: lib/features/order/presentation/widgets/shop/shop_tile.dart
+Updated content in: lib/features/order/presentation/widgets/sales_order/sales_order_card.dart
+Updated content in: lib/features/order/presentation/bloc/quotation/quotation_builder_state.dart
+Updated content in: lib/features/order/presentation/bloc/quotation/quotation_list_cubit.dart
+Updated content in: lib/features/order/presentation/bloc/quotation/quotation_builder_cubit.dart
+Updated content in: lib/features/order/presentation/bloc/quotation/quotation_list_state.dart
+Updated content in: lib/features/order/presentation/bloc/promotion/promotion_cubit.dart
+Updated content in: lib/features/order/presentation/bloc/customization/customization_cubit.dart
+Updated content in: lib/features/order/presentation/bloc/catalog/stock_cubit.dart
+Updated content in: lib/features/order/presentation/bloc/pdf/pdf_generation_cubit.dart
+Updated content in: lib/features/order/presentation/bloc/cart/cart_cubit.dart
+Updated content in: lib/features/order/presentation/bloc/pricing/pricing_cubit.dart
+Updated content in: lib/features/home/home_injection.dart
+Updated content in: lib/features/home/data/home_repository.dart
+Updated content in: lib/features/home/domain/dashboard_summary.dart
+Updated content in: lib/features/home/presentation/screens/home_screen.dart
+Updated content in: lib/features/home/presentation/widgets/depots_card_widget.dart
+Updated content in: lib/features/home/presentation/bloc/add_depot_event.dart
+Updated content in: lib/features/home/presentation/bloc/add_depot_bloc.dart
+Updated content in: lib/features/home/presentation/bloc/add_depot_state.dart
+Updated content in: lib/features/home/presentation/bloc/home_cubit.dart
+Updated content in: lib/features/notification/notification_injection.dart
+Updated content in: lib/features/notification/data/repositories/notification_preferences_repository_impl.dart
+Updated content in: lib/features/notification/data/models/notification_api_mapper.dart
+Updated content in: lib/features/notification/data/remote/mock_notification_remote_data_source.dart
+Updated content in: lib/features/notification/presentation/widgets/notification_inbox_view.dart
+Updated content in: lib/features/notification/presentation/widgets/notification_host.dart
+Updated content in: lib/features/shell/presentation/main_shell.dart
+Updated content in: lib/features/shell/presentation/widgets/my_work_grid_section.dart
+Updated content in: lib/features/shell/presentation/widgets/guest/guest_quick_action_grid.dart
+Updated content in: lib/features/shell/presentation/widgets/guest/guest_my_work_grid.dart
+Updated content in: lib/features/shell/presentation/widgets/sync/continue_work_resolver.dart
+Updated content in: lib/features/my_visits/FIXES.md
+Updated content in: lib/features/my_visits/my_visits_injection.dart
+Updated content in: lib/features/my_visits/data/repositories/visit_sync_repository_impl.dart
+Updated content in: lib/features/my_visits/data/repositories/route_sync_repository_impl.dart
+Updated content in: lib/features/my_visits/data/models/route_stop_model.dart
+Updated content in: lib/features/my_visits/data/models/depot_stop_info_model.dart
+Updated content in: lib/features/my_visits/data/models/visit_api_mapper.dart
+Updated content in: lib/features/my_visits/data/models/active_workflow_model.dart
+Updated content in: lib/features/my_visits/data/models/check_in_record_model.dart
+Updated content in: lib/features/my_visits/data/local/visit_drift_mappers.dart
+Updated content in: lib/features/my_visits/data/local/route_local_data_source.dart
+Updated content in: lib/features/my_visits/data/local/telemetry_drift_mappers.dart
+Updated content in: lib/features/my_visits/data/local/route_drift_mappers.dart
+Updated content in: lib/features/my_visits/data/local/route_drift_local_data_source.dart
+Updated content in: lib/features/my_visits/data/remote/route_remote_data_source.dart
+Updated content in: lib/features/my_visits/data/remote/api_route_remote_data_source.dart
+Updated content in: lib/features/my_visits/data/remote/route_sync_page.dart
+Updated content in: lib/features/my_visits/domain/usecases/complete_visit_check_out.dart
+Updated content in: lib/features/my_visits/domain/services/stop_distance_sorter.dart
+Updated content in: lib/features/my_visits/domain/services/fraud_detection_service.dart
+Updated content in: lib/features/my_visits/domain/services/check_in_location_verifier.dart
+Updated content in: lib/features/my_visits/domain/services/geofence_service.dart
+Updated content in: lib/features/my_visits/domain/services/outlet_location_source.dart
+Updated content in: lib/features/my_visits/domain/entities/active_workflow.dart
+Updated content in: lib/features/my_visits/domain/entities/depot_stop_info.dart
+Updated content in: lib/features/my_visits/domain/entities/route_stop.dart
+Updated content in: lib/features/my_visits/domain/entities/check_in_record.dart
+Updated content in: lib/features/my_visits/domain/entities/territory_type.dart
+Updated content in: lib/features/my_visits/domain/entities/visit_photo.dart
+Updated content in: lib/features/my_visits/presentation/navigation/open_quotation.dart
+Updated content in: lib/features/my_visits/presentation/navigation/open_inventory_visibility.dart
+Updated content in: lib/features/my_visits/presentation/navigation/stop_map.dart
+Updated content in: lib/features/my_visits/presentation/navigation/resume_workflow_dispatcher.dart
+Updated content in: lib/features/my_visits/presentation/models/visit_record.dart
+Updated content in: lib/features/my_visits/presentation/screens/stops_check_in_screen.dart
+Updated content in: lib/features/my_visits/presentation/screens/stop_dashboard/stop_dashboard_screen.dart
+Updated content in: lib/features/my_visits/presentation/screens/stop_information/stop_information_screen.dart
+Updated content in: lib/features/my_visits/presentation/screens/stop_information/promotions_screen.dart
+Updated content in: lib/features/my_visits/presentation/screens/inventory_visible/inventory_visible_screen.dart
+Updated content in: lib/features/my_visits/presentation/widgets/route_summary_card.dart
+Updated content in: lib/features/my_visits/presentation/widgets/stop_card.dart
+Updated content in: lib/features/my_visits/presentation/widgets/remote_check_in_sheet.dart
+Updated content in: lib/features/my_visits/presentation/widgets/transit_map.dart
+Updated content in: lib/features/my_visits/presentation/widgets/skip_visit_dialog.dart
+Updated content in: lib/features/my_visits/presentation/widgets/visit_history_card.dart
+Updated content in: lib/features/my_visits/presentation/bloc/active_route_bloc.dart
+Updated content in: lib/features/my_visits/presentation/bloc/cubit/navigation_state_cubit.dart
+Updated content in: lib/features/my_visits/presentation/bloc/cubit/route_dashboard_cubit.dart
+Updated content in: lib/features/my_visits/presentation/bloc/cubit/depot_stock_count_cubit.dart
+Updated content in: lib/features/my_visits/presentation/bloc/cubit/resumable_visit_cubit.dart
+Updated content in: lib/features/my_visits/presentation/bloc/cubit/depot_selection_cubit.dart
+Updated content in: lib/features/my_visits/presentation/bloc/cubit/route_sync_cubit.dart
+Updated content in: lib/features/my_visits/presentation/bloc/state/stop_dashboard_state.dart
+Updated content in: lib/features/my_visits/presentation/bloc/state/depot_selection_state.dart
+Updated content in: lib/features/my_visits/presentation/bloc/state/active_route_state.dart
+Updated content in: lib/features/my_visits/presentation/bloc/events/active_route_event.dart
+Updated content in: lib/features/app_coach/data/datasource/coach_step_catalog.dart
+Updated content in: lib/features/app_coach/domain/entities/coach_action.dart
+Updated content in: lib/features/app_coach/presentation/services/coach_keys.dart
+Updated content in: lib/features/app_coach/presentation/widgets/app_coach_host.dart
+Updated content in: lib/features/geo_location/domain/entities/geo_address.dart
+Updated content in: lib/features/depots/I18N_KEYS_TO_ADD.md
+Updated content in: lib/features/depots/BUSINESS_PARTNER_CHANGES.md
+Updated content in: lib/features/depots/depots_injection.dart
+Updated content in: lib/features/depots/data/datasources/non_bp_depot_demo_data.dart
+Updated content in: lib/features/depots/data/datasources/business_partner_remote_data_source.dart
+Updated content in: lib/features/depots/data/repositories/business_partner_repository_impl.dart
+Updated content in: lib/features/depots/data/repositories/depot_sync_repository_impl.dart
+Updated content in: lib/features/depots/data/repositories/depot_document_repository_impl.dart
+Updated content in: lib/features/depots/data/repositories/depot_repository_impl.dart
+Updated content in: lib/features/depots/data/repositories/master_data_repository_impl.dart
+Updated content in: lib/features/depots/data/models/depot_activity_model.dart
+Updated content in: lib/features/depots/data/models/depot_contact_model.dart
+Updated content in: lib/features/depots/data/models/depot_document_mapper.dart
+Updated content in: lib/features/depots/data/models/portal_depot_mapper.dart
+Updated content in: lib/features/depots/data/models/bp_depot_form_data.dart
+Updated content in: lib/features/depots/data/models/depot_note_model.dart
+Updated content in: lib/features/depots/data/models/business_partner_response_model.dart
+Updated content in: lib/features/depots/data/models/depot_api_mapper.dart
+Updated content in: lib/features/depots/data/models/business_partner_request_model.dart
+Updated content in: lib/features/depots/data/models/sap_reference_options.dart
+Updated content in: lib/features/depots/data/models/depot_model.dart
+Updated content in: lib/features/depots/data/local/depot_local_data_source.dart
+Updated content in: lib/features/depots/data/local/depot_reference_cache.dart
+Updated content in: lib/features/depots/data/local/master_data_cache.dart
+Updated content in: lib/features/depots/data/local/depot_drift_local_data_source.dart
+Updated content in: lib/features/depots/data/local/depot_drift_mappers.dart
+Updated content in: lib/features/depots/data/local/bp_draft_cache.dart
+Updated content in: lib/features/depots/data/mappers/bp_draft_to_business_partner.dart
+Updated content in: lib/features/depots/data/remote/master_data_remote_data_source.dart
+Updated content in: lib/features/depots/data/remote/depot_sync_page.dart
+Updated content in: lib/features/depots/data/remote/api_depot_remote_data_source.dart
+Updated content in: lib/features/depots/data/remote/depot_document_remote_data_source.dart
+Updated content in: lib/features/depots/data/remote/depot_remote_data_source.dart
+Updated content in: lib/features/depots/data/remote/mock_master_data_remote_data_source.dart
+Updated content in: lib/features/depots/data/remote/depot_datasources.dart
+Updated content in: lib/features/depots/domain/repositories/master_data_repository.dart
+Updated content in: lib/features/depots/domain/repositories/depot_document_repository.dart
+Updated content in: lib/features/depots/domain/repositories/business_partner_repository.dart
+Updated content in: lib/features/depots/domain/repositories/depot_repository.dart
+Updated content in: lib/features/depots/domain/repositories/depot_sync_repository.dart
+Updated content in: lib/features/depots/domain/usecases/run_depot_initial_sync.dart
+Updated content in: lib/features/depots/domain/usecases/fetch_favorite_depots.dart
+Updated content in: lib/features/depots/domain/usecases/get_depot_by_id.dart
+Updated content in: lib/features/depots/domain/usecases/create_business_partner.dart
+Updated content in: lib/features/depots/domain/usecases/browse_depots.dart
+Updated content in: lib/features/depots/domain/usecases/lookup_depot_by_code.dart
+Updated content in: lib/features/depots/domain/usecases/record_depot_viewed.dart
+Updated content in: lib/features/depots/domain/usecases/add_depot_note.dart
+Updated content in: lib/features/depots/domain/usecases/depot_params.dart
+Updated content in: lib/features/depots/domain/usecases/run_depot_delta_sync.dart
+Updated content in: lib/features/depots/domain/usecases/toggle_favorite_depot.dart
+Updated content in: lib/features/depots/domain/usecases/get_depot_last_synced_at.dart
+Updated content in: lib/features/depots/domain/usecases/fetch_recent_depots.dart
+Updated content in: lib/features/depots/domain/usecases/fetch_master_data.dart
+Updated content in: lib/features/depots/domain/usecases/create_depot.dart
+Updated content in: lib/features/depots/domain/usecases/fetch_depot_notes.dart
+Updated content in: lib/features/depots/domain/usecases/refresh_master_data.dart
+Updated content in: lib/features/depots/domain/usecases/add_depot_activity.dart
+Updated content in: lib/features/depots/domain/usecases/fetch_depot_activities.dart
+Updated content in: lib/features/depots/domain/entities/portal_depot.dart
+Updated content in: lib/features/depots/domain/entities/master_data_item.dart
+Updated content in: lib/features/depots/domain/entities/depot_activity_type.dart
+Updated content in: lib/features/depots/domain/entities/depot_filter.dart
+Updated content in: lib/features/depots/domain/entities/depot_sync_result.dart
+Updated content in: lib/features/depots/domain/entities/depot_note.dart
+Updated content in: lib/features/depots/domain/entities/business_partner_result.dart
+Updated content in: lib/features/depots/domain/entities/depot_paged_result.dart
+Updated content in: lib/features/depots/domain/entities/depot_code_lookup.dart
+Updated content in: lib/features/depots/domain/entities/depot_contact.dart
+Updated content in: lib/features/depots/domain/entities/depot_activity.dart
+Updated content in: lib/features/depots/domain/entities/depot.dart
+Updated content in: lib/features/depots/domain/entities/depot_status.dart
+Updated content in: lib/features/depots/domain/entities/depot_document.dart
+Updated content in: lib/features/depots/domain/entities/depot_draft.dart
+Updated content in: lib/features/depots/domain/entities/master_data_type.dart
+Updated content in: lib/features/depots/domain/entities/business_partner_request.dart
+Updated content in: lib/features/depots/domain/entities/depot_submit_progress.dart
+Updated content in: lib/features/depots/presentation/screens/depots_screen.dart
+Updated content in: lib/features/depots/presentation/screens/depot_create_screen.dart
+Updated content in: lib/features/depots/presentation/screens/depot_detail_screen.dart
+Updated content in: lib/features/depots/presentation/widgets/depot_submit_progress_dialog.dart
+Updated content in: lib/features/depots/presentation/widgets/depot_filter_sheet.dart
+Updated content in: lib/features/depots/presentation/widgets/depot_search_bar.dart
+Updated content in: lib/features/depots/presentation/widgets/depot_empty_state.dart
+Updated content in: lib/features/depots/presentation/widgets/add_depot_bottom_sheet.dart
+Updated content in: lib/features/depots/presentation/widgets/depot_audience_filter.dart
+Updated content in: lib/features/depots/presentation/widgets/depot_error_state.dart
+Updated content in: lib/features/depots/presentation/widgets/depot_loading.dart
+Updated content in: lib/features/depots/presentation/widgets/depot_sync_status_banner.dart
+Updated content in: lib/features/depots/presentation/widgets/non_bp_depot_card.dart
+Updated content in: lib/features/depots/presentation/widgets/depot_status_badge.dart
+Updated content in: lib/features/depots/presentation/widgets/non_bp_depots_list_view.dart
+Updated content in: lib/features/depots/presentation/widgets/depot_card.dart
+Updated content in: lib/features/depots/presentation/widgets/depot_quick_actions.dart
+Updated content in: lib/features/depots/presentation/widgets/non_bp_depot_register_screen.dart
+Updated content in: lib/features/depots/presentation/widgets/add_depot/contact_step.dart
+Updated content in: lib/features/depots/presentation/widgets/add_depot/identity_step.dart
+Updated content in: lib/features/depots/presentation/widgets/add_depot/review_step.dart
+Updated content in: lib/features/depots/presentation/widgets/add_depot/documents_step.dart
+Updated content in: lib/features/depots/presentation/widgets/add_depot/address_step.dart
+Updated content in: lib/features/depots/presentation/widgets/add_depot/shared_components.dart
+Updated content in: lib/features/depots/presentation/widgets/add_depot/tablet_layout.dart
+Updated content in: lib/features/depots/presentation/widgets/add_depot/mobile_layout.dart
+Updated content in: lib/features/depots/presentation/widgets/add_depot/sales_terms_step.dart
+Updated content in: lib/features/depots/presentation/bloc/depot_filter_state.dart
+Updated content in: lib/features/depots/presentation/bloc/depot_detail_cubit.dart
+Updated content in: lib/features/depots/presentation/bloc/add_depot_bloc.dart
+Updated content in: lib/features/depots/presentation/bloc/depot_sync_state.dart
+Updated content in: lib/features/depots/presentation/bloc/depot_detail_state.dart
+Updated content in: lib/features/depots/presentation/bloc/depot_sync_cubit.dart
+Updated content in: lib/features/depots/presentation/bloc/depot_code_lookup_cubit.dart
+Updated content in: lib/features/depots/presentation/bloc/depots_event.dart
+Updated content in: lib/features/depots/presentation/bloc/depot_filter_cubit.dart
+Updated content in: lib/features/depots/presentation/bloc/business_partner_submission.dart
+Updated content in: lib/features/depots/presentation/bloc/depots_state.dart
+Updated content in: lib/features/depots/presentation/bloc/depots_bloc.dart
+Updated content in: lib/features/quotations/data/datasources/quotation_remote_data_source.dart
+Updated content in: lib/features/quotations/data/repositories/quotation_repository_impl.dart
+Updated content in: lib/features/quotations/data/models/quotation_status.dart
+Updated content in: lib/features/quotations/data/models/quotation_dto.dart
+Updated content in: lib/features/quotations/domain/repositories/quotation_repository.dart
+Updated content in: lib/features/quotations/domain/entities/quotation.dart
+Updated content in: lib/features/authentication/data/repositories/auth_repository_impl.dart
+Updated content in: lib/features/authentication/domain/entities/auth_profile.dart
+Updated content in: lib/features/authentication/presentation/bloc/auth_bloc.dart
+Updated content in: lib/shared/animations/steelforce_success_animation.dart
+Updated content in: lib/shared/animations/story_scenes.dart
+Updated content in: lib/shared/animations/work_icons.dart
+Updated content in: lib/shared/widgets/app_bottom_sheet.dart
+Updated content in: lib/shared/widgets/outlet_information/outlet_information_view.dart
+Updated content in: lib/shared/widgets/outlet_information/outlet_info_view_data.dart
+Updated content in: lib/shared/widgets/promotions/promo_value_tile.dart
+Updated content in: lib/shared/widgets/promotions/promo_view.dart
+Updated content in: lib/routes/app_routes.dart
+Updated content in: docs/README.md
+Updated content in: docs/adr/ADR-0008-sqlcipher-path.md
+Updated content in: docs/adr/ADR-0011-local-mirror-no-foreign-keys.md
+Updated content in: docs/adr/ADR-0010-web-persistence.md
+Updated content in: docs/adr/ADR-0002-offline-first.md
+Updated content in: docs/adr/ADR-0001-single-encrypted-database.md
+Updated content in: docs/adr/README.md
+Updated content in: docs/adr/ADR-0003-repository-pattern.md
+Updated content in: docs/adr/ADR-0006-sync-engine.md
+Updated content in: docs/adr/ADR-0004-drift-dao-pattern.md
+Updated content in: docs/adr/ADR-0009-depot-master-data-filter.md
+Updated content in: docs/release/ci-cd.md
+Updated content in: docs/requirement/README.md
+Updated content in: docs/skills/engineering-standard.md
+Updated content in: docs/skills/localization.md
+Updated content in: docs/skills/feature-ui-standard.md
+Updated content in: docs/skills/ai-engineering-playbook.md
+Updated content in: docs/skills/feature-documentation-template.md
+Updated content in: docs/skills/graphify.md
+Updated content in: docs/skills/api-integration.md
+Updated content in: docs/skills/security.md
+Updated content in: docs/feature/README.md
+Updated content in: docs/feature/order/workflow.md
+Updated content in: docs/feature/order/README.md
+Updated content in: docs/feature/order/product-selection/Mobile App Change Request — Material Search → SKU Card → Live Pricing.md
+Updated content in: docs/feature/order/product-selection/api.md
+Updated content in: docs/feature/order/product-selection/availability.md
+Updated content in: docs/feature/order/product-selection/README.md
+Updated content in: docs/feature/order/pricing/test-data.md
+Updated content in: docs/feature/order/pricing/architecture.md
+Updated content in: docs/feature/order/pricing/overview.md
+Updated content in: docs/feature/order/pricing/sap-integration.md
+Updated content in: docs/feature/order/pricing/testing.md
+Updated content in: docs/feature/order/pricing/README.md
+Updated content in: docs/feature/order/pricing/README-PRICING-REALTIME.md
+Updated content in: docs/feature/order/pricing/security.md
+Updated content in: docs/feature/order/pricing/mobile-upgrade-workflow.md
+Updated content in: docs/feature/order/pricing/api/admin.md
+Updated content in: docs/feature/order/pricing/api/mobile.md
+Updated content in: docs/feature/app-coach/README.md
+Updated content in: docs/feature/geo-location/README.md
+Updated content in: docs/feature/depot/api.md
+Updated content in: docs/feature/depot/README.md
+Updated content in: docs/feature/depot/api-design-notes.md
+Updated content in: docs/feature/depot/ui-ux.md
+Updated content in: docs/feature/depot/registration/api.md
+Updated content in: docs/feature/depot/registration/backend-implementation.md
+Updated content in: docs/feature/depot/registration/README.md
+Updated content in: docs/feature/depot/registration/sap-helpers.md
+Updated content in: docs/feature/depot/mobile/get-depot-by-id.md
+Updated content in: docs/feature/depot/mobile/search-depot.md
+Updated content in: docs/feature/depot/mobile/create-depot.md
+Updated content in: docs/feature/depot/mobile/edit-depot.md
+Updated content in: docs/feature/depot/mobile/get-depot.md
+Updated content in: docs/feature/depot/mobile/depot-documents.md
+Updated content in: docs/feature/depot/mobile/README.md
+Updated content in: docs/feature/depot/mobile/filter-depot.md
+Updated content in: docs/feature/depot/mobile/mobile.md
+Updated content in: docs/feature/depot/mobile/mobile/get-depot-by-id.md
+Updated content in: docs/feature/depot/mobile/mobile/search-depot.md
+Updated content in: docs/feature/depot/mobile/mobile/create-depot.md
+Updated content in: docs/feature/depot/mobile/mobile/edit-depot.md
+Updated content in: docs/feature/depot/mobile/mobile/get-depot.md
+Updated content in: docs/feature/depot/mobile/mobile/depot-documents.md
+Updated content in: docs/feature/depot/mobile/mobile/README.md
+Updated content in: docs/feature/depot/mobile/mobile/filter-depot.md
+Updated content in: docs/feature/depot/mobile/mobile/create-business-partner-sample.json
+Updated content in: docs/feature/depot/mobile/mobile/mobile.md
+Updated content in: docs/feature/quotation-orders/overview.md
+Updated content in: docs/feature/quotation-orders/testing.md
+Updated content in: docs/feature/quotation-orders/README.md
+Updated content in: docs/feature/quotation-orders/business-rules.md
+Updated content in: docs/feature/quotation-orders/quotation-orders-plan.md
+Updated content in: docs/feature/quotation-orders/data-model.md
+Updated content in: docs/feature/quotation-orders/api/admin.md
+Updated content in: docs/feature/quotation-orders/api/mobile.md
+Updated content in: docs/feature/notification/business-rules.md
+Updated content in: docs/feature/notification/data-model.md
+Updated content in: docs/feature/notification/api/mobile.md
+Updated content in: docs/feature/shell/ui-upgrade-plan.md
+Updated content in: docs/feature/camera/README.md
+Updated content in: docs/feature/prom-discount/overview.md
+Updated content in: docs/feature/prom-discount/promotions-discounts-plan.md
+Updated content in: docs/feature/prom-discount/testing.md
+Updated content in: docs/feature/prom-discount/README.md
+Updated content in: docs/feature/prom-discount/business-rules.md
+Updated content in: docs/feature/prom-discount/data-model.md
+Updated content in: docs/feature/prom-discount/integration-points.md
+Updated content in: docs/feature/prom-discount/promotions/workflow.md
+Updated content in: docs/feature/prom-discount/promotions/README.md
+Updated content in: docs/feature/prom-discount/api/admin.md
+Updated content in: docs/feature/prom-discount/api/mobile.md
+Updated content in: docs/feature/authentication/overview.md
+Updated content in: docs/feature/authentication/integration-guide.md
+Updated content in: docs/feature/authentication/business-rules.md
+Updated content in: docs/feature/localization/string-analysis-report.md
+Updated content in: docs/feature/localization/README.md
+Updated content in: docs/feature/my-visits/architecture.md
+Updated content in: docs/feature/my-visits/api.md
+Updated content in: docs/feature/my-visits/workflow.md
+Updated content in: docs/feature/my-visits/README.md
+Updated content in: docs/feature/my-visits/backend-integration.md
+Updated content in: docs/blueprint/local-storage-architecture.md
+Updated content in: docs/blueprint/migration-plan.md
+Updated content in: docs/blueprint/web-architecture.md
+Updated content in: docs/blueprint/system-architecture.md
+Updated content in: docs/blueprint/device-integration.md
+Updated content in: docs/blueprint/web-migration-plan.md
+Updated content in: docs/blueprint/README.md
+Updated content in: docs/blueprint/feature-architecture.md
+Updated content in: docs/blueprint/offline-architecture.md
+Updated content in: docs/blueprint/authentication-architecture.md
+Updated content in: docs/blueprint/navigation-architecture.md
+Updated content in: docs/blueprint/performance-audit.md
+Updated content in: docs/blueprint/sync-architecture.md
+Updated content in: docs/blueprint/master-plan.md
+Updated content in: test/core/middleware/auth_interceptor_test.dart
+Updated content in: test/core/database/drift/mirror_table_resilience_test.dart
+Updated content in: test/core/database/drift/sap_depot_id_nullable_test.dart
+Updated content in: test/core/database/drift/adr011_v17_to_v18_migration_test.dart
+Updated content in: test/core/database/drift/foreign_key_schema_test.dart
+Updated content in: test/core/database/drift/depot_sap_schema_migration_test.dart
+Updated content in: test/core/database/drift/route_visit_schema_migration_test.dart
+Updated content in: test/core/database/drift/legacy_routes_importer_test.dart
+Updated content in: test/core/database/drift/depot_sync_language_v20_to_v21_migration_test.dart
+Updated content in: test/core/database/drift/depot_dao_test.dart
+Updated content in: test/core/database/drift/route_visit_dao_test.dart
+Updated content in: test/core/database/drift/master_data_locale_backfill_test.dart
+Updated content in: test/core/database/drift/check_in_override_reason_v21_to_v22_migration_test.dart
+Updated content in: test/core/database/drift/geo_v19_to_v20_migration_test.dart
+Updated content in: test/core/auth/protected_feature_test.dart
+Updated content in: test/core/camera/camera_factory_test.dart
+Updated content in: test/core/platform/simulator_detection_test.dart
+Updated content in: test/core/network/api_error_test.dart
+Updated content in: test/core/network/live_contract_test.dart
+Updated content in: test/core/logging/api_log_redaction_test.dart
+Updated content in: test/core/logging/debug_trace_test.dart
+Updated content in: test/core/logging/log_redactor_test.dart
+Updated content in: test/core/notifications/notification_deep_link_test.dart
+Updated content in: test/core/services/pdf/brand_logo_asset_test.dart
+Updated content in: test/core/localization/localized_text_codec_test.dart
+Updated content in: test/core/localization/registration_label_collision_test.dart
+Updated content in: test/features/order/quotation_depot_context_test.dart
+Updated content in: test/features/order/pricing_remote_data_source_test.dart
+Updated content in: test/features/order/pricing_visibility_test.dart
+Updated content in: test/features/order/cart_drift_local_data_source_test.dart
+Updated content in: test/features/order/quotation_api_models_test.dart
+Updated content in: test/features/order/product_card_pricing_test.dart
+Updated content in: test/features/order/quotation_detail_cubit_test.dart
+Updated content in: test/features/order/quotation_list_cubit_test.dart
+Updated content in: test/features/order/sales_order_detail_screen_test.dart
+Updated content in: test/features/order/quotation_builder_cubit_test.dart
+Updated content in: test/features/order/sku_identity_survives_test.dart
+Updated content in: test/features/order/promotion_evaluation_test.dart
+Updated content in: test/features/order/quotation_tax_and_discount_summary_test.dart
+Updated content in: test/features/order/cart_manual_pricing_test.dart
+Updated content in: test/features/order/pricing_cubit_test.dart
+Updated content in: test/features/notification/notification_api_mapper_test.dart
+Updated content in: test/features/my_visits/sync_repository_api_failure_test.dart
+Updated content in: test/features/my_visits/stop_information_screen_layout_test.dart
+Updated content in: test/features/my_visits/visit_data_pipeline_test.dart
+Updated content in: test/features/my_visits/route_sync_watermark_test.dart
+Updated content in: test/features/my_visits/inventory_completion_push_test.dart
+Updated content in: test/features/my_visits/check_in_location_verifier_test.dart
+Updated content in: test/features/my_visits/route_drift_local_data_source_test.dart
+Updated content in: test/features/my_visits/route_stop_model_status_test.dart
+Updated content in: test/features/my_visits/stop_card_motion_test.dart
+Updated content in: test/features/my_visits/complete_visit_status_test.dart
+Updated content in: test/features/my_visits/complete_visit_end_to_end_test.dart
+Updated content in: test/features/my_visits/visit_drift_local_data_source_test.dart
+Updated content in: test/features/my_visits/route_sync_to_dashboard_test.dart
+Updated content in: test/features/my_visits/check_in_refused_flow_test.dart
+Updated content in: test/features/my_visits/api_visit_sync_remote_data_source_test.dart
+Updated content in: test/features/my_visits/api_route_remote_data_source_test.dart
+Updated content in: test/features/my_visits/route_sync_cubit_test.dart
+Updated content in: test/features/my_visits/update_workflow_step_test.dart
+Updated content in: test/features/my_visits/stop_distance_sorter_test.dart
+Updated content in: test/features/my_visits/route_dashboard_cubit_test.dart
+Updated content in: test/features/my_visits/route_feed_fixture.dart
+Updated content in: test/features/promotions/promotion_shipment_eligibility_test.dart
+Updated content in: test/features/depots/depot_sync_watermark_test.dart
+Updated content in: test/features/depots/add_depot_evidence_test.dart
+Updated content in: test/features/depots/sap_reference_options_test.dart
+Updated content in: test/features/depots/depot_api_mapper_test.dart
+Updated content in: test/features/depots/master_data_repository_impl_test.dart
+Updated content in: test/features/depots/submit_progress_dialog_route_test.dart
+Updated content in: test/features/depots/depot_filter_cubit_test.dart
+Updated content in: test/features/depots/bp_address_geo_integration_test.dart
+Updated content in: test/features/depots/depot_drift_local_data_source_test.dart
+Updated content in: test/features/depots/depot_references_live_payload_test.dart
+Updated content in: test/features/depots/depot_card_status_test.dart
+Updated content in: test/features/depots/depot_submit_progress_test.dart
+Updated content in: test/features/depots/depot_code_gate_test.dart
+Updated content in: test/features/depots/depot_by_code_lookup_test.dart
+Updated content in: test/features/depots/depot_document_test.dart
+Updated content in: test/features/depots/khmer_zero_width_search_test.dart
+Updated content in: test/features/depots/depot_form_address_test.dart
+Updated content in: test/features/depots/depot_draft_resume_test.dart
+Updated content in: test/features/depots/depot_sync_recovery_test.dart
+Updated content in: test/shared/widgets/app_bottom_sheet_test.dart

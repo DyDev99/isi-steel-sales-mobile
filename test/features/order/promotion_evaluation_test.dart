@@ -7,7 +7,7 @@ import 'package:isi_steel_sales_mobile/features/order/domain/entities/promotion/
 
 /// The ladder from the design: 300 → 15, 500 → 35, 2000 → 280.
 Promotion _ladder({
-  Set<String> customerIds = const {},
+  Set<String> depotIds = const {},
   Set<String> categoryCodes = const {'FG-RF'},
   DateTime? from,
   DateTime? until,
@@ -17,7 +17,7 @@ Promotion _ladder({
       title: const LocalizedText(en: 'Camstar Free Goods', km: ''),
       unitLabel: 'Bag',
       categoryCodes: categoryCodes,
-      customerIds: customerIds,
+      depotIds: depotIds,
       validFrom: from ?? DateTime(2026, 1, 1),
       validUntil: until ?? DateTime(2026, 12, 31),
       tiers: const [
@@ -50,7 +50,7 @@ void main() {
     });
 
     test('between rungs earns the lower one, never a pro-rata', () {
-      // Rounding a customer's entitlement is a commercial decision and not the
+      // Rounding a depot's entitlement is a commercial decision and not the
       // handset's to make: 400 bags earns the 300 benefit, not 25.
       final result = _evaluate(_ladder(), 400);
       expect(result.freeQuantity, 15);
@@ -86,22 +86,22 @@ void main() {
     });
   });
 
-  group('customer scope', () {
+  group('depot scope', () {
     test('an unscoped promotion reaches everyone, including a walk-in', () {
-      expect(_ladder().appliesToCustomer('cust_1'), isTrue);
-      expect(_ladder().appliesToCustomer(null), isTrue);
+      expect(_ladder().appliesToDepot('cust_1'), isTrue);
+      expect(_ladder().appliesToDepot(null), isTrue);
     });
 
-    test('a named-account deal never leaks to another customer', () {
-      final deal = _ladder(customerIds: {'cust_1'});
-      expect(deal.appliesToCustomer('cust_1'), isTrue);
-      expect(deal.appliesToCustomer('cust_2'), isFalse);
+    test('a named-account deal never leaks to another depot', () {
+      final deal = _ladder(depotIds: {'cust_1'});
+      expect(deal.appliesToDepot('cust_1'), isTrue);
+      expect(deal.appliesToDepot('cust_2'), isFalse);
     });
 
     test('a named-account deal never leaks to a walk-in', () {
-      // A null customer must match only unscoped promotions — showing a
+      // A null depot must match only unscoped promotions — showing a
       // negotiated deal to an unidentified buyer is a leak, not a convenience.
-      expect(_ladder(customerIds: {'cust_1'}).appliesToCustomer(null), isFalse);
+      expect(_ladder(depotIds: {'cust_1'}).appliesToDepot(null), isFalse);
     });
   });
 

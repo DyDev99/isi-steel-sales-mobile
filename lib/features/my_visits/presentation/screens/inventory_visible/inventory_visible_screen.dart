@@ -99,7 +99,7 @@ class InventoryVisibilityScreen extends StatefulWidget {
   /// Judgements already recorded for this depot, keyed by item id.
   ///
   /// A half-finished audit is the normal case, not an edge case: a rep is
-  /// interrupted mid-aisle by a customer, backs out to take a call, or the app
+  /// interrupted mid-aisle by a depot, backs out to take a call, or the app
   /// is killed in the background. Re-opening to a blank sheet means walking the
   /// racks twice, so "Continue Working" restores exactly what was judged.
   final Map<String, StockStatus> initialStatuses;

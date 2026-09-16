@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer.dart';
+import 'package:isi_steel_sales_mobile/features/depots/domain/entities/depot.dart';
 
 enum DepotSelectionStatus { initial, loading, loaded, empty, error }
 
@@ -17,7 +17,7 @@ class DepotSelectionState extends Equatable {
   });
 
   final DepotSelectionStatus status;
-  final List<Customer> shops;
+  final List<Depot> shops;
   final String query;
   final String? selectedId;
   final String? message;
@@ -26,7 +26,7 @@ class DepotSelectionState extends Equatable {
 
   DepotSelectionState copyWith({
     DepotSelectionStatus? status,
-    List<Customer>? shops,
+    List<Depot>? shops,
     String? query,
     String? Function()? selectedId,
     String? message,

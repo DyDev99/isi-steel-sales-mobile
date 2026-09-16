@@ -13,10 +13,10 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quota
 class QuotationListView extends StatelessWidget {
   const QuotationListView({
     super.key,
-    this.customerId,
+    this.depotId,
   });
 
-  final String? customerId;
+  final String? depotId;
 
   @override
   Widget build(BuildContext context) {
@@ -51,9 +51,8 @@ class QuotationListView extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: () => context
-                        .read<QuotationListCubit>()
-                        .load(refresh: true),
+                    onPressed: () =>
+                        context.read<QuotationListCubit>().load(refresh: true),
                     child: Text('common.retry'.tr),
                   ),
                 ],
@@ -66,7 +65,7 @@ class QuotationListView extends StatelessWidget {
 
         return Column(
           children: [
-            // Status Groups Filter Bar (Drafts, Waiting, WithCustomer, Won, Closed)
+            // Status Groups Filter Bar (Drafts, Waiting, WithDepot, Won, Closed)
             Container(
               height: 48,
               margin: const EdgeInsets.symmetric(vertical: 4),
@@ -101,17 +100,18 @@ class QuotationListView extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   _StatusGroupChip(
-                    label: 'With Customer',
+                    label: 'With Depot',
                     isSelected:
-                        loaded.selectedGroup == QuotationStatusGroup.withCustomer,
+                        loaded.selectedGroup == QuotationStatusGroup.withDepot,
                     onTap: () => context
                         .read<QuotationListCubit>()
-                        .selectGroup(QuotationStatusGroup.withCustomer),
+                        .selectGroup(QuotationStatusGroup.withDepot),
                   ),
                   const SizedBox(width: 8),
                   _StatusGroupChip(
                     label: 'Won',
-                    isSelected: loaded.selectedGroup == QuotationStatusGroup.won,
+                    isSelected:
+                        loaded.selectedGroup == QuotationStatusGroup.won,
                     onTap: () => context
                         .read<QuotationListCubit>()
                         .selectGroup(QuotationStatusGroup.won),
@@ -130,9 +130,8 @@ class QuotationListView extends StatelessWidget {
             ),
             Expanded(
               child: RefreshIndicator(
-                onRefresh: () => context
-                    .read<QuotationListCubit>()
-                    .load(refresh: true),
+                onRefresh: () =>
+                    context.read<QuotationListCubit>().load(refresh: true),
                 child: loaded.quotations.isEmpty
                     ? ListView(
                         physics: const AlwaysScrollableScrollPhysics(),
@@ -167,8 +166,8 @@ class QuotationListView extends StatelessWidget {
                     : ListView.separated(
                         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                         physics: const AlwaysScrollableScrollPhysics(),
-                        itemCount: loaded.quotations.length +
-                            (loaded.hasMore ? 1 : 0),
+                        itemCount:
+                            loaded.quotations.length + (loaded.hasMore ? 1 : 0),
                         separatorBuilder: (_, __) => const SizedBox(height: 12),
                         itemBuilder: (context, index) {
                           if (index == loaded.quotations.length) {
@@ -176,7 +175,8 @@ class QuotationListView extends StatelessWidget {
                             return const Center(
                               child: Padding(
                                 padding: EdgeInsets.all(16),
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
                               ),
                             );
                           }
@@ -327,11 +327,11 @@ class _QuotationCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            // Row 2: Customer Name
+            // Row 2: Depot Name
             Text(
-              summary.customerName.isNotEmpty
-                  ? summary.customerName
-                  : 'Customer #${summary.customerId}',
+              summary.depotName.isNotEmpty
+                  ? summary.depotName
+                  : 'Depot #${summary.depotId}',
               style: TextStyle(
                 color: colors.textPrimary,
                 fontSize: context.rsp(13.5),
@@ -405,19 +405,28 @@ class _QuotationCard extends StatelessWidget {
         textColor: colors.textSecondary,
       );
     }
-    if (s.contains('returned') || s.contains('waiting') || s.contains('pending')) {
+    if (s.contains('returned') ||
+        s.contains('waiting') ||
+        s.contains('pending')) {
       return (
         backgroundColor: Colors.amber.withValues(alpha: 0.15),
         textColor: Colors.amber.shade900,
       );
     }
-    if (s.contains('approved') || s.contains('won') || s.contains('accepted') || s.contains('ordered')) {
+    if (s.contains('approved') ||
+        s.contains('won') ||
+        s.contains('accepted') ||
+        s.contains('ordered')) {
       return (
         backgroundColor: Colors.green.withValues(alpha: 0.15),
         textColor: Colors.green.shade800,
       );
     }
-    if (s.contains('rejected') || s.contains('cancelled') || s.contains('failed') || s.contains('lost') || s.contains('expired')) {
+    if (s.contains('rejected') ||
+        s.contains('cancelled') ||
+        s.contains('failed') ||
+        s.contains('lost') ||
+        s.contains('expired')) {
       return (
         backgroundColor: Colors.red.withValues(alpha: 0.15),
         textColor: Colors.red.shade800,

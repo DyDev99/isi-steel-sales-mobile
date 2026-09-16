@@ -44,13 +44,13 @@ class WorkflowState extends Table {
 
   // Resume context (legacy v3): enough to reopen the exact business activity,
   // not just the route.
-  TextColumn get customerId => text().nullable()();
+  TextColumn get depotId => text().nullable()();
   TextColumn get shopName => text().nullable()();
   TextColumn get checkInAt => text().nullable()();
   TextColumn get currentWorkflow => text().nullable()();
   TextColumn get currentScreen => text().nullable()();
 
-  /// Free-form JSON args (territory, customerId, …) so the resume dispatcher can
+  /// Free-form JSON args (territory, depotId, …) so the resume dispatcher can
   /// rebuild the exact screen. Legacy v4 column; `ActiveWorkflowModel` tolerates
   /// null/corrupt values by falling back to the guided route resume.
   TextColumn get navigationArguments => text().nullable()();

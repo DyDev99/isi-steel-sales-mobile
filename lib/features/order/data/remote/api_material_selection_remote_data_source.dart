@@ -149,7 +149,7 @@ class ApiMaterialSelectionRemoteDataSource
       // Logged in full because this endpoint decides whether a rep may set a
       // quantity at all, and when it is wrong the symptom on screen ("the plus
       // button does nothing") says nothing about why. The payload carries no
-      // customer, no price and no PII — only a material number and a band —
+      // depot, no price and no PII — only a material number and a band —
       // so it is safe to print. Debug builds only.
       if (kDebugMode) {
         final plants = (data['plants'] as List<dynamic>? ?? const [])

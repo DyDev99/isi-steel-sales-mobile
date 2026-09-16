@@ -1459,7 +1459,7 @@ class CategoryFacets {
   /// the long tail is one-off cut sizes, not catalogue lines.
   final List<String> sizes;
 
-  /// SAP `SaleThickness_mm` — the gauge the customer is quoted, which is not
+  /// SAP `SaleThickness_mm` — the gauge the depot is quoted, which is not
   /// always `RawThickness_mm` (the coil it was formed from).
   final List<double> thicknessMm;
 

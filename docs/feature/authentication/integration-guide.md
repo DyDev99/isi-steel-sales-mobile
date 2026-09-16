@@ -430,12 +430,12 @@ Branch on `error`; the stable platform code is the last path segment of `error_u
 
 ```json
 {
-  "type": "https://docs.isigroup.com.kh/errors/Customer.NotFound",
+  "type": "https://docs.isigroup.com.kh/errors/Depot.NotFound",
   "title": "The requested resource was not found.",
   "status": 404,
-  "detail": "No customer was found with identifier '…'.",
-  "instance": "/api/v1/mobile/customers/…",
-  "errorCode": "Customer.NotFound",
+  "detail": "No depot was found with identifier '…'.",
+  "instance": "/api/v1/mobile/depots/…",
+  "errorCode": "Depot.NotFound",
   "correlationId": "0HNNOE4PB87QD:00000001"
 }
 ```
@@ -702,7 +702,7 @@ final me = await api.get('/auth/me');          // wrapped: { "data": { … } }
 final profile = me.data['data'];
 
 final permissions = Set<String>.from(profile['permissions']);
-final canCreate   = permissions.contains('customers.create');
+final canCreate   = permissions.contains('depots.create');
 
 // Absent flags mean off, so a client built against a newer server degrades
 // instead of throwing.
@@ -744,6 +744,6 @@ Before you ship:
 
 ## See also
 
-- [customers-guidline-integrateion-mobile.md](../customer/api.md) — customer endpoints and offline sync
+- [depots-guidline-integrateion-mobile.md](../depot/api.md) — depot endpoints and offline sync
 - `Authentication.md` (⧉ backend repo) — server-side design and reuse detection. Mobile-side: [../../blueprint/authentication-architecture.md](../../blueprint/authentication-architecture.md)
 - `/docs` on any running instance — interactive reference, pre-authorised in Development

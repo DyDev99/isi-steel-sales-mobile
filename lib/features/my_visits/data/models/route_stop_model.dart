@@ -1,6 +1,6 @@
 import 'package:isi_steel_sales_mobile/core/utils/enum_parse.dart';
 import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/customer_stop_info.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/depot_stop_info.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_stop.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_status.dart';
 
@@ -8,7 +8,7 @@ class RouteStopModel extends RouteStop {
   const RouteStopModel({
     required super.id,
     required super.routeId,
-    required super.customer,
+    required super.depot,
     required super.sequence,
     required super.plannedArrival,
     required super.plannedDeparture,
@@ -17,16 +17,16 @@ class RouteStopModel extends RouteStop {
     super.actualDeparture,
   });
 
-  /// The remote payload only carries `customerId`; `customers` arrives as a
+  /// The remote payload only carries `depotId`; `depots` arrives as a
   /// flat de-duplicated list alongside it. The caller
   /// (`ApiRouteRemoteDataSource`) resolves the join and passes the full
-  /// customer record in, so this model never needs its own lookup path.
+  /// depot record in, so this model never needs its own lookup path.
   factory RouteStopModel.fromJson(DataMap json,
-          {required CustomerStopInfo customer}) =>
+          {required DepotStopInfo depot}) =>
       RouteStopModel(
         id: json['id'] as String,
         routeId: json['routeId'] as String,
-        customer: customer,
+        depot: depot,
         sequence: (json['sequence'] as num).toInt(),
         plannedArrival: DateTime.parse(json['plannedArrival'] as String),
         plannedDeparture: DateTime.parse(json['plannedDeparture'] as String),
@@ -47,12 +47,11 @@ class RouteStopModel extends RouteStop {
             : null,
       );
 
-  factory RouteStopModel.fromRow(DataMap row,
-          {required CustomerStopInfo customer}) =>
+  factory RouteStopModel.fromRow(DataMap row, {required DepotStopInfo depot}) =>
       RouteStopModel(
         id: row['id'] as String,
         routeId: row['route_id'] as String,
-        customer: customer,
+        depot: depot,
         sequence: (row['sequence'] as num).toInt(),
         plannedArrival: DateTime.parse(row['planned_arrival'] as String),
         plannedDeparture: DateTime.parse(row['planned_departure'] as String),
@@ -70,7 +69,7 @@ class RouteStopModel extends RouteStop {
   DataMap toRow() => {
         'id': id,
         'route_id': routeId,
-        'customer_id': customer.id,
+        'depot_id': depot.id,
         'sequence': sequence,
         'planned_arrival': plannedArrival.toIso8601String(),
         'planned_departure': plannedDeparture.toIso8601String(),

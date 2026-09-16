@@ -6,9 +6,9 @@ part of 'route_dao.dart';
 mixin _$RouteDaoMixin on DatabaseAccessor<AppDatabase> {
   $RoutesTable get routes => attachedDatabase.routes;
   $RouteStopsTable get routeStops => attachedDatabase.routeStops;
-  $RouteCustomersTable get routeCustomers => attachedDatabase.routeCustomers;
+  $RouteDepotsTable get routeDepots => attachedDatabase.routeDepots;
   $RouteSyncMetaTable get routeSyncMeta => attachedDatabase.routeSyncMeta;
-  $CustomersTable get customers => attachedDatabase.customers;
+  $DepotsTable get depots => attachedDatabase.depots;
   RouteDaoManager get managers => RouteDaoManager(this);
 }
 
@@ -19,11 +19,10 @@ class RouteDaoManager {
       $$RoutesTableTableManager(_db.attachedDatabase, _db.routes);
   $$RouteStopsTableTableManager get routeStops =>
       $$RouteStopsTableTableManager(_db.attachedDatabase, _db.routeStops);
-  $$RouteCustomersTableTableManager get routeCustomers =>
-      $$RouteCustomersTableTableManager(
-          _db.attachedDatabase, _db.routeCustomers);
+  $$RouteDepotsTableTableManager get routeDepots =>
+      $$RouteDepotsTableTableManager(_db.attachedDatabase, _db.routeDepots);
   $$RouteSyncMetaTableTableManager get routeSyncMeta =>
       $$RouteSyncMetaTableTableManager(_db.attachedDatabase, _db.routeSyncMeta);
-  $$CustomersTableTableManager get customers =>
-      $$CustomersTableTableManager(_db.attachedDatabase, _db.customers);
+  $$DepotsTableTableManager get depots =>
+      $$DepotsTableTableManager(_db.attachedDatabase, _db.depots);
 }

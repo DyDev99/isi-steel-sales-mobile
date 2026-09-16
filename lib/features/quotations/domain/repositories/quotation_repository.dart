@@ -3,13 +3,13 @@ import 'package:isi_steel_sales_mobile/features/quotations/domain/entities/quota
 abstract class QuotationRepository {
   Future<List<Quotation>> getQuotations({
     String? status,
-    String? customerId,
+    String? depotId,
     int page = 1,
     int pageSize = 20,
   });
 
   Future<String> createQuotation({
-    required String customerId,
+    required String depotId,
     String shipmentType = 'Pickup',
     String? shipTo,
   });
@@ -21,7 +21,7 @@ abstract class QuotationRepository {
     required String shipmentType,
     String? shipTo,
     String? paymentTerm,
-    String? customerReference,
+    String? depotReference,
     String? remarks,
   });
 

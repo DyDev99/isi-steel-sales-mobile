@@ -1,6 +1,6 @@
 # Pricing
 
-**Purpose:** one customer's SAP selling prices, delivered to the field app and the
+**Purpose:** one depot's SAP selling prices, delivered to the field app and the
 admin portal, with a realtime channel that pushes changes as they happen.
 **Scope:** the pricing read path, the SignalR hub, and the SAP condition-record
 boundary. There is no pricing aggregate and no pricing table.
@@ -32,7 +32,7 @@ boundary. There is no pricing aggregate and no pricing table.
 
 A price is the one thing on this platform that must never be served stale, so
 pricing is **not** database-first. Every read goes to SAP's
-`GET /api/Pricing/GetPriceByPaging` for the customer's sales organisation and price
+`GET /api/Pricing/GetPriceByPaging` for the depot's sales organisation and price
 group, valid today; nothing is cached and there is no pricing sync. REST answers
 "what is the price now", and a SignalR hub pushes `PricingUpdated` when something
 changes — a client loads state over REST and subscribes for the deltas. Both
@@ -69,5 +69,5 @@ See [sap-integration.md](sap-integration.md) before touching the mapping.
 ## Related
 
 - [blueprint/sap-api-catalogue.md](../../blueprint/sap-api-catalogue.md) — the endpoint catalogue
-- [feature/customer/](../customer/) — the sales area and price group pricing is keyed on
+- [feature/depot/](../depot/) — the sales area and price group pricing is keyed on
 - [feature/material/](../material/) — the catalogue prices are quoted against

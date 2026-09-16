@@ -37,7 +37,7 @@ class QuotationApiRepositoryImpl implements QuotationApiRepository {
   @override
   ResultFuture<PagedResult<QuotationSummary>> getQuotations({
     String? status,
-    String? customerId,
+    String? depotId,
     int page = 1,
     int pageSize = 20,
   }) async {
@@ -47,7 +47,7 @@ class QuotationApiRepositoryImpl implements QuotationApiRepository {
     try {
       final result = await _remote.fetchQuotations(
         status: status,
-        customerId: customerId,
+        depotId: depotId,
         page: page,
         pageSize: pageSize,
       );
@@ -65,7 +65,7 @@ class QuotationApiRepositoryImpl implements QuotationApiRepository {
 
   @override
   ResultFuture<QuotationDetail> createQuotation({
-    required String customerId,
+    required String depotId,
     String shipmentType = 'Pickup',
     String? shipTo,
   }) async {
@@ -74,7 +74,7 @@ class QuotationApiRepositoryImpl implements QuotationApiRepository {
     }
     try {
       final quotation = await _remote.createQuotation(
-        customerId: customerId,
+        depotId: depotId,
         shipmentType: shipmentType,
         shipTo: shipTo,
       );
@@ -103,7 +103,7 @@ class QuotationApiRepositoryImpl implements QuotationApiRepository {
     required String shipmentType,
     String? shipTo,
     String? paymentTerm,
-    String? customerReference,
+    String? depotReference,
     String? remarks,
   }) async {
     if (!await _network.isConnected) {
@@ -115,7 +115,7 @@ class QuotationApiRepositoryImpl implements QuotationApiRepository {
         shipmentType: shipmentType,
         shipTo: shipTo,
         paymentTerm: paymentTerm,
-        customerReference: customerReference,
+        depotReference: depotReference,
         remarks: remarks,
       );
       return Success(quotation);
@@ -265,13 +265,12 @@ class QuotationApiRepositoryImpl implements QuotationApiRepository {
   }
 
   @override
-  ResultFuture<List<CustomerAgreement>> getCustomerAgreements(
-      String customerId) async {
+  ResultFuture<List<DepotAgreement>> getDepotAgreements(String depotId) async {
     if (!await _network.isConnected) {
       return const Failed(NetworkFailure());
     }
     try {
-      final agreements = await _remote.fetchCustomerAgreements(customerId);
+      final agreements = await _remote.fetchDepotAgreements(depotId);
       return Success(agreements);
     } catch (e) {
       return Failed(_mapException(e));
@@ -279,16 +278,16 @@ class QuotationApiRepositoryImpl implements QuotationApiRepository {
   }
 
   @override
-  ResultFuture<List<PromoGroup>> getCustomerIncentives(
-    String customerId, {
+  ResultFuture<List<PromoGroup>> getDepotIncentives(
+    String depotId, {
     String? shipment,
   }) async {
     if (!await _network.isConnected) {
       return const Failed(NetworkFailure());
     }
     try {
-      final incentives = await _remote.fetchCustomerIncentives(
-        customerId,
+      final incentives = await _remote.fetchDepotIncentives(
+        depotId,
         shipment: shipment,
       );
       return Success(incentives);
@@ -298,13 +297,12 @@ class QuotationApiRepositoryImpl implements QuotationApiRepository {
   }
 
   @override
-  ResultFuture<List<PromoView>> getCustomerPromotions(
-      String customerId) async {
+  ResultFuture<List<PromoView>> getDepotPromotions(String depotId) async {
     if (!await _network.isConnected) {
       return const Failed(NetworkFailure());
     }
     try {
-      final promotions = await _remote.fetchCustomerPromotions(customerId);
+      final promotions = await _remote.fetchDepotPromotions(depotId);
       return Success(promotions);
     } catch (e) {
       return Failed(_mapException(e));

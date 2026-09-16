@@ -1,10 +1,10 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
 import 'package:isi_steel_sales_mobile/core/usecase/usecase.dart';
-import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/browse_customers.dart';
-import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/customer_params.dart';
-import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/get_customer_last_synced_at.dart';
-import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/run_customer_initial_sync.dart';
+import 'package:isi_steel_sales_mobile/features/depots/domain/usecases/browse_depots.dart';
+import 'package:isi_steel_sales_mobile/features/depots/domain/usecases/depot_params.dart';
+import 'package:isi_steel_sales_mobile/features/depots/domain/usecases/get_depot_last_synced_at.dart';
+import 'package:isi_steel_sales_mobile/features/depots/domain/usecases/run_depot_initial_sync.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_sync_scope.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/get_route_last_synced_at.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/usecases/push_pending_visit_data.dart';
@@ -22,17 +22,17 @@ class RouteSyncCubit extends Cubit<RouteSyncState> {
     required RunRouteDeltaSync runDeltaSync,
     required GetRouteLastSyncedAt getLastSyncedAt,
     required PushPendingVisitData pushPendingVisitData,
-    required RunCustomerInitialSync runCustomerInitialSync,
-    required GetCustomerLastSyncedAt getCustomerLastSyncedAt,
-    required BrowseCustomers browseCustomers,
+    required RunDepotInitialSync runDepotInitialSync,
+    required GetDepotLastSyncedAt getDepotLastSyncedAt,
+    required BrowseDepots browseDepots,
     required SessionManager sessionManager,
   })  : _runInitialSync = runInitialSync,
         _runDeltaSync = runDeltaSync,
         _getLastSyncedAt = getLastSyncedAt,
         _pushPendingVisitData = pushPendingVisitData,
-        _runCustomerInitialSync = runCustomerInitialSync,
-        _getCustomerLastSyncedAt = getCustomerLastSyncedAt,
-        _browseCustomers = browseCustomers,
+        _runDepotInitialSync = runDepotInitialSync,
+        _getDepotLastSyncedAt = getDepotLastSyncedAt,
+        _browseDepots = browseDepots,
         _sessionManager = sessionManager,
         super(const RouteSyncIdle());
 
@@ -40,9 +40,9 @@ class RouteSyncCubit extends Cubit<RouteSyncState> {
   final RunRouteDeltaSync _runDeltaSync;
   final GetRouteLastSyncedAt _getLastSyncedAt;
   final PushPendingVisitData _pushPendingVisitData;
-  final RunCustomerInitialSync _runCustomerInitialSync;
-  final GetCustomerLastSyncedAt _getCustomerLastSyncedAt;
-  final BrowseCustomers _browseCustomers;
+  final RunDepotInitialSync _runDepotInitialSync;
+  final GetDepotLastSyncedAt _getDepotLastSyncedAt;
+  final BrowseDepots _browseDepots;
   final SessionManager _sessionManager;
 
   /// Pulls routes whenever the dashboard opens.
@@ -64,7 +64,7 @@ class RouteSyncCubit extends Cubit<RouteSyncState> {
 
   Future<void> refresh() => _run(isInitial: false);
 
-  /// True when the SAP customer directory has to be pulled before routes can
+  /// True when the SAP depot directory has to be pulled before routes can
   /// be.
   ///
   /// Two independent facts have to agree: a watermark saying we pulled once,
@@ -72,17 +72,17 @@ class RouteSyncCubit extends Cubit<RouteSyncState> {
   /// this is the same "timestamp says synced, table says empty" trap the
   /// catalog's `SyncCubit` guards against, and it costs one indexed read of a
   /// single row to close.
-  Future<bool> _customerDirectoryNeedsPull() async {
-    final watermark = await _getCustomerLastSyncedAt(const NoParams());
+  Future<bool> _depotDirectoryNeedsPull() async {
+    final watermark = await _getDepotLastSyncedAt(const NoParams());
     final neverSynced =
         watermark.when(success: (at) => at == null, failure: (_) => true);
     if (neverSynced) return true;
 
-    final page = await _browseCustomers(
-      const BrowseCustomersParams(page: 0, pageSize: 1),
+    final page = await _browseDepots(
+      const BrowseDepotsParams(page: 0, pageSize: 1),
     );
     return page.when(
-      success: (customers) => customers.items.isEmpty,
+      success: (depots) => depots.items.isEmpty,
       // A read failure is not evidence of emptiness; re-pulling on every open
       // would be worse than trusting the watermark we already have.
       failure: (_) => false,
@@ -92,26 +92,26 @@ class RouteSyncCubit extends Cubit<RouteSyncState> {
   Future<void> _run({required bool isInitial}) async {
     emit(RouteSyncInProgress(isInitial: isInitial));
 
-    // Hard ordering dependency (ADR-001): `route_stops.customer_id` is a real
-    // FK into the SAP-owned customer directory, and route sync can never
-    // invent a customer — the directory must exist locally before any route
-    // pull. The shell kicks customer sync off asynchronously at startup, so on
+    // Hard ordering dependency (ADR-001): `route_stops.depot_id` is a real
+    // FK into the SAP-owned depot directory, and route sync can never
+    // invent a depot — the directory must exist locally before any route
+    // pull. The shell kicks depot sync off asynchronously at startup, so on
     // a fresh install (empty DB, no watermark) a rep can reach this screen
-    // before it lands — which surfaced as a FOREIGN KEY / "run Customer Sync
-    // first" failure on first launch. Awaiting the customer initial sync here
+    // before it lands — which surfaced as a FOREIGN KEY / "run Depot Sync
+    // first" failure on first launch. Awaiting the depot initial sync here
     // closes that race on every entry point (first open, pull-to-refresh,
-    // retry). Skipped entirely once the customer watermark exists; at worst it
+    // retry). Skipped entirely once the depot watermark exists; at worst it
     // races the shell's own sync into a double-run of an idempotent upsert.
     // The watermark alone is not enough evidence that the directory is there.
-    // A device that synced customers under an older build, or whose customer
+    // A device that synced depots under an older build, or whose depot
     // rows were cleared by a migration, keeps a perfectly valid timestamp over
     // an empty table — and this gate then skipped the pull, after which the
-    // route feed (which rebases stops onto real customer ids) failed with
-    // "run Customer Sync first" and every Visit screen came up blank. When the
+    // route feed (which rebases stops onto real depot ids) failed with
+    // "run Depot Sync first" and every Visit screen came up blank. When the
     // watermark and the table disagree, the table wins.
-    if (await _customerDirectoryNeedsPull()) {
-      final customerSync = await _runCustomerInitialSync(const NoParams());
-      final blocked = customerSync.when(
+    if (await _depotDirectoryNeedsPull()) {
+      final depotSync = await _runDepotInitialSync(const NoParams());
+      final blocked = depotSync.when(
         success: (_) => false,
         failure: (f) {
           emit(RouteSyncFailed(f.message));

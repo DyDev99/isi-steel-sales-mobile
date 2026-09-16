@@ -2,13 +2,13 @@ import 'package:equatable/equatable.dart';
 
 enum CreditDebitNoteType { creditNote, debitNote }
 
-/// A mocked SAP credit/debit note against a customer's account — shown as
+/// A mocked SAP credit/debit note against a depot's account — shown as
 /// informational context during shop selection and order entry, never
 /// editable from the app.
 class CreditNoteDebitNote extends Equatable {
   const CreditNoteDebitNote({
     required this.id,
-    required this.customerId,
+    required this.depotId,
     required this.type,
     required this.amount,
     required this.reference,
@@ -18,7 +18,7 @@ class CreditNoteDebitNote extends Equatable {
   });
 
   final String id;
-  final String customerId;
+  final String depotId;
   final CreditDebitNoteType type;
   final double amount;
   final String reference;
@@ -28,5 +28,5 @@ class CreditNoteDebitNote extends Equatable {
 
   @override
   List<Object?> get props =>
-      [id, customerId, type, amount, reference, reason, issuedDate, settled];
+      [id, depotId, type, amount, reference, reason, issuedDate, settled];
 }

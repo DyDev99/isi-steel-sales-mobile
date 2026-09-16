@@ -25,7 +25,7 @@ The presentation and domain layers are **web-ready today**. The blocker is entir
 
 Three findings drive everything below:
 
-1. **The app's security posture does not survive a naive web port.** `sqlcipher_flutter_libs` has no web implementation, and the browser has no Keychain/Keystore equivalent. A web build that persists business data locally would be storing customer PII **in plaintext in IndexedDB**, which `docs/skills/security.md` §3 forbids and `openEncryptedDatabase`'s fail-closed check exists specifically to prevent. This is an architectural decision, not an implementation detail — §10.
+1. **The app's security posture does not survive a naive web port.** `sqlcipher_flutter_libs` has no web implementation, and the browser has no Keychain/Keystore equivalent. A web build that persists business data locally would be storing depot PII **in plaintext in IndexedDB**, which `docs/skills/security.md` §3 forbids and `openEncryptedDatabase`'s fail-closed check exists specifically to prevent. This is an architectural decision, not an implementation detail — §10.
 2. **`sqflite` does not run on web, and 17 files still use it.** This is `docs/blueprint/migration-plan.md`'s open **T1.5b** (the Orders catalog DB). Web does not add work here; it makes already-planned work a hard prerequisite.
 3. **There is effectively no responsive layer.** 43 files scale through `flutter_screenutil` against a fixed `designSize: Size(390, 844)`; only 2 files use `LayoutBuilder`/`MediaQuery` sizing. On a 1920px browser window every dimension is multiplied by ~4.9. This is the largest *volume* of work but the lowest *risk*.
 
@@ -47,7 +47,7 @@ Scale: 13 features, 40 screens, ~600 Dart files. `my_visits` (169 files) and `or
 |---|---|---|---|
 | `my_visits` | 169 | 🔴 **High** | `sqflite` datasources, `geolocator` tracking, `google_maps_flutter`, camera proof photos, `dart:io File` in check-in UI |
 | `order` | 163 | 🔴 **High** | `sqflite` catalog/quotation/sync-queue (T1.5b), PDF generation + `open_filex` share, barcode scanner, voice search, image search, `dart:io File` in 7 widgets |
-| `customers` | 67 | 🟢 Low | Already on Drift; repository-clean |
+| `depots` | 67 | 🟢 Low | Already on Drift; repository-clean |
 | `lead` | 70 | 🟢 Low | Mock datasources; no platform coupling found |
 | `authentication` | 29 | 🟡 Medium | `flutter_secure_storage` semantics change materially on web (§4) |
 | `shell`, `home`, `profile`, `settings`, `app_coach`, `localization`, `splash`, `notification` | ~110 | 🟡 Medium | Layout only — mobile-shaped navigation and fixed scaling (§6) |
@@ -121,7 +121,7 @@ Explicitly out of scope, per the constraints on this work:
 
 `openEncryptedDatabase` refuses to open unless `PRAGMA cipher_version` returns a value (ADR-008, fail-closed check #1). On web that pragma cannot succeed. **The current code correctly refuses to run on web** — that is the design working, not a bug to patch out.
 
-> Anyone tempted to "just use `WasmDatabase` and move on" is proposing to write customer PII, GPS traces, and quotation pricing to unencrypted browser storage. `docs/skills/security.md` §3 forbids it. Do not do this without ADR-010.
+> Anyone tempted to "just use `WasmDatabase` and move on" is proposing to write depot PII, GPS traces, and quotation pricing to unencrypted browser storage. `docs/skills/security.md` §3 forbids it. Do not do this without ADR-010.
 
 ### 3.2 Options
 

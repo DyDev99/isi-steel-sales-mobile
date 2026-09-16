@@ -3,7 +3,7 @@ import 'package:isi_steel_sales_mobile/core/error/exceptions.dart';
 import 'package:isi_steel_sales_mobile/core/logging/app_logger.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/route_drift_mappers.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/route_local_data_source.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/data/models/customer_stop_info_model.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/data/models/depot_stop_info_model.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/models/route_plan_model.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_plan.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_stop.dart';
@@ -62,7 +62,7 @@ class RouteDriftLocalDataSource implements RouteLocalDataSource {
   }
 
   Future<List<RouteStop>> _stopsFor(String routeId) async {
-    final joined = await _dao.fetchStopsWithCustomers(routeId);
+    final joined = await _dao.fetchStopsWithDepots(routeId);
     return joined.map((row) => row.toModel()).toList();
   }
 
@@ -94,36 +94,36 @@ class RouteDriftLocalDataSource implements RouteLocalDataSource {
     }
   }
 
-  /// Stores the customer rows the route feed sent with the plans.
+  /// Stores the depot rows the route feed sent with the plans.
   ///
   /// **Behaviour change (ADR-011), reversing the T1.5 decision.** T1.5 made
-  /// this method apply two attributes onto customers the *directory* already
-  /// had, and skip anything it did not — on the reasoning that `customers` is
+  /// this method apply two attributes onto depots the *directory* already
+  /// had, and skip anything it did not — on the reasoning that `depots` is
   /// the single source of truth and route sync must not invent a row.
   ///
   /// That reasoning was right about ownership and wrong about availability. The
-  /// route feed and the customer feed are separate endpoints with separate
-  /// scopes, so "the directory has not pulled this customer yet" is the normal
+  /// route feed and the depot feed are separate endpoints with separate
+  /// scopes, so "the directory has not pulled this depot yet" is the normal
   /// case, not the exception — and the consequences were severe: the stop's
   /// foreign key aborted the entire route write, and once that was removed an
   /// inner join would have hidden the stop instead.
   ///
   /// The feed already carries everything a stop needs to render, so it is
   /// stored as-is in its own flat table. Nothing is skipped, nothing is
-  /// invented, and the customer directory is left entirely alone.
+  /// invented, and the depot directory is left entirely alone.
   @override
-  Future<void> upsertCustomers(List<CustomerStopInfoModel> customers) async {
+  Future<void> upsertDepots(List<DepotStopInfoModel> depots) async {
     try {
-      await _dao.upsertRouteCustomers(
-        customers.map((c) => c.toRouteCustomerCompanion()).toList(),
+      await _dao.upsertRouteDepots(
+        depots.map((c) => c.toRouteDepotCompanion()).toList(),
       );
       // A count, never an identifier (`docs/skills/security.md` §10). Worth recording
-      // because a stop rendering as its bare customer id means this number came
-      // back short — the feed omitted a customer it is contracted to send.
-      _logger.debug('route_sync.customers_stored',
-          fields: {'count': customers.length});
+      // because a stop rendering as its bare depot id means this number came
+      // back short — the feed omitted a depot it is contracted to send.
+      _logger
+          .debug('route_sync.depots_stored', fields: {'count': depots.length});
     } catch (e) {
-      throw CacheException(message: 'Failed to upsert route customers: $e');
+      throw CacheException(message: 'Failed to upsert route depots: $e');
     }
   }
 

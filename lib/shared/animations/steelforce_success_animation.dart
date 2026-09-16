@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 /// SteelForce's success mark — the confirmation shown when an important action
-/// lands: a visit completed, a quotation saved, a customer added.
+/// lands: a visit completed, a quotation saved, a depot added.
 ///
 /// ## Two modes, one widget
 ///

@@ -1,7 +1,7 @@
 # My Visits
 
 > **Purpose:** route execution — a rep is assigned a daily route of ordered
-> customer stops, walks each one with geofence-verified check-in/out, captures
+> depot stops, walks each one with geofence-verified check-in/out, captures
 > market data, and can pivot straight into a quotation.
 > **Code:** `lib/features/my_visits/`
 > **Verified:** 2026-08-27, branch `web` @ `142de9b`.

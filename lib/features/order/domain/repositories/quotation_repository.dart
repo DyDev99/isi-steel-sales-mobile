@@ -6,7 +6,7 @@ import 'package:isi_steel_sales_mobile/features/order/domain/entities/quotation.
 abstract interface class QuotationRepository {
   ResultFuture<Quotation> saveQuotation({
     required List<CartItem> items,
-    String? customerId,
+    String? depotId,
     String? shopName,
     String? leadId,
     String? leadDisplayName,

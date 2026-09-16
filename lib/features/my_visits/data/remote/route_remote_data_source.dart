@@ -1,7 +1,7 @@
 import 'package:isi_steel_sales_mobile/features/my_visits/data/remote/route_sync_page.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_sync_scope.dart';
 
-/// Route/customer pull source, scoped to the signed-in rep.
+/// Route/depot pull source, scoped to the signed-in rep.
 ///
 /// One implementation: [ApiRouteRemoteDataSource], against
 /// `GET /api/v1/mobile/visits/routes`. The bundled fixture source was removed
@@ -23,7 +23,7 @@ abstract interface class RouteRemoteDataSource {
   /// The per-rep route set is small by design (a handful of routes/day),
   /// unlike the product catalog's 17k+ rows — so unlike
   /// `MockProductRemoteDataSource`'s randomized delta, this simply re-pulls
-  /// the rep's current scoped route/customer set. Still guarded by the same
+  /// the rep's current scoped route/depot set. Still guarded by the same
   /// `since`-driven sync-meta watermark at the repository layer.
   Future<RouteSyncPage> fetchDelta(
       {required RouteSyncScope scope, required DateTime since});

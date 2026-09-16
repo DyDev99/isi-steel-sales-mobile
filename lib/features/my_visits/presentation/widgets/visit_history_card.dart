@@ -24,7 +24,7 @@ import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
         ),
     };
 
-/// One row in the My Visits history list — static map thumbnail, customer
+/// One row in the My Visits history list — static map thumbnail, depot
 /// name/address, date, and a status chip. Tapping opens the detail screen.
 class VisitHistoryCard extends StatelessWidget {
   const VisitHistoryCard({super.key, required this.visit, required this.onTap});

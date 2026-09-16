@@ -4,7 +4,7 @@ import 'package:isi_steel_sales_mobile/features/order/domain/entities/off_visit_
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/quotation_status.dart';
 
 /// A draft pre-sales document built in the Quotation Builder. Either
-/// shop-scoped ([customerId] set) or lead-scoped ([leadId] set) — never
+/// shop-scoped ([depotId] set) or lead-scoped ([leadId] set) — never
 /// both. Replaces the old `PendingOrder` end-to-end.
 class Quotation extends Equatable {
   const Quotation({
@@ -19,7 +19,7 @@ class Quotation extends Equatable {
     required this.validUntil,
     required this.createdAt,
     required this.updatedAt,
-    this.customerId,
+    this.depotId,
     this.shopName,
     this.leadId,
     this.leadDisplayName,
@@ -29,7 +29,7 @@ class Quotation extends Equatable {
   });
 
   final String id;
-  final String? customerId;
+  final String? depotId;
   final String? shopName;
   final String? leadId;
   final String? leadDisplayName;
@@ -52,7 +52,7 @@ class Quotation extends Equatable {
   @override
   List<Object?> get props => [
         id,
-        customerId,
+        depotId,
         shopName,
         leadId,
         leadDisplayName,

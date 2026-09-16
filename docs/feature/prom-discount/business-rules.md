@@ -18,13 +18,13 @@ Four conditions, all necessary, enforced by `AgreementTerm.IsDeductibleOn`:
 
 | Condition | Why |
 |---|---|
-| `State == Effective` | SAP is confirmed to hold a matching condition record. An `Approved` term is not yet charged to the customer |
+| `State == Effective` | SAP is confirmed to hold a matching condition record. An `Approved` term is not yet charged to the depot |
 | `Nature == OnInvoice` | A volume rebate is earned on the month's total, which is unknowable mid-month |
 | `ValidFrom <= today` | It has started |
 | `ValidTo >= today` or open | It has not ended |
 
 Everything below is in service of getting a rate honestly into that state, or of
-keeping a rate that does not qualify out of a customer's price.
+keeping a rate that does not qualify out of a depot's price.
 
 ---
 
@@ -134,7 +134,7 @@ category approved in the meantime. Checking only at submit would let two effecti
 terms exist for one scope.
 
 **The exclusion constraint is the backstop.** A PostgreSQL `btree_gist` constraint on
-`(customer_id, category_code, nature, daterange)` where `state = Effective`. The domain
+`(depot_id, category_code, nature, daterange)` where `state = Effective`. The domain
 checks cannot cover a bulk import, a hand-run data fix, or two approvals committing in
 the same instant — and this is a commercial guarantee, so it belongs where nothing can
 route around it. Hitting it is a defect, not a user error.
@@ -162,7 +162,7 @@ to replace.
 depot agreed to in the meantime; only once the successor's start date arrives does it
 become `Superseded`.
 
-**Termination is the one transition that takes something away from a customer**, which
+**Termination is the one transition that takes something away from a depot**, which
 is why the reason is mandatory and why an end-date task is queued alongside it. A term
 the platform calls terminated while SAP keeps applying the discount is worse than no
 feature at all.
@@ -205,7 +205,7 @@ count. A rate four people signed should not push a document to a higher approver
 
 **404, never 403.** A depot's rates are another depot's negotiating position, so
 confirming that an agreement exists is itself a disclosure. The same rule pricing,
-quotations and customer drafts follow.
+quotations and depot drafts follow.
 
 **Approvers are recognised by permission, not by role name**, so the day the business
 adds a fifth signature nothing in the scoping changes.

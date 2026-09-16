@@ -1,10 +1,10 @@
 import 'package:equatable/equatable.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/customer_stop_info.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/depot_stop_info.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/geofence_service.dart';
 
 /// Where the outlet is, for check-in verification.
 ///
-/// A plain value rather than a reference to [CustomerStopInfo] so the source of
+/// A plain value rather than a reference to [DepotStopInfo] so the source of
 /// the coordinates is swappable without touching the verifier: today they are
 /// the static demo pin below, tomorrow they are whatever the outlet endpoint
 /// returns.
@@ -18,17 +18,17 @@ class OutletLocation extends Equatable {
   /// Reads the pin off a synced stop — the shape this moves to once outlet
   /// coordinates arrive from the backend.
   ///
-  /// Returns null when the customer has no recorded pin. `(0, 0)` is not a
+  /// Returns null when the depot has no recorded pin. `(0, 0)` is not a
   /// location, it is the Gulf of Guinea and what a handset reports when the fix
   /// failed; measuring against it would put every rep ~10 000 km away.
   static OutletLocation? forStop(
-    CustomerStopInfo customer, {
+    DepotStopInfo depot, {
     required double radiusMeters,
   }) =>
-      customer.hasCoordinates
+      depot.hasCoordinates
           ? OutletLocation(
-              latitude: customer.latitude,
-              longitude: customer.longitude,
+              latitude: depot.latitude,
+              longitude: depot.longitude,
               radiusMeters: radiusMeters,
             )
           : null;
@@ -134,8 +134,8 @@ class CheckInLocationVerdict extends Equatable {
 ///
 /// ## Why this exists beside `GeofenceService`
 ///
-/// [GeofenceService.evaluate] answers "is this rep inside *this customer's*
-/// geofence", sizing the radius from the customer's territory type (urban 50 m,
+/// [GeofenceService.evaluate] answers "is this rep inside *this depot's*
+/// geofence", sizing the radius from the depot's territory type (urban 50 m,
 /// suburban 100 m, industrial 150 m, rural 250 m). That is the production rule.
 ///
 /// This one answers "is this rep inside *the designated check-in area*", where

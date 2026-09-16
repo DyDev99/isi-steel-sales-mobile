@@ -110,7 +110,7 @@ void main() {
 
     test('one unpriced makes the whole document pending', () {
       // A subtotal that silently drops the pending line is a smaller, wronger
-      // number than none at all — and it is the one the customer sees.
+      // number than none at all — and it is the one the depot sees.
       final lines = [_line(), _line(pricing: const ProductPricing.unpriced())];
       expect(lines.hasPendingPricing, isTrue);
       expect(lines.pricedSubtotal, isNull);

@@ -1,14 +1,14 @@
 import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/mobile_price.dart';
 
-/// Customer-specific prices, live from the backend.
+/// Depot-specific prices, live from the backend.
 ///
 /// The backend is the only authority. Nothing behind this interface computes a
 /// price, applies a condition, or falls back to a catalogue figure when the
 /// live one is missing — a quoted amount has exactly one source, and a
 /// plausible-looking local substitute is worse than an honest absence.
 abstract interface class PricingRepository {
-  /// Prices for [materials] as quoted to [customerId].
+  /// Prices for [materials] as quoted to [depotId].
   ///
   /// Batched deliberately: the endpoint takes a repeatable `materials`
   /// parameter, so a quotation with eight lines costs one round trip rather
@@ -16,12 +16,12 @@ abstract interface class PricingRepository {
   /// [PricingState.unavailable] rather than being omitted, so a caller can
   /// tell "no price" from "never asked".
   ResultFuture<List<MobilePrice>> getPrices({
-    required String customerId,
+    required String depotId,
     required List<String> materials,
   });
 }
 
-/// The realtime half: a subscription to one customer's prices.
+/// The realtime half: a subscription to one depot's prices.
 ///
 /// Separated from [PricingRepository] because the two have nothing in common
 /// operationally. One is a request that completes; the other is a connection
@@ -46,16 +46,16 @@ abstract interface class PricingRealtimeSource {
   /// price on screen stale rather than wrong.
   bool get isConnected;
 
-  /// Subscribes to [customerId]'s pricing group.
+  /// Subscribes to [depotId]'s pricing group.
   ///
-  /// The **customer id** goes on the wire, never a group name assembled on the
-  /// handset: the server decides which group a customer belongs to, and a
+  /// The **depot id** goes on the wire, never a group name assembled on the
+  /// handset: the server decides which group a depot belongs to, and a
   /// client that guesses will silently receive nothing the day that mapping
   /// changes.
-  Future<void> subscribe(String customerId);
+  Future<void> subscribe(String depotId);
 
   /// Drops the current subscription. Called before subscribing to a different
-  /// customer, so a rep switching shops does not keep receiving the previous
+  /// depot, so a rep switching shops does not keep receiving the previous
   /// one's prices.
   Future<void> unsubscribe();
 

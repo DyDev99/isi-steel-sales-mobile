@@ -31,7 +31,7 @@ import 'package:isi_steel_sales_mobile/features/order/data/mock/isi_demo_catalog
 ///    the material master also holds ~8,000 `ERSA`/`HIBE`/`HIB1` rows —
 ///    bearings, pneumatics, PPE, welding gas, safety shoes. Those are plant
 ///    maintenance stores, not sales stock. A rep's catalog should not be able
-///    to quote a customer a pair of size-39 safety boots, so they are not
+///    to quote a depot a pair of size-39 safety boots, so they are not
 ///    modelled here at all.
 ///
 /// ## Real vocabulary, generated combinatorics
@@ -390,11 +390,11 @@ class _LeafSpec {
   /// Khmer for [namePrefix]. Written by a Khmer speaker against the trade
   /// vocabulary a Cambodian hardware buyer actually uses at the counter — a
   /// machine translation of "MCCB" or "Self Drilling Screw" produces a phrase
-  /// no rep would say and no customer would recognise, which is worse than
+  /// no rep would say and no depot would recognise, which is worse than
   /// leaving the row in English.
   final String namePrefixKh;
 
-  /// The series or spec a customer picks between. For traded goods this is
+  /// The series or spec a depot picks between. For traded goods this is
   /// rarely a metallurgical grade — it is a breaking capacity, a voltage
   /// rating or a board type — but it lands on the same `grade` column, which
   /// is what lets one `ProductFilter` serve both halves of the catalog.
@@ -1057,7 +1057,7 @@ class VariantPricing {
 
 /// Derives every price tier from one base price. Standard carries the
 /// nominal margin over cost; the other tiers are consistent discounts/
-/// markups off standard, matching how real customer price groups work.
+/// markups off standard, matching how real depot price groups work.
 ///
 /// Unchanged from the steel catalog this file used to generate, and it still
 /// behaves: on traded goods with no meaningful dimensions (a breaker, a tin of

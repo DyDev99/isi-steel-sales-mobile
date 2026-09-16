@@ -27,7 +27,7 @@ class ProductListSection extends StatelessWidget {
     required this.favoriteIds,
     required this.expandedProductId,
     required this.leadId,
-    required this.customerId,
+    required this.depotId,
     required this.onToggleFavorite,
     required this.onToggleExpanded,
     this.onCustomize,
@@ -42,7 +42,7 @@ class ProductListSection extends StatelessWidget {
   final Set<String> favoriteIds;
   final String? expandedProductId;
   final String? leadId;
-  final String? customerId;
+  final String? depotId;
   final ValueChanged<String> onToggleFavorite;
   final ValueChanged<String> onToggleExpanded;
 
@@ -147,7 +147,7 @@ class ProductListSection extends StatelessWidget {
                                   quantity: quantity,
                                   unit: unit,
                                   leadId: leadId,
-                                  customerId: customerId,
+                                  depotId: depotId,
                                 ),
                               ),
                           ],
@@ -201,7 +201,7 @@ class _ProductRow extends StatelessWidget {
     required this.quantity,
     required this.unit,
     required this.leadId,
-    required this.customerId,
+    required this.depotId,
   });
 
   final Product product;
@@ -214,7 +214,7 @@ class _ProductRow extends StatelessWidget {
   final double quantity;
   final String? unit;
   final String? leadId;
-  final String? customerId;
+  final String? depotId;
 
   @override
   Widget build(BuildContext context) {
@@ -239,7 +239,7 @@ class _ProductRow extends StatelessWidget {
               quantity: quantity,
               unit: unit,
               leadId: leadId,
-              customerId: customerId,
+              depotId: depotId,
             );
       },
       onCustomize: onCustomize == null

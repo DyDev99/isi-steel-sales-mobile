@@ -1,11 +1,11 @@
-/// Text normalisation shared by every customer search path.
+/// Text normalisation shared by every depot search path.
 ///
 /// ## Why this exists
 ///
 /// SAP's Khmer master data carries **zero-width characters** as word-break
 /// hints — `U+200B` (space), `U+200C` (non-joiner), `U+200D` (joiner). In the
 /// current production extract, 1,130 of 5,990 Khmer names contain at least one
-/// (`docs/feature/customer/mobile/search-customer.md` §Khmer search).
+/// (`docs/feature/depot/mobile/search-depot.md` §Khmer search).
 ///
 /// They are invisible on screen. A representative reads a shop's name off the
 /// list, types it back, and a naive `LIKE` finds nothing:
@@ -54,7 +54,7 @@ String stripZeroWidth(String value) {
 /// phone number and stripped of characters that matter to it.
 bool looksLikePhone(String term) => RegExp(r'^[\d\s+()\-]{6,}$').hasMatch(term);
 
-/// Normalises a free-text customer search term.
+/// Normalises a free-text depot search term.
 ///
 /// Two transformations, and no others:
 ///

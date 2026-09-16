@@ -121,7 +121,7 @@ abstract final class NotificationApiMapper {
   /// Builds a partial notification from an FCM payload.
   ///
   /// The push is a deliberate **subset**: no prices, no credit limits, no
-  /// customer phone numbers and no `actions` array (§9.2), because a push
+  /// depot phone numbers and no `actions` array (§9.2), because a push
   /// renders on a locked screen in front of whoever is holding the phone. So
   /// what comes out of here is enough to render a row and route a tap, and the
   /// catch-up fills in the rest — which is why the repository marks it partial.

@@ -25,7 +25,7 @@ This platform does not use `AddJwtBearer` — it uses OpenIddict validation
 header for the hub path only, before `UseAuthentication`.
 
 **`ApiModules.PriceLists` already existed**, so the controllers use it rather than
-falling back to `ApiModules.Customers`.
+falling back to `ApiModules.Depots`.
 
 ## The one judgement in the note that was right, and was kept
 
@@ -44,7 +44,7 @@ exactly how to pin the contract once a real response is captured.
 
 ## A security gap the note's code had
 
-The controller in the original drop checked `customers.read` but never checked that the
-customer belonged to the caller — a representative could read any shop's pricing by
+The controller in the original drop checked `depots.read` but never checked that the
+depot belonged to the caller — a representative could read any shop's pricing by
 guessing an id. All four surfaces now resolve through `IPricingAudienceResolver`. See
 [security.md](security.md).

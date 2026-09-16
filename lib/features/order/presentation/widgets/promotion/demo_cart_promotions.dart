@@ -109,7 +109,7 @@ abstract final class DemoCartPromotions {
       evaluate(item)?.freeQuantity ?? 0;
 
   /// The rule behind those free units — "Buy 40 Free 1" — or null when the line
-  /// has earned nothing. Printed on the quotation so a customer can check the
+  /// has earned nothing. Printed on the quotation so a depot can check the
   /// entitlement rather than take it on trust.
   static String? freeRuleFor(CartItem item) {
     final tier = evaluate(item)?.earnedTier;

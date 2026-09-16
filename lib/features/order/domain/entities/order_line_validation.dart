@@ -4,7 +4,7 @@ import 'package:equatable/equatable.dart';
 ///
 /// Ordered by which answer helps the rep most: a SKU that cannot be sold at all
 /// outranks a quantity that merely needs lowering, because "pick another
-/// location" and "ask for fewer" are different conversations with the customer.
+/// location" and "ask for fewer" are different conversations with the depot.
 enum OrderLineIssue {
   none,
 

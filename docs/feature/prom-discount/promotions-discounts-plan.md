@@ -82,7 +82,7 @@ an approval, and every approval traceable to what SAP actually charged.
 
 | # | Incentive | Nature | Earned | Created by | Approved by | Home in SAP |
 |---|---|---|---|---|---|---|
-| 1 | **On-invoice depot discount** | Standing agreement | At the invoice line | Rep request | 4-step chain | Condition record: customer × material price group |
+| 1 | **On-invoice depot discount** | Standing agreement | At the invoice line | Rep request | 4-step chain | Condition record: depot × material price group |
 | 2 | **Volume-tier rebate** | Standing agreement | At month end | Rep request | 4-step chain | Rebate agreement / condition contract |
 | 3 | **Immediate-payment discount** | Standing agreement | At payment | Rep request | 4-step chain | Payment terms (cash discount) — or a conditional condition (D22) |
 | 4 | **Pickup discount** | Order term (rule) | At the invoice line, if collected | Commercial (rule) | Once, when the rule is set | Condition keyed on shipping condition (D13) |
@@ -176,7 +176,7 @@ Each card is the contract a developer builds against. *Open* rows are decisions.
 
 | | |
 |---|---|
-| Allowed when | SAP **answered** and holds no price for this customer × material (`erpAnswered: true`, empty `items`). Never when SAP was unreachable. Never over an existing SAP price (the app's rule, kept) |
+| Allowed when | SAP **answered** and holds no price for this depot × material (`erpAnswered: true`, empty `items`). Never when SAP was unreachable. Never over an existing SAP price (the app's rule, kept) |
 | Value | Proposed unit price **with currency, pricing unit and condition unit** — not "USD" |
 | Approval | Always; level by rule (D7) |
 | Effect | Line priced at the approved figure; agreement discounts still apply on top (D26) |
@@ -455,14 +455,14 @@ Condition type names below are placeholders for the SD consultant to replace; th
 
 | # | SAP mechanism | Written by | Read back to verify | Endpoint status |
 |---|---|---|---|---|
-| 1 | Discount condition record, key customer × material price group, validity dates | A: middleware · B: SD team | Condition read for that key | **Missing** (write and read) |
+| 1 | Discount condition record, key depot × material price group, validity dates | A: middleware · B: SD team | Condition read for that key | **Missing** (write and read) |
 | 2 | Rebate agreement / condition contract with scale | SD team (volume is low, set-up is complex) | Agreement read | **Missing** |
-| 3 | Payment term with cash discount — or a condition tied to payment term (D22) | SD / Finance | Customer's payment terms | **Missing** |
+| 3 | Payment term with cash discount — or a condition tied to payment term (D22) | SD / Finance | Depot's payment terms | **Missing** |
 | 4 | Condition keyed on shipping condition (+ region/category if D13 needs it) | SD team, once | Condition read | **Missing** (but one-off) |
 | 5 | Manual item condition on the quotation / order | Platform, in `CreateQuot` | Readback of the quotation items | Declared (`CreateQuot`, `GetQuotItemByPaging`) |
 | 6 | Manual price condition on the item; later a real ZP01 record by HQ | Platform / HQ | Pricing read | Declared / live |
 | 7 | Free-goods master record, exclusive | SD team | Order readback shows the free item | **Missing** |
-| 8 | As 1–3 with a segment key (customer group, sales office…) | As 1–3 | As 1–3 | As 1–3 |
+| 8 | As 1–3 with a segment key (depot group, sales office…) | As 1–3 | As 1–3 | As 1–3 |
 
 Only #5 and #6 can be built end to end with endpoints that exist on paper today.
 **Every standing incentive depends on a SAP read the middleware does not expose.** That
@@ -480,7 +480,7 @@ sequenceDiagram
     SD->>SAP: maintain condition record
     SD->>App: mark done (optional — the job does not trust it)
     loop nightly + on demand
-        App->>SAP: read conditions for customer × price group
+        App->>SAP: read conditions for depot × price group
         alt matches rate, dates, key
             App->>App: term → Effective, store SAP condition record no.
         else missing or different
@@ -506,7 +506,7 @@ reason to build B's verification first.
 
 Platform conventions apply: UUIDv7 keys (`uuid`), EF Core mappings, UTC timestamps (`timestamptz`), strict financial precision (`numeric(18,6)` for currency amounts, `numeric(9,4)` for percentages and tax rates), and audit columns (`created_at`, `created_by`, `updated_at`, `updated_by`) on every mutable table.
 
-The BRD's `ROLE`, `USER_ACCOUNT`, `CUSTOMER` and `TEAM` tables are **not** duplicated here: the platform's existing Identity and `Customer` aggregates own them. Missing customer attributes (`team_id`, `cost_center`, `depot_type`, `region_code`) are extended on the customer record. The BRD's `INVOICE*` tables are omitted because the platform does not issue legal invoices (SAP owns billing).
+The BRD's `ROLE`, `USER_ACCOUNT`, `DEPOT` and `TEAM` tables are **not** duplicated here: the platform's existing Identity and `Depot` aggregates own them. Missing depot attributes (`team_id`, `cost_center`, `depot_type`, `region_code`) are extended on the depot record. The BRD's `INVOICE*` tables are omitted because the platform does not issue legal invoices (SAP owns billing).
 
 ---
 
@@ -514,10 +514,10 @@ The BRD's `ROLE`, `USER_ACCOUNT`, `CUSTOMER` and `TEAM` tables are **not** dupli
 
 ```mermaid
 erDiagram
-    CUSTOMERS ||--o{ AGREEMENT_REQUESTS : "initiates for"
-    CUSTOMERS ||--o{ AGREEMENT_TERMS : "holds active"
-    CUSTOMERS ||--o{ BILLING_SNAPSHOTS : "aggregates"
-    CUSTOMERS ||--o{ QUOTATIONS : "orders via"
+    DEPOTS ||--o{ AGREEMENT_REQUESTS : "initiates for"
+    DEPOTS ||--o{ AGREEMENT_TERMS : "holds active"
+    DEPOTS ||--o{ BILLING_SNAPSHOTS : "aggregates"
+    DEPOTS ||--o{ QUOTATIONS : "orders via"
 
     AGREEMENT_REQUESTS ||--|{ AGREEMENT_REQUEST_LINES : "contains"
     AGREEMENT_REQUEST_LINES ||--o{ AGREEMENT_REQUEST_TIERS : "scales into"
@@ -536,7 +536,7 @@ erDiagram
     CATEGORY_MAPPINGS ||--o{ AGREEMENT_TERMS : "classifies"
 
     PROMOTIONS ||--|{ PROMOTION_TIERS : "defines ladder"
-    PROMOTIONS ||--o{ PROMOTION_CUSTOMER_SCOPES : "targets"
+    PROMOTIONS ||--o{ PROMOTION_DEPOT_SCOPES : "targets"
     PROMOTIONS ||--o{ PROMOTION_MATERIAL_SCOPES : "targets"
 
     FREE_GOODS_RULES ||--|{ FREE_GOODS_RULE_TIERS : "specifies"
@@ -552,7 +552,7 @@ erDiagram
     PICKUP_RULES ||--o{ QUOTATION_LINE_DISCOUNTS : "triggers"
     PROMOTIONS ||--o{ QUOTATION_LINE_DISCOUNTS : "applies"
 
-    CUSTOMERS {
+    DEPOTS {
         uuid id PK
         varchar code UK "SAP BP Number"
         varchar name "Depot or Business Name"
@@ -565,7 +565,7 @@ erDiagram
         uuid id PK
         varchar request_number UK "AGR-2026-XXXXXX"
         varchar scope_type "DEPOT | SEGMENT"
-        uuid customer_id FK "Null if segment-wide"
+        uuid depot_id FK "Null if segment-wide"
         varchar segment_filter "JSONB criteria if SEGMENT"
         uuid requested_by FK "Sales representative"
         varchar status "Draft | AwaitingPrepare | AwaitingVerify | AwaitingConsultant | AwaitingFinal | Approved | Returned | Rejected | Withdrawn"
@@ -605,7 +605,7 @@ erDiagram
         uuid id PK
         varchar term_number UK "AG-2026-XXXX"
         varchar scope_type "DEPOT | SEGMENT"
-        uuid customer_id FK "Null if segment-wide"
+        uuid depot_id FK "Null if segment-wide"
         varchar segment_filter "JSONB criteria"
         varchar category_code FK
         varchar nature "ON_INVOICE | VOLUME_REBATE | IMMEDIATE_PAYMENT"
@@ -678,10 +678,10 @@ erDiagram
         varchar free_material_code "Free material number"
     }
 
-    PROMOTION_CUSTOMER_SCOPES {
+    PROMOTION_DEPOT_SCOPES {
         uuid id PK
         uuid promotion_id FK
-        uuid customer_id FK "Targeted customer (empty = all)"
+        uuid depot_id FK "Targeted depot (empty = all)"
     }
 
     PROMOTION_MATERIAL_SCOPES {
@@ -771,7 +771,7 @@ erDiagram
 
     BILLING_SNAPSHOTS {
         uuid id PK
-        uuid customer_id FK
+        uuid depot_id FK
         varchar period "YYYY-MM"
         varchar category_code
         numeric gross_billed
@@ -851,7 +851,7 @@ erDiagram
     QUOTATIONS {
         uuid id PK
         varchar number UK "QT-2026-XXXXXX"
-        uuid customer_id FK
+        uuid depot_id FK
         varchar status "Draft | Quoted | Ordered | ..."
     }
 
@@ -886,8 +886,8 @@ erDiagram
 Carries the representative's discount proposals, revisions, and current approval step.
 - `id` (`uuid`, PK, default `gen_random_uuid()`): Unique identifier.
 - `request_number` (`varchar(32)`, UK, NOT NULL): Formatted document code (e.g. `AGR-2026-000045`).
-- `scope_type` (`varchar(16)`, NOT NULL): `DEPOT` (specific customer) or `SEGMENT` (campaign / depot group).
-- `customer_id` (`uuid`, FK → `customers.id`, NULLABLE): Target customer; mandatory when `scope_type = 'DEPOT'`.
+- `scope_type` (`varchar(16)`, NOT NULL): `DEPOT` (specific depot) or `SEGMENT` (campaign / depot group).
+- `depot_id` (`uuid`, FK → `depots.id`, NULLABLE): Target depot; mandatory when `scope_type = 'DEPOT'`.
 - `segment_filter` (`jsonb`, NULLABLE): Segment criteria (`{"depot_type": "GENERAL_DEPOT", "region": "NORTH"}`) when `scope_type = 'SEGMENT'`.
 - `requested_by` (`uuid`, FK → `users.id`, NOT NULL): Sales representative authoring the request.
 - `status` (`varchar(32)`, NOT NULL): `Draft`, `AwaitingPrepare`, `AwaitingVerify`, `AwaitingConsultant`, `AwaitingFinal`, `Approved`, `Returned`, `Rejected`, `Withdrawn`.
@@ -927,7 +927,7 @@ Volume rebate purchase tiers attached to a tiered request line.
 - `id` (`uuid`, PK, default `gen_random_uuid()`): Unique identifier.
 - `term_number` (`varchar(32)`, UK, NOT NULL): Public contract reference (e.g. `AG-2026-0045`).
 - `scope_type` (`varchar(16)`, NOT NULL): `DEPOT` or `SEGMENT`.
-- `customer_id` (`uuid`, FK → `customers.id`, NULLABLE): Target customer.
+- `depot_id` (`uuid`, FK → `depots.id`, NULLABLE): Target depot.
 - `segment_filter` (`jsonb`, NULLABLE): Segment criteria if segment-wide.
 - `category_code` (`varchar(32)`, FK → `category_mappings.category_code`, NOT NULL): Material category code.
 - `nature` (`varchar(24)`, NOT NULL): `ON_INVOICE`, `VOLUME_REBATE`, or `IMMEDIATE_PAYMENT`.
@@ -949,7 +949,7 @@ Volume rebate purchase tiers attached to a tiered request line.
   ALTER TABLE agreement_terms
   ADD CONSTRAINT exclude_overlapping_effective_terms
   EXCLUDE USING gist (
-      customer_id WITH =,
+      depot_id WITH =,
       category_code WITH =,
       nature WITH =,
       daterange(valid_from, COALESCE(valid_to, 'infinity'::date), '[]') WITH &&
@@ -992,7 +992,7 @@ Operational work queue for the SAP SD team (Option B workflow) when condition ma
 ### 7.2 Campaigns & rules domain — table specifications
 
 #### 8. `promotions`
-Catalog of customer-facing campaigns and free-goods promotions.
+Catalog of depot-facing campaigns and free-goods promotions.
 - `id` (`uuid`, PK, default `gen_random_uuid()`): Unique identifier.
 - `code` (`varchar(32)`, UK, NOT NULL): Human-readable promo code (e.g. `PROMO-2026-SUMMER`).
 - `title` (`varchar(128)`, NOT NULL): Primary promotional title (e.g. `Camstar Free Goods Promotion`).
@@ -1016,15 +1016,15 @@ Free-goods quantity ladder for `BUY_X_GET_Y` promotions.
 - `free_material_code` (`varchar(32)`, NULLABLE): Material code of bonus item; `null` if identical to purchased item.
 - UNIQUE CONSTRAINT: `(promotion_id, tier_order)`.
 
-#### 10. `promotion_customer_scopes` & `promotion_material_scopes`
-Explicit customer account or material exclusions/inclusions.
-- `promotion_customer_scopes`: `id` (`uuid`, PK), `promotion_id` (`uuid`, FK), `customer_id` (`uuid`, FK → `customers.id`). Empty table implies promotion applies to all customer accounts.
+#### 10. `promotion_depot_scopes` & `promotion_material_scopes`
+Explicit depot account or material exclusions/inclusions.
+- `promotion_depot_scopes`: `id` (`uuid`, PK), `promotion_id` (`uuid`, FK), `depot_id` (`uuid`, FK → `depots.id`). Empty table implies promotion applies to all depot accounts.
 - `promotion_material_scopes`: `id` (`uuid`, PK), `promotion_id` (`uuid`, FK), `material_code` (`varchar(32)`, NULLABLE), `category_code` (`varchar(32)`, NULLABLE). Empty table implies blanket applicability across all catalog lines.
 
 #### 11. `pickup_rules`
 Standing business rules governing the factory/depot collection discount (#4).
 - `id` (`uuid`, PK, default `gen_random_uuid()`): Unique identifier.
-- `name` (`varchar(64)`, NOT NULL): e.g. `Standard Customer Pickup Discount`.
+- `name` (`varchar(64)`, NOT NULL): e.g. `Standard Depot Pickup Discount`.
 - `region_code` (`varchar(32)`, NULLABLE): Scope by region; `null` = nationwide.
 - `category_code` (`varchar(32)`, NULLABLE): Scope by product category; `null` = all categories.
 - `percent` (`numeric(9,4)`, NOT NULL, default `1.0000`): Pickup discount percentage (e.g. 1.00 %).
@@ -1069,7 +1069,7 @@ Bridges platform product categories to SAP material price groups (D14).
 #### 16. `rebate_accruals`
 Monthly running and finalized volume rebate calculations (#2).
 - `id` (`uuid`, PK, default `gen_random_uuid()`): Unique identifier.
-- `term_id` (`uuid`, FK → `agreement_terms.id` ON DELETE RESTRICT, NOT NULL): Customer rebate agreement term.
+- `term_id` (`uuid`, FK → `agreement_terms.id` ON DELETE RESTRICT, NOT NULL): Depot rebate agreement term.
 - `period` (`varchar(7)`, NOT NULL): Billing period formatted `YYYY-MM` (e.g. `2026-09`).
 - `basis_amount` (`numeric(18,6)`, NOT NULL): Net qualifying spend accumulated within the period.
 - `tier_reached` (`int`, NOT NULL, default 0): Order index of tier achieved (0 = no tier reached).
@@ -1091,7 +1091,7 @@ Workflow and authorization for month-end rebate credit notes.
 #### 18. `billing_snapshots`
 Cached billing aggregates fetched from SAP for rebate evaluation and approver context.
 - `id` (`uuid`, PK, default `gen_random_uuid()`): Unique identifier.
-- `customer_id` (`uuid`, FK → `customers.id`, NOT NULL): Depot customer.
+- `depot_id` (`uuid`, FK → `depots.id`, NOT NULL): Depot depot.
 - `period` (`varchar(7)`, NOT NULL): Billing period (`YYYY-MM`).
 - `category_code` (`varchar(32)`, NOT NULL): Product category code.
 - `gross_billed` (`numeric(18,6)`, NOT NULL): Total gross invoiced amount.
@@ -1100,7 +1100,7 @@ Cached billing aggregates fetched from SAP for rebate evaluation and approver co
 - `scrap_deductions` (`numeric(18,6)`, NOT NULL): Billed value of scrap materials (excluded per D24).
 - `net_qualifying_basis` (`numeric(18,6)`, NOT NULL): Qualifying spend basis (`gross - on_invoice - returns - scrap`).
 - `captured_at` (`timestamptz`, NOT NULL): Snapshot sync timestamp.
-- UNIQUE CONSTRAINT: `(customer_id, period, category_code)`.
+- UNIQUE CONSTRAINT: `(depot_id, period, category_code)`.
 
 #### 19. `scrap_materials`
 Exclusion table defining scrap or low-grade materials excluded from rebate qualification.
@@ -1143,7 +1143,7 @@ ON DELETE RESTRICT;
 
 When pricing an order line:
 1. Category lookup: `quotation_lines.category` is mapped to `category_mappings.category_code`.
-2. Agreement lookup: Active `agreement_terms` where `customer_id = quotation.customer_id AND category_code = line.category AND state = 'Effective' AND valid_from <= CURRENT_DATE AND (valid_to IS NULL OR valid_to >= CURRENT_DATE)`.
+2. Agreement lookup: Active `agreement_terms` where `depot_id = quotation.depot_id AND category_code = line.category AND state = 'Effective' AND valid_from <= CURRENT_DATE AND (valid_to IS NULL OR valid_to >= CURRENT_DATE)`.
 3. If an on-invoice agreement exists, a `quotation_line_discounts` record is created with:
    - `kind = 1` (`Agreement`)
    - `percent = agreement_terms.percent`
@@ -1177,7 +1177,7 @@ All endpoints adhere to the standard envelope:
 
 ### 8.1 Mobile endpoints & exact JSON payloads
 
-#### 1. Incentives feed (`GET /api/v1/mobile/customers/{customerId}/incentives?shipment={method}`)
+#### 1. Incentives feed (`GET /api/v1/mobile/depots/{depotId}/incentives?shipment={method}`)
 Powers `PromotionSectionWidget`, `PromoGroup`, `PromoCard`, `PromoView`, and `PromotionDetailScreen`.
 
 **Query Parameters**:
@@ -1314,10 +1314,10 @@ Powers `PromotionSectionWidget`, `PromoGroup`, `PromoCard`, `PromoView`, and `Pr
 
 ---
 
-#### 2. Customer agreements list (`GET /api/v1/mobile/customers/{customerId}/agreements`)
-Powers customer detail screens, visit views, and the quotation builder's standing terms loader.
+#### 2. Depot agreements list (`GET /api/v1/mobile/depots/{depotId}/agreements`)
+Powers depot detail screens, visit views, and the quotation builder's standing terms loader.
 
-**Response Payload (`MobileApiResponse<List<CustomerAgreementDto>>`)**:
+**Response Payload (`MobileApiResponse<List<DepotAgreementDto>>`)**:
 ```json
 {
   "success": true,
@@ -1375,7 +1375,7 @@ Evaluates line item quantities against free-goods ladders. Powers `PromotionEval
 **Request Payload**:
 ```json
 {
-  "customerId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "depotId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "materialCode": "1500000017",
   "categoryCode": "CEMENT",
   "quantity": 85
@@ -1445,9 +1445,9 @@ Powers the mobile "Request Discount" sheet. Supports offline drafting via `clien
 ```json
 {
   "clientRequestId": "e89d1b09-2423-45ab-8c9a-4630a9bd021e",
-  "customerId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "depotId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "scopeType": "DEPOT",
-  "remarks": "Customer opening second retail branch in Kampong Cham; requesting volume assistance.",
+  "remarks": "Depot opening second retail branch in Kampong Cham; requesting volume assistance.",
   "lines": [
     {
       "categoryCode": "ROOFING_PROFILE",
@@ -1480,8 +1480,8 @@ Powers the mobile "Request Discount" sheet. Supports offline drafting via `clien
   "data": {
     "id": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
     "requestNumber": "AGR-2026-000104",
-    "customerId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-    "customerName": "PNP Walk-in Depot",
+    "depotId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "depotName": "PNP Walk-in Depot",
     "status": "Draft",
     "revision": 1,
     "currentStep": null,
@@ -1506,8 +1506,8 @@ Retrieves request details alongside the 4-step approval history trail.
   "data": {
     "id": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
     "requestNumber": "AGR-2026-000104",
-    "customerId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-    "customerName": "PNP Walk-in Depot",
+    "depotId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "depotName": "PNP Walk-in Depot",
     "status": "AwaitingConsultant",
     "revision": 1,
     "currentStep": 3,
@@ -1571,7 +1571,7 @@ Retrieves request details alongside the 4-step approval history trail.
 | `GET` | `/api/v1/agreement-requests` | `agreements.prepare` / `.verify` | Paged approvals inbox filtered by `step`, `region`, `status`, `slaBreached`. |
 | `GET` | `/api/v1/agreement-requests/{id}` | step permission / `agreements.readall` | Full revision diff, depot 6-month purchasing history, proposed cost impact. |
 | `POST` | `/api/v1/agreement-requests/{id}/steps/{stepOrder}/{outcome}` | step permission | Submit step decision: `Forward`, `Approve`, `Return`, or `Reject` (comment required). |
-| `GET` | `/api/v1/agreement-terms` | `agreements.readall` | Terms matrix per customer and category with status badges (`Effective`, `Mismatch`). |
+| `GET` | `/api/v1/agreement-terms` | `agreements.readall` | Terms matrix per depot and category with status badges (`Effective`, `Mismatch`). |
 | `POST` | `/api/v1/agreement-terms/{id}/terminate` | `agreements.terminate` | Early termination of effective term with mandatory justification comment. |
 | `GET` | `/api/v1/sap-tasks` | `agreements.sap` | Work queue for SAP SD team (Option B condition maintenance). |
 | `POST` | `/api/v1/sap-tasks/{id}/done` | `agreements.sap` | Marks SAP maintenance complete with KNUMH condition record number. |
@@ -1587,7 +1587,7 @@ Errors returned in RFC 7807 problem detail format with typed domain codes:
 
 | HTTP Status | Error Code | Description |
 |---|---|---|
-| `404 Not Found` | `Agreement.NotFound` | Requested agreement or customer does not exist or falls outside caller's audience scope. |
+| `404 Not Found` | `Agreement.NotFound` | Requested agreement or depot does not exist or falls outside caller's audience scope. |
 | `409 Conflict` | `Agreement.InvalidTransition` | Attempted invalid workflow state transition (e.g. approving a Withdrawn request). |
 | `409 Conflict` | `Agreement.OutcomeNotAllowed` | Outcome requested is not permitted by this step's template configuration. |
 | `409 Conflict` | `Agreement.AlreadyActedByYou` | Four-eyes policy violation: requester cannot approve; same user cannot act on two steps. |
@@ -1609,8 +1609,8 @@ Errors returned in RFC 7807 problem detail format with typed domain codes:
    - Payload: `{"requestId": "...", "requestNumber": "...", "status": "AwaitingVerify", "currentStep": 2}`.
 2. **`AgreementTermChanged`**:
    - Sent when a term becomes `Effective`, `Superseded`, or `Terminated`.
-   - Connected mobile apps holding active draft quotations for that customer trigger a background re-preview (`GET /quotations/{id}/preview`) to refresh line pricing.
-   - Payload: `{"customerId": "...", "termId": "...", "category": "REBAR", "state": "Effective"}`.
+   - Connected mobile apps holding active draft quotations for that depot trigger a background re-preview (`GET /quotations/{id}/preview`) to refresh line pricing.
+   - Payload: `{"depotId": "...", "termId": "...", "category": "REBAR", "state": "Effective"}`.
 
 
 ---
@@ -1635,11 +1635,11 @@ Errors returned in RFC 7807 problem detail format with typed domain codes:
 | Concern | Rule |
 |---|---|
 | Permissions | `agreements.request`, `.prepare`, `.verify`, `.approve-consultant`, `.approve-final`, `.readall`, `.terminate`, `.sap`; `rebates.manage`; `reports.discounts`; `settings.manage`. Shipped **with the migration that grants them** (Pricing's lesson about ungranted permissions) |
-| Scope | Reps: their customers (existing ownership rule). Approvers: their region / team by `scope_rule`. Out of scope = 404 |
+| Scope | Reps: their depots (existing ownership rule). Approvers: their region / team by `scope_rule`. Out of scope = 404 |
 | Four eyes, delegation, step-up | §5.3 |
 | Intent only | The app sends rates and codes; the server validates against caps, authority, tiers, overlaps |
 | Immutability | Terms immutable; audit append-only; the database role used by the API has no UPDATE/DELETE on `audit_log` |
-| Commercial terms are sensitive | A depot's rates are another depot's negotiating ammunition. Notifications carry ids only; logs carry ids and counts; the promo card for depot A is never cached where depot B's session can read it (the app's `setCustomer` reset is right — keep it) |
+| Commercial terms are sensitive | A depot's rates are another depot's negotiating ammunition. Notifications carry ids only; logs carry ids and counts; the promo card for depot A is never cached where depot B's session can read it (the app's `setDepot` reset is right — keep it) |
 
 ---
 
@@ -1651,9 +1651,9 @@ screens and swaps what feeds them.
 | File | Today | Becomes |
 |---|---|---|
 | `promotions_mock_data.dart`, `demo_cart_promotions.dart` | Invented depot and term promotions | **Deleted from release builds**, CI check that no release imports them |
-| `promotion_repository.dart`, `get_promotions.dart` | Customer-scoped list from mock | `GET /customers/{id}/incentives` |
+| `promotion_repository.dart`, `get_promotions.dart` | Depot-scoped list from mock | `GET /depots/{id}/incentives` |
 | `evaluate_promotion.dart`, `promotion.dart#tierFor` | Free-goods ladder evaluated on the phone | Deleted; earned tier, next tier and gap come from the quotation preview. The *display* models (`PromotionEvaluation`, progress bar) stay |
-| `promotion_cubit.dart` | 220 ms debounce per material | Folded into the single quotation-preview debounce; **keep** the `setCustomer` reset |
+| `promotion_cubit.dart` | 220 ms debounce per material | Folded into the single quotation-preview debounce; **keep** the `setDepot` reset |
 | `cart_item.dart` | Holds `discountPercent`, computes `lineDiscount`, holds `unitPriceOverride` | Holds intents; `lineDiscount` and totals read from the preview |
 | `line_discount_chips.dart` | Fixed chips up to 10 % | Chips from `GET /me/discount-authority`; above-limit chip allowed with "needs approval" |
 | `manual_price_input_sheet.dart` | "Input Price (USD)" when `!hasAmount` | **Price request** sheet: price + currency + unit; opens only when SAP answered with no price; labelled "needs approval" |

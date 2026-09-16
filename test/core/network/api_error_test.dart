@@ -47,15 +47,15 @@ void main() {
   group('RFC 9457 problem documents (everything else)', () {
     test('branches on errorCode and keeps detail out of user-facing text', () {
       final error = ApiError.fromBody({
-        'type': 'https://docs.isigroup.com.kh/errors/Customer.NotFound',
+        'type': 'https://docs.isigroup.com.kh/errors/Depot.NotFound',
         'title': 'The requested resource was not found.',
         'status': 404,
-        'detail': "No customer was found with identifier '…'.",
-        'errorCode': 'Customer.NotFound',
+        'detail': "No depot was found with identifier '…'.",
+        'errorCode': 'Depot.NotFound',
         'correlationId': '0HNNOE4PB87QD:00000001',
       });
 
-      expect(error.code, ApiErrorCodes.customerNotFound);
+      expect(error.code, ApiErrorCodes.depotNotFound);
       expect(error.statusCode, 404);
       expect(error.correlationId, '0HNNOE4PB87QD:00000001');
       // `title` is server-localised and safe to show; `detail` is English and
@@ -84,11 +84,11 @@ void main() {
 
     test('recovers the code from `type` when errorCode is absent', () {
       final error = ApiError.fromBody({
-        'type': 'https://docs.isigroup.com.kh/errors/Customer.Closed',
+        'type': 'https://docs.isigroup.com.kh/errors/Depot.Closed',
         'status': 422,
       });
 
-      expect(error.code, ApiErrorCodes.customerClosed);
+      expect(error.code, ApiErrorCodes.depotClosed);
     });
   });
 

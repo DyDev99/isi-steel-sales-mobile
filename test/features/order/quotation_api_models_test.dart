@@ -8,8 +8,8 @@ void main() {
       final json = {
         'id': 'qt-100',
         'number': 'QT-2026-001',
-        'customerId': 'cust-1',
-        'customerName': 'Chandy Steel Depot',
+        'depotId': 'cust-1',
+        'depotName': 'Chandy Steel Depot',
         'status': 'Draft',
         'statusGroup': 'Drafts',
         'currency': 'US3',
@@ -23,8 +23,8 @@ void main() {
       final model = QuotationSummaryModel.fromJson(json);
       expect(model.id, 'qt-100');
       expect(model.number, 'QT-2026-001');
-      expect(model.customerId, 'cust-1');
-      expect(model.customerName, 'Chandy Steel Depot');
+      expect(model.depotId, 'cust-1');
+      expect(model.depotName, 'Chandy Steel Depot');
       expect(model.status, 'Draft');
       expect(model.statusGroup, QuotationStatusGroup.drafts);
       expect(model.currency, 'US3');
@@ -33,12 +33,14 @@ void main() {
       expect(model.validTo, DateTime.parse('2026-10-01T00:00:00.000Z'));
     });
 
-    test('QuotationDetailModel with lines, discounts, and totals parses correctly', () {
+    test(
+        'QuotationDetailModel with lines, discounts, and totals parses correctly',
+        () {
       final json = {
         'id': 'qt-200',
         'number': 'QT-2026-002',
-        'customerId': 'cust-2',
-        'customerName': 'Phnom Penh Builders',
+        'depotId': 'cust-2',
+        'depotName': 'Phnom Penh Builders',
         'status': 'PendingApproval',
         'statusGroup': 'Waiting',
         'shipmentType': 'Pickup',
@@ -148,7 +150,7 @@ void main() {
           'Minimum order quantity for purlins is 500 KG');
     });
 
-    test('CustomerAgreementModel parses correctly', () {
+    test('DepotAgreementModel parses correctly', () {
       final json = {
         'id': 'agr-50',
         'category': 'Roofing',
@@ -159,7 +161,7 @@ void main() {
         'endsOn': '2026-12-31T23:59:59.000Z',
       };
 
-      final model = CustomerAgreementModel.fromJson(json);
+      final model = DepotAgreementModel.fromJson(json);
       expect(model.id, 'agr-50');
       expect(model.category, 'Roofing');
       expect(model.percent, 2.5);

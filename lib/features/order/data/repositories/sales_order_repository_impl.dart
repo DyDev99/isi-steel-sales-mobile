@@ -46,7 +46,7 @@ class SalesOrderRepositoryImpl implements SalesOrderRepository {
       final order = SalesOrder(
         id: _newId('SO'),
         quotationId: quotation.id,
-        customerId: quotation.customerId,
+        depotId: quotation.depotId,
         shopName: quotation.shopName,
         leadId: quotation.leadId,
         leadDisplayName: quotation.leadDisplayName,
@@ -102,7 +102,7 @@ class SalesOrderRepositoryImpl implements SalesOrderRepository {
   DataMap _toRow(SalesOrder o) => {
         'id': o.id,
         'quotation_id': o.quotationId,
-        'customer_id': o.customerId,
+        'depot_id': o.depotId,
         'shop_name': o.shopName,
         'lead_id': o.leadId,
         'lead_display_name': o.leadDisplayName,
@@ -121,12 +121,12 @@ class SalesOrderRepositoryImpl implements SalesOrderRepository {
     return SalesOrder(
       id: row['id'] as String,
       quotationId: row['quotation_id'] as String,
-      customerId: row['customer_id'] as String?,
+      depotId: row['depot_id'] as String?,
       shopName: row['shop_name'] as String?,
       leadId: row['lead_id'] as String?,
       leadDisplayName: row['lead_display_name'] as String?,
       lines: await _decodeLines(row['lines_json'] as String,
-          customerId: row['customer_id'] as String?,
+          depotId: row['depot_id'] as String?,
           leadId: row['lead_id'] as String?),
       subtotal: (row['subtotal'] as num).toDouble(),
       discount: (row['discount'] as num).toDouble(),
@@ -146,12 +146,12 @@ class SalesOrderRepositoryImpl implements SalesOrderRepository {
   /// Shared with the quotation repository. Before this, the two encoders had
   /// diverged: this one omitted `customization`, so converting a customized
   /// quotation into a sales order silently discarded the measurements and the
-  /// drawing the customer had signed off on.
+  /// drawing the depot had signed off on.
   String _encodeLines(List<CartItem> items) => _lines.encode(items);
 
   Future<List<CartItem>> _decodeLines(String json,
-          {String? customerId, String? leadId}) =>
-      _lines.decode(json, customerId: customerId, leadId: leadId);
+          {String? depotId, String? leadId}) =>
+      _lines.decode(json, depotId: depotId, leadId: leadId);
 
   static String _newId(String prefix) =>
       '$prefix-${(DateTime.now().microsecondsSinceEpoch + Random().nextInt(99999)) % 1000000}';

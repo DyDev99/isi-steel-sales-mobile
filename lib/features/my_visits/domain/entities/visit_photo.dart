@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-/// Covers both visit photos and the customer signature capture — a
+/// Covers both visit photos and the depot signature capture — a
 /// signature is just a photo-shaped capture with [isSignature] set, since
 /// this demo mocks capture (no real camera/signature-pad wiring, matching
 /// the same mock-capture precedent `DocumentsSection` already uses in the

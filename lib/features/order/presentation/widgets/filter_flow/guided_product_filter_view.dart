@@ -64,7 +64,7 @@ class GuidedProductFilterView extends StatefulWidget {
     this.onImageSearch,
     this.onCartTap,
     this.sticky = true,
-    this.customerId,
+    this.depotId,
     this.leadId,
     this.onInputPrice,
     this.hostManualPriceFor,
@@ -94,7 +94,7 @@ class GuidedProductFilterView extends StatefulWidget {
 
   final bool sticky;
 
-  final String? customerId;
+  final String? depotId;
   final String? leadId;
   final Future<void> Function(Product product)? onInputPrice;
   final double? Function(Product product)? hostManualPriceFor;
@@ -186,7 +186,7 @@ class _GuidedProductFilterViewState extends State<GuidedProductFilterView> {
           onCustomize: widget.onCustomize,
           onProductTap: widget.onProductTap,
           onFindNewProduct: _findNewProduct,
-          customerId: widget.customerId,
+          depotId: widget.depotId,
           leadId: widget.leadId,
           onInputPrice: widget.onInputPrice,
           hostManualPriceFor: widget.hostManualPriceFor,
@@ -348,7 +348,7 @@ class _StageContent extends StatelessWidget {
     required this.onCustomize,
     required this.onProductTap,
     required this.onFindNewProduct,
-    this.customerId,
+    this.depotId,
     this.leadId,
     this.onInputPrice,
     this.hostManualPriceFor,
@@ -363,7 +363,7 @@ class _StageContent extends StatelessWidget {
   final ValueChanged<Product>? onCustomize;
   final ValueChanged<Product>? onProductTap;
   final VoidCallback onFindNewProduct;
-  final String? customerId;
+  final String? depotId;
   final String? leadId;
   final Future<void> Function(Product product)? onInputPrice;
   final double? Function(Product product)? hostManualPriceFor;
@@ -385,7 +385,7 @@ class _StageContent extends StatelessWidget {
             onCustomize: onCustomize,
             onProductTap: onProductTap,
             onFindNewProduct: onFindNewProduct,
-            customerId: customerId,
+            depotId: depotId,
             leadId: leadId,
             onInputPrice: onInputPrice,
             hostManualPriceFor: hostManualPriceFor,
@@ -521,7 +521,7 @@ class _ProductStage extends StatelessWidget {
     required this.onCustomize,
     required this.onProductTap,
     required this.onFindNewProduct,
-    this.customerId,
+    this.depotId,
     this.leadId,
     this.onInputPrice,
     this.hostManualPriceFor,
@@ -536,7 +536,7 @@ class _ProductStage extends StatelessWidget {
   final ValueChanged<Product>? onCustomize;
   final ValueChanged<Product>? onProductTap;
   final VoidCallback onFindNewProduct;
-  final String? customerId;
+  final String? depotId;
   final String? leadId;
   final Future<void> Function(Product product)? onInputPrice;
   final double? Function(Product product)? hostManualPriceFor;
@@ -617,7 +617,8 @@ class _ProductStage extends StatelessWidget {
                       );
                 }
 
-                double? manualPriceFor(Product product, Map<String, MobilePrice> prices) {
+                double? manualPriceFor(
+                    Product product, Map<String, MobilePrice> prices) {
                   final p = prices[product.materialNumber];
                   if (p != null && p.hasAmount) return null;
 
@@ -627,7 +628,7 @@ class _ProductStage extends StatelessWidget {
                   if (cartState is! CartLoaded) return null;
                   for (final item in cartState.items) {
                     if (item.product.id == product.id &&
-                        (customerId == null || item.customerId == customerId) &&
+                        (depotId == null || item.depotId == depotId) &&
                         (leadId == null || item.leadId == leadId) &&
                         item.isManualPrice &&
                         item.unitPriceOverride != null) {
@@ -644,7 +645,8 @@ class _ProductStage extends StatelessWidget {
                   return null;
                 }
 
-                Future<void> handleInputPrice(Product product, Map<String, MobilePrice> prices) async {
+                Future<void> handleInputPrice(
+                    Product product, Map<String, MobilePrice> prices) async {
                   final p = prices[product.materialNumber];
                   if (p != null && p.hasAmount) {
                     // Backend already succeeded for this material! Manual price is disallowed.
@@ -662,7 +664,7 @@ class _ProductStage extends StatelessWidget {
                   if (cState is CartLoaded) {
                     for (final item in cState.items) {
                       if (item.product.id == product.id &&
-                          (customerId == null || item.customerId == customerId) &&
+                          (depotId == null || item.depotId == depotId) &&
                           (leadId == null || item.leadId == leadId)) {
                         existingItem = item;
                         break;
@@ -700,7 +702,7 @@ class _ProductStage extends StatelessWidget {
                       product,
                       quantity: 1,
                       unit: product.unit,
-                      customerId: customerId,
+                      depotId: depotId,
                       leadId: leadId,
                       unitPrice: entered,
                       isManualPrice: true,
@@ -754,16 +756,14 @@ class _ProductStage extends StatelessWidget {
                                         SizedBox(height: context.rh(8)),
                                         ProductResultCard(
                                           product: product,
-                                          isFavorite: favoriteIds
-                                              .contains(product.id),
+                                          isFavorite:
+                                              favoriteIds.contains(product.id),
                                           quantity: quantityFor(product),
                                           specLine: _specLine(product),
                                           lineTotalLabel: lineTotalFor?.call(
-                                              product,
-                                              quantityFor(product)),
+                                              product, quantityFor(product)),
                                           onQuantityChanged: (value) =>
-                                              onQuantityChanged(
-                                                  product, value),
+                                              onQuantityChanged(product, value),
                                           onToggleFavorite: () =>
                                               onToggleFavorite(product),
                                           onTap: onProductTap == null
@@ -772,34 +772,31 @@ class _ProductStage extends StatelessWidget {
                                           onCustomize: onCustomize == null
                                               ? null
                                               : () => onCustomize!(product),
-                                          promotion: promotions[
-                                              product.materialCode],
+                                          promotion:
+                                              promotions[product.materialCode],
                                           onPromotionTap: () {
                                             final evaluation = promotions[
                                                 product.materialCode];
                                             if (evaluation == null) return;
                                             showPromotionDetailSheet(
                                               context,
-                                              promotion:
-                                                  evaluation.promotion,
+                                              promotion: evaluation.promotion,
                                               evaluation: evaluation,
                                             );
                                           },
-                                          price: prices[
-                                              product.materialNumber],
-                                          manualPrice: manualPriceFor(
-                                              product, prices),
-                                          onInputPrice: (prices[product
-                                                          .materialNumber]
-                                                      ?.hasAmount ==
-                                                  true)
-                                              ? null
-                                              : () => handleInputPrice(
-                                                  product, prices),
+                                          price: prices[product.materialNumber],
+                                          manualPrice:
+                                              manualPriceFor(product, prices),
+                                          onInputPrice:
+                                              (prices[product.materialNumber]
+                                                          ?.hasAmount ==
+                                                      true)
+                                                  ? null
+                                                  : () => handleInputPrice(
+                                                      product, prices),
                                           onPriceRetry: () => context
                                               .read<PricingCubit>()
-                                              .retry(
-                                                  product.materialNumber),
+                                              .retry(product.materialNumber),
                                         ),
                                       ],
                                     ],
@@ -836,8 +833,7 @@ class _ProductStage extends StatelessWidget {
                       // endpoint answers per material, and the same material
                       // stocked at three warehouses is three rows that share one
                       // price.
-                      priceFor: (product) =>
-                          prices[product.materialNumber],
+                      priceFor: (product) => prices[product.materialNumber],
                       manualPriceFor: (product) =>
                           manualPriceFor(product, prices),
                       onInputPrice: (product) =>

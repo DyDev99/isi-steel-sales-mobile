@@ -86,7 +86,7 @@ import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_credit
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/check_material_availability.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_filter_step_options.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/evaluate_promotion.dart';
-import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_customer_material_prices.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_depot_material_prices.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_materials.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_promotions.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_stock_location_options.dart';
@@ -230,8 +230,8 @@ Future<void> registerOrderFeature(GetIt sl) async {
       () => CartRepositoryImpl(cartLocal: sl(), productLocal: sl()));
   sl.registerLazySingleton<QuotationRepository>(
       () => QuotationRepositoryImpl(local: sl(), productLocal: sl()));
-  sl.registerLazySingleton<QuotationApiRepository>(
-      () => QuotationApiRepositoryImpl(remote: sl(), network: sl<NetworkInfo>()));
+  sl.registerLazySingleton<QuotationApiRepository>(() =>
+      QuotationApiRepositoryImpl(remote: sl(), network: sl<NetworkInfo>()));
   sl.registerLazySingleton<SalesOrderRepository>(
       () => SalesOrderRepositoryImpl(local: sl(), productLocal: sl()));
   sl.registerLazySingleton<SyncRepository>(
@@ -277,7 +277,7 @@ Future<void> registerOrderFeature(GetIt sl) async {
   sl.registerLazySingleton(() => CheckMaterialAvailability(sl()));
   sl.registerLazySingleton(() => GetPromotions(sl()));
   sl.registerLazySingleton(() => EvaluatePromotion(sl()));
-  sl.registerLazySingleton(() => GetCustomerMaterialPrices(sl()));
+  sl.registerLazySingleton(() => GetDepotMaterialPrices(sl()));
 
   sl.registerLazySingleton(() => FetchCart(sl()));
   sl.registerLazySingleton(() => AddToCart(sl()));
@@ -316,9 +316,9 @@ Future<void> registerOrderFeature(GetIt sl) async {
   sl.registerLazySingleton(() => SubmitQuotation(sl()));
   sl.registerLazySingleton(() => CancelQuotation(sl()));
   sl.registerLazySingleton(() => GetQuotationHistory(sl()));
-  sl.registerLazySingleton(() => GetCustomerAgreements(sl()));
-  sl.registerLazySingleton(() => GetCustomerIncentives(sl()));
-  sl.registerLazySingleton(() => GetCustomerPromotions(sl()));
+  sl.registerLazySingleton(() => GetDepotAgreements(sl()));
+  sl.registerLazySingleton(() => GetDepotIncentives(sl()));
+  sl.registerLazySingleton(() => GetDepotPromotions(sl()));
   sl.registerLazySingleton(() => GetDiscountAuthority(sl()));
 
   // ── Presentation ────────────────────────────────────────────────────
@@ -358,9 +358,9 @@ Future<void> registerOrderFeature(GetIt sl) async {
         sessionManager: sl<SessionManager>(),
       ));
   // A factory, not a singleton: it holds per-material debounce timers and a
-  // customer scope, both of which belong to one screen's lifetime.
+  // depot scope, both of which belong to one screen's lifetime.
   sl.registerFactory(() => PromotionCubit(evaluate: sl()));
-  // A factory: it owns a customer scope and hub subscription that belong to
+  // A factory: it owns a depot scope and hub subscription that belong to
   // one quotation's lifetime, and must be torn down with the screen.
   sl.registerFactory(() => PricingCubit(getPrices: sl(), realtime: sl()));
   sl.registerFactory(() => PendingSyncCubit(repository: sl(), processor: sl()));
@@ -387,7 +387,7 @@ Future<void> registerOrderFeature(GetIt sl) async {
         deleteQuotationLineItem: sl(),
         setQuotationDiscounts: sl(),
         getQuotationPreview: sl(),
-        getCustomerAgreements: sl(),
+        getDepotAgreements: sl(),
         getDiscountAuthority: sl(),
       ));
 

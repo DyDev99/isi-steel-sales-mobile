@@ -13,14 +13,14 @@ implements are in [quotation-orders-plan.md](quotation-orders-plan.md), not here
 
 | Rule | Where | Answer |
 |---|---|---|
-| A quotation may only be opened against a customer the caller may see | `CreateQuotationCommandHandler` via `IPricingAudienceResolver` | `404 Quotation.NotFound` |
+| A quotation may only be opened against a depot the caller may see | `CreateQuotationCommandHandler` via `IPricingAudienceResolver` | `404 Quotation.NotFound` |
 | Someone else's quotation is invisible | `QuotationWorkspace.LoadAsync` | `404 Quotation.NotFound`, never 403 |
 | `quotations.readall` widens reading to everyone's documents | `QuotationWorkspace.LoadAsync`, `ListQuotationsQueryHandler` | — |
 | `quotations.readall` does **not** widen editing | `QuotationWorkspace.LoadForEditAsync` | `404 Quotation.NotFound` |
 | The `ownerUserId` filter narrows an already-scoped list; it never widens it | `ListQuotationsQueryHandler` | — |
 
 **404 and not 403, deliberately.** Naming a document confirms a commercial record the
-caller has no right to know exists. The same rule Pricing and customer drafts follow.
+caller has no right to know exists. The same rule Pricing and depot drafts follow.
 
 **An approver's route to changing a document is to return it.** A supervisor holding
 `quotations.readall` can read a representative's draft and cannot edit it out from
@@ -33,10 +33,10 @@ under them.
 | Rule | Where | Answer |
 |---|---|---|
 | The client never sends a price | `AddQuotationLineRequest` has no price field | — |
-| SAP holds no price for this customer and material | `QuotationLinePricer` | `422 Quotation.MaterialNotPriced` |
+| SAP holds no price for this depot and material | `QuotationLinePricer` | `422 Quotation.MaterialNotPriced` |
 | SAP holds more than one valid price | `QuotationLinePricer` | `422 Quotation.MultiplePrices` |
 | SAP could not be read, or the row was unmapped | `QuotationLinePricer` | `502 Quotation.PriceUnavailable` |
-| The customer has no SAP sales area | passed through from Pricing | `422 Pricing.CustomerNotPriceable` |
+| The depot has no SAP sales area | passed through from Pricing | `422 Pricing.DepotNotPriceable` |
 | A price must carry an amount, a currency and a condition unit | `QuotationLinePrice.Create` | `422 Quotation.MaterialNotPriced` |
 | A missing or zero `pricingUnit` means "per one" | `QuotationLinePrice.Create` | coerced to 1 |
 
@@ -105,7 +105,7 @@ document   = Σ line net
 - **Rounding is per line, then summed** — how SAP does it. A one-cent disagreement on a
   quotation is a support ticket.
 - **Away from zero, not banker's rounding.** Half a cent rounding down half the time is
-  defensible statistics and indefensible on an invoice a customer checks by hand.
+  defensible statistics and indefensible on an invoice a depot checks by hand.
 - **Scales come from configuration**: `USD` 2, `US3` 3, `KHR` 0, default 3.
 
 ---
@@ -121,7 +121,7 @@ document   = Σ line net
 | Repricing is all-or-nothing | `RepriceQuotationCommandHandler` | `502 Quotation.PriceUnavailable` |
 
 **Why not reprice automatically?** Because the representative has been showing the
-customer figures from the snapshot. Silently substituting new ones at submit puts a
+depot figures from the snapshot. Silently substituting new ones at submit puts a
 number into an approval queue that nobody was shown. The 409 → reprice → look → submit
 loop makes the change visible to the person who has to explain it.
 
@@ -176,7 +176,7 @@ read from `sapQuotationStatus`.
 **A timeout is not a failure.** If the request left the wire and no answer came, SAP may
 hold the document. That is `Unknown`, and it is deliberately not retryable — the next
 submission looks the quotation number up first and adopts the document if SAP has it.
-Resending would commit a customer to two quotations, and SAP has no way to know the
+Resending would commit a depot to two quotations, and SAP has no way to know the
 second was an accident.
 
 **Look before creating, always.** One extra call per submission, and it is what turns an
@@ -186,6 +186,6 @@ unresolved attempt into a resolved one.
 
 ## Logging
 
-Ids, numbers, statuses and counts. **No amounts, no prices, no customer commercial
+Ids, numbers, statuses and counts. **No amounts, no prices, no depot commercial
 terms** — the same rule Pricing follows, for the same reason: a log is read by more
 people than a quotation is.

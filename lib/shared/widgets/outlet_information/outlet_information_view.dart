@@ -16,8 +16,8 @@ import 'package:isi_steel_sales_mobile/shared/widgets/outlet_information/outlet_
 /// and up) is the first size with genuine room for two columns.
 const double _twoColumnMinWidth = 840;
 
-/// The outlet/customer detail body, shared by the visit stop screen and the
-/// customer directory's detail screen so both render one layout.
+/// The outlet/depot detail body, shared by the visit stop screen and the
+/// depot directory's detail screen so both render one layout.
 ///
 /// Deliberately *not* a `Scaffold`: each screen keeps its own app bar, and only
 /// the visit flow has a bottom "Start Visit" bar. This widget owns the scroll
@@ -44,7 +44,7 @@ class OutletInformationView extends StatelessWidget {
   final void Function(double latitude, double longitude)? onLocationTap;
   final VoidCallback? onOrderHistoryTap;
 
-  /// Extra cards appended after the shared ones — the customer screen's
+  /// Extra cards appended after the shared ones — the depot screen's
   /// timeline, for instance. Spaced by this widget so callers never hand-tune
   /// the gap and drift apart from each other.
   final List<Widget> trailing;
@@ -131,7 +131,7 @@ class OutletInformationView extends StatelessWidget {
   }
 }
 
-/// Shop name + customer code, at the top of the detail body.
+/// Shop name + depot code, at the top of the detail body.
 class OutletHeroCard extends StatelessWidget {
   const OutletHeroCard({
     super.key,

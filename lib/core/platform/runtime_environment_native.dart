@@ -39,7 +39,7 @@ bool get isIosSimulator {
   } on Object {
     // A sandboxed build can refuse these reads. Treating that as "physical" is
     // the safe default: a real device wrongly given the stand-in would silently
-    // upload placeholder images as customer evidence.
+    // upload placeholder images as depot evidence.
     return false;
   }
 }

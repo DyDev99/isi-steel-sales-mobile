@@ -19,7 +19,7 @@ Read this table before planning any screen.
 > **`priceGroup` is not a price.** A material carries `priceGroup: "A7"` and
 > `priceGroupName: "TRIM_PALM100PP"`. That is SAP's *pricing classification* — the bucket
 > a material sits in for condition lookup. It carries no amount, no currency, and no
-> customer. Do not display it as a price, and do not attempt to derive one from it.
+> depot. Do not display it as a price, and do not attempt to derive one from it.
 
 ---
 
@@ -114,7 +114,7 @@ unknown locally, so a material created in SAP minutes ago is still findable.
 ```
 
 Two distinct thicknesses, and they are not interchangeable: **`saleThicknessMm` is what
-you quote to a customer**, `rawThicknessMm` is the coil it was rolled from. Show the
+you quote to a depot**, `rawThicknessMm` is the coil it was rolled from. Show the
 sale thickness.
 
 `baseUnit` varies by material — `KG` for coil, `M` for profile. Never hard-code a unit;
@@ -365,7 +365,7 @@ as part of a visit — `orderLines` in the visit push, carrying `productId`, `qu
 Nothing in this API returns a price. To be specific about what is missing:
 
 - No price list, price condition, or scale endpoint
-- No customer-specific or contract pricing
+- No depot-specific or contract pricing
 - No currency on any material response
 - `priceGroup` / `priceGroupName` are classification codes, not amounts
 

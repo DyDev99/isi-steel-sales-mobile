@@ -29,7 +29,7 @@ class ResumableVisitState extends Equatable {
   /// or null when there's no checked-in visit. Used to dedup the Home cards:
   /// an Order draft for this shop is folded into the visit card.
   String? get activeShopId =>
-      (workflow?.hasCheckedIn ?? false) ? workflow?.customerId : null;
+      (workflow?.hasCheckedIn ?? false) ? workflow?.depotId : null;
 
   @override
   List<Object?> get props => [route, workflow, loaded];

@@ -8,7 +8,7 @@
 ///
 /// [PickupLocation] is deliberately *not* the same concept as a SKU's
 /// `warehouseCode`. The warehouse is where the stock physically is (SAP master
-/// data, on every product row); pickup location is what the customer agreed to
+/// data, on every product row); pickup location is what the depot agreed to
 /// (a commercial term captured by the rep). The repository does not infer one
 /// from the other, because SAP has published no plant→factory/branch mapping —
 /// see the gaps section of the engineering report.

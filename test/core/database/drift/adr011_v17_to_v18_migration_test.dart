@@ -37,7 +37,7 @@ void main() {
   const v17ForeignKeys = <String, List<String>>{
     'route_stops': [
       'FOREIGN KEY (route_id) REFERENCES routes (id) ON DELETE CASCADE',
-      'FOREIGN KEY (customer_id) REFERENCES customers (id)',
+      'FOREIGN KEY (depot_id) REFERENCES depots (id)',
     ],
     'visit_check_ins': [
       'FOREIGN KEY (stop_id) REFERENCES route_stops (id) ON DELETE CASCADE',
@@ -45,8 +45,8 @@ void main() {
     'visit_notes': [
       'FOREIGN KEY (stop_id) REFERENCES route_stops (id) ON DELETE CASCADE',
     ],
-    'customer_notes': [
-      'FOREIGN KEY (customer_id) REFERENCES customers (id)',
+    'depot_notes': [
+      'FOREIGN KEY (depot_id) REFERENCES depots (id)',
     ],
   };
 
@@ -58,8 +58,8 @@ void main() {
 
     final raw = sqlite.sqlite3.open(dbFile.path);
 
-    // v18 introduced route_customers; v17 had no such table.
-    raw.execute('DROP TABLE IF EXISTS route_customers;');
+    // v18 introduced route_depots; v17 had no such table.
+    raw.execute('DROP TABLE IF EXISTS route_depots;');
 
     // Rebuild each affected table with its v17 constraints restored.
     for (final entry in v17ForeignKeys.entries) {
@@ -76,10 +76,10 @@ void main() {
       raw.execute(withFks);
     }
 
-    // A rep's day, mid-visit: a customer, a route, a stop, and two captures
+    // A rep's day, mid-visit: a depot, a route, a stop, and two captures
     // that have not been pushed yet.
     raw.execute(
-      "INSERT INTO customers (id, customer_code, shop_name, owner_name, phone, "
+      "INSERT INTO depots (id, depot_code, shop_name, owner_name, phone, "
       "address, province, district, territory, latitude, longitude, "
       "credit_limit, status, assigned_rep_id, assigned_rep_name, updated_at, "
       "kh_name, territory_type, geofence_radius_override) "
@@ -93,13 +93,13 @@ void main() {
       "VALUES ('r-1','North loop','rep-1','Rep One','PP-NORTH',0,0,0,'published')",
     );
     raw.execute(
-      "INSERT INTO route_stops (id, route_id, customer_id, sequence, "
+      "INSERT INTO route_stops (id, route_id, depot_id, sequence, "
       "planned_arrival, planned_departure, status) "
       "VALUES ('s-1','r-1','cust-1',1,0,0,'checkedIn')",
     );
     raw.execute(
       "INSERT INTO visit_check_ins (id, stop_id, timestamp, latitude, "
-      "longitude, accuracy, distance_from_customer, is_mocked) "
+      "longitude, accuracy, distance_from_depot, is_mocked) "
       "VALUES ('ci-1','s-1',0,11.5788,104.8901,5.0,12.0,0)",
     );
     raw.execute(
@@ -107,7 +107,7 @@ void main() {
       "VALUES ('n-1','s-1','general','Wants a rebar quote Thursday',0)",
     );
     raw.execute(
-      "INSERT INTO customer_notes (id, customer_id, body, created_at) "
+      "INSERT INTO depot_notes (id, depot_id, body, created_at) "
       "VALUES ('cn-1','cust-1','Pays on time',0)",
     );
 
@@ -134,10 +134,10 @@ void main() {
         (await db.customSelect('SELECT COUNT(*) c FROM $table').getSingle())
             .data['c']! as int;
 
-    expect(await count('customers'), 1);
+    expect(await count('depots'), 1);
     expect(await count('routes'), 1);
     expect(await count('route_stops'), 1);
-    expect(await count('customer_notes'), 1);
+    expect(await count('depot_notes'), 1);
 
     // The two that a careless table rebuild would have silently dropped.
     expect(await count('visit_check_ins'), 1,
@@ -153,11 +153,10 @@ void main() {
     expect(note.data['text'], 'Wants a rebar quote Thursday');
 
     final stop = await db
-        .customSelect(
-            "SELECT status, customer_id FROM route_stops WHERE id='s-1'")
+        .customSelect("SELECT status, depot_id FROM route_stops WHERE id='s-1'")
         .getSingle();
     expect(stop.data['status'], 'checkedIn');
-    expect(stop.data['customer_id'], 'cust-1');
+    expect(stop.data['depot_id'], 'cust-1');
   });
 
   test('existing stops are backfilled so nothing renders blank', () async {
@@ -167,10 +166,10 @@ void main() {
     addTearDown(db.close);
 
     // Without this backfill an upgrading rep would open the app to a day of
-    // stop cards showing a bare customer id, because route_customers starts
+    // stop cards showing a bare depot id, because route_depots starts
     // empty and the next route sync may be hours away.
     final row = await db
-        .customSelect("SELECT * FROM route_customers WHERE id='cust-1'")
+        .customSelect("SELECT * FROM route_depots WHERE id='cust-1'")
         .getSingle();
 
     expect(row.data['name'], 'Toul Kork Depot');
@@ -181,11 +180,11 @@ void main() {
     expect(row.data['geofence_radius_override'], 150);
   });
 
-  test('a customer with no territory type backfills fail-closed', () async {
+  test('a depot with no territory type backfills fail-closed', () async {
     await createV17Fixture();
 
     final raw = sqlite.sqlite3.open(dbFile.path);
-    raw.execute("UPDATE customers SET territory_type = NULL");
+    raw.execute("UPDATE depots SET territory_type = NULL");
     raw.dispose();
 
     final db = AppDatabase(NativeDatabase(dbFile));
@@ -193,7 +192,7 @@ void main() {
 
     final row = await db
         .customSelect(
-            "SELECT territory_type FROM route_customers WHERE id='cust-1'")
+            "SELECT territory_type FROM route_depots WHERE id='cust-1'")
         .getSingle();
 
     // 'urban' is the tightest geofence (50 m), matching kUnknownTerritoryFallback:
@@ -218,11 +217,11 @@ void main() {
     expect(sql['route_stops'], isNot(contains('FOREIGN KEY')));
     expect(sql['visit_check_ins'], isNot(contains('FOREIGN KEY')));
     expect(sql['visit_notes'], isNot(contains('FOREIGN KEY')));
-    expect(sql['customer_notes'], isNot(contains('FOREIGN KEY')));
+    expect(sql['depot_notes'], isNot(contains('FOREIGN KEY')));
 
     // And the upgraded database accepts the write that v17 refused.
     await db.customStatement(
-      "INSERT INTO route_stops (id, route_id, customer_id, sequence, "
+      "INSERT INTO route_stops (id, route_id, depot_id, sequence, "
       "planned_arrival, planned_departure, status) "
       "VALUES ('s-2','r-1','not-synced-yet',2,0,0,'pending')",
     );

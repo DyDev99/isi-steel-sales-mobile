@@ -1,4 +1,4 @@
-/// Every non-promotional price a customer/deal type can be quoted at.
+/// Every non-promotional price a depot/deal type can be quoted at.
 /// Kept distinct from MTO pricing ([MtoPricingService]), which never
 /// resolves from this local table at all.
 enum PriceTier {

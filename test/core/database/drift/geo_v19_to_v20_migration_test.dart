@@ -133,7 +133,7 @@ void main() {
   test('v20 is still a registered step, not skipped by a later bump', () {
     // The current-version pin has moved on to the newest migration's test, as
     // it did from v19's to this one — see
-    // `customer_sync_language_v20_to_v21_migration_test.dart`.
+    // `depot_sync_language_v20_to_v21_migration_test.dart`.
     //
     // What stays here is the assertion this file actually owns: v20 must remain
     // reachable. A later schema change that renumbered or dropped this step

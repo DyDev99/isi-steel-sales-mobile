@@ -49,7 +49,7 @@ so Khmer users have never received the Khmer font. Migrating the language code `
 | Shell (dashboard, quick actions, my-work, guest, sync center) | 100 | sync cards/sheets (48), guest surfaces (20), grids (18) |
 | My Visits | 72 | depot stock count, depot selection, stop detail, timeline, forms, route dashboard |
 | Orders / Catalog / Quotation | 69 | voice search (9), filters (17), PDF generator (19), sync banner |
-| Customers | 28 | detail screen sales-history / cross-sell / opportunity dialogs |
+| Depots | 28 | detail screen sales-history / cross-sell / opportunity dialogs |
 | Home | 8 | greeting, KPI titles, "See All" |
 | Authentication | 3 | login status pill |
 | Notification | 3 | guest welcome sheet |
@@ -61,13 +61,13 @@ so Khmer users have never received the Khmer font. Migrating the language code `
 ## 4. Duplicates & reuse
 
 - **78 of 405** strings are *identical* to values that already exist in `en.json` — the keys were
-  created but never wired (e.g. `'Add Note'` → `customers.add_note`, the entire hardcoded PDF block
+  created but never wired (e.g. `'Add Note'` → `depots.add_note`, the entire hardcoded PDF block
   in `quotation_pdf_generator.dart` → existing `orders.quotation.pdf.*`). These are wired to the
   **existing** keys — no duplicate keys or duplicate translations are created.
 - **294 unique new strings** require new keys.
 - Most-duplicated hardcoded strings (converted to a single shared key each):
   `Send to HQ` (4×), `Cancel` (4×), `Save`/`Save changes` (4×), `Continue` (4×), `Delete` (4×),
-  `No activity yet` (3×), `Clear all` (2×), `Filter & sort` (2×), `Walk-in Customer` (4×),
+  `No activity yet` (3×), `Clear all` (2×), `Filter & sort` (2×), `Walk-in Depot` (4×),
   `Continue Previous Work` (2×), `MY WORK` (3×), `QUICK ACTIONS` (2×), `Login required` (3×),
   `Something went wrong` (3×), `Delete lead?` (2×), `Check out` (3×).
 - Reusable common keys added/used: `common.cancel`, `common.save`, `common.delete`, `common.continue`,
@@ -76,7 +76,7 @@ so Khmer users have never received the Khmer font. Migrating the language code `
 ## 5. Key-naming design
 
 - Structured, feature-first, matching the **existing** hierarchy (`auth.*`, `common.*`, `home.*`,
-  `orders.*`, `leads.*`, `customers.*`, `my_visits.*`, `language.*`, `profile.*`, `coach.*`, …).
+  `orders.*`, `leads.*`, `depots.*`, `my_visits.*`, `language.*`, `profile.*`, `coach.*`, …).
 - New top-level groups introduced: `shell.*` (my-work grid, quick actions, guest surfaces),
   `sync.*` (sync center, pending-sync, connectivity, drafts), `splash.*`, `app.*` (titles/not-found).
 - Existing group names are kept even where the task brief suggested different ones

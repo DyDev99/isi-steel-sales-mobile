@@ -57,10 +57,10 @@ class ProductResultGrid extends StatelessWidget {
 
   final ValueChanged<Product>? onPromotionTap;
 
-  /// This customer's price for a product, or null when the screen has no
+  /// This depot's price for a product, or null when the screen has no
   /// pricing context.
   ///
-  /// A builder for the same reason as [promotionFor]: screens with no customer
+  /// A builder for the same reason as [promotionFor]: screens with no depot
   /// — favourites, a plain catalogue browse — pass nothing and no card shows a
   /// figure, rather than every card showing an empty one.
   final MobilePrice? Function(Product product)? priceFor;
@@ -109,7 +109,8 @@ class ProductResultGrid extends StatelessWidget {
                       ? null
                       : () => onPromotionTap!(product),
                   price: p,
-                  manualPrice: hasBackendPrice ? null : manualPriceFor?.call(product),
+                  manualPrice:
+                      hasBackendPrice ? null : manualPriceFor?.call(product),
                   onInputPrice: (hasBackendPrice || onInputPrice == null)
                       ? null
                       : () => onInputPrice!(product),

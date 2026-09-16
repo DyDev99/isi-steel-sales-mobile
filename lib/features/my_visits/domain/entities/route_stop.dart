@@ -1,15 +1,15 @@
 import 'package:equatable/equatable.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/customer_stop_info.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/depot_stop_info.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_status.dart';
 
-/// One planned stop on a route, denormalized with its [customer] the same
+/// One planned stop on a route, denormalized with its [depot] the same
 /// way `order`'s `Product` is a joined read-model — the UI never has to
-/// separately look up the customer for a stop.
+/// separately look up the depot for a stop.
 class RouteStop extends Equatable {
   const RouteStop({
     required this.id,
     required this.routeId,
-    required this.customer,
+    required this.depot,
     required this.sequence,
     required this.plannedArrival,
     required this.plannedDeparture,
@@ -20,7 +20,7 @@ class RouteStop extends Equatable {
 
   final String id;
   final String routeId;
-  final CustomerStopInfo customer;
+  final DepotStopInfo depot;
   final int sequence;
   final DateTime plannedArrival;
   final DateTime plannedDeparture;
@@ -35,7 +35,7 @@ class RouteStop extends Equatable {
       RouteStop(
         id: id,
         routeId: routeId,
-        customer: customer,
+        depot: depot,
         sequence: sequence,
         plannedArrival: plannedArrival,
         plannedDeparture: plannedDeparture,
@@ -48,7 +48,7 @@ class RouteStop extends Equatable {
   List<Object?> get props => [
         id,
         routeId,
-        customer,
+        depot,
         sequence,
         plannedArrival,
         status,

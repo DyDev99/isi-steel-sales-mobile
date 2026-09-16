@@ -55,7 +55,7 @@ The web build runs the **same** `AppDatabase`, schema, DAOs, migrations, and rep
 - **Offline is session-scoped.** A rep can work disconnected for as long as the tab stays open. Unsynced work is lost if the tab closes while offline.
 
 > ### Do not "add persistence" to the web build
-> Switching `WasmDatabase.inMemory()` to `WasmDatabase.open()` would write customer PII, GPS traces, and quotation pricing to OPFS/IndexedDB — storage readable by any script on the origin. That is the exact finding `docs/blueprint/migration-plan.md` T1.5 exists to remove from mobile, reintroduced on a new platform, and it violates `docs/skills/security.md` §3. It needs an ADR superseding ADR-010, not a one-line change.
+> Switching `WasmDatabase.inMemory()` to `WasmDatabase.open()` would write depot PII, GPS traces, and quotation pricing to OPFS/IndexedDB — storage readable by any script on the origin. That is the exact finding `docs/blueprint/migration-plan.md` T1.5 exists to remove from mobile, reintroduced on a new platform, and it violates `docs/skills/security.md` §3. It needs an ADR superseding ADR-010, not a one-line change.
 >
 > The in-memory VFS is registered as the **default** so this is structural, not a convention: there is no durable filesystem for SQLite to write to even if someone passes a path.
 
@@ -95,7 +95,7 @@ The web target could not compile while 10 files imported `sqflite`, which has no
 
 `sqflite` now appears in exactly one file — [`legacy_sqlite_source_native.dart`](../../lib/core/database/drift/migrations/legacy_sqlite_source_native.dart) — whose only job is draining the two legacy files on upgrading devices. Once both imports are confirmed across the fleet, that file, its web twin, both importers, and the dependency go together.
 
-**Security consequence:** the last plaintext business data on mobile (quotation pricing, customer identifiers, and the sync queue's pending payloads) is now encrypted at rest.
+**Security consequence:** the last plaintext business data on mobile (quotation pricing, depot identifiers, and the sync queue's pending payloads) is now encrypted at rest.
 
 ---
 
@@ -142,9 +142,9 @@ While the Source is left at its default, "Deploy from a branch", Pages ignores t
 
 ### Why refresh and deep links work
 
-The app uses Flutter's **default hash URL strategy** (`/#/customers`). A browser never sends the fragment to the server, so a refresh requests only `/isi-steel-sales-mobile/`, which Pages serves as `index.html`, and Flutter restores the route client-side. Back/forward work through normal browser history.
+The app uses Flutter's **default hash URL strategy** (`/#/depots`). A browser never sends the fragment to the server, so a refresh requests only `/isi-steel-sales-mobile/`, which Pages serves as `index.html`, and Flutter restores the route client-side. Back/forward work through normal browser history.
 
-**This is why no GoRouter migration was needed.** `usePathUrlStrategy()` would produce `/isi-steel-sales-mobile/customers`, which GitHub Pages — a static file host with no rewrite rules — would answer with a 404. The existing `onGenerateRoute` navigation was left exactly as it is.
+**This is why no GoRouter migration was needed.** `usePathUrlStrategy()` would produce `/isi-steel-sales-mobile/depots`, which GitHub Pages — a static file host with no rewrite rules — would answer with a 404. The existing `onGenerateRoute` navigation was left exactly as it is.
 
 A `404.html` copy of `index.html` is published anyway as defence for stale links, hand-typed paths, or a future switch to path URLs. A `.nojekyll` marker stops Pages' Jekyll pass from dropping underscore-prefixed files.
 
@@ -248,7 +248,7 @@ Running `dart run build_runner build` with the locked toolchain
 foreign-key constraints. The committed `app_database.g.dart` contained 22;
 regenerating dropped all of them — silently, with no warning or error.
 
-Lost constraints included `route_stops.customer_id → customers(id)` and the nine
+Lost constraints included `route_stops.depot_id → depots(id)` and the nine
 `ON DELETE CASCADE` links from visit captures to `route_stops` — precisely the
 referential integrity ADR-001 was adopted to gain.
 
@@ -300,7 +300,7 @@ class RouteStops extends Table with SyncableTable {
   @override
   List<String> get customConstraints => [
         'FOREIGN KEY (route_id) REFERENCES routes (id) ON DELETE CASCADE',
-        'FOREIGN KEY (customer_id) REFERENCES customers (id)',
+        'FOREIGN KEY (depot_id) REFERENCES depots (id)',
       ];
 
   TextColumn get routeId =>
@@ -310,7 +310,7 @@ class RouteStops extends Table with SyncableTable {
 ```
 
 Applied to 18 table classes across four files —
-`catalog_tables.dart` (4), `customer_related_tables.dart` (5),
+`catalog_tables.dart` (4), `depot_related_tables.dart` (5),
 `route_tables.dart` (5), `visit_tables.dart` (8) — restoring all 22 constraints.
 
 Notes on the shape of the fix:

@@ -30,7 +30,7 @@ final class QuotationBuilderReady extends QuotationBuilderState {
 
   final QuotationDetail quotation;
   final QuotationPreviewData? preview;
-  final List<CustomerAgreement> agreements;
+  final List<DepotAgreement> agreements;
   final DiscountAuthority? discountAuthority;
   final bool isMutating;
   final bool isDebouncingPreview;
@@ -61,7 +61,7 @@ final class QuotationBuilderReady extends QuotationBuilderState {
   QuotationBuilderReady copyWith({
     QuotationDetail? quotation,
     QuotationPreviewData? Function()? preview,
-    List<CustomerAgreement>? agreements,
+    List<DepotAgreement>? agreements,
     DiscountAuthority? discountAuthority,
     bool? isMutating,
     bool? isDebouncingPreview,

@@ -4,7 +4,7 @@ import 'package:equatable/equatable.dart';
 enum QuotationStatusGroup {
   drafts('Drafts'),
   waiting('Waiting'),
-  withCustomer('WithCustomer'),
+  withDepot('WithDepot'),
   won('Won'),
   closed('Closed');
 
@@ -54,8 +54,8 @@ class QuotationSummary extends Equatable {
   const QuotationSummary({
     required this.id,
     required this.number,
-    required this.customerId,
-    required this.customerName,
+    required this.depotId,
+    required this.depotName,
     required this.status,
     required this.statusGroup,
     required this.net,
@@ -68,8 +68,8 @@ class QuotationSummary extends Equatable {
 
   final String id;
   final String number;
-  final String customerId;
-  final String customerName;
+  final String depotId;
+  final String depotName;
   final String status;
   final QuotationStatusGroup statusGroup;
   final String? currency;
@@ -83,8 +83,8 @@ class QuotationSummary extends Equatable {
   List<Object?> get props => [
         id,
         number,
-        customerId,
-        customerName,
+        depotId,
+        depotName,
         status,
         statusGroup,
         currency,
@@ -101,8 +101,8 @@ class QuotationDetail extends Equatable {
   const QuotationDetail({
     required this.id,
     required this.number,
-    required this.customerId,
-    required this.customerName,
+    required this.depotId,
+    required this.depotName,
     required this.status,
     required this.statusGroup,
     required this.shipmentType,
@@ -113,7 +113,7 @@ class QuotationDetail extends Equatable {
     this.currency,
     this.shipTo,
     this.paymentTerm,
-    this.customerReference,
+    this.depotReference,
     this.remarks,
     this.decisionReason,
     this.validFrom,
@@ -127,14 +127,14 @@ class QuotationDetail extends Equatable {
 
   final String id;
   final String number;
-  final String customerId;
-  final String? customerName;
+  final String depotId;
+  final String? depotName;
   final String status;
   final QuotationStatusGroup statusGroup;
   final String shipmentType;
   final String? shipTo;
   final String? paymentTerm;
-  final String? customerReference;
+  final String? depotReference;
   final String? remarks;
   final String? currency;
   final List<QuotationLineItem> lines;
@@ -159,14 +159,14 @@ class QuotationDetail extends Equatable {
   List<Object?> get props => [
         id,
         number,
-        customerId,
-        customerName,
+        depotId,
+        depotName,
         status,
         statusGroup,
         shipmentType,
         shipTo,
         paymentTerm,
-        customerReference,
+        depotReference,
         remarks,
         currency,
         lines,
@@ -222,7 +222,8 @@ class QuotationLineItem extends Equatable {
 
   /// Effective unit price display: e.g. "0.475 US3 / KG" or "47.50 US3 / 100 KG"
   String get formattedPrice {
-    final unitPrefix = pricePricingUnit != 1 ? '${pricePricingUnit.toStringAsFixed(0)} ' : '';
+    final unitPrefix =
+        pricePricingUnit != 1 ? '${pricePricingUnit.toStringAsFixed(0)} ' : '';
     return '${priceAmount.toStringAsFixed(3)} $priceCurrency / $unitPrefix$priceConditionUnit';
   }
 
@@ -315,7 +316,8 @@ class QuotationTotals extends Equatable {
   final double? tax;
 
   @override
-  List<Object?> get props => [currency, gross, discountTotal, net, isEstimate, tax];
+  List<Object?> get props =>
+      [currency, gross, discountTotal, net, isEstimate, tax];
 }
 
 /// Warning item in quotation preview.
@@ -385,12 +387,13 @@ class QuotationApprovalHistory extends Equatable {
   final String? comment;
 
   @override
-  List<Object?> get props => [id, action, createdAt, actorId, actorName, comment];
+  List<Object?> get props =>
+      [id, action, createdAt, actorId, actorName, comment];
 }
 
-/// Customer depot standing agreement model.
-class CustomerAgreement extends Equatable {
-  const CustomerAgreement({
+/// Depot depot standing agreement model.
+class DepotAgreement extends Equatable {
+  const DepotAgreement({
     required this.id,
     required this.category,
     required this.percent,
@@ -473,4 +476,3 @@ class DiscountAuthority extends Equatable {
         suggestedChips,
       ];
 }
-

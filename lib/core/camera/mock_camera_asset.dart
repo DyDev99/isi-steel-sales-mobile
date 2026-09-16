@@ -1,6 +1,6 @@
 /// A bundled test image the stand-in camera can return.
 ///
-/// Synthetic placeholders, drawn programmatically — **no real customer
+/// Synthetic placeholders, drawn programmatically — **no real depot
 /// photographs, documents or personal information** is bundled with the app
 /// (`docs/skills/security.md` §3).
 enum MockCameraAsset {

@@ -5,7 +5,7 @@ import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
 import 'package:isi_steel_sales_mobile/core/logging/app_logger.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/route_drift_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/route_drift_mappers.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/data/models/customer_stop_info_model.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/data/models/depot_stop_info_model.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/models/route_plan_model.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/models/route_stop_model.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_plan.dart';
@@ -33,16 +33,16 @@ void main() {
 
   tearDown(() => db.close());
 
-  Future<void> seedCustomer(
+  Future<void> seedDepot(
     String id, {
     String? territoryType,
     double? geofence,
   }) =>
-      db.into(db.customers).insert(
-            CustomersCompanion.insert(
+      db.into(db.depots).insert(
+            DepotsCompanion.insert(
               id: id,
-              sapCustomerId: Value('SAP-$id'),
-              customerCode: 'C-$id',
+              sapDepotId: Value('SAP-$id'),
+              depotCode: 'C-$id',
               shopName: 'ISI Hardware',
               ownerName: 'Sok Dara',
               phone: '012345678',
@@ -62,7 +62,7 @@ void main() {
             ),
           );
 
-  CustomerStopInfoModel stopCustomer(String id) => CustomerStopInfoModel(
+  DepotStopInfoModel stopDepot(String id) => DepotStopInfoModel(
         id: id,
         name: 'ISI Hardware',
         code: 'C-$id',
@@ -90,11 +90,11 @@ void main() {
         stops: stops,
       );
 
-  RouteStopModel stop(String id, String routeId, String customerId) =>
+  RouteStopModel stop(String id, String routeId, String depotId) =>
       RouteStopModel(
         id: id,
         routeId: routeId,
-        customer: stopCustomer(customerId),
+        depot: stopDepot(depotId),
         sequence: 1,
         plannedArrival: todayMidnight.add(const Duration(hours: 9)),
         plannedDeparture: todayMidnight.add(const Duration(hours: 10)),
@@ -104,10 +104,10 @@ void main() {
   group('round-trip', () {
     test('a route with a stop survives upsert → fetch with fields intact',
         () async {
-      // The route feed carries its own customer rows (ADR-011); the customer
+      // The route feed carries its own depot rows (ADR-011); the depot
       // directory is deliberately left empty to prove the stop does not
       // depend on it having synced first.
-      await dataSource.upsertCustomers([stopCustomer('cust-1')]);
+      await dataSource.upsertDepots([stopDepot('cust-1')]);
       await dataSource.upsertRoutes([
         plan('r-1', stops: [stop('s-1', 'r-1', 'cust-1')]),
       ]);
@@ -121,15 +121,15 @@ void main() {
       expect(route.status, RouteStatus.published);
       expect(route.stops, hasLength(1));
 
-      // The stop carries the customer the route feed sent for it, joined
-      // from `route_customers` rather than the customer directory.
+      // The stop carries the depot the route feed sent for it, joined
+      // from `route_depots` rather than the depot directory.
       final s = route.stops.single;
       expect(s.id, 's-1');
-      expect(s.customer.id, 'cust-1');
-      expect(s.customer.name, 'ISI Hardware');
-      expect(s.customer.contact, 'Sok Dara');
-      expect(s.customer.territoryType, TerritoryType.industrial);
-      expect(s.customer.geofenceRadiusOverride, 150);
+      expect(s.depot.id, 'cust-1');
+      expect(s.depot.name, 'ISI Hardware');
+      expect(s.depot.contact, 'Sok Dara');
+      expect(s.depot.territoryType, TerritoryType.industrial);
+      expect(s.depot.geofenceRadiusOverride, 150);
     });
 
     test('getRoute returns null for an unknown id rather than throwing',
@@ -159,7 +159,7 @@ void main() {
 
   group('local mutations', () {
     setUp(() async {
-      await dataSource.upsertCustomers([stopCustomer('cust-1')]);
+      await dataSource.upsertDepots([stopDepot('cust-1')]);
       await dataSource.upsertRoutes([
         plan('r-1', stops: [stop('s-1', 'r-1', 'cust-1')]),
       ]);
@@ -189,45 +189,44 @@ void main() {
     });
   });
 
-  group('the route feed stores its own customers (ADR-011)', () {
+  group('the route feed stores its own depots (ADR-011)', () {
     // Reverses the T1.5 behaviour this group used to assert. Route sync then
-    // applied two attributes onto customers the directory already held and
+    // applied two attributes onto depots the directory already held and
     // *skipped* the rest, on the grounds that the directory is the single
     // source of truth. That held for ownership but not for availability: the
     // two feeds are separate endpoints with separate scopes, so "not in the
-    // directory yet" is routine — and skipping meant the stop had no customer
+    // directory yet" is routine — and skipping meant the stop had no depot
     // to render.
 
-    test('a customer the directory has never seen is stored and usable',
-        () async {
-      await dataSource.upsertCustomers([stopCustomer('ghost')]);
+    test('a depot the directory has never seen is stored and usable', () async {
+      await dataSource.upsertDepots([stopDepot('ghost')]);
 
-      final stored = await db.select(db.routeCustomers).getSingle();
+      final stored = await db.select(db.routeDepots).getSingle();
       expect(stored.id, 'ghost');
       expect(stored.name, 'ISI Hardware');
       expect(stored.territoryType, 'industrial');
       expect(stored.geofenceRadiusOverride, 150);
     });
 
-    test('the customer directory is left completely alone', () async {
-      await seedCustomer('cust-1');
+    test('the depot directory is left completely alone', () async {
+      await seedDepot('cust-1');
 
-      await dataSource.upsertCustomers([stopCustomer('cust-1')]);
+      await dataSource.upsertDepots([stopDepot('cust-1')]);
 
       // Route sync must never write the directory: different feed, different
       // owner, and CLAUDE.md §4 forbids reaching into another feature's data.
-      final c = await db.select(db.customers).getSingle();
+      final c = await db.select(db.depots).getSingle();
       expect(c.shopName, 'ISI Hardware');
       expect(c.creditLimit, 5000);
       expect(c.territoryType, isNull,
-          reason: 'route sync no longer mutates the customer directory');
+          reason: 'route sync no longer mutates the depot directory');
     });
   });
 
   group('geofence fallback — fails closed', () {
-    test('a stop with no customer row at all falls back to the tightest radius',
+    test('a stop with no depot row at all falls back to the tightest radius',
         () async {
-      // The feed sent the stop but not its customer — a contract violation the
+      // The feed sent the stop but not its depot — a contract violation the
       // device must survive. The stop is still rendered (ADR-011: never drop
       // it), and the unknown location fails closed rather than widening a
       // fraud control.
@@ -237,9 +236,9 @@ void main() {
 
       final s = (await dataSource.fetchTodayRoutes()).single.stops.single;
 
-      expect(s.customer.territoryType, kUnknownTerritoryFallback);
+      expect(s.depot.territoryType, kUnknownTerritoryFallback);
       expect(
-        s.customer.territoryType.defaultGeofenceRadiusMeters,
+        s.depot.territoryType.defaultGeofenceRadiusMeters,
         50,
         reason: 'unknown territory must not silently widen a fraud control',
       );
@@ -249,7 +248,7 @@ void main() {
       // Written straight to the mirror table: a server that gains a new
       // territory type must not crash a build that has not shipped yet.
       await db.customStatement(
-        'INSERT INTO route_customers (id, name, name_kh, code, contact, '
+        'INSERT INTO route_depots (id, name, name_kh, code, contact, '
         'phone, address, territory, territory_type, latitude, longitude) '
         "VALUES ('cust-1','ISI Hardware','','C-cust-1','Sok Dara','012345678',"
         "'St 271','T1','atlantis',11.55,104.91)",
@@ -259,7 +258,7 @@ void main() {
       ]);
 
       final s = (await dataSource.fetchTodayRoutes()).single.stops.single;
-      expect(s.customer.territoryType, kUnknownTerritoryFallback);
+      expect(s.depot.territoryType, kUnknownTerritoryFallback);
     });
   });
 

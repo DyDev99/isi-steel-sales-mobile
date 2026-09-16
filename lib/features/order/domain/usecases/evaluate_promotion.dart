@@ -9,22 +9,22 @@ class EvaluatePromotionParams extends Equatable {
     required this.materialCode,
     required this.categoryCode,
     required this.quantity,
-    this.customerId,
+    this.depotId,
   });
 
   final String materialCode;
   final String categoryCode;
   final int quantity;
 
-  /// The customer the quotation is for. Null for a walk-in, which matches only
+  /// The depot the quotation is for. Null for a walk-in, which matches only
   /// unscoped promotions — a named account's negotiated deal must not leak.
-  final String? customerId;
+  final String? depotId;
 
   @override
-  List<Object?> get props => [materialCode, categoryCode, quantity, customerId];
+  List<Object?> get props => [materialCode, categoryCode, quantity, depotId];
 }
 
-/// What this customer earns on this material at this quantity.
+/// What this depot earns on this material at this quantity.
 ///
 /// The single question the product card asks, re-asked whenever the quantity
 /// changes. Null means no promotion applies, and renders as nothing.
@@ -39,6 +39,6 @@ class EvaluatePromotion
         materialCode: params.materialCode,
         categoryCode: params.categoryCode,
         quantity: params.quantity,
-        customerId: params.customerId,
+        depotId: params.depotId,
       );
 }

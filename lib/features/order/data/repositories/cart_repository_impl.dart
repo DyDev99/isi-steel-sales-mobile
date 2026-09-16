@@ -87,7 +87,7 @@ class CartRepositoryImpl implements CartRepository {
         'unit': item.unit,
         'discount_percent': item.discountPercent,
         'lead_id': item.leadId,
-        'customer_id': item.customerId,
+        'depot_id': item.depotId,
         'editing_quotation_id': editingQuotationId,
         'customization_json': ProductCustomizationSpec.encode(item),
         // `unitPrice`, not `unitPriceOverride`: a line entering the cart from
@@ -110,7 +110,7 @@ class CartRepositoryImpl implements CartRepository {
         unit: row['unit'] as String,
         discountPercent: (row['discount_percent'] as num).toDouble(),
         leadId: row['lead_id'] as String?,
-        customerId: row['customer_id'] as String?,
+        depotId: row['depot_id'] as String?,
         // Null on rows written before v17, which falls back to the live
         // catalog price — what those rows always did.
         unitPriceOverride: (row['unit_price'] as num?)?.toDouble(),

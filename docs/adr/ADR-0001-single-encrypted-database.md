@@ -10,7 +10,7 @@
 > integrity* among the wins of a single database. That specific claim no longer
 > holds: the foreign keys on tables mirroring backend-owned state were removed in
 > schema v18 after they were shown to destroy data rather than protect it — one
-> unrecognised customer aborted a whole route write, and the visit cascade
+> unrecognised depot aborted a whole route write, and the visit cascade
 > deleted captured field work on a routine re-sync. See
 > `docs/adr/ADR-0011-local-mirror-no-foreign-keys.md`.
 >
@@ -22,7 +22,7 @@
 
 ## Context
 
-`demo/app01` persists business data across three independent, plaintext `sqflite` databases: `catalog.db`, `customers.db`, `routes.db`. Each self-versions its schema via its own `onUpgrade`, with no shared migration framework and no migration tests. Architecture review found this to be the single most severe finding in the codebase: customer PII and revenue data sit unencrypted on the device, and because the databases are separate files, no operation can be atomic across them — a checkout that touches cart, customer, and sync-queue state cannot be wrapped in one transaction.
+`demo/app01` persists business data across three independent, plaintext `sqflite` databases: `catalog.db`, `depots.db`, `routes.db`. Each self-versions its schema via its own `onUpgrade`, with no shared migration framework and no migration tests. Architecture review found this to be the single most severe finding in the codebase: depot PII and revenue data sit unencrypted on the device, and because the databases are separate files, no operation can be atomic across them — a checkout that touches cart, depot, and sync-queue state cannot be wrapped in one transaction.
 
 The app is offline-first by requirement (see ADR-002), which means the local database is not a cache — it is the primary data store the user interacts with for hours or days between syncs. Its integrity properties matter as much as a server database's would.
 
@@ -56,4 +56,4 @@ The three existing plaintext databases are not deprecated in place; they are imp
 
 - **Keep three separate DBs, encrypt each independently.** Rejected: solves encryption but not the atomicity or unified-migration problems, and triples the encryption-integration surface area (key management, cipher-open checks, migration tests × 3).
 - **Move to a server-driven cache-only model (no meaningful local writes).** Rejected outright: violates the offline-first requirement (ADR-002) that is core to the product — field reps must be able to fully operate with zero connectivity for extended periods.
-- **NoSQL/document store (e.g., all-Hive) instead of relational.** Rejected: the data is genuinely relational (customers, orders, routes, line items with real foreign-key relationships) and the app needs joins, indexed queries, and referential integrity that a key-value store doesn't provide well at this schema complexity.
+- **NoSQL/document store (e.g., all-Hive) instead of relational.** Rejected: the data is genuinely relational (depots, orders, routes, line items with real foreign-key relationships) and the app needs joins, indexed queries, and referential integrity that a key-value store doesn't provide well at this schema complexity.

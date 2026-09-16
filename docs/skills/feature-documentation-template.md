@@ -18,7 +18,7 @@ FEATURE_NAME = {{FEATURE_NAME}}
 
 # Examples
 
-FEATURE_NAME = Customers
+FEATURE_NAME = Depots
 FEATURE_NAME = Authentication
 FEATURE_NAME = My Visit
 FEATURE_NAME = Orders

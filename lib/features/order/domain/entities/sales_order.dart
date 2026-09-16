@@ -18,7 +18,7 @@ class SalesOrder extends Equatable {
     required this.status,
     required this.sapStatus,
     required this.createdAt,
-    this.customerId,
+    this.depotId,
     this.shopName,
     this.leadId,
     this.leadDisplayName,
@@ -27,7 +27,7 @@ class SalesOrder extends Equatable {
 
   final String id;
   final String quotationId;
-  final String? customerId;
+  final String? depotId;
   final String? shopName;
   final String? leadId;
   final String? leadDisplayName;
@@ -45,7 +45,7 @@ class SalesOrder extends Equatable {
   List<Object?> get props => [
         id,
         quotationId,
-        customerId,
+        depotId,
         shopName,
         leadId,
         leadDisplayName,

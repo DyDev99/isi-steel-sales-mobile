@@ -80,7 +80,7 @@ class Product extends Equatable {
   final String description;
 
   /// Finish / top colour. Distinct from [grade]: two coils in the same grade
-  /// differ by colour, and roofing customers choose on it last.
+  /// differ by colour, and roofing depots choose on it last.
   final String color;
 
   /// Free-text spec line as merchandising publishes it, for the rows where

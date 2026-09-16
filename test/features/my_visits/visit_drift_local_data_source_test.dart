@@ -28,12 +28,12 @@ void main() {
     db = AppDatabase(NativeDatabase.memory());
     dataSource = VisitDriftLocalDataSource(db.visitDao, logger);
 
-    // Captures hang off a stop, which hangs off a route and a customer.
-    await db.into(db.customers).insert(
-          CustomersCompanion.insert(
+    // Captures hang off a stop, which hangs off a route and a depot.
+    await db.into(db.depots).insert(
+          DepotsCompanion.insert(
             id: 'cust-1',
-            sapCustomerId: Value('SAP-1'),
-            customerCode: 'C-1',
+            sapDepotId: Value('SAP-1'),
+            depotCode: 'C-1',
             shopName: 'ISI Hardware',
             ownerName: 'Sok Dara',
             phone: '012345678',
@@ -67,7 +67,7 @@ void main() {
           RouteStopsCompanion.insert(
             id: 's-1',
             routeId: 'r-1',
-            customerId: 'cust-1',
+            depotId: 'cust-1',
             sequence: 1,
             plannedArrival: day.add(const Duration(hours: 9)),
             plannedDeparture: day.add(const Duration(hours: 10)),
@@ -87,7 +87,7 @@ void main() {
         latitude: 11.55,
         longitude: 104.91,
         accuracyMeters: 5,
-        distanceFromCustomerMeters: 12.5,
+        distanceFromDepotMeters: 12.5,
         isMocked: true,
       ));
 
@@ -95,7 +95,7 @@ void main() {
       expect(stored.id, 'ci-1');
       expect(stored.stopId, 's-1');
       expect(stored.accuracyMeters, 5);
-      expect(stored.distanceFromCustomerMeters, 12.5);
+      expect(stored.distanceFromDepotMeters, 12.5);
       expect(stored.isMocked, isTrue);
     });
 

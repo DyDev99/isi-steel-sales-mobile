@@ -5,7 +5,7 @@ import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
 /// The single source of truth for the encrypted database's schema version.
 /// Bump this by exactly one whenever a schema change ships, and add the matching
 /// step to [_stepwiseMigrations].
-const int kCurrentSchemaVersion = 22;
+const int kCurrentSchemaVersion = 23;
 
 /// Keys under which the migrator records bookkeeping in `app_metadata`, so the
 /// on-device schema history is auditable and a failed/partial upgrade is
@@ -32,16 +32,16 @@ typedef SchemaMigrationStep = Future<void> Function(
 final Map<int, SchemaMigrationStep> _stepwiseMigrations =
     <int, SchemaMigrationStep>{
   // v2 (T2): first feature entity ported into the encrypted single DB.
-  2: (m, db) async => m.createTable(db.customers),
-  // v3 (T2): customer child tables (contacts, notes, activities, favorites,
+  2: (m, db) async => m.createTable(db.depots),
+  // v3 (T2): depot child tables (contacts, notes, activities, favorites,
   // recent, sync meta).
   3: (m, db) async {
-    await m.createTable(db.customerContacts);
-    await m.createTable(db.customerNotes);
-    await m.createTable(db.customerActivities);
-    await m.createTable(db.customerFavorites);
-    await m.createTable(db.customerRecent);
-    await m.createTable(db.customerSyncMeta);
+    await m.createTable(db.depotContacts);
+    await m.createTable(db.depotNotes);
+    await m.createTable(db.depotActivities);
+    await m.createTable(db.depotFavorites);
+    await m.createTable(db.depotRecent);
+    await m.createTable(db.depotSyncMeta);
   },
   // v4 (T3): product catalog master data.
   4: (m, db) async {
@@ -60,12 +60,12 @@ final Map<int, SchemaMigrationStep> _stepwiseMigrations =
   6: (m, db) async => m.createTable(db.cartItems),
   // v7 (T1.5): route domain, ported off the plaintext `routes.db`.
   //
-  // The two customer columns are added *before* the route tables because
-  // `route_stops.customer_id` is a real FK to `customers` — an integrity
+  // The two depot columns are added *before* the route tables because
+  // `route_stops.depot_id` is a real FK to `depots` — an integrity
   // guarantee the old three-database split made impossible (ADR-001).
   7: (m, db) async {
-    await m.addColumn(db.customers, db.customers.territoryType);
-    await m.addColumn(db.customers, db.customers.geofenceRadiusOverride);
+    await m.addColumn(db.depots, db.depots.territoryType);
+    await m.addColumn(db.depots, db.depots.geofenceRadiusOverride);
     await m.createTable(db.routes);
     await m.createTable(db.routeStops);
     await m.createTable(db.locationSamples);
@@ -85,35 +85,35 @@ final Map<int, SchemaMigrationStep> _stepwiseMigrations =
     await m.createTable(db.visitNotes);
     await m.createTable(db.visitPhotos);
   },
-  // v9: SAP sales-area and commercial attributes on `customers`.
+  // v9: SAP sales-area and commercial attributes on `depots`.
   //
   // Purely additive — every column is nullable or defaulted, so existing rows
   // upgrade without a rewrite and no data is touched. The two indexes back the
   // Sales Organization / Division filters (DATABASE_GUIDE.md §3).
   9: (m, db) async {
-    await m.addColumn(db.customers, db.customers.salesOrg);
-    await m.addColumn(db.customers, db.customers.division);
-    await m.addColumn(db.customers, db.customers.distributionChannel);
-    await m.addColumn(db.customers, db.customers.customerGroup);
-    await m.addColumn(db.customers, db.customers.priceGroup);
-    await m.addColumn(db.customers, db.customers.enName);
-    await m.addColumn(db.customers, db.customers.khName);
-    await m.addColumn(db.customers, db.customers.creditBalance);
-    await m.addColumn(db.customers, db.customers.currency);
-    await m.addColumn(db.customers, db.customers.taxNumber);
-    await m.addColumn(db.customers, db.customers.totalOrders);
-    await m.addColumn(db.customers, db.customers.createdAt);
-    await m.addColumn(db.customers, db.customers.syncState);
+    await m.addColumn(db.depots, db.depots.salesOrg);
+    await m.addColumn(db.depots, db.depots.division);
+    await m.addColumn(db.depots, db.depots.distributionChannel);
+    await m.addColumn(db.depots, db.depots.depotGroup);
+    await m.addColumn(db.depots, db.depots.priceGroup);
+    await m.addColumn(db.depots, db.depots.enName);
+    await m.addColumn(db.depots, db.depots.khName);
+    await m.addColumn(db.depots, db.depots.creditBalance);
+    await m.addColumn(db.depots, db.depots.currency);
+    await m.addColumn(db.depots, db.depots.taxNumber);
+    await m.addColumn(db.depots, db.depots.totalOrders);
+    await m.addColumn(db.depots, db.depots.createdAt);
+    await m.addColumn(db.depots, db.depots.syncState);
 
     // `IF NOT EXISTS` keeps the step re-runnable after a crash mid-upgrade,
     // which DATABASE_GUIDE.md §5 requires of every migration.
     await db.customStatement(
-      'CREATE INDEX IF NOT EXISTS idx_customers_sales_org '
-      'ON customers (sales_org);',
+      'CREATE INDEX IF NOT EXISTS idx_depots_sales_org '
+      'ON depots (sales_org);',
     );
     await db.customStatement(
-      'CREATE INDEX IF NOT EXISTS idx_customers_division '
-      'ON customers (division);',
+      'CREATE INDEX IF NOT EXISTS idx_depots_division '
+      'ON depots (division);',
     );
   },
   // v10: three-tier stock status replaces numeric stock counting.
@@ -303,14 +303,14 @@ final Map<int, SchemaMigrationStep> _stepwiseMigrations =
     // populated — a delta would only touch rows SAP happens to have changed.
     await db.customStatement('DELETE FROM catalog_sync_meta;');
   },
-  // v16: `customers.sap_customer_id` becomes nullable.
+  // v16: `depots.sap_depot_id` becomes nullable.
   //
   // The column was `text().unique()` and the API mapper collapsed a missing
   // SAP id to `''`. SQLite treats every NULL as distinct but `''` as one
-  // value, so the *second* customer without a SAP id violated the constraint
+  // value, so the *second* depot without a SAP id violated the constraint
   // and aborted the entire sync batch with
-  // `UNIQUE constraint failed: customers.sap_customer_id`. That is the normal
-  // case, not an edge one: a customer registered in the field has no SAP
+  // `UNIQUE constraint failed: depots.sap_depot_id`. That is the normal
+  // case, not an edge one: a depot registered in the field has no SAP
   // identity until it is approved and pushed, so a fresh territory is mostly
   // `PendingApproval` rows with none.
   //
@@ -318,14 +318,14 @@ final Map<int, SchemaMigrationStep> _stepwiseMigrations =
   // the data across, because SQLite cannot drop a NOT NULL constraint in
   // place.
   16: (m, db) async {
-    await m.alterTable(TableMigration(db.customers));
+    await m.alterTable(TableMigration(db.depots));
 
     // Existing placeholders become real absences, so they stop competing for
     // the single `''` slot the old constraint allowed.
     await db
         .customSelect(
-          "UPDATE customers SET sap_customer_id = NULL "
-          "WHERE sap_customer_id = '';",
+          "UPDATE depots SET sap_depot_id = NULL "
+          "WHERE sap_depot_id = '';",
         )
         .get();
   },
@@ -341,7 +341,7 @@ final Map<int, SchemaMigrationStep> _stepwiseMigrations =
   // Why a snapshot at all: `prices` is SAP-controlled and replaced wholesale on
   // sync, so a quotation saved on Monday re-priced itself on Tuesday. The
   // stored `quotations.total` then disagreed with the lines rendered under it,
-  // and the PDF the customer was holding disagreed with both.
+  // and the PDF the depot was holding disagreed with both.
   17: (m, db) async {
     await _addColumnIfMissing(m, db, db.cartItems, db.cartItems.unitPrice);
     await _addColumnIfMissing(
@@ -360,10 +360,10 @@ final Map<int, SchemaMigrationStep> _stepwiseMigrations =
   //
   // Two verified data-loss paths, both triggered by ordinary operation:
   //
-  //   1. `route_stops.customer_id -> customers` aborted the *whole* route
+  //   1. `route_stops.depot_id -> depots` aborted the *whole* route
   //      transaction (`SqliteException(787)`) when a single stop referenced a
-  //      customer the directory had not pulled yet. The route feed and the
-  //      customer feed are separate, independently-paged endpoints, so this is
+  //      depot the directory had not pulled yet. The route feed and the
+  //      depot feed are separate, independently-paged endpoints, so this is
   //      routine — and it cost the rep every stop of the day, not one.
   //
   //   2. The `visit_* -> route_stops ON DELETE CASCADE` chain silently deleted
@@ -376,9 +376,9 @@ final Map<int, SchemaMigrationStep> _stepwiseMigrations =
   // The constraints that have no such path are deliberately kept — see the
   // foreign-key test for the surviving set and the reason each one earns it.
   18: (m, db) async {
-    // The route feed's own customer rows, so a stop renders without the
-    // customer directory having synced first.
-    await m.createTable(db.routeCustomers);
+    // The route feed's own depot rows, so a stop renders without the
+    // depot directory having synced first.
+    await m.createTable(db.routeDepots);
 
     // Backfill from the directory for stops that already exist on this device,
     // so an upgrading rep sees exactly what they saw before rather than a
@@ -389,23 +389,23 @@ final Map<int, SchemaMigrationStep> _stepwiseMigrations =
     // tightest radius, so an unknown territory blocks a check-in rather than
     // waving it through.
     await db.customStatement(
-      'INSERT OR IGNORE INTO route_customers '
+      'INSERT OR IGNORE INTO route_depots '
       '(id, name, name_kh, code, contact, phone, address, territory, '
       'territory_type, latitude, longitude, geofence_radius_override) '
-      'SELECT c.id, c.shop_name, COALESCE(c.kh_name, \'\'), c.customer_code, '
+      'SELECT c.id, c.shop_name, COALESCE(c.kh_name, \'\'), c.depot_code, '
       'c.owner_name, c.phone, c.address, c.territory, '
       "COALESCE(c.territory_type, 'urban'), c.latitude, c.longitude, "
       'c.geofence_radius_override '
-      'FROM customers c '
-      'WHERE c.id IN (SELECT DISTINCT customer_id FROM route_stops);',
+      'FROM depots c '
+      'WHERE c.id IN (SELECT DISTINCT depot_id FROM route_stops);',
     );
 
-    // Customer child tables — orphans here are invisible, not corrupting.
-    await m.alterTable(TableMigration(db.customerContacts));
-    await m.alterTable(TableMigration(db.customerNotes));
-    await m.alterTable(TableMigration(db.customerActivities));
-    await m.alterTable(TableMigration(db.customerFavorites));
-    await m.alterTable(TableMigration(db.customerRecent));
+    // Depot child tables — orphans here are invisible, not corrupting.
+    await m.alterTable(TableMigration(db.depotContacts));
+    await m.alterTable(TableMigration(db.depotNotes));
+    await m.alterTable(TableMigration(db.depotActivities));
+    await m.alterTable(TableMigration(db.depotFavorites));
+    await m.alterTable(TableMigration(db.depotRecent));
 
     // Route stops (failure 1) and the fraud-flag -> stop cascade (failure 2,
     // applied to compliance evidence).
@@ -441,7 +441,7 @@ final Map<int, SchemaMigrationStep> _stepwiseMigrations =
   //
   // ## Why it is in the encrypted database rather than Hive
   //
-  // A notification title and body name a customer and a route, which is PII and
+  // A notification title and body name a depot and a route, which is PII and
   // therefore belongs in the encrypted store, not a key-value cache
   // (`docs/skills/security.md` §3, `docs/blueprint/system-architecture.md` §3). The FCM payload is
   // deliberately thinner for the same reason (§9.2): a push renders on a locked
@@ -498,7 +498,7 @@ final Map<int, SchemaMigrationStep> _stepwiseMigrations =
     await _createTableIfMissing(m, db, db.geoCommunes);
     await _createTableIfMissing(m, db, db.geoVillages);
   },
-  // v21: record which language the customer book was synced under.
+  // v21: record which language the depot book was synced under.
   //
   // Additive and nullable, so this is a pure `addColumn` with no data rewrite.
   // Null on every existing row, which reads as "unknown language" — the sync
@@ -513,7 +513,7 @@ final Map<int, SchemaMigrationStep> _stepwiseMigrations =
   // first synced in forever.
   21: (m, db) async {
     await _addColumnIfMissing(
-        m, db, db.customerSyncMeta, db.customerSyncMeta.syncedLanguage);
+        m, db, db.depotSyncMeta, db.depotSyncMeta.syncedLanguage);
   },
   // v22: carry the rep's reason for checking in outside the geofence.
   //
@@ -531,6 +531,20 @@ final Map<int, SchemaMigrationStep> _stepwiseMigrations =
     await _addColumnIfMissing(
         m, db, db.visitCheckIns, db.visitCheckIns.overrideReason);
   },
+
+  // v23: the customer -> depot rename reaches the physical schema.
+  //
+  // The rename itself is NOT done here. It runs in [_renameLegacyDepotSchema],
+  // before the stepwise loop, because every step above was rewritten in place
+  // to say `db.depots`: a device on v10 runs steps 11..22, and each of those
+  // would hit `ALTER TABLE depots` on a database whose table is still called
+  // `customers`. Renaming first is what makes every starting version land on
+  // the same schema.
+  //
+  // This entry exists so the version bump has a matching step, as the contract
+  // on [kCurrentSchemaVersion] requires, and so the explanation sits next to
+  // the number it belongs to.
+  23: (m, db) async {},
 };
 
 /// `createTable`, skipped when the table is already there.
@@ -577,6 +591,144 @@ Future<void> _addColumnIfMissing(
   await m.addColumn(table, column);
 }
 
+/// Physical table renames from the customer -> depot migration, old -> new.
+///
+/// Order is irrelevant: each rename is guarded on what the database actually
+/// has, so the set can be replayed against a database in any state.
+const Map<String, String> _kLegacyDepotTableRenames = <String, String>{
+  'customers': 'depots',
+  'customer_activities': 'depot_activities',
+  'customer_contacts': 'depot_contacts',
+  'customer_favorites': 'depot_favorites',
+  'customer_notes': 'depot_notes',
+  'customer_recent': 'depot_recent',
+  'customer_sync_meta': 'depot_sync_meta',
+  'route_customers': 'route_depots',
+};
+
+/// Column renames, keyed by the table's **new** name — these run after the
+/// table renames above.
+///
+/// `customer_id` is the key the whole app addresses a depot by, so it reaches
+/// well past the depot's own tables: a cart, a quotation, a sales order and a
+/// resumable workflow each carry one.
+const Map<String, Map<String, String>> _kLegacyDepotColumnRenames =
+    <String, Map<String, String>>{
+  'depots': <String, String>{
+    'customer_code': 'depot_code',
+    'customer_group': 'depot_group',
+    'sap_customer_id': 'sap_depot_id',
+  },
+  'depot_activities': <String, String>{'customer_id': 'depot_id'},
+  'depot_contacts': <String, String>{'customer_id': 'depot_id'},
+  'depot_favorites': <String, String>{'customer_id': 'depot_id'},
+  'depot_notes': <String, String>{'customer_id': 'depot_id'},
+  'depot_recent': <String, String>{'customer_id': 'depot_id'},
+  'cart_items': <String, String>{'customer_id': 'depot_id'},
+  'quotations': <String, String>{'customer_id': 'depot_id'},
+  'sales_orders': <String, String>{'customer_id': 'depot_id'},
+  'workflow_state': <String, String>{'customer_id': 'depot_id'},
+  'route_stops': <String, String>{'customer_id': 'depot_id'},
+  'visit_check_ins': <String, String>{
+    'distance_from_customer': 'distance_from_depot',
+  },
+};
+
+/// Index renames. SQLite has no `ALTER INDEX`, so each is a drop and a create.
+///
+/// A renamed table keeps its indexes — still under the old name, still doing
+/// their job — so this is not about query speed. It is so that a device that
+/// upgraded and a device installed fresh end up with the *same* names, and a
+/// later migration can address an index without knowing which it is talking to.
+const Map<String, String> _kLegacyDepotIndexRenames = <String, String>{
+  'idx_customers_territory': 'idx_depots_territory',
+  'idx_customers_rep': 'idx_depots_rep',
+  'idx_customers_status': 'idx_depots_status',
+  'idx_customers_sales_org': 'idx_depots_sales_org',
+  'idx_customers_division': 'idx_depots_division',
+  'idx_customer_activities_customer': 'idx_depot_activities_depot',
+  'idx_customer_contacts_customer': 'idx_depot_contacts_depot',
+  'idx_customer_notes_customer': 'idx_depot_notes_depot',
+  'idx_route_stops_customer': 'idx_route_stops_depot',
+};
+
+Future<bool> _tableExists(AppDatabase db, String name) async {
+  final rows = await db.customSelect(
+    "SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?;",
+    variables: [Variable<String>(name)],
+  ).get();
+  return rows.isNotEmpty;
+}
+
+Future<bool> _columnExists(AppDatabase db, String table, String column) async {
+  final rows = await db.customSelect('PRAGMA table_info("$table");').get();
+  return rows.any((row) => row.read<String>('name') == column);
+}
+
+/// Renames the pre-depot physical schema in place, preserving every row.
+///
+/// Runs before the stepwise loop on every upgrade, and does nothing at all to a
+/// database that never carried the old names — including one just built by
+/// `createAll`, which already uses the new ones.
+///
+/// Why a rename rather than a drop and re-sync: most of these tables mirror SAP
+/// and could be re-pulled, but `cart_items`, `quotations`, `sales_orders` and
+/// `workflow_state` hold a rep's own un-synced work. Recreating them would
+/// discard an order taken in a shop with no signal — the one thing
+/// offline-first exists to prevent (ADR-0002).
+///
+/// Every operation is guarded on what the database actually has rather than on
+/// the version it claims, so a partially-applied upgrade can be replayed.
+Future<void> _renameLegacyDepotSchema(AppDatabase db) async {
+  for (final entry in _kLegacyDepotTableRenames.entries) {
+    if (!await _tableExists(db, entry.key)) continue;
+    if (await _tableExists(db, entry.value)) continue;
+    await db.customStatement(
+        'ALTER TABLE "${entry.key}" RENAME TO "${entry.value}";');
+  }
+
+  for (final table in _kLegacyDepotColumnRenames.entries) {
+    if (!await _tableExists(db, table.key)) continue;
+    for (final column in table.value.entries) {
+      if (!await _columnExists(db, table.key, column.key)) continue;
+      if (await _columnExists(db, table.key, column.value)) continue;
+      await db.customStatement('ALTER TABLE "${table.key}" '
+          'RENAME COLUMN "${column.key}" TO "${column.value}";');
+    }
+  }
+
+  for (final entry in _kLegacyDepotIndexRenames.entries) {
+    final rows = await db.customSelect(
+      "SELECT sql FROM sqlite_master WHERE type = 'index' AND name = ?;",
+      variables: [Variable<String>(entry.key)],
+    ).get();
+    if (rows.isEmpty) continue;
+    final sql = rows.first.read<String?>('sql');
+    // A null `sql` is an index SQLite created itself to back a UNIQUE
+    // constraint. It is not ours to rename, and dropping it would drop the
+    // constraint with it.
+    if (sql == null) continue;
+
+    // `ALTER TABLE ... RENAME` already rewrote the table and column names
+    // inside this definition; only the index's own name is stale. The table and
+    // column passes below are belt-and-braces for an older SQLite that did not,
+    // where re-creating the index verbatim would fail on a table that no longer
+    // answers to that name and abort the whole upgrade.
+    var rebuilt = sql.replaceFirst(entry.key, entry.value);
+    _kLegacyDepotTableRenames.forEach((old, renamed) {
+      rebuilt = rebuilt.replaceAll('"$old"', '"$renamed"');
+    });
+    for (final columns in _kLegacyDepotColumnRenames.values) {
+      columns.forEach((old, renamed) {
+        rebuilt = rebuilt.replaceAll('"$old"', '"$renamed"');
+      });
+    }
+
+    await db.customStatement('DROP INDEX IF EXISTS "${entry.key}";');
+    await db.customStatement('$rebuilt;');
+  }
+}
+
 /// Builds the [MigrationStrategy] for [db]: creates the schema on first run,
 /// walks stepwise migrations on upgrade, records the version registry after
 /// every transition, and enforces foreign keys on every connection.
@@ -589,6 +741,10 @@ MigrationStrategy buildMigrationStrategy(AppDatabase db) {
       await db.appMetadataDao.setValue(SchemaMetadataKeys.createdAt, _nowIso());
     },
     onUpgrade: (migrator, from, to) async {
+      // Before any step. Every step below was rewritten in place to address
+      // `depots`, so they only make sense once the tables carry that name —
+      // see the v23 entry in [_stepwiseMigrations].
+      await _renameLegacyDepotSchema(db);
       for (var v = from + 1; v <= to; v++) {
         final step = _stepwiseMigrations[v];
         if (step != null) {

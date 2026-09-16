@@ -9,7 +9,7 @@
 
 ## Context
 
-The primary users of this app are field sales reps who routinely work in warehouses, rural routes, and other locations with no or intermittent connectivity, for hours at a time. A CRM that requires a network round-trip to show a customer record, load the catalog, or record a visit is not usable for this workforce. The app's core value proposition — capture data anywhere, sync when possible — depends on every screen behaving identically whether the device is online, offline, or transitioning between the two.
+The primary users of this app are field sales reps who routinely work in warehouses, rural routes, and other locations with no or intermittent connectivity, for hours at a time. A CRM that requires a network round-trip to show a depot record, load the catalog, or record a visit is not usable for this workforce. The app's core value proposition — capture data anywhere, sync when possible — depends on every screen behaving identically whether the device is online, offline, or transitioning between the two.
 
 The existing guest-first authentication flow (`docs/blueprint/offline-architecture.md` §2) already demonstrates this pattern working end to end and is the reference implementation the rest of the app follows.
 

@@ -138,9 +138,9 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
     String? screen = InventoryVisibilityScreen.routeName;
     Map<String, dynamic>? args = {
       'stopId': stop.id,
-      'customerId': stop.customer.id,
-      'customerName': stop.customer.name,
-      'territory': stop.customer.territory,
+      'depotId': stop.depot.id,
+      'depotName': stop.depot.name,
+      'territory': stop.depot.territory,
     };
 
     // Never *downgrade* a business task the rep already advanced into
@@ -181,8 +181,8 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
       currentStopId: stop.id,
       dayStarted: state.dayStarted,
       updatedAt: now,
-      customerId: isActive ? stop.customer.id : null,
-      shopName: isActive ? stop.customer.name : null,
+      depotId: isActive ? stop.depot.id : null,
+      shopName: isActive ? stop.depot.name : null,
       checkInAt: isActive ? stop.actualArrival : null,
       currentWorkflow: workflow,
       currentScreen: screen,
@@ -273,7 +273,7 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
       isMocked: event.isMocked,
       repLatitude: event.latitude,
       repLongitude: event.longitude,
-      customerLocationKnown: event.customerLocationKnown,
+      depotLocationKnown: event.depotLocationKnown,
     ));
   }
 
@@ -338,7 +338,7 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
     //   `insideGeofence: false`, and until a fix arrives there is nothing to
     //   overwrite it with. A rep in a metal-roofed warehouse would wait
     //   forever for a verdict that says only "we did not look".
-    // - **Customer has no coordinates** → there is no geofence to be outside
+    // - **Depot has no coordinates** → there is no geofence to be outside
     //   of (`GeofenceService.evaluate` returns `locationKnown: false` for
     //   exactly this).
     //
@@ -346,7 +346,7 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
     // which the server already knows how to read (api.md §8.2: evidence, not a
     // verdict; a check-in with no fix is stored as unverifiable). They do not
     // refuse the work.
-    final unverifiable = !current.hasFix || !current.customerLocationKnown;
+    final unverifiable = !current.hasFix || !current.depotLocationKnown;
     final validation = _fraudDetectionService.validateCheckIn(
       insideGeofence: unverifiable ? true : current.insideGeofence,
       accuracyMeters: current.accuracyMeters,
@@ -359,8 +359,8 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
       ...validation.warnings,
       if (!current.hasFix)
         'No GPS fix yet — this check-in is recorded as unverified.',
-      if (!current.customerLocationKnown)
-        'This customer has no recorded location — the geofence could not be checked.',
+      if (!current.depotLocationKnown)
+        'This depot has no recorded location — the geofence could not be checked.',
     ];
 
     for (final warning in validation.warnings) {
@@ -415,8 +415,8 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
       final String situation;
       if (!current.hasFix) {
         situation = 'No GPS fix.';
-      } else if (!current.customerLocationKnown) {
-        situation = 'Customer has no recorded location.';
+      } else if (!current.depotLocationKnown) {
+        situation = 'Depot has no recorded location.';
       } else {
         situation = 'No fresh GPS fix on screen.';
       }
@@ -455,12 +455,12 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
       timestamp: now,
       // **The rep's position, not the shop's.** These two fields are the
       // geofence evidence the server judges the visit on (api.md §8.2), and
-      // this used to send `stop.customer.latitude/longitude` — the shop's own
+      // this used to send `stop.depot.latitude/longitude` — the shop's own
       // pin. Every check-in then arrived reading as exactly on-location,
       // whoever sent it and from wherever, which makes the server-side check
       // structurally incapable of catching anything.
       //
-      // Falls back to the customer pin only when there is no fix at all, and
+      // Falls back to the depot pin only when there is no fix at all, and
       // that row is already flagged unverified in `warnings` above, so the
       // server can tell the difference between measured and assumed.
       //
@@ -471,19 +471,18 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
       // own doc for what that costs.
       latitude: kUseStaticCheckInPosition
           ? kStaticCheckInPosition.latitude
-          : current.repLatitude ?? stop.customer.latitude,
+          : current.repLatitude ?? stop.depot.latitude,
       longitude: kUseStaticCheckInPosition
           ? kStaticCheckInPosition.longitude
-          : current.repLongitude ?? stop.customer.longitude,
+          : current.repLongitude ?? stop.depot.longitude,
       accuracyMeters: current.accuracyMeters,
-      distanceFromCustomerMeters: current.distanceMeters,
+      distanceFromDepotMeters: current.distanceMeters,
       isMocked: current.isMocked,
       // Travels on the check-in row, so the reason and the verdict it explains
       // are one record. Null unless the rep actually overrode something —
       // `overrideAccepted` is false both for an ordinary check-in and for a
       // reason too short to have been meant.
-      overrideReason:
-          (overrideAccepted || extraReasonGiven) ? reason : null,
+      overrideReason: (overrideAccepted || extraReasonGiven) ? reason : null,
     );
     // A failed write used to throw straight out of the handler: no emission,
     // spinner forever, and no idea why. Now the rep is told, and can retry.
@@ -547,8 +546,8 @@ class ActiveRouteBloc extends Bloc<ActiveRouteEvent, ActiveRouteState> {
       timestamp: now,
       // Same correction as the check-in record above: where the rep was, not
       // where the shop is.
-      latitude: current.repLatitude ?? stop.customer.latitude,
-      longitude: current.repLongitude ?? stop.customer.longitude,
+      latitude: current.repLatitude ?? stop.depot.latitude,
+      longitude: current.repLongitude ?? stop.depot.longitude,
       durationMinutes: duration,
       visitSummary: event.visitSummary,
     );

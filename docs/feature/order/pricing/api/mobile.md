@@ -6,33 +6,33 @@ Audience: `Mobile` · Module: `Price Lists`
 **The whole pricing surface is available to the field app.** Three of them are on this
 page; the fourth, `POST .../publish`, is on the shared route because it returns no body
 and so needs no mobile envelope. All four are scoped the same way: a representative
-sees and acts on the customers assigned to them, a supervisor with `customers.readall`
+sees and acts on the depots assigned to them, a supervisor with `depots.readall`
 on everyone's.
 
 | Surface | Permission |
 |---|---|
-| `GET /api/v1/mobile/pricing/customers/{id}` | `customers.read` + ownership |
-| `POST /api/v1/pricing/customers/{id}/publish` | `customers.read` + ownership |
+| `GET /api/v1/mobile/pricing/depots/{id}` | `depots.read` + ownership |
+| `POST /api/v1/pricing/depots/{id}/publish` | `depots.read` + ownership |
 | `WS /hubs/pricing` | authenticated + ownership on subscribe |
 
 ---
 
-## `GET /api/v1/mobile/pricing/customers/{customerId}`
+## `GET /api/v1/mobile/pricing/depots/{depotId}`
 
-Current SAP prices for one customer.
+Current SAP prices for one depot.
 
-**Permission:** `customers.read`, plus row-level scoping — a representative sees their
-own customers, a supervisor with `customers.readall` sees everyone's.
+**Permission:** `depots.read`, plus row-level scoping — a representative sees their
+own depots, a supervisor with `depots.readall` sees everyone's.
 
-The customer is in the **route**, not the query string: SAP prices a material *for a
-customer*, so a pricing request without one has no answer, and a query parameter would
+The depot is in the **route**, not the query string: SAP prices a material *for a
+depot*, so a pricing request without one has no answer, and a query parameter would
 make the subject look optional.
 
 ### Narrowing to specific materials
 
 | Parameter | Meaning |
 |---|---|
-| `materials` | Material codes to price. Omit for everything priced for the customer |
+| `materials` | Material codes to price. Omit for everything priced for the depot |
 | `material` | Singular alias for the same thing |
 
 **All of these are equivalent** — repeated, comma-separated, semicolon-separated, or
@@ -121,7 +121,7 @@ empty `items` with `erpAnswered: true`.
 | `recordsUnmapped` | int | Rows SAP sent that could not be mapped. **Non-zero means the field-name contract is wrong** — the server log names the fields SAP actually sent |
 | `erpAnswered` | bool | Whether SAP answered at all |
 
-`erpAnswered: true` with an empty `items` means *"this customer has no prices"*. That
+`erpAnswered: true` with an empty `items` means *"this depot has no prices"*. That
 is a different statement from *"we could not load prices"*, which is an error status —
 the two must never render the same way.
 
@@ -138,16 +138,16 @@ the two must never render the same way.
 | Status | Code | Meaning |
 |---|---|---|
 | 401 | — | No or expired token |
-| 403 | — | Lacks `customers.read` |
-| 404 | `Pricing.CustomerNotFound` | No such customer, **or** not one this caller may see — deliberately indistinguishable |
-| 422 | `Pricing.CustomerNotPriceable` | Customer exists but has no SAP sales area, typically a locally coded customer awaiting registration |
+| 403 | — | Lacks `depots.read` |
+| 404 | `Pricing.DepotNotFound` | No such depot, **or** not one this caller may see — deliberately indistinguishable |
+| 422 | `Pricing.DepotNotPriceable` | Depot exists but has no SAP sales area, typically a locally coded depot awaiting registration |
 | 500 | `Sap.*` | SAP unreachable, errored, or the endpoint is missing. **Not** the same as "no prices" |
 
 > [!IMPORTANT]
 > **The response is one page.** 50 items by default, 200 maximum, and no way to ask
 > for the lot — an unnarrowed price list is 3,869 records. Read `data.page.hasMore`
 > and request `?page=2`; a client that renders `items` as the complete price list will
-> be showing the customer 1.3% of it.
+> be showing the depot 1.3% of it.
 >
 > **Render the unit.** An item reads *`price` `currency` per `pricingUnit`
 > `conditionUnit`* — above, 100.00 USD per metre. This catalogue is quoted in `BAG`,
@@ -164,13 +164,13 @@ the two must never render the same way.
 
 ---
 
-## `POST /api/v1/pricing/customers/{customerId}/publish`
+## `POST /api/v1/pricing/depots/{depotId}/publish`
 
-Re-reads the customer's pricing from SAP and pushes `PricingUpdated` to everyone
-subscribed to that customer.
+Re-reads the depot's pricing from SAP and pushes `PricingUpdated` to everyone
+subscribed to that depot.
 
-**Permission:** `customers.read` plus the same ownership scoping as the reads — a
-representative can publish for their own customers, and gets **404** for anyone else's.
+**Permission:** `depots.read` plus the same ownership scoping as the reads — a
+representative can publish for their own depots, and gets **404** for anyone else's.
 
 There is no `/mobile/` variant: the endpoint returns 204 with no body, so there is no
 envelope to differ. Call it on the shared route.
@@ -178,7 +178,7 @@ envelope to differ. Call it on the shared route.
 | Status | Meaning |
 |---|---|
 | 204 | Published. Reaching nobody (no active subscribers) is a normal outcome, not an error |
-| 404 | No such customer, or not one this caller may publish for |
+| 404 | No such depot, or not one this caller may publish for |
 | 500 | SAP unreachable — **nothing was published**, and handsets keep the prices they hold |
 
 Useful after the rep changes something in SAP and wants the field to see it without
@@ -207,12 +207,12 @@ This is accepted on this path only.
 
 | Method | Argument | Behaviour |
 |---|---|---|
-| `SubscribeToPricingAsync` | `customerId` (Guid) | Joins that customer's group |
-| `UnsubscribeFromPricingAsync` | `customerId` (Guid) | Leaves it |
+| `SubscribeToPricingAsync` | `depotId` (Guid) | Joins that depot's group |
+| `UnsubscribeFromPricingAsync` | `depotId` (Guid) | Leaves it |
 
-**Send a customer id, never a group name** — the server derives the group, and a
-caller who is not entitled gets a `HubException` carrying `Pricing.CustomerNotFound`,
-the same answer as for a customer that does not exist.
+**Send a depot id, never a group name** — the server derives the group, and a
+caller who is not entitled gets a `HubException` carrying `Pricing.DepotNotFound`,
+the same answer as for a depot that does not exist.
 
 ### Event the client receives
 
@@ -244,7 +244,7 @@ shared client-side. The extra `updatedAt` is the server's clock.
 ```text
 open app ──► GET /pricing ──► render
                  │
-                 └──► connect hub ──► SubscribeToPricingAsync(customerId)
+                 └──► connect hub ──► SubscribeToPricingAsync(depotId)
                                           │
                           PricingUpdated ─┴─► if updatedAt > lastKnown: render
                           disconnect ──────► reconnect, GET /pricing, re-subscribe

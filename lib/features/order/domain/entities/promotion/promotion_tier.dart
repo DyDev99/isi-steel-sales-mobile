@@ -4,7 +4,7 @@ import 'package:equatable/equatable.dart';
 ///
 /// Tiers are a *server* concept. The app never invents one and never
 /// interpolates between two — a rep quoting 400 bags against a 300/500 ladder
-/// gets the 300 benefit, not a pro-rated 25. Rounding a customer's entitlement
+/// gets the 300 benefit, not a pro-rated 25. Rounding a depot's entitlement
 /// up or down is a commercial decision, and it is not the handset's to make.
 class PromotionTier extends Equatable {
   const PromotionTier({

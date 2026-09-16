@@ -31,9 +31,9 @@ void main() {
     await db.into(db.catalogSyncMeta).insertOnConflictUpdate(
         CatalogSyncMetaCompanion.insert(
             entity: 'products', lastSyncedAt: Value(at)));
-    await db.into(db.customerSyncMeta).insertOnConflictUpdate(
-        CustomerSyncMetaCompanion.insert(
-            entity: 'customers', lastSyncedAt: Value(at)));
+    await db.into(db.depotSyncMeta).insertOnConflictUpdate(
+        DepotSyncMetaCompanion.insert(
+            entity: 'depots', lastSyncedAt: Value(at)));
     await db.into(db.routeSyncMeta).insertOnConflictUpdate(
         RouteSyncMetaCompanion.insert(
             entity: 'routes', lastSyncedAt: Value(at)));
@@ -41,9 +41,9 @@ void main() {
 
   Future<int> watermarkCount() async {
     final catalog = await db.select(db.catalogSyncMeta).get();
-    final customers = await db.select(db.customerSyncMeta).get();
+    final depots = await db.select(db.depotSyncMeta).get();
     final routes = await db.select(db.routeSyncMeta).get();
-    return catalog.length + customers.length + routes.length;
+    return catalog.length + depots.length + routes.length;
   }
 
   test('clears every master-data watermark so the next sync is a full one',
@@ -53,7 +53,7 @@ void main() {
 
     expect(await backfill().run(), isTrue);
 
-    // All three, not just the catalog: customer names drive the directory *and*
+    // All three, not just the catalog: depot names drive the directory *and*
     // the route stop cards, so leaving that cursor set would fix products and
     // leave every shop name Latin.
     expect(await watermarkCount(), 0);

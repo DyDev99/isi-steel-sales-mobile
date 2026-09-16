@@ -3,7 +3,7 @@ import 'package:isi_steel_sales_mobile/core/database/drift/connection/database_c
 import 'package:isi_steel_sales_mobile/core/database/drift/daos/app_metadata_dao.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/daos/cart_dao.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/daos/catalog_dao.dart';
-import 'package:isi_steel_sales_mobile/core/database/drift/daos/customer_dao.dart';
+import 'package:isi_steel_sales_mobile/core/database/drift/daos/depot_dao.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/daos/geo_dao.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/daos/route_dao.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/daos/route_telemetry_dao.dart';
@@ -15,8 +15,8 @@ import 'package:isi_steel_sales_mobile/core/database/drift/migrations/schema_mig
 import 'package:isi_steel_sales_mobile/core/database/drift/tables/app_metadata_table.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/tables/cart_items_table.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/tables/catalog_tables.dart';
-import 'package:isi_steel_sales_mobile/core/database/drift/tables/customer_related_tables.dart';
-import 'package:isi_steel_sales_mobile/core/database/drift/tables/customers_table.dart';
+import 'package:isi_steel_sales_mobile/core/database/drift/tables/depot_related_tables.dart';
+import 'package:isi_steel_sales_mobile/core/database/drift/tables/depots_table.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/tables/geo_tables.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/tables/notification_tables.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/tables/order_tables.dart';
@@ -39,13 +39,13 @@ part 'app_database.g.dart';
 @DriftDatabase(
   tables: [
     AppMetadata,
-    Customers,
-    CustomerContacts,
-    CustomerNotes,
-    CustomerActivities,
-    CustomerFavorites,
-    CustomerRecent,
-    CustomerSyncMeta,
+    Depots,
+    DepotContacts,
+    DepotNotes,
+    DepotActivities,
+    DepotFavorites,
+    DepotRecent,
+    DepotSyncMeta,
     Categories,
     Products,
     Prices,
@@ -57,9 +57,9 @@ part 'app_database.g.dart';
     // Route domain (T1.5, v7) — ported from the plaintext `routes.db`.
     Routes,
     RouteStops,
-    // The route feed's own flat customer mirror (ADR-011, v18) — what a stop
-    // renders from, so stops no longer depend on the customer directory.
-    RouteCustomers,
+    // The route feed's own flat depot mirror (ADR-011, v18) — what a stop
+    // renders from, so stops no longer depend on the depot directory.
+    RouteDepots,
     LocationSamples,
     FraudFlags,
     RouteSyncMeta,
@@ -81,7 +81,7 @@ part 'app_database.g.dart';
     // Notification inbox (v19). A pull-only mirror of the server's inbox plus
     // its own outbox, because the inbox — not the push — is the system of
     // record (docs/feature/notification/README.md §1). Encrypted rather than
-    // cached in Hive: a notification body names a customer and a route, which
+    // cached in Hive: a notification body names a depot and a route, which
     // is PII (docs/skills/security.md §3).
     Notifications,
     NotificationActionQueue,
@@ -97,7 +97,7 @@ part 'app_database.g.dart';
   ],
   daos: [
     AppMetadataDao,
-    CustomerDao,
+    DepotDao,
     CatalogDao,
     CartDao,
     // Route domain (T1.5) — one DAO per aggregate (ADR-004).

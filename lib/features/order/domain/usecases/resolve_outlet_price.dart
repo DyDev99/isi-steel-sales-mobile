@@ -13,7 +13,7 @@ class OutletPriceParams extends Equatable {
   /// material: the same article can be priced differently by plant.
   final String skuId;
 
-  /// SAP `Customer.priceGroup` for the outlet being quoted, or null for a
+  /// SAP `Depot.priceGroup` for the outlet being quoted, or null for a
   /// walk-in / lead with no SAP identity yet.
   final String? priceGroup;
 
@@ -48,7 +48,7 @@ class OutletPrice extends Equatable {
 ///
 /// The local catalog already carries all seven of SAP's price tiers per SKU
 /// (`prices.standard_price`, `wholesale_price`, `dealer_price`, `vip_price`,
-/// `credit_price`, `cash_price`, plus any promotion), and [Customer] carries
+/// `credit_price`, `cash_price`, plus any promotion), and [Depot] carries
 /// SAP's `priceGroup`. What the repository does **not** have is the mapping
 /// between them — SAP has published no `priceGroup` → tier table, and this app
 /// is not the system of record for that decision.

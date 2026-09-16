@@ -2,7 +2,7 @@
 ///
 /// These three tables were the last business data outside the encrypted
 /// database. Porting them completes the T1.5 purge started for `routes.db`:
-/// quotation pricing, customer identifiers, and the sync queue's payloads now
+/// quotation pricing, depot identifiers, and the sync queue's payloads now
 /// live encrypted at rest on mobile like everything else (ADR-001).
 ///
 /// ## Column shapes are copied verbatim, on purpose
@@ -29,7 +29,7 @@ class Quotations extends Table {
   String get tableName => 'quotations';
 
   TextColumn get id => text()();
-  TextColumn get customerId => text().nullable()();
+  TextColumn get depotId => text().nullable()();
   TextColumn get shopName => text().nullable()();
   TextColumn get leadId => text().nullable()();
   TextColumn get leadDisplayName => text().nullable()();
@@ -67,7 +67,7 @@ class SalesOrders extends Table {
 
   TextColumn get id => text()();
   TextColumn get quotationId => text()();
-  TextColumn get customerId => text().nullable()();
+  TextColumn get depotId => text().nullable()();
   TextColumn get shopName => text().nullable()();
   TextColumn get leadId => text().nullable()();
   TextColumn get leadDisplayName => text().nullable()();

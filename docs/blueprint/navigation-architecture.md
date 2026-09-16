@@ -48,11 +48,11 @@ with no framework dependency.
 | `/home` | `HomeScreen` | **Deep-link entry into a single tab.** Provides its own `HomeCubit`. |
 | `/order` | `OrderScreen` | Deep-link entry into a single tab. |
 | `/my-visits` | `StopDashboardScreen` | Deep-link entry; provides `ActiveRouteBloc`, `LocationTrackingCubit`, `VisitCubit`. |
-| `/customer` | — | Declared in `Static`, **no `onGenerateRoute` case**. Navigating here yields `_NotFound`. |
+| `/depot` | — | Declared in `Static`, **no `onGenerateRoute` case**. Navigating here yields `_NotFound`. |
 | `/lead` | — | Declared, **not routed**. |
 | `/revenue` | — | Declared, **not routed**. |
 
-> Three declared constants (`customer`, `lead`, `revenue`) have no handler.
+> Three declared constants (`depot`, `lead`, `revenue`) have no handler.
 > They are reachable only through the shell's tabs today. Either wire them or
 > delete them — a declared route that renders `_NotFound` is a trap for the next
 > person adding a push payload.
@@ -76,14 +76,14 @@ deep links, **not** for in-app navigation, which stays on the `IndexedStack`.
 │   IndexedStack (all four tabs stay built — state is preserved)    │
 │                                                                  │
 ├──────────────────────────────────────────────────────────────────┤
-│  ▣ home.title  │  ◕ customers.title  │  ⌖ my_visits.title  │  ▤ orders.title │
+│  ▣ home.title  │  ◕ depots.title  │  ⌖ my_visits.title  │  ▤ orders.title │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
 | Index | Icon | Label key | Feature |
 |--:|---|---|---|
 | 0 | `grid_view_rounded` | `home.title` | `home` |
-| 1 | `people_alt_rounded` | `customers.title` | `customers` |
+| 1 | `people_alt_rounded` | `depots.title` | `depots` |
 | 2 | `location_on_rounded` | `my_visits.title` | `my_visits` |
 | 3 | `receipt_long_rounded` | `orders.title` | `order` |
 
@@ -174,7 +174,7 @@ Registered resume targets:
 | `InventoryCompletionScreen.routeName` | Audit completion |
 | `QuotationBuilderScreen.routeName` | Quotation being built for the stop |
 | `ShopListScreen.routeName` | Sales-order shop list |
-| `CustomerDetailScreen.routeName` | Customer detail |
+| `DepotDetailScreen.routeName` | Depot detail |
 
 A builder returning `null` (missing or stale args — e.g. the stop was
 reassigned) is not an error: the dispatcher degrades to guided stop resume

@@ -20,7 +20,7 @@ import 'package:sqlite3/wasm.dart';
 /// **No persistence.** This is what makes the missing encryption acceptable
 /// rather than a `SECURITY.md` §3 violation. Drift *can* persist to
 /// OPFS/IndexedDB via `WasmDatabase.open()`, and doing so here would write
-/// customer PII, GPS traces, and quotation pricing to storage readable by any
+/// depot PII, GPS traces, and quotation pricing to storage readable by any
 /// script on the origin — reintroducing on web precisely the finding that
 /// `MIGRATION_PLAN.md` T1.5 exists to remove from mobile. Encryption at rest is
 /// satisfied on web by there being no rest.

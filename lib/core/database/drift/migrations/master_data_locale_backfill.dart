@@ -18,7 +18,7 @@ import 'package:isi_steel_sales_mobile/core/logging/app_logger.dart';
 /// Every subsequent sync is therefore a *delta*, which by definition only
 /// carries rows the backend says changed. Nothing tells it that 11,000
 /// unchanged rows just grew a Khmer name. The rep updates the app, sees the UI
-/// chrome switch to Khmer, and every product/customer/shop name stays Latin —
+/// chrome switch to Khmer, and every product/depot/shop name stays Latin —
 /// which reads as "localization is broken" when the localization is fine and
 /// the *local cache* is stale.
 ///
@@ -37,7 +37,7 @@ import 'package:isi_steel_sales_mobile/core/logging/app_logger.dart';
 /// ## Safety
 ///
 /// This only resets **cursors**, never rows. All three domains are
-/// SAP-controlled and overwritten wholesale on sync (see `customers_table.dart`
+/// SAP-controlled and overwritten wholesale on sync (see `depots_table.dart`
 /// — "reps have no write path to these columns"), so the worst case is one
 /// larger-than-usual sync on the next launch. No rep-captured data — visits,
 /// photos, quotations, the sync queue — is touched, and nothing is deleted.
@@ -67,12 +67,12 @@ class MasterDataLocaleBackfill {
     if (done != null) return false;
 
     // One transaction: either every cursor is cleared and the marker written,
-    // or nothing is. A partial reset would leave, say, customers re-syncing
+    // or nothing is. A partial reset would leave, say, depots re-syncing
     // while the catalog stayed stale — and because the marker would be missing
     // it would retry forever, re-running a full catalog sync on every launch.
     await _db.transaction(() async {
       await _db.delete(_db.catalogSyncMeta).go();
-      await _db.delete(_db.customerSyncMeta).go();
+      await _db.delete(_db.depotSyncMeta).go();
       await _db.delete(_db.routeSyncMeta).go();
       await _db.appMetadataDao
           .setValue(markerKey, DateTime.now().toUtc().toIso8601String());

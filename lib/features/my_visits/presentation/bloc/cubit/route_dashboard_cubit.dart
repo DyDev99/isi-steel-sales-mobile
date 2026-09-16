@@ -100,12 +100,12 @@ class RouteDashboardCubit extends Cubit<RouteDashboardState> {
               stop.actualDeparture!.difference(stop.actualArrival!).inMinutes;
         }
         if (i > 0) {
-          final prev = route.stops[i - 1].customer;
+          final prev = route.stops[i - 1].depot;
           distanceKm += GeofenceService.distanceMeters(
                 prev.latitude,
                 prev.longitude,
-                stop.customer.latitude,
-                stop.customer.longitude,
+                stop.depot.latitude,
+                stop.depot.longitude,
               ) /
               1000;
         }

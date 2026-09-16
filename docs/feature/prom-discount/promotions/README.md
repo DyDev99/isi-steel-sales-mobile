@@ -19,7 +19,7 @@
 > | Manual USD price override when unpriced | Refused. The quotation API prices every line from SAP; a SAP outage answers `502`, never an input box |
 > | Free-goods ladder evaluated on the phone | Not built anywhere. `POST /promotions/evaluate` does not exist |
 > | On-invoice depot discount as a client-side scheme | Applied by the server from an **effective** agreement term, and never from an approved-but-unconfirmed one |
-> | COD / Pickup as one discount | Two different things. Pickup is who moves the goods; COD is how the customer pays. Only pickup earns the rate |
+> | COD / Pickup as one discount | Two different things. Pickup is who moves the goods; COD is how the depot pays. Only pickup earns the rate |
 >
 > For the endpoints and their actual behaviour see [../api/mobile.md](../api/mobile.md);
 > for what is built see [../README.md](../README.md).
@@ -54,7 +54,7 @@ The system enforces three fundamental rules across the mobile application:
 2. **Discounts reduce taxable subtotal before tax calculation:**  
    Both line-level SKU discounts and invoice-level term discounts reduce the gross subtotal to produce the net taxable base.
 3. **Strict separation of discount origins:**  
-   Sales reps, customers, and accounting can clearly inspect whether a price reduction originated from a line-item rep discretion, a depot campaign, an order fulfillment term (pickup vs. delivery), or an approved price request.
+   Sales reps, depots, and accounting can clearly inspect whether a price reduction originated from a line-item rep discretion, a depot campaign, an order fulfillment term (pickup vs. delivery), or an approved price request.
 
 ---
 
@@ -81,14 +81,14 @@ lib/
 │   │   │   ├── entities/
 │   │   │   │   ├── cart_item.dart                   # Holds discountPercent, lineDiscount, unitPriceOverride
 │   │   │   │   └── promotion/
-│   │   │   │       ├── promotion.dart               # Free-goods ladder definition & customer eligibility
+│   │   │   │       ├── promotion.dart               # Free-goods ladder definition & depot eligibility
 │   │   │   │       ├── promotion_tier.dart          # Tier rungs: minQuantity -> freeQuantity
 │   │   │   │       └── promotion_evaluation.dart    # Evaluation verdict (earnedTier, nextTier, gap)
 │   │   │   ├── repositories/
 │   │   │   │   └── promotion_repository.dart        # Contract for promotion queries & evaluations
 │   │   │   └── usecases/
 │   │   │       ├── evaluate_promotion.dart          # Quantity-based line evaluation
-│   │   │       └── get_promotions.dart              # Customer-scoped promotion list
+│   │   │       └── get_promotions.dart              # Depot-scoped promotion list
 │   │   ├── presentation/
 │   │   │   ├── bloc/
 │   │   │   │   └── promotion/
@@ -131,7 +131,7 @@ lib/
 
 - **State:** `Map<String, PromotionEvaluation>` keyed by `materialCode`.
 - **Debounced Resolution:** Uses a `220ms` debounce timer matching quantity steppers to avoid flooding backend pricing/promotion services while the user adjusts quantities.
-- **Customer Scoping:** `setCustomer(String? customerId)` resets all cached verdicts immediately to prevent negotiated terms from leaking between customers.
+- **Depot Scoping:** `setDepot(String? depotId)` resets all cached verdicts immediately to prevent negotiated terms from leaking between depots.
 
 ### 4.2 CartCubit (`lib/features/order/presentation/bloc/cart/cart_cubit.dart`)
 

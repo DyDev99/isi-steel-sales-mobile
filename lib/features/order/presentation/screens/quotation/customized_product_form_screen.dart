@@ -21,13 +21,13 @@ import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 class CustomizedProductFormScreen extends StatelessWidget {
   final Product baseProduct;
   final String? leadId;
-  final String? customerId;
+  final String? depotId;
 
   const CustomizedProductFormScreen({
     super.key,
     required this.baseProduct,
     this.leadId,
-    this.customerId,
+    this.depotId,
   });
 
   @override
@@ -39,7 +39,7 @@ class CustomizedProductFormScreen extends StatelessWidget {
       child: _CustomizedProductFormView(
         baseProduct: baseProduct,
         leadId: leadId,
-        customerId: customerId,
+        depotId: depotId,
       ),
     );
   }
@@ -59,12 +59,12 @@ class CustomizedProductFormScreen extends StatelessWidget {
 class _CustomizedProductFormView extends StatefulWidget {
   final Product baseProduct;
   final String? leadId;
-  final String? customerId;
+  final String? depotId;
 
   const _CustomizedProductFormView({
     required this.baseProduct,
     this.leadId,
-    this.customerId,
+    this.depotId,
   });
 
   @override
@@ -128,7 +128,7 @@ class __CustomizedProductFormViewState
           customizationDescription:
               customization.notes.trim().isEmpty ? null : customization.notes,
           leadId: widget.leadId,
-          customerId: widget.customerId,
+          depotId: widget.depotId,
         );
 
     ScaffoldMessenger.of(context).showSnackBar(

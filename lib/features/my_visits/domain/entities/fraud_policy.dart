@@ -20,6 +20,7 @@ class FraudPolicy extends Equatable {
 
   final bool blockOnMockLocation;
   final bool blockOnVpn;
+
   /// The coarsest fix (reported accuracy radius, metres) a check-in accepts
   /// without a written reason.
   ///

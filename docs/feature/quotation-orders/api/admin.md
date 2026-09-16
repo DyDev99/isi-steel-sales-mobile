@@ -32,7 +32,7 @@ what the state machine exists to prevent.
 | Parameter | Notes |
 |---|---|
 | `status` | A concrete status or a tab group. `PendingApproval` is the queue |
-| `customerId` | Restrict to one customer |
+| `depotId` | Restrict to one depot |
 | `ownerUserId` | Restrict to one representative |
 | `page` · `pageSize` | One-based; default 20, clamped to 100 |
 

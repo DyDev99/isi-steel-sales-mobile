@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/customer_stop_info.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/depot_stop_info.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/territory_type.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/check_in_location_verifier.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/outlet_location_source.dart';
@@ -125,8 +125,8 @@ void main() {
   group('the static-position shim', _staticShimTests);
 
   group('the outlet source seam', () {
-    CustomerStopInfo customer({double lat = 11.60, double lng = 104.90}) =>
-        CustomerStopInfo(
+    DepotStopInfo depot({double lat = 11.60, double lng = 104.90}) =>
+        DepotStopInfo(
           id: 'c1',
           name: 'ISI Steel Outlet',
           code: 'C-1',
@@ -142,7 +142,7 @@ void main() {
     test('the static source ignores the stop and returns the demo pin', () {
       const source = StaticOutletLocationSource();
 
-      final location = source.locationFor(customer())!;
+      final location = source.locationFor(depot())!;
 
       // Every stop verifies against the same point — correct for a demo, and
       // the reason this is a named class rather than a constant in a widget.
@@ -151,22 +151,22 @@ void main() {
       expect(location.radiusMeters, 100);
     });
 
-    test('the stop source uses the customer’s own pin', () {
+    test('the stop source uses the depot’s own pin', () {
       const source = StopOutletLocationSource();
 
-      final location = source.locationFor(customer(lat: 11.60, lng: 104.90))!;
+      final location = source.locationFor(depot(lat: 11.60, lng: 104.90))!;
 
       expect(location.latitude, 11.60);
       expect(location.longitude, 104.90);
       expect(location.radiusMeters, 100);
     });
 
-    test('the stop source returns null for a customer with no pin', () {
+    test('the stop source returns null for a depot with no pin', () {
       const source = StopOutletLocationSource();
 
       // `(0, 0)` is the Gulf of Guinea and what a handset reports when the fix
       // failed. Measuring against it would put every rep ~10 000 km out.
-      expect(source.locationFor(customer(lat: 0, lng: 0)), isNull);
+      expect(source.locationFor(depot(lat: 0, lng: 0)), isNull);
     });
 
     test('swapping the source is the only change needed', () {
@@ -175,7 +175,7 @@ void main() {
       // indirection has stopped paying for itself.
       const staticSource = StaticOutletLocationSource();
       const stopSource = StopOutletLocationSource();
-      final c = customer(lat: 11.60, lng: 104.90);
+      final c = depot(lat: 11.60, lng: 104.90);
 
       final viaStatic = CheckInLocationVerifier.verify(
         outlet: staticSource.locationFor(c),
@@ -216,7 +216,7 @@ void _staticShimTests() {
     // purpose of the shim.
     final v = CheckInLocationVerifier.verify(
       outlet: const StaticOutletLocationSource().locationFor(
-        const CustomerStopInfo(
+        const DepotStopInfo(
           id: 'c1',
           name: 'ISI Steel Outlet',
           code: 'C-1',

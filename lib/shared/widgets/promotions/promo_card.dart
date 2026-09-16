@@ -80,49 +80,47 @@ class PromoCard extends StatelessWidget {
         boxShadow: unusable ? null : colors.cardShadow,
       ),
       padding: EdgeInsets.all(context.rr(14)),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final shouldStack = _shouldStack(context) || constraints.maxWidth < 280;
-          
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Side by side normally; stacked once the system font is scaled up
-              // or the card is constrained by a multi-column layout.
-              if (shouldStack)
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    PromoValueTile(
-                        value: promo.value, tone: tone, dimmed: unusable),
-                    SizedBox(height: context.rh(10)),
-                    _Body(promo: promo, now: now, tone: tone),
-                  ],
-                )
-              else
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    PromoValueTile(
-                        value: promo.value, tone: tone, dimmed: unusable),
-                    SizedBox(width: context.rw(12)),
-                    Expanded(child: _Body(promo: promo, now: now, tone: tone)),
-                  ],
-                ),
-              if (blockedBy != null) ...[
-                SizedBox(height: context.rh(10)),
-                PromoBlockedNote(requirement: blockedBy),
-              ],
-              if (showCode && promo.code != null) ...[
-                SizedBox(height: context.rh(12)),
-                Divider(height: 1, color: colors.divider),
-                SizedBox(height: context.rh(6)),
-                PromoCodeRow(code: promo.code!),
-              ],
+      child: LayoutBuilder(builder: (context, constraints) {
+        final shouldStack = _shouldStack(context) || constraints.maxWidth < 280;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Side by side normally; stacked once the system font is scaled up
+            // or the card is constrained by a multi-column layout.
+            if (shouldStack)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  PromoValueTile(
+                      value: promo.value, tone: tone, dimmed: unusable),
+                  SizedBox(height: context.rh(10)),
+                  _Body(promo: promo, now: now, tone: tone),
+                ],
+              )
+            else
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  PromoValueTile(
+                      value: promo.value, tone: tone, dimmed: unusable),
+                  SizedBox(width: context.rw(12)),
+                  Expanded(child: _Body(promo: promo, now: now, tone: tone)),
+                ],
+              ),
+            if (blockedBy != null) ...[
+              SizedBox(height: context.rh(10)),
+              PromoBlockedNote(requirement: blockedBy),
             ],
-          );
-        }
-      ),
+            if (showCode && promo.code != null) ...[
+              SizedBox(height: context.rh(12)),
+              Divider(height: 1, color: colors.divider),
+              SizedBox(height: context.rh(6)),
+              PromoCodeRow(code: promo.code!),
+            ],
+          ],
+        );
+      }),
     );
 
     if (onTap == null || blockedBy != null) {

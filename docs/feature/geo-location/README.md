@@ -12,12 +12,12 @@
 
 ## What this feature is
 
-An offline address selector. A rep filling in a customer's location picks
+An offline address selector. A rep filling in a depot's location picks
 province → district → commune → village from a bundled dataset, with the postal
 code resolved from the commune. No network call is involved at any point.
 
-Used by: the customer creation and edit forms
-([../customer/README.md](../customer/README.md)). It owns no screens of its own —
+Used by: the depot creation and edit forms
+([../depot/README.md](../depot/README.md)). It owns no screens of its own —
 it contributes widgets that other features embed.
 
 ---
@@ -28,13 +28,13 @@ Each is recorded in the code and worth understanding before changing anything.
 
 ### 1. It is a bundled table, not an API cache
 
-**There is no geographic endpoint.** `GET /mobile/customers/references` serves
+**There is no geographic endpoint.** `GET /mobile/depots/references` serves
 exactly ten SAP `CustHelper` catalogues
-([../customer/registration/sap-helpers.md](../customer/registration/sap-helpers.md))
+([../depot/registration/sap-helpers.md](../depot/registration/sap-helpers.md))
 and none of them is geographic — so there is nothing to cache.
 
 Before this table existed, the app carried five provinces and one province's
-districts as `const` maps in `bp_customer_form_data.dart`, which meant **a rep in
+districts as `const` maps in `bp_depot_form_data.dart`, which meant **a rep in
 Kampot could not enter their own district.** The gazetteer is therefore shipped
 in the bundle and imported on first use.
 
@@ -44,10 +44,10 @@ cannot be completed without, not just to transactional data.
 ### 2. It lives in the encrypted database
 
 Not because a village name is secret — it is public record. Because **the address
-a rep selects becomes part of a customer record**, and joining it out of a
+a rep selects becomes part of a depot record**, and joining it out of a
 plaintext side-store would put half of a PII row outside the encryption boundary
 ([../../skills/security.md](../../skills/security.md) §3). One database also lets
-the address be resolved in the same transaction as the customer write.
+the address be resolved in the same transaction as the depot write.
 
 ### 3. It carries no foreign keys
 
@@ -180,14 +180,14 @@ Plus `test/core/database/drift/geo_v19_to_v20_migration_test.dart`.
   Resolving a coordinate to an address is *not* implemented; this feature only
   resolves a selection to an address.
 - **No requirement documents** — which administrative levels are mandatory on a
-  customer record is enforced by the form validators alone.
+  depot record is enforced by the form validators alone.
 
 ---
 
 ## Related
 
-- [../customer/README.md](../customer/README.md) — the feature that embeds this selector
-- [../customer/ui-ux.md](../customer/ui-ux.md) — where the address step sits in the BP form
+- [../depot/README.md](../depot/README.md) — the feature that embeds this selector
+- [../depot/ui-ux.md](../depot/ui-ux.md) — where the address step sits in the BP form
 - [../../blueprint/local-storage-architecture.md](../../blueprint/local-storage-architecture.md) — the encrypted database these tables live in
 - [../../adr/ADR-0002-offline-first.md](../../adr/ADR-0002-offline-first.md) — why reference data is bundled
 - [../../adr/ADR-0011-local-mirror-no-foreign-keys.md](../../adr/ADR-0011-local-mirror-no-foreign-keys.md) — why there are no parent links

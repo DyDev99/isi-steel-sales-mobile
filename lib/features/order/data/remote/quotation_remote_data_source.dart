@@ -10,13 +10,13 @@ abstract class QuotationRemoteDataSource {
   Future<({List<QuotationSummaryModel> quotations, ApiMetadata? metadata})>
       fetchQuotations({
     String? status,
-    String? customerId,
+    String? depotId,
     int page = 1,
     int pageSize = 20,
   });
 
   Future<QuotationDetailModel> createQuotation({
-    required String customerId,
+    required String depotId,
     String shipmentType = 'Pickup',
     String? shipTo,
   });
@@ -28,7 +28,7 @@ abstract class QuotationRemoteDataSource {
     required String shipmentType,
     String? shipTo,
     String? paymentTerm,
-    String? customerReference,
+    String? depotReference,
     String? remarks,
   });
 
@@ -63,15 +63,14 @@ abstract class QuotationRemoteDataSource {
 
   Future<List<QuotationHistoryRecordModel>> fetchHistory(String id);
 
-  Future<List<CustomerAgreementModel>> fetchCustomerAgreements(
-      String customerId);
+  Future<List<DepotAgreementModel>> fetchDepotAgreements(String depotId);
 
-  Future<List<PromoGroup>> fetchCustomerIncentives(
-    String customerId, {
+  Future<List<PromoGroup>> fetchDepotIncentives(
+    String depotId, {
     String? shipment,
   });
 
-  Future<List<PromoView>> fetchCustomerPromotions(String customerId);
+  Future<List<PromoView>> fetchDepotPromotions(String depotId);
 
   Future<DiscountAuthorityModel> fetchDiscountAuthority();
 }
@@ -85,7 +84,7 @@ class ApiQuotationRemoteDataSource implements QuotationRemoteDataSource {
   Future<({List<QuotationSummaryModel> quotations, ApiMetadata? metadata})>
       fetchQuotations({
     String? status,
-    String? customerId,
+    String? depotId,
     int page = 1,
     int pageSize = 20,
   }) async {
@@ -94,8 +93,7 @@ class ApiQuotationRemoteDataSource implements QuotationRemoteDataSource {
         AppConstants.quotationsEndpoint,
         queryParameters: {
           if (status != null && status.isNotEmpty) 'status': status,
-          if (customerId != null && customerId.isNotEmpty)
-            'customerId': customerId,
+          if (depotId != null && depotId.isNotEmpty) 'depotId': depotId,
           'page': page,
           'pageSize': pageSize,
         },
@@ -108,8 +106,7 @@ class ApiQuotationRemoteDataSource implements QuotationRemoteDataSource {
 
       final quotations = rawList
           .whereType<Map>()
-          .map((m) =>
-              QuotationSummaryModel.fromJson(m.cast<String, dynamic>()))
+          .map((m) => QuotationSummaryModel.fromJson(m.cast<String, dynamic>()))
           .toList();
 
       return (quotations: quotations, metadata: envelope.metadata);
@@ -120,7 +117,7 @@ class ApiQuotationRemoteDataSource implements QuotationRemoteDataSource {
 
   @override
   Future<QuotationDetailModel> createQuotation({
-    required String customerId,
+    required String depotId,
     String shipmentType = 'Pickup',
     String? shipTo,
   }) async {
@@ -128,7 +125,7 @@ class ApiQuotationRemoteDataSource implements QuotationRemoteDataSource {
       final res = await _client.post<Object?>(
         AppConstants.quotationsEndpoint,
         data: {
-          'customerId': customerId,
+          'depotId': depotId,
           'shipmentType': shipmentType,
           'shipTo': shipTo,
         },
@@ -163,7 +160,7 @@ class ApiQuotationRemoteDataSource implements QuotationRemoteDataSource {
     required String shipmentType,
     String? shipTo,
     String? paymentTerm,
-    String? customerReference,
+    String? depotReference,
     String? remarks,
   }) async {
     try {
@@ -173,7 +170,7 @@ class ApiQuotationRemoteDataSource implements QuotationRemoteDataSource {
           'shipmentType': shipmentType,
           'shipTo': shipTo,
           'paymentTerm': paymentTerm,
-          'customerReference': customerReference,
+          'depotReference': depotReference,
           'remarks': remarks,
         },
       );
@@ -354,11 +351,10 @@ class ApiQuotationRemoteDataSource implements QuotationRemoteDataSource {
   }
 
   @override
-  Future<List<CustomerAgreementModel>> fetchCustomerAgreements(
-      String customerId) async {
+  Future<List<DepotAgreementModel>> fetchDepotAgreements(String depotId) async {
     try {
       final res = await _client.get<Object?>(
-        AppConstants.customerAgreementsEndpoint(customerId),
+        AppConstants.depotAgreementsEndpoint(depotId),
       );
 
       final envelope = ApiEnvelope.fromBody(res.data);
@@ -368,8 +364,7 @@ class ApiQuotationRemoteDataSource implements QuotationRemoteDataSource {
 
       return rawList
           .whereType<Map>()
-          .map((m) =>
-              CustomerAgreementModel.fromJson(m.cast<String, dynamic>()))
+          .map((m) => DepotAgreementModel.fromJson(m.cast<String, dynamic>()))
           .toList();
     } on DioException catch (e) {
       throw ApiException(ApiError.fromDio(e));
@@ -377,13 +372,13 @@ class ApiQuotationRemoteDataSource implements QuotationRemoteDataSource {
   }
 
   @override
-  Future<List<PromoGroup>> fetchCustomerIncentives(
-    String customerId, {
+  Future<List<PromoGroup>> fetchDepotIncentives(
+    String depotId, {
     String? shipment,
   }) async {
     try {
       final res = await _client.get<Object?>(
-        AppConstants.customerIncentivesEndpoint(customerId),
+        AppConstants.depotIncentivesEndpoint(depotId),
         queryParameters: {
           if (shipment != null && shipment.isNotEmpty) 'shipment': shipment,
         },
@@ -405,10 +400,10 @@ class ApiQuotationRemoteDataSource implements QuotationRemoteDataSource {
   }
 
   @override
-  Future<List<PromoView>> fetchCustomerPromotions(String customerId) async {
+  Future<List<PromoView>> fetchDepotPromotions(String depotId) async {
     try {
       final res = await _client.get<Object?>(
-        AppConstants.customerPromotionsEndpoint(customerId),
+        AppConstants.depotPromotionsEndpoint(depotId),
       );
 
       final envelope = ApiEnvelope.fromBody(res.data);

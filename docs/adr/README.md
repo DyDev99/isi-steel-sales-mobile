@@ -22,7 +22,7 @@ never reused or renumbered.
 | [0006](ADR-0006-sync-engine.md) | Unified sync engine with server-authoritative conflict resolution | 2026-07-15 | Accepted · **not yet built** |
 | [0007](ADR-0007-workflow-session.md) | Generalized, resumable `WorkflowSession` | 2026-07-15 | Accepted |
 | [0008](ADR-0008-sqlcipher-path.md) | SQLCipher via `sqlcipher_flutter_libs` | 2026-07-15 | Accepted · **on-disk format locked as of T1.5** |
-| [0009](ADR-0009-customer-master-data-filter.md) | Customer filtering is flat and locally applicable; SAP master data is a cached lookup, not a cascade | 2026-07-20 | Accepted |
+| [0009](ADR-0009-depot-master-data-filter.md) | Depot filtering is flat and locally applicable; SAP master data is a cached lookup, not a cascade | 2026-07-20 | Accepted |
 | [0010](ADR-0010-web-persistence.md) | Web persistence is session-scoped in-memory Drift | 2026-07-29 | Accepted |
 | [0011](ADR-0011-local-mirror-no-foreign-keys.md) | Local mirror tables carry no foreign keys; the backend owns referential integrity | 2026-08-24 | Accepted · supersedes 0001's referential-integrity claim |
 

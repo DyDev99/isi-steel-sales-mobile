@@ -2,25 +2,25 @@
 
 ## What it is
 
-The prices a given customer pays for given materials, read live from SAP and
+The prices a given depot pays for given materials, read live from SAP and
 delivered to two clients: the Flutter field app and the admin portal.
 
 ## The guarantee
 
-> A price this platform shows is a price SAP holds right now, for that customer's
+> A price this platform shows is a price SAP holds right now, for that depot's
 > sales area, valid today.
 
 Everything below follows from that sentence.
 
 ## Why there is no pricing table
 
-Every other SAP-backed read on this platform is database-first: customers and
+Every other SAP-backed read on this platform is database-first: depots and
 materials are synced and served locally, and the ERP is called only to fill a gap.
 Pricing deliberately is not.
 
 A stale catalogue entry is a cosmetic problem — a description reads oddly until the
 next sync. A stale price is a commitment the business did not make, discovered at a
-counter with a customer waiting. The cost of the live read is a slower screen; the
+counter with a depot waiting. The cost of the live read is a slower screen; the
 cost of a cached one is a number the business has to honour or retract.
 
 So: no pricing table, no pricing sync, no cache. The mitigations are that the filters
@@ -31,7 +31,7 @@ low.
 
 | Surface | Answers | Used when |
 |---|---|---|
-| `GET .../pricing/customers/{id}` | What are the prices **now**? | App open, pull-to-refresh, after any reconnection |
+| `GET .../pricing/depots/{id}` | What are the prices **now**? | App open, pull-to-refresh, after any reconnection |
 | `PricingUpdated` over SignalR | What just **changed**? | While the screen is open |
 
 They are not alternatives. A client that only polled would show prices that are

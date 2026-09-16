@@ -12,7 +12,7 @@ import 'package:isi_steel_sales_mobile/core/network/api_error.dart';
 /// ## What is deliberately *not* logged
 ///
 /// `docs/skills/security.md` §10 is a hard constraint, not a preference: passwords,
-/// tokens, e-mail addresses, phone numbers, customer names and money never go
+/// tokens, e-mail addresses, phone numbers, depot names and money never go
 /// to a log sink. Logs outlive the session that produced them — they are read
 /// by other people, pulled into bug reports, and on Android any app holding
 /// `READ_LOGS` can read them.
@@ -56,7 +56,7 @@ class ApiLogInterceptor extends Interceptor {
     _logger.debug('api.request', fields: {
       'method': options.method,
       'path': options.path,
-      // Keys only. Values can carry a `search` term (a customer name) or a
+      // Keys only. Values can carry a `search` term (a depot name) or a
       // `modifiedSince` watermark; the keys alone answer "was the filter
       // actually sent?", which is the usual question.
       'queryKeys': options.queryParameters.keys.toList(),
@@ -144,7 +144,7 @@ class ApiLogInterceptor extends Interceptor {
 
   /// Describes the payload without printing it: how many rows came back and
   /// what the envelope's paging said. Enough to debug a sync without emitting
-  /// a single customer record.
+  /// a single depot record.
   Map<String, Object?> _payloadShape(Object? data) {
     if (data is! Map) return const {};
 
@@ -153,8 +153,8 @@ class ApiLogInterceptor extends Interceptor {
 
     return {
       // Counts are collapsed into one `rows` list of `"name:count"` strings
-      // rather than a field per collection. A key like `customersCount` would
-      // be masked outright — [LogRedactor] matches "customer" anywhere in a key
+      // rather than a field per collection. A key like `depotsCount` would
+      // be masked outright — [LogRedactor] matches "depot" anywhere in a key
       // name — whereas `rows` is neutral and its string values pass the
       // value-shape checks untouched.
       if (payload is Map)

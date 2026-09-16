@@ -586,7 +586,7 @@ duplication exists so neither document is wrong.
 
 ### 9.2 What is deliberately *not* in it
 
-No prices, no credit limits, no customer phone numbers. A push renders on a locked
+No prices, no credit limits, no depot phone numbers. A push renders on a locked
 screen in front of whoever is holding the phone. The full record is one authenticated
 tap away, which is where it belongs.
 
@@ -683,7 +683,7 @@ void _route(RemoteMessage m) {
 | Quotation | `app://quotations/{quoteId}` |
 | Order | `app://orders/{orderId}` (`?tab=credit` for credit holds) |
 | Approvals queue | `app://approvals?filter={type}` |
-| Customer | `app://customers/{customerId}` |
+| Depot | `app://depots/{depotId}` |
 | Dashboard / KPI | `app://dashboard?period={period}` |
 | Inbox | `app://notifications` |
 | Settings | `app://settings/notifications` |

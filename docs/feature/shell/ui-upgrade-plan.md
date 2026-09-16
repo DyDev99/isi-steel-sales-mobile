@@ -28,7 +28,7 @@ stays; Leads remains cut.
 | File | Lines | `fontSize:` | bare `.sp` | `context.rsp()` | Priority |
 |---|---:|---:|---:|---:|---|
 | `continue_working_card.dart` | 826 | 11 | 15 | 0 | P2 |
-| `add_customer_bottom_sheet.dart` | 777 | 14 | 15 | 0 | P2 |
+| `add_depot_bottom_sheet.dart` | 777 | 14 | 15 | 0 | P2 |
 | `kpi_screen.dart` | 672 | 18 | 23 | 0 | P2 |
 | `main_shell.dart` | 569 | 2 | 0 | 2 | ✅ done |
 | `my_work_grid_section.dart` | 494 | 3 | 2 | 1 | 🟡 partial |
@@ -174,7 +174,7 @@ Rules: FS-RSP-3, FS-VIS-2, FS-VIS-3, FS-UX-3.
 | `kpi_screen.dart` (672) | `crossAxisCount: 2` → `SliverGridDelegateWithMaxCrossAxisExtent` (**FS-RSP-4**); charts need explicit tablet sizing |
 | `continue_working_card.dart` (826) | `MediaQuery.of(context).size.height * 0.75` → constraints (**FS-PRF-4**, FS-RSP-1) |
 | `pending_sync_sheet.dart` (310) | same `.size.height * 0.8` pattern; sheet should become a constrained dialog ≥600pt (**FS-UX-4**) |
-| `add_customer_bottom_sheet.dart` (777) | form fields need max-width; multi-column ≥834pt (**FS-RSP-5**) |
+| `add_depot_bottom_sheet.dart` (777) | form fields need max-width; multi-column ≥834pt (**FS-RSP-5**) |
 
 ---
 

@@ -4,7 +4,7 @@ import 'package:equatable/equatable.dart';
 ///
 /// Deliberately four states, not a bool. "Not yet asked", "asking" and "the
 /// answer is no" are three different things to a rep standing in front of a
-/// customer, and collapsing them means a card that has not been checked looks
+/// depot, and collapsing them means a card that has not been checked looks
 /// identical to one SAP refused.
 enum MaterialStockStatus {
   /// Never asked. The default for every material the rep is only browsing —

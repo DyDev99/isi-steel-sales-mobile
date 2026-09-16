@@ -269,7 +269,6 @@ class _CategoryTile extends StatelessWidget {
                     height: 1.15,
                   ),
                 ),
-               
               ],
             ),
           ),
@@ -277,6 +276,4 @@ class _CategoryTile extends StatelessWidget {
       ),
     );
   }
-
- 
 }

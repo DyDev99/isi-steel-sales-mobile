@@ -174,7 +174,8 @@ class _CartPreviewRow extends StatelessWidget {
 
     bool hasBackendPrice = false;
     try {
-      final p = context.watch<PricingCubit>().state[item.product.materialNumber];
+      final p =
+          context.watch<PricingCubit>().state[item.product.materialNumber];
       if (p != null && p.hasAmount) {
         hasBackendPrice = true;
       }
@@ -354,8 +355,7 @@ class _CartPreviewRow extends StatelessWidget {
                                 Icon(
                                   Icons.edit_note_rounded,
                                   size: context.rw(13),
-                                  color:
-                                      Theme.of(context).colorScheme.primary,
+                                  color: Theme.of(context).colorScheme.primary,
                                 ),
                                 SizedBox(width: context.rw(3)),
                                 Flexible(
@@ -437,9 +437,8 @@ class _CartPreviewRow extends StatelessWidget {
                                     Icon(
                                       Icons.edit_outlined,
                                       size: context.rw(9),
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .primary,
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
                                     ),
                                   ],
                                 ),
@@ -451,10 +450,10 @@ class _CartPreviewRow extends StatelessWidget {
                         Text(
                           '\$${item.unitPrice.toStringAsFixed(2)}/${item.unit}',
                           style: TextStyle(
-                            color: Theme.of(context).brightness ==
-                                    Brightness.dark
-                                ? const Color(0xFF60A5FA)
-                                : colors.brandNavy,
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                    ? const Color(0xFF60A5FA)
+                                    : colors.brandNavy,
                             fontSize: context.rsp(13),
                             fontWeight: FontWeight.w800,
                           ),
@@ -464,10 +463,10 @@ class _CartPreviewRow extends StatelessWidget {
                         Text(
                           lineTotal,
                           style: TextStyle(
-                            color: Theme.of(context).brightness ==
-                                    Brightness.dark
-                                ? const Color(0xFF60A5FA)
-                                : colors.brandNavy,
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                    ? const Color(0xFF60A5FA)
+                                    : colors.brandNavy,
                             fontSize: context.rsp(13.5),
                             fontWeight: FontWeight.w900,
                           ),
@@ -486,7 +485,7 @@ class _CartPreviewRow extends StatelessWidget {
                   // it is where the discount has to be legible. Until now these
                   // rows showed a line total quietly reduced by a percentage that
                   // appeared nowhere — a number the rep could not explain to the
-                  // customer reading over their shoulder.
+                  // depot reading over their shoulder.
                   //
                   // Compact here: the figure, not its provenance. The full
                   // attribution is one scroll down in the quotation preview.

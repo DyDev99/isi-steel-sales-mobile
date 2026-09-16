@@ -7,7 +7,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_
 /// load). At most one row ever exists; see `WorkflowStateLocalDataSource`.
 ///
 /// [routeId]/[currentStopId]/[dayStarted] are the original route-resume
-/// pointer. The rest ([customerId] .. [workflowUpdatedAt]) make it
+/// pointer. The rest ([depotId] .. [workflowUpdatedAt]) make it
 /// *workflow-aware*: they capture which Shop/Depot the rep checked into and
 /// which business activity ([currentWorkflow]) they last entered, so the Home
 /// "Continue Working" card can say "Continue Quotation" and route straight back
@@ -19,7 +19,7 @@ class ActiveWorkflow extends Equatable {
     this.currentStopId,
     required this.dayStarted,
     required this.updatedAt,
-    this.customerId,
+    this.depotId,
     this.shopName,
     this.checkInAt,
     this.currentWorkflow,
@@ -33,9 +33,9 @@ class ActiveWorkflow extends Equatable {
   final bool dayStarted;
   final DateTime updatedAt;
 
-  /// Shop/Depot the rep checked into (== the stop's `customer.id`). The key the
+  /// Shop/Depot the rep checked into (== the stop's `depot.id`). The key the
   /// Continue-Working dedup matches an Order draft against.
-  final String? customerId;
+  final String? depotId;
   final String? shopName;
   final DateTime? checkInAt;
 
@@ -48,21 +48,21 @@ class ActiveWorkflow extends Equatable {
   final String? currentScreen;
 
   /// Screen-specific arguments needed to rebuild [currentScreen] exactly (e.g.
-  /// `{'territory': 'PP'}` for the shop list, `{'customerId': 'C1'}` for a
-  /// customer detail). Persisted as JSON so any future workflow can carry its
+  /// `{'territory': 'PP'}` for the shop list, `{'depotId': 'C1'}` for a
+  /// depot detail). Persisted as JSON so any future workflow can carry its
   /// own context without a schema change.
   final Map<String, dynamic>? navigationArguments;
 
   final DateTime? workflowUpdatedAt;
 
   /// True once the rep has checked into a specific Shop/Depot on this visit.
-  bool get hasCheckedIn => customerId != null && checkInAt != null;
+  bool get hasCheckedIn => depotId != null && checkInAt != null;
 
   ActiveWorkflow copyWith({
     String? currentStopId,
     bool? dayStarted,
     DateTime? updatedAt,
-    String? customerId,
+    String? depotId,
     String? shopName,
     DateTime? checkInAt,
     VisitWorkflow? currentWorkflow,
@@ -75,7 +75,7 @@ class ActiveWorkflow extends Equatable {
         currentStopId: currentStopId ?? this.currentStopId,
         dayStarted: dayStarted ?? this.dayStarted,
         updatedAt: updatedAt ?? this.updatedAt,
-        customerId: customerId ?? this.customerId,
+        depotId: depotId ?? this.depotId,
         shopName: shopName ?? this.shopName,
         checkInAt: checkInAt ?? this.checkInAt,
         currentWorkflow: currentWorkflow ?? this.currentWorkflow,
@@ -90,7 +90,7 @@ class ActiveWorkflow extends Equatable {
         currentStopId,
         dayStarted,
         updatedAt,
-        customerId,
+        depotId,
         shopName,
         checkInAt,
         currentWorkflow,

@@ -14,7 +14,7 @@ import 'package:isi_steel_sales_mobile/features/order/domain/entities/promotion/
 /// hundred?").
 ///
 /// Opened from the card's promotion strip. Deliberately a sheet rather than a
-/// screen: a rep is mid-quotation with a customer in front of them, and a push
+/// screen: a rep is mid-quotation with a depot in front of them, and a push
 /// route would lose the product list behind it.
 Future<void> showPromotionDetailSheet(
   BuildContext context, {

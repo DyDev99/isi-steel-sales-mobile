@@ -23,7 +23,7 @@ cross-cutting: every feature consumes it, no feature owns it.
 
 - Two locales ship: `en` and `km`. Defined as `kSupportedLocales` in
   `lib/app.dart`, backed by JSON at `assets/lang/`.
-- Lookup is the `.tr` extension on a dotted key (`'customers.title'.tr`).
+- Lookup is the `.tr` extension on a dotted key (`'depots.title'.tr`).
 - **A language change restarts the app.** Every named route is wrapped in
   `LocalizedBuilder` by `AppPages._page()`, so the whole subtree rebuilds live;
   `_resolveInitialRoute` keeps signed-in reps and guests on the shell so the
@@ -32,7 +32,7 @@ cross-cutting: every feature consumes it, no feature owns it.
   glyphs and **MiSans Khmer** has no Latin glyphs, so each is registered as the
   other's `fontFamilyFallback`. Never ship one without the other.
 - **Master data is stored bilingually** in the encrypted database, so switching
-  language does not degrade catalog or customer content.
+  language does not degrade catalog or depot content.
 
 ---
 

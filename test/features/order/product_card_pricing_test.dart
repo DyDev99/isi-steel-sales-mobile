@@ -10,14 +10,14 @@ import 'package:isi_steel_sales_mobile/features/order/domain/entities/product_pr
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/product_status.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/filter_flow/product_result_card.dart';
 
-/// The customer-specific price on the selection card.
+/// The depot-specific price on the selection card.
 ///
 /// The card previously showed no price at all, deliberately: the only figure
 /// available to it was `Product.pricing`, a catalogue number that is not what
-/// this customer pays and that rendered `$0.00` against perfectly orderable
+/// this depot pays and that rendered `$0.00` against perfectly orderable
 /// materials. That rule has not been relaxed — these tests pin both halves of
 /// it. The catalogue figure still never appears; what appears is the amount
-/// the pricing endpoint quoted for this customer, matched to the card by SAP
+/// the pricing endpoint quoted for this depot, matched to the card by SAP
 /// material number, with its states kept apart.
 
 /// A catalogue price that must never reach the screen. `standardPrice` is
@@ -149,7 +149,7 @@ void main() {
   group('the catalogue price never leaks', () {
     testWidgets('no figure at all when there is no pricing context',
         (tester) async {
-      // The resting state on a screen with no customer. `Product.pricing` is
+      // The resting state on a screen with no depot. `Product.pricing` is
       // populated here and must still produce nothing.
       await pump(tester, null);
 
@@ -172,7 +172,7 @@ void main() {
 
     testWidgets('a quoted zero is treated as no price, not as free',
         (tester) async {
-      // `$0.00` on a quotation is a promise a customer can hold the rep to.
+      // `$0.00` on a quotation is a promise a depot can hold the rep to.
       await pump(tester, _priced(amount: 0));
 
       expect(find.textContaining(r'$0'), findsNothing);
@@ -198,21 +198,21 @@ void main() {
             errorKind: PricingErrorKind.noPrice,
           ));
 
-      expect(find.text('No price for this customer'), findsOneWidget);
+      expect(find.text('No price for this depot'), findsOneWidget);
       expect(find.text('Retry'), findsNothing);
     });
 
-    testWidgets('a walk-in is told to pick a customer, not shown an error',
+    testWidgets('a walk-in is told to pick a depot, not shown an error',
         (tester) async {
       await pump(
           tester,
           _priced(
             amount: null,
             state: PricingState.unavailable,
-            errorKind: PricingErrorKind.customerNotFound,
+            errorKind: PricingErrorKind.depotNotFound,
           ));
 
-      expect(find.text('Select a customer to see pricing'), findsOneWidget);
+      expect(find.text('Select a depot to see pricing'), findsOneWidget);
       expect(find.text('Retry'), findsNothing);
     });
 

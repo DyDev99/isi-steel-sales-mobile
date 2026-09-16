@@ -27,7 +27,7 @@ class ApiError extends Equatable {
     this.correlationId,
   });
 
-  /// Stable platform code, e.g. `Auth.InvalidCredentials`, `Customer.NotFound`,
+  /// Stable platform code, e.g. `Auth.InvalidCredentials`, `Depot.NotFound`,
   /// `General.Validation`. This is what user-facing copy is keyed off, so a
   /// Khmer-speaking user never sees an English string the server wrote.
   final String code;
@@ -244,21 +244,21 @@ abstract final class ApiErrorCodes {
   /// several specific codes below only appear when validation is bypassed.
   static const validation = 'General.Validation';
 
-  // ── Customer ─────────────────────────────────────────────────────
+  // ── Depot ─────────────────────────────────────────────────────
   /// Absent, deleted, **or outside your row-level scope**. Present it as
   /// "not there", never as "access denied" — the API deliberately refuses to
   /// distinguish the two so it cannot be used to probe for existence.
-  static const customerNotFound = 'Customer.NotFound';
-  static const customerDuplicateCode = 'Customer.DuplicateCode';
+  static const depotNotFound = 'Depot.NotFound';
+  static const depotDuplicateCode = 'Depot.DuplicateCode';
 
   /// `(0,0)` was sent — the GPS fix failed. Carries a message written for the
   /// user directly, so show `message` here.
-  static const customerCoordinatesMissing = 'Customer.CoordinatesMissing';
-  static const customerCoordinatesOutOfRange = 'Customer.CoordinatesOutOfRange';
+  static const depotCoordinatesMissing = 'Depot.CoordinatesMissing';
+  static const depotCoordinatesOutOfRange = 'Depot.CoordinatesOutOfRange';
 
-  /// The customer is closed and immutable (422).
-  static const customerClosed = 'Customer.Closed';
-  static const customerTooManyContacts = 'Customer.TooManyContacts';
+  /// The depot is closed and immutable (422).
+  static const depotClosed = 'Depot.Closed';
+  static const depotTooManyContacts = 'Depot.TooManyContacts';
 
   // ── Client-side sentinels ────────────────────────────────────────
   /// The request never reached the server.

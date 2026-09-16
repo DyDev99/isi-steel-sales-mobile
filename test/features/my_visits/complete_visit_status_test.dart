@@ -68,7 +68,8 @@ void main() {
   Future<void> build({required RouteStatus routeStatus}) async {
     db = AppDatabase(NativeDatabase.memory());
     visitLocal = VisitDriftLocalDataSource(db.visitDao, logger);
-    routes = RouteRepositoryImpl(RouteDriftLocalDataSource(db.routeDao, logger));
+    routes =
+        RouteRepositoryImpl(RouteDriftLocalDataSource(db.routeDao, logger));
     visits = VisitRepositoryImpl(visitLocal);
     workflows = ActiveWorkflowRepositoryImpl(
         WorkflowStateLocalDataSourceImpl(db.workflowStateDao));
@@ -250,10 +251,10 @@ Future<void> _seed(
     ('cust-1', 'C-1', 'ISI Hardware'),
     ('cust-2', 'C-2', 'Mekong Steel'),
   ]) {
-    await db.into(db.customers).insert(CustomersCompanion.insert(
+    await db.into(db.depots).insert(DepotsCompanion.insert(
           id: id,
-          sapCustomerId: Value('SAP-$code'),
-          customerCode: code,
+          sapDepotId: Value('SAP-$code'),
+          depotCode: code,
           shopName: name,
           ownerName: 'Sok Dara',
           phone: '012345678',
@@ -286,14 +287,14 @@ Future<void> _seed(
         status: status.name,
       ));
 
-  for (final (index, stopId, customerId) in const [
+  for (final (index, stopId, depotId) in const [
     (1, 'stop-1', 'cust-1'),
     (2, 'stop-2', 'cust-2'),
   ]) {
     await db.into(db.routeStops).insert(RouteStopsCompanion.insert(
           id: stopId,
           routeId: routeId,
-          customerId: customerId,
+          depotId: depotId,
           sequence: index,
           plannedArrival: day.add(Duration(hours: 8 + index)),
           plannedDeparture: day.add(Duration(hours: 9 + index)),

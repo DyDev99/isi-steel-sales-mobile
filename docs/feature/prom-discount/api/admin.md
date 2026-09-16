@@ -12,10 +12,10 @@
 
 | Method | Route | Permission |
 |---|---|---|
-| `GET` | `/agreement-requests?status=&step=&customerId=` | `agreements.read` |
+| `GET` | `/agreement-requests?status=&step=&depotId=` | `agreements.read` |
 | `GET` | `/agreement-requests/{requestId}` | `agreements.read` |
 | `POST` | `/agreement-requests/{requestId}/steps/{stepOrder}/{outcome}` | `agreements.read` + **the step's own** |
-| `GET` | `/agreement-terms?customerId=&categoryCode=&state=` | `agreements.readall` |
+| `GET` | `/agreement-terms?depotId=&categoryCode=&state=` | `agreements.readall` |
 | `POST` | `/agreement-terms/{termId}/terminate` | `agreements.terminate` |
 | `GET` | `/sap-tasks?status=` | `agreements.sap` |
 | `POST` | `/sap-tasks/{taskId}/done` | `agreements.sap` |
@@ -115,7 +115,7 @@ States: `Approved`, `Effective`, `SapMismatch`, `Superseded`, `Expired`, `Termin
 ## `POST /agreement-terms/{id}/terminate`
 
 For a depot that stops paying, closes, or is found abusing a rate. The reason is
-mandatory — this is the one transition that takes something away from a customer — and
+mandatory — this is the one transition that takes something away from a depot — and
 an end-date task is queued so SAP stops charging it too.
 
 **A term the platform calls terminated while SAP keeps applying the discount is worse
@@ -167,7 +167,7 @@ and this is the join. It also resolves a quotation line's category.
 
 It ships empty because **D14 is unanswered** and only the business can answer it.
 Inventing the mapping would put fictional SAP keys beside real ones — the same reason
-this platform does not seed customers or materials.
+this platform does not seed depots or materials.
 
 ### `PUT /settings/pickup-rules`
 

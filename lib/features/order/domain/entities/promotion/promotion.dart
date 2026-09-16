@@ -19,7 +19,7 @@ enum PromotionLifecycle {
   expired,
 }
 
-/// A free-goods incentive a rep can earn for a customer by ordering enough of
+/// A free-goods incentive a rep can earn for a depot by ordering enough of
 /// something.
 ///
 /// ## What this is not
@@ -27,12 +27,12 @@ enum PromotionLifecycle {
 /// It is **not** a price. It carries no amount and no currency, and applying
 /// one never changes the unit price of a line — it adds a separate free
 /// quantity beside the paid one. That separation is the whole point: a rep
-/// telling a customer "300 bags, and 15 come free" is making a different and
+/// telling a depot "300 bags, and 15 come free" is making a different and
 /// far more checkable promise than "a discount of about 5%".
 ///
 /// ## Eligibility is not decided here
 ///
-/// [tiers] describes the ladder; it does not decide whether this customer, on
+/// [tiers] describes the ladder; it does not decide whether this depot, on
 /// this date, for this material, qualifies. That verdict comes from the
 /// repository, which today reads a published static table and tomorrow reads
 /// the pricing service. Re-deriving it in a widget would give the app a second
@@ -46,7 +46,7 @@ class Promotion extends Equatable {
     required this.validUntil,
     this.materialCodes = const {},
     this.categoryCodes = const {},
-    this.customerIds = const {},
+    this.depotIds = const {},
     this.unitLabel = '',
     this.subtitle,
   });
@@ -72,10 +72,10 @@ class Promotion extends Equatable {
 
   final Set<String> categoryCodes;
 
-  /// Which customers qualify. **Empty means every customer**, which is the
+  /// Which depots qualify. **Empty means every depot**, which is the
   /// common case; a non-empty set is a negotiated deal for named accounts and
   /// must never leak to anyone else.
-  final Set<String> customerIds;
+  final Set<String> depotIds;
 
   /// The unit the ladder counts in — "Bag", "KG". Display only; the quantity
   /// is always the line's own.
@@ -87,14 +87,14 @@ class Promotion extends Equatable {
     return PromotionLifecycle.active;
   }
 
-  /// Whether this promotion is scoped to [customerId].
+  /// Whether this promotion is scoped to [depotId].
   ///
-  /// A null customer — a walk-in, or a quotation started before a shop was
+  /// A null depot — a walk-in, or a quotation started before a shop was
   /// picked — matches only unscoped promotions. Showing a named account's
   /// negotiated deal to a walk-in would be a leak, not a convenience.
-  bool appliesToCustomer(String? customerId) {
-    if (customerIds.isEmpty) return true;
-    return customerId != null && customerIds.contains(customerId);
+  bool appliesToDepot(String? depotId) {
+    if (depotIds.isEmpty) return true;
+    return depotId != null && depotIds.contains(depotId);
   }
 
   bool appliesToMaterial({
@@ -138,7 +138,7 @@ class Promotion extends Equatable {
         validUntil,
         materialCodes,
         categoryCodes,
-        customerIds,
+        depotIds,
         unitLabel,
       ];
 }

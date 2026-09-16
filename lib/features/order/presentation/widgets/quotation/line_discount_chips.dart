@@ -16,7 +16,7 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/promo
 /// **One implementation, three screens.** The builder's cart rows, the
 /// quotation preview and the sales-order lines all render this. Written three
 /// times they would drift, and the first divergence a rep notices is the one
-/// where the cart and the quotation disagree about what the customer is getting
+/// where the cart and the quotation disagree about what the depot is getting
 /// — which is the moment they stop believing either.
 ///
 /// Renders nothing at all for an undiscounted line. An empty discount slot on
@@ -53,7 +53,7 @@ class LineDiscountChips extends StatelessWidget {
         runSpacing: context.rh(3),
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          // The percentage gets its own chip: it is the figure a customer
+          // The percentage gets its own chip: it is the figure a depot
           // repeats back, and the one they will check against the total once
           // the total exists.
           if (percent > 0)

@@ -22,7 +22,7 @@ final class QuotationListLoaded extends QuotationListState {
     required this.selectedGroup,
     required this.page,
     required this.hasMore,
-    this.customerId,
+    this.depotId,
     this.isRefreshing = false,
     this.isLoadingMore = false,
   });
@@ -31,7 +31,7 @@ final class QuotationListLoaded extends QuotationListState {
   final QuotationStatusGroup? selectedGroup;
   final int page;
   final bool hasMore;
-  final String? customerId;
+  final String? depotId;
   final bool isRefreshing;
   final bool isLoadingMore;
 
@@ -40,16 +40,17 @@ final class QuotationListLoaded extends QuotationListState {
     QuotationStatusGroup? Function()? selectedGroup,
     int? page,
     bool? hasMore,
-    String? Function()? customerId,
+    String? Function()? depotId,
     bool? isRefreshing,
     bool? isLoadingMore,
   }) {
     return QuotationListLoaded(
       quotations: quotations ?? this.quotations,
-      selectedGroup: selectedGroup != null ? selectedGroup() : this.selectedGroup,
+      selectedGroup:
+          selectedGroup != null ? selectedGroup() : this.selectedGroup,
       page: page ?? this.page,
       hasMore: hasMore ?? this.hasMore,
-      customerId: customerId != null ? customerId() : this.customerId,
+      depotId: depotId != null ? depotId() : this.depotId,
       isRefreshing: isRefreshing ?? this.isRefreshing,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
     );
@@ -61,7 +62,7 @@ final class QuotationListLoaded extends QuotationListState {
         selectedGroup,
         page,
         hasMore,
-        customerId,
+        depotId,
         isRefreshing,
         isLoadingMore,
       ];

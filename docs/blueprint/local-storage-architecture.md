@@ -7,9 +7,9 @@
 
 ## 1. Locked decision
 
-**Migrate to a single Drift database, encrypted at rest, with generated DAOs and one unified migrator.** The three existing per-feature plaintext `sqflite` databases (`catalog.db`, `customers.db`, `routes.db`) are ported into it; no plaintext database file ships. This is a Sprint-1, encryption-first priority — see `docs/blueprint/migration-plan.md` §Sprint 1 — because it closes the most severe finding from architecture review: **customer PII and revenue data currently sit in plaintext SQLite.**
+**Migrate to a single Drift database, encrypted at rest, with generated DAOs and one unified migrator.** The three existing per-feature plaintext `sqflite` databases (`catalog.db`, `depots.db`, `routes.db`) are ported into it; no plaintext database file ships. This is a Sprint-1, encryption-first priority — see `docs/blueprint/migration-plan.md` §Sprint 1 — because it closes the most severe finding from architecture review: **depot PII and revenue data currently sit in plaintext SQLite.**
 
-Why a single DB instead of the current three: cross-feature transactions and joins are otherwise impossible (a checkout that touches cart, customer, and sync-queue rows can't be atomic across three separate database files), and operating three independently-versioned migrators is itself a reliability risk.
+Why a single DB instead of the current three: cross-feature transactions and joins are otherwise impossible (a checkout that touches cart, depot, and sync-queue rows can't be atomic across three separate database files), and operating three independently-versioned migrators is itself a reliability risk.
 
 ---
 
@@ -100,12 +100,12 @@ Use this test when adding a table or a constraint:
 | Situation | Foreign key? |
 |---|---|
 | Parent and child arrive in the **same payload from one endpoint** | **Yes** — no ordering hazard exists (e.g. `prices → products`) |
-| Parent and child arrive from **different endpoints**, paged or scoped separately | **No** — the server never promised an arrival order (e.g. `route_stops → customers`) |
+| Parent and child arrive from **different endpoints**, paged or scoped separately | **No** — the server never promised an arrival order (e.g. `route_stops → depots`) |
 | The child is a **rep-captured row** (check-in, note, photo, collection, fraud flag) | **No** — never let a sync-driven parent delete first-hand field work |
 | A cascade could fire during **normal sync** | **No** — sync must never be able to delete data as a side effect |
 
 Two failures motivated this, both reproduced on the v17 schema: one unrecognised
-customer aborted a whole route write (`SqliteException(787)`, zero stops
+depot aborted a whole route write (`SqliteException(787)`, zero stops
 persisted), and the `visit_* → route_stops` cascade deleted unsynced check-ins
 and notes whenever route sync refreshed a route. Full evidence and the surviving
 constraint list: `docs/adr/ADR-0011-local-mirror-no-foreign-keys.md`.
@@ -131,7 +131,7 @@ Every table that participates in sync (i.e., almost everything except pure local
 
 | Group | Tables |
 |---|---|
-| Master | users, customers, products, categories, territories, warehouses, brands |
+| Master | users, depots, products, categories, territories, warehouses, brands |
 | Transactional | carts, cart_items, quotations, quotation_lines, sales_orders, routes, route_stops, visits/check_in/check_out, stock_counts, returns, collections, leads, revenue |
 | Reference | off_visit_reasons, fraud_policies, product_grades/sizes, config_lookups |
 | Security | device_registrations, auth_sessions, key_metadata |
@@ -149,7 +149,7 @@ Every table that participates in sync (i.e., almost everything except pure local
 
 ## 4. DAO conventions
 
-- One DAO per aggregate/table group (e.g. `CustomerDao`, `RouteDao`, `SyncQueueDao`), generated via Drift codegen against the table definitions in `core/database/drift/tables/`.
+- One DAO per aggregate/table group (e.g. `DepotDao`, `RouteDao`, `SyncQueueDao`), generated via Drift codegen against the table definitions in `core/database/drift/tables/`.
 - DAOs return typed Drift row classes to the data layer's mappers; mappers (not DAOs, not repositories) are responsible for converting rows to domain entities. This is a formalization of an existing gap — the current hand-written `*LocalDataSource` classes do runtime-only mapping with no compile-time safety, which Drift codegen fixes by construction.
 - Any DAO method that writes to a syncable table must be callable **inside the same transaction** as the corresponding `sync_queue` insert — see `docs/blueprint/sync-architecture.md` §2. This typically means the DAO exposes both the entity-write method and is invoked from within a repository-level `db.transaction(...)` block, not that the DAO itself decides sync policy.
 - No feature may hold a second, private `sqflite`/`Database` handle. All local reads/writes for any feature go through the shared `AppDatabase` and its DAOs — this is the concrete fix for "operational complexity of many DBs."
@@ -158,7 +158,7 @@ Every table that participates in sync (i.e., almost everything except pure local
 
 ## 5. Migrations
 
-- One `schemaVersion` on `AppDatabase`, one stepwise `onUpgrade`, registered in a schema-version registry — replacing the current per-DB self-versioning (`catalog.db`, `customers.db`, and `routes.db` each version independently today, with no shared framework and no migration tests, which review flagged as the top maintenance risk).
+- One `schemaVersion` on `AppDatabase`, one stepwise `onUpgrade`, registered in a schema-version registry — replacing the current per-DB self-versioning (`catalog.db`, `depots.db`, and `routes.db` each version independently today, with no shared framework and no migration tests, which review flagged as the top maintenance risk).
 - Every migration step ships with a Drift schema test that runs the upgrade path against a fixture of the *previous* schema version and asserts data survives intact — migrations are tested before merge, not discovered broken in the field.
 - Migrations must be idempotent and safe to re-run (a device that crashes mid-migration and restarts should not corrupt data or double-apply a step).
 - Downgrade guard: a build must refuse to open a database with a `schemaVersion` higher than it knows about, rather than attempting to "migrate" backwards — this protects against a rollback deploy corrupting user data (see `docs/blueprint/migration-plan.md` DevOps rollback note).

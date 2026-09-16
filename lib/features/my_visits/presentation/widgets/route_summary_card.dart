@@ -53,8 +53,8 @@ class RouteSummaryCard extends StatelessWidget {
     return GeofenceService.distanceMeters(
       pos.latitude,
       pos.longitude,
-      next.customer.latitude,
-      next.customer.longitude,
+      next.depot.latitude,
+      next.depot.longitude,
     );
   }
 

@@ -41,7 +41,7 @@ class _AppCoachHostState extends State<AppCoachHost> {
   void _onTabChanged() {
     const map = <int, CoachAction>{
       ShellTab.home: CoachAction.openHome,
-      ShellTab.customers: CoachAction.openCustomers,
+      ShellTab.depots: CoachAction.openDepots,
       ShellTab.myVisits: CoachAction.openMyVisits,
       ShellTab.orders: CoachAction.openOrders,
     };

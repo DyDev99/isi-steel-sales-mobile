@@ -123,12 +123,12 @@
     "quick_access": {
       "leads": "អតិថិជនគោលដៅ",
       "orders": "ការបញ្ជាទិញ",
-      "customers": "អតិថិជន",
+      "depots": "ដេប៉ូ",
       "routes": "ផ្លូវទស្សនកិច្ច",
       "revenue": "ប្រាក់ចំណូល",
       "suspended": "ផ្អាក",
       "prospect": "អតិថិជនគោលដៅ",
-      "total_customers": "អតិថិជនសរុប",
+      "total_depots": "ដេប៉ូសរុប",
       "active": "សកម្ម",
       "add_customer": "បន្ថែមអតិថិជន",
       "opportunities": "ឱកាសលក់",
@@ -647,19 +647,19 @@
       "budget_likely": "ទំនងជាមាន"
     }
   },
-  "customers": {
-    "title": "អតិថិជន",
+  "depots": {
+    "title": "ដេប៉ូ",
     "list": "បញ្ជីឈ្មោះអតិថិជន",
     "add": "ចុះឈ្មោះអតិថិជនថ្មី",
     "credit_limit": "ដែនកំណត់ឥណទាន",
-    "no_customers": "រកមិនឃើញអតិថិជនទេ",
+    "no_depots": "រកមិនឃើញអតិថិជនទេ",
     "nothing_here": "មិនទាន់មានអ្វីនៅទីនេះទេ",
     "all": "ទាំងអស់",
     "recent": "ថ្មីៗ",
     "favorites": "ចូលចិត្ត",
     "unassigned": "មិនទាន់កំណត់",
     "group": {
-      "customer": "អតិថិជន",
+      "depot": "អតិថិជន",
       "sales_org": "អង្គភាពលក់",
       "division": "ផ្នែក"
     },
@@ -1038,7 +1038,9 @@
       "action_call": "ហៅទូរស័ព្ទ",
       "action_maps": "បើកផែនទី",
       "action_orders": "ការបញ្ជាទិញមុន",
-      "action_history": "ប្រវត្តិទស្សនកិច្ច"
+      "action_history": "ប្រវត្តិទស្សនកិច្ច",
+      "example": "ឧទាហរណ៍",
+      "not_recorded": "មិនបានកត់ត្រា"
     },
     "stop_dashboard": {
       "search_hint": "ស្វែងរកហាង លេខកូដ ផ្លូវ អាសយដ្ឋាន",
@@ -1103,9 +1105,10 @@
       "no_outlet_title": "គ្មានទីតាំងហាង",
       "no_outlet_body": "ហាងនេះមិនមានទីតាំងកត់ត្រាទេ ដូច្នេះមិនអាចផ្ទៀងផ្ទាត់ចម្ងាយរបស់អ្នកបានឡើយ។",
       "continue_with_reason": "បន្តដោយមានហេតុផល"
-    }
+    },
+    "screenshot_saved": "បានរក្សាទុករូបថតអេក្រង់ក្នុងរូបភាពរបស់អ្នក"
   },
-  "add_customer": {
+  "add_depot": {
     "compliance": "ឯកសារអាជ្ញាប័ណ្ណ",
     "contact_name": "ឈ្មោះអ្នកទំនាក់ទំនង",
     "review_title": "ពិនិត្យមើលព័ត៌មានអតិថិជន",
@@ -1176,7 +1179,6 @@
     "name_kh_hint": "បញ្ចូលឈ្មោះអាជីវកម្មជាភាសាខ្មែរ",
     "name2": "ឈ្មោះបន្ថែម",
     "name2_hint": "ឈ្មោះបន្ថែម (ស្រេចចិត្ត)",
-    "search_term": "ពាក្យស្វែងរក",
     "co_name": "ឈ្មោះក្រុមហ៊ុន / អ្នកទំនាក់ទំនង",
     "co_name_hint": "ឈ្មោះក្រុមហ៊ុន ឬអ្នកទំនាក់ទំនង (ស្រេចចិត្ត)",
     "code_assigned_by_sap": "លេខកូដអតិថិជននឹងត្រូវកំណត់ដោយ SAP",
@@ -1199,11 +1201,13 @@
     "sales_office": "ការិយាល័យលក់",
     "sales_group": "ក្រុមលក់",
     "division": "ផ្នែក",
-    "customer_group": "ក្រុមអតិថិជន (ប្រភេទពាណិជ្ជកម្ម)",
+    "depot_group": "ក្រុមអតិថិជន (ប្រភេទពាណិជ្ជកម្ម)",
     "price_group_auto": "ក្រុមតម្លៃត្រូវបានកំណត់ដោយស្វ័យប្រវត្តិ",
     "delivery_priority": "អាទិភាពដឹកជញ្ជូន",
     "shipping_condition": "លក្ខខណ្ឌដឹកជញ្ជូន",
     "payment_term": "លក្ខខណ្ឌទូទាត់",
+    "credit_limit": "ដែនកំណត់ឥណទាន",
+    "pick_credit_limit": "ជ្រើសរើសដែនកំណត់ឥណទាន",
     "tax_class": "ប្រភេទពន្ធ",
     "vat_tin": "VAT / TIN",
     "vat_tin_hint": "បញ្ចូលលេខអត្តសញ្ញាណពន្ធ",
@@ -1217,6 +1221,10 @@
     "photo_vat": "វិញ្ញាបនបត្រ VAT",
     "photo_tap": "ចុចដើម្បីថតរូប",
     "photo_attached": "បានភ្ជាប់រូបថត",
+    "photo_uploading": "កំពុងផ្ទុកឡើង...",
+    "photo_uploaded": "បានផ្ទុកឡើងរួចរាល់",
+    "photo_upload_failed": "ការផ្ទុកឡើងបរាជ័យ។ ចុចដើម្បីព្យាយាមម្តងទៀត",
+    "waiting_photo_upload": "សូមរង់ចាំរូបភាពផ្ទុកឡើងរួចរាល់",
     "remark": "កំណត់សម្គាល់",
     "remark_hint": "បន្ថែមកំណត់សម្គាល់ (ស្រេចចិត្ត)",
     "review": "ពិនិត្យឡើងវិញ",
@@ -1235,9 +1243,17 @@
       "finishing": "កំពុងបញ្ចប់",
       "sap_note": "បានផ្ញើទៅការិយាល័យ។ ការបញ្ជូនទៅ SAP នឹងធ្វើពេលក្រោយ — អ្នកមិនចាំបាច់រង់ចាំទេ។",
       "keep_open": "សូមកុំបិទអេក្រង់នេះ"
-    }
+    },
+    "search_term1": "ពាក្យស្វែងរក ១",
+    "search_term1_hint": "ឧ. PHNOM PENH",
+    "search_term1_note": "ប្រើដើម្បីស្វែងរកដេប៉ូនេះក្នុង SAP។ អតិបរមា ២០ តួអក្សរ។",
+    "search_term2": "ពាក្យស្វែងរក ២",
+    "search_term2_hint": "ឧ. ឈ្មោះខ្លីរបស់ហាង",
+    "search_term2_note": "ពាក្យស្វែងរកទីពីរ (មិនចាំបាច់)។",
+    "success_pending_approval": "បានផ្ញើសុំការអនុម័ត។ មិនទាន់អាចបញ្ជាទិញលើដេប៉ូនេះបានទេ។",
+    "success_with_code": "បានបង្កើតដេប៉ូ {code} ។"
   },
-  "add_customer.shop_types": {
+  "add_depot.shop_types": {
     "hardware_shop": "ហាងលក់គ្រឿងសំណង់",
     "retailer": "អ្នកលក់រាយ",
     "wholesaler": "អ្នកលក់ដុំ",
@@ -1245,7 +1261,7 @@
     "distributor": "អ្នកចែកចាយ",
     "key_account": "អតិថិជនសំខាន់"
   },
-  "add_customer.roles": {
+  "add_depot.roles": {
     "owner": "ម្ចាស់",
     "manager": "អ្នកគ្រប់គ្រង",
     "buyer": "អ្នកទិញ"
@@ -1551,7 +1567,7 @@
     "price_unavailable": "មិនមានតម្លៃ"
   },
   "shell": {
-    "add_customer": "បន្ថែមអតិថិជន",
+    "add_depot": "បន្ថែមដេប៉ូ",
     "add_visit": {
       "add": "បន្ថែមទស្សនកិច្ច",
       "added": "បានបន្ថែមទស្សនកិច្ចទៅ {shop} ក្នុងផ្លូវថ្ងៃនេះ",
@@ -1582,7 +1598,7 @@
     },
     "login_required_label": "{feature}។ ត្រូវការចូលគណនី។",
     "monthly_target": "គោលដៅខែ {month}",
-    "my_customers": "អតិថិជន",
+    "my_depots": "ដេប៉ូ",
     "my_leads": "អតិថិជនគោលដៅ",
     "my_quotes_orders": "សម្រង់តម្លៃ និងការបញ្ជាទិញ",
     "my_visits": "ទស្សនកិច្ចរបស់ខ្ញុំ",

@@ -22,7 +22,7 @@ class Static {
   // skipping it flips `isOnboardingComplete`, after which splash routes
   // straight to the shell and this is never seen again.
   static const String onboarding = '/onboarding';
-  static const String customer = '/customer';
+  static const String depot = '/depot';
   static const String profile = '/profile';
   static const String myVisits = '/my-visits';
   static const String order = '/order';

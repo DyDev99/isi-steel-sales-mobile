@@ -238,7 +238,7 @@ void main() {
     });
 
     test('toString carries no title, body or data values', () {
-      // A push body can name a customer; `docs/skills/security.md` §10 keeps customer
+      // A push body can name a depot; `docs/skills/security.md` §10 keeps depot
       // information out of logs.
       const push = PushMessage(
         data: {'event_code': 'ORDER.CREDIT_HOLD', 'entity_id': 'secret-id'},

@@ -95,7 +95,7 @@ void main() {
     final adapter = _ScriptedAdapter((_) async => _json({'ok': true}, 200));
     final dio = build(adapter: adapter, refreshAdapter: adapter);
 
-    await dio.get<dynamic>('/mobile/customers');
+    await dio.get<dynamic>('/mobile/depots');
 
     expect(adapter.requests.single.headers['Authorization'],
         'Bearer stale_access');
@@ -115,7 +115,7 @@ void main() {
     final dio = build(adapter: adapter, refreshAdapter: refreshAdapter);
 
     await expectLater(
-      dio.get<dynamic>('/mobile/customers'),
+      dio.get<dynamic>('/mobile/depots'),
       throwsA(isA<DioException>()),
     );
     expect(refreshCalls, 0);
@@ -149,7 +149,7 @@ void main() {
     });
 
     final dio = build(adapter: adapter, refreshAdapter: replayAdapter);
-    final response = await dio.get<dynamic>('/mobile/customers');
+    final response = await dio.get<dynamic>('/mobile/depots');
 
     expect(response.statusCode, 200);
     expect(calls, 1, reason: 'the original request is attempted once');
@@ -172,7 +172,7 @@ void main() {
     final adapter = _ScriptedAdapter((_) async => _json({}, 401));
 
     await build(adapter: adapter, refreshAdapter: replayAdapter)
-        .get<dynamic>('/mobile/customers');
+        .get<dynamic>('/mobile/depots');
 
     final refreshRequest = replayAdapter.requests
         .firstWhere((r) => r.path.contains('refresh'))
@@ -199,7 +199,7 @@ void main() {
     final adapter = _ScriptedAdapter((_) async => _json({}, 401));
 
     await build(adapter: adapter, refreshAdapter: replayAdapter)
-        .get<dynamic>('/mobile/customers');
+        .get<dynamic>('/mobile/depots');
 
     expect(store.writeOrder, ['refresh', 'access']);
   });
@@ -217,7 +217,7 @@ void main() {
     );
 
     await expectLater(
-      dio.get<dynamic>('/mobile/customers'),
+      dio.get<dynamic>('/mobile/depots'),
       throwsA(isA<DioException>()),
     );
     expect(store.clears, 1);

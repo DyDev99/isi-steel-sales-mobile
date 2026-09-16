@@ -33,9 +33,9 @@ class StopDistanceSorter {
           // rather than being measured against (0, 0) — which would put it
           // 10 000 km away in the Gulf of Guinea and bury a shop the rep may
           // be standing next to.
-          distanceMeters: s.customer.hasCoordinates
-              ? GeofenceService.distanceMeters(latitude, longitude,
-                  s.customer.latitude, s.customer.longitude)
+          distanceMeters: s.depot.hasCoordinates
+              ? GeofenceService.distanceMeters(
+                  latitude, longitude, s.depot.latitude, s.depot.longitude)
               : null,
         ),
     ];

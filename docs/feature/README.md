@@ -17,7 +17,7 @@ works offline, and where the code lives.
 | Feature | `lib/features/` | Entry point | Coverage |
 |---|---|---|---|
 | **Authentication** | `authentication` | [authentication/README.md](authentication/README.md) | Full 15-document package — the reference standard for this directory |
-| **Customer** | `customers` | [customer/README.md](customer/README.md) | API contract, UI/UX step design, SAP BP registration sub-package |
+| **Depot** | `depots` | [depot/README.md](depot/README.md) | API contract, UI/UX step design, SAP BP registration sub-package |
 | **My Visits** | `my_visits` | [my-visits/README.md](my-visits/README.md) | Architecture, workflow, backend API proposal |
 | **Order & Quotation** | `order` | [order/README.md](order/README.md) | Workflow, guided product selection, stock availability |
 | **Notification** | `notification` | [notification/README.md](notification/README.md) | Full mobile integration guide (inbox, push, preferences, deep links) |
@@ -83,4 +83,4 @@ worse than an absent file — it implies coverage that does not exist.
 4. **The code wins on what the app does.** Document divergence rather than
    silently "fixing" either side — see
    [../blueprint/README.md](../blueprint/README.md#known-documentation--code-divergences).
-5. **No secrets.** No tokens, keys, certificates, or real customer data.
+5. **No secrets.** No tokens, keys, certificates, or real depot data.

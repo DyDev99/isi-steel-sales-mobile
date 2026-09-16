@@ -22,7 +22,7 @@
 
 `sqlcipher_flutter_libs` (ratified by ADR-008) publishes no web implementation, and `openEncryptedDatabase` fails closed when `PRAGMA cipher_version` returns empty. **On web, the existing code therefore refuses to open the database.** That is the ADR-008 guarantee working as designed, not a defect — but it means a web target cannot ship until this ADR says what web persistence *is*.
 
-The decision is architecturally significant and cannot be inferred from the mobile design, because the mobile design assumes a hardware-backed keystore that browsers do not have. Left undecided, the path of least resistance for the next engineer is `WasmDatabase` + IndexedDB, which writes customer PII, GPS traces, and quotation pricing to unencrypted browser storage — reintroducing on a new platform the exact finding `docs/blueprint/migration-plan.md` T1.5 exists to close.
+The decision is architecturally significant and cannot be inferred from the mobile design, because the mobile design assumes a hardware-backed keystore that browsers do not have. Left undecided, the path of least resistance for the next engineer is `WasmDatabase` + IndexedDB, which writes depot PII, GPS traces, and quotation pricing to unencrypted browser storage — reintroducing on a new platform the exact finding `docs/blueprint/migration-plan.md` T1.5 exists to close.
 
 ## Decision
 

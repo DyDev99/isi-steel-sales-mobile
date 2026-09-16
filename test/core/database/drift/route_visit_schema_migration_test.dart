@@ -54,8 +54,8 @@ void main() {
       );
     });
 
-    test('customers absorbs the two route-execution columns', () async {
-      final rows = await db.customSelect('PRAGMA table_info(customers);').get();
+    test('depots absorbs the two route-execution columns', () async {
+      final rows = await db.customSelect('PRAGMA table_info(depots);').get();
       final columns = rows.map((r) => r.data['name'] as String).toSet();
 
       expect(
@@ -86,14 +86,14 @@ void main() {
 
     // ── ADR-011 reversed both of these ───────────────────────────────
     //
-    // They used to assert that a stop referencing an unknown customer or an
+    // They used to assert that a stop referencing an unknown depot or an
     // unknown route was rejected, as "the win ADR-001 was adopted for". In
     // practice the rejection aborted the entire route-write transaction, so
-    // one unrecognised customer cost the rep every stop of their day rather
+    // one unrecognised depot cost the rep every stop of their day rather
     // than the one bad row. The backend validates these relationships before
     // it sends the payload; the device's job is to store what arrived.
 
-    test('a stop whose customer has not synced yet is stored, not rejected',
+    test('a stop whose depot has not synced yet is stored, not rejected',
         () async {
       await insertRoute('route-1');
 
@@ -101,7 +101,7 @@ void main() {
             RouteStopsCompanion.insert(
               id: 'stop-1',
               routeId: 'route-1',
-              customerId: 'ghost-customer',
+              depotId: 'ghost-depot',
               sequence: 1,
               plannedArrival: DateTime.utc(2026, 7, 15, 9),
               plannedDeparture: DateTime.utc(2026, 7, 15, 10),
@@ -111,7 +111,7 @@ void main() {
 
       final stored = await db.select(db.routeStops).get();
       expect(stored, hasLength(1));
-      expect(stored.single.customerId, 'ghost-customer');
+      expect(stored.single.depotId, 'ghost-depot');
     });
 
     test('a stop whose route has not been written yet is stored too', () async {
@@ -119,7 +119,7 @@ void main() {
             RouteStopsCompanion.insert(
               id: 'stop-1',
               routeId: 'ghost-route',
-              customerId: 'ghost-customer',
+              depotId: 'ghost-depot',
               sequence: 1,
               plannedArrival: DateTime.utc(2026, 7, 15, 9),
               plannedDeparture: DateTime.utc(2026, 7, 15, 10),
@@ -258,15 +258,15 @@ void main() {
         raw.execute('DROP TABLE IF EXISTS $table;');
       }
       // Indexes first — SQLite refuses to drop a column an index references.
-      raw.execute('DROP INDEX IF EXISTS idx_customers_sales_org;');
-      raw.execute('DROP INDEX IF EXISTS idx_customers_division;');
+      raw.execute('DROP INDEX IF EXISTS idx_depots_sales_org;');
+      raw.execute('DROP INDEX IF EXISTS idx_depots_division;');
       // v9's SAP columns must come off too, otherwise step 9 re-adds columns
       // that already exist and the upgrade fails with "duplicate column name".
       for (final column in [
         'sales_org',
         'division',
         'distribution_channel',
-        'customer_group',
+        'depot_group',
         'price_group',
         'en_name',
         'kh_name',
@@ -277,24 +277,23 @@ void main() {
         'created_at',
         'sync_state',
       ]) {
-        raw.execute('ALTER TABLE customers DROP COLUMN $column;');
+        raw.execute('ALTER TABLE depots DROP COLUMN $column;');
       }
-      raw.execute('ALTER TABLE customers DROP COLUMN territory_type;');
-      raw.execute(
-          'ALTER TABLE customers DROP COLUMN geofence_radius_override;');
+      raw.execute('ALTER TABLE depots DROP COLUMN territory_type;');
+      raw.execute('ALTER TABLE depots DROP COLUMN geofence_radius_override;');
       raw.execute('PRAGMA user_version = 6;');
       raw.dispose();
     }
 
-    test('an existing customer survives the upgrade with new columns null',
+    test('an existing depot survives the upgrade with new columns null',
         () async {
       await createV6Fixture();
 
-      // Seed a v6 customer, as a real device would have.
+      // Seed a v6 depot, as a real device would have.
       final raw = sqlite.sqlite3.open(dbFile.path);
       raw.execute('''
-        INSERT INTO customers (
-          id, sap_customer_id, customer_code, shop_name, owner_name, phone,
+        INSERT INTO depots (
+          id, sap_depot_id, depot_code, shop_name, owner_name, phone,
           address, province, district, territory, latitude, longitude,
           credit_limit, status, assigned_rep_id, assigned_rep_name, updated_at
         ) VALUES (
@@ -309,15 +308,15 @@ void main() {
       final db = AppDatabase(NativeDatabase(dbFile));
       addTearDown(db.close);
 
-      final customer = await db.select(db.customers).getSingle();
+      final depot = await db.select(db.depots).getSingle();
 
       // The upgrade must not lose the row or any of its data.
-      expect(customer.id, 'cust-1');
-      expect(customer.shopName, 'ISI Hardware');
-      expect(customer.creditLimit, 5000.0);
+      expect(depot.id, 'cust-1');
+      expect(depot.shopName, 'ISI Hardware');
+      expect(depot.creditLimit, 5000.0);
       // Newly-added columns are null for pre-existing rows, by design.
-      expect(customer.territoryType, isNull);
-      expect(customer.geofenceRadiusOverride, isNull);
+      expect(depot.territoryType, isNull);
+      expect(depot.geofenceRadiusOverride, isNull);
     });
 
     test('upgrade creates the route/visit tables and records the registry',
@@ -402,8 +401,8 @@ void main() {
       // Seed the FK chain a real device would have, then two legacy counts:
       // one out-of-stock, one counted-in-stock.
       raw.execute('''
-        INSERT INTO customers (
-          id, sap_customer_id, customer_code, shop_name, owner_name, phone,
+        INSERT INTO depots (
+          id, sap_depot_id, depot_code, shop_name, owner_name, phone,
           address, province, district, territory, latitude, longitude,
           credit_limit, status, assigned_rep_id, assigned_rep_name, updated_at
         ) VALUES (
@@ -422,7 +421,7 @@ void main() {
       ''');
       raw.execute('''
         INSERT INTO route_stops (
-          id, updated_at, deleted, sync_state, dirty, route_id, customer_id,
+          id, updated_at, deleted, sync_state, dirty, route_id, depot_id,
           sequence, planned_arrival, planned_departure, status
         ) VALUES ('stop-1', '$iso', 0, 'synced', 0, 'route-1', 'cust-1', 1,
           '$iso', '$iso', 'pending');

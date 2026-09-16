@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/data/models/customer_stop_info_model.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/data/models/depot_stop_info_model.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/models/route_plan_model.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/models/route_stop_model.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_plan.dart';
@@ -11,7 +11,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_
 /// always computed 0 completed / 0% progress no matter what the mock emitted.
 /// These assert the execution state now flows from the payload into the entity.
 void main() {
-  const customer = CustomerStopInfoModel(
+  const depot = DepotStopInfoModel(
     id: 'cust-1',
     name: 'ISI Hardware',
     code: 'C-1',
@@ -27,7 +27,7 @@ void main() {
   Map<String, dynamic> stopJson(Map<String, dynamic> extra) => {
         'id': 's-1',
         'routeId': 'r-1',
-        'customerId': 'cust-1',
+        'depotId': 'cust-1',
         'sequence': 1,
         'plannedArrival': '2026-07-15T09:00:00.000',
         'plannedDeparture': '2026-07-15T09:20:00.000',
@@ -42,7 +42,7 @@ void main() {
           'actualArrival': '2026-07-15T09:02:00.000',
           'actualDeparture': '2026-07-15T09:24:00.000',
         }),
-        customer: customer,
+        depot: depot,
       );
 
       expect(stop.status, VisitStatus.checkedOut);
@@ -53,7 +53,7 @@ void main() {
     test('a missed stop maps to VisitStatus.missed with no actuals', () {
       final stop = RouteStopModel.fromJson(
         stopJson({'status': 'missed'}),
-        customer: customer,
+        depot: depot,
       );
 
       expect(stop.status, VisitStatus.missed);
@@ -62,7 +62,7 @@ void main() {
     });
 
     test('an absent status falls back to pending (payload without state)', () {
-      final stop = RouteStopModel.fromJson(stopJson({}), customer: customer);
+      final stop = RouteStopModel.fromJson(stopJson({}), depot: depot);
 
       expect(stop.status, VisitStatus.pending);
     });
@@ -70,7 +70,7 @@ void main() {
     test('an unrecognised status falls back rather than throwing', () {
       final stop = RouteStopModel.fromJson(
         stopJson({'status': 'teleported'}),
-        customer: customer,
+        depot: depot,
       );
 
       expect(stop.status, VisitStatus.pending);

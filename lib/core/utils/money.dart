@@ -20,7 +20,7 @@ class Money extends Equatable {
 
   /// Reads the `{ amount, currency }` object. Tolerates a bare number for the
   /// legacy local rows written before the money objects landed, defaulting
-  /// those to [fallbackCurrency] — a customer trades in exactly one currency,
+  /// those to [fallbackCurrency] — a depot trades in exactly one currency,
   /// carried on the top-level `currency` field, so that is the right default
   /// to pass when rehydrating a stored row.
   factory Money.fromJson(Object? raw, {String fallbackCurrency = 'USD'}) {
@@ -45,7 +45,7 @@ class Money extends Equatable {
   // There is nothing here for them to do: `availableCredit` is computed
   // server-side as limit − balance and must not be recomputed — if the two
   // ever disagree the server is right. Adding operators would invite exactly
-  // the client-side credit block the customers guide warns against, built on
+  // the client-side credit block the depots guide warns against, built on
   // `creditBalance`, which is maintained by the SAP interface and is only as
   // fresh as the last run. Add them when something genuinely needs to compute
   // with money, along with the currency-mismatch guard that has to come first.

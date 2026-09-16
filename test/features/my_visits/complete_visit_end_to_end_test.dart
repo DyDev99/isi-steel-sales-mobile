@@ -69,7 +69,7 @@ void main() {
       latitude: 11.55,
       longitude: 104.91,
       accuracyMeters: 8,
-      distanceFromCustomerMeters: 20,
+      distanceFromDepotMeters: 20,
       isMocked: false,
     ));
     await routes.updateStopStatus(stopId,
@@ -131,7 +131,7 @@ void main() {
         latitude: 11.55,
         longitude: 104.91,
         accuracyMeters: 8,
-        distanceFromCustomerMeters: 20,
+        distanceFromDepotMeters: 20,
         isMocked: false,
       ));
       await routes.updateStopStatus(stopId,
@@ -207,7 +207,7 @@ void main() {
   });
 }
 
-/// One route with one stop, and the customer row its FK needs.
+/// One route with one stop, and the depot row its FK needs.
 Future<void> _seedRouteWithStop(
   AppDatabase db, {
   required String routeId,
@@ -216,10 +216,10 @@ Future<void> _seedRouteWithStop(
   final now = DateTime.now().toUtc();
   final day = DateTime.utc(now.year, now.month, now.day);
 
-  await db.into(db.customers).insert(CustomersCompanion.insert(
+  await db.into(db.depots).insert(DepotsCompanion.insert(
         id: 'cust-1',
-        sapCustomerId: const Value('SAP-1'),
-        customerCode: 'C-1',
+        sapDepotId: const Value('SAP-1'),
+        depotCode: 'C-1',
         shopName: 'ISI Hardware',
         ownerName: 'Sok Dara',
         phone: '012345678',
@@ -252,7 +252,7 @@ Future<void> _seedRouteWithStop(
   await db.into(db.routeStops).insert(RouteStopsCompanion.insert(
         id: stopId,
         routeId: routeId,
-        customerId: 'cust-1',
+        depotId: 'cust-1',
         sequence: 1,
         plannedArrival: day.add(const Duration(hours: 9)),
         plannedDeparture: day.add(const Duration(hours: 10)),

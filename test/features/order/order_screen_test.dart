@@ -18,6 +18,7 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/screens/order
 import 'package:mocktail/mocktail.dart';
 
 class _MockWatchQuotations extends Mock implements WatchQuotations {}
+
 class _MockWatchSalesOrders extends Mock implements WatchSalesOrders {}
 
 void main() {
@@ -42,7 +43,8 @@ void main() {
 
   tearDown(() async => GetIt.instance.reset());
 
-  testWidgets('OrderScreen renders order cards with total and label', (tester) async {
+  testWidgets('OrderScreen renders order cards with total and label',
+      (tester) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -97,7 +99,8 @@ void main() {
     expect(find.text('\$250.00'), findsOneWidget);
   });
 
-  testWidgets('OrderScreen does not overflow with 1.3 text scale factor', (tester) async {
+  testWidgets('OrderScreen does not overflow with 1.3 text scale factor',
+      (tester) async {
     tester.view.physicalSize = const Size(375, 812);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);

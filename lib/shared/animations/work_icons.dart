@@ -22,7 +22,7 @@ import 'package:flutter/material.dart';
 ///
 /// Every icon honours `MediaQuery.disableAnimations` by holding its finished
 /// frame — the drawing carries the meaning, only the movement is optional.
-enum WorkIconKind { visits, customers, quotesOrders }
+enum WorkIconKind { visits, depots, quotesOrders }
 
 class WorkIcon extends StatefulWidget {
   const WorkIcon({
@@ -82,8 +82,8 @@ class _WorkIconState extends State<WorkIcon>
               painter: switch (widget.kind) {
                 WorkIconKind.visits =>
                   _VisitsPainter(t: t, accent: widget.accent),
-                WorkIconKind.customers =>
-                  _CustomersPainter(t: t, accent: widget.accent),
+                WorkIconKind.depots =>
+                  _DepotsPainter(t: t, accent: widget.accent),
                 WorkIconKind.quotesOrders =>
                   _OrdersPainter(t: t, accent: widget.accent),
               },
@@ -210,7 +210,8 @@ class _VisitsPainter extends CustomPainter {
       path,
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 6 * s // was 4 — visible as a real "road", not a hairline
+        ..strokeWidth =
+            6 * s // was 4 — visible as a real "road", not a hairline
         ..strokeCap = StrokeCap.round
         ..strokeJoin = StrokeJoin.round
         ..color = accent.withValues(alpha: 0.16),
@@ -311,7 +312,8 @@ class _VisitsPainter extends CustomPainter {
           ..maskFilter = MaskFilter.blur(BlurStyle.normal, 2 * s),
       );
 
-      _drawPin(canvas, centre, 11 * s, accent); // was 9 — a bigger, easier target
+      _drawPin(
+          canvas, centre, 11 * s, accent); // was 9 — a bigger, easier target
     }
 
     canvas.restore();
@@ -361,11 +363,11 @@ class _VisitsPainter extends CustomPainter {
   bool shouldRepaint(_VisitsPainter old) => old.t != t || old.accent != accent;
 }
 
-// ── My Customers ────────────────────────────────────────────────────────────
+// ── My Depots ────────────────────────────────────────────────────────────
 
 /// Three figures gathering, then a contact card settling in front.
-class _CustomersPainter extends CustomPainter {
-  _CustomersPainter({required this.t, required this.accent});
+class _DepotsPainter extends CustomPainter {
+  _DepotsPainter({required this.t, required this.accent});
 
   final double t;
   final Color accent;
@@ -383,7 +385,7 @@ class _CustomersPainter extends CustomPainter {
         accent.withValues(alpha: 0.45), _phase(t, 0.06, 0.30, Curves.easeOut));
     _figure(canvas, s, Offset(72 * s, 44 * s), 9 * s,
         accent.withValues(alpha: 0.30), _phase(t, 0.12, 0.36, Curves.easeOut));
-    // The main customer, front and centre.
+    // The main depot, front and centre.
     _figure(canvas, s, Offset(50 * s, 38 * s), 13 * s, accent,
         _phase(t, 0.00, 0.26, Curves.easeOutBack));
 
@@ -451,8 +453,7 @@ class _CustomersPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_CustomersPainter old) =>
-      old.t != t || old.accent != accent;
+  bool shouldRepaint(_DepotsPainter old) => old.t != t || old.accent != accent;
 }
 
 // ── My Quotes & Orders ──────────────────────────────────────────────────────

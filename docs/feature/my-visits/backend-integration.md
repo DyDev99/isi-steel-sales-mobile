@@ -23,7 +23,7 @@ Read this first to know *what to build and in what order*, then api.md to know
 ## 1. The one property everything follows from
 
 A rep is given a **route** for the day: an ordered list of **stops**, each at a
-customer or depot. At each stop they check in (location-verified), do work, and
+depot or depot. At each stop they check in (location-verified), do work, and
 check out.
 
 **The rep works with no connectivity for hours at a time.** Every action is
@@ -45,7 +45,7 @@ arrives. See §6.
 
 | # | Capability | What it does | Backend | Produces data today? |
 |---|---|---|---|---|
-| 1 | **Route sync (pull)** | Downloads the rep's routes, stops, and the customers they sit at | ✅ Endpoints 1 & 2 | ✅ Yes |
+| 1 | **Route sync (pull)** | Downloads the rep's routes, stops, and the depots they sit at | ✅ Endpoints 1 & 2 | ✅ Yes |
 | 2 | **Stop dashboard** | Today's stops, nearest-first by live GPS; multi-day calendar | — Local read | n/a |
 | 3 | **Stop information** | One stop's detail: contact, address, distance, actions | — Local read | n/a |
 | 4 | **Navigate to stop** | Hands off to Google/Apple Maps | — None | n/a |
@@ -92,7 +92,7 @@ but route sync fails hard if they are wrong.
 
 | Requirement | Why it matters |
 |---|---|
-| `GET /api/v1/mobile/customers` | **Hard prerequisite.** `route_stops.customer_id` is a live foreign key into the customer directory and route sync may never invent a customer (ADR-001). With an empty directory the whole route transaction aborts — not just the affected stop — and every Visit screen comes up blank. Customer sync must land before route sync. |
+| `GET /api/v1/mobile/depots` | **Hard prerequisite.** `route_stops.depot_id` is a live foreign key into the depot directory and route sync may never invent a depot (ADR-001). With an empty directory the whole route transaction aborts — not just the affected stop — and every Visit screen comes up blank. Depot sync must land before route sync. |
 | `GET /auth/me` returning `territoryCode` | The route pull filters by territory (e.g. `PP-NORTH`). The client reads it from the auth profile. When it is absent the client omits the query parameter entirely and expects you to scope from the bearer token alone. |
 | Product catalog | Stock counts and order lines name real SKUs. |
 
@@ -105,7 +105,7 @@ api.md §8 has the full list. The four that get missed most often:
 1. **Stop ownership.** Every `stopId` must belong to a route assigned to the
    authenticated rep. The client does not send `repId` at all — deliberately,
    so nobody is tempted to trust it. Derive the rep from the token.
-2. **The geofence verdict is yours.** `distanceFromCustomer` and `isMocked` are
+2. **The geofence verdict is yours.** `distanceFromDepot` and `isMocked` are
    *evidence submitted by a device*, not a decision.
 3. **Accept out-of-order arrivals.** A check-out can reach you before its
    check-in if the batch was assembled oddly. Reconcile by `timestamp`.
@@ -182,7 +182,7 @@ active. Fields: `id`, `routeId`, `latitude`, `longitude`, `accuracyMeters`,
 
 Same accepted/rejected/discarded id contract as `/push`, and the same idempotency
 on the client's own ids. **Rows are attributed to a `routeId`, not a `stopId`** —
-most of this is recorded while the rep is riding between customers, where there is
+most of this is recorded while the rep is riding between depots, where there is
 no stop to attribute it to. A fraud flag may carry a `stopId`, but it must be one
 on the route it also names.
 

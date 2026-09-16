@@ -8,7 +8,7 @@ import 'package:isi_steel_sales_mobile/core/logging/app_logger.dart';
 class _Legacy {
   _Legacy._();
 
-  static const customers = 'customers';
+  static const depots = 'depots';
   static const routes = 'routes';
   static const stops = 'stops';
   static const locationSamples = 'location_samples';
@@ -24,7 +24,7 @@ class _Legacy {
   static const syncMeta = 'sync_meta';
 
   /// Every table carrying business data, in FK-safe purge order (children
-  /// first). `customers` is included: it is a denormalised copy the encrypted
+  /// first). `depots` is included: it is a denormalised copy the encrypted
   /// database already owns authoritatively.
   static const allDataTables = [
     photos,
@@ -39,7 +39,7 @@ class _Legacy {
     locationSamples,
     stops,
     routes,
-    customers,
+    depots,
     syncMeta,
   ];
 }
@@ -91,7 +91,7 @@ class LegacyImportResult {
 /// (ADR-001, `docs/blueprint/migration-plan.md` **T1.5** — the live Sprint-1 P0).
 ///
 /// This is the highest-risk step in the whole migration plan: it is a one-way,
-/// on-device data move, and the data it moves (customer PII, GPS traces of named
+/// on-device data move, and the data it moves (depot PII, GPS traces of named
 /// employees, uncollected payments) is both sensitive and irreplaceable. The
 /// design follows from that:
 ///
@@ -101,7 +101,7 @@ class LegacyImportResult {
 ///   (`docs/blueprint/local-storage-architecture.md` §5).
 /// - **One transaction.** Either the whole import lands or none of it does —
 ///   impossible before ADR-001, when the data spanned two database files.
-/// - **Reconciles, never blind-copies.** The legacy `customers` table is a
+/// - **Reconciles, never blind-copies.** The legacy `depots` table is a
 ///   denormalised copy of a table the encrypted database already owns; it is
 ///   dropped, not imported, and only its two unique fields are absorbed.
 /// - **Never purges on its own.** [LegacyImportResult.safeToPurge] is advice to
@@ -140,7 +140,7 @@ class LegacyRoutesImporter {
 
     try {
       await _db.transaction(() async {
-        await _absorbCustomerAttributes(imported, skipped);
+        await _absorbDepotAttributes(imported, skipped);
         final routeIds = await _importRoutes(imported);
         final stopIds = await _importStops(imported, skipped, routeIds);
         await _importTelemetry(imported, skipped, routeIds, stopIds);
@@ -159,7 +159,7 @@ class LegacyRoutesImporter {
       await _source.close();
     }
 
-    // §10: counts only. Never the rows themselves — they are customer PII and
+    // §10: counts only. Never the rows themselves — they are depot PII and
     // GPS traces.
     _logger.info('legacy_import.completed', fields: {
       'importedTotal': imported.values.fold<int>(0, (a, b) => a + b),
@@ -174,34 +174,34 @@ class LegacyRoutesImporter {
     );
   }
 
-  /// Absorbs `territory_type` / `geofence_radius_override` onto customers the
+  /// Absorbs `territory_type` / `geofence_radius_override` onto depots the
   /// directory already knows.
   ///
-  /// The legacy row is **not** imported as a customer. `customers` in the
+  /// The legacy row is **not** imported as a depot. `depots` in the
   /// encrypted database is SAP-controlled — "overwritten wholesale on every
   /// sync, never merged locally" — and the legacy copy carries neither
-  /// `sap_customer_id` nor credit/status. Writing it back would resurrect stale
+  /// `sap_depot_id` nor credit/status. Writing it back would resurrect stale
   /// PII and clobber authoritative columns.
-  Future<void> _absorbCustomerAttributes(
+  Future<void> _absorbDepotAttributes(
     Map<String, int> imported,
     Map<String, int> skipped,
   ) async {
     var applied = 0;
     var unknown = 0;
-    for (final row in await _source.readTable(_Legacy.customers)) {
+    for (final row in await _source.readTable(_Legacy.depots)) {
       final id = row['id'] as String?;
       if (id == null) continue;
-      final updated = await _db.routeDao.upsertRouteAttributesOnCustomer(
+      final updated = await _db.routeDao.upsertRouteAttributesOnDepot(
         id,
         territoryType: row['territory_type'] as String?,
         geofenceRadiusOverride: _toDouble(row['geofence_radius_override']),
       );
       updated > 0 ? applied++ : unknown++;
     }
-    imported[_Legacy.customers] = applied;
-    // Not an orphan risk: a customer the directory lacks will simply be pulled
-    // on the next customer sync, which is authoritative anyway.
-    skipped[_Legacy.customers] = unknown;
+    imported[_Legacy.depots] = applied;
+    // Not an orphan risk: a depot the directory lacks will simply be pulled
+    // on the next depot sync, which is authoritative anyway.
+    skipped[_Legacy.depots] = unknown;
   }
 
   Future<Set<String>> _importRoutes(Map<String, int> imported) async {
@@ -232,9 +232,9 @@ class LegacyRoutesImporter {
     return ids;
   }
 
-  /// Imports stops, skipping any whose customer or route is unknown.
+  /// Imports stops, skipping any whose depot or route is unknown.
   ///
-  /// `route_stops.customer_id` is a real FK now (ADR-001). A blind copy would
+  /// `route_stops.depot_id` is a real FK now (ADR-001). A blind copy would
   /// throw and roll back the entire import because of one stale row, so orphans
   /// are counted and skipped instead — and a non-zero skip count blocks the
   /// purge, because those rows would otherwise be destroyed with the file.
@@ -248,18 +248,18 @@ class LegacyRoutesImporter {
     for (final row in await _source.readTable(_Legacy.stops)) {
       final id = row['id'] as String?;
       final routeId = row['route_id'] as String?;
-      final customerId = row['customer_id'] as String?;
-      if (id == null || routeId == null || customerId == null) {
+      final depotId = row['depot_id'] as String?;
+      if (id == null || routeId == null || depotId == null) {
         orphans++;
         continue;
       }
       if (!routeIds.contains(routeId) ||
-          !await _db.routeDao.customerExists(customerId)) {
+          !await _db.routeDao.depotExists(depotId)) {
         orphans++;
         _logger.warning('legacy_import.orphan_stop', fields: {
-          // §10: no customer identifiers in logs.
+          // §10: no depot identifiers in logs.
           'reason':
-              routeIds.contains(routeId) ? 'unknown_customer' : 'unknown_route',
+              routeIds.contains(routeId) ? 'unknown_depot' : 'unknown_route',
         });
         continue;
       }
@@ -267,7 +267,7 @@ class LegacyRoutesImporter {
             RouteStopsCompanion.insert(
               id: id,
               routeId: routeId,
-              customerId: customerId,
+              depotId: depotId,
               sequence: _toInt(row['sequence']) ?? 0,
               plannedArrival: _dt(row['planned_arrival'])!,
               plannedDeparture: _dt(row['planned_departure'])!,
@@ -382,8 +382,7 @@ class LegacyRoutesImporter {
               latitude: _toDouble(row['latitude']) ?? 0,
               longitude: _toDouble(row['longitude']) ?? 0,
               accuracy: _toDouble(row['accuracy']) ?? 0,
-              distanceFromCustomer:
-                  _toDouble(row['distance_from_customer']) ?? 0,
+              distanceFromDepot: _toDouble(row['distance_from_depot']) ?? 0,
               isMocked: Value(_toBool(row['is_mocked'])),
               syncState: _legacyState(row),
               dirty: _legacyDirty(row),

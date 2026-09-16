@@ -69,12 +69,12 @@ void main() {
     });
   });
 
-  group('GET /mobile/customers — envelope', () {
+  group('GET /mobile/depots — envelope', () {
     final body = {
       'success': true,
-      'message': 'Customers retrieved successfully.',
+      'message': 'Depots retrieved successfully.',
       'data': {
-        'customers': [<String, dynamic>{}, <String, dynamic>{}],
+        'depots': [<String, dynamic>{}, <String, dynamic>{}],
         'syncTimestamp': '2026-08-13T01:28:35.4974802+00:00',
       },
       'metadata': {
@@ -115,7 +115,7 @@ void main() {
         'type': 'https://tools.ietf.org/html/rfc9110#section-15.5.4',
         'title': 'Forbidden',
         'status': 403,
-        'instance': '/api/v1/mobile/customers',
+        'instance': '/api/v1/mobile/depots',
         'traceId': '00-db7ae633051b152d-80d9819e7c9e8f47-00',
         'correlationId': '0HNNOQUJEES2Q:00000013',
       });
@@ -130,12 +130,12 @@ void main() {
 
     test('a platform error URL still yields its code', () {
       final error = ApiError.fromBody(const {
-        'type': 'https://docs.isigroup.com.kh/errors/Customer.NotFound',
+        'type': 'https://docs.isigroup.com.kh/errors/Depot.NotFound',
         'title': 'The requested resource was not found.',
         'status': 404,
       });
 
-      expect(error.code, ApiErrorCodes.customerNotFound);
+      expect(error.code, ApiErrorCodes.depotNotFound);
     });
 
     test('a rejected login is OAuth-shaped at HTTP 400', () {

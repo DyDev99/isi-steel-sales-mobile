@@ -89,7 +89,7 @@ class AppBottomSheet extends StatelessWidget {
   /// sheet contains a *single narrow column* of fields stretched across the
   /// screen. The decision here is the other half of that trade: sheets go full
   /// width **and** their content lays out in multiple columns to fill it (see
-  /// `add_customer_bottom_sheet.dart`, which shows two or three form steps at
+  /// `add_depot_bottom_sheet.dart`, which shows two or three form steps at
   /// once above `compact`). A wide sheet with wide content is not stretched —
   /// it is denser, which is the point of a tablet.
   ///

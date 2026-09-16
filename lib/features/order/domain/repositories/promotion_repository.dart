@@ -2,7 +2,7 @@ import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/promotion/promotion.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/promotion/promotion_evaluation.dart';
 
-/// The one authority on what a customer is entitled to.
+/// The one authority on what a depot is entitled to.
 ///
 /// Every eligibility question in the app goes through here. Widgets render the
 /// verdict and never compute one: a card that decided for itself whether 280
@@ -18,18 +18,18 @@ import 'package:isi_steel_sales_mobile/features/order/domain/entities/promotion/
 abstract interface class PromotionRepository {
   /// Promotions worth showing a rep, newest-ending first.
   ///
-  /// Scoped to [customerId] — an empty customer set on a promotion means
+  /// Scoped to [depotId] — an empty depot set on a promotion means
   /// everyone, a non-empty one is a negotiated deal that must not leak to
   /// other accounts. Expired promotions are never returned.
   ///
   /// [includeUpcoming] adds promotions that have not started, for the
   /// dashboard's "Upcoming" section. They are never applicable to a line.
   ResultFuture<List<Promotion>> getPromotions({
-    String? customerId,
+    String? depotId,
     bool includeUpcoming = false,
   });
 
-  /// What the customer earns on this material at this quantity, or null when
+  /// What the depot earns on this material at this quantity, or null when
   /// no promotion applies.
   ///
   /// Null is the common answer and renders as **nothing at all** — an empty
@@ -39,6 +39,6 @@ abstract interface class PromotionRepository {
     required String materialCode,
     required String categoryCode,
     required int quantity,
-    String? customerId,
+    String? depotId,
   });
 }

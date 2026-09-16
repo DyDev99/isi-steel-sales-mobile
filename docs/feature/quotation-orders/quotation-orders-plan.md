@@ -1,6 +1,6 @@
 # Quotation & Orders (with Promotion & Discount) — Analysis, Plan and Strategy
 
-**Purpose:** decide *how* SteelForce builds quotations, customer orders, promotions and
+**Purpose:** decide *how* SteelForce builds quotations, depot orders, promotions and
 discounts before a line of Flutter or .NET is written.
 **Scope:** mobile quotation authoring, admin approval, promotion and discount rules, SAP
 quotation and sales-order creation.
@@ -20,17 +20,17 @@ and the Flutter `docs/feature/promotions/` README and workflow (branch `web`, 20
    boxes in it **already exist** as live endpoints — the quotation feature should reuse
    them, not re-invent them.
 2. **The earlier write-up misread the diagram.** In the diagram SAP is called *after the
-   Sales Rep confirms with the customer*, not directly after admin approval. That
+   Sales Rep confirms with the depot*, not directly after admin approval. That
    difference is the single biggest business decision in this plan (§5, D1).
 3. **SAP must stay the price authority.** The Pricing feature's guarantee — *a price
    shown is a price SAP holds right now* — has to extend to quotations. So promotions
    and discounts are **proposed** by the platform and **priced** by SAP. Every total the
    platform shows before SAP has priced the document is labelled an estimate.
 4. **Promotions are a separate feature that quotation consumes.** The Promotions BRD
-   (v1.0 draft) defines them as **depot discount agreements** — per customer, per
+   (v1.0 draft) defines them as **depot discount agreements** — per depot, per
    product category, flat / tiered / immediate-payment — approved through four steps
    (Sales Support → RSM → Consultant → Commercial Director). The rep does not pick a
-   promotion on a quotation; the customer's approved agreement applies automatically.
+   promotion on a quotation; the depot's approved agreement applies automatically.
    So Promotions is built as its own aggregate and workflow, and quotation reads it (§8).
 5. **The BRD promises something the platform cannot do alone.** It says approved
    discounts are "automatically applied to sales invoices" — but invoices are created in
@@ -59,11 +59,11 @@ and the Flutter `docs/feature/promotions/` README and workflow (branch `web`, 20
 
 | Capability | Surface today | State | What quotation takes from it |
 |---|---|---|---|
-| Customer + sales area | `CustomerSalesArea` (sales org, price group), synced from SAP | Live | Sold-to, sales area, ownership |
-| Row-level scoping | `IPricingAudienceResolver` over the platform's ownership rule | Live | Who may quote which customer |
-| Material catalogue + sellability | `GET /mobile/materials[/search]?customerId=`, selection facets | Live | Material picker that only offers what the customer can buy |
+| Depot + sales area | `DepotSalesArea` (sales org, price group), synced from SAP | Live | Sold-to, sales area, ownership |
+| Row-level scoping | `IPricingAudienceResolver` over the platform's ownership rule | Live | Who may quote which depot |
+| Material catalogue + sellability | `GET /mobile/materials[/search]?depotId=`, selection facets | Live | Material picker that only offers what the depot can buy |
 | Stock | `GET /materials/{materialNumber}/stock` | Live | Advisory availability on a line |
-| Pricing | `GET /api/v1/mobile/pricing/customers/{id}?materialNumber=` | **Live, verified 2026-09-10** | List price per line — never re-fetched from SAP by quotation code directly |
+| Pricing | `GET /api/v1/mobile/pricing/depots/{id}?materialNumber=` | **Live, verified 2026-09-10** | List price per line — never re-fetched from SAP by quotation code directly |
 | Realtime | `WS /hubs/pricing`, `PricingUpdated` | Live | "Price changed while you were quoting" |
 | Background jobs | `ISI.BackgroundJobs`, `AddOrUpdateRecurring` | Live | SAP submission, reconciliation, expiry |
 | SAP client pattern | Failover, shared token, one re-auth on 401, 404 classification | Live | `SapQuotationService` copies it |
@@ -72,8 +72,8 @@ and the Flutter `docs/feature/promotions/` README and workflow (branch `web`, 20
 | Promotions | BRD/SRS v1.0 draft; nothing built | **Specified, not built** | Active depot agreement per line category (§8) |
 | Push notifications | — | **Not seen** in any doc | BRD requires push within 1 minute; SignalR only reaches an open app |
 | Sales order | — | **No endpoint seen** | Blocks the "Orders" half |
-| Customer credit | — | **No endpoint seen** | The diagram's `get-credit` has nothing behind it |
-| Test suite | `dotnet test` | **Cannot run** (pre-existing customer-schema breakage) | Must be fixed first |
+| Depot credit | — | **No endpoint seen** | The diagram's `get-credit` has nothing behind it |
+| Test suite | `dotnet test` | **Cannot run** (pre-existing depot-schema breakage) | Must be fixed first |
 | Flutter quotation builder | `lib/features/order/…/quotation/`, `CartCubit`, `PromotionCubit`, PDF generator | **Built, client-side, partly mock** | UI, summary layout, PDF layout — not the arithmetic (§1.1) |
 
 > [!IMPORTANT]
@@ -87,7 +87,7 @@ and the Flutter `docs/feature/promotions/` README and workflow (branch `web`, 20
 
 The app's promotions docs describe a working builder with good instincts — it separates
 discount *origins* (rep, depot, order term, price request), resets promotion state when
-the customer changes, and treats a pending depot request as not quotable. Its
+the depot changes, and treats a pending depot request as not quotable. Its
 arithmetic, though, predates the verified Pricing contract and contradicts it in ways
 that produce **plausible wrong numbers**, the failure mode Pricing spent a week removing.
 
@@ -97,13 +97,13 @@ that produce **plausible wrong numbers**, the failure mode Pricing spent a week 
 | 2 | Totals and PDF "in USD"; manual price input "USD" | 3,867 of 3,869 live prices are `US3` | Carry currency from the price; never assert USD |
 | 3 | `PricingCubit.state[materialNumber]` — one price per material | `2400000466` has two; a map keeps whichever arrived last | Keep the list; D5 decides |
 | 4 | Manual price allowed when `!price.hasAmount` | A SAP outage (`erpAnswered` false / 5xx) and "no price" can look the same — the rep would type a price over a material SAP *does* price | Allow only when SAP **answered** and returned no price, and only as an approval-gated price request (D7) |
-| 5 | `promotions_mock_data.dart` feeds depot and term promotions | Invented commercial terms shown to real customers; Pricing deleted its mock for exactly this reason | Real agreements endpoint; the mock cannot ship |
+| 5 | `promotions_mock_data.dart` feeds depot and term promotions | Invented commercial terms shown to real depots; Pricing deleted its mock for exactly this reason | Real agreements endpoint; the mock cannot ship |
 | 6 | Rep line discount capped at 10 % in the client | A client-side cap is a suggestion | Server-side authority (D4); the app shows the limit it is told |
 | 7 | Free-goods ladder ("buy 40 get 1") evaluated on the phone | No source in the BRD, the diagram or SAP endpoints reviewed | D17 |
-| 8 | "Type of Invoice" toggle: Tax Invoice 10 % VAT / Commercial Invoice 0 % | Tax treatment chosen by a rep; SAP determines tax from customer and material tax classification | D18 — Finance owns the rule, SAP computes the tax |
+| 8 | "Type of Invoice" toggle: Tax Invoice 10 % VAT / Commercial Invoice 0 % | Tax treatment chosen by a rep; SAP determines tax from depot and material tax classification | D18 — Finance owns the rule, SAP computes the tax |
 | 9 | `netTaxable = max(0, gross − discount)` | Silently hides a discount larger than the order | Reject the quotation instead |
 | 10 | Invoice-level % base unspecified (gross or after line discounts?) | Differs from SAP unless it matches the procedure | D12 |
-| 11 | PDF generated on the phone from cart numbers | An estimate on paper in a customer's hand | "DRAFT — ESTIMATE" watermark until Quoted; final PDF from SAP values |
+| 11 | PDF generated on the phone from cart numbers | An estimate on paper in a depot's hand | "DRAFT — ESTIMATE" watermark until Quoted; final PDF from SAP values |
 | 12 | 220 ms debounce per material to "pricing/promotion services" | Each material is a SAP round trip, and there is no promotion service | One debounced **preview** call for the whole draft |
 
 ---
@@ -115,7 +115,7 @@ that produce **plausible wrong numbers**, the failure mode Pricing spent a week 
 Following the arrows rather than the lane layout:
 
 ```text
-Create Quotation ─► BP (customer) selection ─► Choose materials / get price
+Create Quotation ─► BP (depot) selection ─► Choose materials / get price
       ─► Shipment type ─► Discount & promotion ─► Submit to Admin Portal
       ─► /mobile/quotation/submit ─► Admin decision { approved | rejected | edit }
              │
@@ -126,8 +126,8 @@ Create Quotation ─► BP (customer) selection ─► Choose materials / get pr
 ```
 
 So the drawn intent is: **internal approval first, then the rep takes the approved
-price to the customer, and only a customer "yes" reaches SAP.** "Sales Confirmed" and
-"Sales Rejected" are the *customer's* answer, relayed by the rep.
+price to the depot, and only a depot "yes" reaches SAP.** "Sales Confirmed" and
+"Sales Rejected" are the *depot's* answer, relayed by the rep.
 
 ### 2.2 What needs fixing in it
 
@@ -135,14 +135,14 @@ price to the customer, and only a customer "yes" reaches SAP.** "Sales Confirmed
 |---|---|---|---|
 | 1 | Reads are `POST` (`get-outlet`, `get-credit`, `search`, `categories`, `stock`, `price`) | Uncacheable, un-idempotent, breaks the conventions every other module follows | `GET`, and reuse the endpoints that already exist (§12.1) |
 | 2 | Routes are `/api/mobile/...` | Platform is `/api/v1/mobile/...` with `MobileApiResponse<T>` | Version and envelope like Pricing |
-| 3 | The phone triggers `submit-to-sap` (via `confirm`) | A client must never start an ERP write; a retry on a flaky 3G link creates two SAP quotations | Client records the customer's decision; the **backend** submits, from a job |
+| 3 | The phone triggers `submit-to-sap` (via `confirm`) | A client must never start an ERP write; a retry on a flaky 3G link creates two SAP quotations | Client records the depot's decision; the **backend** submits, from a job |
 | 4 | `submit-to-sap` appears twice (diamond and box) | Two owners for one side-effect | One command, one job |
-| 5 | `/mobile/quotation/rejected` is a client-called endpoint | Collides with admin "rejected"; ambiguous meaning | Split: admin **reject/return**, customer **decline** |
+| 5 | `/mobile/quotation/rejected` is a client-called endpoint | Collides with admin "rejected"; ambiguous meaning | Split: admin **reject/return**, depot **decline** |
 | 6 | Admin "Rejected" is a dead end | Rep cannot fix and resubmit | Admin **Return** (rework allowed) vs **Reject** (closed) |
-| 7 | `get-promotion/{outletid}` returns "promotions" for the customer | The BRD confirms promotions *are* customer-keyed agreements, so the idea is right — but what a quotation needs is the agreed rate **per line's product category**, and the pickup % (diagram, app) is not in the BRD at all (D13) | `GET /mobile/customers/{id}/agreements` for display; the calculator applies them per line (§8.6) |
+| 7 | `get-promotion/{outletid}` returns "promotions" for the depot | The BRD confirms promotions *are* depot-keyed agreements, so the idea is right — but what a quotation needs is the agreed rate **per line's product category**, and the pickup % (diagram, app) is not in the BRD at all (D13) | `GET /mobile/depots/{id}/agreements` for display; the calculator applies them per line (§8.6) |
 | 8 | `quotation/update` appears three times | Fine as autosave, but undefined: full replace? patch? which fields? | Resource-shaped edits with optimistic concurrency |
 | 9 | No SAP failure, timeout, expiry, cancel or price-changed paths | These are the paths production actually takes | State model in §7 |
-| 10 | "outlet" vs "customer" vs "BP" | Three names for one thing | The platform says **customer**; keep it |
+| 10 | "outlet" vs "depot" vs "BP" | Three names for one thing | The platform says **depot**; keep it |
 | 11 | Typos in routes (`drift`, `materails`, `admim`) | They become permanent once a Flutter build ships | Fixed in the new contract |
 | 12 | "AI search integration" feeds material search | Not quotation scope | Later phase, behind the existing search endpoint |
 
@@ -185,7 +185,7 @@ These were learned from live SAP data on 2026-09-10. Quotation must honour every
    business must decide which wins (D5). Never `items[0]`.
 4. **`US3` is not `USD`.** 3,867 of 3,869 records are `US3`. A quotation whose lines
    carry different currencies cannot be totalled by adding numbers (D11).
-5. **404, not 403.** A customer the rep may not see is indistinguishable from one that
+5. **404, not 403.** A depot the rep may not see is indistinguishable from one that
    does not exist. Quotations inherit the rule: someone else's quotation is `404`.
 6. **"No prices" ≠ "prices unavailable".** An ERP error never renders as an empty price
    or a zero. On a quotation it blocks, it does not default.
@@ -209,7 +209,7 @@ workshop, not a decision.
 
 | # | Decision | Options | Recommendation | Why | Blocks |
 |---|---|---|---|---|---|
-| **D1** | **When is the SAP quotation created?** | **A** after the customer accepts (the diagram) · **B** after admin approval, before the customer sees it | **B** | Under A the customer is shown a total SAP never computed — the exact risk the Pricing guarantee exists to prevent — and the SAP quotation is created seconds before it is converted, adding nothing. Under B SAP's pricing procedure sets the official net, the rep hands over a real SAP number, and the customer's "yes" becomes the sales order | Phase 4 |
+| **D1** | **When is the SAP quotation created?** | **A** after the depot accepts (the diagram) · **B** after admin approval, before the depot sees it | **B** | Under A the depot is shown a total SAP never computed — the exact risk the Pricing guarantee exists to prevent — and the SAP quotation is created seconds before it is converted, adding nothing. Under B SAP's pricing procedure sets the official net, the rep hands over a real SAP number, and the depot's "yes" becomes the sales order | Phase 4 |
 | **D2** | **How does an approved depot agreement reach SAP?** | **A** middleware writes condition records · **B** SAP team keys them in, platform verifies · **C** platform adds manual conditions only to its own orders | **B now, A when the endpoint exists; never C alone** | Only A/B put the discount on invoices raised at the counter too; C silently gives app orders a discount the counter does not (§8.4) | Promotions P2 |
 | **D3** | Does every quotation need approval? | All · only outside policy | **All at launch, routed by rule** | Matches the diagram; the routing rule exists from day one so "auto-approve within policy" later is configuration, not code | Phase 3 |
 | **D4** | Manual-discount authority on a quotation (on top of the agreement) | Per role, per % / amount | Rep ≤ x %, Supervisor ≤ y %, Head of Sales above | Enforced server-side; the numbers are the business's. Agreements already carry four signatures — this is only for extra, one-off discount | Phase 2 |
@@ -218,11 +218,11 @@ workshop, not a decision.
 | **D7** | Can a line be submitted without a SAP price? | No · manual "price request" line (the app has one today) | **Only as an approval-gated price request**: allowed when SAP *answered* with no price, never when SAP was unreachable, never over a SAP price; always forces admin approval; sent to SAP as a manual price condition | The app's override is a real business need, but ungoverned it lets a rep set prices | Phase 1 |
 | **D8** | Orders: from quotation only, or direct too? | Quote → order · direct order for walk-ins | **Quote → order first**; direct order later reuses the same aggregate | One pipeline, one set of rules | Phase 5 |
 | **D9** | Credit check | Advisory at quote · blocking at order | **Advisory at quote, blocking at order** — needs a SAP credit endpoint | Nothing exists behind `get-credit` today | Phase 5 |
-| **D10** | Can admin edit, and must the rep re-confirm? | Edit freely · edit then re-confirm | Admin edits create a revision; **rep sees a diff before presenting** | The rep is the one facing the customer | Phase 3 |
-| **D11** | Mixed currencies on one quotation | Forbid · allow with per-currency totals | **Forbid at launch** (document currency = customer's) | A SAP quotation has one document currency | Phase 1 |
+| **D10** | Can admin edit, and must the rep re-confirm? | Edit freely · edit then re-confirm | Admin edits create a revision; **rep sees a diff before presenting** | The rep is the one facing the depot | Phase 3 |
+| **D11** | Mixed currencies on one quotation | Forbid · allow with per-currency totals | **Forbid at launch** (document currency = depot's) | A SAP quotation has one document currency | Phase 1 |
 | **D12** | Stacking: agreement % + manual discount (+ pickup?) | Additive on gross · sequential · capped | **Mirror the SAP pricing procedure**, cap total per line | If the platform stacks differently from SAP, every estimate is wrong | Phase 2 |
 | **D13** | Pickup discount: rule, rate, and SAP home | Standing rule · per-depot agreement · SAP condition on shipping condition | **Confirm with Sales and SD** — the diagram and the app (1–1.5 %) have it, the BRD does not; the app calls it "COD / Pickup" yet says COD alone does not qualify | Rename it *Pickup discount*, and make sure it is not the BRD's immediate-payment discount under another name | Phase 2 |
-| **D14** | What is a "product category" in SAP terms? | SAP material price group (`KONDM`) · material group · a platform mapping table | **Material price group if SD agrees** | Pricing rows already carry `MaterialPriceGroup` (`E1`, `G5`); it is what SAP uses for customer × material-group discounts, so a SAP condition record can be keyed on it directly | Promotions P1 |
+| **D14** | What is a "product category" in SAP terms? | SAP material price group (`KONDM`) · material group · a platform mapping table | **Material price group if SD agrees** | Pricing rows already carry `MaterialPriceGroup` (`E1`, `G5`); it is what SAP uses for depot × material-group discounts, so a SAP condition record can be keyed on it directly | Promotions P1 |
 | **D15** | Approver outcomes per step | The matrix (step 1 cannot reject; steps 3–4 cannot return) · FR-06 (any approver may reject or return) | **One rule, written once** — the BRD contradicts itself | The state machine cannot have two answers | Promotions P1 |
 | **D16** | Volume-tier rebate: when and how is it paid? | Credit note after month end · deducted on the next invoice | SAP rebate / condition contract, settled after month end | A tier on *monthly* purchases cannot be known when an invoice line is priced — it is retroactive by nature (§8.4) | Promotions P3 |
 | **D17** | Free goods (buy X get Y) | In scope via SAP free-goods determination · out of scope | **Out of launch scope unless SD confirms SAP free-goods records exist** | Free units must appear as a free item on the SAP order to be delivered and stock-counted; a phone-only ladder promises goods nobody ships | Phase 2+ |
@@ -234,7 +234,7 @@ workshop, not a decision.
 
 ```mermaid
 flowchart TD
-    A[Rep: new quotation for a customer] --> B[Add lines<br/>sellable materials only<br/>live price + unit + stock advisory]
+    A[Rep: new quotation for a depot] --> B[Add lines<br/>sellable materials only<br/>live price + unit + stock advisory]
     B --> C[Shipment type<br/>Pickup / Delivery]
     C --> D[Discounts<br/>active depot agreement applied per category<br/>+ manual discount within authority]
     D --> E[Review — server preview<br/>totals labelled ESTIMATE]
@@ -248,15 +248,15 @@ flowchart TD
     G -->|timeout| GU[Unknown → reconcile job]
     GU --> H
     GU --> GF
-    H -->|Customer accepts| I[[Job: create SAP sales order]]
-    H -->|Customer declines + reason| L[Closed: Lost]
+    H -->|Depot accepts| I[[Job: create SAP sales order]]
+    H -->|Depot declines + reason| L[Closed: Lost]
     H -->|Validity passes| EX[Closed: Expired]
     I -->|created| O[Ordered]
     I -->|failed| OF[Order failed<br/>admin: retry]
 ```
 
 Under the diagram's option (D1 = A) the same model holds with the SAP quotation job
-moved behind "Customer accepts" — the states and the machinery in §7 and §13 do not
+moved behind "Depot accepts" — the states and the machinery in §7 and §13 do not
 change, only the order they fire in. **That is why the decision can be taken late
 without redesign — but it must be taken before Phase 4.**
 
@@ -264,8 +264,8 @@ without redesign — but it must be taken before Phase 4.**
 
 | Stage | Actor | Calls | Rules enforced server-side |
 |---|---|---|---|
-| New draft | Rep | `POST /mobile/quotations` | Customer is theirs (else 404); customer priceable (else 422) |
-| Add line | Rep | `POST /mobile/quotations/{id}/lines` | Material sellable for the customer; price exists; one condition record pinned; qty > 0 in the price's unit |
+| New draft | Rep | `POST /mobile/quotations` | Depot is theirs (else 404); depot priceable (else 422) |
+| Add line | Rep | `POST /mobile/quotations/{id}/lines` | Material sellable for the depot; price exists; one condition record pinned; qty > 0 in the price's unit |
 | Shipment | Rep | `PATCH /mobile/quotations/{id}` | Pickup/Delivery; ship-to required for Delivery |
 | Discounts | Rep | `PUT .../discounts` | Agreement rates applied automatically per line category (read-only to the rep); manual % within authority or flagged for approval |
 | Preview | Rep | `GET .../preview` | One calculator; fresh prices; "estimate" until SAP has priced |
@@ -273,7 +273,7 @@ without redesign — but it must be taken before Phase 4.**
 | Review | Admin | `GET /quotations?status=PendingApproval` | Approver ≠ author for over-authority discounts |
 | Approve | Admin | `POST /quotations/{id}/approve` | Enqueues the SAP job; never calls SAP in the request |
 | SAP quotation | Job | `CreateQuot`, then `GetQuotItemByPaging` | Outbox, reference-based dedupe, readback |
-| Customer answer | Rep | `POST .../acceptance` or `.../decline` | Only in `Quoted`; decline needs a reason |
+| Depot answer | Rep | `POST .../acceptance` or `.../decline` | Only in `Quoted`; decline needs a reason |
 | Sales order | Job | *endpoint to be provided* | Credit check (D9); same outbox discipline |
 
 ---
@@ -290,7 +290,7 @@ Kept from the earlier write-up because it is right: *"admin approved, SAP failed
 | **Approval** | `NotSubmitted` · `Pending` · `Approved` · `Returned` · `Rejected` |
 | **SAP quotation** | `NotSent` · `Sending` · `Unknown` · `Created` · `Failed` |
 | **SAP order** | `NotSent` · `Sending` · `Unknown` · `Created` · `Failed` |
-| **Customer** | `Undecided` · `Accepted` · `Declined` |
+| **Depot** | `Undecided` · `Accepted` · `Declined` |
 
 The overall `Status` is **derived** from those and stored for querying. It is never set
 directly — a transition method on the aggregate changes the dimensions and recomputes it.
@@ -314,8 +314,8 @@ stateDiagram-v2
     SubmittingToSap --> SubmittingToSap: timeout → reconcile
     SapFailed --> SubmittingToSap: admin retry
     SapFailed --> Returned: admin return
-    Quoted --> Accepted: customer accepts
-    Quoted --> Lost: customer declines
+    Quoted --> Accepted: depot accepts
+    Quoted --> Lost: depot declines
     Quoted --> Expired: validity passed
     Accepted --> SubmittingOrder: job picks up
     SubmittingOrder --> Ordered: SAP order created
@@ -336,7 +336,7 @@ Fifteen states is right for the database and wrong for a phone. The app groups t
 |---|---|
 | **Drafts** | Draft, Returned *(badge: "needs changes")* |
 | **Waiting** | PendingApproval, Approved, SubmittingToSap, SubmittingOrder |
-| **With customer** | Quoted |
+| **With depot** | Quoted |
 | **Won** | Accepted, Ordered |
 | **Closed** | Rejected, Lost, Expired, Cancelled, *(SapFailed / OrderFailed show under Waiting with an "admin is fixing" note)* |
 
@@ -384,7 +384,7 @@ built, this is the single list, and each row has exactly one home in SAP.
 |---|---|---|---|---|---|
 | Rep line discount % | "Discount" | — | 0–10 % per line | One-off, per quotation | Manual item condition (type from `GetPriceType`), authority server-side (D4) |
 | Manual price (price request) | — | — | USD override when unpriced | Replaces a missing price | Manual price condition, approval-gated (D7) |
-| On-invoice depot discount | — | ✔ flat / no-target | ✔ (mock) | Standing agreement | Condition record per customer × category (§8.4) |
+| On-invoice depot discount | — | ✔ flat / no-target | ✔ (mock) | Standing agreement | Condition record per depot × category (§8.4) |
 | Volume-tier rebate | — | ✔ monthly tiers | ✔ named | Retroactive | Rebate agreement, settled after month end (D16) |
 | Immediate-payment discount | — | ✔ | — | Payment term | Payment terms / cash discount |
 | Pickup discount | ✔ | — | ✔ 1–1.5 % ("COD / Pickup") | Order term | Condition on shipping condition — SD to confirm (D13) |
@@ -413,7 +413,7 @@ order never touched by the app, gets nothing.
 
 | BRD type | What it means commercially | Where it belongs in SAP | What the platform does |
 |---|---|---|---|
-| On-invoice (flat / no-target) | % off everything the depot buys in a category | **Discount condition record**: sales org × customer × material price group, valid for the agreement period | Runs the workflow; writes or verifies the record; applies it as an estimate on quotations |
+| On-invoice (flat / no-target) | % off everything the depot buys in a category | **Discount condition record**: sales org × depot × material price group, valid for the agreement period | Runs the workflow; writes or verifies the record; applies it as an estimate on quotations |
 | Immediate-payment | Extra % if paid immediately | Cash discount in **payment terms**, or a conditional discount condition — SD to advise | Shows it as *conditional*; deducts on a quotation only when its payment term is immediate |
 | Volume tier | % by **monthly** purchase amount | **Rebate agreement / condition contract**, settled after month end as a credit | Shows tier progress if a billing read exists; **never deducts on a quote or order** — the tier is unknown until the month closes |
 
@@ -433,9 +433,9 @@ answer to "is this depot actually getting the discount?".
 
 | # | BRD says | Problem | Proposed change |
 |---|---|---|---|
-| 1 | Own `ROLE`, `USER_ACCOUNT`, `CUSTOMER`, `TEAM` tables | Duplicates the platform's identity, permissions and `Customer` aggregate — two sources of truth for who a rep is and which depots are theirs | Extend what exists: add team, cost center and `depot_type` to the existing customer model if absent; approver roles become permissions |
-| 2 | `SERIAL` integer keys | Platform keys are GUIDs (see customer ids in Pricing test data) | Follow the platform |
-| 3 | `PROMOTION` has no customer and no rates; the rates live on request lines | The engine would read rates from a *request*, which is editable while returned | On final approval, **snapshot** the lines into an immutable `AgreementTerm` (customer, category, type, rate or tiers, validity, source request). Quotation and SAP sync read terms only |
+| 1 | Own `ROLE`, `USER_ACCOUNT`, `DEPOT`, `TEAM` tables | Duplicates the platform's identity, permissions and `Depot` aggregate — two sources of truth for who a rep is and which depots are theirs | Extend what exists: add team, cost center and `depot_type` to the existing depot model if absent; approver roles become permissions |
+| 2 | `SERIAL` integer keys | Platform keys are GUIDs (see depot ids in Pricing test data) | Follow the platform |
+| 3 | `PROMOTION` has no depot and no rates; the rates live on request lines | The engine would read rates from a *request*, which is editable while returned | On final approval, **snapshot** the lines into an immutable `AgreementTerm` (depot, category, type, rate or tiers, validity, source request). Quotation and SAP sync read terms only |
 | 4 | `INVOICE`, `INVOICE_LINE`, `INVOICE_DISCOUNT_APPLIED` | The platform issues no invoices | Drop the invoice tables. FR-10 traceability becomes *agreement ↔ SAP condition record number*; per-invoice reporting needs a SAP billing read (open) |
 | 5 | `discount_type` is `ON_INVOICE / PAYMENT_TERM` | No value for the third type | Add `VOLUME_TIER`, or better, reuse `promotion_type` |
 | 6 | Invoice lines carry a product category | SAP lines carry materials | A material → category mapping is required — D14 proposes SAP's material price group |
@@ -454,7 +454,7 @@ answer to "is this depot actually getting the discount?".
 
 ### 8.6 How a quotation consumes agreements
 
-For each line the calculator asks: *which Effective term covers this customer, this
+For each line the calculator asks: *which Effective term covers this depot, this
 line's category, today (server clock)?*
 
 | Term type | On the quotation |
@@ -509,7 +509,7 @@ my level" and the audit shows *why* it was routed there.
 
 ### 8.9 Worked example — real price, illustrative agreement
 
-Customer PNP-Walk In (sales org 0001, price group 11). Material `1500000017`, live price
+Depot PNP-Walk In (sales org 0001, price group 11). Material `1500000017`, live price
 **0.475 US3 per 1 KG** (captured 2026-09-10). Assume — for illustration only — it maps
 to a category on which the depot holds a 5 % on-invoice agreement.
 
@@ -532,11 +532,11 @@ platform stores both and compares:
 
 | Difference | Behaviour |
 |---|---|
-| Within tolerance (e.g. ≤ 0.5 %, configurable) | Quoted; SAP values are what the rep and customer see |
+| Within tolerance (e.g. ≤ 0.5 %, configurable) | Quoted; SAP values are what the rep and depot see |
 | Beyond tolerance | Quoted, **flagged**: rep and admin see the per-line diff before the rep presents it |
 | Agreement expected, SAP applied none | Flagged as *agreement not effective in SAP* and routed to the SAP SD task list |
 
-The SAP net is the number on anything handed to the customer. The estimate is never
+The SAP net is the number on anything handed to the depot. The estimate is never
 printed.
 
 ### 8.11 One approval engine, two workflows
@@ -558,7 +558,7 @@ and the SAP payload builder. **Flutter renders its output and computes nothing**
 app's `CartCubit` arithmetic becomes a renderer of this DTO (§15).
 
 Inputs: the quotation's lines (quantity, unit, pinned price record or approved price
-request), shipment type, the customer's Effective agreement terms, manual discount
+request), shipment type, the depot's Effective agreement terms, manual discount
 intents, the caller's authority.
 Outputs: per line gross, each discount with its type, source and SAP condition type,
 net, tax, effective discount %, required approval level; document totals; **warnings**
@@ -578,7 +578,7 @@ Rules it enforces:
   and never unlocks manual entry.
 - **Discount larger than gross is an error**, not `max(0, …)`.
 - **Tax is displayed, not decided.** Until SAP has priced the document the tax line is
-  an estimate from the customer's tax classification; the rep has no VAT toggle (D18).
+  an estimate from the depot's tax classification; the rep has no VAT toggle (D18).
 - **Decimal arithmetic only**, currency scale from configuration (`USD` 2, `US3` 3).
 
 ---
@@ -595,12 +595,12 @@ Flutter app                          Admin portal
    │  /api/v1/mobile/agreement-requests  │  /api/v1/agreement-requests, /approvals
    └──────────────┬──────────────────────┘
                   ▼
-   ICustomerAudienceResolver   ← generalised from IPricingAudienceResolver; one ownership rule
+   IDepotAudienceResolver   ← generalised from IPricingAudienceResolver; one ownership rule
                   ▼
    Features/Quotations      Features/Agreements      Features/Approvals
    ├ commands (Submit, Approve, RecordAcceptance …)   ├ ApprovalEngine (templates as data)
    ├ IQuotationCalculator ──► IPricingService (existing, unchanged)
-   │                      └─► IAgreementLookup (Effective terms per customer × category)
+   │                      └─► IAgreementLookup (Effective terms per depot × category)
    └ outbox rows ─────────────────────────────┐
                                               ▼
    ISI.BackgroundJobs:  SubmitQuotationToSapJob · ReconcileSapSubmissionsJob
@@ -640,7 +640,7 @@ every table.
 
 | Table | Key columns | Notes |
 |---|---|---|
-| `quotation` | `id`, `number` (`QT-2026-000123`, sequence), `customer_id`, `sales_org`, `dist_channel`, `division`, `owner_user_id`, `status`, `approval_status`, `sap_quote_status`, `sap_order_status`, `customer_decision`, `shipment_type`, `ship_to`, `payment_term`, `currency`, `valid_from`, `valid_to`, `revision`, `required_approval_level`, `sap_quotation_no`, `sap_order_no`, `estimate_net`, `sap_net`, `xmin` | `xmin` as the EF concurrency token — two editors get 409, not last-write-wins |
+| `quotation` | `id`, `number` (`QT-2026-000123`, sequence), `depot_id`, `sales_org`, `dist_channel`, `division`, `owner_user_id`, `status`, `approval_status`, `sap_quote_status`, `sap_order_status`, `depot_decision`, `shipment_type`, `ship_to`, `payment_term`, `currency`, `valid_from`, `valid_to`, `revision`, `required_approval_level`, `sap_quotation_no`, `sap_order_no`, `estimate_net`, `sap_net`, `xmin` | `xmin` as the EF concurrency token — two editors get 409, not last-write-wins |
 | `quotation_line` | `id`, `quotation_id`, `line_no`, `material`, `quantity`, `unit`, **price snapshot**: `price`, `price_currency`, `pricing_unit`, `condition_unit`, `condition_record`, `price_valid_from/to`, `priced_at`; `is_price_request`, `category`, `estimate_net`, `sap_item_no`, `sap_net` | The snapshot is the offer's evidence, never a served price (§4, rule 2) |
 | `quotation_line_discount` | `line_id`, `type` (agreement / manual / pickup / price-request), `source_ref` (agreement term id, user id, rule id), `percent` or `amount`, `sap_condition_type`, `estimate_amount`, `sap_amount` | Origin visible end to end |
 | `quotation_free_item` | `line_id`, `material`, `quantity`, `unit`, `rule_ref` | Only if D17 is in scope |
@@ -651,10 +651,10 @@ every table.
 
 | Table | Key columns | Notes |
 |---|---|---|
-| `agreement_request` | `id`, `number`, `customer_id`, `requested_by`, `status`, `revision`, `source_channel`, `remark`, `client_request_id` | `client_request_id` makes offline sync idempotent |
+| `agreement_request` | `id`, `number`, `depot_id`, `requested_by`, `status`, `revision`, `source_channel`, `remark`, `client_request_id` | `client_request_id` makes offline sync idempotent |
 | `agreement_request_line` | `request_id`, `category`, `type` (on-invoice / immediate-payment / volume-tier), `mode` (flat / tiered / no-target), `percent`, `currency` | |
 | `agreement_request_tier` | `line_id`, `min_amount` (incl.), `max_amount` (excl., nullable), `percent` | Contiguity validated in the domain |
-| `agreement_term` | `id`, `customer_id`, `category`, `type`, `percent` / tiers, `currency`, `valid_from`, `valid_to`, `source_request_id`, `state` (approved / effective / superseded / expired), `sap_condition_record` | **Immutable** snapshot; the only thing quotation and SAP sync read |
+| `agreement_term` | `id`, `depot_id`, `category`, `type`, `percent` / tiers, `currency`, `valid_from`, `valid_to`, `source_request_id`, `state` (approved / effective / superseded / expired), `sap_condition_record` | **Immutable** snapshot; the only thing quotation and SAP sync read |
 | `category_mapping` | `category`, `sap_material_price_group` | D14 |
 
 ### 11.3 Shared
@@ -667,7 +667,7 @@ every table.
 | `notification` | `user_id`, `subject_type`, `subject_id`, `kind`, `read_at`, `delivered_push_at` |
 
 Indexes that matter: `quotation (owner_user_id, status)`, `quotation (status, updated_at)`
-for the admin queue, `agreement_term (customer_id, category, valid_from, valid_to)`
+for the admin queue, `agreement_term (depot_id, category, valid_from, valid_to)`
 for the calculator's lookup, `sap_submission (state)` for the reconcile job.
 
 ---
@@ -679,18 +679,18 @@ for the calculator's lookup, `sap_submission (state)` for the reconcile job.
 | Diagram | Replace with | Note |
 |---|---|---|
 | `GET /api/mobile/quotation/drift` | `GET /api/v1/mobile/quotations?status=Draft`, `GET …/{id}` | |
-| `POST get-outlet/{id}` | Existing customer read (`feature/customer`) | Reuse |
-| `POST get-credit/{outletid}` | `GET /api/v1/mobile/customers/{id}/credit` | **Needs a SAP credit endpoint** (D9) |
-| `POST search/{param}`, `categories`, `materails` | Existing `GET /mobile/materials/search?customerId=`, `…/selection/categories`, `POST …/selection/materials` | Reuse; `customerId` gives sellable only |
+| `POST get-outlet/{id}` | Existing depot read (`feature/depot`) | Reuse |
+| `POST get-credit/{outletid}` | `GET /api/v1/mobile/depots/{id}/credit` | **Needs a SAP credit endpoint** (D9) |
+| `POST search/{param}`, `categories`, `materails` | Existing `GET /mobile/materials/search?depotId=`, `…/selection/categories`, `POST …/selection/materials` | Reuse; `depotId` gives sellable only |
 | `POST stock/{materialid}` | Existing `GET /materials/{materialNumber}/stock` | Advisory; ATP via `GetSalesStock` if needed |
-| `POST price/{materialid}` | Existing `GET /api/v1/mobile/pricing/customers/{id}?materialNumber=` | Reuse — never a second pricing path |
-| `GET get-promotion/{outletid}` | `GET /api/v1/mobile/customers/{id}/agreements` | Effective + pending, for display |
+| `POST price/{materialid}` | Existing `GET /api/v1/mobile/pricing/depots/{id}?materialNumber=` | Reuse — never a second pricing path |
+| `GET get-promotion/{outletid}` | `GET /api/v1/mobile/depots/{id}/agreements` | Effective + pending, for display |
 | `POST quotation/update` (×3) | `PATCH …/{id}`, `POST/PUT/DELETE …/{id}/lines[/{lineId}]`, `PUT …/{id}/discounts` | `If-Match` on every write |
 | `POST quotation/submit` | `POST /api/v1/mobile/quotations/{id}/submit` | `Idempotency-Key` header |
 | `POST admin/quotation/approval/approved` · `admim/…/rejected` | `POST /api/v1/quotations/{id}/approve` · `/return` · `/reject` | Verbs, not status pairs |
 | `POST admin/quotation/edit` | `PUT /api/v1/quotations/{id}` | Creates a revision |
 | `POST admin/quotation/submit-to-sap` (×2) | **None** — a job on approval; `POST /api/v1/quotations/{id}/sap-submission/retry` for admin retry | |
-| `POST mobile/quotation/confirm` | `POST /api/v1/mobile/quotations/{id}/acceptance` | Records the customer's yes; the order job does the rest |
+| `POST mobile/quotation/confirm` | `POST /api/v1/mobile/quotations/{id}/acceptance` | Records the depot's yes; the order job does the rest |
 | `POST mobile/quotation/rejected` | `POST /api/v1/mobile/quotations/{id}/decline` `{reason}` | |
 | "Realtime update" | Existing `/hubs/pricing` + `QuotationChanged` / `AgreementRequestChanged` events | |
 
@@ -698,9 +698,9 @@ for the calculator's lookup, `sap_submission (state)` for the reconcile job.
 
 | Endpoint | Permission |
 |---|---|
-| `POST /quotations` `{customerId}` | `quotations.create` + ownership |
-| `GET /quotations?status=&customerId=&page=` · `GET /quotations/{id}` | `quotations.read` + ownership |
-| `PATCH /quotations/{id}` (shipment, ship-to, remarks, customer reference) | owner, while editable |
+| `POST /quotations` `{depotId}` | `quotations.create` + ownership |
+| `GET /quotations?status=&depotId=&page=` · `GET /quotations/{id}` | `quotations.read` + ownership |
+| `PATCH /quotations/{id}` (shipment, ship-to, remarks, depot reference) | owner, while editable |
 | `POST /quotations/{id}/lines` · `PUT …/lines/{lineId}` · `DELETE …/lines/{lineId}` | owner, while editable |
 | `PUT /quotations/{id}/discounts` (manual intents only) | owner, while editable |
 | `POST /quotations/{id}/price-requests` (manual price, D7) | owner; forces approval |
@@ -708,7 +708,7 @@ for the calculator's lookup, `sap_submission (state)` for the reconcile job.
 | `POST /quotations/{id}/submit` · `/cancel` · `/revise` | owner |
 | `POST /quotations/{id}/acceptance` · `/decline` | owner, only in Quoted |
 | `GET /quotations/{id}/document` (PDF) | owner — watermark until Quoted |
-| `GET /customers/{id}/agreements` | `customers.read` + ownership |
+| `GET /depots/{id}/agreements` | `depots.read` + ownership |
 | `POST /agreement-requests` · `PUT …/{id}` · `POST …/{id}/submit` · `GET …` | `agreements.request` + ownership |
 
 ### 12.3 Admin — `/api/v1` · `ApiResponse<T>`
@@ -731,7 +731,7 @@ for the calculator's lookup, `sap_submission (state)` for the reconcile job.
 | 409 | `Quotation.PriceChanged` | Live price moved since the rep saw it; body lists lines, old and new |
 | 412 | `Quotation.ConcurrencyConflict` | `If-Match` stale — reload |
 | 422 | `Quotation.MaterialNotSellable` · `Quotation.MixedCurrency` · `Quotation.MultiplePrices` · `Quotation.DiscountExceedsGross` · `Agreement.TiersInvalid` · `Agreement.OverlapsPending` | Validation |
-| 422 | `Pricing.CustomerNotPriceable` | Reused from Pricing |
+| 422 | `Pricing.DepotNotPriceable` | Reused from Pricing |
 | 502/500 | `Sap.*` / `Quotation.PriceUnavailable` | ERP trouble — never rendered as "no price" (see §13.8 on 500 vs 502) |
 
 ### 12.5 Notifications
@@ -768,9 +768,9 @@ endpoint**, never with a shared builder. And every response is declared a bare
 | SAP field (expected) | Source |
 |---|---|
 | Document type | Config `SAP:QuotationDocType` (ask SD: `QT`/`ZQT`) |
-| Sales org / dist. channel / division | `CustomerSalesArea` — Pricing uses only sales org and price group, so check channel and division are synced |
-| Sold-to / ship-to | Customer; ship-to for Delivery |
-| Customer reference | Platform number `QT-2026-000123` — the reconciliation key (§13.3) |
+| Sales org / dist. channel / division | `DepotSalesArea` — Pricing uses only sales org and price group, so check channel and division are synced |
+| Sold-to / ship-to | Depot; ship-to for Delivery |
+| Depot reference | Platform number `QT-2026-000123` — the reconciliation key (§13.3) |
 | Valid from / to | Server clock; D6 |
 | Shipping condition | Pickup / Delivery (D13) |
 | Order reason | `GetReason`, if SD requires it |
@@ -788,7 +788,7 @@ sequenceDiagram
     participant DB as PostgreSQL (outbox)
     participant SAP as SAP middleware
     Job->>DB: sap_submission attempt n = Pending
-    Job->>SAP: GetQuotByPaging(purchaseOrderNo = QT-number, customer)
+    Job->>SAP: GetQuotByPaging(purchaseOrderNo = QT-number, depot)
     alt already exists (an earlier attempt succeeded)
         SAP-->>Job: found
         Job->>DB: Succeeded, store SAP number
@@ -807,7 +807,7 @@ sequenceDiagram
     end
 ```
 
-The lookup-before-create uses the platform number as the SAP customer reference, which
+The lookup-before-create uses the platform number as the SAP depot reference, which
 `GetQuotByPaging`'s `purchaseOrderNo` filter can search. **Confirm with Sales that the
 field is free** — if reps put the depot's real PO number there, use another searchable
 reference field instead. Failover to the secondary host only when the request provably
@@ -822,19 +822,19 @@ switch to SAP values.
 
 ### 13.5 Changes after SAP has the document
 
-Admin edits after Quoted go through `UpdateQuot`, as a new revision. A customer decline
+Admin edits after Quoted go through `UpdateQuot`, as a new revision. A depot decline
 sets a **rejection reason on every item** via `UpdateQuot` if the DTO supports it — that
 is how SAP marks a lost quotation, and it keeps SAP's open-quotation reports honest.
 
 ### 13.6 Orders
 
-A customer acceptance becomes a SAP sales order **with reference to the quotation**, so
+A depot acceptance becomes a SAP sales order **with reference to the quotation**, so
 SAP copies prices and SAP's quotation shows as completed. This needs an endpoint the
 excerpt does not have. Same outbox, same reconcile rule, credit check first (D9).
 
 ### 13.7 Agreement conditions
 
-Option B: `VerifyAgreementInSapJob` reads the discount condition for customer ×
+Option B: `VerifyAgreementInSapJob` reads the discount condition for depot ×
 material price group each night and on demand; a term becomes Effective only when SAP
 holds it with matching rate and dates. Option A later: the same job writes, then
 verifies.
@@ -843,7 +843,7 @@ verifies.
 
 - **Test documents need a test system.** The connection is named `Live110`. `CreateQuot`
   writes real sales documents; development loops must not. Ask for a QAS connection, or
-  at minimum an agreed test customer and a clean-up procedure, before Phase 4.
+  at minimum an agreed test depot and a clean-up procedure, before Phase 4.
 - **500 or 502?** The Pricing docs disagree: `sap-integration.md` says `Sap.ApiError`
   surfaces as 500 by platform convention; `security.md` and the mobile upgrade workflow
   say 502. Settle it once for all SAP clients before a fourth one copies whichever it
@@ -856,7 +856,7 @@ verifies.
 | Concern | Rule |
 |---|---|
 | Permissions | New: `quotations.create/.read/.readall/.approve/.sap`, `agreements.request/.prepare/.verify/.approve-consultant/.approve-final/.sap`, `settings.manage`. Pricing argued *against* a new permission nobody holds on deploy day — so these ship **with the migration that grants them to roles**, not afterwards |
-| Row-level | One `ICustomerAudienceResolver`, generalised from Pricing's, for quotations, agreements and pricing alike. Someone else's quotation is **404** |
+| Row-level | One `IDepotAudienceResolver`, generalised from Pricing's, for quotations, agreements and pricing alike. Someone else's quotation is **404** |
 | Client sends intent | Percentages, material codes, quantities. Never amounts, totals, tax or approval levels — the server recomputes everything on every write |
 | Authority | Manual-discount limits and approval levels enforced server-side (D4); the client only displays the limit it is given |
 | Four eyes | Approver ≠ author; one user signs one step per agreement request; an admin who edits a quotation above rep authority cannot also approve that revision |
@@ -876,7 +876,7 @@ of change: the screens stay, what feeds them changes.
 **Keep:** `QuotationBuilderScreen`, `ShipmentWidgetSection`, `DiscountSummarySection`
 (its Invoice / SKU / Free grouping maps one-to-one onto the preview's discount types),
 `LineDiscountChips`, `QuotationItemsTable`, the PDF layout and its Discount column, the
-customer-change reset in `PromotionCubit`.
+depot-change reset in `PromotionCubit`.
 
 **Change, in order:**
 
@@ -894,7 +894,7 @@ customer-change reset in `PromotionCubit`.
    no price (`erpAnswered: true`, empty `items`); on 5xx the app shows "prices
    unavailable", with no input. A price request is labelled "needs approval".
 6. **Delete `promotions_mock_data.dart` and `demo_cart_promotions.dart` from release
-   builds.** Agreements come from `GET /customers/{id}/agreements` — Effective ones as
+   builds.** Agreements come from `GET /depots/{id}/agreements` — Effective ones as
    applied discounts, pending and approved-not-effective ones greyed.
 7. **Rep discount chips send intents** (`PUT …/discounts`); the 10 % cap becomes
    whatever limit the server returns for this rep.
@@ -939,7 +939,7 @@ answers (especially which SAP endpoints exist).
 | **Q3 — Quotation approval** | Admin queue by level, approve / return / reject, admin edit with revisions and rep diff | Q2, engine | Illegal transitions rejected; four-eyes enforced |
 | **P2 — Agreements into SAP** | Option B verify job, Effective state, supersede/expiry; option A when the endpoint exists | P1, condition read | An approved agreement is applied by SAP to a **counter** order, not just an app one |
 | **Q4 — SAP quotation** | Outbox, lookup-before-create, unknown/reconcile, readback, diff flags, PDF from SAP values | Q3, QAS | Network-kill test during `CreateQuot` produces exactly one SAP quotation |
-| **Q5 — Customer decision & orders** | Acceptance / decline (rejection reasons), sales order with reference, credit check, expiry job | Q4, **order endpoint**, credit endpoint | A quotation can be won, lost or expire, and a won one exists as a SAP order |
+| **Q5 — Depot decision & orders** | Acceptance / decline (rejection reasons), sales order with reference, credit check, expiry job | Q4, **order endpoint**, credit endpoint | A quotation can be won, lost or expire, and a won one exists as a SAP order |
 | **P3 — Rebates & payment terms** | Volume-tier tracking and settlement, immediate-payment, free goods if D17 | P2, billing read, SAP rebate setup | Month-end tier computed from SAP billing, excluding scrap |
 | **Q6 — Hardening** | Auto-approve within policy (D3), reports (conversion, approval time, discount leakage, estimate-vs-SAP drift), alternative units, direct orders (D8), AI search | Q5 | — |
 
@@ -955,7 +955,7 @@ dependency is the **sales-order endpoint** — request it in Phase 0, not in Q5.
 | Domain | Every *(status, action)* pair for quotation and agreement request | Table-driven: allowed pairs succeed, all others return `InvalidTransition` |
 | Calculator | Units, `pricingUnit ≠ 1`, `US3`/`USD` rounding, stacking, caps, discount > gross, mixed currency, missing price, price request, multi-price, agreement not Effective | Pure unit tests; §8.9 as a golden case |
 | Agreements | Tier contiguity, overlap with pending, supersede end-dating, step outcomes from template, four-eyes | Unit tests |
-| Authorization | Foreign customer → 404; approve own → refused; authority levels | Handler tests with the resolver |
+| Authorization | Foreign depot → 404; approve own → refused; authority levels | Handler tests with the resolver |
 | SAP contract | DTOs pinned from **captured** responses; aliases; unmapped counted | Pricing's pattern, fixtures from Live110/QAS |
 | Idempotency | Timeout after send → reconcile finds it → no second create | Fake SAP client that commits then drops the connection |
 | Concurrency | Two editors → one 412 | Integration test on PostgreSQL |
@@ -963,7 +963,7 @@ dependency is the **sales-order endpoint** — request it in Phase 0, not in Q5.
 | Flutter | Rendering of fixture preview DTOs; the §15 checklist | Widget tests |
 
 Prerequisite: `dotnet test` must run. Pricing shipped its tests through an isolated
-harness because the test projects are broken by in-flight customer work; a feature that
+harness because the test projects are broken by in-flight depot work; a feature that
 creates sales documents cannot ship that way.
 
 ---
@@ -974,7 +974,7 @@ creates sales documents cannot ship that way.
 |---|---|---|---|
 | No SAP endpoint for sales orders / condition records / credit | High | Blocks Orders and automatic agreements | Request in Phase 0; option B for agreements; Q5 scheduled against the answer |
 | Quotation response contract differs from guesses | High (Pricing had four defects) | Silent wrong numbers | Capture first; aliases; unmapped counters; loud logs |
-| Test documents created in a live SAP client | Medium | Real documents, real reports polluted | QAS connection or agreed test customer + clean-up |
+| Test documents created in a live SAP client | Medium | Real documents, real reports polluted | QAS connection or agreed test depot + clean-up |
 | Platform estimate disagrees with SAP net | Medium | Reps quote one number, SAP bills another | SAP-authoritative after Quoted; diff flags; mirror the pricing procedure (D12) |
 | Flutter client arithmetic ships alongside server preview | Medium | Two totals on one screen | Delete the getters in step 2; checklist |
 | Mock promotions reach production | Medium | Invented terms honoured at a counter | Release-build exclusion + CI check |

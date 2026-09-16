@@ -4,15 +4,24 @@
 
 import 'package:flutter/material.dart';
 
-enum CategoryFamily { product, raw, semi, finished, fitting, part, supply, misc }
+enum CategoryFamily {
+  product,
+  raw,
+  semi,
+  finished,
+  fitting,
+  part,
+  supply,
+  misc
+}
 
 class CategoryIconTokens {
   const CategoryIconTokens._();
 
   // Sizes
-  static const double sizeGrid = 26;      // inside a 48 chip — dashboard grid
-  static const double sizeNav = 24;       // bottom navigation
-  static const double sizeCompact = 20;   // list rows, chips, 32 px wells
+  static const double sizeGrid = 26; // inside a 48 chip — dashboard grid
+  static const double sizeNav = 24; // bottom navigation
+  static const double sizeCompact = 20; // list rows, chips, 32 px wells
   static const double chipGrid = 48;
   static const double chipCompact = 32;
 
@@ -53,9 +62,11 @@ class CategoryIconTokens {
   }
 
   /// Well behind the glyph. Inactive is neutral; active picks up the hue.
-  static Color chip(BuildContext context, CategoryFamily family, {bool active = false}) {
+  static Color chip(BuildContext context, CategoryFamily family,
+      {bool active = false}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    if (!active) return isDark ? const Color(0xFF1E2731) : const Color(0xFFF1F3F7);
+    if (!active)
+      return isDark ? const Color(0xFF1E2731) : const Color(0xFFF1F3F7);
     return of(context, family).withOpacity(isDark ? 0.16 : 0.12);
   }
 }

@@ -6,12 +6,12 @@ import 'package:drift/drift.dart';
 ///
 /// ## Why this is a table and not an API cache
 ///
-/// There is no geographic endpoint. `GET /mobile/customers/references` serves
+/// There is no geographic endpoint. `GET /mobile/depots/references` serves
 /// exactly ten SAP `CustHelper` catalogues
-/// (`docs/feature/customer/registration/sap-helpers.md`) and none of them is
+/// (`docs/feature/depot/registration/sap-helpers.md`) and none of them is
 /// geographic, so there is nothing to cache. Before this table the app carried
 /// five provinces and one province's districts as `const` maps in
-/// `bp_customer_form_data.dart`, which meant a rep in Kampot could not enter
+/// `bp_depot_form_data.dart`, which meant a rep in Kampot could not enter
 /// their own district.
 ///
 /// The data is therefore **bundled** as `assets/geo/kh_geo_seed_v1.json` and
@@ -22,10 +22,10 @@ import 'package:drift/drift.dart';
 /// ## Why it lives in the encrypted database
 ///
 /// Not because a village name is a secret — it is public record. Because the
-/// address a rep selects becomes part of a customer record, and joining it out
+/// address a rep selects becomes part of a depot record, and joining it out
 /// of a plaintext side-store would put half of a PII row outside the
 /// encryption boundary (`docs/skills/security.md` §3). One database also means the
-/// address can be resolved in the same transaction as the customer write.
+/// address can be resolved in the same transaction as the depot write.
 ///
 /// ## No foreign keys (ADR-011)
 ///

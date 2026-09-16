@@ -31,7 +31,7 @@ class MockQuotationSapService implements QuotationSapService {
       case 0:
         return const SapRejected(
           errorCode: 'SAP_CREDIT_LIMIT',
-          message: 'Customer credit limit exceeded.',
+          message: 'Depot credit limit exceeded.',
         );
       case 1:
         return const SapConflict(

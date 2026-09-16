@@ -34,7 +34,7 @@ With no requirement documents, three things are impossible:
 
 This bites hardest where business rules are non-obvious and enforced only in
 code: geofence tolerance and fraud policy (`my_visits`), pricing/discount/approval
-rules (`order`), and the SAP Business Partner field requirements (`customers`).
+rules (`order`), and the SAP Business Partner field requirements (`depots`).
 
 ---
 
@@ -48,7 +48,7 @@ those documents describe what *is*, and are rewritten when the code changes.
 | Business rules, validation | [../feature/authentication/business-rules.md](../feature/authentication/business-rules.md) — **the only explicit business-rules document in the repo** |
 | Use cases | [../feature/authentication/use-cases.md](../feature/authentication/use-cases.md) |
 | Acceptance criteria | [../feature/authentication/uat.md](../feature/authentication/uat.md) and [testing.md](../feature/authentication/testing.md) — closest thing to testable criteria that exists |
-| SAP field requirements | [../feature/customer/ui-ux.md](../feature/customer/ui-ux.md), [../feature/customer/reference/](../feature/customer/reference/) |
+| SAP field requirements | [../feature/depot/ui-ux.md](../feature/depot/ui-ux.md), [../feature/depot/reference/](../feature/depot/reference/) |
 | Sprint acceptance criteria | [../blueprint/migration-plan.md](../blueprint/migration-plan.md) — infrastructure only, not product |
 | Everything else | Only in `lib/` — validators, use cases, and cubit branches |
 
@@ -65,7 +65,7 @@ Ranked by how much is enforced in code today with nothing written down:
 |---|---|---|
 | 1 | **`my_visits`** | Geofence tolerance, check-in validity, and fraud flagging are business policy with legal and payroll consequences, enforced entirely in code. `fraud_flags` is a real table. |
 | 2 | **`order`** | 43 use cases and 9 repositories. Pricing, discount, and quotation-approval rules have no written source of truth. |
-| 3 | **`customers`** | SAP BP field requirements exist as a `.xlsx` and a `.docx` — neither reviewable in a PR nor testable. |
+| 3 | **`depots`** | SAP BP field requirements exist as a `.xlsx` and a `.docx` — neither reviewable in a PR nor testable. |
 | 4 | **`notification`** | Ten channels, quiet hours, digests, and priority routing are backend-driven; the mobile side's obligations are undocumented. |
 
 ---
@@ -87,11 +87,11 @@ Create only what carries information. Acceptance criteria must be **testable**.
 
 ```
 Given   the Sales Representative is authenticated
-When    the user opens Customer Registration
-Then    the application must display the required customer fields
+When    the user opens Depot Registration
+Then    the application must display the required depot fields
 And     validate required fields before allowing submission
 And     submit valid data to the backend
-And     display the created customer after success
+And     display the created depot after success
 ```
 
 Every `Then`/`And` must be checkable by a person or a test. "The form should be

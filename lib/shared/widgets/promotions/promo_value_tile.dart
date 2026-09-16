@@ -61,7 +61,7 @@ class PromoValueTile extends StatelessWidget {
         return [
           _Figure(
             // Two decimals because depot rates are negotiated at 1.50% and
-            // 1.75%; rounding those to "2%" misquotes the customer.
+            // 1.75%; rounding those to "2%" misquotes the depot.
             text: percent.toStringAsFixed(2),
             suffix: '%',
             color: accent,

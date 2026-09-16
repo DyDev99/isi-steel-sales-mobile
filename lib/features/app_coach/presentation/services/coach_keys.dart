@@ -21,7 +21,7 @@ abstract final class CoachKeys {
 
   // My-work items.
   static const String myVisits = 'mw_my_visits';
-  static const String myCustomers = 'mw_my_customers';
+  static const String myDepots = 'mw_my_depots';
   static const String orders = 'mw_orders';
 
   // App-bar items.

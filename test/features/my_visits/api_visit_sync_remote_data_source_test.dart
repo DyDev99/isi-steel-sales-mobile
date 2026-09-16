@@ -46,7 +46,7 @@ CheckInRecordModel _checkIn(String id) => CheckInRecordModel(
       latitude: 11.55,
       longitude: 104.91,
       accuracyMeters: 8.5,
-      distanceFromCustomerMeters: 42.0,
+      distanceFromDepotMeters: 42.0,
       isMocked: false,
     );
 
@@ -318,7 +318,7 @@ void main() {
         'latitude': 11.55,
         'longitude': 104.91,
         'accuracy': 8.5,
-        'distanceFromCustomer': 42.0,
+        'distanceFromDepot': 42.0,
         'isMocked': false,
       });
       // Not the Drift shape: `toRow()` would have written snake_case and 0/1.
@@ -335,7 +335,7 @@ void main() {
         latitude: 0,
         longitude: 0,
         accuracyMeters: 100,
-        distanceFromCustomerMeters: 9000,
+        distanceFromDepotMeters: 9000,
         isMocked: true,
       );
 
@@ -343,7 +343,7 @@ void main() {
       final row = (json['checkIns'] as List).single as Map<String, dynamic>;
 
       expect(row['isMocked'], isTrue);
-      expect(row['distanceFromCustomer'], 9000);
+      expect(row['distanceFromDepot'], 9000);
     });
 
     test('sends enums as their exact documented strings, never integers', () {

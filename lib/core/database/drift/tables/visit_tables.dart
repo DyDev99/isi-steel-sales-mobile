@@ -38,9 +38,9 @@ class VisitCheckIns extends Table with SyncableTable {
   RealColumn get longitude => real()();
   RealColumn get accuracy => real()();
 
-  /// Metres between the rep and the customer's registered location — the input
+  /// Metres between the rep and the depot's registered location — the input
   /// to the geofence rule, retained for audit.
-  RealColumn get distanceFromCustomer => real()();
+  RealColumn get distanceFromDepot => real()();
   BoolColumn get isMocked => boolean().withDefault(const Constant(false))();
 
   /// Why the rep checked in from outside the geofence, when they did.
@@ -51,7 +51,7 @@ class VisitCheckIns extends Table with SyncableTable {
   /// out-of-bounds check-in indistinguishable from a compliant one.
   ///
   /// Nullable and additive: the geofence verdict itself stays in
-  /// [distanceFromCustomer], which is what the server re-evaluates.
+  /// [distanceFromDepot], which is what the server re-evaluates.
   TextColumn get overrideReason => text().nullable()();
 }
 
@@ -109,8 +109,8 @@ class VisitStockUpdates extends Table with SyncableTable {
 
   TextColumn get stopId => text().nullable()();
 
-  /// The depot/shop (customer id) a depot count was taken at. No FK: depot
-  /// counts may reference customers synced later than the capture.
+  /// The depot/shop (depot id) a depot count was taken at. No FK: depot
+  /// counts may reference depots synced later than the capture.
   TextColumn get depotId => text().nullable()();
   TextColumn get productId => text()();
   TextColumn get productName => text()();
@@ -118,7 +118,7 @@ class VisitStockUpdates extends Table with SyncableTable {
   TextColumn get notes => text().withDefault(const Constant(''))();
 }
 
-/// Goods returned by the customer during a visit.
+/// Goods returned by the depot during a visit.
 @TableIndex(name: 'idx_visit_returns_stop', columns: {#stopId})
 @DataClassName('VisitReturnRow')
 class VisitReturns extends Table with SyncableTable {

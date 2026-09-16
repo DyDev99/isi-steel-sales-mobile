@@ -1,7 +1,7 @@
 # Pricing — Mobile upgrade workflow
 
 **Purpose:** migrate the Flutter app onto the real SAP pricing integration.
-**Scope:** `/api/v1/mobile/pricing`, plus the `customerId` filter on `/api/v1/mobile/materials`.
+**Scope:** `/api/v1/mobile/pricing`, plus the `depotId` filter on `/api/v1/mobile/materials`.
 **Status:** Backend deployed · **Last updated:** 2026-09-10
 
 > [!CAUTION]
@@ -26,7 +26,7 @@ Turning the real integration on exposed four defects, each of which produced a
 | Rate read from `Amount` | SAP sends **`UnitPrice`** | every price `null` |
 | Dates parsed as `yyyyMMdd` | pricing sends **`dd-MM-yyyy`** | `01-09-2026` as **9 January** — eight months stale |
 | Open-ended sentinel `99991231` | it is **`31-12-9999`** | an unexpiring price shown as expired |
-| Condition type `PR00` | this business prices on **`ZP01`** | zero rows — "this customer has nothing to sell" |
+| Condition type `PR00` | this business prices on **`ZP01`** | zero rows — "this depot has nothing to sell" |
 
 All four are fixed server-side. Nothing is required of the app for them.
 
@@ -36,7 +36,7 @@ All four are fixed server-side. Nothing is required of the app for them.
 
 ### 2.1 The response is paged
 
-Previously the endpoint returned every price in one array. A single walk-in customer
+Previously the endpoint returned every price in one array. A single walk-in depot
 prices **3,869 materials**; that response was several hundred kilobytes and twenty
 sequential SAP calls.
 
@@ -105,23 +105,23 @@ Three spellings are accepted and behave identically:
 Before, sending that name was **silently ignored** and you received page 1 of the whole
 catalogue.
 
-### 3.2 Show only what the customer can buy
+### 3.2 Show only what the depot can buy
 
-Every mobile material surface now accepts `customerId`:
+Every mobile material surface now accepts `depotId`:
 
 | Endpoint | Parameter |
 |---|---|
-| `GET /mobile/materials` | `?customerId=` |
-| `GET /mobile/materials/search` | `?customerId=` |
-| `GET /mobile/materials/selection/categories` | `?customerId=` |
-| `POST /mobile/materials/selection/facets` | `selection.customerId` |
-| `POST /mobile/materials/selection/materials` | `selection.customerId` |
+| `GET /mobile/materials` | `?depotId=` |
+| `GET /mobile/materials/search` | `?depotId=` |
+| `GET /mobile/materials/selection/categories` | `?depotId=` |
+| `POST /mobile/materials/selection/facets` | `selection.depotId` |
+| `POST /mobile/materials/selection/materials` | `selection.depotId` |
 
-Sellable means SAP holds a price for it in that customer's sales area — 3,832 SKUs
+Sellable means SAP holds a price for it in that depot's sales area — 3,832 SKUs
 instead of 13,499. It scopes **facet options too**, so the guided finder keeps its
 no-dead-ends promise. See [../material/sellability.md](../material/sellability.md).
 
-A customer with no SAP sales area answers **422 `Pricing.CustomerNotPriceable`**. It
+A depot with no SAP sales area answers **422 `Pricing.DepotNotPriceable`**. It
 never silently falls back to the full catalogue — handle the 422.
 
 ---
@@ -153,7 +153,7 @@ class MobilePricingPage {
 **Step 2 — render the unit.** Everywhere a price appears. `pricingUnit == 1` may be
 rendered as `0.475 US3 / KG`; anything else must show the quantity: `47.50 US3 / 100 KG`.
 
-**Step 3 — page the customer price list.** Follow `page.hasMore`. Do not loop to the
+**Step 3 — page the depot price list.** Follow `page.hasMore`. Do not loop to the
 end on open — 78 pages is 78 requests; page on scroll.
 
 **Step 4 — switch material lookups to `materialNumber`.** A material-detail screen
@@ -162,7 +162,7 @@ client-side.
 
 **Step 5 — stop assuming one price per material.** Handle a 2-item response.
 
-**Step 6 — pass `customerId` on catalogue screens** opened in a customer's context, and
+**Step 6 — pass `depotId` on catalogue screens** opened in a depot's context, and
 handle `422`.
 
 **Step 7 — drop any `raw` reads.**
@@ -189,7 +189,7 @@ Keep using `updatedAt` to discard events older than your last known state.
 
 ## 6. Reference response
 
-`GET /api/v1/mobile/pricing/customers/{customerId}?materialNumber=1500000017`, captured
+`GET /api/v1/mobile/pricing/depots/{depotId}?materialNumber=1500000017`, captured
 live 2026-09-10:
 
 ```json
@@ -225,8 +225,8 @@ a year 9999.
 
 | Status | Code | Meaning |
 |---|---|---|
-| `404` | `Pricing.CustomerNotFound` | No such customer, **or** not one this rep may see — deliberately indistinguishable |
-| `422` | `Pricing.CustomerNotPriceable` | Customer has no SAP sales area. Not a fault |
+| `404` | `Pricing.DepotNotFound` | No such depot, **or** not one this rep may see — deliberately indistinguishable |
+| `422` | `Pricing.DepotNotPriceable` | Depot has no SAP sales area. Not a fault |
 | `502` | `Sap.*` | ERP unreachable or errored. **Not** the same as "no prices" — never render it as an empty list |
 
 ---
@@ -236,11 +236,11 @@ a year 9999.
 - [ ] A price never appears without its unit.
 - [ ] `pricingUnit` is read, not assumed to be 1.
 - [ ] `US3` renders correctly; nothing asserts `USD`.
-- [ ] The customer price list pages; `hasMore` drives it.
+- [ ] The depot price list pages; `hasMore` drives it.
 - [ ] Material lookup uses `materialNumber` and does not assume one result.
 - [ ] `422` is handled distinctly from `404` and from an empty list.
 - [ ] `502` shows "prices unavailable", never "no prices".
-- [ ] Catalogue screens in a customer context pass `customerId`.
+- [ ] Catalogue screens in a depot context pass `depotId`.
 - [ ] No code reads `raw`.
 
 ## 8. Backend verification already done

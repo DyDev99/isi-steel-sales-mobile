@@ -5,13 +5,13 @@ import 'package:isi_steel_sales_mobile/features/order/domain/entities/promotion/
 import 'package:isi_steel_sales_mobile/features/order/domain/repositories/promotion_repository.dart';
 
 class GetPromotionsParams extends Equatable {
-  const GetPromotionsParams({this.customerId, this.includeUpcoming = false});
+  const GetPromotionsParams({this.depotId, this.includeUpcoming = false});
 
-  final String? customerId;
+  final String? depotId;
   final bool includeUpcoming;
 
   @override
-  List<Object?> get props => [customerId, includeUpcoming];
+  List<Object?> get props => [depotId, includeUpcoming];
 }
 
 /// Promotions worth showing, for the dashboard strip and the promotions page.
@@ -22,7 +22,7 @@ class GetPromotions extends UseCase<List<Promotion>, GetPromotionsParams> {
   @override
   ResultFuture<List<Promotion>> call(GetPromotionsParams params) =>
       _repository.getPromotions(
-        customerId: params.customerId,
+        depotId: params.depotId,
         includeUpcoming: params.includeUpcoming,
       );
 }

@@ -61,9 +61,7 @@ class GeoLevelField extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: hasError
-              ? theme.colorScheme.error
-              : const Color(0xFFE2E8F0),
+          color: hasError ? theme.colorScheme.error : const Color(0xFFE2E8F0),
           width: 1.1,
         ),
         boxShadow: [
@@ -131,7 +129,12 @@ class GeoLevelField extends StatelessWidget {
                   label: level.labelKey.tr,
                   value: _valueLabel(context),
                   child: InkWell(
-                    onTap: _isEnabled ? onTap : null,
+                    onTap: _isEnabled
+                        ? () {
+                            FocusScope.of(context).unfocus();
+                            onTap();
+                          }
+                        : null,
                     borderRadius: BorderRadius.circular(8),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
@@ -227,7 +230,12 @@ class GeoLevelField extends StatelessWidget {
                         label: level.labelKey.tr,
                         value: _valueLabel(context),
                         child: InkWell(
-                          onTap: _isEnabled ? onTap : null,
+                          onTap: _isEnabled
+                              ? () {
+                                  FocusScope.of(context).unfocus();
+                                  onTap();
+                                }
+                              : null,
                           borderRadius: BorderRadius.circular(8),
                           child: Container(
                             padding: const EdgeInsets.symmetric(

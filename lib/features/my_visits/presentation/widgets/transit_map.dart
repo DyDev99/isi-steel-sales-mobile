@@ -26,7 +26,7 @@ class _TransitMapState extends State<TransitMap> {
   bool _didInitialFit = false;
 
   LatLng get _targetLatLng =>
-      LatLng(widget.target.customer.latitude, widget.target.customer.longitude);
+      LatLng(widget.target.depot.latitude, widget.target.depot.longitude);
   LatLng? get _currentLatLng => widget.currentPosition == null
       ? null
       : LatLng(
@@ -55,8 +55,8 @@ class _TransitMapState extends State<TransitMap> {
   /// would fire an app switch every time a rep panned or zoomed.
   Future<void> _openDirections() async {
     final launched = await openDrivingDirections(
-      latitude: widget.target.customer.latitude,
-      longitude: widget.target.customer.longitude,
+      latitude: widget.target.depot.latitude,
+      longitude: widget.target.depot.longitude,
     );
     if (launched || !mounted) return;
     // No map app took it. Say so rather than leave the button looking dead.
@@ -105,8 +105,8 @@ class _TransitMapState extends State<TransitMap> {
         position: _targetLatLng,
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
         infoWindow: InfoWindow(
-          title: context.localized(widget.target.customer.displayName),
-          snippet: widget.target.customer.address,
+          title: context.localized(widget.target.depot.displayName),
+          snippet: widget.target.depot.address,
           // Tapping the shop's callout is the idiom every map app uses for
           // "take me here", so it costs no discovery on top of the button.
           onTap: _openDirections,
@@ -127,7 +127,7 @@ class _TransitMapState extends State<TransitMap> {
       Circle(
         circleId: const CircleId('geofence'),
         center: _targetLatLng,
-        radius: widget.target.customer.geofenceRadiusMeters,
+        radius: widget.target.depot.geofenceRadiusMeters,
         strokeColor: scheme.primary,
         strokeWidth: 2,
         fillColor: scheme.primary.withValues(alpha: 0.12),

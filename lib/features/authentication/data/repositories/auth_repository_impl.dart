@@ -195,7 +195,7 @@ class AuthRepositoryImpl implements AuthRepository {
       final profile = await _remote.getProfile();
       _logger.info('auth.otp.login.success', fields: {
         'permissions': profile.permissions.length,
-        'canReadCustomers': profile.canReadCustomers,
+        'canReadDepots': profile.canReadDepots,
       });
 
       await _local.cacheSession(token: token, profile: profile);
@@ -254,13 +254,13 @@ class AuthRepositoryImpl implements AuthRepository {
 
     if (cached != null && token != null) {
       // The startup line worth having: it says whether the app came up signed
-      // in, and with which grants. A rep reporting "the customer tab is empty"
+      // in, and with which grants. A rep reporting "the depot tab is empty"
       // is answered by `permissions` here without reproducing anything.
       _logger.info('auth.session.restored', fields: {
         'permissions': cached.permissions.length,
         'roles': cached.roles.map((r) => r.name).toList(),
         'territory': cached.territoryCode,
-        'canReadCustomers': cached.can(Permissions.customersRead),
+        'canReadDepots': cached.can(Permissions.depotsRead),
       });
       return Success(cached);
     }

@@ -8,7 +8,7 @@ import 'package:isi_steel_sales_mobile/core/localization/localized_text.dart';
 ///
 ///  * `name` / `nameKh` — the catalog feed and `products` table, matching SAP's
 ///    `MaterialDes` / `MaterialDesKH` pair;
-///  * `enName` / `khName` — the customer master, matching SAP's BP `name1` /
+///  * `enName` / `khName` — the depot master, matching SAP's BP `name1` /
 ///    `name3`;
 ///  * `name` / `name_kh` — Drift rows, which are snake_case.
 ///
@@ -47,11 +47,11 @@ class LocalizedTextCodec {
         kmKeys: const ['nameKh', 'name_kh'],
       );
 
-  /// The customer-master convention: `enName` + `khName`, with [fallbackEn]
+  /// The depot-master convention: `enName` + `khName`, with [fallbackEn]
   /// used when SAP left `name1` blank.
   ///
-  /// [fallbackEn] is what makes this safe to adopt on the customer directory:
-  /// `shopName` is populated for every row, `enName` is not, so a customer with
+  /// [fallbackEn] is what makes this safe to adopt on the depot directory:
+  /// `shopName` is populated for every row, `enName` is not, so a depot with
   /// only a shop name still renders instead of going blank.
   static LocalizedText readBusinessName(
     Map<String, dynamic> source, {

@@ -16,7 +16,7 @@
 ## 1. What this feature is
 
 A field sales rep is given a **route** for the day: an ordered list of **stops**,
-each at a customer or depot. At each stop the rep checks in (location-verified),
+each at a depot or depot. At each stop the rep checks in (location-verified),
 performs work — a stock count, a quotation, notes, photos, a cash collection —
 and checks out. The app then syncs everything.
 
@@ -129,17 +129,17 @@ Initial (full) sync. Paginated, because a first install pulls history.
 ```json
 {
   "data": {
-    "customers": [ /* CustomerStopInfo, §7.1 */ ],
+    "depots": [ /* DepotStopInfo, §7.1 */ ],
     "routes":    [ /* RoutePlan with nested stops, §7.2 */ ],
     "hasMore": false
   }
 }
 ```
 
-`customers` is a flat, de-duplicated list; each stop joins to it by
-`customerId`. A customer appearing on three stops is sent **once**.
+`depots` is a flat, de-duplicated list; each stop joins to it by
+`depotId`. A depot appearing on three stops is sent **once**.
 
-The client reads only `customers`, `routes` and `hasMore` from this body.
+The client reads only `depots`, `routes` and `hasMore` from this body.
 `generatedAt` and `territories` are also present at the top level.
 
 **`generatedAt` is now the authoritative sync watermark** — the server clock when
@@ -149,7 +149,7 @@ and remains ignored by the client.
 
 Two fields here are **additive to the original contract** and worth knowing:
 
-- **`customers[].hasLocation`** — false when the customer has no recorded pin. The
+- **`depots[].hasLocation`** — false when the depot has no recorded pin. The
   client cannot otherwise tell a genuine pin at `(0, 0)` from a missing one, and a
   check-in against a missing pin is recorded as *unverifiable* rather than as a
   failure.
@@ -326,7 +326,7 @@ rules. Same idempotency on the client's own ids. Either list may be empty or
 absent.
 
 **Rows are scoped to a `routeId`, not a `stopId`.** Most of this is recorded while
-the rep is riding between customers, where there is no stop to attribute it to.
+the rep is riding between depots, where there is no stop to attribute it to.
 The route must be one assigned to the caller. A fraud flag *may* name a `stopId`,
 but it must be a stop on the route it also names — otherwise the two identifiers
 contradict each other and there is no fact to store.
@@ -357,14 +357,14 @@ to refuse a row.
 
 Field names are exactly what the client reads. `?` marks nullable.
 
-### 7.1 CustomerStopInfo
+### 7.1 DepotStopInfo
 
 | Field | Type | Notes |
 |---|---|---|
 | `id` | string | Referenced by stops |
 | `name` | string | |
 | `nameKh` | string? | `""` when absent — the documented "no Khmer name" value |
-| `code` | string | Customer code |
+| `code` | string | Depot code |
 | `contact` | string | Contact person |
 | `phone` | string | |
 | `address` | string | |
@@ -388,7 +388,7 @@ Field names are exactly what the client reads. `?` marks nullable.
 | Field | Type | Notes |
 |---|---|---|
 | `id`, `routeId` | string | |
-| `customerId` | string | Joins to §7.1 |
+| `depotId` | string | Joins to §7.1 |
 | `sequence` | int | Visit order |
 | `plannedArrival`, `plannedDeparture` | ISO-8601 | |
 | `status` | `VisitStatus` | **Send the real execution state.** Hardcoding `pending` makes the dashboard read 0% complete regardless of data — this was a real client bug. |
@@ -402,7 +402,7 @@ Field names are exactly what the client reads. `?` marks nullable.
 | `timestamp` | ISO-8601 | |
 | `latitude`, `longitude` | number | Where the rep actually was |
 | `accuracy` | number | GPS accuracy, metres |
-| `distanceFromCustomer` | number | Metres from the customer pin — the geofence evidence |
+| `distanceFromDepot` | number | Metres from the depot pin — the geofence evidence |
 | `isMocked` | bool | Device reported a mock location provider |
 
 ### 7.4 CheckOut
@@ -466,7 +466,7 @@ The client cannot enforce these; it is offline when the data is made.
 
 1. **Stop ownership** — every `stopId` must belong to a route assigned to the
    authenticated rep. Reject cross-rep writes.
-2. **Geofence** — `distanceFromCustomer` and `isMocked` are *evidence submitted
+2. **Geofence** — `distanceFromDepot` and `isMocked` are *evidence submitted
    by the device*, not a verdict. The server decides whether a visit counts.
    Treat `isMocked: true` as a fraud signal, not a hard reject: the row still
    needs storing so it can be investigated.

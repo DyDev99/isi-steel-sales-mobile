@@ -75,8 +75,8 @@ void main() {
 
   const routeId = 'route-101';
   const stopId = 'stop-202';
-  const customerId = 'cust-303';
-  const customerName = 'ISI Depot Kampot';
+  const depotId = 'cust-303';
+  const depotName = 'ISI Depot Kampot';
 
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
@@ -125,8 +125,8 @@ void main() {
       workflows: workflows,
       routeId: routeId,
       stopId: stopId,
-      customerId: customerId,
-      customerName: customerName,
+      depotId: depotId,
+      depotName: depotName,
     );
   });
 
@@ -156,10 +156,10 @@ void main() {
     await tester.pumpAndSettle();
 
     // 1. Open Inventory Visibility for the checked-in stop
-    openInventoryVisibilityForCustomer(
+    openInventoryVisibilityForDepot(
       navKey.currentContext!,
-      customerId: customerId,
-      customerName: customerName,
+      depotId: depotId,
+      depotName: depotName,
       stopId: stopId,
     );
     await tester.pumpAndSettle();
@@ -224,17 +224,17 @@ Future<void> _seedVisitData(
   required ActiveWorkflowRepository workflows,
   required String routeId,
   required String stopId,
-  required String customerId,
-  required String customerName,
+  required String depotId,
+  required String depotName,
 }) async {
   final now = DateTime.now().toUtc();
   final day = DateTime.utc(now.year, now.month, now.day);
 
-  await db.into(db.customers).insert(CustomersCompanion.insert(
-        id: customerId,
-        sapCustomerId: const Value('SAP-101'),
-        customerCode: 'C-101',
-        shopName: customerName,
+  await db.into(db.depots).insert(DepotsCompanion.insert(
+        id: depotId,
+        sapDepotId: const Value('SAP-101'),
+        depotCode: 'C-101',
+        shopName: depotName,
         ownerName: 'Owner Sok',
         phone: '012345678',
         address: 'Main Road',
@@ -266,7 +266,7 @@ Future<void> _seedVisitData(
   await db.into(db.routeStops).insert(RouteStopsCompanion.insert(
         id: stopId,
         routeId: routeId,
-        customerId: customerId,
+        depotId: depotId,
         sequence: 1,
         plannedArrival: day.add(const Duration(hours: 9)),
         plannedDeparture: day.add(const Duration(hours: 10)),
@@ -279,15 +279,15 @@ Future<void> _seedVisitData(
     currentStopId: stopId,
     dayStarted: true,
     updatedAt: now,
-    customerId: customerId,
-    shopName: customerName,
+    depotId: depotId,
+    shopName: depotName,
     checkInAt: now.subtract(const Duration(minutes: 15)),
     currentWorkflow: VisitWorkflow.stockCount,
     currentScreen: InventoryVisibilityScreen.routeName,
     navigationArguments: {
       'stopId': stopId,
-      'customerId': customerId,
-      'customerName': customerName,
+      'depotId': depotId,
+      'depotName': depotName,
     },
   ));
 }

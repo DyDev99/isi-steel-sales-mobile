@@ -18,7 +18,7 @@ class QuotationPdfService {
   /// break off the pricing response — passes the real source instead.
   Future<pw.Document> generateQuotationDocument({
     required String quotationNumber,
-    required String customerName,
+    required String depotName,
     required List<CartItem> items,
     required double subtotal,
     required double discount,
@@ -33,7 +33,7 @@ class QuotationPdfService {
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(24),
         build: (pw.Context context) => [
-          _buildHeader(quotationNumber, customerName),
+          _buildHeader(quotationNumber, depotName),
           pw.SizedBox(height: 16),
           _buildItemsTable(items, discountsByLineId),
           pw.SizedBox(height: 16),
@@ -46,7 +46,7 @@ class QuotationPdfService {
     return pdf;
   }
 
-  pw.Widget _buildHeader(String quotationNumber, String customerName) {
+  pw.Widget _buildHeader(String quotationNumber, String depotName) {
     return pw.Row(
       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
       children: [
@@ -57,7 +57,7 @@ class QuotationPdfService {
               'ISI STEEL SALES QUOTATION',
               style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
             ),
-            pw.Text('Customer: $customerName'),
+            pw.Text('Depot: $depotName'),
           ],
         ),
         pw.Column(
@@ -175,7 +175,7 @@ class QuotationPdfService {
           pw.Text(detailText.toString(),
               style: const pw.TextStyle(fontSize: 9)),
           _quantityCell(item, _discountFor(item, discounts)),
-          // Blank rather than `\$0.00`: a quotation is a document the customer
+          // Blank rather than `\$0.00`: a quotation is a document the depot
           // keeps, and a zero on it is a price they can hold the rep to.
           pw.Text(PricingText.amount(item.unitPriceOrNull),
               style: const pw.TextStyle(fontSize: 9)),
@@ -223,7 +223,7 @@ class QuotationPdfService {
 
   /// What came off this line, and on whose authority.
   ///
-  /// Three lines at most, in decreasing order of what a customer checks first:
+  /// Three lines at most, in decreasing order of what a depot checks first:
   /// the percentage, the money it is worth, then who granted it. An empty
   /// discount prints an em dash rather than a zero — "0%" reads as a refusal,
   /// which is a more provocative thing to print than "not applicable".
@@ -257,7 +257,7 @@ class QuotationPdfService {
     }
 
     // The rule only. The free units themselves print in the Qty column, next
-    // to the number they change — a customer reading "300 Bag / +15 free" is
+    // to the number they change — a depot reading "300 Bag / +15 free" is
     // reading a delivery note, where the same fact in the money column would
     // need arithmetic to check.
     final rule = discount.freeQuantityLabel;
@@ -284,7 +284,7 @@ class QuotationPdfService {
   }
 
   /// [pending] blanks every figure rather than printing a total that is
-  /// missing a line. A quotation is a document a customer keeps, so a subtotal
+  /// missing a line. A quotation is a document a depot keeps, so a subtotal
   /// that silently omits an unpriced material is the worst of the options.
   pw.Widget _buildSummary(
       double subtotal, double discount, double tax, double total,

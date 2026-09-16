@@ -82,12 +82,12 @@ class QuotationPdfLine {
 ///
 /// This is the boundary the prompt calls out: **never pass widget state** into
 /// the generator. The presentation layer assembles one of these from domain
-/// entities ([CartItem], the session's rep, the customer) and hands it over;
+/// entities ([CartItem], the session's rep, the depot) and hands it over;
 /// the generator only ever sees plain data.
 class QuotationPdfData {
   const QuotationPdfData({
     required this.quotationNumber,
-    required this.customerName,
+    required this.depotName,
     required this.salesRepName,
     required this.createdDate,
     required this.lines,
@@ -99,14 +99,14 @@ class QuotationPdfData {
     required this.total,
     this.isTaxApplicable = true,
     this.invoiceDiscounts = const [],
-    this.customerPhone,
-    this.customerAddress,
+    this.depotPhone,
+    this.depotAddress,
     this.salesRepContact,
     this.validUntil,
     this.notes,
     this.currencySymbol = r'$',
     this.companyName,
-    this.customerEmail,
+    this.depotEmail,
     this.contactPerson,
     this.salesTerritory,
     this.paymentTerms,
@@ -117,10 +117,10 @@ class QuotationPdfData {
   });
 
   final String quotationNumber;
-  final String customerName;
-  final String? customerPhone;
-  final String? customerAddress;
-  final String? customerEmail;
+  final String depotName;
+  final String? depotPhone;
+  final String? depotAddress;
+  final String? depotEmail;
   final String? companyName;
   final String? contactPerson;
   final String salesRepName;
@@ -151,17 +151,16 @@ class QuotationPdfData {
   final String currencySymbol;
 
   /// Total discount = SKU Discount Total + Invoice Discount.
-  double get totalDiscount =>
-      (skuDiscountTotal + invoiceDiscountTotal) > 0
-          ? (skuDiscountTotal + invoiceDiscountTotal)
-          : discount;
+  double get totalDiscount => (skuDiscountTotal + invoiceDiscountTotal) > 0
+      ? (skuDiscountTotal + invoiceDiscountTotal)
+      : discount;
 
   /// Builds the PDF payload from live cart data. This is the single place cart
   /// entities cross into the PDF layer, so any product-shape change touches
   /// exactly one mapping.
   factory QuotationPdfData.fromCart({
     required String quotationNumber,
-    required String customerName,
+    required String depotName,
     required String salesRepName,
     required DateTime createdDate,
     required List<CartItem> items,
@@ -173,9 +172,9 @@ class QuotationPdfData {
     required double total,
     bool isTaxApplicable = true,
     List<String> invoiceDiscounts = const [],
-    String? customerPhone,
-    String? customerAddress,
-    String? customerEmail,
+    String? depotPhone,
+    String? depotAddress,
+    String? depotEmail,
     String? companyName,
     String? contactPerson,
     String? salesRepContact,
@@ -297,17 +296,18 @@ class QuotationPdfData {
       String? discountText;
 
       if (hasPercent) {
-        final percentFormatted = item.discountPercent.truncateToDouble() ==
-                item.discountPercent
-            ? '${item.discountPercent.toStringAsFixed(0)}%'
-            : '${item.discountPercent.toStringAsFixed(1)}%';
+        final percentFormatted =
+            item.discountPercent.truncateToDouble() == item.discountPercent
+                ? '${item.discountPercent.toStringAsFixed(0)}%'
+                : '${item.discountPercent.toStringAsFixed(1)}%';
         discountRule = percentFormatted;
         final promoPrefix = (promoName != null &&
                 promoName.isNotEmpty &&
                 promoName != 'Promotion')
             ? '$promoName — '
             : '';
-        discountText = '$promoPrefix$percentFormatted / -\$${discountAmount.toStringAsFixed(2)}';
+        discountText =
+            '$promoPrefix$percentFormatted / -\$${discountAmount.toStringAsFixed(2)}';
       } else if (freeUnits > 0) {
         final rule = freeRule ?? 'Free $freeUnits';
         discountRule = rule;
@@ -356,16 +356,17 @@ class QuotationPdfData {
       0.0,
       double.infinity,
     );
-    final resolvedInvoiceDiscount = invoiceDiscountTotal ?? computedInvoiceDiscount;
+    final resolvedInvoiceDiscount =
+        invoiceDiscountTotal ?? computedInvoiceDiscount;
 
     return QuotationPdfData(
       quotationNumber: quotationNumber,
-      customerName: customerName,
-      customerPhone: customerPhone,
-      customerAddress: customerAddress,
-      customerEmail: customerEmail,
-      companyName: companyName ?? customerName,
-      contactPerson: contactPerson ?? customerName,
+      depotName: depotName,
+      depotPhone: depotPhone,
+      depotAddress: depotAddress,
+      depotEmail: depotEmail,
+      companyName: companyName ?? depotName,
+      contactPerson: contactPerson ?? depotName,
       salesRepName: salesRepName,
       salesRepContact: salesRepContact,
       salesTerritory: salesTerritory ?? 'Phnom Penh',
@@ -373,8 +374,8 @@ class QuotationPdfData {
       validUntil: validUntil,
       paymentTerms: paymentTerms ??
           '30% advance payment upon confirmation. Remaining balance according to agreed terms.',
-      deliveryTerms: deliveryTerms ?? 'Customer Site / Standard Lead Time',
-      deliveryLocation: deliveryLocation ?? (customerAddress ?? 'Customer Site'),
+      deliveryTerms: deliveryTerms ?? 'Depot Site / Standard Lead Time',
+      deliveryLocation: deliveryLocation ?? (depotAddress ?? 'Depot Site'),
       estimatedDelivery: estimatedDelivery ?? '3–5 business days',
       deliveryFee: deliveryFee,
       lines: lines,

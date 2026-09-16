@@ -30,8 +30,8 @@ void main() {
         Static.order,
       );
       expect(
-        NotificationDeepLink.resolve('app://customers/c-1')!.route,
-        Static.customer,
+        NotificationDeepLink.resolve('app://depots/c-1')!.route,
+        Static.depot,
       );
       expect(
         NotificationDeepLink.resolve('app://dashboard')!.route,
@@ -57,7 +57,7 @@ void main() {
         {'routeId': 'r-1', 'stopId': 's-2'},
       );
       expect(
-        NotificationDeepLink.resolve('app://customers/c-1')!.arguments,
+        NotificationDeepLink.resolve('app://depots/c-1')!.arguments,
         'c-1',
       );
     });

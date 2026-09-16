@@ -23,9 +23,9 @@ class ApiEnvelope {
     this.traceId,
   });
 
-  /// The payload. Its shape is endpoint-specific — the customer list nests a
-  /// `customers` array under here, and the customer detail nests one level
-  /// deeper again under `data.customer`.
+  /// The payload. Its shape is endpoint-specific — the depot list nests a
+  /// `depots` array under here, and the depot detail nests one level
+  /// deeper again under `data.depot`.
   final DataMap data;
 
   /// Server-localised and safe to show.
@@ -60,7 +60,7 @@ class ApiEnvelope {
           .map((e) => e.cast<String, dynamic>())
           .toList();
 
-  /// The nested object under [key], for payloads like `data.customer`.
+  /// The nested object under [key], for payloads like `data.depot`.
   DataMap? object(String key) => (data[key] as Map?)?.cast<String, dynamic>();
 }
 

@@ -41,7 +41,7 @@ class GeoAddressRequirement extends Equatable {
   });
 
   /// Everything down to commune, postal code derived. The default for
-  /// customer and business-partner registration.
+  /// depot and business-partner registration.
   static const standard = GeoAddressRequirement();
 
   /// Village required too — a truck has to find the door.

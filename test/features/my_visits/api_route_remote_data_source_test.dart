@@ -34,8 +34,8 @@ ResponseBody _json(Map<String, dynamic> body, int status) =>
       Headers.contentTypeHeader: [Headers.jsonContentType],
     });
 
-/// One customer, shaped exactly as §7.1 documents it.
-Map<String, dynamic> _customer(String id) => {
+/// One depot, shaped exactly as §7.1 documents it.
+Map<String, dynamic> _depot(String id) => {
       'id': id,
       'name': 'Steel Depot $id',
       'nameKh': 'ឃ្លាំង $id',
@@ -51,7 +51,7 @@ Map<String, dynamic> _customer(String id) => {
     };
 
 /// One route with a single stop, per §7.2.
-Map<String, dynamic> _route(String id, {required String customerId}) => {
+Map<String, dynamic> _route(String id, {required String depotId}) => {
       'id': id,
       'name': 'Route $id',
       'repId': 'rep-1',
@@ -65,7 +65,7 @@ Map<String, dynamic> _route(String id, {required String customerId}) => {
         {
           'id': '$id-stop-1',
           'routeId': id,
-          'customerId': customerId,
+          'customerId': depotId,
           'sequence': 1,
           'plannedArrival': '2026-08-20T09:00:00Z',
           'plannedDeparture': '2026-08-20T09:30:00Z',
@@ -92,12 +92,12 @@ void main() {
   }
 
   group('fetchInitial', () {
-    test('parses customers, routes and nested stops out of the envelope',
+    test('parses depots, routes and nested stops out of the envelope',
         () async {
       final (source, _) = build((_) async => _json(
             _envelope({
-              'customers': [_customer('cust-1')],
-              'routes': [_route('route-1', customerId: 'cust-1')],
+              'customers': [_depot('cust-1')],
+              'routes': [_route('route-1', depotId: 'cust-1')],
               'hasMore': true,
             }),
             200,
@@ -107,10 +107,10 @@ void main() {
           await source.fetchInitial(scope: scope, page: 0, pageSize: 50);
 
       expect(page.hasMore, isTrue);
-      expect(page.customers, hasLength(1));
-      expect(page.customers.single.nameKh, 'ឃ្លាំង cust-1');
-      expect(page.customers.single.territoryType, TerritoryType.urban);
-      expect(page.customers.single.geofenceRadiusOverride, 150.0);
+      expect(page.depots, hasLength(1));
+      expect(page.depots.single.nameKh, 'ឃ្លាំង cust-1');
+      expect(page.depots.single.territoryType, TerritoryType.urban);
+      expect(page.depots.single.geofenceRadiusOverride, 150.0);
 
       expect(page.routes, hasLength(1));
       final route = page.routes.single;
@@ -121,8 +121,8 @@ void main() {
       expect(route.stops.single.status, VisitStatus.checkedIn);
       expect(route.stops.single.actualArrival, isNotNull);
       expect(route.stops.single.actualDeparture, isNull);
-      // The stop joined to the flat customer list by `customerId`.
-      expect(route.stops.single.customer.id, 'cust-1');
+      // The stop joined to the flat depot list by `depotId`.
+      expect(route.stops.single.depot.id, 'cust-1');
     });
 
     test('sends territory and converts the 0-based page to the API 1-based one',
@@ -185,17 +185,17 @@ void main() {
           await source.fetchInitial(scope: scope, page: 0, pageSize: 50);
 
       expect(page.routes, isEmpty);
-      expect(page.customers, isEmpty);
+      expect(page.depots, isEmpty);
       expect(page.hasMore, isFalse);
     });
 
-    test('drops a stop whose customer is missing rather than failing the page',
+    test('drops a stop whose depot is missing rather than failing the page',
         () async {
       final (source, _) = build((_) async => _json(
             _envelope({
               // `cust-1` is referenced by the stop but absent here.
-              'customers': [_customer('cust-2')],
-              'routes': [_route('route-1', customerId: 'cust-1')],
+              'customers': [_depot('cust-2')],
+              'routes': [_route('route-1', depotId: 'cust-1')],
               'hasMore': false,
             }),
             200,
@@ -272,8 +272,8 @@ void main() {
         () async {
       final (source, _) = build((_) async => _json(
             _envelope({
-              'customers': [_customer('cust-1')],
-              'routes': [_route('route-1', customerId: 'cust-1')],
+              'customers': [_depot('cust-1')],
+              'routes': [_route('route-1', depotId: 'cust-1')],
             }),
             200,
           ));

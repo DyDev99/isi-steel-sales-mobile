@@ -12,8 +12,8 @@ enum VisitHistoryStatus { completed, missed, pending }
 class VisitRecord {
   const VisitRecord({
     required this.id,
-    required this.customerName,
-    this.customerNameKh = '',
+    required this.depotName,
+    this.depotNameKh = '',
     required this.address,
     required this.latitude,
     required this.longitude,
@@ -29,12 +29,12 @@ class VisitRecord {
   });
 
   final String id;
-  final String customerName;
+  final String depotName;
 
   /// Khmer shop name. Defaulted so the fixture can grow a Khmer name per row
   /// without every construction site changing; empty falls back to
-  /// [customerName] via [displayName].
-  final String customerNameKh;
+  /// [depotName] via [displayName].
+  final String depotNameKh;
 
   final String address;
   final double latitude;
@@ -54,7 +54,7 @@ class VisitRecord {
   /// fixture, it is shaped the way the real visit-history backend will be so
   /// swapping the source is a datasource change, not a UI change.
   LocalizedText get displayName =>
-      LocalizedText(en: customerName, km: customerNameKh);
+      LocalizedText(en: depotName, km: depotNameKh);
 
   Duration? get duration {
     if (checkInTime == null || checkOutTime == null) return null;

@@ -14,7 +14,7 @@ class CartItems extends Table {
   TextColumn get unit => text()();
   RealColumn get discountPercent => real().withDefault(const Constant(0))();
   TextColumn get leadId => text().nullable()();
-  TextColumn get customerId => text().nullable()();
+  TextColumn get depotId => text().nullable()();
   TextColumn get editingQuotationId => text().nullable()();
 
   /// JSON blob describing a customized line (measurements, appearance, drawing

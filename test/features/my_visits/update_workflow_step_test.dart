@@ -41,7 +41,7 @@ ActiveWorkflow _checkedIn(Map<String, dynamic> args) => ActiveWorkflow(
       currentStopId: 's1',
       dayStarted: true,
       updatedAt: DateTime(2026, 8, 20),
-      customerId: 'c1',
+      depotId: 'c1',
       currentWorkflow: VisitWorkflow.stockCount,
       navigationArguments: args,
     );
@@ -50,7 +50,7 @@ void main() {
   test('merges incoming arguments onto the ones already recorded', () async {
     final repo = _FakeRepo(_checkedIn({
       'stopId': 's1',
-      'customerId': 'c1',
+      'depotId': 'c1',
       'territory': 'PP',
     }));
 
@@ -58,7 +58,7 @@ void main() {
       VisitWorkflow.stockCount,
       screen: 'my-visits-inventory-visibility',
       navigationArguments: {
-        'customerId': 'c1',
+        'depotId': 'c1',
         'stockAudit': {'1': 'high', '2': 'low'},
       },
     ));
@@ -73,14 +73,14 @@ void main() {
   });
 
   test('incoming keys win over stored ones', () async {
-    final repo = _FakeRepo(_checkedIn({'customerName': 'Old Depot'}));
+    final repo = _FakeRepo(_checkedIn({'depotName': 'Old Depot'}));
 
     await UpdateWorkflowStep(repo)(UpdateWorkflowStepParams(
       VisitWorkflow.stockCount,
-      navigationArguments: {'customerName': 'New Depot'},
+      navigationArguments: {'depotName': 'New Depot'},
     ));
 
-    expect(repo.lastSaved!.navigationArguments!['customerName'], 'New Depot');
+    expect(repo.lastSaved!.navigationArguments!['depotName'], 'New Depot');
   });
 
   test('null arguments leave the stored map untouched', () async {

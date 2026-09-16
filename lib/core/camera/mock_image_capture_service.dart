@@ -34,7 +34,7 @@ class MockCameraAssetException implements Exception {
 /// ## Why this exists
 ///
 /// The iOS Simulator has no camera. `image_picker` opens and returns nothing,
-/// so every flow that needs a photograph — customer evidence, visit proof,
+/// so every flow that needs a photograph — depot evidence, visit proof,
 /// drawing upload, visual search — is untestable there. This returns a real
 /// image through the same type, so those flows run unchanged.
 ///

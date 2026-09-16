@@ -57,9 +57,9 @@ class SessionManager {
 
   User? get currentUser => _user;
 
-  /// The fine-grained grants from `GET /auth/me`, e.g. `customers.read`.
+  /// The fine-grained grants from `GET /auth/me`, e.g. `depots.read`.
   ///
-  /// Held here rather than inside the customer/order/quotation features so a
+  /// Held here rather than inside the depot/order/quotation features so a
   /// feature can ask "may this user do X" without owning a copy of the
   /// profile. **A client-side check is a courtesy, never a security control** —
   /// the server re-checks every one. Its job is to avoid firing a request that

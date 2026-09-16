@@ -9,7 +9,7 @@ DataMap _row(
   String productId = 'P1',
   double quantity = 2,
   double discount = 0,
-  String? customerId,
+  String? depotId,
   String createdAt = '2026-01-01T00:00:00.000Z',
 }) {
   return {
@@ -19,7 +19,7 @@ DataMap _row(
     'unit': 'pcs',
     'discount_percent': discount,
     'lead_id': null,
-    'customer_id': customerId,
+    'depot_id': depotId,
     'editing_quotation_id': null,
     'created_at': createdAt,
   };
@@ -37,7 +37,7 @@ void main() {
 
   test('upsert then fetch round-trips the DataMap contract', () async {
     await source
-        .upsertItem(_row('1', quantity: 3, discount: 10, customerId: 'C1'));
+        .upsertItem(_row('1', quantity: 3, discount: 10, depotId: 'C1'));
     final rows = await source.fetchCartRows();
     expect(rows.length, 1);
     final r = rows.single;
@@ -45,7 +45,7 @@ void main() {
     expect(r['product_id'], 'P1');
     expect(r['quantity'], 3.0);
     expect(r['discount_percent'], 10.0);
-    expect(r['customer_id'], 'C1');
+    expect(r['depot_id'], 'C1');
     expect(r['lead_id'], isNull);
     expect(r['created_at'], '2026-01-01T00:00:00.000Z');
   });

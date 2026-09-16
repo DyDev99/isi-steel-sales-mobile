@@ -29,7 +29,7 @@ import 'package:isi_steel_sales_mobile/features/order/domain/services/product_cu
 ///    stored `total` stayed put.
 /// 2. **Lines vanished.** The decoder did `if (product == null) continue`, so a
 ///    soft-deleted or re-keyed material erased its line from a document that
-///    had already been shown to a customer — leaving totals that no set of
+///    had already been shown to a depot — leaving totals that no set of
 ///    visible lines added up to.
 ///
 /// So every line now carries its own SKU identity and money. The catalog is
@@ -82,7 +82,7 @@ class OrderLineCodec {
 
   Future<List<CartItem>> decode(
     String json, {
-    String? customerId,
+    String? depotId,
     String? leadId,
   }) async {
     final raw = (jsonDecode(json) as List).cast<DataMap>();
@@ -104,7 +104,7 @@ class OrderLineCodec {
         unit: line['unit'] as String,
         discountPercent: (line['discountPercent'] as num).toDouble(),
         leadId: leadId,
-        customerId: customerId,
+        depotId: depotId,
         priceTier: _tier(line['priceTier'] as String?),
         // Absent on blobs written before the snapshot existed, which correctly
         // falls back to live catalog pricing — the only behaviour those
@@ -133,7 +133,7 @@ class OrderLineCodec {
   /// Marked [ProductStatus.discontinued] with zero stock, so every existing
   /// availability check treats it as unsellable and it cannot be re-added to a
   /// cart — while the document that already contains it still renders the
-  /// material, the location and the price the customer was quoted.
+  /// material, the location and the price the depot was quoted.
   ///
   /// Blobs written before the snapshot columns existed have no name or code to
   /// recover; those fields come back empty and the SKU id stands in, which is

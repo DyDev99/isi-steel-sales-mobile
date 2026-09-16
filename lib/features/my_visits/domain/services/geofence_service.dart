@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/customer_stop_info.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/depot_stop_info.dart';
 
 class GeofenceCheckResult {
   const GeofenceCheckResult(
@@ -12,7 +12,7 @@ class GeofenceCheckResult {
   final double distanceMeters;
   final double radiusMeters;
 
-  /// False when the customer has no captured position, in which case
+  /// False when the depot has no captured position, in which case
   /// [insideGeofence] and [distanceMeters] mean nothing.
   ///
   /// This is a third outcome, not a failure: the rep is not outside the
@@ -50,13 +50,13 @@ class GeofenceService {
   static GeofenceCheckResult evaluate({
     required double repLatitude,
     required double repLongitude,
-    required CustomerStopInfo customer,
+    required DepotStopInfo depot,
   }) {
-    final radius = customer.geofenceRadiusMeters;
+    final radius = depot.geofenceRadiusMeters;
 
     // Measuring against (0, 0) would report ~10 000 km and fail every check-in
     // at a shop nobody has geotagged yet.
-    if (!customer.hasCoordinates) {
+    if (!depot.hasCoordinates) {
       return GeofenceCheckResult(
           insideGeofence: false,
           distanceMeters: double.nan,
@@ -65,7 +65,7 @@ class GeofenceService {
     }
 
     final distance = distanceMeters(
-        repLatitude, repLongitude, customer.latitude, customer.longitude);
+        repLatitude, repLongitude, depot.latitude, depot.longitude);
     return GeofenceCheckResult(
         insideGeofence: distance <= radius,
         distanceMeters: distance,

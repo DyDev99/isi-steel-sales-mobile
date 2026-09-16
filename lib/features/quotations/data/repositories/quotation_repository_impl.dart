@@ -12,8 +12,8 @@ class QuotationRepositoryImpl implements QuotationRepository {
     return Quotation(
       id: dto.id,
       number: dto.number,
-      customerId: dto.customerId,
-      customerName: dto.customerName,
+      depotId: dto.depotId,
+      depotName: dto.depotName,
       status: dto.status,
       statusGroup: dto.statusGroup,
       currency: dto.currency,
@@ -30,8 +30,8 @@ class QuotationRepositoryImpl implements QuotationRepository {
     return QuotationDetail(
       id: dto.id,
       number: dto.number,
-      customerId: dto.customerId,
-      customerName: dto.customerName,
+      depotId: dto.depotId,
+      depotName: dto.depotName,
       status: dto.status,
       statusGroup: dto.statusGroup,
       currency: dto.currency,
@@ -44,58 +44,66 @@ class QuotationRepositoryImpl implements QuotationRepository {
       shipmentType: dto.shipmentType,
       shipTo: dto.shipTo,
       paymentTerm: dto.paymentTerm,
-      customerReference: dto.customerReference,
+      depotReference: dto.depotReference,
       remarks: dto.remarks,
       manualDiscountLimitPercent: dto.manualDiscountLimitPercent,
       lineDiscountCapPercent: dto.lineDiscountCapPercent,
       requiredApprovalLevel: dto.requiredApprovalLevel,
       revision: dto.revision,
       decisionReason: dto.decisionReason,
-      lines: dto.lines.map((l) => QuotationLine(
-        lineId: l.lineId,
-        materialNumber: l.materialNumber,
-        materialDescription: l.materialDescription,
-        quantity: l.quantity,
-        unit: l.unit,
-        priceAmount: l.priceAmount,
-        priceCurrency: l.priceCurrency,
-        pricePricingUnit: l.pricePricingUnit,
-        priceConditionUnit: l.priceConditionUnit,
-        gross: l.gross,
-        discountTotal: l.discountTotal,
-        net: l.net,
-        discounts: l.discounts.map((d) => QuotationDiscount(
-          kind: d.kind,
-          percent: d.percent,
-          reason: d.reason,
-          amount: d.amount,
-        )).toList(),
-      )).toList(),
-      totals: dto.totals != null ? QuotationTotals(
-        currency: dto.totals!.currency,
-        gross: dto.totals!.gross,
-        discountTotal: dto.totals!.discountTotal,
-        net: dto.totals!.net,
-        isEstimate: dto.totals!.isEstimate,
-        tax: dto.totals!.tax,
-      ) : null,
-      warnings: dto.warnings.map((w) => QuotationWarning(
-        code: w.code,
-        lineId: w.lineId,
-      )).toList(),
+      lines: dto.lines
+          .map((l) => QuotationLine(
+                lineId: l.lineId,
+                materialNumber: l.materialNumber,
+                materialDescription: l.materialDescription,
+                quantity: l.quantity,
+                unit: l.unit,
+                priceAmount: l.priceAmount,
+                priceCurrency: l.priceCurrency,
+                pricePricingUnit: l.pricePricingUnit,
+                priceConditionUnit: l.priceConditionUnit,
+                gross: l.gross,
+                discountTotal: l.discountTotal,
+                net: l.net,
+                discounts: l.discounts
+                    .map((d) => QuotationDiscount(
+                          kind: d.kind,
+                          percent: d.percent,
+                          reason: d.reason,
+                          amount: d.amount,
+                        ))
+                    .toList(),
+              ))
+          .toList(),
+      totals: dto.totals != null
+          ? QuotationTotals(
+              currency: dto.totals!.currency,
+              gross: dto.totals!.gross,
+              discountTotal: dto.totals!.discountTotal,
+              net: dto.totals!.net,
+              isEstimate: dto.totals!.isEstimate,
+              tax: dto.totals!.tax,
+            )
+          : null,
+      warnings: dto.warnings
+          .map((w) => QuotationWarning(
+                code: w.code,
+                lineId: w.lineId,
+              ))
+          .toList(),
     );
   }
 
   @override
   Future<List<Quotation>> getQuotations({
     String? status,
-    String? customerId,
+    String? depotId,
     int page = 1,
     int pageSize = 20,
   }) async {
     final list = await _remoteDataSource.getQuotations(
       status: status,
-      customerId: customerId,
+      depotId: depotId,
       page: page,
       pageSize: pageSize,
     );
@@ -104,12 +112,12 @@ class QuotationRepositoryImpl implements QuotationRepository {
 
   @override
   Future<String> createQuotation({
-    required String customerId,
+    required String depotId,
     String shipmentType = 'Pickup',
     String? shipTo,
   }) {
     return _remoteDataSource.createQuotation(
-      customerId: customerId,
+      depotId: depotId,
       shipmentType: shipmentType,
       shipTo: shipTo,
     );
@@ -127,7 +135,7 @@ class QuotationRepositoryImpl implements QuotationRepository {
     required String shipmentType,
     String? shipTo,
     String? paymentTerm,
-    String? customerReference,
+    String? depotReference,
     String? remarks,
   }) async {
     final detail = await _remoteDataSource.updateQuotationHeader(
@@ -135,7 +143,7 @@ class QuotationRepositoryImpl implements QuotationRepository {
       shipmentType: shipmentType,
       shipTo: shipTo,
       paymentTerm: paymentTerm,
-      customerReference: customerReference,
+      depotReference: depotReference,
       remarks: remarks,
     );
     return _mapDetailDtoToEntity(detail);

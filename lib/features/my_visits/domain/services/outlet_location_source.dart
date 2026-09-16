@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart' show kDebugMode;
-import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/customer_stop_info.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/depot_stop_info.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/check_in_location_verifier.dart';
 
 /// Where the check-in area for an outlet comes from.
@@ -19,9 +19,9 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/check_
 ///          distance + radius verdict
 /// ```
 abstract interface class OutletLocationSource {
-  /// The designated check-in area for [customer], or null when there is none
+  /// The designated check-in area for [depot], or null when there is none
   /// to measure against.
-  OutletLocation? locationFor(CustomerStopInfo customer);
+  OutletLocation? locationFor(DepotStopInfo depot);
 
   /// The radius used when [locationFor] cannot produce a location — so the UI
   /// can still say what the rule *would* have been.
@@ -64,7 +64,7 @@ class StaticOutletLocationSource implements OutletLocationSource {
   final double radiusMeters;
 
   @override
-  OutletLocation? locationFor(CustomerStopInfo customer) => OutletLocation(
+  OutletLocation? locationFor(DepotStopInfo depot) => OutletLocation(
         latitude: latitude,
         longitude: longitude,
         radiusMeters: radiusMeters,
@@ -78,7 +78,7 @@ class StaticOutletLocationSource implements OutletLocationSource {
 /// one-line change in `my_visits_injection.dart` once outlet coordinates are
 /// trustworthy — no other file moves.
 ///
-/// Returns null for a customer with no pin, which the verifier reports as
+/// Returns null for a depot with no pin, which the verifier reports as
 /// "no outlet location" rather than measuring against `(0, 0)`.
 class StopOutletLocationSource implements OutletLocationSource {
   const StopOutletLocationSource({this.radiusMeters = kCheckInRadiusMeters});
@@ -87,8 +87,8 @@ class StopOutletLocationSource implements OutletLocationSource {
   final double radiusMeters;
 
   @override
-  OutletLocation? locationFor(CustomerStopInfo customer) =>
-      OutletLocation.forStop(customer, radiusMeters: radiusMeters);
+  OutletLocation? locationFor(DepotStopInfo depot) =>
+      OutletLocation.forStop(depot, radiusMeters: radiusMeters);
 }
 
 /// TODO(release-gate): take the rep's position from a constant, not the GPS.

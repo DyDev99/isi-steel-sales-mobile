@@ -89,13 +89,13 @@ void main() {
   });
 
   test('begin opens a titled block', () {
-    trace.begin('customer registration');
+    trace.begin('depot registration');
 
-    expect(lines, ['', '─────── customer registration ───────']);
+    expect(lines, ['', '─────── depot registration ───────']);
   });
 
   test('a whole flow reads as a sequence', () {
-    trace.begin('customer registration');
+    trace.begin('depot registration');
     trace.step('form', 'opened', {'step': '1/5 identity'});
     trace.ok('draft', 'resumed',
         {'id': DebugTrace.id('01a0412a-0b1c'), 'status': 'Draft'});

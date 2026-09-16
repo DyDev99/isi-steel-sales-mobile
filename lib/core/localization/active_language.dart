@@ -9,7 +9,7 @@ import 'package:isi_steel_sales_mobile/core/localization/localized_text.dart';
 /// some code that must be language-aware has no context and never will:
 ///
 ///  * **search and sort** run in a cubit or a repository — a rep sorting the
-///    customer directory alphabetically in Khmer expects Khmer collation order,
+///    depot directory alphabetically in Khmer expects Khmer collation order,
 ///    and that decision happens before any widget exists;
 ///  * **background surfaces** (the route-tracking foreground notification,
 ///    generated PDFs) render outside the widget tree entirely.

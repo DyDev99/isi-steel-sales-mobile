@@ -24,7 +24,7 @@ This rule exists because the current codebase (`demo/app01`) is a UI-complete de
 > **Status reconciliation (verified against `demo/app01` @ `6622bfc`, 2026-07-15).** This paragraph previously read "`core/database/drift/*` is empty, encryption is entirely absent." That is **no longer accurate** and has been corrected here:
 > - **Built and verified**: the encrypted Drift database (16 tables, 4 DAOs, unified stepwise migrator), Envied config (`Env.dbSalt`), `DynamicKeyStore` + `KeyDerivation` implementing `SHA256(dbSalt + DeviceKey)` exactly as `docs/blueprint/local-storage-architecture.md` §2.1 specifies, key rotation, and the §2.3 **fail-closed cipher check** (refuses to open if `cipher_version` is empty or the key is wrong). Maps to `docs/blueprint/migration-plan.md` **T1.0–T1.4 and T1.6 — done**.
 > - **Still hollow (accurate)**: `core/sync/*` (`sync_engine.dart`, `sync_queue_service.dart`, `conflict_manager.dart`) and `core/network/{sap_client,connectivity_service}.dart` are 0-byte stubs; `core/workflow/`, `core/security/`, `core/logging/`, `core/monitoring/` do not exist yet.
-> - **The live P0 gap** is **T1.5** (legacy plaintext → encrypted import + purge): `routes.db` and the Orders sqflite catalog DB still hold business data in plaintext, including a `customers` table (PII) and `location_samples` (GPS traces).
+> - **The live P0 gap** is **T1.5** (legacy plaintext → encrypted import + purge): `routes.db` and the Orders sqflite catalog DB still hold business data in plaintext, including a `depots` table (PII) and `location_samples` (GPS traces).
 
 - A feature's `data/local` layer may not be implemented against a table that hasn't landed in the shared Drift schema.
 - Sync-dependent UI (badges, conflict banners, Sync Center) may not be built ahead of the sync engine states it displays.
@@ -91,7 +91,7 @@ This layering is already well-practised in the current codebase and should be pr
 Full target structure is in `docs/blueprint/system-architecture.md` §3. Governing rules:
 
 - `core/` holds infrastructure shared by every feature: `config`, `database/{drift,hive,secure,files}`, `network`, `sync`, `workflow`, `security`, `di`, `error`, `usecase`, `utils`, `session`, `theme`, `logging`, `monitoring`.
-- `features/<domain>/{data,domain,presentation}` holds one business domain each (customer, catalog, route/visit, quotation, order, …).
+- `features/<domain>/{data,domain,presentation}` holds one business domain each (depot, catalog, route/visit, quotation, order, …).
 - `shared/` holds cross-feature widgets and services that are not infrastructure (e.g. reusable UI components).
 - Nothing above `core/database` may be implemented before `core/database` exists for the entity it depends on (see `docs/blueprint/system-architecture.md` §4 dependency rule).
 

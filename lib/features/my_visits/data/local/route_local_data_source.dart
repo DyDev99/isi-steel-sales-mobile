@@ -1,4 +1,4 @@
-import 'package:isi_steel_sales_mobile/features/my_visits/data/models/customer_stop_info_model.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/data/models/depot_stop_info_model.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/models/route_plan_model.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_plan.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_status.dart';
@@ -18,7 +18,7 @@ abstract interface class RouteLocalDataSource {
     DateTime? actualDeparture,
   });
 
-  Future<void> upsertCustomers(List<CustomerStopInfoModel> customers);
+  Future<void> upsertDepots(List<DepotStopInfoModel> depots);
   Future<void> upsertRoutes(List<RoutePlanModel> routes);
 
   Future<DateTime?> getLastSyncedAt(String entity);

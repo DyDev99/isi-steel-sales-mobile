@@ -15,7 +15,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/repositories/vi
 /// Push side of visit-data sync, mirroring [RouteSyncRepositoryImpl]'s pull
 /// side: same `NetworkInfo`-guarded fail-fast pattern, but scoped to
 /// [VisitLocalDataSource] instead of [RouteLocalDataSource] — a separate
-/// repository since these are genuinely different concerns (route/customer
+/// repository since these are genuinely different concerns (route/depot
 /// pull vs. visit-capture push).
 class VisitSyncRepositoryImpl implements VisitSyncRepository {
   const VisitSyncRepositoryImpl({
@@ -123,7 +123,7 @@ class VisitSyncRepositoryImpl implements VisitSyncRepository {
   ///
   /// **This is cleanup for rows written by an earlier build, and it should be
   /// deleted once no install can still be carrying them.** The writer that
-  /// produced them is fixed — `_persistStockUpdates` no longer puts a customer
+  /// produced them is fixed — `_persistStockUpdates` no longer puts a depot
   /// id in `depotId`, and no longer writes the mock catalog at all — but a
   /// fix at the writer does nothing about rows already sitting `pending` in
   /// Drift. Those rows are what turned one bad capture into a total sync

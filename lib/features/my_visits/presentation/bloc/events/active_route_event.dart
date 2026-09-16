@@ -36,7 +36,7 @@ final class GeofenceStatusChanged extends ActiveRouteEvent {
     required this.isMocked,
     required this.latitude,
     required this.longitude,
-    this.customerLocationKnown = true,
+    this.depotLocationKnown = true,
   });
 
   final bool insideGeofence;
@@ -46,7 +46,7 @@ final class GeofenceStatusChanged extends ActiveRouteEvent {
   final double latitude;
   final double longitude;
 
-  /// False when the *customer* has no recorded position, in which case
+  /// False when the *depot* has no recorded position, in which case
   /// [insideGeofence] and [distanceMeters] carry no meaning.
   ///
   /// A third outcome, not a failure — `GeofenceService.evaluate` says the same
@@ -54,7 +54,7 @@ final class GeofenceStatusChanged extends ActiveRouteEvent {
   /// geofence. Without carrying this through, an ungeotagged shop reaches the
   /// bloc as `insideGeofence: false` and blocks a rep who is standing in
   /// exactly the right place.
-  final bool customerLocationKnown;
+  final bool depotLocationKnown;
 
   @override
   List<Object?> get props => [
@@ -64,7 +64,7 @@ final class GeofenceStatusChanged extends ActiveRouteEvent {
         isMocked,
         latitude,
         longitude,
-        customerLocationKnown,
+        depotLocationKnown,
       ];
 }
 

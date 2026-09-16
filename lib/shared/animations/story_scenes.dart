@@ -277,7 +277,7 @@ class _MapPainter extends CustomPainter {
     );
 
     // Progress along the route. Held back until the map has settled, and eased
-    // so it accelerates away from the depot and slows into the customer.
+    // so it accelerates away from the depot and slows into the depot.
     final travelled = Curves.easeInOutCubic.transform(_u((t - 0.18) / 0.52));
     if (travelled > 0) {
       canvas.drawPath(
@@ -390,7 +390,7 @@ class VisitScene extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const SceneText('CUSTOMER VISIT',
+                  const SceneText('DEPOT VISIT',
                       size: 9, color: _muted, weight: FontWeight.w800),
                   const SizedBox(height: 7),
                   const SceneText('Sok Dara Hardware',

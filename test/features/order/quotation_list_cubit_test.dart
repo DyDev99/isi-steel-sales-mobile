@@ -16,8 +16,8 @@ QuotationSummary _summary(String id, QuotationStatusGroup group) {
   return QuotationSummary(
     id: id,
     number: 'QT-$id',
-    customerId: 'cust-1',
-    customerName: 'Customer One',
+    depotId: 'cust-1',
+    depotName: 'Depot One',
     status: 'Draft',
     statusGroup: group,
     currency: 'US3',

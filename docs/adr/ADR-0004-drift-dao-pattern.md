@@ -15,7 +15,7 @@ Moving to a single Drift database (ADR-001) makes it possible to generate this l
 
 ## Decision
 
-All local data access goes through **generated Drift DAOs**, one per aggregate/table group (`CustomerDao`, `RouteDao`, `SyncQueueDao`, etc.), defined against table classes in `core/database/drift/tables/`. Rules:
+All local data access goes through **generated Drift DAOs**, one per aggregate/table group (`DepotDao`, `RouteDao`, `SyncQueueDao`, etc.), defined against table classes in `core/database/drift/tables/`. Rules:
 
 1. No feature holds a second, private database handle — all reads/writes for every feature go through the shared `AppDatabase` and its DAOs (`docs/blueprint/local-storage-architecture.md` §4). This directly closes the "operational complexity of many DBs" finding from review.
 2. DAOs return Drift-generated row types; the data-layer mapper (not the DAO) converts these to domain entities, per ADR-003.

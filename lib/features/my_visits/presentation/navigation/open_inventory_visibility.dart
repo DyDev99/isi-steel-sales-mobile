@@ -19,22 +19,22 @@ import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/i
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/inventory_visible/inventory_visible_screen.dart';
 
 /// Opens the guided Inventory Visibility step (stock count) for the
-/// checked-in customer — the task that now sits between check-in and the
+/// checked-in depot — the task that now sits between check-in and the
 /// Quotation Builder.
 ///
 /// The single construction path for "audit stock at this shop", so the
 /// live check-in flow and the "Continue Working" resume land on the
 /// identical screen with identical follow-on actions, exactly like
-/// [openQuotationForCustomer] does for the quotation step.
-Future<void> openInventoryVisibilityForCustomer(
+/// [openQuotationForDepot] does for the quotation step.
+Future<void> openInventoryVisibilityForDepot(
   BuildContext context, {
-  required String customerId,
-  required String customerName,
+  required String depotId,
+  required String depotName,
   String? stopId,
 }) async {
   // Read any judgements already recorded for this depot before building the
   // screen, so a resumed audit opens showing the work already done.
-  final saved = await _readSavedAudit(customerId);
+  final saved = await _readSavedAudit(depotId);
   if (!context.mounted) return;
 
   // `await`, not `return`: the function is now async, so returning the push
@@ -43,23 +43,23 @@ Future<void> openInventoryVisibilityForCustomer(
     settings: const RouteSettings(name: InventoryVisibilityScreen.routeName),
     builder: (routeContext) => LocalizedBuilder(
       builder: (_) => InventoryVisibilityScreen(
-        depotName: customerName,
+        depotName: depotName,
         initialStatuses: saved,
         onProgressChanged: (progress) => _saveAudit(
-          customerId: customerId,
-          customerName: customerName,
+          depotId: depotId,
+          depotName: depotName,
           stopId: stopId,
           progress: progress,
         ),
         onAuditComplete: (items) => _persistStockUpdates(
-          customerId: customerId,
+          depotId: depotId,
           stopId: stopId,
           items: items,
         ),
         onSubmit: () => _onInventorySubmitted(
           routeContext,
-          customerId: customerId,
-          customerName: customerName,
+          depotId: depotId,
+          depotName: depotName,
           stopId: stopId,
         ),
       ),
@@ -78,15 +78,15 @@ Future<void> openInventoryVisibilityForCustomer(
 /// meaningless once the visit ends.
 const String _auditKey = 'stockAudit';
 
-/// The audit is stored keyed by customer id so a pointer left over from a
+/// The audit is stored keyed by depot id so a pointer left over from a
 /// different depot can never repopulate this one's sheet with someone else's
 /// counts.
-Future<Map<String, StockStatus>> _readSavedAudit(String customerId) async {
+Future<Map<String, StockStatus>> _readSavedAudit(String depotId) async {
   final result = await sl<GetActiveWorkflow>()(const NoParams());
   final workflow = result.when(success: (w) => w, failure: (_) => null);
   final args = workflow?.navigationArguments;
   if (args == null) return const {};
-  if (args['customerId'] != customerId) return const {};
+  if (args['depotId'] != depotId) return const {};
 
   final raw = args[_auditKey];
   if (raw is! Map) return const {};
@@ -106,8 +106,8 @@ Future<Map<String, StockStatus>> _readSavedAudit(String customerId) async {
 /// through four items must never wait on a database write, and losing the last
 /// tap to a crash costs one tap.
 void _saveAudit({
-  required String customerId,
-  required String customerName,
+  required String depotId,
+  required String depotName,
   String? stopId,
   required Map<String, StockStatus> progress,
 }) {
@@ -116,8 +116,8 @@ void _saveAudit({
     screen: InventoryVisibilityScreen.routeName,
     navigationArguments: {
       if (stopId != null) 'stopId': stopId,
-      'customerId': customerId,
-      'customerName': customerName,
+      'depotId': depotId,
+      'depotName': depotName,
       _auditKey: {
         for (final e in progress.entries) e.key: e.value.name,
       },
@@ -130,9 +130,9 @@ void _saveAudit({
 /// ## Two things this deliberately refuses to do
 ///
 /// **It will not invent a depot id.** The previous shape was
-/// `depotId: resolvedStopId == null ? customerId : null` — when no stop could
-/// be resolved it put a *customer* id in the depot field. A depot and a
-/// customer are different entities server-side, so those rows failed
+/// `depotId: resolvedStopId == null ? depotId : null` — when no stop could
+/// be resolved it put a *depot* id in the depot field. A depot and a
+/// depot are different entities server-side, so those rows failed
 /// validation, and because the push endpoint rejects the whole envelope on a
 /// row-level fault, they took every unrelated capture down with them. A row
 /// that cannot name where it was counted is not persisted at all: an
@@ -146,7 +146,7 @@ void _saveAudit({
 /// Both skips are logged rather than silent — "I completed a count and nothing
 /// synced" needs a line saying why.
 Future<void> _persistStockUpdates({
-  required String customerId,
+  required String depotId,
   String? stopId,
   required List<DepotStockItem> items,
 }) async {
@@ -155,7 +155,7 @@ Future<void> _persistStockUpdates({
   if (kInventoryCatalogIsMock) {
     logger?.warning('visit.stock_count.not_persisted', fields: {
       'reason': 'mockCatalog',
-      'customerId': customerId,
+      'depotId': depotId,
       'items': items.where((i) => i.status != null).length,
     });
     return;
@@ -175,7 +175,7 @@ Future<void> _persistStockUpdates({
     // outcome; guessing was the bug.
     logger?.warning('visit.stock_count.not_persisted', fields: {
       'reason': 'noStopAndNoDepot',
-      'customerId': customerId,
+      'depotId': depotId,
       'items': items.where((i) => i.status != null).length,
     });
     return;
@@ -212,19 +212,19 @@ Future<void> _persistStockUpdates({
 /// did not resume at all.
 Future<void> openInventoryCompletion(
   BuildContext context, {
-  required String customerId,
-  required String customerName,
+  required String depotId,
+  required String depotName,
   String? stopId,
 }) async {
   await Navigator.of(context).push(AppPageRoute<void>.sharedAxisVertical(
     settings: const RouteSettings(name: InventoryCompletionScreen.routeName),
     builder: (completionContext) => LocalizedBuilder(
       builder: (_) => InventoryCompletionScreen(
-        outletName: customerName,
+        outletName: depotName,
         onCreateQuotation: () => _createQuotation(
           completionContext,
-          customerId: customerId,
-          customerName: customerName,
+          depotId: depotId,
+          depotName: depotName,
         ),
         onEndVisit: () => _endVisit(completionContext),
       ),
@@ -236,8 +236,8 @@ Future<void> openInventoryCompletion(
 /// doesn't linger as a separate stack entry underneath the decision it led to.
 void _onInventorySubmitted(
   BuildContext context, {
-  required String customerId,
-  required String customerName,
+  required String depotId,
+  required String depotName,
   String? stopId,
 }) {
   // Move the resume pointer onto the completion step. Without this the audit
@@ -248,8 +248,8 @@ void _onInventorySubmitted(
     screen: InventoryCompletionScreen.routeName,
     navigationArguments: {
       if (stopId != null) 'stopId': stopId,
-      'customerId': customerId,
-      'customerName': customerName,
+      'depotId': depotId,
+      'depotName': depotName,
     },
   )));
 
@@ -257,11 +257,11 @@ void _onInventorySubmitted(
     settings: const RouteSettings(name: InventoryCompletionScreen.routeName),
     builder: (completionContext) => LocalizedBuilder(
       builder: (_) => InventoryCompletionScreen(
-        outletName: customerName,
+        outletName: depotName,
         onCreateQuotation: () => _createQuotation(
           completionContext,
-          customerId: customerId,
-          customerName: customerName,
+          depotId: depotId,
+          depotName: depotName,
         ),
         onEndVisit: () => _endVisit(completionContext),
       ),
@@ -276,15 +276,15 @@ void _onInventorySubmitted(
 /// already finished with.
 void _createQuotation(
   BuildContext context, {
-  required String customerId,
-  required String customerName,
+  required String depotId,
+  required String depotName,
 }) {
   final navigator = Navigator.of(context);
   navigator.pop();
-  openQuotationForCustomer(
+  openQuotationForDepot(
     navigator.context,
-    customerId: customerId,
-    customerName: customerName,
+    depotId: depotId,
+    depotName: depotName,
   );
 }
 

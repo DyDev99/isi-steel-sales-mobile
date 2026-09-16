@@ -9,7 +9,7 @@
 
 **Connectivity is the exception the UI plans for, not an error state.** The local encrypted Drift database is the single source of truth for every screen: reads always come from local data (populated by prior sync or direct capture), and writes always land locally first, inside a transaction that also enqueues the sync work needed to eventually reach the server (see `docs/blueprint/sync-architecture.md` §2). The user is never blocked on a network round-trip to see their own data or record a new one.
 
-This applies uniformly: browsing the catalog, opening a customer, starting a route, filling a stock count, or drafting a quotation must all work identically whether the device is online, offline, or transitioning between the two.
+This applies uniformly: browsing the catalog, opening a depot, starting a route, filling a stock count, or drafting a quotation must all work identically whether the device is online, offline, or transitioning between the two.
 
 ---
 
@@ -130,8 +130,8 @@ Every domain declares upfront how it behaves offline and how it eventually syncs
 |---|---|---|---|
 | Authentication | Cached user boots the app fully offline | Token refresh only, when online | Built |
 | Organization/Role/Permission | Read-mostly cache | Pull | Missing — needed for RBAC |
-| Customer/Contact | Full offline read + edit | Pull + delta | Built (migrating off sqflite) |
-| Customer master data (SAP Helper lists) | Cache-first from Hive; falls back to a stale copy when offline or SAP is unreachable, badged as stale. Never blocks a screen. | Pull only, on cache miss or explicit refresh (7-day TTL) | Built behind a mock — real source blocked on `core/network/sap_client.dart` (ADR-009) |
+| Depot/Contact | Full offline read + edit | Pull + delta | Built (migrating off sqflite) |
+| Depot master data (SAP Helper lists) | Cache-first from Hive; falls back to a stale copy when offline or SAP is unreachable, badged as stale. Never blocks a screen. | Pull only, on cache miss or explicit refresh (7-day TTL) | Built behind a mock — real source blocked on `core/network/sap_client.dart` (ADR-009) |
 | Lead/Opportunity | Offline draft | Push queue | Partial |
 | Catalog/Product/Category/PriceBook | Full offline catalog, including search (FTS) | Pull, paged + delta | Built |
 | Territory/Route/Visit/Check-in | Full offline | Pull + push telemetry | Built |

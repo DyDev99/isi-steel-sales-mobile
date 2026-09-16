@@ -22,6 +22,7 @@ class PostalCodeField extends StatefulWidget {
     this.errorText,
     this.isRequired = true,
     this.compact = false,
+    this.isLocked = false,
   });
 
   /// The effective code — the commune's, or what the rep typed.
@@ -32,6 +33,9 @@ class PostalCodeField extends StatefulWidget {
 
   /// True when a commune is selected but carries no code.
   final bool isEditable;
+
+  /// True when locked so user cannot edit it.
+  final bool isLocked;
 
   final ValueChanged<String> onChanged;
   final String? errorText;
@@ -49,16 +53,19 @@ class _PostalCodeFieldState extends State<PostalCodeField> {
   @override
   void didUpdateWidget(PostalCodeField old) {
     super.didUpdateWidget(old);
-    // Only push a derived value into the controller. Overwriting on every
+    // Only push a derived or locked value into the controller. Overwriting on every
     // rebuild would fight the rep's cursor while they type the manual case,
     // and the bloc already holds what they typed.
     final incoming = widget.value ?? '';
-    if (widget.isDerived && _controller.text != incoming) {
+    if ((widget.isDerived || widget.isLocked) && _controller.text != incoming) {
       _controller.text = incoming;
     }
     // A commune change that clears the code has to clear the box too, or the
     // previous commune's code stays visible under the new selection (§8).
-    if (!widget.isDerived && incoming.isEmpty && old.value != null) {
+    if (!widget.isDerived &&
+        incoming.isEmpty &&
+        old.value != null &&
+        old.value!.isNotEmpty) {
       _controller.clear();
     }
   }
@@ -73,6 +80,8 @@ class _PostalCodeFieldState extends State<PostalCodeField> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final hasError = widget.errorText != null;
+    final isFieldLocked = widget.isLocked || !widget.isEditable;
+    final isFieldDerived = widget.isDerived || widget.isLocked;
 
     final card = Container(
       padding: EdgeInsets.symmetric(
@@ -83,9 +92,7 @@ class _PostalCodeFieldState extends State<PostalCodeField> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: hasError
-              ? theme.colorScheme.error
-              : const Color(0xFFE2E8F0),
+          color: hasError ? theme.colorScheme.error : const Color(0xFFE2E8F0),
           width: 1.1,
         ),
         boxShadow: [
@@ -149,8 +156,9 @@ class _PostalCodeFieldState extends State<PostalCodeField> {
                 const SizedBox(height: 5),
                 TextField(
                   controller: _controller,
-                  readOnly: !widget.isEditable,
-                  enabled: widget.isEditable || widget.isDerived,
+                  readOnly: isFieldLocked,
+                  enabled:
+                      isFieldLocked || widget.isDerived || widget.isEditable,
                   keyboardType: TextInputType.number,
                   inputFormatters: [
                     FilteringTextInputFormatter.digitsOnly,
@@ -165,10 +173,12 @@ class _PostalCodeFieldState extends State<PostalCodeField> {
                   decoration: InputDecoration(
                     isDense: true,
                     filled: true,
-                    fillColor: widget.isDerived
+                    fillColor: isFieldDerived
                         ? const Color(0xFFF1F5F9)
                         : const Color(0xFFF8FAFC),
-                    hintText: widget.isEditable ? 'geo.postal_hint'.tr : 'Enter code',
+                    hintText: !isFieldLocked
+                        ? 'geo.postal_hint'.tr
+                        : 'geo.postal_code'.tr,
                     hintStyle: const TextStyle(
                       color: Color(0xFF94A3B8),
                       fontSize: 12,
@@ -178,11 +188,13 @@ class _PostalCodeFieldState extends State<PostalCodeField> {
                     suffixIcon: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 6),
                       child: Icon(
-                        widget.isDerived
+                        isFieldDerived
                             ? Icons.lock_outline
                             : Icons.qr_code_scanner_rounded,
                         size: 16,
-                        color: const Color(0xFF3B82F6),
+                        color: isFieldDerived
+                            ? const Color(0xFF64748B)
+                            : const Color(0xFF3B82F6),
                       ),
                     ),
                     suffixIconConstraints: const BoxConstraints(
@@ -259,8 +271,10 @@ class _PostalCodeFieldState extends State<PostalCodeField> {
                       const SizedBox(height: 5),
                       TextField(
                         controller: _controller,
-                        readOnly: !widget.isEditable,
-                        enabled: widget.isEditable || widget.isDerived,
+                        readOnly: isFieldLocked,
+                        enabled: isFieldLocked ||
+                            widget.isDerived ||
+                            widget.isEditable,
                         keyboardType: TextInputType.number,
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,
@@ -275,10 +289,12 @@ class _PostalCodeFieldState extends State<PostalCodeField> {
                         decoration: InputDecoration(
                           isDense: true,
                           filled: true,
-                          fillColor: widget.isDerived
+                          fillColor: isFieldDerived
                               ? const Color(0xFFF1F5F9)
                               : const Color(0xFFF8FAFC),
-                          hintText: widget.isEditable ? 'geo.postal_hint'.tr : 'Enter postal code',
+                          hintText: !isFieldLocked
+                              ? 'geo.postal_hint'.tr
+                              : 'geo.postal_code'.tr,
                           hintStyle: const TextStyle(
                             color: Color(0xFF94A3B8),
                             fontSize: 13,
@@ -288,11 +304,13 @@ class _PostalCodeFieldState extends State<PostalCodeField> {
                           suffixIcon: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 8),
                             child: Icon(
-                              widget.isDerived
+                              isFieldDerived
                                   ? Icons.lock_outline
                                   : Icons.qr_code_scanner_rounded,
                               size: 18,
-                              color: const Color(0xFF3B82F6),
+                              color: isFieldDerived
+                                  ? const Color(0xFF64748B)
+                                  : const Color(0xFF3B82F6),
                             ),
                           ),
                           suffixIconConstraints: const BoxConstraints(
@@ -305,15 +323,18 @@ class _PostalCodeFieldState extends State<PostalCodeField> {
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                            borderSide:
+                                const BorderSide(color: Color(0xFFE2E8F0)),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(color: theme.colorScheme.primary),
+                            borderSide:
+                                BorderSide(color: theme.colorScheme.primary),
                           ),
                           disabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                            borderSide:
+                                const BorderSide(color: Color(0xFFE2E8F0)),
                           ),
                         ),
                       ),

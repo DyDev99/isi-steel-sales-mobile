@@ -9,7 +9,7 @@ class CheckInRecordModel extends CheckInRecord {
     required super.latitude,
     required super.longitude,
     required super.accuracyMeters,
-    required super.distanceFromCustomerMeters,
+    required super.distanceFromDepotMeters,
     required super.isMocked,
     super.overrideReason,
   });
@@ -21,8 +21,7 @@ class CheckInRecordModel extends CheckInRecord {
         latitude: (row['latitude'] as num).toDouble(),
         longitude: (row['longitude'] as num).toDouble(),
         accuracyMeters: (row['accuracy'] as num).toDouble(),
-        distanceFromCustomerMeters:
-            (row['distance_from_customer'] as num).toDouble(),
+        distanceFromDepotMeters: (row['distance_from_depot'] as num).toDouble(),
         isMocked: (row['is_mocked'] as int) == 1,
         overrideReason: row['override_reason'] as String?,
       );
@@ -34,7 +33,7 @@ class CheckInRecordModel extends CheckInRecord {
         'latitude': latitude,
         'longitude': longitude,
         'accuracy': accuracyMeters,
-        'distance_from_customer': distanceFromCustomerMeters,
+        'distance_from_depot': distanceFromDepotMeters,
         'is_mocked': isMocked ? 1 : 0,
         'override_reason': overrideReason,
       };
@@ -46,7 +45,7 @@ class CheckInRecordModel extends CheckInRecord {
         latitude: e.latitude,
         longitude: e.longitude,
         accuracyMeters: e.accuracyMeters,
-        distanceFromCustomerMeters: e.distanceFromCustomerMeters,
+        distanceFromDepotMeters: e.distanceFromDepotMeters,
         isMocked: e.isMocked,
         overrideReason: e.overrideReason,
       );

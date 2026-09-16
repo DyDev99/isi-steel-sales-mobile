@@ -38,7 +38,7 @@ class QuotationRepositoryImpl implements QuotationRepository {
   @override
   ResultFuture<Quotation> saveQuotation({
     required List<CartItem> items,
-    String? customerId,
+    String? depotId,
     String? shopName,
     String? leadId,
     String? leadDisplayName,
@@ -64,7 +64,7 @@ class QuotationRepositoryImpl implements QuotationRepository {
 
       final quotation = Quotation(
         id: _newId('QT'),
-        customerId: customerId,
+        depotId: depotId,
         shopName: shopName,
         leadId: leadId,
         leadDisplayName: leadDisplayName,
@@ -113,7 +113,7 @@ class QuotationRepositoryImpl implements QuotationRepository {
 
       final updated = Quotation(
         id: existing.id,
-        customerId: existing.customerId,
+        depotId: existing.depotId,
         shopName: existing.shopName,
         leadId: existing.leadId,
         leadDisplayName: existing.leadDisplayName,
@@ -150,7 +150,7 @@ class QuotationRepositoryImpl implements QuotationRepository {
       final quotation = await _fromRow(row);
       final converted = Quotation(
         id: quotation.id,
-        customerId: quotation.customerId,
+        depotId: quotation.depotId,
         shopName: quotation.shopName,
         leadId: quotation.leadId,
         leadDisplayName: quotation.leadDisplayName,
@@ -219,7 +219,7 @@ class QuotationRepositoryImpl implements QuotationRepository {
 
   DataMap _toRow(Quotation q) => {
         'id': q.id,
-        'customer_id': q.customerId,
+        'depot_id': q.depotId,
         'shop_name': q.shopName,
         'lead_id': q.leadId,
         'lead_display_name': q.leadDisplayName,
@@ -241,12 +241,12 @@ class QuotationRepositoryImpl implements QuotationRepository {
   Future<Quotation> _fromRow(DataMap row) async {
     return Quotation(
       id: row['id'] as String,
-      customerId: row['customer_id'] as String?,
+      depotId: row['depot_id'] as String?,
       shopName: row['shop_name'] as String?,
       leadId: row['lead_id'] as String?,
       leadDisplayName: row['lead_display_name'] as String?,
       lines: await _decodeLines(row['lines_json'] as String,
-          customerId: row['customer_id'] as String?,
+          depotId: row['depot_id'] as String?,
           leadId: row['lead_id'] as String?),
       subtotal: (row['subtotal'] as num).toDouble(),
       discount: (row['discount'] as num).toDouble(),
@@ -269,8 +269,8 @@ class QuotationRepositoryImpl implements QuotationRepository {
   String _encodeLines(List<CartItem> items) => _lines.encode(items);
 
   Future<List<CartItem>> _decodeLines(String json,
-          {String? customerId, String? leadId}) =>
-      _lines.decode(json, customerId: customerId, leadId: leadId);
+          {String? depotId, String? leadId}) =>
+      _lines.decode(json, depotId: depotId, leadId: leadId);
 
   static String _newId(String prefix) =>
       '$prefix-${(DateTime.now().microsecondsSinceEpoch + Random().nextInt(99999)) % 1000000}';

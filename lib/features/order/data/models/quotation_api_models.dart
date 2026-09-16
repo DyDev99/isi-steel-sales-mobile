@@ -5,8 +5,8 @@ class QuotationSummaryModel extends QuotationSummary {
   const QuotationSummaryModel({
     required super.id,
     required super.number,
-    required super.customerId,
-    required super.customerName,
+    required super.depotId,
+    required super.depotName,
     required super.status,
     required super.statusGroup,
     required super.net,
@@ -21,10 +21,11 @@ class QuotationSummaryModel extends QuotationSummary {
     return QuotationSummaryModel(
       id: json['id'] as String? ?? '',
       number: json['number'] as String? ?? '',
-      customerId: json['customerId'] as String? ?? '',
-      customerName: json['customerName'] as String? ?? '',
+      depotId: json['customerId'] as String? ?? '',
+      depotName: json['customerName'] as String? ?? '',
       status: json['status'] as String? ?? 'Draft',
-      statusGroup: QuotationStatusGroup.fromWire(json['statusGroup'] as String?),
+      statusGroup:
+          QuotationStatusGroup.fromWire(json['statusGroup'] as String?),
       currency: json['currency'] as String?,
       net: (json['net'] as num?)?.toDouble() ?? 0.0,
       lineCount: json['lineCount'] as int? ?? 0,
@@ -100,7 +101,8 @@ class QuotationLineModel extends QuotationLineItem {
   factory QuotationLineModel.fromJson(DataMap json) {
     final discountsList = (json['discounts'] as List<dynamic>? ?? const [])
         .whereType<Map>()
-        .map((m) => QuotationLineDiscountModel.fromJson(m.cast<String, dynamic>()))
+        .map((m) =>
+            QuotationLineDiscountModel.fromJson(m.cast<String, dynamic>()))
         .toList();
 
     return QuotationLineModel(
@@ -172,8 +174,8 @@ class QuotationDetailModel extends QuotationDetail {
   const QuotationDetailModel({
     required super.id,
     required super.number,
-    required super.customerId,
-    required super.customerName,
+    required super.depotId,
+    required super.depotName,
     required super.status,
     required super.statusGroup,
     required super.shipmentType,
@@ -184,7 +186,7 @@ class QuotationDetailModel extends QuotationDetail {
     super.currency,
     super.shipTo,
     super.paymentTerm,
-    super.customerReference,
+    super.depotReference,
     super.remarks,
     super.decisionReason,
     super.validFrom,
@@ -207,15 +209,16 @@ class QuotationDetailModel extends QuotationDetail {
     return QuotationDetailModel(
       id: json['id'] as String? ?? '',
       number: json['number'] as String? ?? '',
-      customerId: json['customerId'] as String? ?? '',
-      customerName: json['customerName'] as String?,
+      depotId: json['customerId'] as String? ?? '',
+      depotName: json['customerName'] as String?,
       status: json['status'] as String? ?? 'Draft',
-      statusGroup: QuotationStatusGroup.fromWire(json['statusGroup'] as String?),
+      statusGroup:
+          QuotationStatusGroup.fromWire(json['statusGroup'] as String?),
       currency: json['currency'] as String?,
       shipmentType: json['shipmentType'] as String? ?? 'Pickup',
       shipTo: json['shipTo'] as String?,
       paymentTerm: json['paymentTerm'] as String?,
-      customerReference: json['customerReference'] as String?,
+      depotReference: json['customerReference'] as String?,
       remarks: json['remarks'] as String?,
       lines: linesList,
       totals: QuotationTotalsModel.fromJson(totalsMap),
@@ -286,7 +289,8 @@ class QuotationPreviewModel extends QuotationPreviewData {
     final totalsMap = (json['totals'] as Map?)?.cast<String, dynamic>() ?? {};
 
     return QuotationPreviewModel(
-      quotationId: json['quotationId'] as String? ?? json['id'] as String? ?? '',
+      quotationId:
+          json['quotationId'] as String? ?? json['id'] as String? ?? '',
       lines: linesList,
       totals: QuotationTotalsModel.fromJson(totalsMap),
       warnings: warningsList,
@@ -325,8 +329,8 @@ class QuotationHistoryRecordModel extends QuotationApprovalHistory {
   }
 }
 
-class CustomerAgreementModel extends CustomerAgreement {
-  const CustomerAgreementModel({
+class DepotAgreementModel extends DepotAgreement {
+  const DepotAgreementModel({
     required super.id,
     required super.category,
     required super.percent,
@@ -337,8 +341,8 @@ class CustomerAgreementModel extends CustomerAgreement {
     super.depots,
   });
 
-  factory CustomerAgreementModel.fromJson(DataMap json) {
-    return CustomerAgreementModel(
+  factory DepotAgreementModel.fromJson(DataMap json) {
+    return DepotAgreementModel(
       id: json['id'] as String? ?? '',
       category: json['category'] as String? ?? '',
       percent: (json['percent'] as num?)?.toDouble() ?? 0.0,
@@ -350,7 +354,7 @@ class CustomerAgreementModel extends CustomerAgreement {
       endsOn: json['endsOn'] != null
           ? DateTime.tryParse(json['endsOn'] as String)
           : null,
-      depots: json['depots'] as String?,
+      depots: json['customers'] as String?,
     );
   }
 }
@@ -367,10 +371,7 @@ class DiscountAuthorityModel extends DiscountAuthority {
 
   factory DiscountAuthorityModel.fromJson(DataMap json) {
     final rawChips = json['suggestedChips'] as List<dynamic>? ?? const [];
-    final chips = rawChips
-        .whereType<num>()
-        .map((n) => n.toDouble())
-        .toList();
+    final chips = rawChips.whereType<num>().map((n) => n.toDouble()).toList();
 
     return DiscountAuthorityModel(
       level: json['level'] as int? ?? 1,
@@ -380,8 +381,8 @@ class DiscountAuthorityModel extends DiscountAuthority {
       lineDiscountCapPercent:
           (json['lineDiscountCapPercent'] as num?)?.toDouble() ?? 7.0,
       currency: json['currency'] as String? ?? 'US3',
-      suggestedChips: chips.isNotEmpty ? chips : const [0.5, 1.0, 1.5, 2.0, 2.5, 3.0],
+      suggestedChips:
+          chips.isNotEmpty ? chips : const [0.5, 1.0, 1.5, 2.0, 2.5, 3.0],
     );
   }
 }
-

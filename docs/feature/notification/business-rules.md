@@ -47,7 +47,7 @@
 `NotificationActionType`: `DeepLink` · `ApiCall`.
 
 - **Deep-link destinations come from a server-side registry** (`DeepLinkRegistry`):
-  `route`, `stop`, `quotation`, `order`, `customer`, `dashboard`, `approval`.
+  `route`, `stop`, `quotation`, `order`, `depot`, `dashboard`, `approval`.
   A client cannot be sent to a screen it does not have, and adding a destination
   does not need a client release to *validate* it.
 - An inline action is declarative — the client renders a button from the

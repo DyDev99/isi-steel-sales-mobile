@@ -60,7 +60,7 @@ void main() {
     test('the app bundle', () {
       expect(looksLikeSimulatorPath('$deviceBundle/Runner'), isFalse,
           reason: 'a real device given the stand-in would silently upload '
-              'placeholder images as customer evidence');
+              'placeholder images as depot evidence');
     });
 
     test('the sandboxed HOME', () {

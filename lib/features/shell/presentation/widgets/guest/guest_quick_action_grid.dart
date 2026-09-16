@@ -61,7 +61,7 @@ class GuestQuickActionsSection extends StatelessWidget {
                 child: _ActionCard(
                   icon: Icons.person_add_alt_1_outlined,
                   tint: const Color(0xFFEC3F72),
-                  label: 'shell.add_customer'.tr,
+                  label: 'shell.add_depot'.tr,
                   onTap: onRequireLogin,
                 ),
               ),

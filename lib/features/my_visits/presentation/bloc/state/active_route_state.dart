@@ -25,7 +25,7 @@ final class ActiveRouteReady extends ActiveRouteState {
     this.skipReasons = const {},
     this.repLatitude,
     this.repLongitude,
-    this.customerLocationKnown = true,
+    this.depotLocationKnown = true,
     this.checkInOverridable = false,
     this.checkInAttempt = 0,
   });
@@ -54,13 +54,13 @@ final class ActiveRouteReady extends ActiveRouteState {
   final double? repLatitude;
   final double? repLongitude;
 
-  /// False when the selected stop's customer has no recorded coordinates.
+  /// False when the selected stop's depot has no recorded coordinates.
   ///
   /// Distinct from [insideGeofence] being false. There is nothing to be
   /// outside of, so check-in proceeds and records itself as unverifiable
   /// rather than blocking a rep standing in the right place at a shop nobody
   /// has geotagged.
-  final bool customerLocationKnown;
+  final bool depotLocationKnown;
 
   /// True once the device has produced at least one position.
   bool get hasFix => repLatitude != null && repLongitude != null;
@@ -102,7 +102,7 @@ final class ActiveRouteReady extends ActiveRouteState {
     Map<String, String>? skipReasons,
     double? repLatitude,
     double? repLongitude,
-    bool? customerLocationKnown,
+    bool? depotLocationKnown,
     bool? checkInOverridable,
     int? checkInAttempt,
   }) {
@@ -121,8 +121,7 @@ final class ActiveRouteReady extends ActiveRouteState {
       skipReasons: skipReasons ?? this.skipReasons,
       repLatitude: repLatitude ?? this.repLatitude,
       repLongitude: repLongitude ?? this.repLongitude,
-      customerLocationKnown:
-          customerLocationKnown ?? this.customerLocationKnown,
+      depotLocationKnown: depotLocationKnown ?? this.depotLocationKnown,
       checkInOverridable: checkInOverridable ?? this.checkInOverridable,
       checkInAttempt: checkInAttempt ?? this.checkInAttempt,
     );
@@ -141,7 +140,7 @@ final class ActiveRouteReady extends ActiveRouteState {
         skipReasons,
         repLatitude,
         repLongitude,
-        customerLocationKnown,
+        depotLocationKnown,
         checkInOverridable,
         checkInAttempt,
       ];

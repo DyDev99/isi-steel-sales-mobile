@@ -27,7 +27,7 @@ class WorkflowStateDao extends DatabaseAccessor<AppDatabase>
     'current_stop_id',
     'day_started',
     'updated_at',
-    'customer_id',
+    'depot_id',
     'shop_name',
     'check_in_at',
     'current_workflow',

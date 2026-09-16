@@ -8,7 +8,7 @@ import 'package:isi_steel_sales_mobile/features/order/data/remote/pricing_remote
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/mobile_price.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/repositories/pricing_repository.dart';
 
-/// Live customer pricing, transcribed rather than computed.
+/// Live depot pricing, transcribed rather than computed.
 ///
 /// Two rules this implementation exists to hold:
 ///
@@ -30,7 +30,7 @@ class PricingRepositoryImpl implements PricingRepository {
 
   @override
   ResultFuture<List<MobilePrice>> getPrices({
-    required String customerId,
+    required String depotId,
     required List<String> materials,
   }) async {
     final wanted = materials
@@ -40,14 +40,14 @@ class PricingRepositoryImpl implements PricingRepository {
         .toList();
     if (wanted.isEmpty) return const Success(<MobilePrice>[]);
 
-    if (customerId.trim().isEmpty) {
-      // A walk-in has no customer to price against. That is a settled answer,
+    if (depotId.trim().isEmpty) {
+      // A walk-in has no depot to price against. That is a settled answer,
       // not an error — the rep is not doing anything wrong and there is
       // nothing to retry.
       return Success(_allWith(
         wanted,
         PricingState.unavailable,
-        PricingErrorKind.customerNotFound,
+        PricingErrorKind.depotNotFound,
       ));
     }
 
@@ -65,7 +65,7 @@ class PricingRepositoryImpl implements PricingRepository {
 
     try {
       final rows = await _remote.fetchPrices(
-        customerId: customerId,
+        depotId: depotId,
         materials: wanted,
       );
 
@@ -116,8 +116,8 @@ class PricingRepositoryImpl implements PricingRepository {
   static PricingErrorKind _kindFor(ApiException e) {
     if (e.statusCode == 401) return PricingErrorKind.unauthorized;
     if (e.statusCode == 403) return PricingErrorKind.unauthorized;
-    if (e.statusCode == 404) return PricingErrorKind.customerNotFound;
-    if (e.statusCode == 422) return PricingErrorKind.customerNotPriceable;
+    if (e.statusCode == 404) return PricingErrorKind.depotNotFound;
+    if (e.statusCode == 422) return PricingErrorKind.depotNotPriceable;
     final status = e.statusCode;
     if (status != null && status >= 500) {
       return PricingErrorKind.backendUnavailable;

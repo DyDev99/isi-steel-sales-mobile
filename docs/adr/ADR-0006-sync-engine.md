@@ -9,7 +9,7 @@
 
 ## Context
 
-A real but narrow sync implementation exists today: an order→SAP `sync_queue` table with `attempt_count`/`next_retry_at`/`last_error` and a FIFO backoff query. It works for one entity, runs only in the foreground, and has no dead-letter handling, no conflict resolution, and no priority. Every other entity that needs to sync (customers, routes, visits, stock counts, leads) has no queue at all today. `core/sync/*` is otherwise 0-byte stub files.
+A real but narrow sync implementation exists today: an order→SAP `sync_queue` table with `attempt_count`/`next_retry_at`/`last_error` and a FIFO backoff query. It works for one entity, runs only in the foreground, and has no dead-letter handling, no conflict resolution, and no priority. Every other entity that needs to sync (depots, routes, visits, stock counts, leads) has no queue at all today. `core/sync/*` is otherwise 0-byte stub files.
 
 Given the offline-first requirement (ADR-002), the app will routinely accumulate a backlog of unsynced local writes — sometimes for days. The engine that eventually reconciles that backlog with the server has to be trustworthy on two dimensions simultaneously: it must not lose data, and it must not silently corrupt server state by resolving conflicts in the client's favor without anyone noticing.
 

@@ -8,7 +8,7 @@ import 'package:isi_steel_sales_mobile/core/network/api_envelope.dart';
 import 'package:isi_steel_sales_mobile/core/network/api_error.dart';
 import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
 
-/// `GET /mobile/pricing/customers/{customerId}`.
+/// `GET /mobile/pricing/depots/{depotId}`.
 abstract interface class PricingRemoteDataSource {
   /// One request for every material on the quotation.
   ///
@@ -16,7 +16,7 @@ abstract interface class PricingRemoteDataSource {
   /// issuing one call per line — a rep adding an eighth material should not
   /// cost an eighth round trip.
   Future<List<DataMap>> fetchPrices({
-    required String customerId,
+    required String depotId,
     required List<String> materials,
   });
 }
@@ -32,7 +32,7 @@ class ApiPricingRemoteDataSource implements PricingRemoteDataSource {
   /// **Was `'prices'`, which silently returned nothing.** `ApiListEnvelope`
   /// answers `data[key]`, and an absent key is treated as an empty result set
   /// rather than an error — deliberately, because a genuinely empty list is a
-  /// normal answer. So the wrong key produced exactly what "this customer has
+  /// normal answer. So the wrong key produced exactly what "this depot has
   /// no prices" produces: zero rows, HTTP 200, no log, no exception. Every
   /// quotation line rendered as unpriced and nothing anywhere said why.
   ///
@@ -43,7 +43,7 @@ class ApiPricingRemoteDataSource implements PricingRemoteDataSource {
 
   @override
   Future<List<DataMap>> fetchPrices({
-    required String customerId,
+    required String depotId,
     required List<String> materials,
   }) async {
     final cleanedMaterials = materials
@@ -53,10 +53,10 @@ class ApiPricingRemoteDataSource implements PricingRemoteDataSource {
         .toList();
     if (cleanedMaterials.isEmpty) return const [];
 
-    final path = AppConstants.customerPricingEndpoint(customerId);
+    final path = AppConstants.depotPricingEndpoint(depotId);
     final stopwatch = Stopwatch()..start();
 
-    _dumpRequestForDebugging(path, customerId, cleanedMaterials);
+    _dumpRequestForDebugging(path, depotId, cleanedMaterials);
 
     try {
       final res = await _client.get<Object?>(
@@ -79,12 +79,13 @@ class ApiPricingRemoteDataSource implements PricingRemoteDataSource {
         items,
       );
 
-      _logSourceDiagnostics(res.data, requested: cleanedMaterials, received: items);
+      _logSourceDiagnostics(res.data,
+          requested: cleanedMaterials, received: items);
       return items;
     } on DioException catch (e) {
       _dumpErrorForDebugging(
         path,
-        customerId,
+        depotId,
         cleanedMaterials,
         e,
         stopwatch.elapsedMilliseconds,
@@ -109,7 +110,7 @@ class ApiPricingRemoteDataSource implements PricingRemoteDataSource {
   ///    field-name contract is wrong."* Those rows arrive with `price: 0` and a
   ///    blank currency, so without this they would render as free stock.
   ///  * **`erpAnswered: false`** — SAP did not answer. That is a different
-  ///    statement from "this customer has no prices", and the doc requires the
+  ///    statement from "this depot has no prices", and the doc requires the
   ///    two never render the same way.
   ///
   /// Counts and flags only — never a price. `docs/skills/security.md` §10 keeps
@@ -169,20 +170,21 @@ class ApiPricingRemoteDataSource implements PricingRemoteDataSource {
   /// It exists because the pricing response contract is still unverified
   /// (`docs/feature/order/pricing/sap-integration.md`) and the failure mode is
   /// silent — a wrong field name returns HTTP 200 with an empty list, which is
-  /// indistinguishable from a customer who has no prices. Seeing the actual
+  /// indistinguishable from a depot who has no prices. Seeing the actual
   /// body is the only way to tell those apart from the handset.
   void _dumpRequestForDebugging(
     String path,
-    String customerId,
+    String depotId,
     List<String> materials,
   ) {
     if (!kDebugMode) return;
 
     debugPrint('┌── [PRICING REQUEST] ${'─' * 42}');
     debugPrint('│ Endpoint: GET $path');
-    debugPrint('│ Customer ID: $customerId');
+    debugPrint('│ Depot ID: $depotId');
     debugPrint('│ Materials (${materials.length}): ${materials.join(', ')}');
-    debugPrint('│ Query Parameters: {materials: [${materials.join(', ')}]} (ListFormat.multi)');
+    debugPrint(
+        '│ Query Parameters: {materials: [${materials.join(', ')}]} (ListFormat.multi)');
     debugPrint('└${'─' * 64}');
   }
 
@@ -199,7 +201,8 @@ class ApiPricingRemoteDataSource implements PricingRemoteDataSource {
     debugPrint('┌── [PRICING SUCCESS] ${'─' * 42}');
     debugPrint('│ GET $path');
     debugPrint('│ Status: $statusCode OK ($elapsedMs ms)');
-    debugPrint('│ Materials requested (${materials.length}): ${materials.join(', ')}');
+    debugPrint(
+        '│ Materials requested (${materials.length}): ${materials.join(', ')}');
     debugPrint('│ Items returned: ${items.length}');
     for (final item in items) {
       debugPrint('│   • Material: ${item['material']} => '
@@ -214,7 +217,7 @@ class ApiPricingRemoteDataSource implements PricingRemoteDataSource {
 
   void _dumpErrorForDebugging(
     String path,
-    String customerId,
+    String depotId,
     List<String> materials,
     DioException e,
     int elapsedMs,
@@ -229,8 +232,9 @@ class ApiPricingRemoteDataSource implements PricingRemoteDataSource {
     debugPrint('│ GET $path');
     debugPrint('│ Failed URL: ${e.requestOptions.uri}');
     debugPrint('│ Status Code: $statusCode ($elapsedMs ms)');
-    debugPrint('│ Customer ID: $customerId');
-    debugPrint('│ Materials requested (${materials.length}): ${materials.join(', ')}');
+    debugPrint('│ Depot ID: $depotId');
+    debugPrint(
+        '│ Materials requested (${materials.length}): ${materials.join(', ')}');
     debugPrint('│ Dio Error Type: ${e.type.name}');
     debugPrint('│ Platform Error Code: ${apiError.code}');
     if (apiError.correlationId != null) {
@@ -250,9 +254,12 @@ class ApiPricingRemoteDataSource implements PricingRemoteDataSource {
 
     if (apiError.code == 'Sap.ApiError' || statusCode == 500) {
       debugPrint('│ ℹ️ Diagnosis:');
-      debugPrint('│   Backend reached SAP GetPriceByPaging, but SAP returned an error (5xx)');
-      debugPrint('│   or the SAP sales area / condition records for this customer could not be read.');
-      debugPrint('│   Check server logs with correlationId="${apiError.correlationId}".');
+      debugPrint(
+          '│   Backend reached SAP GetPriceByPaging, but SAP returned an error (5xx)');
+      debugPrint(
+          '│   or the SAP sales area / condition records for this depot could not be read.');
+      debugPrint(
+          '│   Check server logs with correlationId="${apiError.correlationId}".');
     }
     debugPrint('└${'─' * 64}');
   }

@@ -101,7 +101,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       success: (profile) {
         final user = profile.toUser();
         // Permissions travel with the restored session, so a feature gated on
-        // `customers.read` knows the answer before its first request rather
+        // `depots.read` knows the answer before its first request rather
         // than discovering it as a 403.
         _session.setUser(user,
             permissions: profile.permissions,

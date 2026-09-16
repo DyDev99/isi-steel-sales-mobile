@@ -5,8 +5,8 @@ class QuotationDto {
   const QuotationDto({
     required this.id,
     required this.number,
-    required this.customerId,
-    required this.customerName,
+    required this.depotId,
+    required this.depotName,
     required this.status,
     required this.statusGroup,
     required this.currency,
@@ -20,8 +20,8 @@ class QuotationDto {
 
   final String id;
   final String number;
-  final String customerId;
-  final String customerName;
+  final String depotId;
+  final String depotName;
   final QuotationStatus status;
   final QuotationStatusGroup statusGroup;
   final String? currency;
@@ -35,14 +35,17 @@ class QuotationDto {
   factory QuotationDto.fromJson(DataMap json) => QuotationDto(
         id: json['id'] as String,
         number: json['number'] as String,
-        customerId: json['customerId'] as String,
-        customerName: json['customerName'] as String,
+        depotId: json['customerId'] as String,
+        depotName: json['customerName'] as String,
         status: QuotationStatus.fromValue(json['status'] as String?),
-        statusGroup: QuotationStatusGroup.fromValue(json['statusGroup'] as String?),
+        statusGroup:
+            QuotationStatusGroup.fromValue(json['statusGroup'] as String?),
         currency: json['currency'] as String?,
         net: (json['net'] as num?)?.toDouble() ?? 0.0,
         lineCount: json['lineCount'] as int? ?? 0,
-        validTo: json['validTo'] != null ? DateTime.parse(json['validTo'] as String) : null,
+        validTo: json['validTo'] != null
+            ? DateTime.parse(json['validTo'] as String)
+            : null,
         createdAt: DateTime.parse(json['createdAt'] as String),
         updatedAt: DateTime.parse(json['updatedAt'] as String),
         statusDisplay: json['statusDisplay'] as String?,
@@ -53,8 +56,8 @@ class QuotationDetailDto extends QuotationDto {
   const QuotationDetailDto({
     required super.id,
     required super.number,
-    required super.customerId,
-    required super.customerName,
+    required super.depotId,
+    required super.depotName,
     required super.status,
     required super.statusGroup,
     required super.currency,
@@ -67,7 +70,7 @@ class QuotationDetailDto extends QuotationDto {
     this.shipmentType,
     this.shipTo,
     this.paymentTerm,
-    this.customerReference,
+    this.depotReference,
     this.remarks,
     this.lines = const [],
     this.totals,
@@ -82,7 +85,7 @@ class QuotationDetailDto extends QuotationDto {
   final String? shipmentType;
   final String? shipTo;
   final String? paymentTerm;
-  final String? customerReference;
+  final String? depotReference;
   final String? remarks;
   final List<QuotationLineDto> lines;
   final QuotationTotalsDto? totals;
@@ -95,33 +98,46 @@ class QuotationDetailDto extends QuotationDto {
 
   factory QuotationDetailDto.fromJson(DataMap json) {
     return QuotationDetailDto(
-      id: json['id'] as String? ?? json['quotationId'] as String? ?? '', // Preview endpoint uses quotationId
+      id: json['id'] as String? ??
+          json['quotationId'] as String? ??
+          '', // Preview endpoint uses quotationId
       number: json['number'] as String? ?? '',
-      customerId: json['customerId'] as String? ?? '',
-      customerName: json['customerName'] as String? ?? '',
+      depotId: json['customerId'] as String? ?? '',
+      depotName: json['customerName'] as String? ?? '',
       status: QuotationStatus.fromValue(json['status'] as String?),
-      statusGroup: QuotationStatusGroup.fromValue(json['statusGroup'] as String?),
+      statusGroup:
+          QuotationStatusGroup.fromValue(json['statusGroup'] as String?),
       currency: json['currency'] as String?,
       net: (json['net'] as num?)?.toDouble() ?? 0.0,
       lineCount: json['lineCount'] as int? ?? 0,
-      validTo: json['validTo'] != null ? DateTime.parse(json['validTo'] as String) : null,
-      createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt'] as String) : DateTime.now(),
-      updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt'] as String) : DateTime.now(),
+      validTo: json['validTo'] != null
+          ? DateTime.parse(json['validTo'] as String)
+          : null,
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'] as String)
+          : DateTime.now(),
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'] as String)
+          : DateTime.now(),
       statusDisplay: json['statusDisplay'] as String?,
       shipmentType: json['shipmentType'] as String?,
       shipTo: json['shipTo'] as String?,
       paymentTerm: json['paymentTerm'] as String?,
-      customerReference: json['customerReference'] as String?,
+      depotReference: json['customerReference'] as String?,
       remarks: json['remarks'] as String?,
       lines: (json['lines'] as List<dynamic>? ?? [])
           .map((e) => QuotationLineDto.fromJson(e as DataMap))
           .toList(),
-      totals: json['totals'] != null ? QuotationTotalsDto.fromJson(json['totals'] as DataMap) : null,
+      totals: json['totals'] != null
+          ? QuotationTotalsDto.fromJson(json['totals'] as DataMap)
+          : null,
       warnings: (json['warnings'] as List<dynamic>? ?? [])
           .map((e) => QuotationWarningDto.fromJson(e as DataMap))
           .toList(),
-      manualDiscountLimitPercent: (json['manualDiscountLimitPercent'] as num?)?.toDouble() ?? 0.0,
-      lineDiscountCapPercent: (json['lineDiscountCapPercent'] as num?)?.toDouble() ?? 0.0,
+      manualDiscountLimitPercent:
+          (json['manualDiscountLimitPercent'] as num?)?.toDouble() ?? 0.0,
+      lineDiscountCapPercent:
+          (json['lineDiscountCapPercent'] as num?)?.toDouble() ?? 0.0,
       requiredApprovalLevel: json['requiredApprovalLevel'] as int? ?? 0,
       revision: json['revision'] as int? ?? 0,
       decisionReason: json['decisionReason'] as String?,
@@ -151,7 +167,7 @@ class QuotationLineDto {
   final String materialDescription;
   final double quantity;
   final String unit;
-  
+
   // The 4-part price
   final double? priceAmount;
   final String? priceCurrency;
@@ -162,7 +178,7 @@ class QuotationLineDto {
   final double gross;
   final double discountTotal;
   final double net;
-  
+
   final List<QuotationDiscountDto> discounts;
 
   factory QuotationLineDto.fromJson(DataMap json) => QuotationLineDto(

@@ -163,7 +163,7 @@ void main() {
         (tester) async {
       await pump(tester, isPickup: false);
 
-      // The number a rep repeats to a customer. Counting a blocked promotion
+      // The number a rep repeats to a depot. Counting a blocked promotion
       // here would be worse than showing no count at all.
       expect(find.textContaining('1 available'), findsOneWidget);
       expect(find.textContaining('2 available'), findsNothing);

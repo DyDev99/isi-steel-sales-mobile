@@ -29,14 +29,14 @@ import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 /// The screen itself is thin — [GuidedProductFilterView] renders the flow and
 /// [ProductFilterFlowBloc] owns every piece of its state.
 class ProductFilterScreen extends StatefulWidget {
-  const ProductFilterScreen({super.key, this.leadId, this.customerId});
+  const ProductFilterScreen({super.key, this.leadId, this.depotId});
 
   static const routeName = 'order-product-filter';
 
   final String? leadId;
-  final String? customerId;
+  final String? depotId;
 
-  static Widget provider({String? leadId, String? customerId}) {
+  static Widget provider({String? leadId, String? depotId}) {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
@@ -50,17 +50,17 @@ class ProductFilterScreen extends StatefulWidget {
         BlocProvider(create: (_) => sl<SyncCubit>()..syncIfNeeded()),
         // Both are read by the shared product stage, so this screen has to
         // supply them or the result list throws a ProviderNotFound the moment
-        // it renders a card. Scoped to the customer for the same reason in
+        // it renders a card. Scoped to the depot for the same reason in
         // both cases: promotions are entitlements per account, and SAP prices
-        // a material *for a customer* — neither means anything unscoped.
+        // a material *for a depot* — neither means anything unscoped.
         BlocProvider(
-          create: (_) => sl<PromotionCubit>()..setCustomer(customerId),
+          create: (_) => sl<PromotionCubit>()..setDepot(depotId),
         ),
         BlocProvider(
-          create: (_) => sl<PricingCubit>()..setCustomer(customerId),
+          create: (_) => sl<PricingCubit>()..setDepot(depotId),
         ),
       ],
-      child: ProductFilterScreen(leadId: leadId, customerId: customerId),
+      child: ProductFilterScreen(leadId: leadId, depotId: depotId),
     );
   }
 
@@ -99,12 +99,11 @@ class _ProductFilterScreenState extends State<ProductFilterScreen> {
   CartLineBinding get _cartLines => CartLineBinding(
         cart: context.read<CartCubit>(),
         leadId: widget.leadId,
-        customerId: widget.customerId,
+        depotId: widget.depotId,
         priceResolver: (product) {
           try {
-            final p = context
-                .read<PricingCubit>()
-                .state[product.materialNumber];
+            final p =
+                context.read<PricingCubit>().state[product.materialNumber];
             if (p != null && p.hasAmount) return p.price;
           } catch (_) {}
           return null;
@@ -176,7 +175,7 @@ class _ProductFilterScreenState extends State<ProductFilterScreen> {
               .read<ProductFilterFlowBloc>()
               .add(const FilterFlowStarted()),
           child: GuidedProductFilterView(
-            customerId: widget.customerId,
+            depotId: widget.depotId,
             leadId: widget.leadId,
             favoriteIds: _favoriteIds,
             onToggleFavorite: _toggleFavorite,

@@ -89,7 +89,7 @@ extension CheckInRecordApiJson on CheckInRecordModel {
         'accuracy': accuracyMeters,
         // Geofence *evidence*, not a verdict (§8.2). The server decides
         // whether the visit qualifies; the client only reports what it saw.
-        'distanceFromCustomer': distanceFromCustomerMeters,
+        'distanceFromDepot': distanceFromDepotMeters,
         // A fraud signal, not a reason to withhold the row — a suppressed
         // mock-location check-in is exactly the one worth investigating.
         'isMocked': isMocked,

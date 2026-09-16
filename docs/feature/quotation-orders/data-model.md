@@ -17,18 +17,18 @@ the platform's `version` column.
 | Column | Type | Notes |
 |---|---|---|
 | `id` | uuid | `QuotationId`, time-ordered |
-| `number` | varchar(32) | `QT-2026-000001`. **Unique.** Also the SAP customer reference, and therefore the reconciliation key |
-| `customer_id` | uuid | The customer quoted |
+| `number` | varchar(32) | `QT-2026-000001`. **Unique.** Also the SAP depot reference, and therefore the reconciliation key |
+| `depot_id` | uuid | The depot quoted |
 | `owner_user_id` | uuid | The representative. The row-level scoping key |
-| `sales_organization` · `distribution_channel` · `division` | varchar(8) | Copied from the customer's primary sales area at creation, not resolved later — a customer can move, and the document belongs to the area it was raised in |
+| `sales_organization` · `distribution_channel` · `division` | varchar(8) | Copied from the depot's primary sales area at creation, not resolved later — a depot can move, and the document belongs to the area it was raised in |
 | `status` | int | **Derived.** Written only by `RecomputeStatus()` |
-| `approval_status` · `sap_quotation_status` · `sap_order_status` · `customer_decision` | int | The four dimensions `status` is derived from |
+| `approval_status` · `sap_quotation_status` · `sap_order_status` · `depot_decision` | int | The four dimensions `status` is derived from |
 | `closure` | int, null | `Cancelled` or `Expired` — the two closings no dimension expresses |
 | `shipment_type` | int | Pickup or Delivery |
 | `ship_to` | varchar(512) | Required for Delivery |
-| `payment_term` · `customer_reference` | varchar | Header fields the representative fills in |
-| `remarks` | varchar(2048) | For the customer-facing document |
-| `currency` | varchar(8) | **Nullable, and eight characters.** Null on an empty draft — the platform does not know what SAP prices this customer in until it asks. Eight rather than three because `US3` is a SAP currency key, not an ISO code |
+| `payment_term` · `depot_reference` | varchar | Header fields the representative fills in |
+| `remarks` | varchar(2048) | For the depot-facing document |
+| `currency` | varchar(8) | **Nullable, and eight characters.** Null on an empty draft — the platform does not know what SAP prices this depot in until it asks. Eight rather than three because `US3` is a SAP currency key, not an ISO code |
 | `valid_from` · `valid_to` | date | The platform's validity. SAP's dates will take over once SAP holds the document |
 | `revision` | int | Incremented on every return |
 | `required_approval_level` | int | Computed at submit from the largest manual discount, and stored so the queue can filter and the audit can say *why* |
@@ -51,7 +51,7 @@ produced it.
 | `ix_quotations_number` (unique) | "Does this document number already exist?" — and stops two documents sharing a SAP reconciliation key |
 | `ix_quotations_owner_status` | "What is on my list" — the representative's five tabs |
 | `ix_quotations_status_level` | "What is waiting for me to approve" — the portal queue |
-| `ix_quotations_customer` | "Everything quoted to this shop" |
+| `ix_quotations_depot` | "Everything quoted to this shop" |
 
 ---
 
@@ -127,7 +127,7 @@ The outbox. One row per attempt to put a document into SAP.
 unresolved attempts, `idempotency_ref` for reconciliation.
 
 **Rows are appended and settled, never rewritten.** The history is the point: it is what
-a support desk reads when a customer asks why their quotation is not in SAP, and what
+a support desk reads when a depot asks why their quotation is not in SAP, and what
 stops a document SAP already holds being sent twice.
 
 **`Unknown` is the state this table exists for.** A request that timed out after the
@@ -141,8 +141,8 @@ attempt is how duplicates are made.
 | Table | Used for |
 |---|---|
 | `approval_records` | The append-only decision trail. `ApprovalSubject.Quotation` and `ApprovalAction.Returned` were added to the existing enums |
-| `customers` | The trading name on a document header, projected to one column |
-| `customer_sales_areas` | The SAP sales area copied onto the header at creation |
+| `depots` | The trading name on a document header, projected to one column |
+| `depot_sales_areas` | The SAP sales area copied onto the header at creation |
 | `materials` | The description captured onto a line |
 
 No pricing table is read or written. Prices come from SAP through `IPricingService` on

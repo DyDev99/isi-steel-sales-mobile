@@ -251,30 +251,30 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
     );
   }
 
-  // ── 2. Information Cards (Customer & Quotation) ────────────────────────
+  // ── 2. Information Cards (Depot & Quotation) ────────────────────────
   pw.Widget _informationCards(PdfTheme theme, DateFormat dateFmt) {
     final validUntilStr = data.validUntil != null
         ? dateFmt.format(data.validUntil!)
         : dateFmt.format(data.createdDate.add(const Duration(days: 7)));
 
-    final customerRows = [
-      _InfoRow('Customer Name', data.customerName, emphasize: true),
-      _InfoRow('Company Name', data.companyName ?? data.customerName),
+    final depotRows = [
+      _InfoRow('Depot Name', data.depotName, emphasize: true),
+      _InfoRow('Company Name', data.companyName ?? data.depotName),
       _InfoRow(
         'Address',
-        (data.customerAddress ?? '').isNotEmpty
-            ? data.customerAddress!
+        (data.depotAddress ?? '').isNotEmpty
+            ? data.depotAddress!
             : 'Phnom Penh, Cambodia',
       ),
       _InfoRow(
         'Phone',
-        (data.customerPhone ?? '').isNotEmpty ? data.customerPhone! : '—',
+        (data.depotPhone ?? '').isNotEmpty ? data.depotPhone! : '—',
       ),
       _InfoRow(
         'Email',
-        (data.customerEmail ?? '').isNotEmpty ? data.customerEmail! : '—',
+        (data.depotEmail ?? '').isNotEmpty ? data.depotEmail! : '—',
       ),
-      _InfoRow('Contact Person', data.contactPerson ?? data.customerName),
+      _InfoRow('Contact Person', data.contactPerson ?? data.depotName),
     ];
 
     final quotationRows = [
@@ -288,7 +288,7 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
       ),
       _InfoRow(
         'Delivery Terms',
-        data.deliveryTerms ?? 'Customer Site / Standard Lead Time',
+        data.deliveryTerms ?? 'Depot Site / Standard Lead Time',
       ),
     ];
 
@@ -298,8 +298,8 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
         pw.Expanded(
           child: _infoSection(
             theme,
-            title: 'CUSTOMER INFORMATION',
-            rows: customerRows,
+            title: 'DEPOT INFORMATION',
+            rows: depotRows,
           ),
         ),
         pw.SizedBox(width: theme.gapMd),
@@ -733,7 +733,7 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
           ),
           pw.SizedBox(height: 3),
           _t(
-            'Delivery location: ${data.deliveryLocation ?? (data.customerAddress ?? 'Customer Site')}',
+            'Delivery location: ${data.deliveryLocation ?? (data.depotAddress ?? 'Depot Site')}',
             fontSize: 7.5,
             color: theme.ink,
             maxWidth: 220,
@@ -791,9 +791,8 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
       );
     }
 
-    final deliveryLabel = data.deliveryFee > 0
-        ? currency.format(data.deliveryFee)
-        : 'Included';
+    final deliveryLabel =
+        data.deliveryFee > 0 ? currency.format(data.deliveryFee) : 'Included';
 
     return pw.Container(
       padding: const pw.EdgeInsets.all(10),
@@ -1012,9 +1011,9 @@ class QuotationPdfGenerator extends PdfDocumentBuilder {
           ),
           pw.SizedBox(width: 48),
           signatureColumn(
-            title: 'Customer Approval',
+            title: 'Depot Approval',
             subtitle: 'Authorized Person',
-            name: (data.contactPerson ?? data.customerName),
+            name: (data.contactPerson ?? data.depotName),
             date: '__________________',
           ),
         ],

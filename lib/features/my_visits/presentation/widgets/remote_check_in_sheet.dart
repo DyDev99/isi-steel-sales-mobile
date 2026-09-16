@@ -44,7 +44,7 @@ class RemoteCheckInSheet extends StatefulWidget {
   /// the actual objection rather than a paraphrase of it.
   final String blockedReason;
 
-  /// Metres from the customer's pin, for the rep's own orientation. Also the
+  /// Metres from the depot's pin, for the rep's own orientation. Also the
   /// number that goes to the server on the check-in row either way.
   ///
   /// Null when nothing was measured (the no-GPS path) — the line is omitted
@@ -119,8 +119,8 @@ class _RemoteCheckInSheetState extends State<RemoteCheckInSheet> {
   static const _presets = <String>[
     'Depot entrance is far from the recorded pin',
     'No GPS signal inside the warehouse',
-    'Customer pin on the map is wrong',
-    'Met the customer at a different location',
+    'Depot pin on the map is wrong',
+    'Met the depot at a different location',
   ];
 
   final TextEditingController _controller = TextEditingController();
@@ -195,10 +195,8 @@ class _RemoteCheckInSheetState extends State<RemoteCheckInSheet> {
                         color: colors.warning.withValues(alpha: 0.12),
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(
-                          widget.icon ?? Icons.wrong_location_outlined,
-                          color: colors.warning,
-                          size: context.rr(20)),
+                      child: Icon(widget.icon ?? Icons.wrong_location_outlined,
+                          color: colors.warning, size: context.rr(20)),
                     ),
                     SizedBox(width: context.rw(8)),
                     Expanded(

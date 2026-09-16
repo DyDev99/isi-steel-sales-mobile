@@ -1,6 +1,6 @@
 # Quotations — Overview
 
-**What it is:** the platform's priced offer to a customer, from an empty draft to an
+**What it is:** the platform's priced offer to a depot, from an empty draft to an
 approved document.
 **Status:** Active · **Last updated:** 2026-09-11
 
@@ -16,7 +16,7 @@ Two halves, both load-bearing.
 produces every amount. It is called by the preview, by every write (each returns the
 recalculated document), by the detail read, and by the admin queue. The Flutter app
 renders its output. Four implementations would be four chances to disagree about a
-number a customer is looking at — which is the failure Pricing spent a week removing.
+number a depot is looking at — which is the failure Pricing spent a week removing.
 
 **Every figure is an estimate until SAP prices it.** `totals.isEstimate` is `true` for
 the whole of this release, because no quotation reaches SAP yet. When the submission
@@ -117,13 +117,13 @@ aggregate's refusal to begin a submission from anything but `Approved`.
 | Approval | `NotSubmitted` · `Pending` · `Approved` · `Returned` · `Rejected` | all |
 | SAP quotation | `NotSent` · `Sending` · `Unknown` · `Created` · `Failed` | **all five** |
 | SAP order | same | `NotSent` only |
-| Customer answer | `Undecided` · `Accepted` · `Declined` | `Undecided` only |
+| Depot answer | `Undecided` · `Accepted` · `Declined` | `Undecided` only |
 | Closure | `Cancelled` · `Expired` | `Cancelled` only |
 
 `Quotation.RecomputeStatus()` folds those into one of fifteen `QuotationStatus`
 values. Nine are reachable: `Draft`, `PendingApproval`, `Returned`, `Approved`, `Rejected`,
 `Cancelled`, `SubmittingToSap`, `Quoted` and `SapFailed`. The remaining six belong to
-the customer decision and sales-order phases, which are not built. The rest are declared so the derivation was written once rather than widened later.
+the depot decision and sales-order phases, which are not built. The rest are declared so the derivation was written once rather than widened later.
 
 **`PendingApproval` is what the business calls "Admin Review".** The stored value and
 the wire value stay `PendingApproval`; `statusDisplay` carries the label, localised, so
@@ -132,7 +132,7 @@ status for the same state would have meant two names, stored integers to migrate
 somewhere switching on the wrong one.
 
 The handset does not show fifteen states. `QuotationStatusGroups` maps them onto five
-tabs — **Drafts**, **Waiting**, **With customer**, **Won**, **Closed** — and the
+tabs — **Drafts**, **Waiting**, **With depot**, **Won**, **Closed** — and the
 grouping is decided on the server so every client shows the same thing.
 
 ---
@@ -141,7 +141,7 @@ grouping is decided on the server so every client shows the same thing.
 
 Nothing in this feature reads SAP directly. A line is priced through
 `IQuotationLinePricer`, which calls the existing `IPricingService` — the same service
-behind `GET /api/v1/mobile/pricing/customers/{id}` and the SignalR publisher. A price
+behind `GET /api/v1/mobile/pricing/depots/{id}` and the SignalR publisher. A price
 on a quotation is therefore the price the representative saw on the pricing screen, by
 construction.
 
@@ -181,9 +181,9 @@ Flutter app                                Admin portal
 ```
 
 `IPricingAudienceResolver` is reused rather than duplicated. Its name says pricing, but
-what it answers is *"may this caller see this customer?"* — the platform's one
+what it answers is *"may this caller see this depot?"* — the platform's one
 ownership rule — so a permission change takes effect on quotations with nothing to
-remember. The plan proposes renaming it `ICustomerAudienceResolver` when a third
+remember. The plan proposes renaming it `IDepotAudienceResolver` when a third
 feature needs it.
 
 ---
@@ -192,7 +192,7 @@ feature needs it.
 
 [quotation-orders-plan.md](quotation-orders-plan.md) sets out the whole programme:
 SAP quotation creation with an outbox and honest "unknown" outcomes, sales orders,
-customer accept/decline, expiry, and the promotions track in
+depot accept/decline, expiry, and the promotions track in
 [../prom-discount/promotions-discounts-plan.md](../prom-discount/promotions-discounts-plan.md).
 This release is its **Q1** (server draft and calculator) plus the approval transitions
 from **Q3**. Everything from **Q4** onward is blocked on SAP endpoints and business

@@ -84,7 +84,7 @@ final class StopDashboardLoaded extends StopDashboardState {
     // them inside Khmer names as word-break hints and they are invisible on
     // screen — a rep reading a shop's name off the card and typing it back
     // would otherwise match nothing. This is the same normalisation
-    // `CustomerDao.browse` applies in SQL, which is what lets the claim below
+    // `DepotDao.browse` applies in SQL, which is what lets the claim below
     // (in-memory and on-disk search agree) actually hold.
     //
     // Phone normalisation is deliberately *not* applied here: unlike the
@@ -93,13 +93,13 @@ final class StopDashboardLoaded extends StopDashboardState {
     // and route name.
     final q = stripZeroWidth(query.trim()).toLowerCase();
     if (q.isEmpty) return true;
-    final c = s.stop.customer;
+    final c = s.stop.depot;
     bool contains(String value) =>
         stripZeroWidth(value).toLowerCase().contains(q);
     // Matches the shop's name in *either* language, whichever the UI is
     // showing: a rep who knows a shop by its Khmer sign types that even while
     // the app is in English, and vice versa. `searchableValues` already spans
-    // both plus the customer code.
+    // both plus the depot code.
     return c.searchableValues.any(contains) ||
         contains(c.address) ||
         contains(s.routeName);

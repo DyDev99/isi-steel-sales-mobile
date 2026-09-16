@@ -24,7 +24,7 @@ enum PricingState {
   updated,
 
   /// The backend answered, and the answer is that there is no price for this
-  /// customer and material. A definite negative, not a failure.
+  /// depot and material. A definite negative, not a failure.
   unavailable,
 
   /// The request failed. Distinct from [unavailable]: this one is retryable,
@@ -40,28 +40,28 @@ enum PricingState {
 ///
 /// The spec asks for these to be distinguished rather than flattened, and the
 /// reason is operational: "you are offline" sends a rep to find signal,
-/// "this customer is not priceable" sends them to the office, and
+/// "this depot is not priceable" sends them to the office, and
 /// "unauthorized" sends them to IT. One generic error message sends them
 /// nowhere.
 enum PricingErrorKind {
   none,
   noPrice,
   unauthorized,
-  customerNotFound,
-  customerNotPriceable,
+  depotNotFound,
+  depotNotPriceable,
   backendUnavailable,
   networkUnavailable,
   unknown,
 }
 
-/// One customer-specific price for one material, exactly as the backend
+/// One depot-specific price for one material, exactly as the backend
 /// returned it.
 ///
 /// **Nothing in this class computes a price.** The amount, the currency and the
 /// validity window are transcribed from the pricing service; SAP's conditions
 /// are not re-derived on the handset, and there is no fallback that quietly
 /// substitutes a catalogue figure when the live one is missing. A quoted price
-/// a customer can hold a rep to has exactly one source.
+/// a depot can hold a rep to has exactly one source.
 class MobilePrice extends Equatable {
   const MobilePrice({
     required this.material,
@@ -102,7 +102,7 @@ class MobilePrice extends Equatable {
   /// The amount, or null when there is none to show.
   ///
   /// Null rather than `0.0`, and the distinction is the whole point: zero is a
-  /// quoted price a customer can hold the rep to, and "we do not have one yet"
+  /// quoted price a depot can hold the rep to, and "we do not have one yet"
   /// is not a number at all.
   final double? price;
 

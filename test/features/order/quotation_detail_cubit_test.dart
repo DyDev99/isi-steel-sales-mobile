@@ -18,12 +18,13 @@ class _MockCancelQuotation extends Mock implements CancelQuotation {}
 
 class _MockGetQuotationHistory extends Mock implements GetQuotationHistory {}
 
-QuotationDetail _detail(String id, {String status = 'Draft', double net = 300.0}) {
+QuotationDetail _detail(String id,
+    {String status = 'Draft', double net = 300.0}) {
   return QuotationDetail(
     id: id,
     number: 'QT-$id',
-    customerId: 'cust-1',
-    customerName: 'Customer One',
+    depotId: 'cust-1',
+    depotName: 'Depot One',
     status: status,
     statusGroup: status == 'Draft'
         ? QuotationStatusGroup.drafts
@@ -111,7 +112,8 @@ void main() {
       ),
       act: (cubit) => cubit.submit(),
       expect: () => [
-        isA<QuotationDetailLoaded>().having((s) => s.isSubmitting, 'isSubmitting', true),
+        isA<QuotationDetailLoaded>()
+            .having((s) => s.isSubmitting, 'isSubmitting', true),
         isA<QuotationDetailPriceChanged>()
             .having((s) => s.quotation.id, 'id', '100')
             .having((s) => s.message, 'message',

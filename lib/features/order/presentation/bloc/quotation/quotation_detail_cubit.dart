@@ -72,7 +72,8 @@ class QuotationDetailCubit extends Cubit<QuotationDetailState> {
         ));
       },
       failure: (failure) {
-        if (failure is ServerFailure && failure.code == 'Quotation.PriceChanged') {
+        if (failure is ServerFailure &&
+            failure.code == 'Quotation.PriceChanged') {
           emit(QuotationDetailPriceChanged(
             quotation: quotation,
             message: failure.message,

@@ -340,7 +340,7 @@ identical:
 - **Genuinely different material numbers** whose published attributes are all
   equal, because SAP holds a distinction the schema does not expose (a packaging
   variant, a mill run, a length not modelled as a step, a legacy material number
-  kept alive for a customer's spec).
+  kept alive for a depot's spec).
 
 For the second case the rep is choosing between rows the hierarchy cannot tell
 apart. Making the material an explicit, labelled, counted step ends the guess:
@@ -516,7 +516,7 @@ is actually specified across an ISI counter. The `sku` step appends to each.
 
 | Category | Steps (in order) | Why it closes there |
 |---|---|---|
-| Palm Profile Roofing | Profile → Coating Line → Gauge → Colour | Coating carries the warranty; colour last because customers change their mind about colour, never about profile |
+| Palm Profile Roofing | Profile → Coating Line → Gauge → Colour | Coating carries the warranty; colour last because depots change their mind about colour, never about profile |
 | PU Insulated Panels | Panel → PU Core → Gauge → Colour | PU20 and PU40 are different materials at the same steel gauge |
 | Roofing Accessories | Accessory → Girth (`width`) → Gauge → Colour | Specified by the flat blank width before folding, not a catalogue size code |
 | Cold Formed Sections | Section → Size → Thickness → Grade | Structural, so it closes on grade — SGCC-Z60 vs G450-Z275 is load-bearing |
@@ -524,7 +524,7 @@ is actually specified across an ISI counter. The `sku` step appends to each.
 | K-Pipe | 2 steps | SAP holds no brand or grade variation; a one-chip step is a wasted tap |
 | GI Steel Sheet | Dimensions only, no family step | The whole category is one product described by two dimensions |
 | GI Steel Bending | Dimensions only, no family step | As above |
-| Reinforcement (Traded) | Family → **Mill** → … | Bought-in stock; the mill is what a customer with a spec cares about |
+| Reinforcement (Traded) | Family → **Mill** → … | Bought-in stock; the mill is what a depot with a spec cares about |
 | Beams (Traded) | 2 steps | As K-Pipe |
 
 Source of truth for the mock: `lib/features/order/data/mock/isi_filter_schema_data.dart`
@@ -551,4 +551,4 @@ Related: [`docs/blueprint/system-architecture.md`](../../../blueprint/system-arc
 [`docs/blueprint/sync-architecture.md`](../../../blueprint/sync-architecture.md) ·
 [`docs/blueprint/offline-architecture.md`](../../../blueprint/offline-architecture.md) ·
 [`docs/skills/api-integration.md`](../../../skills/api-integration.md) ·
-[ADR-009](../../../adr) — customer filtering is flat; SAP master data is a cached lookup.
+[ADR-009](../../../adr) — depot filtering is flat; SAP master data is a cached lookup.

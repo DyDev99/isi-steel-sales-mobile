@@ -14,7 +14,7 @@ Future<double?> showManualDiscountInputSheet({
   required CartItem item,
   double? currentDiscountPercent,
   double maxDiscountPercent = 10.0,
-  List<CustomerAgreement> agreements = const [],
+  List<DepotAgreement> agreements = const [],
   List<double>? suggestedChips,
 }) {
   final colors = Theme.of(context).extension<AppThemeColors>()!;
@@ -205,7 +205,8 @@ Future<double?> showManualDiscountInputSheet({
                   // Quick shortcut chips
                   Builder(
                     builder: (context) {
-                      final chips = suggestedChips ?? const [1.0, 2.0, 3.0, 5.0];
+                      final chips =
+                          suggestedChips ?? const [1.0, 2.0, 3.0, 5.0];
                       return Wrap(
                         spacing: 8,
                         runSpacing: 6,
@@ -230,14 +231,19 @@ Future<double?> showManualDiscountInputSheet({
                               },
                             ),
                           if (maxDiscountPercent > 0 &&
-                              !chips.any((c) => (c - maxDiscountPercent).abs() < 0.01))
+                              !chips.any(
+                                  (c) => (c - maxDiscountPercent).abs() < 0.01))
                             ActionChip(
                               label: Text(
                                 '${maxDiscountPercent.toStringAsFixed(maxDiscountPercent.truncateToDouble() == maxDiscountPercent ? 0 : 1)}% (Max)',
                               ),
                               onPressed: () {
-                                controller.text = maxDiscountPercent.toStringAsFixed(
-                                  maxDiscountPercent.truncateToDouble() == maxDiscountPercent ? 0 : 1,
+                                controller.text =
+                                    maxDiscountPercent.toStringAsFixed(
+                                  maxDiscountPercent.truncateToDouble() ==
+                                          maxDiscountPercent
+                                      ? 0
+                                      : 1,
                                 );
                                 setState(() {});
                               },

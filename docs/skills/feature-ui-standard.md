@@ -72,7 +72,7 @@ Full model in `docs/skills/security.md`. Gate:
   justification text.
 - **FS-SEC-6** — Protected actions go through `AuthGuard.requireAuthentication`.
   Guests must degrade to a prompt, never a crash or a blank screen.
-- **FS-SEC-7** — Screens showing customer or pricing data must not leak into
+- **FS-SEC-7** — Screens showing depot or pricing data must not leak into
   screenshots/recents where the platform offers protection.
 
 ---

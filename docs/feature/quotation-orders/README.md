@@ -1,6 +1,6 @@
 # Quotations
 
-**Purpose:** a priced offer to one customer, authored on the handset, approved in the
+**Purpose:** a priced offer to one depot, authored on the handset, approved in the
 portal, and totalled by one server-side calculator.
 **Scope:** the quotation aggregate, the calculator, the mobile authoring surface, the
 admin approval surface, and the administrator-only SAP submission. There are no orders
@@ -30,7 +30,7 @@ and no PDF — see [Not built yet](#not-built-yet).
 
 ## In one paragraph
 
-A representative opens a quotation against a customer they own, adds materials — each
+A representative opens a quotation against a depot they own, adds materials — each
 priced by the server through the existing `IPricingService`, never by the client — sets
 a manual discount as a *percentage intent*, and submits. Every amount on every screen
 comes from one `IQuotationCalculator`, so the preview, the stored document, the admin
@@ -55,7 +55,7 @@ A representative's responsibility ends at **Admin Review**.
 ## The one thing to know before changing this
 
 **`Status` is derived and assigned nowhere.** The aggregate holds four independent
-dimensions — platform approval, SAP quotation, SAP sales order, customer answer —
+dimensions — platform approval, SAP quotation, SAP sales order, depot answer —
 plus an explicit closure for cancellation and expiry, and recomputes `Status` after
 every transition in one `RecomputeStatus()`. "Admin approved, SAP refused" is not
 "admin rejected", and one column cannot say both. If you find yourself wanting to set
@@ -82,12 +82,12 @@ Deliberate omissions, each blocked on something outside the code:
 | Readback of SAP's own net values (`GetQuotItemByPaging`) | Nothing reads the priced document back, so `sapNet` stays null and totals stay estimates even after SAP has the quotation |
 | A reconciliation job for unresolved attempts | An attempt that timed out sits in `Unknown` until somebody submits again, which adopts the document if SAP holds it. There is no background sweep |
 | Automatic submission on approval | Deliberate. Submission is an explicit administrative act, not a side effect of approving |
-| Sales orders and the customer accept/decline path | No sales-order endpoint exists in the middleware |
+| Sales orders and the depot accept/decline path | No sales-order endpoint exists in the middleware |
 | Promotions, depot agreements, rebates, campaigns | A separate feature; see the promotions plan. A quotation line already carries a `Agreement` discount kind for it to write into |
 | Price requests (a manual price on an unpriced line) | An open business decision about who may set a price |
 | Pickup discount | Nobody has confirmed the rate, its scope, or whether SAP holds it |
 | Tax | SAP determines it from tax classification. `totals.tax` is always `null` and is present so no client invents a field for it |
-| PDF / customer-facing document | Should be generated from SAP values, which do not exist yet |
+| PDF / depot-facing document | Should be generated from SAP values, which do not exist yet |
 
 The aggregate's status enum, the SAP status dimensions and the discount kinds are all
 declared for these, so adding them widens behaviour rather than reshaping the model.

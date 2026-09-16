@@ -8,7 +8,7 @@ import 'package:cross_file/cross_file.dart';
 /// The URL is valid for the lifetime of the tab, which matches ADR-010's
 /// session-scoped posture exactly: the image is fully usable while the rep is
 /// working, and it does not survive a reload. Nothing lands in origin storage,
-/// so a photo of a customer's premises is not left behind in the browser.
+/// so a photo of a depot's premises is not left behind in the browser.
 ///
 /// The returned string is still "a path" as far as callers are concerned, which
 /// is what lets `ProofPhotoResult` and the drawing-upload flow stay unchanged.

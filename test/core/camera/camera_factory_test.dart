@@ -10,7 +10,7 @@ import 'package:isi_steel_sales_mobile/core/camera/real_image_capture_service.da
 /// environment about the camera, so it is the only place that can get the
 /// safety property wrong: **a physical device must never be given the
 /// stand-in**, because that would silently upload placeholder images as
-/// customer evidence.
+/// depot evidence.
 void main() {
   final navigatorKey = GlobalKey<NavigatorState>();
 

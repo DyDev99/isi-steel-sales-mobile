@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:isi_steel_sales_mobile/core/logging/app_logger.dart';
 
 /// `docs/skills/security.md` §10 is a hard constraint: passwords, tokens, e-mail
-/// addresses, phone numbers, customer data and money must never reach a log
+/// addresses, phone numbers, depot data and money must never reach a log
 /// sink. Logs outlive the session that produced them — they end up in bug
 /// reports, and on Android any app holding `READ_LOGS` can read them.
 ///
@@ -47,7 +47,7 @@ void main() {
       expect(redact('v', '+85512345678'), LogRedactor.placeholder);
     });
 
-    test('customer identity and money', () {
+    test('depot identity and money', () {
       final safe = redactor.redact({
         'shopName': 'Toul Kork Construction Depot',
         'creditLimit': 30000.0,
@@ -67,10 +67,10 @@ void main() {
       // to answer the questions it exists for.
       final safe = redactor.redact({
         'method': 'GET',
-        'path': '/api/v1/mobile/customers',
+        'path': '/api/v1/mobile/depots',
         'status': 200,
         'ms': 143,
-        'errorCode': 'Customer.NotFound',
+        'errorCode': 'Depot.NotFound',
         'dioType': 'badResponse',
         'page': 1,
         'pageSize': 200,
@@ -79,14 +79,14 @@ void main() {
         'isDeltaSync': true,
         'signedIn': true,
         'language': 'en-US',
-        'rows': ['customers:25'],
+        'rows': ['depots:25'],
         'queryKeys': ['pageNumber', 'pageSize', 'modifiedSince'],
       });
 
       expect(safe.values, isNot(contains(LogRedactor.placeholder)));
       expect(safe['status'], 200);
-      expect(safe['errorCode'], 'Customer.NotFound');
-      expect(safe['rows'], ['customers:25']);
+      expect(safe['errorCode'], 'Depot.NotFound');
+      expect(safe['rows'], ['depots:25']);
       // `signedIn` rather than `authorized`: any key containing "auth" is
       // masked, which would hide whether the token was attached at all.
       expect(safe['signedIn'], isTrue);

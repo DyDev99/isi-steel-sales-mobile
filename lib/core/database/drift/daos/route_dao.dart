@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
-import 'package:isi_steel_sales_mobile/core/database/drift/tables/customers_table.dart';
+import 'package:isi_steel_sales_mobile/core/database/drift/tables/depots_table.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/tables/route_tables.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/tables/syncable_table.dart';
 
@@ -17,26 +17,26 @@ class RouteWithStops {
   final List<RouteStopsCompanion> stops;
 }
 
-/// A stop joined to the customer details the **route feed** supplied for it.
+/// A stop joined to the depot details the **route feed** supplied for it.
 ///
-/// The domain's `RouteStop` embeds the whole customer record, not an id, so the
-/// read has to join. It joins [RouteCustomers] — the route feed's own flat
-/// mirror — rather than the customer directory, because the two feeds are
+/// The domain's `RouteStop` embeds the whole depot record, not an id, so the
+/// read has to join. It joins [RouteDepots] — the route feed's own flat
+/// mirror — rather than the depot directory, because the two feeds are
 /// separate endpoints with separate scopes and the directory routinely does not
-/// have a stop's customer yet (ADR-011).
-class RouteStopWithCustomer {
-  const RouteStopWithCustomer(this.stop, this.customer);
+/// have a stop's depot yet (ADR-011).
+class RouteStopWithDepot {
+  const RouteStopWithDepot(this.stop, this.depot);
 
   final RouteStopRow stop;
 
-  /// Null when the route feed sent a stop without its customer row — rare, and
+  /// Null when the route feed sent a stop without its depot row — rare, and
   /// deliberately **not** filtered out.
   ///
   /// The join is a LEFT join for exactly this reason. An inner join would drop
   /// the stop from the rep's day, which is the same data loss the foreign key
   /// used to cause, just silent instead of loud. The caller renders what it has
   /// (`docs/adr/ADR011localmirrornorelations.md`).
-  final RouteCustomerRow? customer;
+  final RouteDepotRow? depot;
 }
 
 /// Scoped accessor for the route aggregate: plans, stops, and the delta cursor.
@@ -45,8 +45,7 @@ class RouteStopWithCustomer {
 /// (ADR-004: generated DAOs give compile-time safety the raw-SQL version could
 /// not). Reads exclude soft-deleted rows — a row pending a delete-push is still
 /// on disk (`docs/blueprint/local-storage-architecture.md` §3.1) but must not be shown to the user.
-@DriftAccessor(
-    tables: [Routes, RouteStops, RouteCustomers, RouteSyncMeta, Customers])
+@DriftAccessor(tables: [Routes, RouteStops, RouteDepots, RouteSyncMeta, Depots])
 class RouteDao extends DatabaseAccessor<AppDatabase> with _$RouteDaoMixin {
   RouteDao(super.db);
 
@@ -89,24 +88,23 @@ class RouteDao extends DatabaseAccessor<AppDatabase> with _$RouteDaoMixin {
         ..orderBy([(t) => OrderingTerm.asc(t.sequence)]))
       .get();
 
-  /// Stops joined to the route feed's customer rows, in visit order.
+  /// Stops joined to the route feed's depot rows, in visit order.
   ///
   /// One join rather than N per-stop lookups: a route has dozens of stops and
   /// the per-stop variant is the N+1 pattern `playbook` §9 rejects.
   ///
   /// **A `leftOuterJoin`, and that matters.** It used to be an inner join
-  /// against the customer *directory*, justified by `customer_id` being a
+  /// against the depot *directory*, justified by `depot_id` being a
   /// non-null foreign key. That foreign key is gone (ADR-011) because it was
   /// destroying whole routes, and an inner join would have quietly inherited
-  /// the same failure — a stop whose customer row had not arrived would vanish
+  /// the same failure — a stop whose depot row had not arrived would vanish
   /// from the rep's day with no error anywhere. A left join keeps the stop and
   /// lets the caller decide how to render an unknown shop.
-  Future<List<RouteStopWithCustomer>> fetchStopsWithCustomers(
+  Future<List<RouteStopWithDepot>> fetchStopsWithDepots(
     String routeId,
   ) async {
     final query = select(routeStops).join([
-      leftOuterJoin(
-          routeCustomers, routeCustomers.id.equalsExp(routeStops.customerId)),
+      leftOuterJoin(routeDepots, routeDepots.id.equalsExp(routeStops.depotId)),
     ])
       ..where(routeStops.routeId.equals(routeId))
       ..where(routeStops.deleted.equals(false))
@@ -114,9 +112,9 @@ class RouteDao extends DatabaseAccessor<AppDatabase> with _$RouteDaoMixin {
 
     final rows = await query.get();
     return rows
-        .map((row) => RouteStopWithCustomer(
+        .map((row) => RouteStopWithDepot(
               row.readTable(routeStops),
-              row.readTableOrNull(routeCustomers),
+              row.readTableOrNull(routeDepots),
             ))
         .toList();
   }
@@ -183,9 +181,9 @@ class RouteDao extends DatabaseAccessor<AppDatabase> with _$RouteDaoMixin {
   /// SAP-owned, so a stop the server no longer sends has been removed from the
   /// plan and must not linger locally.
   ///
-  /// A stop whose `customer_id` is not in the customer directory is rejected by
-  /// the foreign key. That is deliberate — see [upsertRouteAttributesOnCustomer]
-  /// for why route sync must not invent customers.
+  /// A stop whose `depot_id` is not in the depot directory is rejected by
+  /// the foreign key. That is deliberate — see [upsertRouteAttributesOnDepot]
+  /// for why route sync must not invent depots.
   Future<void> upsertRoutesWithStops(List<RouteWithStops> items) {
     return transaction(() async {
       for (final item in items) {
@@ -200,42 +198,42 @@ class RouteDao extends DatabaseAccessor<AppDatabase> with _$RouteDaoMixin {
     });
   }
 
-  /// Stores the customer rows the route feed sent alongside the plans.
+  /// Stores the depot rows the route feed sent alongside the plans.
   ///
-  /// Idempotent upsert keyed by customer id, so re-running a sync — which the
+  /// Idempotent upsert keyed by depot id, so re-running a sync — which the
   /// backend explicitly permits, since a delta may re-send the full current set
   /// (`docs/feature/my-visits/api.md` §5.2) — converges rather than duplicating.
   ///
-  /// This deliberately does **not** touch the `customers` directory. The two
+  /// This deliberately does **not** touch the `depots` directory. The two
   /// are different feeds with different scopes and different owners; writing
   /// one from the other is what produced the ordering dependency ADR-011
   /// removes, and `CLAUDE.md` §4 forbids a feature reaching into another
   /// feature's data anyway.
-  Future<void> upsertRouteCustomers(
-    List<RouteCustomersCompanion> records,
+  Future<void> upsertRouteDepots(
+    List<RouteDepotsCompanion> records,
   ) async {
     if (records.isEmpty) return;
-    await batch((b) => b.insertAllOnConflictUpdate(routeCustomers, records));
+    await batch((b) => b.insertAllOnConflictUpdate(routeDepots, records));
   }
 
-  /// Applies the two route-execution attributes onto an **existing** customer.
+  /// Applies the two route-execution attributes onto an **existing** depot.
   ///
-  /// The legacy `routes.db` kept its own denormalised `customers` table; T1.5
-  /// drops it because [Customers] is the single source of truth (ADR-001) and is
+  /// The legacy `routes.db` kept its own denormalised `depots` table; T1.5
+  /// drops it because [Depots] is the single source of truth (ADR-001) and is
   /// SAP-controlled — "overwritten wholesale on every sync, never merged
-  /// locally". Route sync therefore may not create or overwrite a customer; it
-  /// may only contribute the two fields the customer directory doesn't carry.
+  /// locally". Route sync therefore may not create or overwrite a depot; it
+  /// may only contribute the two fields the depot directory doesn't carry.
   ///
-  /// Returns the number of rows updated: `0` means the customer directory has
-  /// not synced this customer yet, which the caller should treat as "skip this
+  /// Returns the number of rows updated: `0` means the depot directory has
+  /// not synced this depot yet, which the caller should treat as "skip this
   /// stop", not as an error.
-  Future<int> upsertRouteAttributesOnCustomer(
-    String customerId, {
+  Future<int> upsertRouteAttributesOnDepot(
+    String depotId, {
     String? territoryType,
     double? geofenceRadiusOverride,
   }) =>
-      (update(customers)..where((t) => t.id.equals(customerId))).write(
-        CustomersCompanion(
+      (update(depots)..where((t) => t.id.equals(depotId))).write(
+        DepotsCompanion(
           territoryType: territoryType == null
               ? const Value.absent()
               : Value(territoryType),
@@ -245,10 +243,10 @@ class RouteDao extends DatabaseAccessor<AppDatabase> with _$RouteDaoMixin {
         ),
       );
 
-  /// True when [customerId] exists in the directory — lets an import or sync
+  /// True when [depotId] exists in the directory — lets an import or sync
   /// skip orphan stops instead of triggering an FK violation.
-  Future<bool> customerExists(String customerId) async {
-    final row = await (select(customers)..where((t) => t.id.equals(customerId)))
+  Future<bool> depotExists(String depotId) async {
+    final row = await (select(depots)..where((t) => t.id.equals(depotId)))
         .getSingleOrNull();
     return row != null;
   }

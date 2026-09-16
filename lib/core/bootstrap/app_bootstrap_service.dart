@@ -154,12 +154,12 @@ class AppBootstrapService {
 /// Runs the T1.5 legacy import, then purges the plaintext source **only** if the
 /// import was verifiably complete.
 ///
-/// This is the step that actually removes customer PII and employee GPS traces
+/// This is the step that actually removes depot PII and employee GPS traces
 /// from unencrypted storage — the top entry in `docs/blueprint/migration-plan.md` §9's
 /// risk register. Two rules govern it:
 ///
 /// 1. **Verify, then purge.** `safeToPurge` is false if anything was skipped
-///    (an orphan stop, an unknown customer). Those rows exist *only* in the
+///    (an orphan stop, an unknown depot). Those rows exist *only* in the
 ///    plaintext file, so deleting it would destroy them. We would rather leave
 ///    plaintext on disk for one more release than lose a rep's captures.
 /// 2. **A failed import never blocks boot.** The importer rolls its transaction
@@ -187,8 +187,8 @@ Future<void> _importLegacyRoutes(AppLogger logger) async {
       logger.warning('bootstrap.legacy_plaintext_purged');
     } else {
       // Deliberately loud: plaintext PII is still on disk and a human needs to
-      // know why. The usual cause is a stop whose customer the directory has
-      // not synced yet — the next customer sync fixes it and the following
+      // know why. The usual cause is a stop whose depot the directory has
+      // not synced yet — the next depot sync fixes it and the following
       // launch retries.
       logger.error('bootstrap.legacy_purge_withheld', fields: {
         'skipped': result.totalSkipped,

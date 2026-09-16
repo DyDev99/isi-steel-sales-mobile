@@ -91,8 +91,8 @@ class PushMessage {
 
   @override
   String toString() =>
-      // No title, no body, no data values: a push body can name a customer, and
-      // `docs/skills/security.md` §10 forbids customer information in logs. Event code
+      // No title, no body, no data values: a push body can name a depot, and
+      // `docs/skills/security.md` §10 forbids depot information in logs. Event code
       // and category are safe and are what a diagnosis actually needs.
       'PushMessage(event: $eventCode, category: $categoryCode, '
       'silent: $isSilent)';

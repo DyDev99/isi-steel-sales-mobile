@@ -24,7 +24,7 @@ class MockMtoPricingService implements MtoPricingService {
     return Success(MtoQuote(
       available: true,
       message:
-          'Estimated MTO price — confirm with SAP before quoting the customer.',
+          'Estimated MTO price — confirm with SAP before quoting the depot.',
       price: double.parse(estimate.toStringAsFixed(2)),
     ));
   }

@@ -4,7 +4,7 @@ import 'package:isi_steel_sales_mobile/features/order/domain/entities/mobile_pri
 
 /// Wire → domain for the pricing surface.
 ///
-/// One row of `GET /mobile/pricing/customers/{id}`:
+/// One row of `GET /mobile/pricing/depots/{id}`:
 ///
 /// ```jsonc
 /// { "material": "1100000000", "price": 1250.50, "currency": "USD",
@@ -23,7 +23,7 @@ abstract final class MobilePriceMapper {
     final amount = (json['price'] as num?)?.toDouble();
 
     // A row with no amount is a definite negative — the backend was asked and
-    // answered "no price for this customer and material". That is settled, and
+    // answered "no price for this depot and material". That is settled, and
     // offering a retry for it would just ask the same question again.
     if (amount == null) {
       return MobilePrice(

@@ -161,7 +161,7 @@ Examples:
 
 ```text
 feature/leads
-feature/customer
+feature/depot
 feature/visit
 feature/revenue
 feature/offline-sync

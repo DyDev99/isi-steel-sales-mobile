@@ -59,7 +59,7 @@ enum ProductAttribute {
   height,
   diameter,
 
-  /// SAP `SaleThicknessMm` — **what you quote to a customer**. Never
+  /// SAP `SaleThicknessMm` — **what you quote to a depot**. Never
   /// [rawThickness], which is the coil it was rolled from.
   thickness,
 
@@ -71,7 +71,7 @@ enum ProductAttribute {
   division,
 
   /// SAP's pricing *classification* (`A7` / `TRIM_PALM100PP`) — a bucket for
-  /// condition lookup. It carries no amount, no currency and no customer.
+  /// condition lookup. It carries no amount, no currency and no depot.
   /// Filterable; never renderable as a price.
   priceGroup,
 

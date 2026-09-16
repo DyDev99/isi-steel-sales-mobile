@@ -175,7 +175,7 @@ void main() {
       // reasoning that a full-width sheet puts Cancel and Save ~700px apart.
       // That holds only for a single narrow column stretched across the screen;
       // the sheets now lay their content out in multiple columns to fill the
-      // width (see add_customer_bottom_sheet's all-steps layout), so the width
+      // width (see add_depot_bottom_sheet's all-steps layout), so the width
       // is used rather than merely spanned.
       await pumpRealSheet(
         tester,

@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:isi_steel_sales_mobile/core/logging/app_logger.dart';
 
 /// Verifies `docs/skills/security.md` §10: "Never log passwords, JWT tokens, API keys,
-/// customer information, phone numbers, emails, revenue data" and "Allowed: API
+/// depot information, phone numbers, emails, revenue data" and "Allowed: API
 /// endpoint, response code, error code."
 ///
 /// These are security controls, so `ENGINEERING_STANDARD.md` §10 requires 100%
@@ -29,9 +29,9 @@ void main() {
       );
     });
 
-    test('redacts customer PII by key name', () {
+    test('redacts depot PII by key name', () {
       final result = redactor.redact({
-        'customerName': 'Sok Dara',
+        'depotName': 'Sok Dara',
         'ownerName': 'Chan',
         'email': 'a@b.com',
         'phone': '012345678',
@@ -53,7 +53,7 @@ void main() {
       expect(result.values, everyElement(equals(LogRedactor.placeholder)));
     });
 
-    test('redacts GPS coordinates — a customer location is customer PII', () {
+    test('redacts GPS coordinates — a depot location is depot PII', () {
       final result = redactor.redact({'latitude': 11.55, 'lng': 104.91});
 
       expect(result.values, everyElement(equals(LogRedactor.placeholder)));
@@ -86,13 +86,13 @@ void main() {
     test('redacts nested maps and lists', () {
       final result = redactor.redact({
         'payload': {
-          'customer': {'phone': '012345678'},
+          'depot': {'phone': '012345678'},
         },
         'items': ['plain', 'user@x.com'],
       });
 
       final payload = result['payload']! as Map<String, Object?>;
-      expect(payload['customer'], LogRedactor.placeholder);
+      expect(payload['depot'], LogRedactor.placeholder);
       expect((result['items']! as List).last, LogRedactor.placeholder);
     });
   });
@@ -100,12 +100,12 @@ void main() {
   group('LogRedactor — allowed values (SECURITY §10)', () {
     test('preserves endpoint, response code and error code', () {
       final result = redactor.redact({
-        'endpoint': '/api/v1/customers',
+        'endpoint': '/api/v1/depots',
         'statusCode': 503,
         'errorCode': 'SAP_TIMEOUT',
       });
 
-      expect(result['endpoint'], '/api/v1/customers');
+      expect(result['endpoint'], '/api/v1/depots');
       expect(result['statusCode'], 503);
       expect(result['errorCode'], 'SAP_TIMEOUT');
     });

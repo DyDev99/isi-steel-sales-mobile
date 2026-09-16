@@ -34,16 +34,16 @@ class PromotionCubit extends Cubit<Map<String, PromotionEvaluation>> {
   /// call at the same quantity costs nothing.
   final Map<String, int> _askedFor = {};
 
-  String? _customerId;
+  String? _depotId;
 
-  /// The customer the quotation is for.
+  /// The depot the quotation is for.
   ///
-  /// Changing it drops every held verdict: entitlements are per customer, and
+  /// Changing it drops every held verdict: entitlements are per depot, and
   /// showing the previous shop's negotiated deal against the new one would be
   /// both wrong and a leak.
-  void setCustomer(String? customerId) {
-    if (_customerId == customerId) return;
-    _customerId = customerId;
+  void setDepot(String? depotId) {
+    if (_depotId == depotId) return;
+    _depotId = depotId;
     _askedFor.clear();
     for (final timer in _pending.values) {
       timer.cancel();
@@ -89,7 +89,7 @@ class PromotionCubit extends Cubit<Map<String, PromotionEvaluation>> {
       materialCode: materialCode,
       categoryCode: categoryCode,
       quantity: quantity,
-      customerId: _customerId,
+      depotId: _depotId,
     ));
     if (isClosed) return;
 

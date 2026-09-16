@@ -26,16 +26,16 @@ Future<double?> showManualPriceInputSheet({
   // Defense-in-depth: If the material already has a successful backend price,
   // manual pricing is strictly disallowed.
   try {
-    final p = context.read<PricingCubit>().state[resolvedProduct.materialNumber];
+    final p =
+        context.read<PricingCubit>().state[resolvedProduct.materialNumber];
     if (p != null && p.hasAmount) {
       return Future.value(null);
     }
   } catch (_) {}
 
-  final resolvedUnit =
-      (item?.unit.isNotEmpty == true ? item?.unit : null) ??
-          (unit?.isNotEmpty == true ? unit : null) ??
-          (resolvedProduct.unit.isNotEmpty ? resolvedProduct.unit : 'unit');
+  final resolvedUnit = (item?.unit.isNotEmpty == true ? item?.unit : null) ??
+      (unit?.isNotEmpty == true ? unit : null) ??
+      (resolvedProduct.unit.isNotEmpty ? resolvedProduct.unit : 'unit');
 
   final colors = Theme.of(context).extension<AppThemeColors>()!;
   final scheme = Theme.of(context).colorScheme;
@@ -173,7 +173,7 @@ Future<double?> showManualPriceInputSheet({
                           RegExp(r'^\d*\.?\d{0,4}')),
                     ],
                     decoration: InputDecoration(
-                       prefixIcon: Padding(
+                      prefixIcon: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 14),
                         child: Text(
                           '\$',

@@ -1,18 +1,18 @@
 import 'package:equatable/equatable.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localized_text.dart';
 
-/// Everything the shared outlet/customer detail layout renders, as plain data.
+/// Everything the shared outlet/depot detail layout renders, as plain data.
 ///
-/// This exists so `my_visits` and `customers` can present the *same* screen
+/// This exists so `my_visits` and `depots` can present the *same* screen
 /// without either importing the other, and without the layout knowing that a
-/// `CustomerStopInfo` (the lean projection a route stop carries) and a
-/// `Customer` (the full SAP master record) are different types with different
+/// `DepotStopInfo` (the lean projection a route stop carries) and a
+/// `Depot` (the full SAP master record) are different types with different
 /// field names. Each feature maps its own entity onto this; the layout only
 /// ever sees strings.
 ///
 /// **Null means "this source has no such field", and the row is dropped.** It
 /// does not mean "render an empty value" — a visit stop genuinely has no credit
-/// limit, and a customer opened from the directory genuinely has no promotion
+/// limit, and a depot opened from the directory genuinely has no promotion
 /// counts. Passing a placeholder string instead would invent data, which on a
 /// screen a rep reads in front of the shop owner is worse than showing less.
 class OutletInfoViewData extends Equatable {
@@ -145,7 +145,7 @@ class OutletPromotionSummary extends Equatable {
   /// The demo counts both detail screens currently show.
   ///
   /// Neither source has real promotion data yet: a route stop carries only
-  /// [CustomerStopInfo], and promotions are not part of the SAP customer master
+  /// [DepotStopInfo], and promotions are not part of the SAP depot master
   /// sync. These numbers have always been hardcoded on the stop screen; they
   /// live here as a single named constant so the two screens cannot drift to
   /// *different* fake numbers, and so there is exactly one thing to delete when

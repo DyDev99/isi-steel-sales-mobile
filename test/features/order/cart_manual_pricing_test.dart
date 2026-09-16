@@ -29,12 +29,19 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/widgets/quota
 import 'package:mocktail/mocktail.dart';
 
 class MockFetchCart extends Mock implements FetchCart {}
+
 class MockAddToCart extends Mock implements AddToCart {}
+
 class MockUpdateCartItem extends Mock implements UpdateCartItem {}
+
 class MockRemoveFromCart extends Mock implements RemoveFromCart {}
+
 class MockClearCart extends Mock implements ClearCart {}
+
 class MockReplaceCart extends Mock implements ReplaceCart {}
+
 class MockSaveQuotation extends Mock implements SaveQuotation {}
+
 class MockUpdateQuotation extends Mock implements UpdateQuotation {}
 
 Product _dummyProduct() {
@@ -104,7 +111,9 @@ void main() {
       expect(item.lineTotalOrNull, isNull);
     });
 
-    test('CartItem with unitPriceOverride reflects manual USD price and calculates totals', () {
+    test(
+        'CartItem with unitPriceOverride reflects manual USD price and calculates totals',
+        () {
       final item = CartItem(
         id: 'item_1',
         product: _dummyProduct(),
@@ -122,7 +131,9 @@ void main() {
       expect(item.lineTotal, equals(225.0));
     });
 
-    test('CartCubit.updateUnitPrice sets manual price override and emits updated CartLoaded', () async {
+    test(
+        'CartCubit.updateUnitPrice sets manual price override and emits updated CartLoaded',
+        () async {
       final mockFetch = MockFetchCart();
       final mockUpdate = MockUpdateCartItem();
       final mockAdd = MockAddToCart();
@@ -140,8 +151,10 @@ void main() {
         discountPercent: 0,
       );
 
-      when(() => mockFetch(any())).thenAnswer((_) async => Success([initialItem]));
-      when(() => mockUpdate(any())).thenAnswer((_) async => const Success(null));
+      when(() => mockFetch(any()))
+          .thenAnswer((_) async => Success([initialItem]));
+      when(() => mockUpdate(any()))
+          .thenAnswer((_) async => const Success(null));
 
       final cubit = CartCubit(
         fetchCart: mockFetch,
@@ -184,7 +197,9 @@ void main() {
   });
 
   group('Quotation Sample Lines for Promotions', () {
-    test('getQuotationSampleLinesForPromo returns formatted quotation line metrics', () {
+    test(
+        'getQuotationSampleLinesForPromo returns formatted quotation line metrics',
+        () {
       final promo = mockQuotationPromoGroups.first.promos.first;
       final lines = getQuotationSampleLinesForPromo(promo);
 
@@ -195,13 +210,16 @@ void main() {
       expect(line.quantity, greaterThan(0));
       expect(line.unitPriceUsd, greaterThan(0));
       expect(line.subtotal, equals(line.quantity * line.unitPriceUsd));
-      expect(line.discountAmount, equals(line.subtotal * (line.discountPercent / 100)));
+      expect(line.discountAmount,
+          equals(line.subtotal * (line.discountPercent / 100)));
       expect(line.total, equals(line.subtotal - line.discountAmount));
     });
   });
 
   group('MaterialPriceView & Manual Price', () {
-    testWidgets('shows "Material doesn\'t have price" note and "Input Price (USD)" button when unpriced', (tester) async {
+    testWidgets(
+        'shows "Material doesn\'t have price" note and "Input Price (USD)" button when unpriced',
+        (tester) async {
       await tester.pumpWidget(
         ScreenUtilInit(
           designSize: const Size(390, 844),
@@ -226,7 +244,9 @@ void main() {
       expect(find.text('Input Price (USD)'), findsOneWidget);
     });
 
-    testWidgets('shows manual price with \$ and (Manual USD) badge and large font', (tester) async {
+    testWidgets(
+        'shows manual price with \$ and (Manual USD) badge and large font',
+        (tester) async {
       await tester.pumpWidget(
         ScreenUtilInit(
           designSize: const Size(390, 844),
@@ -249,7 +269,9 @@ void main() {
       expect(find.text('(Manual USD)'), findsOneWidget);
     });
 
-    testWidgets('if material already get successful price, hides manual price feature completely even if manualPrice is provided', (tester) async {
+    testWidgets(
+        'if material already get successful price, hides manual price feature completely even if manualPrice is provided',
+        (tester) async {
       await tester.pumpWidget(
         ScreenUtilInit(
           designSize: const Size(390, 844),
@@ -282,7 +304,9 @@ void main() {
       expect(find.text('Input Price (USD)'), findsNothing);
     });
 
-    testWidgets('allows manual price only when material cannot get price from backend', (tester) async {
+    testWidgets(
+        'allows manual price only when material cannot get price from backend',
+        (tester) async {
       // 1. Error state without manual price -> shows "Material doesn't have price" & "Input Price (USD)"
       await tester.pumpWidget(
         ScreenUtilInit(
@@ -332,7 +356,9 @@ void main() {
   });
 
   group('QuotationItemsTable Pricing Governance', () {
-    testWidgets('backend-priced line does not show edit icon and cannot be edited', (tester) async {
+    testWidgets(
+        'backend-priced line does not show edit icon and cannot be edited',
+        (tester) async {
       tester.view.physicalSize = const Size(390, 844);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
@@ -376,7 +402,8 @@ void main() {
       expect(editTaps, 0, reason: 'Backend-priced line must not be editable');
     });
 
-    testWidgets('manual-priced line shows edit icon and can be edited', (tester) async {
+    testWidgets('manual-priced line shows edit icon and can be edited',
+        (tester) async {
       tester.view.physicalSize = const Size(390, 844);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
@@ -466,7 +493,9 @@ void main() {
       await cubit.close();
     });
 
-    test('CartLineBinding.setManualPrice adds item with customerId, leadId, and isManualPrice: true', () async {
+    test(
+        'CartLineBinding.setManualPrice adds item with depotId, leadId, and isManualPrice: true',
+        () async {
       final mockFetch = MockFetchCart();
       final mockUpdate = MockUpdateCartItem();
       final mockAdd = MockAddToCart();
@@ -495,7 +524,7 @@ void main() {
       final product = _dummyProduct();
       final binding = CartLineBinding(
         cart: cubit,
-        customerId: 'cust-123',
+        depotId: 'cust-123',
         leadId: 'lead-456',
         priceResolver: (p) => null,
       );
@@ -506,7 +535,7 @@ void main() {
       final state = cubit.state as CartLoaded;
       expect(state.items.length, 1);
       final item = state.items.first;
-      expect(item.customerId, 'cust-123');
+      expect(item.depotId, 'cust-123');
       expect(item.leadId, 'lead-456');
       expect(item.unitPrice, 25.50);
       expect(item.unitPriceOverride, 25.50);
@@ -519,7 +548,8 @@ void main() {
       expect(binding.quantityFor(product), 1);
 
       // Rep taps `+` on stepper to increase quantity to 2
-      when(() => mockUpdate(any())).thenAnswer((_) async => const Success(null));
+      when(() => mockUpdate(any()))
+          .thenAnswer((_) async => const Success(null));
       final verdict = await binding.setQuantity(product, 2);
       expect(verdict.isValid, isTrue);
 
@@ -535,7 +565,8 @@ void main() {
       await cubit.close();
     });
 
-    test('CartLineBinding.setManualPrice updates existing cart item price', () async {
+    test('CartLineBinding.setManualPrice updates existing cart item price',
+        () async {
       final mockFetch = MockFetchCart();
       final mockUpdate = MockUpdateCartItem();
       final mockAdd = MockAddToCart();
@@ -547,7 +578,8 @@ void main() {
 
       when(() => mockFetch(any())).thenAnswer((_) async => const Success([]));
       when(() => mockAdd(any())).thenAnswer((_) async => const Success(null));
-      when(() => mockUpdate(any())).thenAnswer((_) async => const Success(null));
+      when(() => mockUpdate(any()))
+          .thenAnswer((_) async => const Success(null));
 
       final cubit = CartCubit(
         fetchCart: mockFetch,
@@ -565,7 +597,7 @@ void main() {
       final product = _dummyProduct();
       final binding = CartLineBinding(
         cart: cubit,
-        customerId: 'cust-123',
+        depotId: 'cust-123',
         leadId: 'lead-456',
         priceResolver: (p) => null,
       );

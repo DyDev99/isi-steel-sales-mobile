@@ -127,10 +127,10 @@
       "opportunities": "Opportunities",
       "won_deals": "Won Deals",
       "orders": "Orders",
-      "customers": "Customers",
+      "depots": "Depots",
       "active": "Active",
       "prospect": "Prospect",
-      "total_customers": "Total Customers",
+      "total_depots": "Total Depots",
       "suspended": "Suspended",
       "routes": "Routes",
       "revenue": "Revenue",
@@ -647,19 +647,19 @@
       "budget_likely": "Likely"
     }
   },
-  "customers": {
-    "title": "Customers",
+  "depots": {
+    "title": "Depots",
     "list": "Customer List",
     "add": "Register Customer",
     "credit_limit": "Credit Limit",
-    "no_customers": "No customers found",
+    "no_depots": "No customers found",
     "nothing_here": "Nothing here yet",
     "all": "All",
     "recent": "Recent",
     "favorites": "Favorites",
     "unassigned": "Unassigned",
     "group": {
-      "customer": "Customer",
+      "depot": "Customer",
       "sales_org": "Sales Org",
       "division": "Division"
     },
@@ -1024,7 +1024,9 @@
       "action_call": "Call",
       "action_maps": "Open Maps",
       "action_orders": "Previous Orders",
-      "action_history": "Visit History"
+      "action_history": "Visit History",
+      "example": "Example",
+      "not_recorded": "Not recorded"
     },
     "stop_dashboard": {
       "search_hint": "Search shop, code, route, address",
@@ -1089,7 +1091,8 @@
       "no_outlet_title": "Outlet Location Unavailable",
       "no_outlet_body": "This outlet has no recorded location, so your distance cannot be verified.",
       "continue_with_reason": "Continue with Reason"
-    }
+    },
+    "screenshot_saved": "Screenshot saved to your photos"
   },
   "completed": {
     "title": "Inventory Audit Submitted!",
@@ -1251,7 +1254,7 @@
     },
     "needs_ack": "Needs your acknowledgement"
   },
-  "add_customer": {
+  "add_depot": {
     "compliance": "Compliance Documents",
     "contact_name": "Contact Name",
     "review_title": "Review Customer Information",
@@ -1322,7 +1325,6 @@
     "name_kh_hint": "Enter Khmer business name",
     "name2": "Additional name",
     "name2_hint": "Optional additional name",
-    "search_term": "Search term",
     "co_name": "Care of / company name",
     "co_name_hint": "Optional company or contact name",
     "code_assigned_by_sap": "Customer code will be assigned by SAP",
@@ -1345,11 +1347,13 @@
     "sales_office": "Sales office",
     "sales_group": "Sales group",
     "division": "Division",
-    "customer_group": "Customer group (trade type)",
+    "depot_group": "Customer group (trade type)",
     "price_group_auto": "Price group is set automatically",
     "delivery_priority": "Delivery priority",
     "shipping_condition": "Shipping condition",
     "payment_term": "Payment term",
+    "credit_limit": "Credit limit",
+    "pick_credit_limit": "Select credit limit",
     "tax_class": "Tax class",
     "vat_tin": "VAT / TIN",
     "vat_tin_hint": "Enter VAT or tax identification number",
@@ -1363,6 +1367,10 @@
     "photo_vat": "VAT certificate",
     "photo_tap": "Tap to take photo",
     "photo_attached": "Photo attached",
+    "photo_uploading": "Uploading...",
+    "photo_uploaded": "Uploaded",
+    "photo_upload_failed": "Upload failed. Tap to retry",
+    "waiting_photo_upload": "Please wait for photos to finish uploading",
     "remark": "Remark",
     "remark_hint": "Add an optional remark",
     "review": "Review",
@@ -1381,9 +1389,17 @@
       "finishing": "Finishing up",
       "sap_note": "Sent to the office. Delivery to SAP happens later — you do not need to wait.",
       "keep_open": "Keep this screen open"
-    }
+    },
+    "search_term1": "Search term 1",
+    "search_term1_hint": "e.g. PHNOM PENH",
+    "search_term1_note": "Used to find this depot in SAP. Up to 20 characters.",
+    "search_term2": "Search term 2",
+    "search_term2_hint": "e.g. shop short name",
+    "search_term2_note": "Optional second search key.",
+    "success_pending_approval": "Sent for approval. The depot cannot be ordered against yet.",
+    "success_with_code": "Depot {code} created."
   },
-  "add_customer.shop_types": {
+  "add_depot.shop_types": {
     "hardware_shop": "Hardware Shop",
     "retailer": "Retailer",
     "wholesaler": "Wholesaler",
@@ -1391,7 +1407,7 @@
     "distributor": "Distributor",
     "key_account": "Key account"
   },
-  "add_customer.roles": {
+  "add_depot.roles": {
     "owner": "Owner",
     "manager": "Manager",
     "buyer": "Buyer"
@@ -1551,14 +1567,14 @@
     "quick_actions": "QUICK ACTIONS",
     "my_leads": "My Leads",
     "my_visits": "My Visits",
-    "my_customers": "Customers",
+    "my_depots": "Depots",
     "my_quotes_orders": "Quotes & Orders",
     "badge_due": "{count} due",
     "badge_today": "{count} today",
     "new_quote": "New quote",
     "new_lead": "New lead",
     "depot_stock": "Depot stock",
-    "add_customer": "Add customer",
+    "add_depot": "Add depot",
     "monthly_target": "{month} Target",
     "continue_last_action": "CONTINUE LAST ACTION",
     "stop_of": "Stop {current} of {total}",

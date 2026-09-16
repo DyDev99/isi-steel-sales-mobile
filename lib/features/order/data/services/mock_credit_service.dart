@@ -19,27 +19,27 @@ const _debitNoteReasons = [
 ];
 
 /// Stand-in for an online SAP credit-position lookup — deterministic per
-/// customer (seeded off `customerId.hashCode`) so the same shop shows the
+/// depot (seeded off `depotId.hashCode`) so the same shop shows the
 /// same mocked figures every time, with a short simulated network delay.
 class MockCreditService implements CreditService {
   const MockCreditService();
 
   @override
-  ResultFuture<CreditSummary> getSummary(String customerId) async {
+  ResultFuture<CreditSummary> getSummary(String depotId) async {
     await MockLatency.tick(); // simulate a slow SAP credit lookup
-    final rand = Random(customerId.hashCode);
+    final rand = Random(depotId.hashCode);
     final outstandingBalance = (rand.nextDouble() * 4000).roundToDouble();
     final noteCount = rand.nextInt(4); // 0-3
     final notes = <CreditNoteDebitNote>[
       for (var i = 0; i < noteCount; i++)
-        _buildNote(rand, customerId: customerId, index: i),
+        _buildNote(rand, depotId: depotId, index: i),
     ];
     return Success(
         CreditSummary(outstandingBalance: outstandingBalance, notes: notes));
   }
 
   CreditNoteDebitNote _buildNote(Random rand,
-      {required String customerId, required int index}) {
+      {required String depotId, required int index}) {
     final type = rand.nextBool()
         ? CreditDebitNoteType.creditNote
         : CreditDebitNoteType.debitNote;
@@ -48,8 +48,8 @@ class MockCreditService implements CreditService {
         : _debitNoteReasons;
     final prefix = type == CreditDebitNoteType.creditNote ? 'CN' : 'DN';
     return CreditNoteDebitNote(
-      id: '$customerId-note-$index',
-      customerId: customerId,
+      id: '$depotId-note-$index',
+      depotId: depotId,
       type: type,
       amount: (50 + rand.nextInt(950)).toDouble(),
       reference: '$prefix-${2000 + rand.nextInt(9000)}',

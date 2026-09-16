@@ -37,7 +37,7 @@ H --> I[Quick Actions]
 I --> J[Create First Lead]
 J --> K[Open My Leads]
 K --> L[Open My Visits]
-L --> M[Open Customers]
+L --> M[Open Depots]
 M --> N[Open Quotes & Orders]
 N --> O[Tutorial Completed]
 
@@ -57,7 +57,7 @@ O --> E
 | 5 | New Lead | Create first lead |
 | 6 | My Leads | Show lead management |
 | 7 | My Visits | Show visit tracking |
-| 8 | My Customers | Show customer management |
+| 8 | My Depots | Show depot management |
 | 9 | Quotes & Orders | Show quotation workflow |
 | 10 | Finish | Complete tutorial |
 
@@ -221,7 +221,7 @@ enum CoachAction {
   createLead,
   openMyLeads,
   openMyVisits,
-  openCustomers,
+  openDepots,
   openOrders,
   completeTutorial,
 }
@@ -264,7 +264,7 @@ CoachStep(
   title: "Create your first lead",
 
   message:
-      "Tap the New Lead button to create your first customer.",
+      "Tap the New Lead button to create your first depot.",
 
   route: "/home",
 
@@ -296,7 +296,7 @@ class CoachKeys {
 
   static final myVisits = GlobalKey();
 
-  static final customers = GlobalKey();
+  static final depots = GlobalKey();
 
   static final orders = GlobalKey();
 }
@@ -435,7 +435,7 @@ class ActionCompleted extends CoachEvent {
 
         ↓
 
-👥 Open Customers
+👥 Open Depots
 
         ↓
 

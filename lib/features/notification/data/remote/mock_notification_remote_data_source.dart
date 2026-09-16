@@ -367,7 +367,7 @@ class MockNotificationRemoteDataSource implements NotificationRemoteDataSource {
         category: NotificationCategory.finance,
         priority: NotificationPriority.p2,
         title: 'Order on credit hold',
-        body: 'SO-2026-0331 exceeded the customer credit limit.',
+        body: 'SO-2026-0331 exceeded the depot credit limit.',
         deepLink: 'app://orders/0198f2b0-4444?tab=credit',
         data: const {'entity_type': 'order', 'entity_id': '0198f2b0-4444'},
         state: NotificationState.resolvedElsewhere,

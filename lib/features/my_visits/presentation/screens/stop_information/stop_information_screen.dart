@@ -29,6 +29,10 @@ import 'package:isi_steel_sales_mobile/features/my_visits/presentation/navigatio
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/stop_information/order_history_screen.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/stop_information/promotions_screen.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/stops_check_in_screen.dart';
+import 'package:isi_steel_sales_mobile/core/utils/money.dart';
+import 'package:isi_steel_sales_mobile/features/depots/domain/entities/depot_stop_information.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/stop_information_cubit.dart';
+import 'package:intl/intl.dart';
 
 class StopInformationScreen extends StatelessWidget {
   const StopInformationScreen({
@@ -95,8 +99,8 @@ class StopInformationScreen extends StatelessWidget {
     final Uri callUri = Uri.parse('tel:$cleanNumber');
 
     try {
-      bool launched = await launchUrl(telegramTgUri,
-          mode: LaunchMode.externalApplication);
+      bool launched =
+          await launchUrl(telegramTgUri, mode: LaunchMode.externalApplication);
       if (!launched) {
         launched = await launchUrl(telegramWebUri,
             mode: LaunchMode.externalApplication);
@@ -170,8 +174,7 @@ class StopInformationScreen extends StatelessWidget {
                 ),
                 SizedBox(height: context.rh(8)),
                 Container(
-                  margin: EdgeInsets.symmetric(
-                      horizontal: context.pagePadding),
+                  margin: EdgeInsets.symmetric(horizontal: context.pagePadding),
                   decoration: BoxDecoration(
                     color: colors.card,
                     borderRadius: BorderRadius.circular(context.rr(12)),
@@ -278,8 +281,10 @@ class _HeroCardState extends State<_HeroCard> {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final scheme = Theme.of(context).colorScheme;
-    final c = widget.stop.customer;
-    final phoneNum = c.phone.isEmpty ? '026 407 480' : c.phone;
+    final c = widget.stop.depot;
+    // The route sync's phone, or nothing — never the constant that used to
+    // stand in for it.
+    final phoneNum = _orDash(c.phone.isEmpty ? null : c.phone);
 
     LocationTrackingCubit? locationCubit;
     try {
@@ -335,7 +340,8 @@ class _HeroCardState extends State<_HeroCard> {
                           _PillBadge(
                               label: 'Diamond',
                               color: scheme.primary.withValues(alpha: 0.12),
-                              textColor: scheme.primary),
+                              textColor: scheme.primary,
+                              isExample: true),
                           SizedBox(width: context.rw(6)),
                           if (locationCubit != null)
                             BlocBuilder<LocationTrackingCubit,
@@ -467,8 +473,17 @@ class _OverviewTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    final c = stop.customer;
-    final phoneNum = c.phone.isEmpty ? '026 407 480' : c.phone;
+    final c = stop.depot;
+
+    // The route sync gives a name, a pin and a geofence. Everything below
+    // comes from `GET /mobile/depots/{id}/stop-information`, fetched when this
+    // stop was opened — and falls back to the sync's copy, never to a
+    // hardcoded example.
+    final outlet = _stopInformationOf(context)?.outlet;
+
+    final phoneNum = _orDash(outlet?.phone.isNotEmpty == true
+        ? outlet!.phone
+        : (c.phone.isEmpty ? null : c.phone));
 
     return ListView(
       padding: EdgeInsets.fromLTRB(
@@ -492,33 +507,49 @@ class _OverviewTab extends StatelessWidget {
               _CompactTile(
                   icon: Icons.tag_rounded,
                   label: 'SAP ID',
-                  value: c.code.isNotEmpty ? c.code : 'BP-884920'),
-              const _CompactTile(
+                  value: _orDash(
+                      outlet?.code.isNotEmpty == true ? outlet!.code : c.code)),
+              // Never the route sync's `territoryType`: it collapses
+              // Distributor and Wholesaler both onto `industrial`, so the
+              // real value cannot be recovered from it.
+              _CompactTile(
                   icon: Icons.store_outlined,
                   label: 'Outlet Type',
-                  value: 'WHS / Retail'),
+                  value: _orDash(outlet?.outletType)),
+              // OBD-2: no assignment process for Attack / Defend / Maintain.
               const _CompactTile(
                   icon: Icons.alt_route_rounded,
-                  label: 'Action Tag',
-                  value: 'Attack'),
+                  label: 'Outlet Action',
+                  value: 'Attack',
+                  isExample: true),
               _CompactTile(
-                  icon: Icons.person_outline_rounded,
-                  label: 'Contact Person',
-                  value: c.contact.isEmpty ? 'Yim Vithou' : c.contact),
+                icon: Icons.person_outline_rounded,
+                label: 'Contact Person',
+                // Null means nobody was recorded — said plainly, never filled
+                // with a name the rep might ask for at the counter.
+                value: outlet?.contact ??
+                    (c.contact.isNotEmpty
+                        ? c.contact
+                        : 'my_visits.stop_info.not_recorded'.tr),
+              ),
               _CompactTile(
                 icon: Icons.call_outlined,
                 label: 'Phone Number',
                 value: phoneNum,
-                onTap: () => onPhoneTap(phoneNum),
+                onTap:
+                    phoneNum == _kNoValue ? null : () => onPhoneTap(phoneNum),
               ),
-              const _CompactTile(
+              _CompactTile(
                   icon: Icons.send_rounded,
                   label: 'Telegram',
-                  value: '@phnom_penh_steel_outlet'),
+                  // Stored without the `@`; added only for display.
+                  value: _orDash(outlet?.telegramHandle)),
               _CompactTile(
                   icon: Icons.location_on_outlined,
                   label: 'Address',
-                  value: c.address.isEmpty ? 'St. 218, Mean Chey' : c.address),
+                  value: _orDash(outlet?.address.isNotEmpty == true
+                      ? outlet!.address
+                      : c.address)),
               _CompactTile(
                 icon: Icons.my_location_rounded,
                 label: 'Coordinates',
@@ -543,6 +574,8 @@ class _SalesTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
 
+    final credit = _stopInformationOf(context)?.credit;
+
     return ListView(
       padding: EdgeInsets.fromLTRB(
         context.pagePadding,
@@ -562,26 +595,43 @@ class _SalesTab extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _CompactTile(
+              // OBD-3: no invoice, due date or receivable exists anywhere, so
+              // "Overdue" is uncomputable — this figure cannot be real yet.
+              const _CompactTile(
                   icon: Icons.verified_user_outlined,
                   label: 'Payment Status',
-                  value: 'Good Standing'),
+                  value: 'Good Standing',
+                  isExample: true),
               _CompactTile(
                   icon: Icons.account_balance_wallet_outlined,
                   label: 'Credit Limit',
-                  value: '\$50,000'),
+                  // Zero is a real answer here — cash-only trade — so it is
+                  // rendered as \$0.00 rather than re-defaulted to a dash.
+                  value: _money(credit?.creditLimit)),
+              _CompactTile(
+                  icon: Icons.account_balance_outlined,
+                  label: 'Available Credit',
+                  // Server-computed. Never limit − balance on the client: a
+                  // client that subtracts can disagree with the server about
+                  // an outlet's headroom.
+                  value: _money(credit?.availableCredit)),
               _CompactTile(
                   icon: Icons.calendar_month_outlined,
                   label: 'Payment Term',
-                  value: '30 Days Net'),
-              _CompactTile(
+                  // Label, else the raw code — the server will not echo the
+                  // code back as a label, so null means genuinely unresolved.
+                  value: _orDash(credit?.paymentTermDisplay)),
+              // OBD-6: undecided which quotation statuses count as a won order.
+              const _CompactTile(
                   icon: Icons.trending_up_rounded,
                   label: 'Avg Rev per Order',
-                  value: '\$12,500'),
-              _CompactTile(
+                  value: '\$12,500',
+                  isExample: true),
+              const _CompactTile(
                   icon: Icons.history_toggle_off_rounded,
                   label: 'Latest Order',
                   value: '12 Aug 2026',
+                  isExample: true,
                   last: true),
             ],
           ),
@@ -592,7 +642,7 @@ class _SalesTab extends StatelessWidget {
             Navigator.of(context).push(
               AppPageRoute<void>.sharedAxisVertical(
                 builder: (_) => OrderHistoryScreen(
-                  outletName: context.localized(stop.customer.displayName),
+                  outletName: context.localized(stop.depot.displayName),
                 ),
               ),
             );
@@ -685,8 +735,8 @@ class _PromosTab extends StatelessWidget {
             Navigator.of(context).push(
               AppPageRoute<void>.sharedAxisVertical(
                 builder: (_) => PromotionsScreen(
-                  customerId: stop.customer.id,
-                  outletName: context.localized(stop.customer.displayName),
+                  depotId: stop.depot.id,
+                  outletName: context.localized(stop.depot.displayName),
                 ),
               ),
             );
@@ -705,6 +755,74 @@ class _PromosTab extends StatelessWidget {
   }
 }
 
+/// The loaded outlet profile, or null when there is none *yet* — and also
+/// when no [StopInformationCubit] was provided at all.
+///
+/// Tolerating an absent provider is deliberate. This cubit *enriches* the
+/// screen; it does not constitute it. The route sync has already supplied the
+/// name, pin and geofence, so a screen opened without the provider — a widget
+/// test, or a future entry point that forgets it — must still render rather
+/// than throw a `ProviderNotFoundException` at a rep standing outside a shop.
+///
+/// `watch`, so the tabs rebuild when the fetch lands.
+DepotStopInformation? _stopInformationOf(BuildContext context) {
+  try {
+    final state = context.watch<StopInformationCubit>().state;
+    return state is StopInformationReady ? state.information : null;
+  } on Object {
+    return null;
+  }
+}
+
+/// Marks a value as an illustrative example rather than data.
+class _ExampleChip extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.appColors;
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: context.rw(6),
+        vertical: context.rh(1),
+      ),
+      decoration: BoxDecoration(
+        color: colors.textSecondary.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(100),
+      ),
+      child: Text(
+        'my_visits.stop_info.example'.tr,
+        style: TextStyle(
+          color: colors.textSecondary,
+          fontSize: context.rsp(9),
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.4,
+        ),
+      ),
+    );
+  }
+}
+
+/// What to show when neither the stop-information call nor the route sync has
+/// a value.
+///
+/// An em dash, never an invented one. The eight values this screen used to
+/// hardcode are exactly why: a placeholder that looks like data is worse than
+/// a blank, because a rep will read it out.
+const String _kNoValue = '\u2014';
+
+String _orDash(String? value) {
+  final v = value?.trim();
+  return (v == null || v.isEmpty) ? _kNoValue : v;
+}
+
+/// `$50,000` / `៛200,000`, from a `{amount, currency}` pair.
+///
+/// Rendering an amount without its currency is a 4000× error waiting to happen
+/// in front of an outlet owner, so the currency is never dropped.
+String _money(Money? money) {
+  if (money == null) return _kNoValue;
+  return NumberFormat.simpleCurrency(name: money.currency).format(money.amount);
+}
+
 class _CompactTile extends StatelessWidget {
   const _CompactTile({
     required this.icon,
@@ -712,6 +830,7 @@ class _CompactTile extends StatelessWidget {
     required this.value,
     this.last = false,
     this.onTap,
+    this.isExample = false,
   });
 
   final IconData icon;
@@ -719,6 +838,17 @@ class _CompactTile extends StatelessWidget {
   final String value;
   final bool last;
   final VoidCallback? onTap;
+
+  /// Renders the value as a plainly-marked example rather than as data.
+  ///
+  /// Five figures on this screen have no source in any system yet — each is
+  /// blocked on a business rule nobody has decided (OBD-1, -2, -3, -6). A rep
+  /// quoting "\$50,000 credit limit" to an outlet owner from a constant is
+  /// worse than showing nothing, so these are italic, muted and chipped: the
+  /// chip is what lets a rep tell at a glance which figures are real.
+  ///
+  /// See `docs/feature/depot/mobile/backend-change-notice.md` §4.
+  final bool isExample;
 
   @override
   Widget build(BuildContext context) {
@@ -750,6 +880,10 @@ class _CompactTile extends StatelessWidget {
               ),
             ),
             SizedBox(width: context.rw(10)),
+            if (isExample) ...[
+              _ExampleChip(),
+              SizedBox(width: context.rw(6)),
+            ],
             Expanded(
               child: Text(
                 value,
@@ -757,11 +891,14 @@ class _CompactTile extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  color: onTap != null
-                      ? Theme.of(context).colorScheme.primary
-                      : colors.textPrimary,
+                  color: isExample
+                      ? colors.textSecondary
+                      : onTap != null
+                          ? Theme.of(context).colorScheme.primary
+                          : colors.textPrimary,
                   fontSize: context.rsp(12.5),
-                  fontWeight: FontWeight.w700,
+                  fontWeight: isExample ? FontWeight.w500 : FontWeight.w700,
+                  fontStyle: isExample ? FontStyle.italic : FontStyle.normal,
                 ),
               ),
             ),
@@ -782,31 +919,49 @@ class _PillBadge extends StatelessWidget {
     required this.label,
     required this.color,
     required this.textColor,
+    this.isExample = false,
   });
 
   final String label;
   final Color color;
   final Color textColor;
 
+  /// Renders the badge italic and muted and hangs an [_ExampleChip] beside it.
+  ///
+  /// Same treatment as `_CompactTile.isExample`, for the same reason: a rep
+  /// must be able to tell at a glance which figures are real. See
+  /// `docs/feature/depot/mobile/backend-change-notice.md` §4.
+  final bool isExample;
+
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final badge = Container(
       padding: EdgeInsets.symmetric(
         horizontal: context.rw(8),
         vertical: context.rh(3),
       ),
       decoration: BoxDecoration(
-        color: color,
+        color: isExample ? color.withValues(alpha: 0.06) : color,
         borderRadius: BorderRadius.circular(context.rr(6)),
       ),
       child: Text(
         label,
         style: TextStyle(
-          color: textColor,
+          color: isExample ? context.appColors.textSecondary : textColor,
           fontSize: context.rsp(10.5),
-          fontWeight: FontWeight.w800,
+          fontWeight: isExample ? FontWeight.w600 : FontWeight.w800,
+          fontStyle: isExample ? FontStyle.italic : FontStyle.normal,
         ),
       ),
+    );
+    if (!isExample) return badge;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        badge,
+        SizedBox(width: context.rw(4)),
+        _ExampleChip(),
+      ],
     );
   }
 }

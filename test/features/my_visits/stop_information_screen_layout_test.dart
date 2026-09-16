@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/breakpoints.dart';
 import 'package:isi_steel_sales_mobile/core/theme/app_theme.dart';
 import 'package:isi_steel_sales_mobile/core/theme/app_typography.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/customer_stop_info.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/depot_stop_info.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_stop.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/territory_type.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_status.dart';
@@ -23,7 +23,7 @@ void main() {
   final stop = RouteStop(
     id: 's1',
     routeId: 'r1',
-    customer: const CustomerStopInfo(
+    depot: const DepotStopInfo(
       id: 'c1',
       name: 'Phnom Penh Steel Outlet',
       code: 'BP-884920',

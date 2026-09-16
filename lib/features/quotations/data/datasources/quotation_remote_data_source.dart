@@ -5,13 +5,13 @@ import 'package:isi_steel_sales_mobile/features/quotations/data/models/quotation
 abstract class QuotationRemoteDataSource {
   Future<List<QuotationDto>> getQuotations({
     String? status,
-    String? customerId,
+    String? depotId,
     int page = 1,
     int pageSize = 20,
   });
 
   Future<String> createQuotation({
-    required String customerId,
+    required String depotId,
     String shipmentType = 'Pickup',
     String? shipTo,
   });
@@ -23,7 +23,7 @@ abstract class QuotationRemoteDataSource {
     required String shipmentType,
     String? shipTo,
     String? paymentTerm,
-    String? customerReference,
+    String? depotReference,
     String? remarks,
   });
 
@@ -65,7 +65,7 @@ class QuotationRemoteDataSourceImpl implements QuotationRemoteDataSource {
   @override
   Future<List<QuotationDto>> getQuotations({
     String? status,
-    String? customerId,
+    String? depotId,
     int page = 1,
     int pageSize = 20,
   }) async {
@@ -73,7 +73,7 @@ class QuotationRemoteDataSourceImpl implements QuotationRemoteDataSource {
       _endpoint,
       queryParameters: {
         if (status != null) 'status': status,
-        if (customerId != null) 'customerId': customerId,
+        if (depotId != null) 'depotId': depotId,
         'page': page,
         'pageSize': pageSize,
       },
@@ -82,20 +82,22 @@ class QuotationRemoteDataSourceImpl implements QuotationRemoteDataSource {
     final envelope = ApiEnvelope.fromBody(response.data);
     // Assuming the list of items is under the 'items' key in data or just mapped.
     // Documentation isn't explicit on the list key name, but typically it is `items` or `quotations`
-    final list = envelope.list('items').isEmpty ? envelope.list('quotations') : envelope.list('items');
+    final list = envelope.list('items').isEmpty
+        ? envelope.list('quotations')
+        : envelope.list('items');
     return list.map((json) => QuotationDto.fromJson(json)).toList();
   }
 
   @override
   Future<String> createQuotation({
-    required String customerId,
+    required String depotId,
     String shipmentType = 'Pickup',
     String? shipTo,
   }) async {
     final response = await _client.post<dynamic>(
       _endpoint,
       data: {
-        'customerId': customerId,
+        'depotId': depotId,
         'shipmentType': shipmentType,
         if (shipTo != null) 'shipTo': shipTo,
       },
@@ -110,7 +112,7 @@ class QuotationRemoteDataSourceImpl implements QuotationRemoteDataSource {
       final segments = Uri.parse(location).pathSegments;
       return segments.last;
     }
-    
+
     // Fallback if returned in body
     final envelope = ApiEnvelope.fromBody(response.data);
     return envelope.data['id'] as String;
@@ -129,7 +131,7 @@ class QuotationRemoteDataSourceImpl implements QuotationRemoteDataSource {
     required String shipmentType,
     String? shipTo,
     String? paymentTerm,
-    String? customerReference,
+    String? depotReference,
     String? remarks,
   }) async {
     final response = await _client.put<dynamic>(
@@ -138,7 +140,7 @@ class QuotationRemoteDataSourceImpl implements QuotationRemoteDataSource {
         'shipmentType': shipmentType,
         'shipTo': shipTo,
         'paymentTerm': paymentTerm,
-        'customerReference': customerReference,
+        'depotReference': depotReference,
         'remarks': remarks,
       },
     );
@@ -183,7 +185,8 @@ class QuotationRemoteDataSourceImpl implements QuotationRemoteDataSource {
 
   @override
   Future<QuotationDetailDto> removeLine(String id, String lineId) async {
-    final response = await _client.delete<dynamic>('$_endpoint/$id/lines/$lineId');
+    final response =
+        await _client.delete<dynamic>('$_endpoint/$id/lines/$lineId');
     final envelope = ApiEnvelope.fromBody(response.data);
     return QuotationDetailDto.fromJson(envelope.data);
   }

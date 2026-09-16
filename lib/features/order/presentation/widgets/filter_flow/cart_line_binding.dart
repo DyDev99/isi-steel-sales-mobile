@@ -21,16 +21,16 @@ class CartLineBinding {
   const CartLineBinding({
     required this.cart,
     this.leadId,
-    this.customerId,
+    this.depotId,
     this.priceResolver,
     this.isManualPriceResolver,
   });
 
   final CartCubit cart;
   final String? leadId;
-  final String? customerId;
+  final String? depotId;
 
-  /// Resolves this customer's active price or manual override for [product].
+  /// Resolves this depot's active price or manual override for [product].
   final double? Function(Product product)? priceResolver;
 
   /// Whether the resolved price for [product] is a manual override.
@@ -41,7 +41,7 @@ class CartLineBinding {
     return state is CartLoaded ? state.items : const [];
   }
 
-  /// The plain line for [product] in this lead/customer context, if any.
+  /// The plain line for [product] in this lead/depot context, if any.
   /// Matches `CartCubit.addProduct`'s own merge rule so the two agree on what
   /// counts as "the same line".
   ///
@@ -55,7 +55,7 @@ class CartLineBinding {
       if (item.product.id == product.id &&
           item.unit == product.unit &&
           item.leadId == leadId &&
-          item.customerId == customerId &&
+          item.depotId == depotId &&
           item.fulfillment == null) {
         return item;
       }
@@ -139,19 +139,18 @@ class CartLineBinding {
         quantity: quantity.toDouble(),
         unit: product.unit,
         leadId: leadId,
-        customerId: customerId,
+        depotId: depotId,
         // Freeze what the card was showing when the rep tapped. Without this
         // the line silently re-prices on the next catalog sync — including on
-        // a quotation the customer has already been shown.
+        // a quotation the depot has already been shown.
         //
         // Null when there is nothing to freeze. `effectivePrice` answers `0.0`
         // for an unpriced material, and snapshotting that zero would make the
         // line look *priced* — `CartItem.pricingStatus` reads a non-null
         // override as authoritative — so the quotation would print `$0.00`
         // instead of "Waiting for HQ".
-        unitPrice: (resolvedPrice != null && resolvedPrice > 0)
-            ? resolvedPrice
-            : null,
+        unitPrice:
+            (resolvedPrice != null && resolvedPrice > 0) ? resolvedPrice : null,
         isManualPrice: isManual,
       );
     } else {
@@ -160,7 +159,7 @@ class CartLineBinding {
     return verdict;
   }
 
-  /// Sets a manual unit price in USD for [product] in this customer context.
+  /// Sets a manual unit price in USD for [product] in this depot context.
   ///
   /// If the item is already in the cart, updates its price.
   /// If the item is not in the cart, adds it with quantity 1 and the manual price.
@@ -178,7 +177,7 @@ class CartLineBinding {
         quantity: 1,
         unit: product.unit,
         leadId: leadId,
-        customerId: customerId,
+        depotId: depotId,
         unitPrice: unitPrice,
         isManualPrice: true,
       );
@@ -196,8 +195,8 @@ class CartLineBinding {
         priceResolver?.call(product) ??
         (product.pricing.isPriced ? product.effectivePrice : null);
 
-    final pending = line?.isPricePending ??
-        (unitPrice == null || unitPrice <= 0);
+    final pending =
+        line?.isPricePending ?? (unitPrice == null || unitPrice <= 0);
     if (pending || unitPrice == null || unitPrice <= 0) {
       return '$quantity × ${product.unit}';
     }

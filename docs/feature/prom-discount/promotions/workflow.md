@@ -18,7 +18,7 @@
 > | Manual USD price override when unpriced | Refused. The quotation API prices every line from SAP; a SAP outage answers `502`, never an input box |
 > | Free-goods ladder evaluated on the phone | Not built anywhere. `POST /promotions/evaluate` does not exist |
 > | On-invoice depot discount as a client-side scheme | Applied by the server from an **effective** agreement term, and never from an approved-but-unconfirmed one |
-> | COD / Pickup as one discount | Two different things. Pickup is who moves the goods; COD is how the customer pays. Only pickup earns the rate |
+> | COD / Pickup as one discount | Two different things. Pickup is who moves the goods; COD is how the depot pays. Only pickup earns the rate |
 >
 > For the endpoints and their actual behaviour see [../api/mobile.md](../api/mobile.md);
 > for what is built see [../README.md](../README.md).

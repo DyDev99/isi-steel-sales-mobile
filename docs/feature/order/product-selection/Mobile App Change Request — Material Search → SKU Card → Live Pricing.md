@@ -23,7 +23,7 @@ User selects a SKU
       ↓
 Selected SKU becomes a Material Card
       ↓
-Request customer-specific price from backend
+Request depot-specific price from backend
       ↓
 Show price on Material Card
       ↓
@@ -155,7 +155,7 @@ The selected material should retain its complete identity:
 - product ID if available
 - description
 - unit
-- customer
+- depot
 - quotation context
 - selected quantity
 
@@ -200,16 +200,16 @@ Use the existing `CartCubit` and cart line binding wherever possible.
 
 ---
 
-# 6. Customer-Specific Pricing
+# 6. Depot-Specific Pricing
 
 After the user selects a material, request the current price from the backend.
 
-The pricing request must use the selected customer's ID.
+The pricing request must use the selected depot's ID.
 
 Use the existing mobile pricing endpoint:
 
 ```text
-GET /api/v1/mobile/pricing/customers/{customerId}
+GET /api/v1/mobile/pricing/depots/{depotId}
 ```
 
 Pass the selected material using the repeatable `materials` query parameter.
@@ -217,7 +217,7 @@ Pass the selected material using the repeatable `materials` query parameter.
 Example concept:
 
 ```text
-GET /api/v1/mobile/pricing/customers/{customerId}?materials=1100000000
+GET /api/v1/mobile/pricing/depots/{depotId}?materials=1100000000
 ```
 
 For multiple selected materials, support the backend's repeatable material parameter rather than creating individual unrelated pricing implementations.
@@ -236,7 +236,7 @@ Use the returned values directly.
 
 ### IMPORTANT
 
-Never calculate or synthesize the SAP/customer price inside Flutter.
+Never calculate or synthesize the SAP/depot price inside Flutter.
 
 Flutter must display the price returned by the backend.
 
@@ -293,8 +293,8 @@ Differentiate between:
 
 - no price
 - unauthorized
-- customer not found
-- customer not priceable
+- depot not found
+- depot not priceable
 - backend/SAP unavailable
 - network unavailable
 
@@ -318,29 +318,29 @@ Do not invent another authentication mechanism.
 
 ---
 
-# 10. SignalR Customer Subscription
+# 10. SignalR Depot Subscription
 
-After the initial REST pricing request succeeds, connect to the pricing hub and subscribe to the selected customer.
+After the initial REST pricing request succeeds, connect to the pricing hub and subscribe to the selected depot.
 
 Use:
 
 ```text
-SubscribeToPricingAsync(customerId)
+SubscribeToPricingAsync(depotId)
 ```
 
-The client must send the **customer ID**, never a manually constructed group name.
+The client must send the **depot ID**, never a manually constructed group name.
 
-The server determines the customer's pricing group.
+The server determines the depot's pricing group.
 
-When the quotation/customer context changes:
+When the quotation/depot context changes:
 
 ```text
-Unsubscribe old customer
+Unsubscribe old depot
         ↓
-Subscribe new customer
+Subscribe new depot
 ```
 
-Do not leave stale customer subscriptions active.
+Do not leave stale depot subscriptions active.
 
 ---
 
@@ -420,7 +420,7 @@ Reconnect
       ↓
 GET pricing from REST again
       ↓
-SubscribeToPricingAsync(customerId)
+SubscribeToPricingAsync(depotId)
       ↓
 Resume PricingUpdated listener
 ```
@@ -459,9 +459,9 @@ domain/
     pricing_repository.dart
 
   usecases/
-    get_customer_material_price.dart
-    subscribe_to_customer_pricing.dart
-    unsubscribe_from_customer_pricing.dart
+    get_depot_material_price.dart
+    subscribe_to_depot_pricing.dart
+    unsubscribe_from_depot_pricing.dart
 
 presentation/
   bloc/
@@ -520,7 +520,7 @@ The quotation can contain multiple selected SKUs.
 Example:
 
 ```text
-Customer: ABC Construction
+Depot: ABC Construction
 
 Material Card
 SKU A
@@ -568,7 +568,7 @@ Maintain compatibility with:
 - existing line discounts
 - existing totals
 
-The current documentation specifies that `CartCubit.addProduct` merges lines according to the existing product/customer/lead rules. Preserve that behavior.
+The current documentation specifies that `CartCubit.addProduct` merges lines according to the existing product/depot/lead rules. Preserve that behavior.
 
 ---
 
@@ -727,7 +727,7 @@ Do not remove:
 - sales order creation
 - cart persistence
 - existing synchronization
-- existing customer context
+- existing depot context
 
 ---
 
@@ -766,7 +766,7 @@ Then implement:
 
 ### Phase 3 — REST Pricing
 
-- Request customer-specific price after selection.
+- Request depot-specific price after selection.
 - Render loading state.
 - Render returned price/currency.
 - Handle errors without removing the material.
@@ -775,7 +775,7 @@ Then implement:
 
 - Connect to `/hubs/pricing`.
 - Authenticate with access token.
-- Subscribe to customer.
+- Subscribe to depot.
 - Listen for `PricingUpdated`.
 - Map updates by material code.
 - Ignore stale `updatedAt`.
@@ -790,14 +790,14 @@ Add/update tests for:
 - SKU result rendering
 - SKU selection
 - Material Card creation
-- customer-specific pricing
+- depot-specific pricing
 - pricing loading
 - pricing error
 - multiple material prices
 - SignalR price update
 - stale event rejection
 - reconnect
-- unsubscribe/subscribe when customer changes
+- unsubscribe/subscribe when depot changes
 - offline pricing state
 - cart integration
 - quotation save/edit compatibility
@@ -826,7 +826,7 @@ The implementation is complete only when all of these work:
 
 ### Pricing
 
-- [ ] Customer ID is used for pricing.
+- [ ] Depot ID is used for pricing.
 - [ ] Material code is sent to the pricing endpoint.
 - [ ] Price comes from backend.
 - [ ] Currency comes from backend.
@@ -837,12 +837,12 @@ The implementation is complete only when all of these work:
 
 - [ ] Mobile connects to `/hubs/pricing`.
 - [ ] Access token is used for the connection.
-- [ ] Customer subscription uses `SubscribeToPricingAsync(customerId)`.
+- [ ] Depot subscription uses `SubscribeToPricingAsync(depotId)`.
 - [ ] `PricingUpdated` updates the correct Material Card.
 - [ ] Older events cannot overwrite newer pricing.
 - [ ] Reconnection performs REST re-fetch.
-- [ ] Reconnection performs customer re-subscription.
-- [ ] Customer changes correctly unsubscribe the previous customer.
+- [ ] Reconnection performs depot re-subscription.
+- [ ] Depot changes correctly unsubscribe the previous depot.
 
 ### Mobile UX
 
@@ -867,10 +867,10 @@ Search
 → Selection
 → Material Card
 → Cart
-→ Customer context
+→ Depot context
 → REST pricing
 → SignalR connection
-→ Customer subscription
+→ Depot subscription
 → PricingUpdated
 → Material Card update
 → Quotation totals
@@ -880,4 +880,4 @@ Use the existing project architecture and existing API contracts wherever possib
 
 Before changing code, identify which existing classes can be reused and which genuinely need modification.
 
-Keep the implementation **mobile-only, production-ready, offline-aware, customer-specific, and realtime-price capable**.
+Keep the implementation **mobile-only, production-ready, offline-aware, depot-specific, and realtime-price capable**.

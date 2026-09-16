@@ -158,9 +158,8 @@ class _QuotationItemCard extends StatelessWidget {
     }
 
     final isManualOverride = item.isManualPrice;
-    final unitPriceFormatted = item.isPricePending
-        ? null
-        : '\$${item.unitPrice.toStringAsFixed(2)}';
+    final unitPriceFormatted =
+        item.isPricePending ? null : '\$${item.unitPrice.toStringAsFixed(2)}';
     final subtotalFormatted = item.isPricePending
         ? null
         : '\$${item.lineSubtotal.toStringAsFixed(2)}';
@@ -377,7 +376,9 @@ class _QuotationItemCard extends StatelessWidget {
                           ),
                           SizedBox(height: context.rh(2)),
                           if (unitPriceFormatted != null)
-                            (isEditable && onEditPrice != null && isManualOverride)
+                            (isEditable &&
+                                    onEditPrice != null &&
+                                    isManualOverride)
                                 ? InkWell(
                                     onTap: () => onEditPrice!(item),
                                     borderRadius:
@@ -430,7 +431,8 @@ class _QuotationItemCard extends StatelessWidget {
                                   borderRadius:
                                       BorderRadius.circular(context.rr(4)),
                                   border: Border.all(
-                                    color: scheme.primary.withValues(alpha: 0.4),
+                                    color:
+                                        scheme.primary.withValues(alpha: 0.4),
                                   ),
                                 ),
                                 child: Row(

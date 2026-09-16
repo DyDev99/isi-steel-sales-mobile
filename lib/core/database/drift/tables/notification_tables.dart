@@ -15,7 +15,7 @@ import 'package:drift/drift.dart';
 ///
 /// ## Encrypted, not cached
 ///
-/// A notification body names a customer and a route. That is PII, so it belongs
+/// A notification body names a depot and a route. That is PII, so it belongs
 /// in the encrypted Drift database and not in Hive
 /// (`docs/skills/security.md` §3, `docs/blueprint/system-architecture.md` §3). The FCM payload is
 /// deliberately thinner for the same reason (§9.2) — no prices, no credit
@@ -128,7 +128,7 @@ class Notifications extends Table {
   /// True when this row was written from an **FCM payload** rather than from the
   /// inbox endpoint, so it is missing whatever the push deliberately withholds.
   ///
-  /// The push carries no prices, no credit limits and no customer phone numbers
+  /// The push carries no prices, no credit limits and no depot phone numbers
   /// (§9.2), and no `actions` array — a partial row can therefore render a
   /// heading and a body but must not be treated as the whole record. The next
   /// catch-up overwrites it and clears this flag.

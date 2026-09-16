@@ -383,8 +383,8 @@ class ProductFilterFlowBloc
     ));
   }
 
-  void _onSkuSelected(FilterProductSkuSelected event,
-      Emitter<ProductFilterFlowState> emit) {
+  void _onSkuSelected(
+      FilterProductSkuSelected event, Emitter<ProductFilterFlowState> emit) {
     emit(state.copyWith(
       selectedSku: () => event.sku,
     ));

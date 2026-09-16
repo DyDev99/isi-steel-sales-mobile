@@ -163,7 +163,7 @@ void main() {
     await pump(tester, _order(shopName: null, leadDisplayName: null));
 
     // A silent gap here reads as a rendering bug rather than absent data.
-    expect(find.text('No customer on record'), findsOneWidget);
+    expect(find.text('No depot on record'), findsOneWidget);
   });
 
   testWidgets('hides the discount row when there is no discount',

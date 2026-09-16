@@ -151,12 +151,12 @@ class CompleteVisitCheckOut extends UseCase<bool, NoParams> {
 
   /// **Where the rep was, not where the shop is.**
   ///
-  /// These coordinates used to be `stop.customer.latitude/longitude`
+  /// These coordinates used to be `stop.depot.latitude/longitude`
   /// unconditionally — the shop's own pin, recorded as the rep's position. A
   /// check-out written that way always reads as exactly on-location, so it is
   /// worthless as the location evidence api.md §8.2 treats it as.
   ///
-  /// The customer pin remains the fallback when no sample exists, because a
+  /// The depot pin remains the fallback when no sample exists, because a
   /// check-out that fails to write is worse than one written from a weaker
   /// source — but that case is logged rather than passed off as measured.
   CheckOutRecord _recordFor(
@@ -168,8 +168,8 @@ class CompleteVisitCheckOut extends UseCase<bool, NoParams> {
         id: '${now.microsecondsSinceEpoch}-${Random().nextInt(99999)}',
         stopId: stop.id,
         timestamp: now,
-        latitude: position?.latitude ?? stop.customer.latitude,
-        longitude: position?.longitude ?? stop.customer.longitude,
+        latitude: position?.latitude ?? stop.depot.latitude,
+        longitude: position?.longitude ?? stop.depot.longitude,
         durationMinutes: stop.actualArrival == null
             ? 0
             : now.difference(stop.actualArrival!).inMinutes,

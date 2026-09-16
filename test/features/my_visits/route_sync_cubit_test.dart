@@ -4,13 +4,13 @@ import 'package:isi_steel_sales_mobile/core/error/failures.dart';
 import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
 import 'package:isi_steel_sales_mobile/core/usecase/usecase.dart';
 import 'package:isi_steel_sales_mobile/core/utils/result.dart';
-import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer_sync_result.dart';
-import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer.dart';
-import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer_paged_result.dart';
-import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/browse_customers.dart';
-import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/customer_params.dart';
-import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/get_customer_last_synced_at.dart';
-import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/run_customer_initial_sync.dart';
+import 'package:isi_steel_sales_mobile/features/depots/domain/entities/depot_sync_result.dart';
+import 'package:isi_steel_sales_mobile/features/depots/domain/entities/depot.dart';
+import 'package:isi_steel_sales_mobile/features/depots/domain/entities/depot_paged_result.dart';
+import 'package:isi_steel_sales_mobile/features/depots/domain/usecases/browse_depots.dart';
+import 'package:isi_steel_sales_mobile/features/depots/domain/usecases/depot_params.dart';
+import 'package:isi_steel_sales_mobile/features/depots/domain/usecases/get_depot_last_synced_at.dart';
+import 'package:isi_steel_sales_mobile/features/depots/domain/usecases/run_depot_initial_sync.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_sync_result.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_sync_scope.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_push_summary.dart';
@@ -30,17 +30,15 @@ class _MockGetRouteLastSyncedAt extends Mock implements GetRouteLastSyncedAt {}
 
 class _MockPushPendingVisitData extends Mock implements PushPendingVisitData {}
 
-class _MockRunCustomerInitialSync extends Mock
-    implements RunCustomerInitialSync {}
+class _MockRunDepotInitialSync extends Mock implements RunDepotInitialSync {}
 
-class _MockGetCustomerLastSyncedAt extends Mock
-    implements GetCustomerLastSyncedAt {}
+class _MockGetDepotLastSyncedAt extends Mock implements GetDepotLastSyncedAt {}
 
-class _MockBrowseCustomers extends Mock implements BrowseCustomers {}
+class _MockBrowseDepots extends Mock implements BrowseDepots {}
 
 /// Only its presence in the list matters — the gate asks "are there any rows",
 /// never what is in them.
-class _FakeCustomer extends Mock implements Customer {}
+class _FakeDepot extends Mock implements Depot {}
 
 class _MockSessionManager extends Mock implements SessionManager {}
 
@@ -50,23 +48,23 @@ void main() {
   final syncedAt = DateTime.utc(2026, 7, 22, 3);
   final routeResult =
       RouteSyncResult(upserted: 3, deleted: 0, syncedAt: syncedAt);
-  final customerResult =
-      CustomerSyncResult(upserted: 6, deleted: 0, syncedAt: syncedAt);
+  final depotResult =
+      DepotSyncResult(upserted: 6, deleted: 0, syncedAt: syncedAt);
 
   late _MockRunRouteInitialSync runRouteInitialSync;
   late _MockRunRouteDeltaSync runRouteDeltaSync;
   late _MockGetRouteLastSyncedAt getRouteLastSyncedAt;
   late _MockPushPendingVisitData pushPendingVisitData;
-  late _MockRunCustomerInitialSync runCustomerInitialSync;
-  late _MockGetCustomerLastSyncedAt getCustomerLastSyncedAt;
-  late _MockBrowseCustomers browseCustomers;
+  late _MockRunDepotInitialSync runDepotInitialSync;
+  late _MockGetDepotLastSyncedAt getDepotLastSyncedAt;
+  late _MockBrowseDepots browseDepots;
   late _MockSessionManager sessionManager;
 
   setUpAll(() {
     registerFallbackValue(const NoParams());
     registerFallbackValue(
         const RouteSyncScope(repId: 'guest', territory: 'Phnom Penh'));
-    registerFallbackValue(const BrowseCustomersParams(page: 0, pageSize: 1));
+    registerFallbackValue(const BrowseDepotsParams(page: 0, pageSize: 1));
   });
 
   setUp(() {
@@ -74,13 +72,12 @@ void main() {
     runRouteDeltaSync = _MockRunRouteDeltaSync();
     getRouteLastSyncedAt = _MockGetRouteLastSyncedAt();
     pushPendingVisitData = _MockPushPendingVisitData();
-    runCustomerInitialSync = _MockRunCustomerInitialSync();
-    getCustomerLastSyncedAt = _MockGetCustomerLastSyncedAt();
-    browseCustomers = _MockBrowseCustomers();
+    runDepotInitialSync = _MockRunDepotInitialSync();
+    getDepotLastSyncedAt = _MockGetDepotLastSyncedAt();
+    browseDepots = _MockBrowseDepots();
     // Default: the directory has rows. Tests that care override this.
-    when(() => browseCustomers(any())).thenAnswer((_) async => Success(
-        CustomerPagedResult(
-            items: [_FakeCustomer()], page: 0, hasMore: false)));
+    when(() => browseDepots(any())).thenAnswer((_) async => Success(
+        DepotPagedResult(items: [_FakeDepot()], page: 0, hasMore: false)));
     sessionManager = _MockSessionManager();
     when(() => sessionManager.currentUser).thenReturn(null);
   });
@@ -90,17 +87,17 @@ void main() {
         runDeltaSync: runRouteDeltaSync,
         getLastSyncedAt: getRouteLastSyncedAt,
         pushPendingVisitData: pushPendingVisitData,
-        runCustomerInitialSync: runCustomerInitialSync,
-        getCustomerLastSyncedAt: getCustomerLastSyncedAt,
-        browseCustomers: browseCustomers,
+        runDepotInitialSync: runDepotInitialSync,
+        getDepotLastSyncedAt: getDepotLastSyncedAt,
+        browseDepots: browseDepots,
         sessionManager: sessionManager,
       );
 
   // ── Stub helpers so each test reads as its scenario ─────────────────
-  void customersAlreadySynced() => when(() => getCustomerLastSyncedAt(any()))
+  void depotsAlreadySynced() => when(() => getDepotLastSyncedAt(any()))
       .thenAnswer((_) async => Success(syncedAt));
 
-  void customersNeverSynced() => when(() => getCustomerLastSyncedAt(any()))
+  void depotsNeverSynced() => when(() => getDepotLastSyncedAt(any()))
       .thenAnswer((_) async => const Success<DateTime?>(null));
 
   void routesNeverSynced() => when(() => getRouteLastSyncedAt(any()))
@@ -115,46 +112,46 @@ void main() {
   void routeDeltaSucceeds() => when(() => runRouteDeltaSync(any()))
       .thenAnswer((_) async => Success(routeResult));
 
-  void customerInitialSucceeds() => when(() => runCustomerInitialSync(any()))
-      .thenAnswer((_) async => Success(customerResult));
+  void depotInitialSucceeds() => when(() => runDepotInitialSync(any()))
+      .thenAnswer((_) async => Success(depotResult));
 
-  void customerDirectoryEmpty() =>
-      when(() => browseCustomers(any())).thenAnswer((_) async => const Success(
-          CustomerPagedResult(items: [], page: 0, hasMore: false)));
+  void depotDirectoryEmpty() =>
+      when(() => browseDepots(any())).thenAnswer((_) async =>
+          const Success(DepotPagedResult(items: [], page: 0, hasMore: false)));
 
   group('syncIfNeeded', () {
     blocTest<RouteSyncCubit, RouteSyncState>(
-      'pulls customers when the watermark says synced but the table is empty',
+      'pulls depots when the watermark says synced but the table is empty',
       build: buildCubit,
       setUp: () {
-        // The state behind the empty Visit dashboards: a customer watermark
+        // The state behind the empty Visit dashboards: a depot watermark
         // left by an earlier build over a directory that is actually empty.
         // Skipping the pull here left the route feed — which rebases stops
-        // onto real customer ids — with nothing to rebase onto, so every
+        // onto real depot ids — with nothing to rebase onto, so every
         // Visit screen came up blank.
-        customersAlreadySynced();
-        customerDirectoryEmpty();
-        customerInitialSucceeds();
+        depotsAlreadySynced();
+        depotDirectoryEmpty();
+        depotInitialSucceeds();
         routesPreviouslySynced();
         routeDeltaSucceeds();
       },
       act: (cubit) => cubit.syncIfNeeded(),
       verify: (_) {
-        verify(() => runCustomerInitialSync(any())).called(1);
+        verify(() => runDepotInitialSync(any())).called(1);
         verify(() => runRouteDeltaSync(any())).called(1);
       },
     );
 
     blocTest<RouteSyncCubit, RouteSyncState>(
-      'skips the customer pull when the directory is genuinely populated',
+      'skips the depot pull when the directory is genuinely populated',
       build: buildCubit,
       setUp: () {
-        customersAlreadySynced();
+        depotsAlreadySynced();
         routesPreviouslySynced();
         routeDeltaSucceeds();
       },
       act: (cubit) => cubit.syncIfNeeded(),
-      verify: (_) => verifyNever(() => runCustomerInitialSync(any())),
+      verify: (_) => verifyNever(() => runDepotInitialSync(any())),
     );
 
     blocTest<RouteSyncCubit, RouteSyncState>(
@@ -162,7 +159,7 @@ void main() {
       build: buildCubit,
       setUp: () {
         routesNeverSynced();
-        customersAlreadySynced();
+        depotsAlreadySynced();
         routeInitialSucceeds();
       },
       act: (cubit) => cubit.syncIfNeeded(),
@@ -181,7 +178,7 @@ void main() {
       build: buildCubit,
       setUp: () {
         routesPreviouslySynced();
-        customersAlreadySynced();
+        depotsAlreadySynced();
         routeDeltaSucceeds();
       },
       act: (cubit) => cubit.syncIfNeeded(),
@@ -201,7 +198,7 @@ void main() {
       setUp: () {
         when(() => getRouteLastSyncedAt(any())).thenAnswer(
             (_) async => const Failed(CacheFailure(message: 'db closed')));
-        customersAlreadySynced();
+        depotsAlreadySynced();
         routeInitialSucceeds();
       },
       act: (cubit) => cubit.syncIfNeeded(),
@@ -217,7 +214,7 @@ void main() {
       build: buildCubit,
       setUp: () {
         routesNeverSynced();
-        customersAlreadySynced();
+        depotsAlreadySynced();
         when(() => runRouteInitialSync(any())).thenAnswer((_) async =>
             const Failed(ServerFailure(message: 'boom', statusCode: 500)));
       },
@@ -229,26 +226,26 @@ void main() {
     );
   });
 
-  group('customer-directory ordering guard (ADR-001 FK dependency)', () {
+  group('depot-directory ordering guard (ADR-001 FK dependency)', () {
     blocTest<RouteSyncCubit, RouteSyncState>(
-      'skips customer sync entirely once the customer watermark exists',
+      'skips depot sync entirely once the depot watermark exists',
       build: buildCubit,
       setUp: () {
         routesNeverSynced();
-        customersAlreadySynced();
+        depotsAlreadySynced();
         routeInitialSucceeds();
       },
       act: (cubit) => cubit.syncIfNeeded(),
-      verify: (_) => verifyNever(() => runCustomerInitialSync(any())),
+      verify: (_) => verifyNever(() => runDepotInitialSync(any())),
     );
 
     blocTest<RouteSyncCubit, RouteSyncState>(
-      'fresh install: awaits customer initial sync before the route pull',
+      'fresh install: awaits depot initial sync before the route pull',
       build: buildCubit,
       setUp: () {
         routesNeverSynced();
-        customersNeverSynced();
-        customerInitialSucceeds();
+        depotsNeverSynced();
+        depotInitialSucceeds();
         routeInitialSucceeds();
       },
       act: (cubit) => cubit.syncIfNeeded(),
@@ -257,18 +254,18 @@ void main() {
         RouteSyncSucceeded(upserted: 3, syncedAt: syncedAt),
       ],
       verify: (_) => verifyInOrder([
-        () => runCustomerInitialSync(any()),
+        () => runDepotInitialSync(any()),
         () => runRouteInitialSync(any()),
       ]),
     );
 
     blocTest<RouteSyncCubit, RouteSyncState>(
-      'fails fast when customer sync fails — no route pull is attempted',
+      'fails fast when depot sync fails — no route pull is attempted',
       build: buildCubit,
       setUp: () {
         routesNeverSynced();
-        customersNeverSynced();
-        when(() => runCustomerInitialSync(any()))
+        depotsNeverSynced();
+        when(() => runDepotInitialSync(any()))
             .thenAnswer((_) async => const Failed(NetworkFailure()));
       },
       act: (cubit) => cubit.syncIfNeeded(),
@@ -283,13 +280,13 @@ void main() {
     );
 
     blocTest<RouteSyncCubit, RouteSyncState>(
-      'treats a customer watermark read failure as needing customer sync',
+      'treats a depot watermark read failure as needing depot sync',
       build: buildCubit,
       setUp: () {
         routesNeverSynced();
-        when(() => getCustomerLastSyncedAt(any())).thenAnswer(
+        when(() => getDepotLastSyncedAt(any())).thenAnswer(
             (_) async => const Failed(CacheFailure(message: 'db closed')));
-        customerInitialSucceeds();
+        depotInitialSucceeds();
         routeInitialSucceeds();
       },
       act: (cubit) => cubit.syncIfNeeded(),
@@ -297,16 +294,16 @@ void main() {
         const RouteSyncInProgress(isInitial: true),
         RouteSyncSucceeded(upserted: 3, syncedAt: syncedAt),
       ],
-      verify: (_) => verify(() => runCustomerInitialSync(any())).called(1),
+      verify: (_) => verify(() => runDepotInitialSync(any())).called(1),
     );
   });
 
   group('refresh', () {
     blocTest<RouteSyncCubit, RouteSyncState>(
-      'always runs a delta sync, still behind the customer guard',
+      'always runs a delta sync, still behind the depot guard',
       build: buildCubit,
       setUp: () {
-        customersAlreadySynced();
+        depotsAlreadySynced();
         routeDeltaSucceeds();
       },
       act: (cubit) => cubit.refresh(),
@@ -315,7 +312,7 @@ void main() {
         RouteSyncSucceeded(upserted: 3, syncedAt: syncedAt),
       ],
       verify: (_) {
-        verify(() => getCustomerLastSyncedAt(any())).called(1);
+        verify(() => getDepotLastSyncedAt(any())).called(1);
         verifyNever(() => runRouteInitialSync(any()));
       },
     );

@@ -52,8 +52,8 @@ Everything except `GET /` and `GET /{id}/history` returns a `QuotationDetailDto`
 
 | Parameter | Notes |
 |---|---|
-| `status` | Any concrete `QuotationStatus` name **or** a tab group (`Drafts`, `Waiting`, `WithCustomer`, `Won`, `Closed`). Case-insensitive |
-| `customerId` | Restrict to one customer |
+| `status` | Any concrete `QuotationStatus` name **or** a tab group (`Drafts`, `Waiting`, `WithDepot`, `Won`, `Closed`). Case-insensitive |
+| `depotId` | Restrict to one depot |
 | `page` · `pageSize` | One-based; default 20, clamped to 100 |
 
 Pagination arrives in `metadata` (`page`, `pageSize`, `totalRecords`, `totalPages`).
@@ -98,7 +98,7 @@ cannot drift between the app and the portal.
 |---|---|
 | `Drafts` | `Draft`, `Returned` |
 | `Waiting` | `PendingApproval`, `Approved`, `SubmittingToSap`, `SapFailed`, `SubmittingOrder`, `OrderFailed` |
-| `WithCustomer` | `Quoted` |
+| `WithDepot` | `Quoted` |
 | `Won` | `Accepted`, `Ordered` |
 | `Closed` | `Rejected`, `Cancelled`, `Lost`, `Expired` |
 
@@ -106,7 +106,7 @@ The statuses past `Approved` are modelled by the domain but **no endpoint reache
 in this release** — see "After submit". Handle them anyway: a client that switches on
 `status` and throws on an unknown name will break on the day the SAP phase ships.
 
-A list row carries `id`, `number`, `customerId`, `customerName`, `status`,
+A list row carries `id`, `number`, `depotId`, `depotName`, `status`,
 `statusGroup`, `currency`, `net`, `lineCount`, `validTo`, `createdAt`, `updatedAt` —
 enough to draw the card without a second call. `net` is the SAP net once there is one
 and the estimate until then.
@@ -116,7 +116,7 @@ and the estimate until then.
 ## `POST /` — open a quotation
 
 ```json
-{ "customerId": "…", "shipmentType": "Pickup", "shipTo": null }
+{ "depotId": "…", "shipmentType": "Pickup", "shipTo": null }
 ```
 
 `shipmentType` defaults to `Pickup`. The document starts as a `Draft` with no lines
@@ -124,8 +124,8 @@ and no currency, valid from today for the configured period (15 days by default)
 
 | Failure | Meaning |
 |---|---|
-| `404 Quotation.NotFound` | No such customer, **or** not one the caller may see |
-| `422 Pricing.CustomerNotPriceable` | The customer has no SAP sales area, so there is nothing to quote |
+| `404 Quotation.NotFound` | No such depot, **or** not one the caller may see |
+| `422 Pricing.DepotNotPriceable` | The depot has no SAP sales area, so there is nothing to quote |
 
 ---
 
@@ -136,7 +136,7 @@ and no currency, valid from today for the configured period (15 days by default)
   "shipmentType": "Delivery",
   "shipTo": "Phnom Penh warehouse",
   "paymentTerm": "NT30",
-  "customerReference": "PO-4471",
+  "depotReference": "PO-4471",
   "remarks": null
 }
 ```
@@ -144,7 +144,7 @@ and no currency, valid from today for the configured period (15 days by default)
 **This replaces the header — send every field the screen holds, every time.**
 `shipmentType` is the only required one; the other four are nullable, and a field left
 out is cleared, not kept. A PATCH-shaped call that sends `remarks` alone will wipe the
-payment term and the customer's PO number.
+payment term and the depot's PO number.
 
 `shipmentType` is `Pickup` or `Delivery`. Choosing `Delivery` does not require
 `shipTo` here — that is checked at submit, so a representative can set the shipment
@@ -164,7 +164,7 @@ master's conversion factors.
 
 | Failure | Meaning |
 |---|---|
-| `422 Quotation.MaterialNotPriced` | SAP answered and holds no price for this customer and material |
+| `422 Quotation.MaterialNotPriced` | SAP answered and holds no price for this depot and material |
 | `422 Quotation.MultiplePrices` | SAP holds more than one valid price. The line is blocked rather than priced from whichever arrived first |
 | `422 Quotation.MixedCurrency` | The price is in a different currency from the document's |
 | `422 Quotation.DuplicateLine` | This material is already on the document |
@@ -240,7 +240,7 @@ POST .../reprice   →  200, the document with the new prices and new totals
 POST .../submit    →  200, PendingApproval
 ```
 
-The loop exists because the representative has been showing the customer figures from
+The loop exists because the representative has been showing the depot figures from
 the snapshot. Silently substituting new ones would put a number into an approval queue
 that nobody was shown.
 
@@ -298,7 +298,7 @@ returns or rejects it.
 - **Returned** makes it editable again with `revision` incremented and
   `decisionReason` set — show that reason; it is the whole point of a return.
 - **Rejected** is terminal. The representative raises a new quotation.
-- **Approved** currently rests there. There is no SAP quotation, no customer
+- **Approved** currently rests there. There is no SAP quotation, no depot
   accept/decline and no order — those are later phases.
 
 ---
@@ -316,7 +316,7 @@ client localises from the code.
 | Code | Status | When |
 |---|---|---|
 | `Quotation.NotAuthenticated` | `401` | No user on the token |
-| `Quotation.NotFound` | `404` | No such quotation or customer — or not one the caller may see |
+| `Quotation.NotFound` | `404` | No such quotation or depot — or not one the caller may see |
 | `Quotation.LineNotFound` | `404` | No such line on this document |
 | `Quotation.NotEditable` | `409` | The document has left `Draft` / `Returned` |
 | `Quotation.InvalidTransition` | `409` | The requested move is not legal from the current status |
@@ -324,8 +324,8 @@ client localises from the code.
 | `Quotation.QuantityInvalid` | `422` | Quantity is zero or negative |
 | `Quotation.UnitMismatch` | `422` | The quantity is not in the price's unit — refused, never converted |
 | `Quotation.DuplicateLine` | `422` | That material is already on the document |
-| `Quotation.MaterialNotPriced` | `422` | SAP answered and holds no price for this customer and material |
-| `Quotation.MaterialNotSellable` | `422` | The material is not sellable to this customer |
+| `Quotation.MaterialNotPriced` | `422` | SAP answered and holds no price for this depot and material |
+| `Quotation.MaterialNotSellable` | `422` | The material is not sellable to this depot |
 | `Quotation.MultiplePrices` | `422` | SAP holds more than one valid price; the line is blocked rather than guessed |
 | `Quotation.MixedCurrency` | `422` | The price's currency differs from the document's |
 | `Quotation.DiscountPercentInvalid` | `422` | A percentage outside 0–100 |

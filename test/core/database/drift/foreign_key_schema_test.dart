@@ -94,7 +94,7 @@ void main() {
     // Each of these caused, or would have caused, real data loss. The comment
     // on each is the failure it prevents -- see ADR-011 for the evidence.
 
-    // Aborted the whole route write when one stop referenced a customer the
+    // Aborted the whole route write when one stop referenced a depot the
     // directory had not pulled yet: the rep lost the entire day, not one stop.
     expect(sql['route_stops'], isNot(contains('FOREIGN KEY')));
 
@@ -118,21 +118,21 @@ void main() {
     // deleted compliance evidence on a routine route refresh.
     expect(sql['fraud_flags'], isNot(contains('REFERENCES route_stops')));
 
-    // Customer children: an orphan here is invisible and self-heals on the next
+    // Depot children: an orphan here is invisible and self-heals on the next
     // sync, which is strictly better than failing the batch that carried it.
     for (final table in const [
-      'customer_contacts',
-      'customer_notes',
-      'customer_activities',
-      'customer_favorites',
-      'customer_recent',
+      'depot_contacts',
+      'depot_notes',
+      'depot_activities',
+      'depot_favorites',
+      'depot_recent',
     ]) {
       expect(sql[table], isNot(contains('FOREIGN KEY')), reason: table);
     }
 
-    // The route feed's own customer mirror is a leaf: nothing references it and
+    // The route feed's own depot mirror is a leaf: nothing references it and
     // it references nothing.
-    expect(sql['route_customers'], isNot(contains('FOREIGN KEY')));
+    expect(sql['route_depots'], isNot(contains('FOREIGN KEY')));
   });
 
   test('enforcement is on, so the survivors are not decorative', () async {

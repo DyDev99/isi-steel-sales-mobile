@@ -8,7 +8,7 @@ import 'package:pdf/widgets.dart' as pw;
 ///
 /// Both failure modes here are silent. A malformed or unsupported SVG renders
 /// as *nothing* — an export with a blank header still saves fine and still
-/// reaches the customer — and swapping the two ink variants produces a mark
+/// reaches the depot — and swapping the two ink variants produces a mark
 /// the same colour as the surface behind it, which is equally invisible and
 /// equally undetectable from a green test run.
 ///

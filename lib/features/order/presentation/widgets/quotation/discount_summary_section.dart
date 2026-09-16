@@ -92,15 +92,15 @@ class DiscountSummarySection extends StatelessWidget {
 
       // 1. Monetary percentage discount on this line
       if (item.discountPercent > 0) {
-        final percentFormatted = item.discountPercent.truncateToDouble() ==
-                item.discountPercent
-            ? '${item.discountPercent.toStringAsFixed(0)}%'
-            : '${item.discountPercent.toStringAsFixed(1)}%';
+        final percentFormatted =
+            item.discountPercent.truncateToDouble() == item.discountPercent
+                ? '${item.discountPercent.toStringAsFixed(0)}%'
+                : '${item.discountPercent.toStringAsFixed(1)}%';
 
         lines.add(
           SkuDiscountLine(
-            promotionName: DemoCartPromotions.promotionNameFor(item) ??
-                'Rep Discount',
+            promotionName:
+                DemoCartPromotions.promotionNameFor(item) ?? 'Rep Discount',
             rule: percentFormatted,
             calculatedAmount: item.lineDiscount,
           ),
@@ -110,10 +110,10 @@ class DiscountSummarySection extends StatelessWidget {
       // 2. Free quantity promotion on this line (if any)
       final freeUnits = DemoCartPromotions.freeQuantityFor(item);
       if (freeUnits > 0) {
-        final freeRule = DemoCartPromotions.freeRuleFor(item) ??
-            'Free $freeUnits';
-        final promoName = DemoCartPromotions.promotionNameFor(item) ??
-            'Free Goods Promotion';
+        final freeRule =
+            DemoCartPromotions.freeRuleFor(item) ?? 'Free $freeUnits';
+        final promoName =
+            DemoCartPromotions.promotionNameFor(item) ?? 'Free Goods Promotion';
         final unitLabel = item.unit.isNotEmpty ? item.unit : 'unit';
 
         lines.add(
@@ -291,7 +291,8 @@ class DiscountSummarySection extends StatelessWidget {
                           children: [
                             TextSpan(
                               text: inv.name,
-                              style: const TextStyle(fontWeight: FontWeight.w600),
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.w600),
                             ),
                             TextSpan(
                               text: ' — ${inv.rule} → ',
@@ -391,7 +392,8 @@ class DiscountSummarySection extends StatelessWidget {
                             ),
                             Expanded(
                               child: line.isFreeQuantity
-                                  ? _buildFreeQuantityText(context, colors, line)
+                                  ? _buildFreeQuantityText(
+                                      context, colors, line)
                                   : _buildMonetaryDiscountText(
                                       context, colors, line),
                             ),
@@ -435,7 +437,9 @@ class DiscountSummarySection extends StatelessWidget {
                       style: TextStyle(
                         fontSize: context.rsp(13),
                         fontWeight: FontWeight.w800,
-                        color: totalDiscount > 0 ? colors.success : colors.textPrimary,
+                        color: totalDiscount > 0
+                            ? colors.success
+                            : colors.textPrimary,
                       ),
                     ),
                     if (totalFreeUnits > 0)
@@ -520,9 +524,11 @@ class DiscountSummarySection extends StatelessWidget {
     final prefix = line.promotionName != null && line.promotionName!.isNotEmpty
         ? 'Promotion: ${line.promotionName} — '
         : '';
-    final unit = line.unit != null && line.unit!.isNotEmpty ? line.unit! : 'unit';
-    final unitsLabel =
-        line.freeQuantity == 1 ? '1 free $unit' : '${line.freeQuantity} free ${unit}s';
+    final unit =
+        line.unit != null && line.unit!.isNotEmpty ? line.unit! : 'unit';
+    final unitsLabel = line.freeQuantity == 1
+        ? '1 free $unit'
+        : '${line.freeQuantity} free ${unit}s';
 
     return Text.rich(
       TextSpan(

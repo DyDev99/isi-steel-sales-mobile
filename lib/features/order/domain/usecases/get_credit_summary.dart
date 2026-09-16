@@ -10,5 +10,5 @@ class GetCreditSummary extends UseCase<CreditSummary, GetCreditSummaryParams> {
 
   @override
   ResultFuture<CreditSummary> call(GetCreditSummaryParams params) =>
-      _service.getSummary(params.customerId);
+      _service.getSummary(params.depotId);
 }

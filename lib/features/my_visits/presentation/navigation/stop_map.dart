@@ -57,7 +57,7 @@ class StopMap extends StatelessWidget {
             Icon(Icons.location_on, color: Colors.red, size: context.rr(36)),
             SizedBox(height: context.rh(8)),
             Text(
-              context.localized(stop.customer.displayName),
+              context.localized(stop.depot.displayName),
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ],

@@ -31,7 +31,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/data/session/visit_ses
 import 'package:isi_steel_sales_mobile/features/app_coach/app_coach_injection.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/authentication_injection.dart';
 import 'package:isi_steel_sales_mobile/features/localization/localization_injection.dart';
-import 'package:isi_steel_sales_mobile/features/customers/customers_injection.dart';
+import 'package:isi_steel_sales_mobile/features/depots/depots_injection.dart';
 import 'package:isi_steel_sales_mobile/features/home/presentation/bloc/home_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/geo_location/geo_location_injection.dart';
 import 'package:isi_steel_sales_mobile/features/home/home_injection.dart';
@@ -139,14 +139,14 @@ Future<void> initDependencies() async {
   registerAuthFeature(sl);
   registerHomeFeature(sl);
   await registerOrderFeature(sl);
-  await registerCustomerFeature(sl);
-  // Shared address component. After the customer feature only for readability —
+  await registerDepotFeature(sl);
+  // Shared address component. After the depot feature only for readability —
   // its one real dependency is `AppDatabase`, registered above.
   registerGeoLocationFeature(sl);
   // After auth, which supplies the authenticated `Dio` and the `DeviceIdentity`
   // whose per-installation id is the upsert key for a push registration
   // (docs/feature/notification/api/devices-register.md). The feed is no longer derived
-  // from the customer cache — it is the real inbox now.
+  // from the depot cache — it is the real inbox now.
   registerNotificationFeature(sl);
   await registerMyVisitsFeature(sl);
   registerProfileFeature(sl);
@@ -191,7 +191,7 @@ Future<void> initDependencies() async {
   // resolved. Adding a feature that holds rep-scoped data means adding one
   // entry here — the logout path itself never changes.
   //
-  // Master data (catalog, customer directory) is deliberately absent: it is
+  // Master data (catalog, depot directory) is deliberately absent: it is
   // SAP-owned, identical for the next user, and expensive to re-pull. Clearing
   // it on sign-out would turn logout into a multi-minute re-download.
   sl.registerLazySingleton<SessionResetService>(

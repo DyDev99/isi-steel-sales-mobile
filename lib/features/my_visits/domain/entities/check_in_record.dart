@@ -8,7 +8,7 @@ class CheckInRecord extends Equatable {
     required this.latitude,
     required this.longitude,
     required this.accuracyMeters,
-    required this.distanceFromCustomerMeters,
+    required this.distanceFromDepotMeters,
     required this.isMocked,
     this.overrideReason,
   });
@@ -19,7 +19,7 @@ class CheckInRecord extends Equatable {
   final double latitude;
   final double longitude;
   final double accuracyMeters;
-  final double distanceFromCustomerMeters;
+  final double distanceFromDepotMeters;
   final bool isMocked;
 
   /// What the rep wrote when checking in from outside the geofence.
@@ -39,7 +39,7 @@ class CheckInRecord extends Equatable {
         latitude,
         longitude,
         accuracyMeters,
-        distanceFromCustomerMeters,
+        distanceFromDepotMeters,
         isMocked,
         overrideReason,
       ];

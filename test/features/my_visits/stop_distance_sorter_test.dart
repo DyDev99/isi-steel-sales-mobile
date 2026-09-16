@@ -1,11 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/customer_stop_info.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/depot_stop_info.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_stop.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/territory_type.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_status.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/stop_distance_sorter.dart';
 
-CustomerStopInfo _cust(String id, double lat, double lng) => CustomerStopInfo(
+DepotStopInfo _cust(String id, double lat, double lng) => DepotStopInfo(
       id: id,
       name: 'Shop $id',
       code: 'C$id',
@@ -21,7 +21,7 @@ CustomerStopInfo _cust(String id, double lat, double lng) => CustomerStopInfo(
 RouteStop _stop(String id, int sequence, double lat, double lng) => RouteStop(
       id: id,
       routeId: 'R1',
-      customer: _cust(id, lat, lng),
+      depot: _cust(id, lat, lng),
       sequence: sequence,
       plannedArrival: DateTime.utc(2026, 8, 3, 8),
       plannedDeparture: DateTime.utc(2026, 8, 3, 9),

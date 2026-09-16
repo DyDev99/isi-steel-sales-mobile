@@ -8,7 +8,7 @@
 /// The distinction this type exists to protect is between *no price yet* and
 /// *a price of zero*. Those look identical once a missing amount has been
 /// defaulted to `0.0`, and the second is a promise: a quotation reading
-/// `$0.00` is one a customer can hold a rep to. Every display and every total
+/// `$0.00` is one a depot can hold a rep to. Every display and every total
 /// therefore branches on this rather than on the amount.
 enum PricingStatus {
   /// HQ has supplied a price; the amounts are real and may be shown and summed.

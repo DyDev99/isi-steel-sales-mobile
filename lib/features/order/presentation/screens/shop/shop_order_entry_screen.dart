@@ -4,7 +4,7 @@ import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localized_builder.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
-import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer.dart';
+import 'package:isi_steel_sales_mobile/features/depots/domain/entities/depot.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/credit_summary.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/off_visit_reason.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/capture_location_once.dart';
@@ -23,14 +23,14 @@ import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 class ShopOrderEntryScreen extends StatefulWidget {
   const ShopOrderEntryScreen({
     super.key,
-    required this.customer,
+    required this.depot,
     this.skipOffVisitCheck = false,
     this.seedSearchTerm,
   });
 
   static const routeName = 'order-shop-entry';
 
-  final Customer customer;
+  final Depot depot;
   final bool skipOffVisitCheck;
   final String? seedSearchTerm;
 
@@ -48,7 +48,7 @@ class _ShopOrderEntryScreenState extends State<ShopOrderEntryScreen> {
   void initState() {
     super.initState();
     _summaryFuture =
-        sl<GetCreditSummary>()(GetCreditSummaryParams(widget.customer.id)).then(
+        sl<GetCreditSummary>()(GetCreditSummaryParams(widget.depot.id)).then(
       (result) => result.when(success: (s) => s, failure: (_) => null),
     );
     _captureGps();
@@ -88,7 +88,7 @@ class _ShopOrderEntryScreenState extends State<ShopOrderEntryScreen> {
         ],
         child: LocalizedBuilder(
           builder: (_) => QuotationBuilderScreen(
-            customer: widget.customer,
+            depot: widget.depot,
             offVisitReason: widget.skipOffVisitCheck ? null : _reason,
             gpsLat: _gps?.lat,
             gpsLng: _gps?.lng,
@@ -102,7 +102,7 @@ class _ShopOrderEntryScreenState extends State<ShopOrderEntryScreen> {
   Widget build(BuildContext context) => LocalizedBuilder(builder: _build);
 
   Widget _build(BuildContext context) {
-    final customer = widget.customer;
+    final depot = widget.depot;
     final colors = context.appColors;
 
     return Scaffold(
@@ -125,7 +125,7 @@ class _ShopOrderEntryScreenState extends State<ShopOrderEntryScreen> {
             ),
             Expanded(
               child: Text(
-                customer.shopName,
+                depot.shopName,
                 style: TextStyle(
                   color: colors.textPrimary,
                   fontSize: context.rsp(17),
@@ -147,10 +147,10 @@ class _ShopOrderEntryScreenState extends State<ShopOrderEntryScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
         children: [
-          Text(customer.address,
+          Text(depot.address,
               style: TextStyle(
                   color: colors.textPrimary, fontSize: context.rsp(13))),
-          Text('${customer.district}, ${customer.province}',
+          Text('${depot.district}, ${depot.province}',
               style: TextStyle(
                   color: colors.textSecondary, fontSize: context.rsp(12))),
           SizedBox(height: context.rh(14)),
@@ -169,7 +169,7 @@ class _ShopOrderEntryScreenState extends State<ShopOrderEntryScreen> {
                 return const SizedBox.shrink();
               }
               return CreditSummaryCard(
-                  creditLimit: customer.creditLimit, summary: summary);
+                  creditLimit: depot.creditLimit, summary: summary);
             },
           ),
           if (!widget.skipOffVisitCheck) ...[

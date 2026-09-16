@@ -26,7 +26,7 @@ class PdfBuildContext {
 }
 
 /// The contract every document generator implements — quotation today,
-/// invoice / visit report / customer report / sales report / stock report
+/// invoice / visit report / depot report / sales report / stock report
 /// tomorrow. Implementations must stay **free of Flutter widgets and of any
 /// BLoC/UI state**: they receive a plain, already-mapped data object and emit a
 /// [pw.Document]. That is what lets the same generator run on the main isolate,

@@ -75,7 +75,7 @@ class CartCubit extends Cubit<CartState> {
       {double quantity = 1,
       String? unit,
       String? leadId,
-      String? customerId,
+      String? depotId,
       double? unitPrice,
       bool isManualPrice = false,
       double discountPercent = 0,
@@ -91,7 +91,7 @@ class CartCubit extends Cubit<CartState> {
       if (item.product.id == product.id &&
           item.unit == lineUnit &&
           item.leadId == leadId &&
-          item.customerId == customerId &&
+          item.depotId == depotId &&
           item.fulfillment == fulfillment) {
         existing = item;
       }
@@ -112,7 +112,7 @@ class CartCubit extends Cubit<CartState> {
         unit: lineUnit,
         discountPercent: discountPercent,
         leadId: leadId,
-        customerId: customerId,
+        depotId: depotId,
         unitPriceOverride: unitPrice,
         isManualPrice: isManualPrice,
         fulfillment: fulfillment,
@@ -134,7 +134,7 @@ class CartCubit extends Cubit<CartState> {
     String? drawingImagePath,
     String? customizationDescription,
     String? leadId,
-    String? customerId,
+    String? depotId,
   }) async {
     final newItem = CartItem(
       id: _newId(),
@@ -143,7 +143,7 @@ class CartCubit extends Cubit<CartState> {
       unit: unit,
       discountPercent: 0,
       leadId: leadId,
-      customerId: customerId,
+      depotId: depotId,
       isCustomized: true,
       measurements: measurements,
       appearance: appearance,
@@ -220,7 +220,7 @@ class CartCubit extends Cubit<CartState> {
   /// place when re-saving from the Edit Quotation flow. Clears the cart on
   /// success either way.
   Future<Quotation?> saveQuotation({
-    String? customerId,
+    String? depotId,
     String? shopName,
     String? leadId,
     String? leadDisplayName,
@@ -237,7 +237,7 @@ class CartCubit extends Cubit<CartState> {
     final result = editing == null
         ? await _saveQuotation(SaveQuotationParams(
             items: items,
-            customerId: customerId,
+            depotId: depotId,
             shopName: shopName,
             leadId: leadId,
             leadDisplayName: leadDisplayName,

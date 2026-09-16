@@ -86,7 +86,7 @@ class ReplaceCartParams extends Equatable {
 class SaveQuotationParams extends Equatable {
   const SaveQuotationParams({
     required this.items,
-    this.customerId,
+    this.depotId,
     this.shopName,
     this.leadId,
     this.leadDisplayName,
@@ -99,7 +99,7 @@ class SaveQuotationParams extends Equatable {
     this.total,
   });
   final List<CartItem> items;
-  final String? customerId;
+  final String? depotId;
   final String? shopName;
   final String? leadId;
   final String? leadDisplayName;
@@ -113,7 +113,7 @@ class SaveQuotationParams extends Equatable {
   @override
   List<Object?> get props => [
         items,
-        customerId,
+        depotId,
         shopName,
         leadId,
         leadDisplayName,
@@ -169,8 +169,8 @@ class SalesOrderIdParams extends Equatable {
 }
 
 class GetCreditSummaryParams extends Equatable {
-  const GetCreditSummaryParams(this.customerId);
-  final String customerId;
+  const GetCreditSummaryParams(this.depotId);
+  final String depotId;
   @override
-  List<Object?> get props => [customerId];
+  List<Object?> get props => [depotId];
 }

@@ -8,7 +8,7 @@ import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
 /// Authentication is a platform capability, not a per-feature one. Before this
 /// existed, each cubit that wanted to be careful wrote its own
 /// `if (!session.isAuthenticated) return;` — and the ones that forgot fired a
-/// request during boot that could only be rejected. The customer directory did
+/// request during boot that could only be rejected. The depot directory did
 /// exactly that: it ran a full initial sync on every cold start *before*
 /// sign-in, producing one guaranteed failure per launch and an error banner in
 /// front of a user who had done nothing wrong.
@@ -16,7 +16,7 @@ import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
 /// Usage:
 ///
 /// ```dart
-/// class CustomerSyncCubit extends Cubit<CustomerSyncState>
+/// class DepotSyncCubit extends Cubit<DepotSyncState>
 ///     with ProtectedFeature {
 ///   @override
 ///   final SessionManager session;
@@ -35,19 +35,19 @@ mixin ProtectedFeature {
   /// the mixin, or the feature becomes untestable without a container.
   SessionManager get session;
 
-  /// The grant this feature's endpoints require, e.g. `customers.read`.
+  /// The grant this feature's endpoints require, e.g. `depots.read`.
   ///
   /// Override it and [canLoad] additionally checks the signed-in user holds it.
   /// Null means "any authenticated user".
   ///
-  /// This is what the customers guide means by *"read the caller's permissions
+  /// This is what the depots guide means by *"read the caller's permissions
   /// from `GET /auth/me` and hide actions they lack"*. It is a usability
   /// measure, never a security control — the server re-checks every one. Its
   /// job is to stop the app firing a request that can only come back 403, as
-  /// the customer sync did twice per launch for a rep whose role granted
-  /// `outlets.*` but not `customers.*`.
+  /// the depot sync did twice per launch for a rep whose role granted
+  /// `outlets.*` but not `depots.*`.
   /// Empty means "any authenticated user". Multiple entries are **any-of**,
-  /// not all-of: the same capability is spelled `customers.read` on one
+  /// not all-of: the same capability is spelled `depots.read` on one
   /// deployment and `outlets.read` on another, and a feature needs either.
   Set<String> get requiredPermissions => const {};
 

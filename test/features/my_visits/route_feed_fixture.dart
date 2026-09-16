@@ -12,21 +12,21 @@ import 'package:isi_steel_sales_mobile/features/my_visits/data/remote/api_route_
 /// every test using it skipped the JSON the real app has to parse. Scripting
 /// the transport instead means these tests now exercise
 /// [ApiRouteRemoteDataSource] end to end — envelope, field names, enum
-/// strings, the customer/stop join — which is the layer most likely to drift
+/// strings, the depot/stop join — which is the layer most likely to drift
 /// away from the backend contract.
 ///
-/// [customerIds] is resolved *per request*, not once at construction: a caller
-/// that syncs its customer directory first cannot know the ids until that has
-/// run, and `route_stops.customer_id` is a live FK, so the feed has to name
-/// customers that really exist locally.
+/// [depotIds] is resolved *per request*, not once at construction: a caller
+/// that syncs its depot directory first cannot know the ids until that has
+/// run, and `route_stops.depot_id` is a live FK, so the feed has to name
+/// depots that really exist locally.
 Dio scriptedRouteFeed({
-  required Future<List<String>> Function() customerIds,
+  required Future<List<String>> Function() depotIds,
   String territory = 'Phnom Penh',
   int stopsPerRoute = 3,
 }) {
   final dio = Dio(BaseOptions(baseUrl: 'https://routes.test'));
   dio.httpClientAdapter = _RouteFeedAdapter(
-    customerIds: customerIds,
+    depotIds: depotIds,
     territory: territory,
     stopsPerRoute: stopsPerRoute,
   );
@@ -35,19 +35,19 @@ Dio scriptedRouteFeed({
 
 class _RouteFeedAdapter implements HttpClientAdapter {
   _RouteFeedAdapter({
-    required this.customerIds,
+    required this.depotIds,
     required this.territory,
     required this.stopsPerRoute,
   });
 
-  final Future<List<String>> Function() customerIds;
+  final Future<List<String>> Function() depotIds;
   final String territory;
   final int stopsPerRoute;
 
   @override
   Future<ResponseBody> fetch(RequestOptions options, Stream<List<int>>? stream,
       Future<void>? cancelFuture) async {
-    final ids = await customerIds();
+    final ids = await depotIds();
 
     // Anchored to the UTC calendar day, matching `RouteDao.fetchRoutesForDay`.
     // A local-midnight date lands on the previous UTC day in Cambodia (UTC+7)
@@ -61,6 +61,7 @@ class _RouteFeedAdapter implements HttpClientAdapter {
 
     final body = {
       'data': {
+        // `customers`, not `depots` — see the note on the directory feed below.
         'customers': [
           for (final id in stopIds)
             {
@@ -121,28 +122,28 @@ class _RouteFeedAdapter implements HttpClientAdapter {
   void close({bool force = false}) {}
 }
 
-/// A feed that names customers the local directory does not have.
+/// A feed that names depots the local directory does not have.
 ///
-/// `RouteDriftLocalDataSource.upsertCustomers` only *updates* existing rows —
-/// the customer directory is SAP-owned and route sync may never invent one
-/// (ADR-001) — so the stops then violate the `route_stops.customer_id` FK and
+/// `RouteDriftLocalDataSource.upsertDepots` only *updates* existing rows —
+/// the depot directory is SAP-owned and route sync may never invent one
+/// (ADR-001) — so the stops then violate the `route_stops.depot_id` FK and
 /// the whole transaction aborts. That is the real shape of "routes arrived
 /// before the directory did", and it has to surface as a reported failure
 /// rather than an empty dashboard with no explanation.
 Dio unsatisfiableRouteFeed() =>
-    scriptedRouteFeed(customerIds: () async => ['ghost-customer']);
+    scriptedRouteFeed(depotIds: () async => ['ghost-depot']);
 
-/// A scripted customer feed for pipeline tests.
-Dio scriptedCustomerFeed({int customerCount = 6}) {
-  final dio = Dio(BaseOptions(baseUrl: 'https://customers.test'));
-  dio.httpClientAdapter = _CustomerFeedAdapter(customerCount: customerCount);
+/// A scripted depot feed for pipeline tests.
+Dio scriptedDepotFeed({int depotCount = 6}) {
+  final dio = Dio(BaseOptions(baseUrl: 'https://depots.test'));
+  dio.httpClientAdapter = _DepotFeedAdapter(depotCount: depotCount);
   return dio;
 }
 
-class _CustomerFeedAdapter implements HttpClientAdapter {
-  _CustomerFeedAdapter({this.customerCount = 6});
+class _DepotFeedAdapter implements HttpClientAdapter {
+  _DepotFeedAdapter({this.depotCount = 6});
 
-  final int customerCount;
+  final int depotCount;
 
   @override
   Future<ResponseBody> fetch(RequestOptions options, Stream<List<int>>? stream,
@@ -150,8 +151,12 @@ class _CustomerFeedAdapter implements HttpClientAdapter {
     final now = DateTime.now().toUtc().toIso8601String();
     final body = {
       'data': {
+        // SAP's nouns, deliberately. The route is /mobile/depots and every
+        // payload key underneath it is still `customer` (ADR-0007). This
+        // fixture exists to catch drift from the backend contract, so it has
+        // to spell the contract, not the Dart field names.
         'customers': [
-          for (var i = 1; i <= customerCount; i++)
+          for (var i = 1; i <= depotCount; i++)
             {
               'id': 'cust-$i',
               'sapCustomerId': 'SAP-$i',
@@ -173,7 +178,7 @@ class _CustomerFeedAdapter implements HttpClientAdapter {
       'message': null,
       'metadata': {
         'pageNumber': 1,
-        'pageSize': customerCount,
+        'pageSize': depotCount,
         'hasNextPage': false,
         'syncTimestamp': now,
       },

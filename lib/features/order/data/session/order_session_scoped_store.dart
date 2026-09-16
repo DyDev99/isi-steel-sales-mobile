@@ -4,7 +4,7 @@ import 'package:isi_steel_sales_mobile/features/order/domain/repositories/cart_r
 /// Drops the outgoing rep's working quotation on sign-out.
 ///
 /// The cart is a draft quotation keyed to whoever is signed in — it carries
-/// their customer/lead context and their pricing. Leaving it behind means the
+/// their depot/lead context and their pricing. Leaving it behind means the
 /// next rep on the same device opens Orders to someone else's half-built
 /// quotation and can save it under their own name.
 ///

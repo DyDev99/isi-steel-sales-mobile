@@ -30,16 +30,16 @@ import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 /// the `+`. A rep declined sales over data the server had never sent.
 ///
 /// The same was true of the price, and for the same reason — `Product.pricing`
-/// is a catalogue figure, not what this customer pays, so it rendered `$0.00`
+/// is a catalogue figure, not what this depot pays, so it rendered `$0.00`
 /// against orderable materials. **That figure is still never shown here.**
 ///
-/// What is shown now is the customer-specific price from the pricing endpoint,
+/// What is shown now is the depot-specific price from the pricing endpoint,
 /// passed in as [price] and resolved upstream by `PricingCubit`. It is a
-/// different thing: quoted per customer by the backend, carrying its own
+/// different thing: quoted per depot by the backend, carrying its own
 /// currency, and carrying its own states — so "loading", "no price" and "the
 /// request failed" stay distinguishable instead of collapsing into a figure.
 /// The card computes none of it, and [price] being null renders nothing at
-/// all, which is what keeps this card usable on screens with no customer.
+/// all, which is what keeps this card usable on screens with no depot.
 ///
 /// Neither stock nor price gates the `+`. Material selection stays independent
 /// of both: a rep may quote any catalogue material.
@@ -81,7 +81,7 @@ class ProductResultCard extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onCustomize;
 
-  /// What this customer earns on this material at the current quantity.
+  /// What this depot earns on this material at the current quantity.
   ///
   /// Null is the common case and renders nothing — an empty promotion strip on
   /// every unpromoted product would be permanent noise on the busiest screen
@@ -94,7 +94,7 @@ class ProductResultCard extends StatelessWidget {
 
   final VoidCallback? onPromotionTap;
 
-  /// What this customer pays for this material, as the backend last said it.
+  /// What this depot pays for this material, as the backend last said it.
   ///
   /// Null renders nothing — the resting state on any screen without a pricing
   /// context. Never derived from [Product.pricing]: see the class doc.
@@ -221,7 +221,9 @@ class ProductResultCard extends StatelessWidget {
                           // without hunting. Renders nothing when there is no
                           // pricing context, so the identity line simply
                           // moves up.
-                          if (price != null || manualPrice != null || onInputPrice != null) ...[
+                          if (price != null ||
+                              manualPrice != null ||
+                              onInputPrice != null) ...[
                             MaterialPriceView(
                               price: price,
                               manualPrice: manualPrice,

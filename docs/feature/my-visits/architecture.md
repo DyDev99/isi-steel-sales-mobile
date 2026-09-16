@@ -75,14 +75,14 @@ Everything else in the target chain already exists. The **single structural gap*
 
 ## 5. Design of the missing screen — Stop Information
 
-**Single responsibility:** review the selected customer *before* committing to check-in.
+**Single responsibility:** review the selected depot *before* committing to check-in.
 
 - **Data source:** the already-loaded `RouteStop` from `ActiveRouteBloc` (offline, instant — no new fetch).
-  Available fields: customer name, code, contact person, phone, address, territory, GPS, live distance
+  Available fields: depot name, code, contact person, phone, address, territory, GPS, live distance
   (computed from `LocationTrackingCubit` position). Fields the entity does **not** model (outstanding balance,
   last-visit date, per-stop notes/objectives) are intentionally **omitted, not fabricated** — added later when
   the read-model grows.
-- **Quick actions:** *View Customer Profile* → real (`CustomerDetailScreen`, already used by the resume registry);
+- **Quick actions:** *View Depot Profile* → real (`DepotDetailScreen`, already used by the resume registry);
   Call / Open Maps / Previous Orders / Previous Visits → the same graceful "coming soon" affordance the existing
   `RouteInfoQuickActions` already uses (no new dependency added — `url_launcher` is not in `pubspec`, and the
   playbook requires vetting a dep before adding it).

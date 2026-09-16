@@ -104,7 +104,7 @@ class CustomizationCubit extends Cubit<CustomizationState> {
       // Web: no app-private directory to copy into. `rawPath` is already a
       // blob URL that stays valid for the tab's lifetime, which is the right
       // scope under ADR-010 — returning it keeps the drawing usable for this
-      // session without persisting customer artwork into browser storage.
+      // session without persisting depot artwork into browser storage.
       if (targetFolder == null) return rawPath;
 
       return await copyCapturedFile(

@@ -148,7 +148,8 @@ class PromoMetaChip extends StatelessWidget {
                 alignment: PlaceholderAlignment.middle,
                 child: Padding(
                   padding: EdgeInsets.only(right: context.rw(5)),
-                  child: Icon(icon, size: context.rr(12), color: colors.iconMuted),
+                  child:
+                      Icon(icon, size: context.rr(12), color: colors.iconMuted),
                 ),
               ),
               TextSpan(
@@ -197,7 +198,8 @@ class PromoStatusChip extends StatelessWidget {
               alignment: PlaceholderAlignment.middle,
               child: Padding(
                 padding: EdgeInsets.only(right: context.rw(4)),
-                child: Icon(tone.icon, size: context.rr(12), color: tone.accent),
+                child:
+                    Icon(tone.icon, size: context.rr(12), color: tone.accent),
               ),
             ),
             TextSpan(

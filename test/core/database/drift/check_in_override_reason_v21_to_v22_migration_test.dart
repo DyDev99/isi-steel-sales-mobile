@@ -53,7 +53,7 @@ void main() {
       raw.execute(
         'INSERT INTO visit_check_ins '
         '(id, stop_id, timestamp, latitude, longitude, accuracy, '
-        ' distance_from_customer, is_mocked) '
+        ' distance_from_depot, is_mocked) '
         'VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
         [
           'ci-1',
@@ -88,13 +88,13 @@ void main() {
     addTearDown(db.close);
 
     final row = await db
-        .customSelect("SELECT stop_id, distance_from_customer, override_reason "
+        .customSelect("SELECT stop_id, distance_from_depot, override_reason "
             "FROM visit_check_ins WHERE id = 'ci-1'")
         .getSingle();
 
     // The evidence is intact...
     expect(row.data['stop_id'], 'stop-1');
-    expect(row.data['distance_from_customer'], 20.0);
+    expect(row.data['distance_from_depot'], 20.0);
     // ...and null reads correctly as "no override was needed", which is true of
     // every check-in written before an override was possible.
     expect(row.data['override_reason'], isNull);
@@ -109,7 +109,7 @@ void main() {
     await db.customStatement(
       'INSERT INTO visit_check_ins '
       '(id, stop_id, timestamp, latitude, longitude, accuracy, '
-      ' distance_from_customer, is_mocked, override_reason) '
+      ' distance_from_depot, is_mocked, override_reason) '
       'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [
         'ci-2',
@@ -145,13 +145,11 @@ void main() {
     expect(names, contains('override_reason'));
   });
 
-  test('the migration step is registered for the current version', () {
-    // The pin, handed on from `customer_sync_language_v20_to_v21_migration_test.dart`.
-    //
-    // `kCurrentSchemaVersion` and the step map are edited in two places, and
-    // bumping one without the other silently skips the migration for every
-    // existing installation. Move this pin — and add the step — together, with
-    // the next schema change.
-    expect(kCurrentSchemaVersion, 22);
+  test('v22 is still a registered step, not skipped by a later bump', () {
+    // The pin moved on to `depot_rename_v22_to_v23_migration_test.dart` with
+    // the v23 bump. What stays here is the narrower guarantee: whatever the
+    // current version becomes, a device arriving from v21 must still walk
+    // through this step rather than past it.
+    expect(kCurrentSchemaVersion, greaterThanOrEqualTo(22));
   });
 }

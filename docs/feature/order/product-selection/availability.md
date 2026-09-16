@@ -46,7 +46,7 @@ Every stock read prints one line in debug builds:
 
 A failure prints `FAILED status=… type=…`. This endpoint decides whether a rep
 may set a quantity, and when it is wrong the symptom on screen — "the plus
-button does nothing" — says nothing about why. The payload carries no customer,
+button does nothing" — says nothing about why. The payload carries no depot,
 no price and no PII, so it is safe to print in full.
 
 ## When it fires

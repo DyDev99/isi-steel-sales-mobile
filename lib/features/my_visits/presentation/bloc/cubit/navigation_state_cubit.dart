@@ -19,7 +19,7 @@ class NavigationStateData extends Equatable {
 
   /// The Shop/Depot id the active visit belongs to — the dedup key against
   /// Order-feature drafts.
-  String? get shopId => workflow?.customerId;
+  String? get shopId => workflow?.depotId;
   String? get shopName => workflow?.shopName;
 
   /// The Route Stop id the rep is checked into — the pointer used to deep-link

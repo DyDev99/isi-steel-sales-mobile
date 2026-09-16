@@ -84,7 +84,7 @@ class DeviceInsetsData {
   ///
   /// This is the inset [AppBottomSheet] uses internally. Reach for it
   /// directly only when a sheet is built by hand outside that wrapper — e.g.
-  /// [AddCustomerBottomSheet]'s multi-step form, which needs its own
+  /// [AddDepotBottomSheet]'s multi-step form, which needs its own
   /// `showModalBottomSheet` call and can't go through [AppBottomSheet].
   double sheetBottomInset({double extra = 0}) => keyboard + safeBottom + extra;
 

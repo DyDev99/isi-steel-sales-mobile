@@ -74,6 +74,8 @@ import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubi
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/depot_stock_count_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/visit_cubit.dart';
 import 'package:isi_steel_sales_mobile/core/camera/image_capture_service.dart';
+import 'package:isi_steel_sales_mobile/features/depots/domain/repositories/depot_stop_information_repository.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/stop_information_cubit.dart';
 
 /// Registers the route-management feature: GPS tracking, geofence
 /// check-in/out, offline visit capture, and the route sync engine.
@@ -182,6 +184,10 @@ Future<void> registerMyVisitsFeature(GetIt sl) async {
       () => CompleteVisitCheckOut(sl(), sl(), sl(), sl(), sl<AppLogger>()));
 
   // ── Presentation ────────────────────────────────────────────────────
+  // Reads the depots feature's domain interface, never its data layer.
+  sl.registerFactory(
+      () => StopInformationCubit(sl<DepotStopInformationRepository>()));
+
   sl.registerFactory(() => RouteDashboardCubit(watchAllRoutes: sl()));
   // Stop-centric dashboard: multi-day (calendar) stops sorted nearest-first by
   // live GPS, with a planned-order fallback when location is unavailable.
@@ -223,12 +229,12 @@ Future<void> registerMyVisitsFeature(GetIt sl) async {
         runInitialSync: sl(),
         runDeltaSync: sl(),
         getLastSyncedAt: sl(),
-        // Customer-directory guard (ADR-001 FK ordering): resolved lazily at
-        // cubit creation, so registration order vs. the customers feature
+        // Depot-directory guard (ADR-001 FK ordering): resolved lazily at
+        // cubit creation, so registration order vs. the depots feature
         // doesn't matter.
-        runCustomerInitialSync: sl(),
-        getCustomerLastSyncedAt: sl(),
-        browseCustomers: sl(),
+        runDepotInitialSync: sl(),
+        getDepotLastSyncedAt: sl(),
+        browseDepots: sl(),
         sessionManager: sl<SessionManager>(),
       ));
 
@@ -245,9 +251,9 @@ Future<void> registerMyVisitsFeature(GetIt sl) async {
   // ── Depot Stock flow ────────────────────────────────────────────────
   sl.registerLazySingleton(() => DepotSelectionStore(HiveService.cacheBox));
   sl.registerFactory(
-      () => DepotSelectionCubit(browseCustomers: sl(), store: sl()));
+      () => DepotSelectionCubit(browseDepots: sl(), store: sl()));
   sl.registerFactory(() => DepotStockCountCubit(
-        getCustomerById: sl(),
+        getDepotById: sl(),
         browseProducts: sl(),
         addStockUpdate: sl(),
         runInitialSync: sl(),

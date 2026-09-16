@@ -30,7 +30,7 @@ class CartItem extends Equatable {
     required this.unit,
     required this.discountPercent,
     this.leadId,
-    this.customerId,
+    this.depotId,
     this.priceTier = PriceTier.standard,
     this.unitPriceOverride,
     this.isManualPrice = false,
@@ -48,11 +48,11 @@ class CartItem extends Equatable {
   final String unit;
   final double discountPercent;
   final String? leadId;
-  final String? customerId;
+  final String? depotId;
 
   /// Which of the SKU's price tiers this line was quoted at. Defaulted to
   /// [PriceTier.standard] because that is what the app quoted before an outlet
-  /// tier existed — see the report's gaps section on `Customer.priceGroup`.
+  /// tier existed — see the report's gaps section on `Depot.priceGroup`.
   final PriceTier priceTier;
 
   /// The price actually agreed for this line, frozen at the moment it was
@@ -63,7 +63,7 @@ class CartItem extends Equatable {
   /// so rows written by an older build keep pricing the way they always did.
   ///
   /// Once set it is authoritative, and deliberately so: a quotation the rep
-  /// printed and handed to a customer must still say the same number tomorrow,
+  /// printed and handed to a depot must still say the same number tomorrow,
   /// even after SAP pushes a price delta into the `prices` table underneath it.
   final double? unitPriceOverride;
 
@@ -159,7 +159,7 @@ class CartItem extends Equatable {
       unit: unit ?? this.unit,
       discountPercent: discountPercent ?? this.discountPercent,
       leadId: leadId,
-      customerId: customerId,
+      depotId: depotId,
       priceTier: priceTier ?? this.priceTier,
       // Nullable-setter closures rather than plain optionals: clearing a price
       // snapshot back to "use the live catalog price" has to be expressible,
@@ -186,7 +186,7 @@ class CartItem extends Equatable {
         unit,
         discountPercent,
         leadId,
-        customerId,
+        depotId,
         priceTier,
         unitPriceOverride,
         isManualPrice,
@@ -208,7 +208,7 @@ extension CartPricing on Iterable<CartItem> {
   ///
   /// One pending line makes the **whole document** pending: a subtotal that
   /// silently omits a line is a smaller, wronger number than no subtotal at
-  /// all, and it is the one a customer would be shown.
+  /// all, and it is the one a depot would be shown.
   bool get hasPendingPricing => any((item) => item.isPricePending);
 
   /// The document total, or null while any line is pending.

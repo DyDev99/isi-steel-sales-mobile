@@ -6,7 +6,7 @@ import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/core/usecase/usecase.dart';
-import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer.dart';
+import 'package:isi_steel_sales_mobile/features/depots/domain/entities/depot.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/navigation/end_visit.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/credit_summary.dart';
@@ -53,8 +53,8 @@ import 'package:isi_steel_sales_mobile/shared/widgets/back_to_home.dart';
 class QuotationBuilderScreen extends StatefulWidget {
   const QuotationBuilderScreen({
     super.key,
-    this.customer,
-    this.customerId,
+    this.depot,
+    this.depotId,
     this.leadId,
     this.leadDisplayName,
     this.offVisitReason,
@@ -66,22 +66,22 @@ class QuotationBuilderScreen extends StatefulWidget {
 
   static const routeName = 'order-quotation-builder';
 
-  final Customer? customer;
+  final Depot? depot;
 
-  /// The customer this quotation is for, when only their id is known.
+  /// The depot this quotation is for, when only their id is known.
   ///
   /// Several entry points open the builder for a shop the rep has already
-  /// chosen — the customer card's "create quotation", the checked-in visit
+  /// chosen — the depot card's "create quotation", the checked-in visit
   /// flow, the Continue-Working resume — and have the id without having loaded
-  /// the whole [Customer]. They used to pass it as [leadId], which is the only
-  /// slot that existed, so everything scoped to the customer read null and
+  /// the whole [Depot]. They used to pass it as [leadId], which is the only
+  /// slot that existed, so everything scoped to the depot read null and
   /// behaved as though the rep were serving a walk-in.
   ///
-  /// **Read it through [customerContextId], never on its own.** It is
+  /// **Read it through [depotContextId], never on its own.** It is
   /// deliberately not wired into the cart or the saved quotation: those still
   /// key off [leadId] exactly as before, and changing that would rewrite how
   /// existing lines merge and how a quotation is filed.
-  final String? customerId;
+  final String? depotId;
 
   final String? leadId;
   final String? leadDisplayName;
@@ -97,16 +97,16 @@ class QuotationBuilderScreen extends StatefulWidget {
   /// Whose account this quotation is being built against, however the caller
   /// happened to supply it.
   ///
-  /// The one place anything customer-scoped — pricing, promotions — should ask.
+  /// The one place anything depot-scoped — pricing, promotions — should ask.
   /// Null means a genuine walk-in with no account, which is a real state and
   /// renders as such; it must not be conflated with "the caller only had the
-  /// id", which is what reading `customer?.id` alone did.
+  /// id", which is what reading `depot?.id` alone did.
   ///
   /// [leadId] is **not** a fallback here. A lead is an unregistered shop with
-  /// no SAP account, so sending its id to `/pricing/customers/{id}` would 404
-  /// and surface as "customer not found" — an error, where the honest answer is
+  /// no SAP account, so sending its id to `/pricing/depots/{id}` would 404
+  /// and surface as "depot not found" — an error, where the honest answer is
   /// that there is nobody to price for yet.
-  String? get customerContextId => customer?.id ?? customerId;
+  String? get depotContextId => depot?.id ?? depotId;
 
   @override
   State<QuotationBuilderScreen> createState() => _QuotationBuilderScreenState();
@@ -125,15 +125,16 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
   PickupLocation? _pickupLocation = PickupLocation.factory;
   DeliveryAddressOption? _deliveryOption;
   bool _isCod = false; // COD state defaulting to 'No'
-  bool _isTaxApplicable = true; // Tax state: Tax Invoice (10%) or Commercial Invoice (0%)
+  bool _isTaxApplicable =
+      true; // Tax state: Tax Invoice (10%) or Commercial Invoice (0%)
 
   final TextEditingController _newAddressController = TextEditingController();
   final TextEditingController _newPhoneController = TextEditingController();
 
   /// Owned here rather than looked up from `context`.
   late final StockCubit _stock = sl<StockCubit>();
-  late final PricingCubit _pricing =
-      sl<PricingCubit>()..setCustomer(widget.customerContextId);
+  late final PricingCubit _pricing = sl<PricingCubit>()
+    ..setDepot(widget.depotContextId);
   late final QuotationBuilderCubit _builderCubit = sl<QuotationBuilderCubit>();
 
   @override
@@ -143,21 +144,21 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
     context.read<SyncCubit>().syncIfNeeded();
     _loadFavorites();
 
-    if (widget.customerContextId != null) {
+    if (widget.depotContextId != null) {
       _builderCubit.initialize(
-        customerId: widget.customerContextId!,
+        depotId: widget.depotContextId!,
         existingQuotationId: widget.effectiveQuotationId,
         shipmentType:
             _shipmentMethod == ShipmentMethod.pickup ? 'Pickup' : 'Delivery',
         shipTo: _deliveryOption == DeliveryAddressOption.newAddress
             ? _newAddressController.text
-            : widget.customer?.address,
+            : widget.depot?.address,
       );
     }
 
-    if (widget.customer != null) {
+    if (widget.depot != null) {
       _summaryFuture = sl<GetCreditSummary>()(
-        GetCreditSummaryParams(widget.customer!.id),
+        GetCreditSummaryParams(widget.depot!.id),
       ).then(
         (result) => result.when(success: (s) => s, failure: (_) => null),
       );
@@ -194,7 +195,7 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
   CartLineBinding get _cartLines => CartLineBinding(
         cart: context.read<CartCubit>(),
         leadId: widget.leadId,
-        customerId: widget.customer?.id,
+        depotId: widget.depot?.id,
         priceResolver: (product) {
           final p = _pricing.state[product.materialNumber];
           if (p != null && p.hasAmount) return p.price;
@@ -255,7 +256,7 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
           child: CustomizedProductFormScreen(
             baseProduct: product,
             leadId: widget.leadId,
-            customerId: widget.customer?.id,
+            depotId: widget.depot?.id,
           ),
         ),
       ),
@@ -276,7 +277,7 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
   /// is not a reason a rep cannot quote.
   ///
   /// What still runs is the binding's own validation — credit limit, missing
-  /// customer — which is business logic this change does not touch.
+  /// depot — which is business logic this change does not touch.
   Future<void> _setLineQuantity(Product product, int quantity) async {
     // Still asked, still shown further down the flow — just not a gate. Held
     // for five minutes and deduplicated, so this costs nothing per tap.
@@ -285,12 +286,11 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
 
     final bState = _builderCubit.state;
     if (bState is QuotationBuilderReady) {
-      final existingLine = bState.quotation.lines
-          .cast<QuotationLineItem?>()
-          .firstWhere(
-            (l) => l?.materialNumber == product.materialNumber,
-            orElse: () => null,
-          );
+      final existingLine =
+          bState.quotation.lines.cast<QuotationLineItem?>().firstWhere(
+                (l) => l?.materialNumber == product.materialNumber,
+                orElse: () => null,
+              );
       if (quantity <= 0 && existingLine != null) {
         unawaited(_builderCubit.deleteLine(existingLine.id));
       } else if (existingLine != null) {
@@ -315,7 +315,7 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
     final verdict = await _cartLines.setQuantity(product, quantity);
     if (verdict.isValid || !mounted) return;
 
-    // Whatever else the binding rejects — a credit limit, a missing customer —
+    // Whatever else the binding rejects — a credit limit, a missing depot —
     // still gets said. What it no longer does is interpolate a stock figure
     // and a warehouse that were always going to come out blank.
     final key = verdict.messageKey;
@@ -348,8 +348,8 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
         ((subtotal - totalDiscount).clamp(0.0, double.infinity) + taxAmount);
 
     final quotation = await context.read<CartCubit>().saveQuotation(
-          customerId: widget.customer?.id,
-          shopName: widget.customer?.shopName,
+          depotId: widget.depot?.id,
+          shopName: widget.depot?.shopName,
           leadId: widget.leadId,
           leadDisplayName: widget.leadDisplayName,
           offVisitReason: widget.offVisitReason,
@@ -363,10 +363,9 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
         );
 
     if (!mounted) return;
-    final effectiveId = (bState is QuotationBuilderReady
-            ? bState.quotation.id
-            : null) ??
-        quotation?.id;
+    final effectiveId =
+        (bState is QuotationBuilderReady ? bState.quotation.id : null) ??
+            quotation?.id;
     if (effectiveId == null && quotation == null) {
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('orders.quotation_extra.save_failed'.tr)));
@@ -398,17 +397,16 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
         // belongs to the State so that `_setLineQuantity` can use it without a
         // context lookup that would search above this provider.
         BlocProvider<StockCubit>.value(value: _stock),
-        // Scoped to this quotation's customer. Entitlements are per account:
+        // Scoped to this quotation's depot. Entitlements are per account:
         // a negotiated deal for one shop must never surface against another,
         // and a walk-in sees only unscoped promotions.
         BlocProvider<PromotionCubit>(
-          create: (_) =>
-              sl<PromotionCubit>()..setCustomer(widget.customerContextId),
+          create: (_) => sl<PromotionCubit>()..setDepot(widget.depotContextId),
         ),
         // Same scoping, and for a stronger reason: SAP prices a material *for
-        // a customer*, so there is no such thing as this quotation's price
-        // without knowing whose it is. A walk-in has no customer id, and the
-        // cards say "select a customer" rather than showing a figure quoted
+        // a depot*, so there is no such thing as this quotation's price
+        // without knowing whose it is. A walk-in has no depot id, and the
+        // cards say "select a depot" rather than showing a figure quoted
         // for somebody else.
         BlocProvider<PricingCubit>.value(
           value: _pricing,
@@ -446,7 +444,7 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                 ),
                 Expanded(
                   child: Text(
-                    widget.customer?.shopName ??
+                    widget.depot?.shopName ??
                         widget.leadDisplayName ??
                         'orders.quotation.builder_title'.tr,
                     style: TextStyle(
@@ -474,7 +472,7 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   children: [
                     const SyncStatusBanner(),
-                    if (widget.customer != null && _summaryFuture != null)
+                    if (widget.depot != null && _summaryFuture != null)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 16),
                         child: FutureBuilder<CreditSummary?>(
@@ -482,14 +480,14 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                           builder: (_, snapshot) => snapshot.data == null
                               ? const SizedBox.shrink()
                               : CreditSummaryCard(
-                                  creditLimit: widget.customer!.creditLimit,
+                                  creditLimit: widget.depot!.creditLimit,
                                   summary: snapshot.data!,
                                 ),
                         ),
                       ),
                     GuidedProductFilterView(
                       sticky: false,
-                      customerId: widget.customer?.id,
+                      depotId: widget.depot?.id,
                       leadId: widget.leadId,
                       favoriteIds: _favoriteIds,
                       onToggleFavorite: _toggleFavorite,
@@ -515,7 +513,7 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                       deliveryOption: _deliveryOption,
                       isCod: _isCod,
                       isTaxApplicable: _isTaxApplicable,
-                      defaultAddress: widget.customer?.address,
+                      defaultAddress: widget.depot?.address,
                       newAddressController: _newAddressController,
                       newPhoneController: _newPhoneController,
                       onMethodChanged: (method) {
@@ -537,7 +535,7 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                           shipTo: _deliveryOption ==
                                   DeliveryAddressOption.newAddress
                               ? _newAddressController.text
-                              : widget.customer?.address,
+                              : widget.depot?.address,
                         ));
                       },
                       onPickupLocationChanged: (location) {
@@ -554,7 +552,7 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                             shipmentType: 'Delivery',
                             shipTo: option == DeliveryAddressOption.newAddress
                                 ? _newAddressController.text
-                                : widget.customer?.address,
+                                : widget.depot?.address,
                           ));
                         }
                       },
@@ -576,7 +574,7 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                     // Delivery must take it off the table rather than leave a
                     // rate on screen that the invoice will not honour.
                     PromotionSectionWidget(
-                      customerId: widget.customerContextId,
+                      depotId: widget.depotContextId,
                       terms: OrderTerms(
                         isPickup: _shipmentMethod == ShipmentMethod.pickup,
                       ),
@@ -587,9 +585,10 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                       builder: (context, builderState) {
                         return BlocBuilder<CartCubit, CartState>(
                           builder: (context, cartState) {
-                            final List<CartItem> cartItems = cartState is CartLoaded
-                                ? cartState.items
-                                : const <CartItem>[];
+                            final List<CartItem> cartItems =
+                                cartState is CartLoaded
+                                    ? cartState.items
+                                    : const <CartItem>[];
                             final int totalItemsCount = cartItems.length;
 
                             final bool hasServerPreview =
@@ -612,8 +611,8 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                                         : 0.0);
                             final double taxAmount = serverTotals?.tax ??
                                 (_isTaxApplicable
-                                    ? (subtotal - totalDiscount).clamp(
-                                            0.0, double.infinity) *
+                                    ? (subtotal - totalDiscount)
+                                            .clamp(0.0, double.infinity) *
                                         _taxRate
                                     : 0.0);
                             final double finalTotal = serverTotals?.net ??
@@ -632,10 +631,10 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                                 : const <QuotationWarning>[];
                             final agreements = hasServerPreview
                                 ? builderState.agreements
-                                : const <CustomerAgreement>[];
+                                : const <DepotAgreement>[];
 
                             final String displayShopName =
-                                widget.customer?.shopName ??
+                                widget.depot?.shopName ??
                                     widget.leadDisplayName ??
                                     'orders.quotation_extra.walk_in'.tr;
 
@@ -665,15 +664,16 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                                   maxDiscountPercent: maxLimit,
                                   agreements: agreements,
                                   suggestedChips: hasServerPreview
-                                      ? builderState.discountAuthority?.suggestedChips
+                                      ? builderState
+                                          .discountAuthority?.suggestedChips
                                       : null,
                                 );
                                 if (newPercent == null || !mounted) return;
 
                                 await cartCubit.updateDiscount(
-                                      item.id,
-                                      newPercent,
-                                    );
+                                  item.id,
+                                  newPercent,
+                                );
 
                                 if (hasServerPreview) {
                                   final line = builderState.quotation.lines
@@ -695,8 +695,8 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                                 }
                               },
                               onEditPrice: (item) async {
-                                final p = _pricing
-                                    .state[item.product.materialNumber];
+                                final p =
+                                    _pricing.state[item.product.materialNumber];
                                 if (p != null && p.hasAmount) return;
 
                                 final cartCubit = context.read<CartCubit>();
@@ -715,8 +715,8 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                                           item.product.materialNumber] = price;
                                     } else {
                                       _manualPrices.remove(item.product.id);
-                                      _manualPrices.remove(
-                                          item.product.materialNumber);
+                                      _manualPrices
+                                          .remove(item.product.materialNumber);
                                     }
                                   });
                                   await cartCubit.updateUnitPrice(
@@ -743,12 +743,12 @@ class _QuotationBuilderScreenState extends State<QuotationBuilderScreen> {
                                               isTaxApplicable: _isTaxApplicable,
                                               currency: currency,
                                               quotationNumber: hasServerPreview
-                                                  ? builderState.quotation.number
+                                                  ? builderState
+                                                      .quotation.number
                                                   : widget.effectiveQuotationId,
-                                              customerPhone:
-                                                  widget.customer?.phone,
-                                              customerAddress:
-                                                  widget.customer?.address,
+                                              depotPhone: widget.depot?.phone,
+                                              depotAddress:
+                                                  widget.depot?.address,
                                             ),
                                           ),
                                         ),

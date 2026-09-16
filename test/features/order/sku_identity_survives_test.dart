@@ -210,7 +210,7 @@ void main() {
               unitPrice: 9.10,
               fulfillment: shipment),
         ],
-        customerId: 'cust-1',
+        depotId: 'cust-1',
       ))
           .when(success: (q) => q, failure: (f) => throw StateError(f.message));
 
@@ -242,7 +242,7 @@ void main() {
           success: (q) => q!, failure: (f) => throw StateError(f.message));
 
       expect(reloaded.lines, hasLength(1),
-          reason: 'a document already shown to a customer cannot lose a line');
+          reason: 'a document already shown to a depot cannot lose a line');
 
       final line = reloaded.lines.single;
       expect(line.skuId, 'GI-030-WH-FAC');

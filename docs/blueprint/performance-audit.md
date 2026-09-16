@@ -34,10 +34,10 @@ Depot Stock → Select Depot → **Continue** → next screen shows no products,
 
 ### 1.2 The flow (traced)
 ```
-DepotSelectionScreen (customers load fine — selection works)
-  └─ Continue → DepotStockCountScreen(shopId: <customerId>)   [MaterialPageRoute, correct arg]
+DepotSelectionScreen (depots load fine — selection works)
+  └─ Continue → DepotStockCountScreen(shopId: <depotId>)   [MaterialPageRoute, correct arg]
        └─ DepotStockCountCubit.load(shopId)
-            ├─ GetCustomerById(shopId)            → shopName   (OK — customers exist)
+            ├─ GetDepotById(shopId)            → shopName   (OK — depots exist)
             └─ BrowseProducts(page:0, size:40)    → PagedResult<Product>
                  └─ ProductRepositoryImpl._browse → ProductDriftLocalDataSource.browse
                       └─ CatalogDao.browseProducts  → **local Products table**
@@ -58,7 +58,7 @@ defect is a **data-availability + offline-first-workflow** gap:
 ```
 load(shopId)
   → emit loading
-  → resolve customer (error state if missing)
+  → resolve depot (error state if missing)
   → READ LOCAL FIRST (instant, offline)
        • products present → loaded
        • local read failed (typed CacheFailure) → error + Retry
@@ -150,7 +150,7 @@ in one hit (janky first navigation).
 - **Whole-screen `BlocConsumer`/`BlocBuilder`** on some screens rebuild the entire body on any state change; the codebase mostly uses `buildWhen`/`BlocSelector` well (e.g. depot screen's bottom bar uses `buildWhen`), but a rebuild audit of the high-traffic screens (dashboard, pipeline board, catalog list) is warranted.
 - **Shader jank**: first run of each Material animation compiles its shader on-device (the classic "smooth in emulator, janky on first real-device animation"). Ship **SkSL warm-up** (`flutter run --profile --cache-sksl` capture → bundle) — the single highest-ROI real-device smoothness fix.
 - **Shadows/blur**: `BackdropFilter` (guest feature preview) and multi-layer `boxShadow` are expensive on mid-range Android; audit for over-draw.
-- **Images**: ensure `cacheWidth`/`cacheHeight` on product/customer thumbnails so full-res images aren't decoded into small boxes.
+- **Images**: ensure `cacheWidth`/`cacheHeight` on product/depot thumbnails so full-res images aren't decoded into small boxes.
 
 ### 4.2 Recommendation
 Run `flutter run --profile` + DevTools timeline on a real mid-range Android for: cold start, catalog scroll,
@@ -161,13 +161,13 @@ hypotheses to confirm with the timeline, not blind edits.
 
 ## 5. Offline-first validation (against `docs/blueprint/offline-architecture.md` §4)
 - Depot Stock now conforms: **read local → render → sync-on-empty → refresh** (§1 pattern). ✅
-- Customer/Catalog/Route/Visit read local-only via repositories (verified in the graph). ✅
+- Depot/Catalog/Route/Visit read local-only via repositories (verified in the graph). ✅
 - The **catalog seeding gap** (no offline seed; only online `runInitialSync`) is the systemic weakness — Depot Stock now works around it per-screen; the durable fix is a **bootstrap/first-run catalog hydration** so *every* catalog consumer benefits (roadmap, tied to the real `sap_client.dart`).
 
 ---
 
 ## 6. Incidental bug found — `cart_items.customization_json` migration 🐞
-`flutter test test/core/database/drift/customer_sap_schema_migration_test.dart` fails **in isolation and
+`flutter test test/core/database/drift/depot_sap_schema_migration_test.dart` fails **in isolation and
 without any of my changes**:
 ```
 SqliteException(1): duplicate column name: customization_json

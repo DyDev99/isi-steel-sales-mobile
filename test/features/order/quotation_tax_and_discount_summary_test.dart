@@ -102,7 +102,8 @@ void main() {
   });
 
   group('Tax Section in ShipmentSelectionWidget', () {
-    testWidgets('renders Tax section under COD with Tax Invoice and Commercial Invoice options',
+    testWidgets(
+        'renders Tax section under COD with Tax Invoice and Commercial Invoice options',
         (tester) async {
       bool? selectedTax;
 
@@ -141,7 +142,8 @@ void main() {
       expect(selectedTax, isTrue);
     });
 
-    testWidgets('shows active selection for Commercial Invoice when isTaxApplicable is false',
+    testWidgets(
+        'shows active selection for Commercial Invoice when isTaxApplicable is false',
         (tester) async {
       await tester.pumpWidget(_wrap(
         ShipmentSelectionWidget(
@@ -165,15 +167,28 @@ void main() {
   });
 
   group('DiscountSummarySection', () {
-    testWidgets('renders Invoice Discounts and SKU Discounts with separated free units',
+    testWidgets(
+        'renders Invoice Discounts and SKU Discounts with separated free units',
         (tester) async {
-      final p1 = _testProduct(id: 'p1', sku: 'SKU-001', name: 'Product A', price: 100);
-      final p2 = _testProduct(id: 'p2', sku: 'SKU-002', name: 'Product B', price: 50);
+      final p1 =
+          _testProduct(id: 'p1', sku: 'SKU-001', name: 'Product A', price: 100);
+      final p2 =
+          _testProduct(id: 'p2', sku: 'SKU-002', name: 'Product B', price: 50);
 
       // p1 has 3% discount (3% of $1000 = $30.00)
-      final item1 = _testCartItem(id: 'item1', product: p1, quantity: 10, discountPercent: 3, unitPrice: 100);
+      final item1 = _testCartItem(
+          id: 'item1',
+          product: p1,
+          quantity: 10,
+          discountPercent: 3,
+          unitPrice: 100);
       // p2 has 0% monetary discount, but 50 units might qualify for free goods promotion
-      final item2 = _testCartItem(id: 'item2', product: p2, quantity: 50, discountPercent: 0, unitPrice: 50);
+      final item2 = _testCartItem(
+          id: 'item2',
+          product: p2,
+          quantity: 50,
+          discountPercent: 0,
+          unitPrice: 50);
 
       final invoiceDiscounts = [
         const InvoiceDiscountItem(
@@ -217,9 +232,15 @@ void main() {
 
     testWidgets('displays None under sections when no discounts exist',
         (tester) async {
-      final p1 = _testProduct(id: 'p1', sku: 'SKU-001', name: 'Product A', price: 100);
+      final p1 =
+          _testProduct(id: 'p1', sku: 'SKU-001', name: 'Product A', price: 100);
       // No discount percent, small quantity below free goods rungs
-      final item1 = _testCartItem(id: 'item1', product: p1, quantity: 1, discountPercent: 0, unitPrice: 100);
+      final item1 = _testCartItem(
+          id: 'item1',
+          product: p1,
+          quantity: 1,
+          discountPercent: 0,
+          unitPrice: 100);
 
       await tester.pumpWidget(_wrap(
         DiscountSummarySection(
@@ -240,8 +261,14 @@ void main() {
 
   group('QuotationPreviewSection Tax Display', () {
     testWidgets('shows (10%) when isTaxApplicable is true', (tester) async {
-      final p1 = _testProduct(id: 'p1', sku: 'SKU-001', name: 'Product A', price: 100);
-      final item1 = _testCartItem(id: 'item1', product: p1, quantity: 1, discountPercent: 0, unitPrice: 100);
+      final p1 =
+          _testProduct(id: 'p1', sku: 'SKU-001', name: 'Product A', price: 100);
+      final item1 = _testCartItem(
+          id: 'item1',
+          product: p1,
+          quantity: 1,
+          discountPercent: 0,
+          unitPrice: 100);
 
       await tester.pumpWidget(_wrap(
         QuotationPreviewSection(
@@ -261,8 +288,14 @@ void main() {
 
     testWidgets('shows Exempt badge and 0 tax when isTaxApplicable is false',
         (tester) async {
-      final p1 = _testProduct(id: 'p1', sku: 'SKU-001', name: 'Product A', price: 100);
-      final item1 = _testCartItem(id: 'item1', product: p1, quantity: 1, discountPercent: 0, unitPrice: 100);
+      final p1 =
+          _testProduct(id: 'p1', sku: 'SKU-001', name: 'Product A', price: 100);
+      final item1 = _testCartItem(
+          id: 'item1',
+          product: p1,
+          quantity: 1,
+          discountPercent: 0,
+          unitPrice: 100);
 
       await tester.pumpWidget(_wrap(
         QuotationPreviewSection(
@@ -282,13 +315,20 @@ void main() {
   });
 
   group('QuotationPdfData mapping', () {
-    test('populates isTaxApplicable, invoiceDiscounts, and promotion lines', () {
-      final p1 = _testProduct(id: 'p1', sku: 'SKU-001', name: 'Product A', price: 100);
-      final item1 = _testCartItem(id: 'item1', product: p1, quantity: 10, discountPercent: 5, unitPrice: 100);
+    test('populates isTaxApplicable, invoiceDiscounts, and promotion lines',
+        () {
+      final p1 =
+          _testProduct(id: 'p1', sku: 'SKU-001', name: 'Product A', price: 100);
+      final item1 = _testCartItem(
+          id: 'item1',
+          product: p1,
+          quantity: 10,
+          discountPercent: 5,
+          unitPrice: 100);
 
       final pdfData = QuotationPdfData.fromCart(
         quotationNumber: 'QT-20260911-001',
-        customerName: 'Test Customer',
+        depotName: 'Test Depot',
         salesRepName: 'John Rep',
         createdDate: DateTime(2026, 9, 11),
         items: [item1],
@@ -311,23 +351,38 @@ void main() {
       expect(pdfData.lines.first.discountText, contains('5% / -\$50.00'));
     });
 
-    test('supports dedicated SKU Discount column data formatting and summary distinction', () {
+    test(
+        'supports dedicated SKU Discount column data formatting and summary distinction',
+        () {
       // Product A: 2 units @ $10.00, 3% discount -> $0.60 discount, amount $19.40
-      final p1 = _testProduct(id: 'p1', sku: 'SKU-001', name: 'Product A', price: 10.0);
-      final item1 = _testCartItem(id: 'item1', product: p1, quantity: 2, discountPercent: 3, unitPrice: 10.0);
+      final p1 = _testProduct(
+          id: 'p1', sku: 'SKU-001', name: 'Product A', price: 10.0);
+      final item1 = _testCartItem(
+          id: 'item1',
+          product: p1,
+          quantity: 2,
+          discountPercent: 3,
+          unitPrice: 10.0);
 
       // Product B: 1 unit @ $20.00, 0% monetary discount, amount $20.00
-      final p2 = _testProduct(id: 'p2', sku: 'SKU-002', name: 'Product B', price: 20.0);
-      final item2 = _testCartItem(id: 'item2', product: p2, quantity: 1, discountPercent: 0, unitPrice: 20.0);
+      final p2 = _testProduct(
+          id: 'p2', sku: 'SKU-002', name: 'Product B', price: 20.0);
+      final item2 = _testCartItem(
+          id: 'item2',
+          product: p2,
+          quantity: 1,
+          discountPercent: 0,
+          unitPrice: 20.0);
 
       final pdfData = QuotationPdfData.fromCart(
         quotationNumber: 'QT-20260911-002',
-        customerName: 'Customer Test',
+        depotName: 'Depot Test',
         salesRepName: 'Sales Rep',
         createdDate: DateTime(2026, 9, 11),
         items: [item1, item2],
         subtotal: 40.0,
-        discount: 2.60, // Total discount ($0.60 SKU discount + $2.00 invoice discount)
+        discount:
+            2.60, // Total discount ($0.60 SKU discount + $2.00 invoice discount)
         tax: 0,
         total: 37.40,
         isTaxApplicable: false,
@@ -360,8 +415,8 @@ void main() {
       expect(pdfData.subtotal, equals(40.0));
       expect(pdfData.skuDiscountTotal, equals(0.60));
       expect(pdfData.invoiceDiscountTotal, equals(2.00));
-      expect(pdfData.totalDiscount, equals(2.60)); // Total = SKU ($0.60) + Invoice ($2.00)
+      expect(pdfData.totalDiscount,
+          equals(2.60)); // Total = SKU ($0.60) + Invoice ($2.00)
     });
   });
 }
-

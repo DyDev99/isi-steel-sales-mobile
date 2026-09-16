@@ -231,30 +231,29 @@ class AppMetadataCompanion extends UpdateCompanion<AppMetadataData> {
   }
 }
 
-class $CustomersTable extends Customers
-    with TableInfo<$CustomersTable, Customer> {
+class $DepotsTable extends Depots with TableInfo<$DepotsTable, Depot> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $CustomersTable(this.attachedDatabase, [this._alias]);
+  $DepotsTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
       'id', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _sapCustomerIdMeta =
-      const VerificationMeta('sapCustomerId');
+  static const VerificationMeta _sapDepotIdMeta =
+      const VerificationMeta('sapDepotId');
   @override
-  late final GeneratedColumn<String> sapCustomerId = GeneratedColumn<String>(
-      'sap_customer_id', aliasedName, true,
+  late final GeneratedColumn<String> sapDepotId = GeneratedColumn<String>(
+      'sap_depot_id', aliasedName, true,
       type: DriftSqlType.string,
       requiredDuringInsert: false,
       defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'));
-  static const VerificationMeta _customerCodeMeta =
-      const VerificationMeta('customerCode');
+  static const VerificationMeta _depotCodeMeta =
+      const VerificationMeta('depotCode');
   @override
-  late final GeneratedColumn<String> customerCode = GeneratedColumn<String>(
-      'customer_code', aliasedName, false,
+  late final GeneratedColumn<String> depotCode = GeneratedColumn<String>(
+      'depot_code', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _shopNameMeta =
       const VerificationMeta('shopName');
@@ -431,11 +430,11 @@ class $CustomersTable extends Customers
   late final GeneratedColumn<String> distributionChannel =
       GeneratedColumn<String>('distribution_channel', aliasedName, true,
           type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _customerGroupMeta =
-      const VerificationMeta('customerGroup');
+  static const VerificationMeta _depotGroupMeta =
+      const VerificationMeta('depotGroup');
   @override
-  late final GeneratedColumn<String> customerGroup = GeneratedColumn<String>(
-      'customer_group', aliasedName, true,
+  late final GeneratedColumn<String> depotGroup = GeneratedColumn<String>(
+      'depot_group', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _priceGroupMeta =
       const VerificationMeta('priceGroup');
@@ -500,8 +499,8 @@ class $CustomersTable extends Customers
   @override
   List<GeneratedColumn> get $columns => [
         id,
-        sapCustomerId,
-        customerCode,
+        sapDepotId,
+        depotCode,
         shopName,
         ownerName,
         phone,
@@ -530,7 +529,7 @@ class $CustomersTable extends Customers
         salesOrg,
         division,
         distributionChannel,
-        customerGroup,
+        depotGroup,
         priceGroup,
         enName,
         khName,
@@ -545,9 +544,9 @@ class $CustomersTable extends Customers
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'customers';
+  static const String $name = 'depots';
   @override
-  VerificationContext validateIntegrity(Insertable<Customer> instance,
+  VerificationContext validateIntegrity(Insertable<Depot> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
@@ -556,19 +555,17 @@ class $CustomersTable extends Customers
     } else if (isInserting) {
       context.missing(_idMeta);
     }
-    if (data.containsKey('sap_customer_id')) {
+    if (data.containsKey('sap_depot_id')) {
       context.handle(
-          _sapCustomerIdMeta,
-          sapCustomerId.isAcceptableOrUnknown(
-              data['sap_customer_id']!, _sapCustomerIdMeta));
+          _sapDepotIdMeta,
+          sapDepotId.isAcceptableOrUnknown(
+              data['sap_depot_id']!, _sapDepotIdMeta));
     }
-    if (data.containsKey('customer_code')) {
-      context.handle(
-          _customerCodeMeta,
-          customerCode.isAcceptableOrUnknown(
-              data['customer_code']!, _customerCodeMeta));
+    if (data.containsKey('depot_code')) {
+      context.handle(_depotCodeMeta,
+          depotCode.isAcceptableOrUnknown(data['depot_code']!, _depotCodeMeta));
     } else if (isInserting) {
-      context.missing(_customerCodeMeta);
+      context.missing(_depotCodeMeta);
     }
     if (data.containsKey('shop_name')) {
       context.handle(_shopNameMeta,
@@ -734,11 +731,11 @@ class $CustomersTable extends Customers
           distributionChannel.isAcceptableOrUnknown(
               data['distribution_channel']!, _distributionChannelMeta));
     }
-    if (data.containsKey('customer_group')) {
+    if (data.containsKey('depot_group')) {
       context.handle(
-          _customerGroupMeta,
-          customerGroup.isAcceptableOrUnknown(
-              data['customer_group']!, _customerGroupMeta));
+          _depotGroupMeta,
+          depotGroup.isAcceptableOrUnknown(
+              data['depot_group']!, _depotGroupMeta));
     }
     if (data.containsKey('price_group')) {
       context.handle(
@@ -788,15 +785,15 @@ class $CustomersTable extends Customers
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  Customer map(Map<String, dynamic> data, {String? tablePrefix}) {
+  Depot map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return Customer(
+    return Depot(
       id: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
-      sapCustomerId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}sap_customer_id']),
-      customerCode: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}customer_code'])!,
+      sapDepotId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}sap_depot_id']),
+      depotCode: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}depot_code'])!,
       shopName: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}shop_name'])!,
       ownerName: attachedDatabase.typeMapping
@@ -854,8 +851,8 @@ class $CustomersTable extends Customers
           .read(DriftSqlType.string, data['${effectivePrefix}division']),
       distributionChannel: attachedDatabase.typeMapping.read(
           DriftSqlType.string, data['${effectivePrefix}distribution_channel']),
-      customerGroup: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}customer_group']),
+      depotGroup: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}depot_group']),
       priceGroup: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}price_group']),
       enName: attachedDatabase.typeMapping
@@ -878,20 +875,20 @@ class $CustomersTable extends Customers
   }
 
   @override
-  $CustomersTable createAlias(String alias) {
-    return $CustomersTable(attachedDatabase, alias);
+  $DepotsTable createAlias(String alias) {
+    return $DepotsTable(attachedDatabase, alias);
   }
 }
 
-class Customer extends DataClass implements Insertable<Customer> {
+class Depot extends DataClass implements Insertable<Depot> {
   final String id;
 
   /// Nullable *and* unique, deliberately: SQLite counts every NULL as
   /// distinct, so this reads as "at most one row per SAP id, and rows without
   /// one never conflict" — which is exactly the rule for field-created
-  /// customers awaiting approval.
-  final String? sapCustomerId;
-  final String customerCode;
+  /// depots awaiting approval.
+  final String? sapDepotId;
+  final String depotCode;
   final String shopName;
   final String ownerName;
   final String phone;
@@ -919,17 +916,17 @@ class Customer extends DataClass implements Insertable<Customer> {
   /// Urban / rural / etc. — drives visit-planning rules.
   final String? territoryType;
 
-  /// Per-customer geofence radius in metres, overriding the global policy when
+  /// Per-depot geofence radius in metres, overriding the global policy when
   /// a site is unusually large (a depot yard) or tight (a stall in a market).
   final double? geofenceRadiusOverride;
 
-  /// Sales area — the three fields SAP uses together to scope a customer.
+  /// Sales area — the three fields SAP uses together to scope a depot.
   final String? salesOrg;
   final String? division;
   final String? distributionChannel;
 
   /// Commercial classification.
-  final String? customerGroup;
+  final String? depotGroup;
   final String? priceGroup;
 
   /// Latin and Khmer legal names. `shopName` stays the display name; these are
@@ -958,10 +955,10 @@ class Customer extends DataClass implements Insertable<Customer> {
   /// `dirty` remain outstanding and belong with the sync-engine work rather
   /// than this feature change.
   final String syncState;
-  const Customer(
+  const Depot(
       {required this.id,
-      this.sapCustomerId,
-      required this.customerCode,
+      this.sapDepotId,
+      required this.depotCode,
       required this.shopName,
       required this.ownerName,
       required this.phone,
@@ -990,7 +987,7 @@ class Customer extends DataClass implements Insertable<Customer> {
       this.salesOrg,
       this.division,
       this.distributionChannel,
-      this.customerGroup,
+      this.depotGroup,
       this.priceGroup,
       this.enName,
       this.khName,
@@ -1004,10 +1001,10 @@ class Customer extends DataClass implements Insertable<Customer> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
-    if (!nullToAbsent || sapCustomerId != null) {
-      map['sap_customer_id'] = Variable<String>(sapCustomerId);
+    if (!nullToAbsent || sapDepotId != null) {
+      map['sap_depot_id'] = Variable<String>(sapDepotId);
     }
-    map['customer_code'] = Variable<String>(customerCode);
+    map['depot_code'] = Variable<String>(depotCode);
     map['shop_name'] = Variable<String>(shopName);
     map['owner_name'] = Variable<String>(ownerName);
     map['phone'] = Variable<String>(phone);
@@ -1057,8 +1054,8 @@ class Customer extends DataClass implements Insertable<Customer> {
     if (!nullToAbsent || distributionChannel != null) {
       map['distribution_channel'] = Variable<String>(distributionChannel);
     }
-    if (!nullToAbsent || customerGroup != null) {
-      map['customer_group'] = Variable<String>(customerGroup);
+    if (!nullToAbsent || depotGroup != null) {
+      map['depot_group'] = Variable<String>(depotGroup);
     }
     if (!nullToAbsent || priceGroup != null) {
       map['price_group'] = Variable<String>(priceGroup);
@@ -1082,13 +1079,13 @@ class Customer extends DataClass implements Insertable<Customer> {
     return map;
   }
 
-  CustomersCompanion toCompanion(bool nullToAbsent) {
-    return CustomersCompanion(
+  DepotsCompanion toCompanion(bool nullToAbsent) {
+    return DepotsCompanion(
       id: Value(id),
-      sapCustomerId: sapCustomerId == null && nullToAbsent
+      sapDepotId: sapDepotId == null && nullToAbsent
           ? const Value.absent()
-          : Value(sapCustomerId),
-      customerCode: Value(customerCode),
+          : Value(sapDepotId),
+      depotCode: Value(depotCode),
       shopName: Value(shopName),
       ownerName: Value(ownerName),
       phone: Value(phone),
@@ -1136,9 +1133,9 @@ class Customer extends DataClass implements Insertable<Customer> {
       distributionChannel: distributionChannel == null && nullToAbsent
           ? const Value.absent()
           : Value(distributionChannel),
-      customerGroup: customerGroup == null && nullToAbsent
+      depotGroup: depotGroup == null && nullToAbsent
           ? const Value.absent()
-          : Value(customerGroup),
+          : Value(depotGroup),
       priceGroup: priceGroup == null && nullToAbsent
           ? const Value.absent()
           : Value(priceGroup),
@@ -1159,13 +1156,13 @@ class Customer extends DataClass implements Insertable<Customer> {
     );
   }
 
-  factory Customer.fromJson(Map<String, dynamic> json,
+  factory Depot.fromJson(Map<String, dynamic> json,
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return Customer(
+    return Depot(
       id: serializer.fromJson<String>(json['id']),
-      sapCustomerId: serializer.fromJson<String?>(json['sapCustomerId']),
-      customerCode: serializer.fromJson<String>(json['customerCode']),
+      sapDepotId: serializer.fromJson<String?>(json['sapDepotId']),
+      depotCode: serializer.fromJson<String>(json['depotCode']),
       shopName: serializer.fromJson<String>(json['shopName']),
       ownerName: serializer.fromJson<String>(json['ownerName']),
       phone: serializer.fromJson<String>(json['phone']),
@@ -1197,7 +1194,7 @@ class Customer extends DataClass implements Insertable<Customer> {
       division: serializer.fromJson<String?>(json['division']),
       distributionChannel:
           serializer.fromJson<String?>(json['distributionChannel']),
-      customerGroup: serializer.fromJson<String?>(json['customerGroup']),
+      depotGroup: serializer.fromJson<String?>(json['depotGroup']),
       priceGroup: serializer.fromJson<String?>(json['priceGroup']),
       enName: serializer.fromJson<String?>(json['enName']),
       khName: serializer.fromJson<String?>(json['khName']),
@@ -1214,8 +1211,8 @@ class Customer extends DataClass implements Insertable<Customer> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
-      'sapCustomerId': serializer.toJson<String?>(sapCustomerId),
-      'customerCode': serializer.toJson<String>(customerCode),
+      'sapDepotId': serializer.toJson<String?>(sapDepotId),
+      'depotCode': serializer.toJson<String>(depotCode),
       'shopName': serializer.toJson<String>(shopName),
       'ownerName': serializer.toJson<String>(ownerName),
       'phone': serializer.toJson<String>(phone),
@@ -1245,7 +1242,7 @@ class Customer extends DataClass implements Insertable<Customer> {
       'salesOrg': serializer.toJson<String?>(salesOrg),
       'division': serializer.toJson<String?>(division),
       'distributionChannel': serializer.toJson<String?>(distributionChannel),
-      'customerGroup': serializer.toJson<String?>(customerGroup),
+      'depotGroup': serializer.toJson<String?>(depotGroup),
       'priceGroup': serializer.toJson<String?>(priceGroup),
       'enName': serializer.toJson<String?>(enName),
       'khName': serializer.toJson<String?>(khName),
@@ -1258,10 +1255,10 @@ class Customer extends DataClass implements Insertable<Customer> {
     };
   }
 
-  Customer copyWith(
+  Depot copyWith(
           {String? id,
-          Value<String?> sapCustomerId = const Value.absent(),
-          String? customerCode,
+          Value<String?> sapDepotId = const Value.absent(),
+          String? depotCode,
           String? shopName,
           String? ownerName,
           String? phone,
@@ -1290,7 +1287,7 @@ class Customer extends DataClass implements Insertable<Customer> {
           Value<String?> salesOrg = const Value.absent(),
           Value<String?> division = const Value.absent(),
           Value<String?> distributionChannel = const Value.absent(),
-          Value<String?> customerGroup = const Value.absent(),
+          Value<String?> depotGroup = const Value.absent(),
           Value<String?> priceGroup = const Value.absent(),
           Value<String?> enName = const Value.absent(),
           Value<String?> khName = const Value.absent(),
@@ -1300,11 +1297,10 @@ class Customer extends DataClass implements Insertable<Customer> {
           int? totalOrders,
           Value<DateTime?> createdAt = const Value.absent(),
           String? syncState}) =>
-      Customer(
+      Depot(
         id: id ?? this.id,
-        sapCustomerId:
-            sapCustomerId.present ? sapCustomerId.value : this.sapCustomerId,
-        customerCode: customerCode ?? this.customerCode,
+        sapDepotId: sapDepotId.present ? sapDepotId.value : this.sapDepotId,
+        depotCode: depotCode ?? this.depotCode,
         shopName: shopName ?? this.shopName,
         ownerName: ownerName ?? this.ownerName,
         phone: phone ?? this.phone,
@@ -1341,8 +1337,7 @@ class Customer extends DataClass implements Insertable<Customer> {
         distributionChannel: distributionChannel.present
             ? distributionChannel.value
             : this.distributionChannel,
-        customerGroup:
-            customerGroup.present ? customerGroup.value : this.customerGroup,
+        depotGroup: depotGroup.present ? depotGroup.value : this.depotGroup,
         priceGroup: priceGroup.present ? priceGroup.value : this.priceGroup,
         enName: enName.present ? enName.value : this.enName,
         khName: khName.present ? khName.value : this.khName,
@@ -1353,15 +1348,12 @@ class Customer extends DataClass implements Insertable<Customer> {
         createdAt: createdAt.present ? createdAt.value : this.createdAt,
         syncState: syncState ?? this.syncState,
       );
-  Customer copyWithCompanion(CustomersCompanion data) {
-    return Customer(
+  Depot copyWithCompanion(DepotsCompanion data) {
+    return Depot(
       id: data.id.present ? data.id.value : this.id,
-      sapCustomerId: data.sapCustomerId.present
-          ? data.sapCustomerId.value
-          : this.sapCustomerId,
-      customerCode: data.customerCode.present
-          ? data.customerCode.value
-          : this.customerCode,
+      sapDepotId:
+          data.sapDepotId.present ? data.sapDepotId.value : this.sapDepotId,
+      depotCode: data.depotCode.present ? data.depotCode.value : this.depotCode,
       shopName: data.shopName.present ? data.shopName.value : this.shopName,
       ownerName: data.ownerName.present ? data.ownerName.value : this.ownerName,
       phone: data.phone.present ? data.phone.value : this.phone,
@@ -1413,9 +1405,8 @@ class Customer extends DataClass implements Insertable<Customer> {
       distributionChannel: data.distributionChannel.present
           ? data.distributionChannel.value
           : this.distributionChannel,
-      customerGroup: data.customerGroup.present
-          ? data.customerGroup.value
-          : this.customerGroup,
+      depotGroup:
+          data.depotGroup.present ? data.depotGroup.value : this.depotGroup,
       priceGroup:
           data.priceGroup.present ? data.priceGroup.value : this.priceGroup,
       enName: data.enName.present ? data.enName.value : this.enName,
@@ -1434,10 +1425,10 @@ class Customer extends DataClass implements Insertable<Customer> {
 
   @override
   String toString() {
-    return (StringBuffer('Customer(')
+    return (StringBuffer('Depot(')
           ..write('id: $id, ')
-          ..write('sapCustomerId: $sapCustomerId, ')
-          ..write('customerCode: $customerCode, ')
+          ..write('sapDepotId: $sapDepotId, ')
+          ..write('depotCode: $depotCode, ')
           ..write('shopName: $shopName, ')
           ..write('ownerName: $ownerName, ')
           ..write('phone: $phone, ')
@@ -1466,7 +1457,7 @@ class Customer extends DataClass implements Insertable<Customer> {
           ..write('salesOrg: $salesOrg, ')
           ..write('division: $division, ')
           ..write('distributionChannel: $distributionChannel, ')
-          ..write('customerGroup: $customerGroup, ')
+          ..write('depotGroup: $depotGroup, ')
           ..write('priceGroup: $priceGroup, ')
           ..write('enName: $enName, ')
           ..write('khName: $khName, ')
@@ -1483,8 +1474,8 @@ class Customer extends DataClass implements Insertable<Customer> {
   @override
   int get hashCode => Object.hashAll([
         id,
-        sapCustomerId,
-        customerCode,
+        sapDepotId,
+        depotCode,
         shopName,
         ownerName,
         phone,
@@ -1513,7 +1504,7 @@ class Customer extends DataClass implements Insertable<Customer> {
         salesOrg,
         division,
         distributionChannel,
-        customerGroup,
+        depotGroup,
         priceGroup,
         enName,
         khName,
@@ -1527,10 +1518,10 @@ class Customer extends DataClass implements Insertable<Customer> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is Customer &&
+      (other is Depot &&
           other.id == this.id &&
-          other.sapCustomerId == this.sapCustomerId &&
-          other.customerCode == this.customerCode &&
+          other.sapDepotId == this.sapDepotId &&
+          other.depotCode == this.depotCode &&
           other.shopName == this.shopName &&
           other.ownerName == this.ownerName &&
           other.phone == this.phone &&
@@ -1559,7 +1550,7 @@ class Customer extends DataClass implements Insertable<Customer> {
           other.salesOrg == this.salesOrg &&
           other.division == this.division &&
           other.distributionChannel == this.distributionChannel &&
-          other.customerGroup == this.customerGroup &&
+          other.depotGroup == this.depotGroup &&
           other.priceGroup == this.priceGroup &&
           other.enName == this.enName &&
           other.khName == this.khName &&
@@ -1571,10 +1562,10 @@ class Customer extends DataClass implements Insertable<Customer> {
           other.syncState == this.syncState);
 }
 
-class CustomersCompanion extends UpdateCompanion<Customer> {
+class DepotsCompanion extends UpdateCompanion<Depot> {
   final Value<String> id;
-  final Value<String?> sapCustomerId;
-  final Value<String> customerCode;
+  final Value<String?> sapDepotId;
+  final Value<String> depotCode;
   final Value<String> shopName;
   final Value<String> ownerName;
   final Value<String> phone;
@@ -1603,7 +1594,7 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
   final Value<String?> salesOrg;
   final Value<String?> division;
   final Value<String?> distributionChannel;
-  final Value<String?> customerGroup;
+  final Value<String?> depotGroup;
   final Value<String?> priceGroup;
   final Value<String?> enName;
   final Value<String?> khName;
@@ -1614,10 +1605,10 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
   final Value<DateTime?> createdAt;
   final Value<String> syncState;
   final Value<int> rowid;
-  const CustomersCompanion({
+  const DepotsCompanion({
     this.id = const Value.absent(),
-    this.sapCustomerId = const Value.absent(),
-    this.customerCode = const Value.absent(),
+    this.sapDepotId = const Value.absent(),
+    this.depotCode = const Value.absent(),
     this.shopName = const Value.absent(),
     this.ownerName = const Value.absent(),
     this.phone = const Value.absent(),
@@ -1646,7 +1637,7 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
     this.salesOrg = const Value.absent(),
     this.division = const Value.absent(),
     this.distributionChannel = const Value.absent(),
-    this.customerGroup = const Value.absent(),
+    this.depotGroup = const Value.absent(),
     this.priceGroup = const Value.absent(),
     this.enName = const Value.absent(),
     this.khName = const Value.absent(),
@@ -1658,10 +1649,10 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
     this.syncState = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  CustomersCompanion.insert({
+  DepotsCompanion.insert({
     required String id,
-    this.sapCustomerId = const Value.absent(),
-    required String customerCode,
+    this.sapDepotId = const Value.absent(),
+    required String depotCode,
     required String shopName,
     required String ownerName,
     required String phone,
@@ -1690,7 +1681,7 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
     this.salesOrg = const Value.absent(),
     this.division = const Value.absent(),
     this.distributionChannel = const Value.absent(),
-    this.customerGroup = const Value.absent(),
+    this.depotGroup = const Value.absent(),
     this.priceGroup = const Value.absent(),
     this.enName = const Value.absent(),
     this.khName = const Value.absent(),
@@ -1702,7 +1693,7 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
     this.syncState = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
-        customerCode = Value(customerCode),
+        depotCode = Value(depotCode),
         shopName = Value(shopName),
         ownerName = Value(ownerName),
         phone = Value(phone),
@@ -1717,10 +1708,10 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
         assignedRepId = Value(assignedRepId),
         assignedRepName = Value(assignedRepName),
         updatedAt = Value(updatedAt);
-  static Insertable<Customer> custom({
+  static Insertable<Depot> custom({
     Expression<String>? id,
-    Expression<String>? sapCustomerId,
-    Expression<String>? customerCode,
+    Expression<String>? sapDepotId,
+    Expression<String>? depotCode,
     Expression<String>? shopName,
     Expression<String>? ownerName,
     Expression<String>? phone,
@@ -1749,7 +1740,7 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
     Expression<String>? salesOrg,
     Expression<String>? division,
     Expression<String>? distributionChannel,
-    Expression<String>? customerGroup,
+    Expression<String>? depotGroup,
     Expression<String>? priceGroup,
     Expression<String>? enName,
     Expression<String>? khName,
@@ -1763,8 +1754,8 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
-      if (sapCustomerId != null) 'sap_customer_id': sapCustomerId,
-      if (customerCode != null) 'customer_code': customerCode,
+      if (sapDepotId != null) 'sap_depot_id': sapDepotId,
+      if (depotCode != null) 'depot_code': depotCode,
       if (shopName != null) 'shop_name': shopName,
       if (ownerName != null) 'owner_name': ownerName,
       if (phone != null) 'phone': phone,
@@ -1796,7 +1787,7 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
       if (division != null) 'division': division,
       if (distributionChannel != null)
         'distribution_channel': distributionChannel,
-      if (customerGroup != null) 'customer_group': customerGroup,
+      if (depotGroup != null) 'depot_group': depotGroup,
       if (priceGroup != null) 'price_group': priceGroup,
       if (enName != null) 'en_name': enName,
       if (khName != null) 'kh_name': khName,
@@ -1810,10 +1801,10 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
     });
   }
 
-  CustomersCompanion copyWith(
+  DepotsCompanion copyWith(
       {Value<String>? id,
-      Value<String?>? sapCustomerId,
-      Value<String>? customerCode,
+      Value<String?>? sapDepotId,
+      Value<String>? depotCode,
       Value<String>? shopName,
       Value<String>? ownerName,
       Value<String>? phone,
@@ -1842,7 +1833,7 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
       Value<String?>? salesOrg,
       Value<String?>? division,
       Value<String?>? distributionChannel,
-      Value<String?>? customerGroup,
+      Value<String?>? depotGroup,
       Value<String?>? priceGroup,
       Value<String?>? enName,
       Value<String?>? khName,
@@ -1853,10 +1844,10 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
       Value<DateTime?>? createdAt,
       Value<String>? syncState,
       Value<int>? rowid}) {
-    return CustomersCompanion(
+    return DepotsCompanion(
       id: id ?? this.id,
-      sapCustomerId: sapCustomerId ?? this.sapCustomerId,
-      customerCode: customerCode ?? this.customerCode,
+      sapDepotId: sapDepotId ?? this.sapDepotId,
+      depotCode: depotCode ?? this.depotCode,
       shopName: shopName ?? this.shopName,
       ownerName: ownerName ?? this.ownerName,
       phone: phone ?? this.phone,
@@ -1886,7 +1877,7 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
       salesOrg: salesOrg ?? this.salesOrg,
       division: division ?? this.division,
       distributionChannel: distributionChannel ?? this.distributionChannel,
-      customerGroup: customerGroup ?? this.customerGroup,
+      depotGroup: depotGroup ?? this.depotGroup,
       priceGroup: priceGroup ?? this.priceGroup,
       enName: enName ?? this.enName,
       khName: khName ?? this.khName,
@@ -1906,11 +1897,11 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
     if (id.present) {
       map['id'] = Variable<String>(id.value);
     }
-    if (sapCustomerId.present) {
-      map['sap_customer_id'] = Variable<String>(sapCustomerId.value);
+    if (sapDepotId.present) {
+      map['sap_depot_id'] = Variable<String>(sapDepotId.value);
     }
-    if (customerCode.present) {
-      map['customer_code'] = Variable<String>(customerCode.value);
+    if (depotCode.present) {
+      map['depot_code'] = Variable<String>(depotCode.value);
     }
     if (shopName.present) {
       map['shop_name'] = Variable<String>(shopName.value);
@@ -1997,8 +1988,8 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
     if (distributionChannel.present) {
       map['distribution_channel'] = Variable<String>(distributionChannel.value);
     }
-    if (customerGroup.present) {
-      map['customer_group'] = Variable<String>(customerGroup.value);
+    if (depotGroup.present) {
+      map['depot_group'] = Variable<String>(depotGroup.value);
     }
     if (priceGroup.present) {
       map['price_group'] = Variable<String>(priceGroup.value);
@@ -2035,10 +2026,10 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
 
   @override
   String toString() {
-    return (StringBuffer('CustomersCompanion(')
+    return (StringBuffer('DepotsCompanion(')
           ..write('id: $id, ')
-          ..write('sapCustomerId: $sapCustomerId, ')
-          ..write('customerCode: $customerCode, ')
+          ..write('sapDepotId: $sapDepotId, ')
+          ..write('depotCode: $depotCode, ')
           ..write('shopName: $shopName, ')
           ..write('ownerName: $ownerName, ')
           ..write('phone: $phone, ')
@@ -2067,7 +2058,7 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
           ..write('salesOrg: $salesOrg, ')
           ..write('division: $division, ')
           ..write('distributionChannel: $distributionChannel, ')
-          ..write('customerGroup: $customerGroup, ')
+          ..write('depotGroup: $depotGroup, ')
           ..write('priceGroup: $priceGroup, ')
           ..write('enName: $enName, ')
           ..write('khName: $khName, ')
@@ -2083,22 +2074,22 @@ class CustomersCompanion extends UpdateCompanion<Customer> {
   }
 }
 
-class $CustomerContactsTable extends CustomerContacts
-    with TableInfo<$CustomerContactsTable, CustomerContact> {
+class $DepotContactsTable extends DepotContacts
+    with TableInfo<$DepotContactsTable, DepotContact> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $CustomerContactsTable(this.attachedDatabase, [this._alias]);
+  $DepotContactsTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
       'id', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _customerIdMeta =
-      const VerificationMeta('customerId');
+  static const VerificationMeta _depotIdMeta =
+      const VerificationMeta('depotId');
   @override
-  late final GeneratedColumn<String> customerId = GeneratedColumn<String>(
-      'customer_id', aliasedName, false,
+  late final GeneratedColumn<String> depotId = GeneratedColumn<String>(
+      'depot_id', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   @override
@@ -2121,15 +2112,14 @@ class $CustomerContactsTable extends CustomerContacts
       'email', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, customerId, name, role, phone, email];
+  List<GeneratedColumn> get $columns => [id, depotId, name, role, phone, email];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'customer_contacts';
+  static const String $name = 'depot_contacts';
   @override
-  VerificationContext validateIntegrity(Insertable<CustomerContact> instance,
+  VerificationContext validateIntegrity(Insertable<DepotContact> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
@@ -2138,13 +2128,11 @@ class $CustomerContactsTable extends CustomerContacts
     } else if (isInserting) {
       context.missing(_idMeta);
     }
-    if (data.containsKey('customer_id')) {
-      context.handle(
-          _customerIdMeta,
-          customerId.isAcceptableOrUnknown(
-              data['customer_id']!, _customerIdMeta));
+    if (data.containsKey('depot_id')) {
+      context.handle(_depotIdMeta,
+          depotId.isAcceptableOrUnknown(data['depot_id']!, _depotIdMeta));
     } else if (isInserting) {
-      context.missing(_customerIdMeta);
+      context.missing(_depotIdMeta);
     }
     if (data.containsKey('name')) {
       context.handle(
@@ -2174,13 +2162,13 @@ class $CustomerContactsTable extends CustomerContacts
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  CustomerContact map(Map<String, dynamic> data, {String? tablePrefix}) {
+  DepotContact map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return CustomerContact(
+    return DepotContact(
       id: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
-      customerId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}customer_id'])!,
+      depotId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}depot_id'])!,
       name: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
       role: attachedDatabase.typeMapping
@@ -2193,21 +2181,21 @@ class $CustomerContactsTable extends CustomerContacts
   }
 
   @override
-  $CustomerContactsTable createAlias(String alias) {
-    return $CustomerContactsTable(attachedDatabase, alias);
+  $DepotContactsTable createAlias(String alias) {
+    return $DepotContactsTable(attachedDatabase, alias);
   }
 }
 
-class CustomerContact extends DataClass implements Insertable<CustomerContact> {
+class DepotContact extends DataClass implements Insertable<DepotContact> {
   final String id;
-  final String customerId;
+  final String depotId;
   final String name;
   final String role;
   final String phone;
   final String? email;
-  const CustomerContact(
+  const DepotContact(
       {required this.id,
-      required this.customerId,
+      required this.depotId,
       required this.name,
       required this.role,
       required this.phone,
@@ -2216,7 +2204,7 @@ class CustomerContact extends DataClass implements Insertable<CustomerContact> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
-    map['customer_id'] = Variable<String>(customerId);
+    map['depot_id'] = Variable<String>(depotId);
     map['name'] = Variable<String>(name);
     map['role'] = Variable<String>(role);
     map['phone'] = Variable<String>(phone);
@@ -2226,10 +2214,10 @@ class CustomerContact extends DataClass implements Insertable<CustomerContact> {
     return map;
   }
 
-  CustomerContactsCompanion toCompanion(bool nullToAbsent) {
-    return CustomerContactsCompanion(
+  DepotContactsCompanion toCompanion(bool nullToAbsent) {
+    return DepotContactsCompanion(
       id: Value(id),
-      customerId: Value(customerId),
+      depotId: Value(depotId),
       name: Value(name),
       role: Value(role),
       phone: Value(phone),
@@ -2238,12 +2226,12 @@ class CustomerContact extends DataClass implements Insertable<CustomerContact> {
     );
   }
 
-  factory CustomerContact.fromJson(Map<String, dynamic> json,
+  factory DepotContact.fromJson(Map<String, dynamic> json,
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return CustomerContact(
+    return DepotContact(
       id: serializer.fromJson<String>(json['id']),
-      customerId: serializer.fromJson<String>(json['customerId']),
+      depotId: serializer.fromJson<String>(json['depotId']),
       name: serializer.fromJson<String>(json['name']),
       role: serializer.fromJson<String>(json['role']),
       phone: serializer.fromJson<String>(json['phone']),
@@ -2255,7 +2243,7 @@ class CustomerContact extends DataClass implements Insertable<CustomerContact> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
-      'customerId': serializer.toJson<String>(customerId),
+      'depotId': serializer.toJson<String>(depotId),
       'name': serializer.toJson<String>(name),
       'role': serializer.toJson<String>(role),
       'phone': serializer.toJson<String>(phone),
@@ -2263,26 +2251,25 @@ class CustomerContact extends DataClass implements Insertable<CustomerContact> {
     };
   }
 
-  CustomerContact copyWith(
+  DepotContact copyWith(
           {String? id,
-          String? customerId,
+          String? depotId,
           String? name,
           String? role,
           String? phone,
           Value<String?> email = const Value.absent()}) =>
-      CustomerContact(
+      DepotContact(
         id: id ?? this.id,
-        customerId: customerId ?? this.customerId,
+        depotId: depotId ?? this.depotId,
         name: name ?? this.name,
         role: role ?? this.role,
         phone: phone ?? this.phone,
         email: email.present ? email.value : this.email,
       );
-  CustomerContact copyWithCompanion(CustomerContactsCompanion data) {
-    return CustomerContact(
+  DepotContact copyWithCompanion(DepotContactsCompanion data) {
+    return DepotContact(
       id: data.id.present ? data.id.value : this.id,
-      customerId:
-          data.customerId.present ? data.customerId.value : this.customerId,
+      depotId: data.depotId.present ? data.depotId.value : this.depotId,
       name: data.name.present ? data.name.value : this.name,
       role: data.role.present ? data.role.value : this.role,
       phone: data.phone.present ? data.phone.value : this.phone,
@@ -2292,9 +2279,9 @@ class CustomerContact extends DataClass implements Insertable<CustomerContact> {
 
   @override
   String toString() {
-    return (StringBuffer('CustomerContact(')
+    return (StringBuffer('DepotContact(')
           ..write('id: $id, ')
-          ..write('customerId: $customerId, ')
+          ..write('depotId: $depotId, ')
           ..write('name: $name, ')
           ..write('role: $role, ')
           ..write('phone: $phone, ')
@@ -2304,52 +2291,52 @@ class CustomerContact extends DataClass implements Insertable<CustomerContact> {
   }
 
   @override
-  int get hashCode => Object.hash(id, customerId, name, role, phone, email);
+  int get hashCode => Object.hash(id, depotId, name, role, phone, email);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is CustomerContact &&
+      (other is DepotContact &&
           other.id == this.id &&
-          other.customerId == this.customerId &&
+          other.depotId == this.depotId &&
           other.name == this.name &&
           other.role == this.role &&
           other.phone == this.phone &&
           other.email == this.email);
 }
 
-class CustomerContactsCompanion extends UpdateCompanion<CustomerContact> {
+class DepotContactsCompanion extends UpdateCompanion<DepotContact> {
   final Value<String> id;
-  final Value<String> customerId;
+  final Value<String> depotId;
   final Value<String> name;
   final Value<String> role;
   final Value<String> phone;
   final Value<String?> email;
   final Value<int> rowid;
-  const CustomerContactsCompanion({
+  const DepotContactsCompanion({
     this.id = const Value.absent(),
-    this.customerId = const Value.absent(),
+    this.depotId = const Value.absent(),
     this.name = const Value.absent(),
     this.role = const Value.absent(),
     this.phone = const Value.absent(),
     this.email = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  CustomerContactsCompanion.insert({
+  DepotContactsCompanion.insert({
     required String id,
-    required String customerId,
+    required String depotId,
     required String name,
     required String role,
     required String phone,
     this.email = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
-        customerId = Value(customerId),
+        depotId = Value(depotId),
         name = Value(name),
         role = Value(role),
         phone = Value(phone);
-  static Insertable<CustomerContact> custom({
+  static Insertable<DepotContact> custom({
     Expression<String>? id,
-    Expression<String>? customerId,
+    Expression<String>? depotId,
     Expression<String>? name,
     Expression<String>? role,
     Expression<String>? phone,
@@ -2358,7 +2345,7 @@ class CustomerContactsCompanion extends UpdateCompanion<CustomerContact> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
-      if (customerId != null) 'customer_id': customerId,
+      if (depotId != null) 'depot_id': depotId,
       if (name != null) 'name': name,
       if (role != null) 'role': role,
       if (phone != null) 'phone': phone,
@@ -2367,17 +2354,17 @@ class CustomerContactsCompanion extends UpdateCompanion<CustomerContact> {
     });
   }
 
-  CustomerContactsCompanion copyWith(
+  DepotContactsCompanion copyWith(
       {Value<String>? id,
-      Value<String>? customerId,
+      Value<String>? depotId,
       Value<String>? name,
       Value<String>? role,
       Value<String>? phone,
       Value<String?>? email,
       Value<int>? rowid}) {
-    return CustomerContactsCompanion(
+    return DepotContactsCompanion(
       id: id ?? this.id,
-      customerId: customerId ?? this.customerId,
+      depotId: depotId ?? this.depotId,
       name: name ?? this.name,
       role: role ?? this.role,
       phone: phone ?? this.phone,
@@ -2392,8 +2379,8 @@ class CustomerContactsCompanion extends UpdateCompanion<CustomerContact> {
     if (id.present) {
       map['id'] = Variable<String>(id.value);
     }
-    if (customerId.present) {
-      map['customer_id'] = Variable<String>(customerId.value);
+    if (depotId.present) {
+      map['depot_id'] = Variable<String>(depotId.value);
     }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
@@ -2415,9 +2402,9 @@ class CustomerContactsCompanion extends UpdateCompanion<CustomerContact> {
 
   @override
   String toString() {
-    return (StringBuffer('CustomerContactsCompanion(')
+    return (StringBuffer('DepotContactsCompanion(')
           ..write('id: $id, ')
-          ..write('customerId: $customerId, ')
+          ..write('depotId: $depotId, ')
           ..write('name: $name, ')
           ..write('role: $role, ')
           ..write('phone: $phone, ')
@@ -2428,22 +2415,22 @@ class CustomerContactsCompanion extends UpdateCompanion<CustomerContact> {
   }
 }
 
-class $CustomerNotesTable extends CustomerNotes
-    with TableInfo<$CustomerNotesTable, CustomerNote> {
+class $DepotNotesTable extends DepotNotes
+    with TableInfo<$DepotNotesTable, DepotNote> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $CustomerNotesTable(this.attachedDatabase, [this._alias]);
+  $DepotNotesTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
       'id', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _customerIdMeta =
-      const VerificationMeta('customerId');
+  static const VerificationMeta _depotIdMeta =
+      const VerificationMeta('depotId');
   @override
-  late final GeneratedColumn<String> customerId = GeneratedColumn<String>(
-      'customer_id', aliasedName, false,
+  late final GeneratedColumn<String> depotId = GeneratedColumn<String>(
+      'depot_id', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _bodyMeta = const VerificationMeta('body');
   @override
@@ -2466,15 +2453,14 @@ class $CustomerNotesTable extends CustomerNotes
           GeneratedColumn.constraintIsAlways('CHECK ("synced" IN (0, 1))'),
       defaultValue: const Constant(false));
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, customerId, body, createdAt, synced];
+  List<GeneratedColumn> get $columns => [id, depotId, body, createdAt, synced];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'customer_notes';
+  static const String $name = 'depot_notes';
   @override
-  VerificationContext validateIntegrity(Insertable<CustomerNote> instance,
+  VerificationContext validateIntegrity(Insertable<DepotNote> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
@@ -2483,13 +2469,11 @@ class $CustomerNotesTable extends CustomerNotes
     } else if (isInserting) {
       context.missing(_idMeta);
     }
-    if (data.containsKey('customer_id')) {
-      context.handle(
-          _customerIdMeta,
-          customerId.isAcceptableOrUnknown(
-              data['customer_id']!, _customerIdMeta));
+    if (data.containsKey('depot_id')) {
+      context.handle(_depotIdMeta,
+          depotId.isAcceptableOrUnknown(data['depot_id']!, _depotIdMeta));
     } else if (isInserting) {
-      context.missing(_customerIdMeta);
+      context.missing(_depotIdMeta);
     }
     if (data.containsKey('body')) {
       context.handle(
@@ -2513,13 +2497,13 @@ class $CustomerNotesTable extends CustomerNotes
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  CustomerNote map(Map<String, dynamic> data, {String? tablePrefix}) {
+  DepotNote map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return CustomerNote(
+    return DepotNote(
       id: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
-      customerId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}customer_id'])!,
+      depotId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}depot_id'])!,
       body: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}body'])!,
       createdAt: attachedDatabase.typeMapping
@@ -2530,20 +2514,20 @@ class $CustomerNotesTable extends CustomerNotes
   }
 
   @override
-  $CustomerNotesTable createAlias(String alias) {
-    return $CustomerNotesTable(attachedDatabase, alias);
+  $DepotNotesTable createAlias(String alias) {
+    return $DepotNotesTable(attachedDatabase, alias);
   }
 }
 
-class CustomerNote extends DataClass implements Insertable<CustomerNote> {
+class DepotNote extends DataClass implements Insertable<DepotNote> {
   final String id;
-  final String customerId;
+  final String depotId;
   final String body;
   final DateTime createdAt;
   final bool synced;
-  const CustomerNote(
+  const DepotNote(
       {required this.id,
-      required this.customerId,
+      required this.depotId,
       required this.body,
       required this.createdAt,
       required this.synced});
@@ -2551,29 +2535,29 @@ class CustomerNote extends DataClass implements Insertable<CustomerNote> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
-    map['customer_id'] = Variable<String>(customerId);
+    map['depot_id'] = Variable<String>(depotId);
     map['body'] = Variable<String>(body);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['synced'] = Variable<bool>(synced);
     return map;
   }
 
-  CustomerNotesCompanion toCompanion(bool nullToAbsent) {
-    return CustomerNotesCompanion(
+  DepotNotesCompanion toCompanion(bool nullToAbsent) {
+    return DepotNotesCompanion(
       id: Value(id),
-      customerId: Value(customerId),
+      depotId: Value(depotId),
       body: Value(body),
       createdAt: Value(createdAt),
       synced: Value(synced),
     );
   }
 
-  factory CustomerNote.fromJson(Map<String, dynamic> json,
+  factory DepotNote.fromJson(Map<String, dynamic> json,
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return CustomerNote(
+    return DepotNote(
       id: serializer.fromJson<String>(json['id']),
-      customerId: serializer.fromJson<String>(json['customerId']),
+      depotId: serializer.fromJson<String>(json['depotId']),
       body: serializer.fromJson<String>(json['body']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       synced: serializer.fromJson<bool>(json['synced']),
@@ -2584,31 +2568,30 @@ class CustomerNote extends DataClass implements Insertable<CustomerNote> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
-      'customerId': serializer.toJson<String>(customerId),
+      'depotId': serializer.toJson<String>(depotId),
       'body': serializer.toJson<String>(body),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'synced': serializer.toJson<bool>(synced),
     };
   }
 
-  CustomerNote copyWith(
+  DepotNote copyWith(
           {String? id,
-          String? customerId,
+          String? depotId,
           String? body,
           DateTime? createdAt,
           bool? synced}) =>
-      CustomerNote(
+      DepotNote(
         id: id ?? this.id,
-        customerId: customerId ?? this.customerId,
+        depotId: depotId ?? this.depotId,
         body: body ?? this.body,
         createdAt: createdAt ?? this.createdAt,
         synced: synced ?? this.synced,
       );
-  CustomerNote copyWithCompanion(CustomerNotesCompanion data) {
-    return CustomerNote(
+  DepotNote copyWithCompanion(DepotNotesCompanion data) {
+    return DepotNote(
       id: data.id.present ? data.id.value : this.id,
-      customerId:
-          data.customerId.present ? data.customerId.value : this.customerId,
+      depotId: data.depotId.present ? data.depotId.value : this.depotId,
       body: data.body.present ? data.body.value : this.body,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       synced: data.synced.present ? data.synced.value : this.synced,
@@ -2617,9 +2600,9 @@ class CustomerNote extends DataClass implements Insertable<CustomerNote> {
 
   @override
   String toString() {
-    return (StringBuffer('CustomerNote(')
+    return (StringBuffer('DepotNote(')
           ..write('id: $id, ')
-          ..write('customerId: $customerId, ')
+          ..write('depotId: $depotId, ')
           ..write('body: $body, ')
           ..write('createdAt: $createdAt, ')
           ..write('synced: $synced')
@@ -2628,47 +2611,47 @@ class CustomerNote extends DataClass implements Insertable<CustomerNote> {
   }
 
   @override
-  int get hashCode => Object.hash(id, customerId, body, createdAt, synced);
+  int get hashCode => Object.hash(id, depotId, body, createdAt, synced);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is CustomerNote &&
+      (other is DepotNote &&
           other.id == this.id &&
-          other.customerId == this.customerId &&
+          other.depotId == this.depotId &&
           other.body == this.body &&
           other.createdAt == this.createdAt &&
           other.synced == this.synced);
 }
 
-class CustomerNotesCompanion extends UpdateCompanion<CustomerNote> {
+class DepotNotesCompanion extends UpdateCompanion<DepotNote> {
   final Value<String> id;
-  final Value<String> customerId;
+  final Value<String> depotId;
   final Value<String> body;
   final Value<DateTime> createdAt;
   final Value<bool> synced;
   final Value<int> rowid;
-  const CustomerNotesCompanion({
+  const DepotNotesCompanion({
     this.id = const Value.absent(),
-    this.customerId = const Value.absent(),
+    this.depotId = const Value.absent(),
     this.body = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.synced = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  CustomerNotesCompanion.insert({
+  DepotNotesCompanion.insert({
     required String id,
-    required String customerId,
+    required String depotId,
     required String body,
     required DateTime createdAt,
     this.synced = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
-        customerId = Value(customerId),
+        depotId = Value(depotId),
         body = Value(body),
         createdAt = Value(createdAt);
-  static Insertable<CustomerNote> custom({
+  static Insertable<DepotNote> custom({
     Expression<String>? id,
-    Expression<String>? customerId,
+    Expression<String>? depotId,
     Expression<String>? body,
     Expression<DateTime>? createdAt,
     Expression<bool>? synced,
@@ -2676,7 +2659,7 @@ class CustomerNotesCompanion extends UpdateCompanion<CustomerNote> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
-      if (customerId != null) 'customer_id': customerId,
+      if (depotId != null) 'depot_id': depotId,
       if (body != null) 'body': body,
       if (createdAt != null) 'created_at': createdAt,
       if (synced != null) 'synced': synced,
@@ -2684,16 +2667,16 @@ class CustomerNotesCompanion extends UpdateCompanion<CustomerNote> {
     });
   }
 
-  CustomerNotesCompanion copyWith(
+  DepotNotesCompanion copyWith(
       {Value<String>? id,
-      Value<String>? customerId,
+      Value<String>? depotId,
       Value<String>? body,
       Value<DateTime>? createdAt,
       Value<bool>? synced,
       Value<int>? rowid}) {
-    return CustomerNotesCompanion(
+    return DepotNotesCompanion(
       id: id ?? this.id,
-      customerId: customerId ?? this.customerId,
+      depotId: depotId ?? this.depotId,
       body: body ?? this.body,
       createdAt: createdAt ?? this.createdAt,
       synced: synced ?? this.synced,
@@ -2707,8 +2690,8 @@ class CustomerNotesCompanion extends UpdateCompanion<CustomerNote> {
     if (id.present) {
       map['id'] = Variable<String>(id.value);
     }
-    if (customerId.present) {
-      map['customer_id'] = Variable<String>(customerId.value);
+    if (depotId.present) {
+      map['depot_id'] = Variable<String>(depotId.value);
     }
     if (body.present) {
       map['body'] = Variable<String>(body.value);
@@ -2727,9 +2710,9 @@ class CustomerNotesCompanion extends UpdateCompanion<CustomerNote> {
 
   @override
   String toString() {
-    return (StringBuffer('CustomerNotesCompanion(')
+    return (StringBuffer('DepotNotesCompanion(')
           ..write('id: $id, ')
-          ..write('customerId: $customerId, ')
+          ..write('depotId: $depotId, ')
           ..write('body: $body, ')
           ..write('createdAt: $createdAt, ')
           ..write('synced: $synced, ')
@@ -2739,22 +2722,22 @@ class CustomerNotesCompanion extends UpdateCompanion<CustomerNote> {
   }
 }
 
-class $CustomerActivitiesTable extends CustomerActivities
-    with TableInfo<$CustomerActivitiesTable, CustomerActivity> {
+class $DepotActivitiesTable extends DepotActivities
+    with TableInfo<$DepotActivitiesTable, DepotActivity> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $CustomerActivitiesTable(this.attachedDatabase, [this._alias]);
+  $DepotActivitiesTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
       'id', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _customerIdMeta =
-      const VerificationMeta('customerId');
+  static const VerificationMeta _depotIdMeta =
+      const VerificationMeta('depotId');
   @override
-  late final GeneratedColumn<String> customerId = GeneratedColumn<String>(
-      'customer_id', aliasedName, false,
+  late final GeneratedColumn<String> depotId = GeneratedColumn<String>(
+      'depot_id', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _typeMeta = const VerificationMeta('type');
   @override
@@ -2784,14 +2767,14 @@ class $CustomerActivitiesTable extends CustomerActivities
       defaultValue: const Constant(false));
   @override
   List<GeneratedColumn> get $columns =>
-      [id, customerId, type, summary, createdAt, synced];
+      [id, depotId, type, summary, createdAt, synced];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'customer_activities';
+  static const String $name = 'depot_activities';
   @override
-  VerificationContext validateIntegrity(Insertable<CustomerActivity> instance,
+  VerificationContext validateIntegrity(Insertable<DepotActivity> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
@@ -2800,13 +2783,11 @@ class $CustomerActivitiesTable extends CustomerActivities
     } else if (isInserting) {
       context.missing(_idMeta);
     }
-    if (data.containsKey('customer_id')) {
-      context.handle(
-          _customerIdMeta,
-          customerId.isAcceptableOrUnknown(
-              data['customer_id']!, _customerIdMeta));
+    if (data.containsKey('depot_id')) {
+      context.handle(_depotIdMeta,
+          depotId.isAcceptableOrUnknown(data['depot_id']!, _depotIdMeta));
     } else if (isInserting) {
-      context.missing(_customerIdMeta);
+      context.missing(_depotIdMeta);
     }
     if (data.containsKey('type')) {
       context.handle(
@@ -2836,13 +2817,13 @@ class $CustomerActivitiesTable extends CustomerActivities
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  CustomerActivity map(Map<String, dynamic> data, {String? tablePrefix}) {
+  DepotActivity map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return CustomerActivity(
+    return DepotActivity(
       id: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
-      customerId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}customer_id'])!,
+      depotId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}depot_id'])!,
       type: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}type'])!,
       summary: attachedDatabase.typeMapping
@@ -2855,22 +2836,21 @@ class $CustomerActivitiesTable extends CustomerActivities
   }
 
   @override
-  $CustomerActivitiesTable createAlias(String alias) {
-    return $CustomerActivitiesTable(attachedDatabase, alias);
+  $DepotActivitiesTable createAlias(String alias) {
+    return $DepotActivitiesTable(attachedDatabase, alias);
   }
 }
 
-class CustomerActivity extends DataClass
-    implements Insertable<CustomerActivity> {
+class DepotActivity extends DataClass implements Insertable<DepotActivity> {
   final String id;
-  final String customerId;
+  final String depotId;
   final String type;
   final String summary;
   final DateTime createdAt;
   final bool synced;
-  const CustomerActivity(
+  const DepotActivity(
       {required this.id,
-      required this.customerId,
+      required this.depotId,
       required this.type,
       required this.summary,
       required this.createdAt,
@@ -2879,7 +2859,7 @@ class CustomerActivity extends DataClass
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
-    map['customer_id'] = Variable<String>(customerId);
+    map['depot_id'] = Variable<String>(depotId);
     map['type'] = Variable<String>(type);
     map['summary'] = Variable<String>(summary);
     map['created_at'] = Variable<DateTime>(createdAt);
@@ -2887,10 +2867,10 @@ class CustomerActivity extends DataClass
     return map;
   }
 
-  CustomerActivitiesCompanion toCompanion(bool nullToAbsent) {
-    return CustomerActivitiesCompanion(
+  DepotActivitiesCompanion toCompanion(bool nullToAbsent) {
+    return DepotActivitiesCompanion(
       id: Value(id),
-      customerId: Value(customerId),
+      depotId: Value(depotId),
       type: Value(type),
       summary: Value(summary),
       createdAt: Value(createdAt),
@@ -2898,12 +2878,12 @@ class CustomerActivity extends DataClass
     );
   }
 
-  factory CustomerActivity.fromJson(Map<String, dynamic> json,
+  factory DepotActivity.fromJson(Map<String, dynamic> json,
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return CustomerActivity(
+    return DepotActivity(
       id: serializer.fromJson<String>(json['id']),
-      customerId: serializer.fromJson<String>(json['customerId']),
+      depotId: serializer.fromJson<String>(json['depotId']),
       type: serializer.fromJson<String>(json['type']),
       summary: serializer.fromJson<String>(json['summary']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -2915,7 +2895,7 @@ class CustomerActivity extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
-      'customerId': serializer.toJson<String>(customerId),
+      'depotId': serializer.toJson<String>(depotId),
       'type': serializer.toJson<String>(type),
       'summary': serializer.toJson<String>(summary),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -2923,26 +2903,25 @@ class CustomerActivity extends DataClass
     };
   }
 
-  CustomerActivity copyWith(
+  DepotActivity copyWith(
           {String? id,
-          String? customerId,
+          String? depotId,
           String? type,
           String? summary,
           DateTime? createdAt,
           bool? synced}) =>
-      CustomerActivity(
+      DepotActivity(
         id: id ?? this.id,
-        customerId: customerId ?? this.customerId,
+        depotId: depotId ?? this.depotId,
         type: type ?? this.type,
         summary: summary ?? this.summary,
         createdAt: createdAt ?? this.createdAt,
         synced: synced ?? this.synced,
       );
-  CustomerActivity copyWithCompanion(CustomerActivitiesCompanion data) {
-    return CustomerActivity(
+  DepotActivity copyWithCompanion(DepotActivitiesCompanion data) {
+    return DepotActivity(
       id: data.id.present ? data.id.value : this.id,
-      customerId:
-          data.customerId.present ? data.customerId.value : this.customerId,
+      depotId: data.depotId.present ? data.depotId.value : this.depotId,
       type: data.type.present ? data.type.value : this.type,
       summary: data.summary.present ? data.summary.value : this.summary,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
@@ -2952,9 +2931,9 @@ class CustomerActivity extends DataClass
 
   @override
   String toString() {
-    return (StringBuffer('CustomerActivity(')
+    return (StringBuffer('DepotActivity(')
           ..write('id: $id, ')
-          ..write('customerId: $customerId, ')
+          ..write('depotId: $depotId, ')
           ..write('type: $type, ')
           ..write('summary: $summary, ')
           ..write('createdAt: $createdAt, ')
@@ -2965,52 +2944,52 @@ class CustomerActivity extends DataClass
 
   @override
   int get hashCode =>
-      Object.hash(id, customerId, type, summary, createdAt, synced);
+      Object.hash(id, depotId, type, summary, createdAt, synced);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is CustomerActivity &&
+      (other is DepotActivity &&
           other.id == this.id &&
-          other.customerId == this.customerId &&
+          other.depotId == this.depotId &&
           other.type == this.type &&
           other.summary == this.summary &&
           other.createdAt == this.createdAt &&
           other.synced == this.synced);
 }
 
-class CustomerActivitiesCompanion extends UpdateCompanion<CustomerActivity> {
+class DepotActivitiesCompanion extends UpdateCompanion<DepotActivity> {
   final Value<String> id;
-  final Value<String> customerId;
+  final Value<String> depotId;
   final Value<String> type;
   final Value<String> summary;
   final Value<DateTime> createdAt;
   final Value<bool> synced;
   final Value<int> rowid;
-  const CustomerActivitiesCompanion({
+  const DepotActivitiesCompanion({
     this.id = const Value.absent(),
-    this.customerId = const Value.absent(),
+    this.depotId = const Value.absent(),
     this.type = const Value.absent(),
     this.summary = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.synced = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  CustomerActivitiesCompanion.insert({
+  DepotActivitiesCompanion.insert({
     required String id,
-    required String customerId,
+    required String depotId,
     required String type,
     required String summary,
     required DateTime createdAt,
     this.synced = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
-        customerId = Value(customerId),
+        depotId = Value(depotId),
         type = Value(type),
         summary = Value(summary),
         createdAt = Value(createdAt);
-  static Insertable<CustomerActivity> custom({
+  static Insertable<DepotActivity> custom({
     Expression<String>? id,
-    Expression<String>? customerId,
+    Expression<String>? depotId,
     Expression<String>? type,
     Expression<String>? summary,
     Expression<DateTime>? createdAt,
@@ -3019,7 +2998,7 @@ class CustomerActivitiesCompanion extends UpdateCompanion<CustomerActivity> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
-      if (customerId != null) 'customer_id': customerId,
+      if (depotId != null) 'depot_id': depotId,
       if (type != null) 'type': type,
       if (summary != null) 'summary': summary,
       if (createdAt != null) 'created_at': createdAt,
@@ -3028,17 +3007,17 @@ class CustomerActivitiesCompanion extends UpdateCompanion<CustomerActivity> {
     });
   }
 
-  CustomerActivitiesCompanion copyWith(
+  DepotActivitiesCompanion copyWith(
       {Value<String>? id,
-      Value<String>? customerId,
+      Value<String>? depotId,
       Value<String>? type,
       Value<String>? summary,
       Value<DateTime>? createdAt,
       Value<bool>? synced,
       Value<int>? rowid}) {
-    return CustomerActivitiesCompanion(
+    return DepotActivitiesCompanion(
       id: id ?? this.id,
-      customerId: customerId ?? this.customerId,
+      depotId: depotId ?? this.depotId,
       type: type ?? this.type,
       summary: summary ?? this.summary,
       createdAt: createdAt ?? this.createdAt,
@@ -3053,8 +3032,8 @@ class CustomerActivitiesCompanion extends UpdateCompanion<CustomerActivity> {
     if (id.present) {
       map['id'] = Variable<String>(id.value);
     }
-    if (customerId.present) {
-      map['customer_id'] = Variable<String>(customerId.value);
+    if (depotId.present) {
+      map['depot_id'] = Variable<String>(depotId.value);
     }
     if (type.present) {
       map['type'] = Variable<String>(type.value);
@@ -3076,9 +3055,9 @@ class CustomerActivitiesCompanion extends UpdateCompanion<CustomerActivity> {
 
   @override
   String toString() {
-    return (StringBuffer('CustomerActivitiesCompanion(')
+    return (StringBuffer('DepotActivitiesCompanion(')
           ..write('id: $id, ')
-          ..write('customerId: $customerId, ')
+          ..write('depotId: $depotId, ')
           ..write('type: $type, ')
           ..write('summary: $summary, ')
           ..write('createdAt: $createdAt, ')
@@ -3089,17 +3068,17 @@ class CustomerActivitiesCompanion extends UpdateCompanion<CustomerActivity> {
   }
 }
 
-class $CustomerFavoritesTable extends CustomerFavorites
-    with TableInfo<$CustomerFavoritesTable, CustomerFavorite> {
+class $DepotFavoritesTable extends DepotFavorites
+    with TableInfo<$DepotFavoritesTable, DepotFavorite> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $CustomerFavoritesTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _customerIdMeta =
-      const VerificationMeta('customerId');
+  $DepotFavoritesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _depotIdMeta =
+      const VerificationMeta('depotId');
   @override
-  late final GeneratedColumn<String> customerId = GeneratedColumn<String>(
-      'customer_id', aliasedName, false,
+  late final GeneratedColumn<String> depotId = GeneratedColumn<String>(
+      'depot_id', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _createdAtMeta =
       const VerificationMeta('createdAt');
@@ -3108,24 +3087,22 @@ class $CustomerFavoritesTable extends CustomerFavorites
       'created_at', aliasedName, false,
       type: DriftSqlType.dateTime, requiredDuringInsert: true);
   @override
-  List<GeneratedColumn> get $columns => [customerId, createdAt];
+  List<GeneratedColumn> get $columns => [depotId, createdAt];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'customer_favorites';
+  static const String $name = 'depot_favorites';
   @override
-  VerificationContext validateIntegrity(Insertable<CustomerFavorite> instance,
+  VerificationContext validateIntegrity(Insertable<DepotFavorite> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
-    if (data.containsKey('customer_id')) {
-      context.handle(
-          _customerIdMeta,
-          customerId.isAcceptableOrUnknown(
-              data['customer_id']!, _customerIdMeta));
+    if (data.containsKey('depot_id')) {
+      context.handle(_depotIdMeta,
+          depotId.isAcceptableOrUnknown(data['depot_id']!, _depotIdMeta));
     } else if (isInserting) {
-      context.missing(_customerIdMeta);
+      context.missing(_depotIdMeta);
     }
     if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
@@ -3137,49 +3114,48 @@ class $CustomerFavoritesTable extends CustomerFavorites
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {customerId};
+  Set<GeneratedColumn> get $primaryKey => {depotId};
   @override
-  CustomerFavorite map(Map<String, dynamic> data, {String? tablePrefix}) {
+  DepotFavorite map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return CustomerFavorite(
-      customerId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}customer_id'])!,
+    return DepotFavorite(
+      depotId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}depot_id'])!,
       createdAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
     );
   }
 
   @override
-  $CustomerFavoritesTable createAlias(String alias) {
-    return $CustomerFavoritesTable(attachedDatabase, alias);
+  $DepotFavoritesTable createAlias(String alias) {
+    return $DepotFavoritesTable(attachedDatabase, alias);
   }
 }
 
-class CustomerFavorite extends DataClass
-    implements Insertable<CustomerFavorite> {
-  final String customerId;
+class DepotFavorite extends DataClass implements Insertable<DepotFavorite> {
+  final String depotId;
   final DateTime createdAt;
-  const CustomerFavorite({required this.customerId, required this.createdAt});
+  const DepotFavorite({required this.depotId, required this.createdAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['customer_id'] = Variable<String>(customerId);
+    map['depot_id'] = Variable<String>(depotId);
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
 
-  CustomerFavoritesCompanion toCompanion(bool nullToAbsent) {
-    return CustomerFavoritesCompanion(
-      customerId: Value(customerId),
+  DepotFavoritesCompanion toCompanion(bool nullToAbsent) {
+    return DepotFavoritesCompanion(
+      depotId: Value(depotId),
       createdAt: Value(createdAt),
     );
   }
 
-  factory CustomerFavorite.fromJson(Map<String, dynamic> json,
+  factory DepotFavorite.fromJson(Map<String, dynamic> json,
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return CustomerFavorite(
-      customerId: serializer.fromJson<String>(json['customerId']),
+    return DepotFavorite(
+      depotId: serializer.fromJson<String>(json['depotId']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -3187,76 +3163,73 @@ class CustomerFavorite extends DataClass
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'customerId': serializer.toJson<String>(customerId),
+      'depotId': serializer.toJson<String>(depotId),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
 
-  CustomerFavorite copyWith({String? customerId, DateTime? createdAt}) =>
-      CustomerFavorite(
-        customerId: customerId ?? this.customerId,
+  DepotFavorite copyWith({String? depotId, DateTime? createdAt}) =>
+      DepotFavorite(
+        depotId: depotId ?? this.depotId,
         createdAt: createdAt ?? this.createdAt,
       );
-  CustomerFavorite copyWithCompanion(CustomerFavoritesCompanion data) {
-    return CustomerFavorite(
-      customerId:
-          data.customerId.present ? data.customerId.value : this.customerId,
+  DepotFavorite copyWithCompanion(DepotFavoritesCompanion data) {
+    return DepotFavorite(
+      depotId: data.depotId.present ? data.depotId.value : this.depotId,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
 
   @override
   String toString() {
-    return (StringBuffer('CustomerFavorite(')
-          ..write('customerId: $customerId, ')
+    return (StringBuffer('DepotFavorite(')
+          ..write('depotId: $depotId, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(customerId, createdAt);
+  int get hashCode => Object.hash(depotId, createdAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is CustomerFavorite &&
-          other.customerId == this.customerId &&
+      (other is DepotFavorite &&
+          other.depotId == this.depotId &&
           other.createdAt == this.createdAt);
 }
 
-class CustomerFavoritesCompanion extends UpdateCompanion<CustomerFavorite> {
-  final Value<String> customerId;
+class DepotFavoritesCompanion extends UpdateCompanion<DepotFavorite> {
+  final Value<String> depotId;
   final Value<DateTime> createdAt;
   final Value<int> rowid;
-  const CustomerFavoritesCompanion({
-    this.customerId = const Value.absent(),
+  const DepotFavoritesCompanion({
+    this.depotId = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  CustomerFavoritesCompanion.insert({
-    required String customerId,
+  DepotFavoritesCompanion.insert({
+    required String depotId,
     required DateTime createdAt,
     this.rowid = const Value.absent(),
-  })  : customerId = Value(customerId),
+  })  : depotId = Value(depotId),
         createdAt = Value(createdAt);
-  static Insertable<CustomerFavorite> custom({
-    Expression<String>? customerId,
+  static Insertable<DepotFavorite> custom({
+    Expression<String>? depotId,
     Expression<DateTime>? createdAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
-      if (customerId != null) 'customer_id': customerId,
+      if (depotId != null) 'depot_id': depotId,
       if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
-  CustomerFavoritesCompanion copyWith(
-      {Value<String>? customerId,
-      Value<DateTime>? createdAt,
-      Value<int>? rowid}) {
-    return CustomerFavoritesCompanion(
-      customerId: customerId ?? this.customerId,
+  DepotFavoritesCompanion copyWith(
+      {Value<String>? depotId, Value<DateTime>? createdAt, Value<int>? rowid}) {
+    return DepotFavoritesCompanion(
+      depotId: depotId ?? this.depotId,
       createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
     );
@@ -3265,8 +3238,8 @@ class CustomerFavoritesCompanion extends UpdateCompanion<CustomerFavorite> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    if (customerId.present) {
-      map['customer_id'] = Variable<String>(customerId.value);
+    if (depotId.present) {
+      map['depot_id'] = Variable<String>(depotId.value);
     }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
@@ -3279,8 +3252,8 @@ class CustomerFavoritesCompanion extends UpdateCompanion<CustomerFavorite> {
 
   @override
   String toString() {
-    return (StringBuffer('CustomerFavoritesCompanion(')
-          ..write('customerId: $customerId, ')
+    return (StringBuffer('DepotFavoritesCompanion(')
+          ..write('depotId: $depotId, ')
           ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -3288,17 +3261,17 @@ class CustomerFavoritesCompanion extends UpdateCompanion<CustomerFavorite> {
   }
 }
 
-class $CustomerRecentTable extends CustomerRecent
-    with TableInfo<$CustomerRecentTable, CustomerRecentData> {
+class $DepotRecentTable extends DepotRecent
+    with TableInfo<$DepotRecentTable, DepotRecentData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $CustomerRecentTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _customerIdMeta =
-      const VerificationMeta('customerId');
+  $DepotRecentTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _depotIdMeta =
+      const VerificationMeta('depotId');
   @override
-  late final GeneratedColumn<String> customerId = GeneratedColumn<String>(
-      'customer_id', aliasedName, false,
+  late final GeneratedColumn<String> depotId = GeneratedColumn<String>(
+      'depot_id', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _viewedAtMeta =
       const VerificationMeta('viewedAt');
@@ -3307,24 +3280,22 @@ class $CustomerRecentTable extends CustomerRecent
       'viewed_at', aliasedName, false,
       type: DriftSqlType.dateTime, requiredDuringInsert: true);
   @override
-  List<GeneratedColumn> get $columns => [customerId, viewedAt];
+  List<GeneratedColumn> get $columns => [depotId, viewedAt];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'customer_recent';
+  static const String $name = 'depot_recent';
   @override
-  VerificationContext validateIntegrity(Insertable<CustomerRecentData> instance,
+  VerificationContext validateIntegrity(Insertable<DepotRecentData> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
-    if (data.containsKey('customer_id')) {
-      context.handle(
-          _customerIdMeta,
-          customerId.isAcceptableOrUnknown(
-              data['customer_id']!, _customerIdMeta));
+    if (data.containsKey('depot_id')) {
+      context.handle(_depotIdMeta,
+          depotId.isAcceptableOrUnknown(data['depot_id']!, _depotIdMeta));
     } else if (isInserting) {
-      context.missing(_customerIdMeta);
+      context.missing(_depotIdMeta);
     }
     if (data.containsKey('viewed_at')) {
       context.handle(_viewedAtMeta,
@@ -3336,49 +3307,48 @@ class $CustomerRecentTable extends CustomerRecent
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {customerId};
+  Set<GeneratedColumn> get $primaryKey => {depotId};
   @override
-  CustomerRecentData map(Map<String, dynamic> data, {String? tablePrefix}) {
+  DepotRecentData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return CustomerRecentData(
-      customerId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}customer_id'])!,
+    return DepotRecentData(
+      depotId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}depot_id'])!,
       viewedAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}viewed_at'])!,
     );
   }
 
   @override
-  $CustomerRecentTable createAlias(String alias) {
-    return $CustomerRecentTable(attachedDatabase, alias);
+  $DepotRecentTable createAlias(String alias) {
+    return $DepotRecentTable(attachedDatabase, alias);
   }
 }
 
-class CustomerRecentData extends DataClass
-    implements Insertable<CustomerRecentData> {
-  final String customerId;
+class DepotRecentData extends DataClass implements Insertable<DepotRecentData> {
+  final String depotId;
   final DateTime viewedAt;
-  const CustomerRecentData({required this.customerId, required this.viewedAt});
+  const DepotRecentData({required this.depotId, required this.viewedAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['customer_id'] = Variable<String>(customerId);
+    map['depot_id'] = Variable<String>(depotId);
     map['viewed_at'] = Variable<DateTime>(viewedAt);
     return map;
   }
 
-  CustomerRecentCompanion toCompanion(bool nullToAbsent) {
-    return CustomerRecentCompanion(
-      customerId: Value(customerId),
+  DepotRecentCompanion toCompanion(bool nullToAbsent) {
+    return DepotRecentCompanion(
+      depotId: Value(depotId),
       viewedAt: Value(viewedAt),
     );
   }
 
-  factory CustomerRecentData.fromJson(Map<String, dynamic> json,
+  factory DepotRecentData.fromJson(Map<String, dynamic> json,
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return CustomerRecentData(
-      customerId: serializer.fromJson<String>(json['customerId']),
+    return DepotRecentData(
+      depotId: serializer.fromJson<String>(json['depotId']),
       viewedAt: serializer.fromJson<DateTime>(json['viewedAt']),
     );
   }
@@ -3386,76 +3356,73 @@ class CustomerRecentData extends DataClass
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'customerId': serializer.toJson<String>(customerId),
+      'depotId': serializer.toJson<String>(depotId),
       'viewedAt': serializer.toJson<DateTime>(viewedAt),
     };
   }
 
-  CustomerRecentData copyWith({String? customerId, DateTime? viewedAt}) =>
-      CustomerRecentData(
-        customerId: customerId ?? this.customerId,
+  DepotRecentData copyWith({String? depotId, DateTime? viewedAt}) =>
+      DepotRecentData(
+        depotId: depotId ?? this.depotId,
         viewedAt: viewedAt ?? this.viewedAt,
       );
-  CustomerRecentData copyWithCompanion(CustomerRecentCompanion data) {
-    return CustomerRecentData(
-      customerId:
-          data.customerId.present ? data.customerId.value : this.customerId,
+  DepotRecentData copyWithCompanion(DepotRecentCompanion data) {
+    return DepotRecentData(
+      depotId: data.depotId.present ? data.depotId.value : this.depotId,
       viewedAt: data.viewedAt.present ? data.viewedAt.value : this.viewedAt,
     );
   }
 
   @override
   String toString() {
-    return (StringBuffer('CustomerRecentData(')
-          ..write('customerId: $customerId, ')
+    return (StringBuffer('DepotRecentData(')
+          ..write('depotId: $depotId, ')
           ..write('viewedAt: $viewedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(customerId, viewedAt);
+  int get hashCode => Object.hash(depotId, viewedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is CustomerRecentData &&
-          other.customerId == this.customerId &&
+      (other is DepotRecentData &&
+          other.depotId == this.depotId &&
           other.viewedAt == this.viewedAt);
 }
 
-class CustomerRecentCompanion extends UpdateCompanion<CustomerRecentData> {
-  final Value<String> customerId;
+class DepotRecentCompanion extends UpdateCompanion<DepotRecentData> {
+  final Value<String> depotId;
   final Value<DateTime> viewedAt;
   final Value<int> rowid;
-  const CustomerRecentCompanion({
-    this.customerId = const Value.absent(),
+  const DepotRecentCompanion({
+    this.depotId = const Value.absent(),
     this.viewedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  CustomerRecentCompanion.insert({
-    required String customerId,
+  DepotRecentCompanion.insert({
+    required String depotId,
     required DateTime viewedAt,
     this.rowid = const Value.absent(),
-  })  : customerId = Value(customerId),
+  })  : depotId = Value(depotId),
         viewedAt = Value(viewedAt);
-  static Insertable<CustomerRecentData> custom({
-    Expression<String>? customerId,
+  static Insertable<DepotRecentData> custom({
+    Expression<String>? depotId,
     Expression<DateTime>? viewedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
-      if (customerId != null) 'customer_id': customerId,
+      if (depotId != null) 'depot_id': depotId,
       if (viewedAt != null) 'viewed_at': viewedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
-  CustomerRecentCompanion copyWith(
-      {Value<String>? customerId,
-      Value<DateTime>? viewedAt,
-      Value<int>? rowid}) {
-    return CustomerRecentCompanion(
-      customerId: customerId ?? this.customerId,
+  DepotRecentCompanion copyWith(
+      {Value<String>? depotId, Value<DateTime>? viewedAt, Value<int>? rowid}) {
+    return DepotRecentCompanion(
+      depotId: depotId ?? this.depotId,
       viewedAt: viewedAt ?? this.viewedAt,
       rowid: rowid ?? this.rowid,
     );
@@ -3464,8 +3431,8 @@ class CustomerRecentCompanion extends UpdateCompanion<CustomerRecentData> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    if (customerId.present) {
-      map['customer_id'] = Variable<String>(customerId.value);
+    if (depotId.present) {
+      map['depot_id'] = Variable<String>(depotId.value);
     }
     if (viewedAt.present) {
       map['viewed_at'] = Variable<DateTime>(viewedAt.value);
@@ -3478,8 +3445,8 @@ class CustomerRecentCompanion extends UpdateCompanion<CustomerRecentData> {
 
   @override
   String toString() {
-    return (StringBuffer('CustomerRecentCompanion(')
-          ..write('customerId: $customerId, ')
+    return (StringBuffer('DepotRecentCompanion(')
+          ..write('depotId: $depotId, ')
           ..write('viewedAt: $viewedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -3487,12 +3454,12 @@ class CustomerRecentCompanion extends UpdateCompanion<CustomerRecentData> {
   }
 }
 
-class $CustomerSyncMetaTable extends CustomerSyncMeta
-    with TableInfo<$CustomerSyncMetaTable, CustomerSyncMetaData> {
+class $DepotSyncMetaTable extends DepotSyncMeta
+    with TableInfo<$DepotSyncMetaTable, DepotSyncMetaData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $CustomerSyncMetaTable(this.attachedDatabase, [this._alias]);
+  $DepotSyncMetaTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _entityMeta = const VerificationMeta('entity');
   @override
   late final GeneratedColumn<String> entity = GeneratedColumn<String>(
@@ -3516,10 +3483,9 @@ class $CustomerSyncMetaTable extends CustomerSyncMeta
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'customer_sync_meta';
+  static const String $name = 'depot_sync_meta';
   @override
-  VerificationContext validateIntegrity(
-      Insertable<CustomerSyncMetaData> instance,
+  VerificationContext validateIntegrity(Insertable<DepotSyncMetaData> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
@@ -3547,9 +3513,9 @@ class $CustomerSyncMetaTable extends CustomerSyncMeta
   @override
   Set<GeneratedColumn> get $primaryKey => {entity};
   @override
-  CustomerSyncMetaData map(Map<String, dynamic> data, {String? tablePrefix}) {
+  DepotSyncMetaData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return CustomerSyncMetaData(
+    return DepotSyncMetaData(
       entity: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}entity'])!,
       lastSyncedAt: attachedDatabase.typeMapping.read(
@@ -3560,13 +3526,13 @@ class $CustomerSyncMetaTable extends CustomerSyncMeta
   }
 
   @override
-  $CustomerSyncMetaTable createAlias(String alias) {
-    return $CustomerSyncMetaTable(attachedDatabase, alias);
+  $DepotSyncMetaTable createAlias(String alias) {
+    return $DepotSyncMetaTable(attachedDatabase, alias);
   }
 }
 
-class CustomerSyncMetaData extends DataClass
-    implements Insertable<CustomerSyncMetaData> {
+class DepotSyncMetaData extends DataClass
+    implements Insertable<DepotSyncMetaData> {
   final String entity;
   final DateTime? lastSyncedAt;
 
@@ -3586,9 +3552,9 @@ class CustomerSyncMetaData extends DataClass
   /// changed, and switching language on the device changes nothing server-side.
   /// So the directory would keep rendering the old language indefinitely.
   /// Comparing this against the active language turns that into a one-off full
-  /// resync (`docs/feature/customer/mobile/get-customer.md` §Local schema).
+  /// resync (`docs/feature/depot/mobile/get-depot.md` §Local schema).
   final String? syncedLanguage;
-  const CustomerSyncMetaData(
+  const DepotSyncMetaData(
       {required this.entity, this.lastSyncedAt, this.syncedLanguage});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -3603,8 +3569,8 @@ class CustomerSyncMetaData extends DataClass
     return map;
   }
 
-  CustomerSyncMetaCompanion toCompanion(bool nullToAbsent) {
-    return CustomerSyncMetaCompanion(
+  DepotSyncMetaCompanion toCompanion(bool nullToAbsent) {
+    return DepotSyncMetaCompanion(
       entity: Value(entity),
       lastSyncedAt: lastSyncedAt == null && nullToAbsent
           ? const Value.absent()
@@ -3615,10 +3581,10 @@ class CustomerSyncMetaData extends DataClass
     );
   }
 
-  factory CustomerSyncMetaData.fromJson(Map<String, dynamic> json,
+  factory DepotSyncMetaData.fromJson(Map<String, dynamic> json,
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return CustomerSyncMetaData(
+    return DepotSyncMetaData(
       entity: serializer.fromJson<String>(json['entity']),
       lastSyncedAt: serializer.fromJson<DateTime?>(json['lastSyncedAt']),
       syncedLanguage: serializer.fromJson<String?>(json['syncedLanguage']),
@@ -3634,19 +3600,19 @@ class CustomerSyncMetaData extends DataClass
     };
   }
 
-  CustomerSyncMetaData copyWith(
+  DepotSyncMetaData copyWith(
           {String? entity,
           Value<DateTime?> lastSyncedAt = const Value.absent(),
           Value<String?> syncedLanguage = const Value.absent()}) =>
-      CustomerSyncMetaData(
+      DepotSyncMetaData(
         entity: entity ?? this.entity,
         lastSyncedAt:
             lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
         syncedLanguage:
             syncedLanguage.present ? syncedLanguage.value : this.syncedLanguage,
       );
-  CustomerSyncMetaData copyWithCompanion(CustomerSyncMetaCompanion data) {
-    return CustomerSyncMetaData(
+  DepotSyncMetaData copyWithCompanion(DepotSyncMetaCompanion data) {
+    return DepotSyncMetaData(
       entity: data.entity.present ? data.entity.value : this.entity,
       lastSyncedAt: data.lastSyncedAt.present
           ? data.lastSyncedAt.value
@@ -3659,7 +3625,7 @@ class CustomerSyncMetaData extends DataClass
 
   @override
   String toString() {
-    return (StringBuffer('CustomerSyncMetaData(')
+    return (StringBuffer('DepotSyncMetaData(')
           ..write('entity: $entity, ')
           ..write('lastSyncedAt: $lastSyncedAt, ')
           ..write('syncedLanguage: $syncedLanguage')
@@ -3672,30 +3638,30 @@ class CustomerSyncMetaData extends DataClass
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is CustomerSyncMetaData &&
+      (other is DepotSyncMetaData &&
           other.entity == this.entity &&
           other.lastSyncedAt == this.lastSyncedAt &&
           other.syncedLanguage == this.syncedLanguage);
 }
 
-class CustomerSyncMetaCompanion extends UpdateCompanion<CustomerSyncMetaData> {
+class DepotSyncMetaCompanion extends UpdateCompanion<DepotSyncMetaData> {
   final Value<String> entity;
   final Value<DateTime?> lastSyncedAt;
   final Value<String?> syncedLanguage;
   final Value<int> rowid;
-  const CustomerSyncMetaCompanion({
+  const DepotSyncMetaCompanion({
     this.entity = const Value.absent(),
     this.lastSyncedAt = const Value.absent(),
     this.syncedLanguage = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  CustomerSyncMetaCompanion.insert({
+  DepotSyncMetaCompanion.insert({
     required String entity,
     this.lastSyncedAt = const Value.absent(),
     this.syncedLanguage = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : entity = Value(entity);
-  static Insertable<CustomerSyncMetaData> custom({
+  static Insertable<DepotSyncMetaData> custom({
     Expression<String>? entity,
     Expression<DateTime>? lastSyncedAt,
     Expression<String>? syncedLanguage,
@@ -3709,12 +3675,12 @@ class CustomerSyncMetaCompanion extends UpdateCompanion<CustomerSyncMetaData> {
     });
   }
 
-  CustomerSyncMetaCompanion copyWith(
+  DepotSyncMetaCompanion copyWith(
       {Value<String>? entity,
       Value<DateTime?>? lastSyncedAt,
       Value<String?>? syncedLanguage,
       Value<int>? rowid}) {
-    return CustomerSyncMetaCompanion(
+    return DepotSyncMetaCompanion(
       entity: entity ?? this.entity,
       lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
       syncedLanguage: syncedLanguage ?? this.syncedLanguage,
@@ -3742,7 +3708,7 @@ class CustomerSyncMetaCompanion extends UpdateCompanion<CustomerSyncMetaData> {
 
   @override
   String toString() {
-    return (StringBuffer('CustomerSyncMetaCompanion(')
+    return (StringBuffer('DepotSyncMetaCompanion(')
           ..write('entity: $entity, ')
           ..write('lastSyncedAt: $lastSyncedAt, ')
           ..write('syncedLanguage: $syncedLanguage, ')
@@ -4948,7 +4914,7 @@ class Product extends DataClass implements Insertable<Product> {
   final String nameKh;
   final String description;
 
-  /// Top colour / finish — the last thing a roofing customer chooses, and
+  /// Top colour / finish — the last thing a roofing depot chooses, and
   /// distinct from `grade`.
   final String color;
 
@@ -7520,11 +7486,11 @@ class $CartItemsTable extends CartItems
   late final GeneratedColumn<String> leadId = GeneratedColumn<String>(
       'lead_id', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _customerIdMeta =
-      const VerificationMeta('customerId');
+  static const VerificationMeta _depotIdMeta =
+      const VerificationMeta('depotId');
   @override
-  late final GeneratedColumn<String> customerId = GeneratedColumn<String>(
-      'customer_id', aliasedName, true,
+  late final GeneratedColumn<String> depotId = GeneratedColumn<String>(
+      'depot_id', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _editingQuotationIdMeta =
       const VerificationMeta('editingQuotationId');
@@ -7564,7 +7530,7 @@ class $CartItemsTable extends CartItems
         unit,
         discountPercent,
         leadId,
-        customerId,
+        depotId,
         editingQuotationId,
         customizationJson,
         unitPrice,
@@ -7614,11 +7580,9 @@ class $CartItemsTable extends CartItems
       context.handle(_leadIdMeta,
           leadId.isAcceptableOrUnknown(data['lead_id']!, _leadIdMeta));
     }
-    if (data.containsKey('customer_id')) {
-      context.handle(
-          _customerIdMeta,
-          customerId.isAcceptableOrUnknown(
-              data['customer_id']!, _customerIdMeta));
+    if (data.containsKey('depot_id')) {
+      context.handle(_depotIdMeta,
+          depotId.isAcceptableOrUnknown(data['depot_id']!, _depotIdMeta));
     }
     if (data.containsKey('editing_quotation_id')) {
       context.handle(
@@ -7669,8 +7633,8 @@ class $CartItemsTable extends CartItems
           DriftSqlType.double, data['${effectivePrefix}discount_percent'])!,
       leadId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}lead_id']),
-      customerId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}customer_id']),
+      depotId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}depot_id']),
       editingQuotationId: attachedDatabase.typeMapping.read(
           DriftSqlType.string, data['${effectivePrefix}editing_quotation_id']),
       customizationJson: attachedDatabase.typeMapping.read(
@@ -7697,7 +7661,7 @@ class CartItem extends DataClass implements Insertable<CartItem> {
   final String unit;
   final double discountPercent;
   final String? leadId;
-  final String? customerId;
+  final String? depotId;
   final String? editingQuotationId;
 
   /// JSON blob describing a customized line (measurements, appearance, drawing
@@ -7729,7 +7693,7 @@ class CartItem extends DataClass implements Insertable<CartItem> {
       required this.unit,
       required this.discountPercent,
       this.leadId,
-      this.customerId,
+      this.depotId,
       this.editingQuotationId,
       this.customizationJson,
       this.unitPrice,
@@ -7746,8 +7710,8 @@ class CartItem extends DataClass implements Insertable<CartItem> {
     if (!nullToAbsent || leadId != null) {
       map['lead_id'] = Variable<String>(leadId);
     }
-    if (!nullToAbsent || customerId != null) {
-      map['customer_id'] = Variable<String>(customerId);
+    if (!nullToAbsent || depotId != null) {
+      map['depot_id'] = Variable<String>(depotId);
     }
     if (!nullToAbsent || editingQuotationId != null) {
       map['editing_quotation_id'] = Variable<String>(editingQuotationId);
@@ -7774,9 +7738,9 @@ class CartItem extends DataClass implements Insertable<CartItem> {
       discountPercent: Value(discountPercent),
       leadId:
           leadId == null && nullToAbsent ? const Value.absent() : Value(leadId),
-      customerId: customerId == null && nullToAbsent
+      depotId: depotId == null && nullToAbsent
           ? const Value.absent()
-          : Value(customerId),
+          : Value(depotId),
       editingQuotationId: editingQuotationId == null && nullToAbsent
           ? const Value.absent()
           : Value(editingQuotationId),
@@ -7803,7 +7767,7 @@ class CartItem extends DataClass implements Insertable<CartItem> {
       unit: serializer.fromJson<String>(json['unit']),
       discountPercent: serializer.fromJson<double>(json['discountPercent']),
       leadId: serializer.fromJson<String?>(json['leadId']),
-      customerId: serializer.fromJson<String?>(json['customerId']),
+      depotId: serializer.fromJson<String?>(json['depotId']),
       editingQuotationId:
           serializer.fromJson<String?>(json['editingQuotationId']),
       customizationJson:
@@ -7823,7 +7787,7 @@ class CartItem extends DataClass implements Insertable<CartItem> {
       'unit': serializer.toJson<String>(unit),
       'discountPercent': serializer.toJson<double>(discountPercent),
       'leadId': serializer.toJson<String?>(leadId),
-      'customerId': serializer.toJson<String?>(customerId),
+      'depotId': serializer.toJson<String?>(depotId),
       'editingQuotationId': serializer.toJson<String?>(editingQuotationId),
       'customizationJson': serializer.toJson<String?>(customizationJson),
       'unitPrice': serializer.toJson<double?>(unitPrice),
@@ -7839,7 +7803,7 @@ class CartItem extends DataClass implements Insertable<CartItem> {
           String? unit,
           double? discountPercent,
           Value<String?> leadId = const Value.absent(),
-          Value<String?> customerId = const Value.absent(),
+          Value<String?> depotId = const Value.absent(),
           Value<String?> editingQuotationId = const Value.absent(),
           Value<String?> customizationJson = const Value.absent(),
           Value<double?> unitPrice = const Value.absent(),
@@ -7852,7 +7816,7 @@ class CartItem extends DataClass implements Insertable<CartItem> {
         unit: unit ?? this.unit,
         discountPercent: discountPercent ?? this.discountPercent,
         leadId: leadId.present ? leadId.value : this.leadId,
-        customerId: customerId.present ? customerId.value : this.customerId,
+        depotId: depotId.present ? depotId.value : this.depotId,
         editingQuotationId: editingQuotationId.present
             ? editingQuotationId.value
             : this.editingQuotationId,
@@ -7875,8 +7839,7 @@ class CartItem extends DataClass implements Insertable<CartItem> {
           ? data.discountPercent.value
           : this.discountPercent,
       leadId: data.leadId.present ? data.leadId.value : this.leadId,
-      customerId:
-          data.customerId.present ? data.customerId.value : this.customerId,
+      depotId: data.depotId.present ? data.depotId.value : this.depotId,
       editingQuotationId: data.editingQuotationId.present
           ? data.editingQuotationId.value
           : this.editingQuotationId,
@@ -7900,7 +7863,7 @@ class CartItem extends DataClass implements Insertable<CartItem> {
           ..write('unit: $unit, ')
           ..write('discountPercent: $discountPercent, ')
           ..write('leadId: $leadId, ')
-          ..write('customerId: $customerId, ')
+          ..write('depotId: $depotId, ')
           ..write('editingQuotationId: $editingQuotationId, ')
           ..write('customizationJson: $customizationJson, ')
           ..write('unitPrice: $unitPrice, ')
@@ -7918,7 +7881,7 @@ class CartItem extends DataClass implements Insertable<CartItem> {
       unit,
       discountPercent,
       leadId,
-      customerId,
+      depotId,
       editingQuotationId,
       customizationJson,
       unitPrice,
@@ -7934,7 +7897,7 @@ class CartItem extends DataClass implements Insertable<CartItem> {
           other.unit == this.unit &&
           other.discountPercent == this.discountPercent &&
           other.leadId == this.leadId &&
-          other.customerId == this.customerId &&
+          other.depotId == this.depotId &&
           other.editingQuotationId == this.editingQuotationId &&
           other.customizationJson == this.customizationJson &&
           other.unitPrice == this.unitPrice &&
@@ -7949,7 +7912,7 @@ class CartItemsCompanion extends UpdateCompanion<CartItem> {
   final Value<String> unit;
   final Value<double> discountPercent;
   final Value<String?> leadId;
-  final Value<String?> customerId;
+  final Value<String?> depotId;
   final Value<String?> editingQuotationId;
   final Value<String?> customizationJson;
   final Value<double?> unitPrice;
@@ -7963,7 +7926,7 @@ class CartItemsCompanion extends UpdateCompanion<CartItem> {
     this.unit = const Value.absent(),
     this.discountPercent = const Value.absent(),
     this.leadId = const Value.absent(),
-    this.customerId = const Value.absent(),
+    this.depotId = const Value.absent(),
     this.editingQuotationId = const Value.absent(),
     this.customizationJson = const Value.absent(),
     this.unitPrice = const Value.absent(),
@@ -7978,7 +7941,7 @@ class CartItemsCompanion extends UpdateCompanion<CartItem> {
     required String unit,
     this.discountPercent = const Value.absent(),
     this.leadId = const Value.absent(),
-    this.customerId = const Value.absent(),
+    this.depotId = const Value.absent(),
     this.editingQuotationId = const Value.absent(),
     this.customizationJson = const Value.absent(),
     this.unitPrice = const Value.absent(),
@@ -7997,7 +7960,7 @@ class CartItemsCompanion extends UpdateCompanion<CartItem> {
     Expression<String>? unit,
     Expression<double>? discountPercent,
     Expression<String>? leadId,
-    Expression<String>? customerId,
+    Expression<String>? depotId,
     Expression<String>? editingQuotationId,
     Expression<String>? customizationJson,
     Expression<double>? unitPrice,
@@ -8012,7 +7975,7 @@ class CartItemsCompanion extends UpdateCompanion<CartItem> {
       if (unit != null) 'unit': unit,
       if (discountPercent != null) 'discount_percent': discountPercent,
       if (leadId != null) 'lead_id': leadId,
-      if (customerId != null) 'customer_id': customerId,
+      if (depotId != null) 'depot_id': depotId,
       if (editingQuotationId != null)
         'editing_quotation_id': editingQuotationId,
       if (customizationJson != null) 'customization_json': customizationJson,
@@ -8030,7 +7993,7 @@ class CartItemsCompanion extends UpdateCompanion<CartItem> {
       Value<String>? unit,
       Value<double>? discountPercent,
       Value<String?>? leadId,
-      Value<String?>? customerId,
+      Value<String?>? depotId,
       Value<String?>? editingQuotationId,
       Value<String?>? customizationJson,
       Value<double?>? unitPrice,
@@ -8044,7 +8007,7 @@ class CartItemsCompanion extends UpdateCompanion<CartItem> {
       unit: unit ?? this.unit,
       discountPercent: discountPercent ?? this.discountPercent,
       leadId: leadId ?? this.leadId,
-      customerId: customerId ?? this.customerId,
+      depotId: depotId ?? this.depotId,
       editingQuotationId: editingQuotationId ?? this.editingQuotationId,
       customizationJson: customizationJson ?? this.customizationJson,
       unitPrice: unitPrice ?? this.unitPrice,
@@ -8075,8 +8038,8 @@ class CartItemsCompanion extends UpdateCompanion<CartItem> {
     if (leadId.present) {
       map['lead_id'] = Variable<String>(leadId.value);
     }
-    if (customerId.present) {
-      map['customer_id'] = Variable<String>(customerId.value);
+    if (depotId.present) {
+      map['depot_id'] = Variable<String>(depotId.value);
     }
     if (editingQuotationId.present) {
       map['editing_quotation_id'] = Variable<String>(editingQuotationId.value);
@@ -8108,7 +8071,7 @@ class CartItemsCompanion extends UpdateCompanion<CartItem> {
           ..write('unit: $unit, ')
           ..write('discountPercent: $discountPercent, ')
           ..write('leadId: $leadId, ')
-          ..write('customerId: $customerId, ')
+          ..write('depotId: $depotId, ')
           ..write('editingQuotationId: $editingQuotationId, ')
           ..write('customizationJson: $customizationJson, ')
           ..write('unitPrice: $unitPrice, ')
@@ -8866,11 +8829,11 @@ class $RouteStopsTable extends RouteStops
   late final GeneratedColumn<String> routeId = GeneratedColumn<String>(
       'route_id', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _customerIdMeta =
-      const VerificationMeta('customerId');
+  static const VerificationMeta _depotIdMeta =
+      const VerificationMeta('depotId');
   @override
-  late final GeneratedColumn<String> customerId = GeneratedColumn<String>(
-      'customer_id', aliasedName, false,
+  late final GeneratedColumn<String> depotId = GeneratedColumn<String>(
+      'depot_id', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _sequenceMeta =
       const VerificationMeta('sequence');
@@ -8916,7 +8879,7 @@ class $RouteStopsTable extends RouteStops
         serverRevision,
         dirty,
         routeId,
-        customerId,
+        depotId,
         sequence,
         plannedArrival,
         plannedDeparture,
@@ -8967,13 +8930,11 @@ class $RouteStopsTable extends RouteStops
     } else if (isInserting) {
       context.missing(_routeIdMeta);
     }
-    if (data.containsKey('customer_id')) {
-      context.handle(
-          _customerIdMeta,
-          customerId.isAcceptableOrUnknown(
-              data['customer_id']!, _customerIdMeta));
+    if (data.containsKey('depot_id')) {
+      context.handle(_depotIdMeta,
+          depotId.isAcceptableOrUnknown(data['depot_id']!, _depotIdMeta));
     } else if (isInserting) {
-      context.missing(_customerIdMeta);
+      context.missing(_depotIdMeta);
     }
     if (data.containsKey('sequence')) {
       context.handle(_sequenceMeta,
@@ -9038,8 +8999,8 @@ class $RouteStopsTable extends RouteStops
           .read(DriftSqlType.bool, data['${effectivePrefix}dirty'])!,
       routeId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}route_id'])!,
-      customerId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}customer_id'])!,
+      depotId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}depot_id'])!,
       sequence: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}sequence'])!,
       plannedArrival: attachedDatabase.typeMapping.read(
@@ -9079,7 +9040,7 @@ class RouteStopRow extends DataClass implements Insertable<RouteStopRow> {
   final String? serverRevision;
   final bool dirty;
   final String routeId;
-  final String customerId;
+  final String depotId;
   final int sequence;
   final DateTime plannedArrival;
   final DateTime plannedDeparture;
@@ -9094,7 +9055,7 @@ class RouteStopRow extends DataClass implements Insertable<RouteStopRow> {
       this.serverRevision,
       required this.dirty,
       required this.routeId,
-      required this.customerId,
+      required this.depotId,
       required this.sequence,
       required this.plannedArrival,
       required this.plannedDeparture,
@@ -9113,7 +9074,7 @@ class RouteStopRow extends DataClass implements Insertable<RouteStopRow> {
     }
     map['dirty'] = Variable<bool>(dirty);
     map['route_id'] = Variable<String>(routeId);
-    map['customer_id'] = Variable<String>(customerId);
+    map['depot_id'] = Variable<String>(depotId);
     map['sequence'] = Variable<int>(sequence);
     map['planned_arrival'] = Variable<DateTime>(plannedArrival);
     map['planned_departure'] = Variable<DateTime>(plannedDeparture);
@@ -9138,7 +9099,7 @@ class RouteStopRow extends DataClass implements Insertable<RouteStopRow> {
           : Value(serverRevision),
       dirty: Value(dirty),
       routeId: Value(routeId),
-      customerId: Value(customerId),
+      depotId: Value(depotId),
       sequence: Value(sequence),
       plannedArrival: Value(plannedArrival),
       plannedDeparture: Value(plannedDeparture),
@@ -9163,7 +9124,7 @@ class RouteStopRow extends DataClass implements Insertable<RouteStopRow> {
       serverRevision: serializer.fromJson<String?>(json['serverRevision']),
       dirty: serializer.fromJson<bool>(json['dirty']),
       routeId: serializer.fromJson<String>(json['routeId']),
-      customerId: serializer.fromJson<String>(json['customerId']),
+      depotId: serializer.fromJson<String>(json['depotId']),
       sequence: serializer.fromJson<int>(json['sequence']),
       plannedArrival: serializer.fromJson<DateTime>(json['plannedArrival']),
       plannedDeparture: serializer.fromJson<DateTime>(json['plannedDeparture']),
@@ -9183,7 +9144,7 @@ class RouteStopRow extends DataClass implements Insertable<RouteStopRow> {
       'serverRevision': serializer.toJson<String?>(serverRevision),
       'dirty': serializer.toJson<bool>(dirty),
       'routeId': serializer.toJson<String>(routeId),
-      'customerId': serializer.toJson<String>(customerId),
+      'depotId': serializer.toJson<String>(depotId),
       'sequence': serializer.toJson<int>(sequence),
       'plannedArrival': serializer.toJson<DateTime>(plannedArrival),
       'plannedDeparture': serializer.toJson<DateTime>(plannedDeparture),
@@ -9201,7 +9162,7 @@ class RouteStopRow extends DataClass implements Insertable<RouteStopRow> {
           Value<String?> serverRevision = const Value.absent(),
           bool? dirty,
           String? routeId,
-          String? customerId,
+          String? depotId,
           int? sequence,
           DateTime? plannedArrival,
           DateTime? plannedDeparture,
@@ -9217,7 +9178,7 @@ class RouteStopRow extends DataClass implements Insertable<RouteStopRow> {
             serverRevision.present ? serverRevision.value : this.serverRevision,
         dirty: dirty ?? this.dirty,
         routeId: routeId ?? this.routeId,
-        customerId: customerId ?? this.customerId,
+        depotId: depotId ?? this.depotId,
         sequence: sequence ?? this.sequence,
         plannedArrival: plannedArrival ?? this.plannedArrival,
         plannedDeparture: plannedDeparture ?? this.plannedDeparture,
@@ -9239,8 +9200,7 @@ class RouteStopRow extends DataClass implements Insertable<RouteStopRow> {
           : this.serverRevision,
       dirty: data.dirty.present ? data.dirty.value : this.dirty,
       routeId: data.routeId.present ? data.routeId.value : this.routeId,
-      customerId:
-          data.customerId.present ? data.customerId.value : this.customerId,
+      depotId: data.depotId.present ? data.depotId.value : this.depotId,
       sequence: data.sequence.present ? data.sequence.value : this.sequence,
       plannedArrival: data.plannedArrival.present
           ? data.plannedArrival.value
@@ -9268,7 +9228,7 @@ class RouteStopRow extends DataClass implements Insertable<RouteStopRow> {
           ..write('serverRevision: $serverRevision, ')
           ..write('dirty: $dirty, ')
           ..write('routeId: $routeId, ')
-          ..write('customerId: $customerId, ')
+          ..write('depotId: $depotId, ')
           ..write('sequence: $sequence, ')
           ..write('plannedArrival: $plannedArrival, ')
           ..write('plannedDeparture: $plannedDeparture, ')
@@ -9288,7 +9248,7 @@ class RouteStopRow extends DataClass implements Insertable<RouteStopRow> {
       serverRevision,
       dirty,
       routeId,
-      customerId,
+      depotId,
       sequence,
       plannedArrival,
       plannedDeparture,
@@ -9306,7 +9266,7 @@ class RouteStopRow extends DataClass implements Insertable<RouteStopRow> {
           other.serverRevision == this.serverRevision &&
           other.dirty == this.dirty &&
           other.routeId == this.routeId &&
-          other.customerId == this.customerId &&
+          other.depotId == this.depotId &&
           other.sequence == this.sequence &&
           other.plannedArrival == this.plannedArrival &&
           other.plannedDeparture == this.plannedDeparture &&
@@ -9323,7 +9283,7 @@ class RouteStopsCompanion extends UpdateCompanion<RouteStopRow> {
   final Value<String?> serverRevision;
   final Value<bool> dirty;
   final Value<String> routeId;
-  final Value<String> customerId;
+  final Value<String> depotId;
   final Value<int> sequence;
   final Value<DateTime> plannedArrival;
   final Value<DateTime> plannedDeparture;
@@ -9339,7 +9299,7 @@ class RouteStopsCompanion extends UpdateCompanion<RouteStopRow> {
     this.serverRevision = const Value.absent(),
     this.dirty = const Value.absent(),
     this.routeId = const Value.absent(),
-    this.customerId = const Value.absent(),
+    this.depotId = const Value.absent(),
     this.sequence = const Value.absent(),
     this.plannedArrival = const Value.absent(),
     this.plannedDeparture = const Value.absent(),
@@ -9356,7 +9316,7 @@ class RouteStopsCompanion extends UpdateCompanion<RouteStopRow> {
     this.serverRevision = const Value.absent(),
     this.dirty = const Value.absent(),
     required String routeId,
-    required String customerId,
+    required String depotId,
     required int sequence,
     required DateTime plannedArrival,
     required DateTime plannedDeparture,
@@ -9366,7 +9326,7 @@ class RouteStopsCompanion extends UpdateCompanion<RouteStopRow> {
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         routeId = Value(routeId),
-        customerId = Value(customerId),
+        depotId = Value(depotId),
         sequence = Value(sequence),
         plannedArrival = Value(plannedArrival),
         plannedDeparture = Value(plannedDeparture),
@@ -9379,7 +9339,7 @@ class RouteStopsCompanion extends UpdateCompanion<RouteStopRow> {
     Expression<String>? serverRevision,
     Expression<bool>? dirty,
     Expression<String>? routeId,
-    Expression<String>? customerId,
+    Expression<String>? depotId,
     Expression<int>? sequence,
     Expression<DateTime>? plannedArrival,
     Expression<DateTime>? plannedDeparture,
@@ -9396,7 +9356,7 @@ class RouteStopsCompanion extends UpdateCompanion<RouteStopRow> {
       if (serverRevision != null) 'server_revision': serverRevision,
       if (dirty != null) 'dirty': dirty,
       if (routeId != null) 'route_id': routeId,
-      if (customerId != null) 'customer_id': customerId,
+      if (depotId != null) 'depot_id': depotId,
       if (sequence != null) 'sequence': sequence,
       if (plannedArrival != null) 'planned_arrival': plannedArrival,
       if (plannedDeparture != null) 'planned_departure': plannedDeparture,
@@ -9415,7 +9375,7 @@ class RouteStopsCompanion extends UpdateCompanion<RouteStopRow> {
       Value<String?>? serverRevision,
       Value<bool>? dirty,
       Value<String>? routeId,
-      Value<String>? customerId,
+      Value<String>? depotId,
       Value<int>? sequence,
       Value<DateTime>? plannedArrival,
       Value<DateTime>? plannedDeparture,
@@ -9431,7 +9391,7 @@ class RouteStopsCompanion extends UpdateCompanion<RouteStopRow> {
       serverRevision: serverRevision ?? this.serverRevision,
       dirty: dirty ?? this.dirty,
       routeId: routeId ?? this.routeId,
-      customerId: customerId ?? this.customerId,
+      depotId: depotId ?? this.depotId,
       sequence: sequence ?? this.sequence,
       plannedArrival: plannedArrival ?? this.plannedArrival,
       plannedDeparture: plannedDeparture ?? this.plannedDeparture,
@@ -9466,8 +9426,8 @@ class RouteStopsCompanion extends UpdateCompanion<RouteStopRow> {
     if (routeId.present) {
       map['route_id'] = Variable<String>(routeId.value);
     }
-    if (customerId.present) {
-      map['customer_id'] = Variable<String>(customerId.value);
+    if (depotId.present) {
+      map['depot_id'] = Variable<String>(depotId.value);
     }
     if (sequence.present) {
       map['sequence'] = Variable<int>(sequence.value);
@@ -9503,7 +9463,7 @@ class RouteStopsCompanion extends UpdateCompanion<RouteStopRow> {
           ..write('serverRevision: $serverRevision, ')
           ..write('dirty: $dirty, ')
           ..write('routeId: $routeId, ')
-          ..write('customerId: $customerId, ')
+          ..write('depotId: $depotId, ')
           ..write('sequence: $sequence, ')
           ..write('plannedArrival: $plannedArrival, ')
           ..write('plannedDeparture: $plannedDeparture, ')
@@ -9516,12 +9476,12 @@ class RouteStopsCompanion extends UpdateCompanion<RouteStopRow> {
   }
 }
 
-class $RouteCustomersTable extends RouteCustomers
-    with TableInfo<$RouteCustomersTable, RouteCustomerRow> {
+class $RouteDepotsTable extends RouteDepots
+    with TableInfo<$RouteDepotsTable, RouteDepotRow> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $RouteCustomersTable(this.attachedDatabase, [this._alias]);
+  $RouteDepotsTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
@@ -9610,9 +9570,9 @@ class $RouteCustomersTable extends RouteCustomers
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'route_customers';
+  static const String $name = 'route_depots';
   @override
-  VerificationContext validateIntegrity(Insertable<RouteCustomerRow> instance,
+  VerificationContext validateIntegrity(Insertable<RouteDepotRow> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
@@ -9693,9 +9653,9 @@ class $RouteCustomersTable extends RouteCustomers
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  RouteCustomerRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+  RouteDepotRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return RouteCustomerRow(
+    return RouteDepotRow(
       id: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
       name: attachedDatabase.typeMapping
@@ -9725,13 +9685,12 @@ class $RouteCustomersTable extends RouteCustomers
   }
 
   @override
-  $RouteCustomersTable createAlias(String alias) {
-    return $RouteCustomersTable(attachedDatabase, alias);
+  $RouteDepotsTable createAlias(String alias) {
+    return $RouteDepotsTable(attachedDatabase, alias);
   }
 }
 
-class RouteCustomerRow extends DataClass
-    implements Insertable<RouteCustomerRow> {
+class RouteDepotRow extends DataClass implements Insertable<RouteDepotRow> {
   final String id;
   final String name;
 
@@ -9750,7 +9709,7 @@ class RouteCustomerRow extends DataClass
 
   /// Metres; falls back to the territory-type default when absent.
   final double? geofenceRadiusOverride;
-  const RouteCustomerRow(
+  const RouteDepotRow(
       {required this.id,
       required this.name,
       required this.nameKh,
@@ -9784,8 +9743,8 @@ class RouteCustomerRow extends DataClass
     return map;
   }
 
-  RouteCustomersCompanion toCompanion(bool nullToAbsent) {
-    return RouteCustomersCompanion(
+  RouteDepotsCompanion toCompanion(bool nullToAbsent) {
+    return RouteDepotsCompanion(
       id: Value(id),
       name: Value(name),
       nameKh: Value(nameKh),
@@ -9803,10 +9762,10 @@ class RouteCustomerRow extends DataClass
     );
   }
 
-  factory RouteCustomerRow.fromJson(Map<String, dynamic> json,
+  factory RouteDepotRow.fromJson(Map<String, dynamic> json,
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return RouteCustomerRow(
+    return RouteDepotRow(
       id: serializer.fromJson<String>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       nameKh: serializer.fromJson<String>(json['nameKh']),
@@ -9842,7 +9801,7 @@ class RouteCustomerRow extends DataClass
     };
   }
 
-  RouteCustomerRow copyWith(
+  RouteDepotRow copyWith(
           {String? id,
           String? name,
           String? nameKh,
@@ -9855,7 +9814,7 @@ class RouteCustomerRow extends DataClass
           double? latitude,
           double? longitude,
           Value<double?> geofenceRadiusOverride = const Value.absent()}) =>
-      RouteCustomerRow(
+      RouteDepotRow(
         id: id ?? this.id,
         name: name ?? this.name,
         nameKh: nameKh ?? this.nameKh,
@@ -9871,8 +9830,8 @@ class RouteCustomerRow extends DataClass
             ? geofenceRadiusOverride.value
             : this.geofenceRadiusOverride,
       );
-  RouteCustomerRow copyWithCompanion(RouteCustomersCompanion data) {
-    return RouteCustomerRow(
+  RouteDepotRow copyWithCompanion(RouteDepotsCompanion data) {
+    return RouteDepotRow(
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
       nameKh: data.nameKh.present ? data.nameKh.value : this.nameKh,
@@ -9894,7 +9853,7 @@ class RouteCustomerRow extends DataClass
 
   @override
   String toString() {
-    return (StringBuffer('RouteCustomerRow(')
+    return (StringBuffer('RouteDepotRow(')
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('nameKh: $nameKh, ')
@@ -9928,7 +9887,7 @@ class RouteCustomerRow extends DataClass
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is RouteCustomerRow &&
+      (other is RouteDepotRow &&
           other.id == this.id &&
           other.name == this.name &&
           other.nameKh == this.nameKh &&
@@ -9943,7 +9902,7 @@ class RouteCustomerRow extends DataClass
           other.geofenceRadiusOverride == this.geofenceRadiusOverride);
 }
 
-class RouteCustomersCompanion extends UpdateCompanion<RouteCustomerRow> {
+class RouteDepotsCompanion extends UpdateCompanion<RouteDepotRow> {
   final Value<String> id;
   final Value<String> name;
   final Value<String> nameKh;
@@ -9957,7 +9916,7 @@ class RouteCustomersCompanion extends UpdateCompanion<RouteCustomerRow> {
   final Value<double> longitude;
   final Value<double?> geofenceRadiusOverride;
   final Value<int> rowid;
-  const RouteCustomersCompanion({
+  const RouteDepotsCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.nameKh = const Value.absent(),
@@ -9972,7 +9931,7 @@ class RouteCustomersCompanion extends UpdateCompanion<RouteCustomerRow> {
     this.geofenceRadiusOverride = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  RouteCustomersCompanion.insert({
+  RouteDepotsCompanion.insert({
     required String id,
     required String name,
     this.nameKh = const Value.absent(),
@@ -9996,7 +9955,7 @@ class RouteCustomersCompanion extends UpdateCompanion<RouteCustomerRow> {
         territoryType = Value(territoryType),
         latitude = Value(latitude),
         longitude = Value(longitude);
-  static Insertable<RouteCustomerRow> custom({
+  static Insertable<RouteDepotRow> custom({
     Expression<String>? id,
     Expression<String>? name,
     Expression<String>? nameKh,
@@ -10029,7 +9988,7 @@ class RouteCustomersCompanion extends UpdateCompanion<RouteCustomerRow> {
     });
   }
 
-  RouteCustomersCompanion copyWith(
+  RouteDepotsCompanion copyWith(
       {Value<String>? id,
       Value<String>? name,
       Value<String>? nameKh,
@@ -10043,7 +10002,7 @@ class RouteCustomersCompanion extends UpdateCompanion<RouteCustomerRow> {
       Value<double>? longitude,
       Value<double?>? geofenceRadiusOverride,
       Value<int>? rowid}) {
-    return RouteCustomersCompanion(
+    return RouteDepotsCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
       nameKh: nameKh ?? this.nameKh,
@@ -10109,7 +10068,7 @@ class RouteCustomersCompanion extends UpdateCompanion<RouteCustomerRow> {
 
   @override
   String toString() {
-    return (StringBuffer('RouteCustomersCompanion(')
+    return (StringBuffer('RouteDepotsCompanion(')
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('nameKh: $nameKh, ')
@@ -11736,11 +11695,11 @@ class $VisitCheckInsTable extends VisitCheckIns
   late final GeneratedColumn<double> accuracy = GeneratedColumn<double>(
       'accuracy', aliasedName, false,
       type: DriftSqlType.double, requiredDuringInsert: true);
-  static const VerificationMeta _distanceFromCustomerMeta =
-      const VerificationMeta('distanceFromCustomer');
+  static const VerificationMeta _distanceFromDepotMeta =
+      const VerificationMeta('distanceFromDepot');
   @override
-  late final GeneratedColumn<double> distanceFromCustomer =
-      GeneratedColumn<double>('distance_from_customer', aliasedName, false,
+  late final GeneratedColumn<double> distanceFromDepot =
+      GeneratedColumn<double>('distance_from_depot', aliasedName, false,
           type: DriftSqlType.double, requiredDuringInsert: true);
   static const VerificationMeta _isMockedMeta =
       const VerificationMeta('isMocked');
@@ -11771,7 +11730,7 @@ class $VisitCheckInsTable extends VisitCheckIns
         latitude,
         longitude,
         accuracy,
-        distanceFromCustomer,
+        distanceFromDepot,
         isMocked,
         overrideReason
       ];
@@ -11842,13 +11801,13 @@ class $VisitCheckInsTable extends VisitCheckIns
     } else if (isInserting) {
       context.missing(_accuracyMeta);
     }
-    if (data.containsKey('distance_from_customer')) {
+    if (data.containsKey('distance_from_depot')) {
       context.handle(
-          _distanceFromCustomerMeta,
-          distanceFromCustomer.isAcceptableOrUnknown(
-              data['distance_from_customer']!, _distanceFromCustomerMeta));
+          _distanceFromDepotMeta,
+          distanceFromDepot.isAcceptableOrUnknown(
+              data['distance_from_depot']!, _distanceFromDepotMeta));
     } else if (isInserting) {
-      context.missing(_distanceFromCustomerMeta);
+      context.missing(_distanceFromDepotMeta);
     }
     if (data.containsKey('is_mocked')) {
       context.handle(_isMockedMeta,
@@ -11891,9 +11850,8 @@ class $VisitCheckInsTable extends VisitCheckIns
           .read(DriftSqlType.double, data['${effectivePrefix}longitude'])!,
       accuracy: attachedDatabase.typeMapping
           .read(DriftSqlType.double, data['${effectivePrefix}accuracy'])!,
-      distanceFromCustomer: attachedDatabase.typeMapping.read(
-          DriftSqlType.double,
-          data['${effectivePrefix}distance_from_customer'])!,
+      distanceFromDepot: attachedDatabase.typeMapping.read(
+          DriftSqlType.double, data['${effectivePrefix}distance_from_depot'])!,
       isMocked: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}is_mocked'])!,
       overrideReason: attachedDatabase.typeMapping
@@ -11930,9 +11888,9 @@ class VisitCheckInRow extends DataClass implements Insertable<VisitCheckInRow> {
   final double longitude;
   final double accuracy;
 
-  /// Metres between the rep and the customer's registered location — the input
+  /// Metres between the rep and the depot's registered location — the input
   /// to the geofence rule, retained for audit.
-  final double distanceFromCustomer;
+  final double distanceFromDepot;
   final bool isMocked;
 
   /// Why the rep checked in from outside the geofence, when they did.
@@ -11943,7 +11901,7 @@ class VisitCheckInRow extends DataClass implements Insertable<VisitCheckInRow> {
   /// out-of-bounds check-in indistinguishable from a compliant one.
   ///
   /// Nullable and additive: the geofence verdict itself stays in
-  /// [distanceFromCustomer], which is what the server re-evaluates.
+  /// [distanceFromDepot], which is what the server re-evaluates.
   final String? overrideReason;
   const VisitCheckInRow(
       {required this.id,
@@ -11957,7 +11915,7 @@ class VisitCheckInRow extends DataClass implements Insertable<VisitCheckInRow> {
       required this.latitude,
       required this.longitude,
       required this.accuracy,
-      required this.distanceFromCustomer,
+      required this.distanceFromDepot,
       required this.isMocked,
       this.overrideReason});
   @override
@@ -11976,7 +11934,7 @@ class VisitCheckInRow extends DataClass implements Insertable<VisitCheckInRow> {
     map['latitude'] = Variable<double>(latitude);
     map['longitude'] = Variable<double>(longitude);
     map['accuracy'] = Variable<double>(accuracy);
-    map['distance_from_customer'] = Variable<double>(distanceFromCustomer);
+    map['distance_from_depot'] = Variable<double>(distanceFromDepot);
     map['is_mocked'] = Variable<bool>(isMocked);
     if (!nullToAbsent || overrideReason != null) {
       map['override_reason'] = Variable<String>(overrideReason);
@@ -11999,7 +11957,7 @@ class VisitCheckInRow extends DataClass implements Insertable<VisitCheckInRow> {
       latitude: Value(latitude),
       longitude: Value(longitude),
       accuracy: Value(accuracy),
-      distanceFromCustomer: Value(distanceFromCustomer),
+      distanceFromDepot: Value(distanceFromDepot),
       isMocked: Value(isMocked),
       overrideReason: overrideReason == null && nullToAbsent
           ? const Value.absent()
@@ -12022,8 +11980,7 @@ class VisitCheckInRow extends DataClass implements Insertable<VisitCheckInRow> {
       latitude: serializer.fromJson<double>(json['latitude']),
       longitude: serializer.fromJson<double>(json['longitude']),
       accuracy: serializer.fromJson<double>(json['accuracy']),
-      distanceFromCustomer:
-          serializer.fromJson<double>(json['distanceFromCustomer']),
+      distanceFromDepot: serializer.fromJson<double>(json['distanceFromDepot']),
       isMocked: serializer.fromJson<bool>(json['isMocked']),
       overrideReason: serializer.fromJson<String?>(json['overrideReason']),
     );
@@ -12043,7 +12000,7 @@ class VisitCheckInRow extends DataClass implements Insertable<VisitCheckInRow> {
       'latitude': serializer.toJson<double>(latitude),
       'longitude': serializer.toJson<double>(longitude),
       'accuracy': serializer.toJson<double>(accuracy),
-      'distanceFromCustomer': serializer.toJson<double>(distanceFromCustomer),
+      'distanceFromDepot': serializer.toJson<double>(distanceFromDepot),
       'isMocked': serializer.toJson<bool>(isMocked),
       'overrideReason': serializer.toJson<String?>(overrideReason),
     };
@@ -12061,7 +12018,7 @@ class VisitCheckInRow extends DataClass implements Insertable<VisitCheckInRow> {
           double? latitude,
           double? longitude,
           double? accuracy,
-          double? distanceFromCustomer,
+          double? distanceFromDepot,
           bool? isMocked,
           Value<String?> overrideReason = const Value.absent()}) =>
       VisitCheckInRow(
@@ -12077,7 +12034,7 @@ class VisitCheckInRow extends DataClass implements Insertable<VisitCheckInRow> {
         latitude: latitude ?? this.latitude,
         longitude: longitude ?? this.longitude,
         accuracy: accuracy ?? this.accuracy,
-        distanceFromCustomer: distanceFromCustomer ?? this.distanceFromCustomer,
+        distanceFromDepot: distanceFromDepot ?? this.distanceFromDepot,
         isMocked: isMocked ?? this.isMocked,
         overrideReason:
             overrideReason.present ? overrideReason.value : this.overrideReason,
@@ -12097,9 +12054,9 @@ class VisitCheckInRow extends DataClass implements Insertable<VisitCheckInRow> {
       latitude: data.latitude.present ? data.latitude.value : this.latitude,
       longitude: data.longitude.present ? data.longitude.value : this.longitude,
       accuracy: data.accuracy.present ? data.accuracy.value : this.accuracy,
-      distanceFromCustomer: data.distanceFromCustomer.present
-          ? data.distanceFromCustomer.value
-          : this.distanceFromCustomer,
+      distanceFromDepot: data.distanceFromDepot.present
+          ? data.distanceFromDepot.value
+          : this.distanceFromDepot,
       isMocked: data.isMocked.present ? data.isMocked.value : this.isMocked,
       overrideReason: data.overrideReason.present
           ? data.overrideReason.value
@@ -12121,7 +12078,7 @@ class VisitCheckInRow extends DataClass implements Insertable<VisitCheckInRow> {
           ..write('latitude: $latitude, ')
           ..write('longitude: $longitude, ')
           ..write('accuracy: $accuracy, ')
-          ..write('distanceFromCustomer: $distanceFromCustomer, ')
+          ..write('distanceFromDepot: $distanceFromDepot, ')
           ..write('isMocked: $isMocked, ')
           ..write('overrideReason: $overrideReason')
           ..write(')'))
@@ -12141,7 +12098,7 @@ class VisitCheckInRow extends DataClass implements Insertable<VisitCheckInRow> {
       latitude,
       longitude,
       accuracy,
-      distanceFromCustomer,
+      distanceFromDepot,
       isMocked,
       overrideReason);
   @override
@@ -12159,7 +12116,7 @@ class VisitCheckInRow extends DataClass implements Insertable<VisitCheckInRow> {
           other.latitude == this.latitude &&
           other.longitude == this.longitude &&
           other.accuracy == this.accuracy &&
-          other.distanceFromCustomer == this.distanceFromCustomer &&
+          other.distanceFromDepot == this.distanceFromDepot &&
           other.isMocked == this.isMocked &&
           other.overrideReason == this.overrideReason);
 }
@@ -12176,7 +12133,7 @@ class VisitCheckInsCompanion extends UpdateCompanion<VisitCheckInRow> {
   final Value<double> latitude;
   final Value<double> longitude;
   final Value<double> accuracy;
-  final Value<double> distanceFromCustomer;
+  final Value<double> distanceFromDepot;
   final Value<bool> isMocked;
   final Value<String?> overrideReason;
   final Value<int> rowid;
@@ -12192,7 +12149,7 @@ class VisitCheckInsCompanion extends UpdateCompanion<VisitCheckInRow> {
     this.latitude = const Value.absent(),
     this.longitude = const Value.absent(),
     this.accuracy = const Value.absent(),
-    this.distanceFromCustomer = const Value.absent(),
+    this.distanceFromDepot = const Value.absent(),
     this.isMocked = const Value.absent(),
     this.overrideReason = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -12209,7 +12166,7 @@ class VisitCheckInsCompanion extends UpdateCompanion<VisitCheckInRow> {
     required double latitude,
     required double longitude,
     required double accuracy,
-    required double distanceFromCustomer,
+    required double distanceFromDepot,
     this.isMocked = const Value.absent(),
     this.overrideReason = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -12219,7 +12176,7 @@ class VisitCheckInsCompanion extends UpdateCompanion<VisitCheckInRow> {
         latitude = Value(latitude),
         longitude = Value(longitude),
         accuracy = Value(accuracy),
-        distanceFromCustomer = Value(distanceFromCustomer);
+        distanceFromDepot = Value(distanceFromDepot);
   static Insertable<VisitCheckInRow> custom({
     Expression<String>? id,
     Expression<DateTime>? updatedAt,
@@ -12232,7 +12189,7 @@ class VisitCheckInsCompanion extends UpdateCompanion<VisitCheckInRow> {
     Expression<double>? latitude,
     Expression<double>? longitude,
     Expression<double>? accuracy,
-    Expression<double>? distanceFromCustomer,
+    Expression<double>? distanceFromDepot,
     Expression<bool>? isMocked,
     Expression<String>? overrideReason,
     Expression<int>? rowid,
@@ -12249,8 +12206,7 @@ class VisitCheckInsCompanion extends UpdateCompanion<VisitCheckInRow> {
       if (latitude != null) 'latitude': latitude,
       if (longitude != null) 'longitude': longitude,
       if (accuracy != null) 'accuracy': accuracy,
-      if (distanceFromCustomer != null)
-        'distance_from_customer': distanceFromCustomer,
+      if (distanceFromDepot != null) 'distance_from_depot': distanceFromDepot,
       if (isMocked != null) 'is_mocked': isMocked,
       if (overrideReason != null) 'override_reason': overrideReason,
       if (rowid != null) 'rowid': rowid,
@@ -12269,7 +12225,7 @@ class VisitCheckInsCompanion extends UpdateCompanion<VisitCheckInRow> {
       Value<double>? latitude,
       Value<double>? longitude,
       Value<double>? accuracy,
-      Value<double>? distanceFromCustomer,
+      Value<double>? distanceFromDepot,
       Value<bool>? isMocked,
       Value<String?>? overrideReason,
       Value<int>? rowid}) {
@@ -12285,7 +12241,7 @@ class VisitCheckInsCompanion extends UpdateCompanion<VisitCheckInRow> {
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
       accuracy: accuracy ?? this.accuracy,
-      distanceFromCustomer: distanceFromCustomer ?? this.distanceFromCustomer,
+      distanceFromDepot: distanceFromDepot ?? this.distanceFromDepot,
       isMocked: isMocked ?? this.isMocked,
       overrideReason: overrideReason ?? this.overrideReason,
       rowid: rowid ?? this.rowid,
@@ -12328,9 +12284,8 @@ class VisitCheckInsCompanion extends UpdateCompanion<VisitCheckInRow> {
     if (accuracy.present) {
       map['accuracy'] = Variable<double>(accuracy.value);
     }
-    if (distanceFromCustomer.present) {
-      map['distance_from_customer'] =
-          Variable<double>(distanceFromCustomer.value);
+    if (distanceFromDepot.present) {
+      map['distance_from_depot'] = Variable<double>(distanceFromDepot.value);
     }
     if (isMocked.present) {
       map['is_mocked'] = Variable<bool>(isMocked.value);
@@ -12358,7 +12313,7 @@ class VisitCheckInsCompanion extends UpdateCompanion<VisitCheckInRow> {
           ..write('latitude: $latitude, ')
           ..write('longitude: $longitude, ')
           ..write('accuracy: $accuracy, ')
-          ..write('distanceFromCustomer: $distanceFromCustomer, ')
+          ..write('distanceFromDepot: $distanceFromDepot, ')
           ..write('isMocked: $isMocked, ')
           ..write('overrideReason: $overrideReason, ')
           ..write('rowid: $rowid')
@@ -13831,8 +13786,8 @@ class VisitStockUpdateRow extends DataClass
   final bool dirty;
   final String? stopId;
 
-  /// The depot/shop (customer id) a depot count was taken at. No FK: depot
-  /// counts may reference customers synced later than the capture.
+  /// The depot/shop (depot id) a depot count was taken at. No FK: depot
+  /// counts may reference depots synced later than the capture.
   final String? depotId;
   final String productId;
   final String productName;
@@ -16415,11 +16370,11 @@ class $QuotationsTable extends Quotations
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
       'id', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _customerIdMeta =
-      const VerificationMeta('customerId');
+  static const VerificationMeta _depotIdMeta =
+      const VerificationMeta('depotId');
   @override
-  late final GeneratedColumn<String> customerId = GeneratedColumn<String>(
-      'customer_id', aliasedName, true,
+  late final GeneratedColumn<String> depotId = GeneratedColumn<String>(
+      'depot_id', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _shopNameMeta =
       const VerificationMeta('shopName');
@@ -16514,7 +16469,7 @@ class $QuotationsTable extends Quotations
   @override
   List<GeneratedColumn> get $columns => [
         id,
-        customerId,
+        depotId,
         shopName,
         leadId,
         leadDisplayName,
@@ -16547,11 +16502,9 @@ class $QuotationsTable extends Quotations
     } else if (isInserting) {
       context.missing(_idMeta);
     }
-    if (data.containsKey('customer_id')) {
-      context.handle(
-          _customerIdMeta,
-          customerId.isAcceptableOrUnknown(
-              data['customer_id']!, _customerIdMeta));
+    if (data.containsKey('depot_id')) {
+      context.handle(_depotIdMeta,
+          depotId.isAcceptableOrUnknown(data['depot_id']!, _depotIdMeta));
     }
     if (data.containsKey('shop_name')) {
       context.handle(_shopNameMeta,
@@ -16656,8 +16609,8 @@ class $QuotationsTable extends Quotations
     return Quotation(
       id: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
-      customerId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}customer_id']),
+      depotId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}depot_id']),
       shopName: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}shop_name']),
       leadId: attachedDatabase.typeMapping
@@ -16701,7 +16654,7 @@ class $QuotationsTable extends Quotations
 
 class Quotation extends DataClass implements Insertable<Quotation> {
   final String id;
-  final String? customerId;
+  final String? depotId;
   final String? shopName;
   final String? leadId;
   final String? leadDisplayName;
@@ -16727,7 +16680,7 @@ class Quotation extends DataClass implements Insertable<Quotation> {
   final String updatedAt;
   const Quotation(
       {required this.id,
-      this.customerId,
+      this.depotId,
       this.shopName,
       this.leadId,
       this.leadDisplayName,
@@ -16748,8 +16701,8 @@ class Quotation extends DataClass implements Insertable<Quotation> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
-    if (!nullToAbsent || customerId != null) {
-      map['customer_id'] = Variable<String>(customerId);
+    if (!nullToAbsent || depotId != null) {
+      map['depot_id'] = Variable<String>(depotId);
     }
     if (!nullToAbsent || shopName != null) {
       map['shop_name'] = Variable<String>(shopName);
@@ -16785,9 +16738,9 @@ class Quotation extends DataClass implements Insertable<Quotation> {
   QuotationsCompanion toCompanion(bool nullToAbsent) {
     return QuotationsCompanion(
       id: Value(id),
-      customerId: customerId == null && nullToAbsent
+      depotId: depotId == null && nullToAbsent
           ? const Value.absent()
-          : Value(customerId),
+          : Value(depotId),
       shopName: shopName == null && nullToAbsent
           ? const Value.absent()
           : Value(shopName),
@@ -16821,7 +16774,7 @@ class Quotation extends DataClass implements Insertable<Quotation> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Quotation(
       id: serializer.fromJson<String>(json['id']),
-      customerId: serializer.fromJson<String?>(json['customerId']),
+      depotId: serializer.fromJson<String?>(json['depotId']),
       shopName: serializer.fromJson<String?>(json['shopName']),
       leadId: serializer.fromJson<String?>(json['leadId']),
       leadDisplayName: serializer.fromJson<String?>(json['leadDisplayName']),
@@ -16845,7 +16798,7 @@ class Quotation extends DataClass implements Insertable<Quotation> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
-      'customerId': serializer.toJson<String?>(customerId),
+      'depotId': serializer.toJson<String?>(depotId),
       'shopName': serializer.toJson<String?>(shopName),
       'leadId': serializer.toJson<String?>(leadId),
       'leadDisplayName': serializer.toJson<String?>(leadDisplayName),
@@ -16867,7 +16820,7 @@ class Quotation extends DataClass implements Insertable<Quotation> {
 
   Quotation copyWith(
           {String? id,
-          Value<String?> customerId = const Value.absent(),
+          Value<String?> depotId = const Value.absent(),
           Value<String?> shopName = const Value.absent(),
           Value<String?> leadId = const Value.absent(),
           Value<String?> leadDisplayName = const Value.absent(),
@@ -16886,7 +16839,7 @@ class Quotation extends DataClass implements Insertable<Quotation> {
           String? updatedAt}) =>
       Quotation(
         id: id ?? this.id,
-        customerId: customerId.present ? customerId.value : this.customerId,
+        depotId: depotId.present ? depotId.value : this.depotId,
         shopName: shopName.present ? shopName.value : this.shopName,
         leadId: leadId.present ? leadId.value : this.leadId,
         leadDisplayName: leadDisplayName.present
@@ -16910,8 +16863,7 @@ class Quotation extends DataClass implements Insertable<Quotation> {
   Quotation copyWithCompanion(QuotationsCompanion data) {
     return Quotation(
       id: data.id.present ? data.id.value : this.id,
-      customerId:
-          data.customerId.present ? data.customerId.value : this.customerId,
+      depotId: data.depotId.present ? data.depotId.value : this.depotId,
       shopName: data.shopName.present ? data.shopName.value : this.shopName,
       leadId: data.leadId.present ? data.leadId.value : this.leadId,
       leadDisplayName: data.leadDisplayName.present
@@ -16942,7 +16894,7 @@ class Quotation extends DataClass implements Insertable<Quotation> {
   String toString() {
     return (StringBuffer('Quotation(')
           ..write('id: $id, ')
-          ..write('customerId: $customerId, ')
+          ..write('depotId: $depotId, ')
           ..write('shopName: $shopName, ')
           ..write('leadId: $leadId, ')
           ..write('leadDisplayName: $leadDisplayName, ')
@@ -16966,7 +16918,7 @@ class Quotation extends DataClass implements Insertable<Quotation> {
   @override
   int get hashCode => Object.hash(
       id,
-      customerId,
+      depotId,
       shopName,
       leadId,
       leadDisplayName,
@@ -16988,7 +16940,7 @@ class Quotation extends DataClass implements Insertable<Quotation> {
       identical(this, other) ||
       (other is Quotation &&
           other.id == this.id &&
-          other.customerId == this.customerId &&
+          other.depotId == this.depotId &&
           other.shopName == this.shopName &&
           other.leadId == this.leadId &&
           other.leadDisplayName == this.leadDisplayName &&
@@ -17009,7 +16961,7 @@ class Quotation extends DataClass implements Insertable<Quotation> {
 
 class QuotationsCompanion extends UpdateCompanion<Quotation> {
   final Value<String> id;
-  final Value<String?> customerId;
+  final Value<String?> depotId;
   final Value<String?> shopName;
   final Value<String?> leadId;
   final Value<String?> leadDisplayName;
@@ -17029,7 +16981,7 @@ class QuotationsCompanion extends UpdateCompanion<Quotation> {
   final Value<int> rowid;
   const QuotationsCompanion({
     this.id = const Value.absent(),
-    this.customerId = const Value.absent(),
+    this.depotId = const Value.absent(),
     this.shopName = const Value.absent(),
     this.leadId = const Value.absent(),
     this.leadDisplayName = const Value.absent(),
@@ -17050,7 +17002,7 @@ class QuotationsCompanion extends UpdateCompanion<Quotation> {
   });
   QuotationsCompanion.insert({
     required String id,
-    this.customerId = const Value.absent(),
+    this.depotId = const Value.absent(),
     this.shopName = const Value.absent(),
     this.leadId = const Value.absent(),
     this.leadDisplayName = const Value.absent(),
@@ -17081,7 +17033,7 @@ class QuotationsCompanion extends UpdateCompanion<Quotation> {
         updatedAt = Value(updatedAt);
   static Insertable<Quotation> custom({
     Expression<String>? id,
-    Expression<String>? customerId,
+    Expression<String>? depotId,
     Expression<String>? shopName,
     Expression<String>? leadId,
     Expression<String>? leadDisplayName,
@@ -17102,7 +17054,7 @@ class QuotationsCompanion extends UpdateCompanion<Quotation> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
-      if (customerId != null) 'customer_id': customerId,
+      if (depotId != null) 'depot_id': depotId,
       if (shopName != null) 'shop_name': shopName,
       if (leadId != null) 'lead_id': leadId,
       if (leadDisplayName != null) 'lead_display_name': leadDisplayName,
@@ -17125,7 +17077,7 @@ class QuotationsCompanion extends UpdateCompanion<Quotation> {
 
   QuotationsCompanion copyWith(
       {Value<String>? id,
-      Value<String?>? customerId,
+      Value<String?>? depotId,
       Value<String?>? shopName,
       Value<String?>? leadId,
       Value<String?>? leadDisplayName,
@@ -17145,7 +17097,7 @@ class QuotationsCompanion extends UpdateCompanion<Quotation> {
       Value<int>? rowid}) {
     return QuotationsCompanion(
       id: id ?? this.id,
-      customerId: customerId ?? this.customerId,
+      depotId: depotId ?? this.depotId,
       shopName: shopName ?? this.shopName,
       leadId: leadId ?? this.leadId,
       leadDisplayName: leadDisplayName ?? this.leadDisplayName,
@@ -17172,8 +17124,8 @@ class QuotationsCompanion extends UpdateCompanion<Quotation> {
     if (id.present) {
       map['id'] = Variable<String>(id.value);
     }
-    if (customerId.present) {
-      map['customer_id'] = Variable<String>(customerId.value);
+    if (depotId.present) {
+      map['depot_id'] = Variable<String>(depotId.value);
     }
     if (shopName.present) {
       map['shop_name'] = Variable<String>(shopName.value);
@@ -17233,7 +17185,7 @@ class QuotationsCompanion extends UpdateCompanion<Quotation> {
   String toString() {
     return (StringBuffer('QuotationsCompanion(')
           ..write('id: $id, ')
-          ..write('customerId: $customerId, ')
+          ..write('depotId: $depotId, ')
           ..write('shopName: $shopName, ')
           ..write('leadId: $leadId, ')
           ..write('leadDisplayName: $leadDisplayName, ')
@@ -17273,11 +17225,11 @@ class $SalesOrdersTable extends SalesOrders
   late final GeneratedColumn<String> quotationId = GeneratedColumn<String>(
       'quotation_id', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _customerIdMeta =
-      const VerificationMeta('customerId');
+  static const VerificationMeta _depotIdMeta =
+      const VerificationMeta('depotId');
   @override
-  late final GeneratedColumn<String> customerId = GeneratedColumn<String>(
-      'customer_id', aliasedName, true,
+  late final GeneratedColumn<String> depotId = GeneratedColumn<String>(
+      'depot_id', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _shopNameMeta =
       const VerificationMeta('shopName');
@@ -17351,7 +17303,7 @@ class $SalesOrdersTable extends SalesOrders
   List<GeneratedColumn> get $columns => [
         id,
         quotationId,
-        customerId,
+        depotId,
         shopName,
         leadId,
         leadDisplayName,
@@ -17388,11 +17340,9 @@ class $SalesOrdersTable extends SalesOrders
     } else if (isInserting) {
       context.missing(_quotationIdMeta);
     }
-    if (data.containsKey('customer_id')) {
-      context.handle(
-          _customerIdMeta,
-          customerId.isAcceptableOrUnknown(
-              data['customer_id']!, _customerIdMeta));
+    if (data.containsKey('depot_id')) {
+      context.handle(_depotIdMeta,
+          depotId.isAcceptableOrUnknown(data['depot_id']!, _depotIdMeta));
     }
     if (data.containsKey('shop_name')) {
       context.handle(_shopNameMeta,
@@ -17475,8 +17425,8 @@ class $SalesOrdersTable extends SalesOrders
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
       quotationId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}quotation_id'])!,
-      customerId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}customer_id']),
+      depotId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}depot_id']),
       shopName: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}shop_name']),
       leadId: attachedDatabase.typeMapping
@@ -17513,7 +17463,7 @@ class $SalesOrdersTable extends SalesOrders
 class SalesOrder extends DataClass implements Insertable<SalesOrder> {
   final String id;
   final String quotationId;
-  final String? customerId;
+  final String? depotId;
   final String? shopName;
   final String? leadId;
   final String? leadDisplayName;
@@ -17529,7 +17479,7 @@ class SalesOrder extends DataClass implements Insertable<SalesOrder> {
   const SalesOrder(
       {required this.id,
       required this.quotationId,
-      this.customerId,
+      this.depotId,
       this.shopName,
       this.leadId,
       this.leadDisplayName,
@@ -17547,8 +17497,8 @@ class SalesOrder extends DataClass implements Insertable<SalesOrder> {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     map['quotation_id'] = Variable<String>(quotationId);
-    if (!nullToAbsent || customerId != null) {
-      map['customer_id'] = Variable<String>(customerId);
+    if (!nullToAbsent || depotId != null) {
+      map['depot_id'] = Variable<String>(depotId);
     }
     if (!nullToAbsent || shopName != null) {
       map['shop_name'] = Variable<String>(shopName);
@@ -17577,9 +17527,9 @@ class SalesOrder extends DataClass implements Insertable<SalesOrder> {
     return SalesOrdersCompanion(
       id: Value(id),
       quotationId: Value(quotationId),
-      customerId: customerId == null && nullToAbsent
+      depotId: depotId == null && nullToAbsent
           ? const Value.absent()
-          : Value(customerId),
+          : Value(depotId),
       shopName: shopName == null && nullToAbsent
           ? const Value.absent()
           : Value(shopName),
@@ -17608,7 +17558,7 @@ class SalesOrder extends DataClass implements Insertable<SalesOrder> {
     return SalesOrder(
       id: serializer.fromJson<String>(json['id']),
       quotationId: serializer.fromJson<String>(json['quotationId']),
-      customerId: serializer.fromJson<String?>(json['customerId']),
+      depotId: serializer.fromJson<String?>(json['depotId']),
       shopName: serializer.fromJson<String?>(json['shopName']),
       leadId: serializer.fromJson<String?>(json['leadId']),
       leadDisplayName: serializer.fromJson<String?>(json['leadDisplayName']),
@@ -17629,7 +17579,7 @@ class SalesOrder extends DataClass implements Insertable<SalesOrder> {
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
       'quotationId': serializer.toJson<String>(quotationId),
-      'customerId': serializer.toJson<String?>(customerId),
+      'depotId': serializer.toJson<String?>(depotId),
       'shopName': serializer.toJson<String?>(shopName),
       'leadId': serializer.toJson<String?>(leadId),
       'leadDisplayName': serializer.toJson<String?>(leadDisplayName),
@@ -17648,7 +17598,7 @@ class SalesOrder extends DataClass implements Insertable<SalesOrder> {
   SalesOrder copyWith(
           {String? id,
           String? quotationId,
-          Value<String?> customerId = const Value.absent(),
+          Value<String?> depotId = const Value.absent(),
           Value<String?> shopName = const Value.absent(),
           Value<String?> leadId = const Value.absent(),
           Value<String?> leadDisplayName = const Value.absent(),
@@ -17664,7 +17614,7 @@ class SalesOrder extends DataClass implements Insertable<SalesOrder> {
       SalesOrder(
         id: id ?? this.id,
         quotationId: quotationId ?? this.quotationId,
-        customerId: customerId.present ? customerId.value : this.customerId,
+        depotId: depotId.present ? depotId.value : this.depotId,
         shopName: shopName.present ? shopName.value : this.shopName,
         leadId: leadId.present ? leadId.value : this.leadId,
         leadDisplayName: leadDisplayName.present
@@ -17686,8 +17636,7 @@ class SalesOrder extends DataClass implements Insertable<SalesOrder> {
       id: data.id.present ? data.id.value : this.id,
       quotationId:
           data.quotationId.present ? data.quotationId.value : this.quotationId,
-      customerId:
-          data.customerId.present ? data.customerId.value : this.customerId,
+      depotId: data.depotId.present ? data.depotId.value : this.depotId,
       shopName: data.shopName.present ? data.shopName.value : this.shopName,
       leadId: data.leadId.present ? data.leadId.value : this.leadId,
       leadDisplayName: data.leadDisplayName.present
@@ -17712,7 +17661,7 @@ class SalesOrder extends DataClass implements Insertable<SalesOrder> {
     return (StringBuffer('SalesOrder(')
           ..write('id: $id, ')
           ..write('quotationId: $quotationId, ')
-          ..write('customerId: $customerId, ')
+          ..write('depotId: $depotId, ')
           ..write('shopName: $shopName, ')
           ..write('leadId: $leadId, ')
           ..write('leadDisplayName: $leadDisplayName, ')
@@ -17733,7 +17682,7 @@ class SalesOrder extends DataClass implements Insertable<SalesOrder> {
   int get hashCode => Object.hash(
       id,
       quotationId,
-      customerId,
+      depotId,
       shopName,
       leadId,
       leadDisplayName,
@@ -17752,7 +17701,7 @@ class SalesOrder extends DataClass implements Insertable<SalesOrder> {
       (other is SalesOrder &&
           other.id == this.id &&
           other.quotationId == this.quotationId &&
-          other.customerId == this.customerId &&
+          other.depotId == this.depotId &&
           other.shopName == this.shopName &&
           other.leadId == this.leadId &&
           other.leadDisplayName == this.leadDisplayName &&
@@ -17770,7 +17719,7 @@ class SalesOrder extends DataClass implements Insertable<SalesOrder> {
 class SalesOrdersCompanion extends UpdateCompanion<SalesOrder> {
   final Value<String> id;
   final Value<String> quotationId;
-  final Value<String?> customerId;
+  final Value<String?> depotId;
   final Value<String?> shopName;
   final Value<String?> leadId;
   final Value<String?> leadDisplayName;
@@ -17787,7 +17736,7 @@ class SalesOrdersCompanion extends UpdateCompanion<SalesOrder> {
   const SalesOrdersCompanion({
     this.id = const Value.absent(),
     this.quotationId = const Value.absent(),
-    this.customerId = const Value.absent(),
+    this.depotId = const Value.absent(),
     this.shopName = const Value.absent(),
     this.leadId = const Value.absent(),
     this.leadDisplayName = const Value.absent(),
@@ -17805,7 +17754,7 @@ class SalesOrdersCompanion extends UpdateCompanion<SalesOrder> {
   SalesOrdersCompanion.insert({
     required String id,
     required String quotationId,
-    this.customerId = const Value.absent(),
+    this.depotId = const Value.absent(),
     this.shopName = const Value.absent(),
     this.leadId = const Value.absent(),
     this.leadDisplayName = const Value.absent(),
@@ -17832,7 +17781,7 @@ class SalesOrdersCompanion extends UpdateCompanion<SalesOrder> {
   static Insertable<SalesOrder> custom({
     Expression<String>? id,
     Expression<String>? quotationId,
-    Expression<String>? customerId,
+    Expression<String>? depotId,
     Expression<String>? shopName,
     Expression<String>? leadId,
     Expression<String>? leadDisplayName,
@@ -17850,7 +17799,7 @@ class SalesOrdersCompanion extends UpdateCompanion<SalesOrder> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (quotationId != null) 'quotation_id': quotationId,
-      if (customerId != null) 'customer_id': customerId,
+      if (depotId != null) 'depot_id': depotId,
       if (shopName != null) 'shop_name': shopName,
       if (leadId != null) 'lead_id': leadId,
       if (leadDisplayName != null) 'lead_display_name': leadDisplayName,
@@ -17870,7 +17819,7 @@ class SalesOrdersCompanion extends UpdateCompanion<SalesOrder> {
   SalesOrdersCompanion copyWith(
       {Value<String>? id,
       Value<String>? quotationId,
-      Value<String?>? customerId,
+      Value<String?>? depotId,
       Value<String?>? shopName,
       Value<String?>? leadId,
       Value<String?>? leadDisplayName,
@@ -17887,7 +17836,7 @@ class SalesOrdersCompanion extends UpdateCompanion<SalesOrder> {
     return SalesOrdersCompanion(
       id: id ?? this.id,
       quotationId: quotationId ?? this.quotationId,
-      customerId: customerId ?? this.customerId,
+      depotId: depotId ?? this.depotId,
       shopName: shopName ?? this.shopName,
       leadId: leadId ?? this.leadId,
       leadDisplayName: leadDisplayName ?? this.leadDisplayName,
@@ -17913,8 +17862,8 @@ class SalesOrdersCompanion extends UpdateCompanion<SalesOrder> {
     if (quotationId.present) {
       map['quotation_id'] = Variable<String>(quotationId.value);
     }
-    if (customerId.present) {
-      map['customer_id'] = Variable<String>(customerId.value);
+    if (depotId.present) {
+      map['depot_id'] = Variable<String>(depotId.value);
     }
     if (shopName.present) {
       map['shop_name'] = Variable<String>(shopName.value);
@@ -17963,7 +17912,7 @@ class SalesOrdersCompanion extends UpdateCompanion<SalesOrder> {
     return (StringBuffer('SalesOrdersCompanion(')
           ..write('id: $id, ')
           ..write('quotationId: $quotationId, ')
-          ..write('customerId: $customerId, ')
+          ..write('depotId: $depotId, ')
           ..write('shopName: $shopName, ')
           ..write('leadId: $leadId, ')
           ..write('leadDisplayName: $leadDisplayName, ')
@@ -18687,11 +18636,11 @@ class $WorkflowStateTable extends WorkflowState
   late final GeneratedColumn<String> updatedAt = GeneratedColumn<String>(
       'updated_at', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _customerIdMeta =
-      const VerificationMeta('customerId');
+  static const VerificationMeta _depotIdMeta =
+      const VerificationMeta('depotId');
   @override
-  late final GeneratedColumn<String> customerId = GeneratedColumn<String>(
-      'customer_id', aliasedName, true,
+  late final GeneratedColumn<String> depotId = GeneratedColumn<String>(
+      'depot_id', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _shopNameMeta =
       const VerificationMeta('shopName');
@@ -18736,7 +18685,7 @@ class $WorkflowStateTable extends WorkflowState
         currentStopId,
         dayStarted,
         updatedAt,
-        customerId,
+        depotId,
         shopName,
         checkInAt,
         currentWorkflow,
@@ -18783,11 +18732,9 @@ class $WorkflowStateTable extends WorkflowState
     } else if (isInserting) {
       context.missing(_updatedAtMeta);
     }
-    if (data.containsKey('customer_id')) {
-      context.handle(
-          _customerIdMeta,
-          customerId.isAcceptableOrUnknown(
-              data['customer_id']!, _customerIdMeta));
+    if (data.containsKey('depot_id')) {
+      context.handle(_depotIdMeta,
+          depotId.isAcceptableOrUnknown(data['depot_id']!, _depotIdMeta));
     }
     if (data.containsKey('shop_name')) {
       context.handle(_shopNameMeta,
@@ -18842,8 +18789,8 @@ class $WorkflowStateTable extends WorkflowState
           .read(DriftSqlType.int, data['${effectivePrefix}day_started'])!,
       updatedAt: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}updated_at'])!,
-      customerId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}customer_id']),
+      depotId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}depot_id']),
       shopName: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}shop_name']),
       checkInAt: attachedDatabase.typeMapping
@@ -18877,13 +18824,13 @@ class WorkflowStateData extends DataClass
   /// `customSelect`) would break that cast.
   final int dayStarted;
   final String updatedAt;
-  final String? customerId;
+  final String? depotId;
   final String? shopName;
   final String? checkInAt;
   final String? currentWorkflow;
   final String? currentScreen;
 
-  /// Free-form JSON args (territory, customerId, …) so the resume dispatcher can
+  /// Free-form JSON args (territory, depotId, …) so the resume dispatcher can
   /// rebuild the exact screen. Legacy v4 column; `ActiveWorkflowModel` tolerates
   /// null/corrupt values by falling back to the guided route resume.
   final String? navigationArguments;
@@ -18894,7 +18841,7 @@ class WorkflowStateData extends DataClass
       this.currentStopId,
       required this.dayStarted,
       required this.updatedAt,
-      this.customerId,
+      this.depotId,
       this.shopName,
       this.checkInAt,
       this.currentWorkflow,
@@ -18911,8 +18858,8 @@ class WorkflowStateData extends DataClass
     }
     map['day_started'] = Variable<int>(dayStarted);
     map['updated_at'] = Variable<String>(updatedAt);
-    if (!nullToAbsent || customerId != null) {
-      map['customer_id'] = Variable<String>(customerId);
+    if (!nullToAbsent || depotId != null) {
+      map['depot_id'] = Variable<String>(depotId);
     }
     if (!nullToAbsent || shopName != null) {
       map['shop_name'] = Variable<String>(shopName);
@@ -18944,9 +18891,9 @@ class WorkflowStateData extends DataClass
           : Value(currentStopId),
       dayStarted: Value(dayStarted),
       updatedAt: Value(updatedAt),
-      customerId: customerId == null && nullToAbsent
+      depotId: depotId == null && nullToAbsent
           ? const Value.absent()
-          : Value(customerId),
+          : Value(depotId),
       shopName: shopName == null && nullToAbsent
           ? const Value.absent()
           : Value(shopName),
@@ -18977,7 +18924,7 @@ class WorkflowStateData extends DataClass
       currentStopId: serializer.fromJson<String?>(json['currentStopId']),
       dayStarted: serializer.fromJson<int>(json['dayStarted']),
       updatedAt: serializer.fromJson<String>(json['updatedAt']),
-      customerId: serializer.fromJson<String?>(json['customerId']),
+      depotId: serializer.fromJson<String?>(json['depotId']),
       shopName: serializer.fromJson<String?>(json['shopName']),
       checkInAt: serializer.fromJson<String?>(json['checkInAt']),
       currentWorkflow: serializer.fromJson<String?>(json['currentWorkflow']),
@@ -18997,7 +18944,7 @@ class WorkflowStateData extends DataClass
       'currentStopId': serializer.toJson<String?>(currentStopId),
       'dayStarted': serializer.toJson<int>(dayStarted),
       'updatedAt': serializer.toJson<String>(updatedAt),
-      'customerId': serializer.toJson<String?>(customerId),
+      'depotId': serializer.toJson<String?>(depotId),
       'shopName': serializer.toJson<String?>(shopName),
       'checkInAt': serializer.toJson<String?>(checkInAt),
       'currentWorkflow': serializer.toJson<String?>(currentWorkflow),
@@ -19013,7 +18960,7 @@ class WorkflowStateData extends DataClass
           Value<String?> currentStopId = const Value.absent(),
           int? dayStarted,
           String? updatedAt,
-          Value<String?> customerId = const Value.absent(),
+          Value<String?> depotId = const Value.absent(),
           Value<String?> shopName = const Value.absent(),
           Value<String?> checkInAt = const Value.absent(),
           Value<String?> currentWorkflow = const Value.absent(),
@@ -19027,7 +18974,7 @@ class WorkflowStateData extends DataClass
             currentStopId.present ? currentStopId.value : this.currentStopId,
         dayStarted: dayStarted ?? this.dayStarted,
         updatedAt: updatedAt ?? this.updatedAt,
-        customerId: customerId.present ? customerId.value : this.customerId,
+        depotId: depotId.present ? depotId.value : this.depotId,
         shopName: shopName.present ? shopName.value : this.shopName,
         checkInAt: checkInAt.present ? checkInAt.value : this.checkInAt,
         currentWorkflow: currentWorkflow.present
@@ -19052,8 +18999,7 @@ class WorkflowStateData extends DataClass
       dayStarted:
           data.dayStarted.present ? data.dayStarted.value : this.dayStarted,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
-      customerId:
-          data.customerId.present ? data.customerId.value : this.customerId,
+      depotId: data.depotId.present ? data.depotId.value : this.depotId,
       shopName: data.shopName.present ? data.shopName.value : this.shopName,
       checkInAt: data.checkInAt.present ? data.checkInAt.value : this.checkInAt,
       currentWorkflow: data.currentWorkflow.present
@@ -19079,7 +19025,7 @@ class WorkflowStateData extends DataClass
           ..write('currentStopId: $currentStopId, ')
           ..write('dayStarted: $dayStarted, ')
           ..write('updatedAt: $updatedAt, ')
-          ..write('customerId: $customerId, ')
+          ..write('depotId: $depotId, ')
           ..write('shopName: $shopName, ')
           ..write('checkInAt: $checkInAt, ')
           ..write('currentWorkflow: $currentWorkflow, ')
@@ -19097,7 +19043,7 @@ class WorkflowStateData extends DataClass
       currentStopId,
       dayStarted,
       updatedAt,
-      customerId,
+      depotId,
       shopName,
       checkInAt,
       currentWorkflow,
@@ -19113,7 +19059,7 @@ class WorkflowStateData extends DataClass
           other.currentStopId == this.currentStopId &&
           other.dayStarted == this.dayStarted &&
           other.updatedAt == this.updatedAt &&
-          other.customerId == this.customerId &&
+          other.depotId == this.depotId &&
           other.shopName == this.shopName &&
           other.checkInAt == this.checkInAt &&
           other.currentWorkflow == this.currentWorkflow &&
@@ -19128,7 +19074,7 @@ class WorkflowStateCompanion extends UpdateCompanion<WorkflowStateData> {
   final Value<String?> currentStopId;
   final Value<int> dayStarted;
   final Value<String> updatedAt;
-  final Value<String?> customerId;
+  final Value<String?> depotId;
   final Value<String?> shopName;
   final Value<String?> checkInAt;
   final Value<String?> currentWorkflow;
@@ -19142,7 +19088,7 @@ class WorkflowStateCompanion extends UpdateCompanion<WorkflowStateData> {
     this.currentStopId = const Value.absent(),
     this.dayStarted = const Value.absent(),
     this.updatedAt = const Value.absent(),
-    this.customerId = const Value.absent(),
+    this.depotId = const Value.absent(),
     this.shopName = const Value.absent(),
     this.checkInAt = const Value.absent(),
     this.currentWorkflow = const Value.absent(),
@@ -19157,7 +19103,7 @@ class WorkflowStateCompanion extends UpdateCompanion<WorkflowStateData> {
     this.currentStopId = const Value.absent(),
     this.dayStarted = const Value.absent(),
     required String updatedAt,
-    this.customerId = const Value.absent(),
+    this.depotId = const Value.absent(),
     this.shopName = const Value.absent(),
     this.checkInAt = const Value.absent(),
     this.currentWorkflow = const Value.absent(),
@@ -19174,7 +19120,7 @@ class WorkflowStateCompanion extends UpdateCompanion<WorkflowStateData> {
     Expression<String>? currentStopId,
     Expression<int>? dayStarted,
     Expression<String>? updatedAt,
-    Expression<String>? customerId,
+    Expression<String>? depotId,
     Expression<String>? shopName,
     Expression<String>? checkInAt,
     Expression<String>? currentWorkflow,
@@ -19189,7 +19135,7 @@ class WorkflowStateCompanion extends UpdateCompanion<WorkflowStateData> {
       if (currentStopId != null) 'current_stop_id': currentStopId,
       if (dayStarted != null) 'day_started': dayStarted,
       if (updatedAt != null) 'updated_at': updatedAt,
-      if (customerId != null) 'customer_id': customerId,
+      if (depotId != null) 'depot_id': depotId,
       if (shopName != null) 'shop_name': shopName,
       if (checkInAt != null) 'check_in_at': checkInAt,
       if (currentWorkflow != null) 'current_workflow': currentWorkflow,
@@ -19207,7 +19153,7 @@ class WorkflowStateCompanion extends UpdateCompanion<WorkflowStateData> {
       Value<String?>? currentStopId,
       Value<int>? dayStarted,
       Value<String>? updatedAt,
-      Value<String?>? customerId,
+      Value<String?>? depotId,
       Value<String?>? shopName,
       Value<String?>? checkInAt,
       Value<String?>? currentWorkflow,
@@ -19221,7 +19167,7 @@ class WorkflowStateCompanion extends UpdateCompanion<WorkflowStateData> {
       currentStopId: currentStopId ?? this.currentStopId,
       dayStarted: dayStarted ?? this.dayStarted,
       updatedAt: updatedAt ?? this.updatedAt,
-      customerId: customerId ?? this.customerId,
+      depotId: depotId ?? this.depotId,
       shopName: shopName ?? this.shopName,
       checkInAt: checkInAt ?? this.checkInAt,
       currentWorkflow: currentWorkflow ?? this.currentWorkflow,
@@ -19250,8 +19196,8 @@ class WorkflowStateCompanion extends UpdateCompanion<WorkflowStateData> {
     if (updatedAt.present) {
       map['updated_at'] = Variable<String>(updatedAt.value);
     }
-    if (customerId.present) {
-      map['customer_id'] = Variable<String>(customerId.value);
+    if (depotId.present) {
+      map['depot_id'] = Variable<String>(depotId.value);
     }
     if (shopName.present) {
       map['shop_name'] = Variable<String>(shopName.value);
@@ -19285,7 +19231,7 @@ class WorkflowStateCompanion extends UpdateCompanion<WorkflowStateData> {
           ..write('currentStopId: $currentStopId, ')
           ..write('dayStarted: $dayStarted, ')
           ..write('updatedAt: $updatedAt, ')
-          ..write('customerId: $customerId, ')
+          ..write('depotId: $depotId, ')
           ..write('shopName: $shopName, ')
           ..write('checkInAt: $checkInAt, ')
           ..write('currentWorkflow: $currentWorkflow, ')
@@ -19701,7 +19647,7 @@ class NotificationRow extends DataClass implements Insertable<NotificationRow> {
   /// True when this row was written from an **FCM payload** rather than from the
   /// inbox endpoint, so it is missing whatever the push deliberately withholds.
   ///
-  /// The push carries no prices, no credit limits and no customer phone numbers
+  /// The push carries no prices, no credit limits and no depot phone numbers
   /// (§9.2), and no `actions` array — a partial row can therefore render a
   /// heading and a body but must not be treated as the whole record. The next
   /// catch-up overwrites it and clears this flag.
@@ -22420,17 +22366,14 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $AppMetadataTable appMetadata = $AppMetadataTable(this);
-  late final $CustomersTable customers = $CustomersTable(this);
-  late final $CustomerContactsTable customerContacts =
-      $CustomerContactsTable(this);
-  late final $CustomerNotesTable customerNotes = $CustomerNotesTable(this);
-  late final $CustomerActivitiesTable customerActivities =
-      $CustomerActivitiesTable(this);
-  late final $CustomerFavoritesTable customerFavorites =
-      $CustomerFavoritesTable(this);
-  late final $CustomerRecentTable customerRecent = $CustomerRecentTable(this);
-  late final $CustomerSyncMetaTable customerSyncMeta =
-      $CustomerSyncMetaTable(this);
+  late final $DepotsTable depots = $DepotsTable(this);
+  late final $DepotContactsTable depotContacts = $DepotContactsTable(this);
+  late final $DepotNotesTable depotNotes = $DepotNotesTable(this);
+  late final $DepotActivitiesTable depotActivities =
+      $DepotActivitiesTable(this);
+  late final $DepotFavoritesTable depotFavorites = $DepotFavoritesTable(this);
+  late final $DepotRecentTable depotRecent = $DepotRecentTable(this);
+  late final $DepotSyncMetaTable depotSyncMeta = $DepotSyncMetaTable(this);
   late final $CategoriesTable categories = $CategoriesTable(this);
   late final $ProductsTable products = $ProductsTable(this);
   late final $PricesTable prices = $PricesTable(this);
@@ -22443,7 +22386,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $CartItemsTable cartItems = $CartItemsTable(this);
   late final $RoutesTable routes = $RoutesTable(this);
   late final $RouteStopsTable routeStops = $RouteStopsTable(this);
-  late final $RouteCustomersTable routeCustomers = $RouteCustomersTable(this);
+  late final $RouteDepotsTable routeDepots = $RouteDepotsTable(this);
   late final $LocationSamplesTable locationSamples =
       $LocationSamplesTable(this);
   late final $FraudFlagsTable fraudFlags = $FraudFlagsTable(this);
@@ -22472,25 +22415,22 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $GeoDistrictsTable geoDistricts = $GeoDistrictsTable(this);
   late final $GeoCommunesTable geoCommunes = $GeoCommunesTable(this);
   late final $GeoVillagesTable geoVillages = $GeoVillagesTable(this);
-  late final Index idxCustomersTerritory = Index('idx_customers_territory',
-      'CREATE INDEX idx_customers_territory ON customers (territory)');
-  late final Index idxCustomersRep = Index('idx_customers_rep',
-      'CREATE INDEX idx_customers_rep ON customers (assigned_rep_id)');
-  late final Index idxCustomersStatus = Index('idx_customers_status',
-      'CREATE INDEX idx_customers_status ON customers (status)');
-  late final Index idxCustomersSalesOrg = Index('idx_customers_sales_org',
-      'CREATE INDEX idx_customers_sales_org ON customers (sales_org)');
-  late final Index idxCustomersDivision = Index('idx_customers_division',
-      'CREATE INDEX idx_customers_division ON customers (division)');
-  late final Index idxCustomerContactsCustomer = Index(
-      'idx_customer_contacts_customer',
-      'CREATE INDEX idx_customer_contacts_customer ON customer_contacts (customer_id)');
-  late final Index idxCustomerNotesCustomer = Index(
-      'idx_customer_notes_customer',
-      'CREATE INDEX idx_customer_notes_customer ON customer_notes (customer_id)');
-  late final Index idxCustomerActivitiesCustomer = Index(
-      'idx_customer_activities_customer',
-      'CREATE INDEX idx_customer_activities_customer ON customer_activities (customer_id)');
+  late final Index idxDepotsTerritory = Index('idx_depots_territory',
+      'CREATE INDEX idx_depots_territory ON depots (territory)');
+  late final Index idxDepotsRep = Index('idx_depots_rep',
+      'CREATE INDEX idx_depots_rep ON depots (assigned_rep_id)');
+  late final Index idxDepotsStatus = Index(
+      'idx_depots_status', 'CREATE INDEX idx_depots_status ON depots (status)');
+  late final Index idxDepotsSalesOrg = Index('idx_depots_sales_org',
+      'CREATE INDEX idx_depots_sales_org ON depots (sales_org)');
+  late final Index idxDepotsDivision = Index('idx_depots_division',
+      'CREATE INDEX idx_depots_division ON depots (division)');
+  late final Index idxDepotContactsDepot = Index('idx_depot_contacts_depot',
+      'CREATE INDEX idx_depot_contacts_depot ON depot_contacts (depot_id)');
+  late final Index idxDepotNotesDepot = Index('idx_depot_notes_depot',
+      'CREATE INDEX idx_depot_notes_depot ON depot_notes (depot_id)');
+  late final Index idxDepotActivitiesDepot = Index('idx_depot_activities_depot',
+      'CREATE INDEX idx_depot_activities_depot ON depot_activities (depot_id)');
   late final Index idxProductsCode = Index(
       'idx_products_code', 'CREATE INDEX idx_products_code ON products (code)');
   late final Index idxProductsBarcode = Index('idx_products_barcode',
@@ -22513,8 +22453,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       'CREATE INDEX idx_routes_visit_date ON routes (visit_date)');
   late final Index idxRouteStopsRoute = Index('idx_route_stops_route',
       'CREATE INDEX idx_route_stops_route ON route_stops (route_id)');
-  late final Index idxRouteStopsCustomer = Index('idx_route_stops_customer',
-      'CREATE INDEX idx_route_stops_customer ON route_stops (customer_id)');
+  late final Index idxRouteStopsDepot = Index('idx_route_stops_depot',
+      'CREATE INDEX idx_route_stops_depot ON route_stops (depot_id)');
   late final Index idxLocationSamplesRoute = Index('idx_location_samples_route',
       'CREATE INDEX idx_location_samples_route ON location_samples (route_id)');
   late final Index idxLocationSamplesTimestamp = Index(
@@ -22560,7 +22500,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       'CREATE INDEX idx_geo_villages_commune ON geo_villages (commune_code)');
   late final AppMetadataDao appMetadataDao =
       AppMetadataDao(this as AppDatabase);
-  late final CustomerDao customerDao = CustomerDao(this as AppDatabase);
+  late final DepotDao depotDao = DepotDao(this as AppDatabase);
   late final CatalogDao catalogDao = CatalogDao(this as AppDatabase);
   late final CartDao cartDao = CartDao(this as AppDatabase);
   late final RouteDao routeDao = RouteDao(this as AppDatabase);
@@ -22581,13 +22521,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
         appMetadata,
-        customers,
-        customerContacts,
-        customerNotes,
-        customerActivities,
-        customerFavorites,
-        customerRecent,
-        customerSyncMeta,
+        depots,
+        depotContacts,
+        depotNotes,
+        depotActivities,
+        depotFavorites,
+        depotRecent,
+        depotSyncMeta,
         categories,
         products,
         prices,
@@ -22598,7 +22538,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         cartItems,
         routes,
         routeStops,
-        routeCustomers,
+        routeDepots,
         locationSamples,
         fraudFlags,
         routeSyncMeta,
@@ -22621,14 +22561,14 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         geoDistricts,
         geoCommunes,
         geoVillages,
-        idxCustomersTerritory,
-        idxCustomersRep,
-        idxCustomersStatus,
-        idxCustomersSalesOrg,
-        idxCustomersDivision,
-        idxCustomerContactsCustomer,
-        idxCustomerNotesCustomer,
-        idxCustomerActivitiesCustomer,
+        idxDepotsTerritory,
+        idxDepotsRep,
+        idxDepotsStatus,
+        idxDepotsSalesOrg,
+        idxDepotsDivision,
+        idxDepotContactsDepot,
+        idxDepotNotesDepot,
+        idxDepotActivitiesDepot,
         idxProductsCode,
         idxProductsBarcode,
         idxProductsCategory,
@@ -22640,7 +22580,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         idxRoutesRep,
         idxRoutesVisitDate,
         idxRouteStopsRoute,
-        idxRouteStopsCustomer,
+        idxRouteStopsDepot,
         idxLocationSamplesRoute,
         idxLocationSamplesTimestamp,
         idxFraudFlagsRoute,
@@ -22809,10 +22749,10 @@ typedef $$AppMetadataTableProcessedTableManager = ProcessedTableManager<
     ),
     AppMetadataData,
     PrefetchHooks Function()>;
-typedef $$CustomersTableCreateCompanionBuilder = CustomersCompanion Function({
+typedef $$DepotsTableCreateCompanionBuilder = DepotsCompanion Function({
   required String id,
-  Value<String?> sapCustomerId,
-  required String customerCode,
+  Value<String?> sapDepotId,
+  required String depotCode,
   required String shopName,
   required String ownerName,
   required String phone,
@@ -22841,7 +22781,7 @@ typedef $$CustomersTableCreateCompanionBuilder = CustomersCompanion Function({
   Value<String?> salesOrg,
   Value<String?> division,
   Value<String?> distributionChannel,
-  Value<String?> customerGroup,
+  Value<String?> depotGroup,
   Value<String?> priceGroup,
   Value<String?> enName,
   Value<String?> khName,
@@ -22853,10 +22793,10 @@ typedef $$CustomersTableCreateCompanionBuilder = CustomersCompanion Function({
   Value<String> syncState,
   Value<int> rowid,
 });
-typedef $$CustomersTableUpdateCompanionBuilder = CustomersCompanion Function({
+typedef $$DepotsTableUpdateCompanionBuilder = DepotsCompanion Function({
   Value<String> id,
-  Value<String?> sapCustomerId,
-  Value<String> customerCode,
+  Value<String?> sapDepotId,
+  Value<String> depotCode,
   Value<String> shopName,
   Value<String> ownerName,
   Value<String> phone,
@@ -22885,7 +22825,7 @@ typedef $$CustomersTableUpdateCompanionBuilder = CustomersCompanion Function({
   Value<String?> salesOrg,
   Value<String?> division,
   Value<String?> distributionChannel,
-  Value<String?> customerGroup,
+  Value<String?> depotGroup,
   Value<String?> priceGroup,
   Value<String?> enName,
   Value<String?> khName,
@@ -22898,9 +22838,9 @@ typedef $$CustomersTableUpdateCompanionBuilder = CustomersCompanion Function({
   Value<int> rowid,
 });
 
-class $$CustomersTableFilterComposer
-    extends Composer<_$AppDatabase, $CustomersTable> {
-  $$CustomersTableFilterComposer({
+class $$DepotsTableFilterComposer
+    extends Composer<_$AppDatabase, $DepotsTable> {
+  $$DepotsTableFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -22910,11 +22850,11 @@ class $$CustomersTableFilterComposer
   ColumnFilters<String> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get sapCustomerId => $composableBuilder(
-      column: $table.sapCustomerId, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get sapDepotId => $composableBuilder(
+      column: $table.sapDepotId, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get customerCode => $composableBuilder(
-      column: $table.customerCode, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get depotCode => $composableBuilder(
+      column: $table.depotCode, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get shopName => $composableBuilder(
       column: $table.shopName, builder: (column) => ColumnFilters(column));
@@ -23005,8 +22945,8 @@ class $$CustomersTableFilterComposer
       column: $table.distributionChannel,
       builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get customerGroup => $composableBuilder(
-      column: $table.customerGroup, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get depotGroup => $composableBuilder(
+      column: $table.depotGroup, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get priceGroup => $composableBuilder(
       column: $table.priceGroup, builder: (column) => ColumnFilters(column));
@@ -23036,9 +22976,9 @@ class $$CustomersTableFilterComposer
       column: $table.syncState, builder: (column) => ColumnFilters(column));
 }
 
-class $$CustomersTableOrderingComposer
-    extends Composer<_$AppDatabase, $CustomersTable> {
-  $$CustomersTableOrderingComposer({
+class $$DepotsTableOrderingComposer
+    extends Composer<_$AppDatabase, $DepotsTable> {
+  $$DepotsTableOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -23048,13 +22988,11 @@ class $$CustomersTableOrderingComposer
   ColumnOrderings<String> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get sapCustomerId => $composableBuilder(
-      column: $table.sapCustomerId,
-      builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get sapDepotId => $composableBuilder(
+      column: $table.sapDepotId, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get customerCode => $composableBuilder(
-      column: $table.customerCode,
-      builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get depotCode => $composableBuilder(
+      column: $table.depotCode, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get shopName => $composableBuilder(
       column: $table.shopName, builder: (column) => ColumnOrderings(column));
@@ -23151,9 +23089,8 @@ class $$CustomersTableOrderingComposer
       column: $table.distributionChannel,
       builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get customerGroup => $composableBuilder(
-      column: $table.customerGroup,
-      builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get depotGroup => $composableBuilder(
+      column: $table.depotGroup, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get priceGroup => $composableBuilder(
       column: $table.priceGroup, builder: (column) => ColumnOrderings(column));
@@ -23184,9 +23121,9 @@ class $$CustomersTableOrderingComposer
       column: $table.syncState, builder: (column) => ColumnOrderings(column));
 }
 
-class $$CustomersTableAnnotationComposer
-    extends Composer<_$AppDatabase, $CustomersTable> {
-  $$CustomersTableAnnotationComposer({
+class $$DepotsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DepotsTable> {
+  $$DepotsTableAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -23196,11 +23133,11 @@ class $$CustomersTableAnnotationComposer
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<String> get sapCustomerId => $composableBuilder(
-      column: $table.sapCustomerId, builder: (column) => column);
+  GeneratedColumn<String> get sapDepotId => $composableBuilder(
+      column: $table.sapDepotId, builder: (column) => column);
 
-  GeneratedColumn<String> get customerCode => $composableBuilder(
-      column: $table.customerCode, builder: (column) => column);
+  GeneratedColumn<String> get depotCode =>
+      $composableBuilder(column: $table.depotCode, builder: (column) => column);
 
   GeneratedColumn<String> get shopName =>
       $composableBuilder(column: $table.shopName, builder: (column) => column);
@@ -23286,8 +23223,8 @@ class $$CustomersTableAnnotationComposer
   GeneratedColumn<String> get distributionChannel => $composableBuilder(
       column: $table.distributionChannel, builder: (column) => column);
 
-  GeneratedColumn<String> get customerGroup => $composableBuilder(
-      column: $table.customerGroup, builder: (column) => column);
+  GeneratedColumn<String> get depotGroup => $composableBuilder(
+      column: $table.depotGroup, builder: (column) => column);
 
   GeneratedColumn<String> get priceGroup => $composableBuilder(
       column: $table.priceGroup, builder: (column) => column);
@@ -23317,32 +23254,32 @@ class $$CustomersTableAnnotationComposer
       $composableBuilder(column: $table.syncState, builder: (column) => column);
 }
 
-class $$CustomersTableTableManager extends RootTableManager<
+class $$DepotsTableTableManager extends RootTableManager<
     _$AppDatabase,
-    $CustomersTable,
-    Customer,
-    $$CustomersTableFilterComposer,
-    $$CustomersTableOrderingComposer,
-    $$CustomersTableAnnotationComposer,
-    $$CustomersTableCreateCompanionBuilder,
-    $$CustomersTableUpdateCompanionBuilder,
-    (Customer, BaseReferences<_$AppDatabase, $CustomersTable, Customer>),
-    Customer,
+    $DepotsTable,
+    Depot,
+    $$DepotsTableFilterComposer,
+    $$DepotsTableOrderingComposer,
+    $$DepotsTableAnnotationComposer,
+    $$DepotsTableCreateCompanionBuilder,
+    $$DepotsTableUpdateCompanionBuilder,
+    (Depot, BaseReferences<_$AppDatabase, $DepotsTable, Depot>),
+    Depot,
     PrefetchHooks Function()> {
-  $$CustomersTableTableManager(_$AppDatabase db, $CustomersTable table)
+  $$DepotsTableTableManager(_$AppDatabase db, $DepotsTable table)
       : super(TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $$CustomersTableFilterComposer($db: db, $table: table),
+              $$DepotsTableFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
-              $$CustomersTableOrderingComposer($db: db, $table: table),
+              $$DepotsTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
-              $$CustomersTableAnnotationComposer($db: db, $table: table),
+              $$DepotsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
-            Value<String?> sapCustomerId = const Value.absent(),
-            Value<String> customerCode = const Value.absent(),
+            Value<String?> sapDepotId = const Value.absent(),
+            Value<String> depotCode = const Value.absent(),
             Value<String> shopName = const Value.absent(),
             Value<String> ownerName = const Value.absent(),
             Value<String> phone = const Value.absent(),
@@ -23371,7 +23308,7 @@ class $$CustomersTableTableManager extends RootTableManager<
             Value<String?> salesOrg = const Value.absent(),
             Value<String?> division = const Value.absent(),
             Value<String?> distributionChannel = const Value.absent(),
-            Value<String?> customerGroup = const Value.absent(),
+            Value<String?> depotGroup = const Value.absent(),
             Value<String?> priceGroup = const Value.absent(),
             Value<String?> enName = const Value.absent(),
             Value<String?> khName = const Value.absent(),
@@ -23383,10 +23320,10 @@ class $$CustomersTableTableManager extends RootTableManager<
             Value<String> syncState = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
-              CustomersCompanion(
+              DepotsCompanion(
             id: id,
-            sapCustomerId: sapCustomerId,
-            customerCode: customerCode,
+            sapDepotId: sapDepotId,
+            depotCode: depotCode,
             shopName: shopName,
             ownerName: ownerName,
             phone: phone,
@@ -23415,7 +23352,7 @@ class $$CustomersTableTableManager extends RootTableManager<
             salesOrg: salesOrg,
             division: division,
             distributionChannel: distributionChannel,
-            customerGroup: customerGroup,
+            depotGroup: depotGroup,
             priceGroup: priceGroup,
             enName: enName,
             khName: khName,
@@ -23429,8 +23366,8 @@ class $$CustomersTableTableManager extends RootTableManager<
           ),
           createCompanionCallback: ({
             required String id,
-            Value<String?> sapCustomerId = const Value.absent(),
-            required String customerCode,
+            Value<String?> sapDepotId = const Value.absent(),
+            required String depotCode,
             required String shopName,
             required String ownerName,
             required String phone,
@@ -23459,7 +23396,7 @@ class $$CustomersTableTableManager extends RootTableManager<
             Value<String?> salesOrg = const Value.absent(),
             Value<String?> division = const Value.absent(),
             Value<String?> distributionChannel = const Value.absent(),
-            Value<String?> customerGroup = const Value.absent(),
+            Value<String?> depotGroup = const Value.absent(),
             Value<String?> priceGroup = const Value.absent(),
             Value<String?> enName = const Value.absent(),
             Value<String?> khName = const Value.absent(),
@@ -23471,10 +23408,10 @@ class $$CustomersTableTableManager extends RootTableManager<
             Value<String> syncState = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
-              CustomersCompanion.insert(
+              DepotsCompanion.insert(
             id: id,
-            sapCustomerId: sapCustomerId,
-            customerCode: customerCode,
+            sapDepotId: sapDepotId,
+            depotCode: depotCode,
             shopName: shopName,
             ownerName: ownerName,
             phone: phone,
@@ -23503,7 +23440,7 @@ class $$CustomersTableTableManager extends RootTableManager<
             salesOrg: salesOrg,
             division: division,
             distributionChannel: distributionChannel,
-            customerGroup: customerGroup,
+            depotGroup: depotGroup,
             priceGroup: priceGroup,
             enName: enName,
             khName: khName,
@@ -23522,32 +23459,32 @@ class $$CustomersTableTableManager extends RootTableManager<
         ));
 }
 
-typedef $$CustomersTableProcessedTableManager = ProcessedTableManager<
+typedef $$DepotsTableProcessedTableManager = ProcessedTableManager<
     _$AppDatabase,
-    $CustomersTable,
-    Customer,
-    $$CustomersTableFilterComposer,
-    $$CustomersTableOrderingComposer,
-    $$CustomersTableAnnotationComposer,
-    $$CustomersTableCreateCompanionBuilder,
-    $$CustomersTableUpdateCompanionBuilder,
-    (Customer, BaseReferences<_$AppDatabase, $CustomersTable, Customer>),
-    Customer,
+    $DepotsTable,
+    Depot,
+    $$DepotsTableFilterComposer,
+    $$DepotsTableOrderingComposer,
+    $$DepotsTableAnnotationComposer,
+    $$DepotsTableCreateCompanionBuilder,
+    $$DepotsTableUpdateCompanionBuilder,
+    (Depot, BaseReferences<_$AppDatabase, $DepotsTable, Depot>),
+    Depot,
     PrefetchHooks Function()>;
-typedef $$CustomerContactsTableCreateCompanionBuilder
-    = CustomerContactsCompanion Function({
+typedef $$DepotContactsTableCreateCompanionBuilder = DepotContactsCompanion
+    Function({
   required String id,
-  required String customerId,
+  required String depotId,
   required String name,
   required String role,
   required String phone,
   Value<String?> email,
   Value<int> rowid,
 });
-typedef $$CustomerContactsTableUpdateCompanionBuilder
-    = CustomerContactsCompanion Function({
+typedef $$DepotContactsTableUpdateCompanionBuilder = DepotContactsCompanion
+    Function({
   Value<String> id,
-  Value<String> customerId,
+  Value<String> depotId,
   Value<String> name,
   Value<String> role,
   Value<String> phone,
@@ -23555,9 +23492,9 @@ typedef $$CustomerContactsTableUpdateCompanionBuilder
   Value<int> rowid,
 });
 
-class $$CustomerContactsTableFilterComposer
-    extends Composer<_$AppDatabase, $CustomerContactsTable> {
-  $$CustomerContactsTableFilterComposer({
+class $$DepotContactsTableFilterComposer
+    extends Composer<_$AppDatabase, $DepotContactsTable> {
+  $$DepotContactsTableFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -23567,8 +23504,8 @@ class $$CustomerContactsTableFilterComposer
   ColumnFilters<String> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get customerId => $composableBuilder(
-      column: $table.customerId, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get depotId => $composableBuilder(
+      column: $table.depotId, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get name => $composableBuilder(
       column: $table.name, builder: (column) => ColumnFilters(column));
@@ -23583,9 +23520,9 @@ class $$CustomerContactsTableFilterComposer
       column: $table.email, builder: (column) => ColumnFilters(column));
 }
 
-class $$CustomerContactsTableOrderingComposer
-    extends Composer<_$AppDatabase, $CustomerContactsTable> {
-  $$CustomerContactsTableOrderingComposer({
+class $$DepotContactsTableOrderingComposer
+    extends Composer<_$AppDatabase, $DepotContactsTable> {
+  $$DepotContactsTableOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -23595,8 +23532,8 @@ class $$CustomerContactsTableOrderingComposer
   ColumnOrderings<String> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get customerId => $composableBuilder(
-      column: $table.customerId, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get depotId => $composableBuilder(
+      column: $table.depotId, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get name => $composableBuilder(
       column: $table.name, builder: (column) => ColumnOrderings(column));
@@ -23611,9 +23548,9 @@ class $$CustomerContactsTableOrderingComposer
       column: $table.email, builder: (column) => ColumnOrderings(column));
 }
 
-class $$CustomerContactsTableAnnotationComposer
-    extends Composer<_$AppDatabase, $CustomerContactsTable> {
-  $$CustomerContactsTableAnnotationComposer({
+class $$DepotContactsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DepotContactsTable> {
+  $$DepotContactsTableAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -23623,8 +23560,8 @@ class $$CustomerContactsTableAnnotationComposer
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<String> get customerId => $composableBuilder(
-      column: $table.customerId, builder: (column) => column);
+  GeneratedColumn<String> get depotId =>
+      $composableBuilder(column: $table.depotId, builder: (column) => column);
 
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
@@ -23639,44 +23576,43 @@ class $$CustomerContactsTableAnnotationComposer
       $composableBuilder(column: $table.email, builder: (column) => column);
 }
 
-class $$CustomerContactsTableTableManager extends RootTableManager<
+class $$DepotContactsTableTableManager extends RootTableManager<
     _$AppDatabase,
-    $CustomerContactsTable,
-    CustomerContact,
-    $$CustomerContactsTableFilterComposer,
-    $$CustomerContactsTableOrderingComposer,
-    $$CustomerContactsTableAnnotationComposer,
-    $$CustomerContactsTableCreateCompanionBuilder,
-    $$CustomerContactsTableUpdateCompanionBuilder,
+    $DepotContactsTable,
+    DepotContact,
+    $$DepotContactsTableFilterComposer,
+    $$DepotContactsTableOrderingComposer,
+    $$DepotContactsTableAnnotationComposer,
+    $$DepotContactsTableCreateCompanionBuilder,
+    $$DepotContactsTableUpdateCompanionBuilder,
     (
-      CustomerContact,
-      BaseReferences<_$AppDatabase, $CustomerContactsTable, CustomerContact>
+      DepotContact,
+      BaseReferences<_$AppDatabase, $DepotContactsTable, DepotContact>
     ),
-    CustomerContact,
+    DepotContact,
     PrefetchHooks Function()> {
-  $$CustomerContactsTableTableManager(
-      _$AppDatabase db, $CustomerContactsTable table)
+  $$DepotContactsTableTableManager(_$AppDatabase db, $DepotContactsTable table)
       : super(TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $$CustomerContactsTableFilterComposer($db: db, $table: table),
+              $$DepotContactsTableFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
-              $$CustomerContactsTableOrderingComposer($db: db, $table: table),
+              $$DepotContactsTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
-              $$CustomerContactsTableAnnotationComposer($db: db, $table: table),
+              $$DepotContactsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
-            Value<String> customerId = const Value.absent(),
+            Value<String> depotId = const Value.absent(),
             Value<String> name = const Value.absent(),
             Value<String> role = const Value.absent(),
             Value<String> phone = const Value.absent(),
             Value<String?> email = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
-              CustomerContactsCompanion(
+              DepotContactsCompanion(
             id: id,
-            customerId: customerId,
+            depotId: depotId,
             name: name,
             role: role,
             phone: phone,
@@ -23685,16 +23621,16 @@ class $$CustomerContactsTableTableManager extends RootTableManager<
           ),
           createCompanionCallback: ({
             required String id,
-            required String customerId,
+            required String depotId,
             required String name,
             required String role,
             required String phone,
             Value<String?> email = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
-              CustomerContactsCompanion.insert(
+              DepotContactsCompanion.insert(
             id: id,
-            customerId: customerId,
+            depotId: depotId,
             name: name,
             role: role,
             phone: phone,
@@ -23708,43 +23644,41 @@ class $$CustomerContactsTableTableManager extends RootTableManager<
         ));
 }
 
-typedef $$CustomerContactsTableProcessedTableManager = ProcessedTableManager<
+typedef $$DepotContactsTableProcessedTableManager = ProcessedTableManager<
     _$AppDatabase,
-    $CustomerContactsTable,
-    CustomerContact,
-    $$CustomerContactsTableFilterComposer,
-    $$CustomerContactsTableOrderingComposer,
-    $$CustomerContactsTableAnnotationComposer,
-    $$CustomerContactsTableCreateCompanionBuilder,
-    $$CustomerContactsTableUpdateCompanionBuilder,
+    $DepotContactsTable,
+    DepotContact,
+    $$DepotContactsTableFilterComposer,
+    $$DepotContactsTableOrderingComposer,
+    $$DepotContactsTableAnnotationComposer,
+    $$DepotContactsTableCreateCompanionBuilder,
+    $$DepotContactsTableUpdateCompanionBuilder,
     (
-      CustomerContact,
-      BaseReferences<_$AppDatabase, $CustomerContactsTable, CustomerContact>
+      DepotContact,
+      BaseReferences<_$AppDatabase, $DepotContactsTable, DepotContact>
     ),
-    CustomerContact,
+    DepotContact,
     PrefetchHooks Function()>;
-typedef $$CustomerNotesTableCreateCompanionBuilder = CustomerNotesCompanion
-    Function({
+typedef $$DepotNotesTableCreateCompanionBuilder = DepotNotesCompanion Function({
   required String id,
-  required String customerId,
+  required String depotId,
   required String body,
   required DateTime createdAt,
   Value<bool> synced,
   Value<int> rowid,
 });
-typedef $$CustomerNotesTableUpdateCompanionBuilder = CustomerNotesCompanion
-    Function({
+typedef $$DepotNotesTableUpdateCompanionBuilder = DepotNotesCompanion Function({
   Value<String> id,
-  Value<String> customerId,
+  Value<String> depotId,
   Value<String> body,
   Value<DateTime> createdAt,
   Value<bool> synced,
   Value<int> rowid,
 });
 
-class $$CustomerNotesTableFilterComposer
-    extends Composer<_$AppDatabase, $CustomerNotesTable> {
-  $$CustomerNotesTableFilterComposer({
+class $$DepotNotesTableFilterComposer
+    extends Composer<_$AppDatabase, $DepotNotesTable> {
+  $$DepotNotesTableFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -23754,8 +23688,8 @@ class $$CustomerNotesTableFilterComposer
   ColumnFilters<String> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get customerId => $composableBuilder(
-      column: $table.customerId, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get depotId => $composableBuilder(
+      column: $table.depotId, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get body => $composableBuilder(
       column: $table.body, builder: (column) => ColumnFilters(column));
@@ -23767,9 +23701,9 @@ class $$CustomerNotesTableFilterComposer
       column: $table.synced, builder: (column) => ColumnFilters(column));
 }
 
-class $$CustomerNotesTableOrderingComposer
-    extends Composer<_$AppDatabase, $CustomerNotesTable> {
-  $$CustomerNotesTableOrderingComposer({
+class $$DepotNotesTableOrderingComposer
+    extends Composer<_$AppDatabase, $DepotNotesTable> {
+  $$DepotNotesTableOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -23779,8 +23713,8 @@ class $$CustomerNotesTableOrderingComposer
   ColumnOrderings<String> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get customerId => $composableBuilder(
-      column: $table.customerId, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get depotId => $composableBuilder(
+      column: $table.depotId, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get body => $composableBuilder(
       column: $table.body, builder: (column) => ColumnOrderings(column));
@@ -23792,9 +23726,9 @@ class $$CustomerNotesTableOrderingComposer
       column: $table.synced, builder: (column) => ColumnOrderings(column));
 }
 
-class $$CustomerNotesTableAnnotationComposer
-    extends Composer<_$AppDatabase, $CustomerNotesTable> {
-  $$CustomerNotesTableAnnotationComposer({
+class $$DepotNotesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DepotNotesTable> {
+  $$DepotNotesTableAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -23804,8 +23738,8 @@ class $$CustomerNotesTableAnnotationComposer
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<String> get customerId => $composableBuilder(
-      column: $table.customerId, builder: (column) => column);
+  GeneratedColumn<String> get depotId =>
+      $composableBuilder(column: $table.depotId, builder: (column) => column);
 
   GeneratedColumn<String> get body =>
       $composableBuilder(column: $table.body, builder: (column) => column);
@@ -23817,42 +23751,39 @@ class $$CustomerNotesTableAnnotationComposer
       $composableBuilder(column: $table.synced, builder: (column) => column);
 }
 
-class $$CustomerNotesTableTableManager extends RootTableManager<
+class $$DepotNotesTableTableManager extends RootTableManager<
     _$AppDatabase,
-    $CustomerNotesTable,
-    CustomerNote,
-    $$CustomerNotesTableFilterComposer,
-    $$CustomerNotesTableOrderingComposer,
-    $$CustomerNotesTableAnnotationComposer,
-    $$CustomerNotesTableCreateCompanionBuilder,
-    $$CustomerNotesTableUpdateCompanionBuilder,
-    (
-      CustomerNote,
-      BaseReferences<_$AppDatabase, $CustomerNotesTable, CustomerNote>
-    ),
-    CustomerNote,
+    $DepotNotesTable,
+    DepotNote,
+    $$DepotNotesTableFilterComposer,
+    $$DepotNotesTableOrderingComposer,
+    $$DepotNotesTableAnnotationComposer,
+    $$DepotNotesTableCreateCompanionBuilder,
+    $$DepotNotesTableUpdateCompanionBuilder,
+    (DepotNote, BaseReferences<_$AppDatabase, $DepotNotesTable, DepotNote>),
+    DepotNote,
     PrefetchHooks Function()> {
-  $$CustomerNotesTableTableManager(_$AppDatabase db, $CustomerNotesTable table)
+  $$DepotNotesTableTableManager(_$AppDatabase db, $DepotNotesTable table)
       : super(TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $$CustomerNotesTableFilterComposer($db: db, $table: table),
+              $$DepotNotesTableFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
-              $$CustomerNotesTableOrderingComposer($db: db, $table: table),
+              $$DepotNotesTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
-              $$CustomerNotesTableAnnotationComposer($db: db, $table: table),
+              $$DepotNotesTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
-            Value<String> customerId = const Value.absent(),
+            Value<String> depotId = const Value.absent(),
             Value<String> body = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
             Value<bool> synced = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
-              CustomerNotesCompanion(
+              DepotNotesCompanion(
             id: id,
-            customerId: customerId,
+            depotId: depotId,
             body: body,
             createdAt: createdAt,
             synced: synced,
@@ -23860,15 +23791,15 @@ class $$CustomerNotesTableTableManager extends RootTableManager<
           ),
           createCompanionCallback: ({
             required String id,
-            required String customerId,
+            required String depotId,
             required String body,
             required DateTime createdAt,
             Value<bool> synced = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
-              CustomerNotesCompanion.insert(
+              DepotNotesCompanion.insert(
             id: id,
-            customerId: customerId,
+            depotId: depotId,
             body: body,
             createdAt: createdAt,
             synced: synced,
@@ -23881,35 +23812,32 @@ class $$CustomerNotesTableTableManager extends RootTableManager<
         ));
 }
 
-typedef $$CustomerNotesTableProcessedTableManager = ProcessedTableManager<
+typedef $$DepotNotesTableProcessedTableManager = ProcessedTableManager<
     _$AppDatabase,
-    $CustomerNotesTable,
-    CustomerNote,
-    $$CustomerNotesTableFilterComposer,
-    $$CustomerNotesTableOrderingComposer,
-    $$CustomerNotesTableAnnotationComposer,
-    $$CustomerNotesTableCreateCompanionBuilder,
-    $$CustomerNotesTableUpdateCompanionBuilder,
-    (
-      CustomerNote,
-      BaseReferences<_$AppDatabase, $CustomerNotesTable, CustomerNote>
-    ),
-    CustomerNote,
+    $DepotNotesTable,
+    DepotNote,
+    $$DepotNotesTableFilterComposer,
+    $$DepotNotesTableOrderingComposer,
+    $$DepotNotesTableAnnotationComposer,
+    $$DepotNotesTableCreateCompanionBuilder,
+    $$DepotNotesTableUpdateCompanionBuilder,
+    (DepotNote, BaseReferences<_$AppDatabase, $DepotNotesTable, DepotNote>),
+    DepotNote,
     PrefetchHooks Function()>;
-typedef $$CustomerActivitiesTableCreateCompanionBuilder
-    = CustomerActivitiesCompanion Function({
+typedef $$DepotActivitiesTableCreateCompanionBuilder = DepotActivitiesCompanion
+    Function({
   required String id,
-  required String customerId,
+  required String depotId,
   required String type,
   required String summary,
   required DateTime createdAt,
   Value<bool> synced,
   Value<int> rowid,
 });
-typedef $$CustomerActivitiesTableUpdateCompanionBuilder
-    = CustomerActivitiesCompanion Function({
+typedef $$DepotActivitiesTableUpdateCompanionBuilder = DepotActivitiesCompanion
+    Function({
   Value<String> id,
-  Value<String> customerId,
+  Value<String> depotId,
   Value<String> type,
   Value<String> summary,
   Value<DateTime> createdAt,
@@ -23917,9 +23845,9 @@ typedef $$CustomerActivitiesTableUpdateCompanionBuilder
   Value<int> rowid,
 });
 
-class $$CustomerActivitiesTableFilterComposer
-    extends Composer<_$AppDatabase, $CustomerActivitiesTable> {
-  $$CustomerActivitiesTableFilterComposer({
+class $$DepotActivitiesTableFilterComposer
+    extends Composer<_$AppDatabase, $DepotActivitiesTable> {
+  $$DepotActivitiesTableFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -23929,8 +23857,8 @@ class $$CustomerActivitiesTableFilterComposer
   ColumnFilters<String> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get customerId => $composableBuilder(
-      column: $table.customerId, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get depotId => $composableBuilder(
+      column: $table.depotId, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get type => $composableBuilder(
       column: $table.type, builder: (column) => ColumnFilters(column));
@@ -23945,9 +23873,9 @@ class $$CustomerActivitiesTableFilterComposer
       column: $table.synced, builder: (column) => ColumnFilters(column));
 }
 
-class $$CustomerActivitiesTableOrderingComposer
-    extends Composer<_$AppDatabase, $CustomerActivitiesTable> {
-  $$CustomerActivitiesTableOrderingComposer({
+class $$DepotActivitiesTableOrderingComposer
+    extends Composer<_$AppDatabase, $DepotActivitiesTable> {
+  $$DepotActivitiesTableOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -23957,8 +23885,8 @@ class $$CustomerActivitiesTableOrderingComposer
   ColumnOrderings<String> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get customerId => $composableBuilder(
-      column: $table.customerId, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get depotId => $composableBuilder(
+      column: $table.depotId, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get type => $composableBuilder(
       column: $table.type, builder: (column) => ColumnOrderings(column));
@@ -23973,9 +23901,9 @@ class $$CustomerActivitiesTableOrderingComposer
       column: $table.synced, builder: (column) => ColumnOrderings(column));
 }
 
-class $$CustomerActivitiesTableAnnotationComposer
-    extends Composer<_$AppDatabase, $CustomerActivitiesTable> {
-  $$CustomerActivitiesTableAnnotationComposer({
+class $$DepotActivitiesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DepotActivitiesTable> {
+  $$DepotActivitiesTableAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -23985,8 +23913,8 @@ class $$CustomerActivitiesTableAnnotationComposer
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<String> get customerId => $composableBuilder(
-      column: $table.customerId, builder: (column) => column);
+  GeneratedColumn<String> get depotId =>
+      $composableBuilder(column: $table.depotId, builder: (column) => column);
 
   GeneratedColumn<String> get type =>
       $composableBuilder(column: $table.type, builder: (column) => column);
@@ -24001,45 +23929,44 @@ class $$CustomerActivitiesTableAnnotationComposer
       $composableBuilder(column: $table.synced, builder: (column) => column);
 }
 
-class $$CustomerActivitiesTableTableManager extends RootTableManager<
+class $$DepotActivitiesTableTableManager extends RootTableManager<
     _$AppDatabase,
-    $CustomerActivitiesTable,
-    CustomerActivity,
-    $$CustomerActivitiesTableFilterComposer,
-    $$CustomerActivitiesTableOrderingComposer,
-    $$CustomerActivitiesTableAnnotationComposer,
-    $$CustomerActivitiesTableCreateCompanionBuilder,
-    $$CustomerActivitiesTableUpdateCompanionBuilder,
+    $DepotActivitiesTable,
+    DepotActivity,
+    $$DepotActivitiesTableFilterComposer,
+    $$DepotActivitiesTableOrderingComposer,
+    $$DepotActivitiesTableAnnotationComposer,
+    $$DepotActivitiesTableCreateCompanionBuilder,
+    $$DepotActivitiesTableUpdateCompanionBuilder,
     (
-      CustomerActivity,
-      BaseReferences<_$AppDatabase, $CustomerActivitiesTable, CustomerActivity>
+      DepotActivity,
+      BaseReferences<_$AppDatabase, $DepotActivitiesTable, DepotActivity>
     ),
-    CustomerActivity,
+    DepotActivity,
     PrefetchHooks Function()> {
-  $$CustomerActivitiesTableTableManager(
-      _$AppDatabase db, $CustomerActivitiesTable table)
+  $$DepotActivitiesTableTableManager(
+      _$AppDatabase db, $DepotActivitiesTable table)
       : super(TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $$CustomerActivitiesTableFilterComposer($db: db, $table: table),
+              $$DepotActivitiesTableFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
-              $$CustomerActivitiesTableOrderingComposer($db: db, $table: table),
+              $$DepotActivitiesTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
-              $$CustomerActivitiesTableAnnotationComposer(
-                  $db: db, $table: table),
+              $$DepotActivitiesTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
-            Value<String> customerId = const Value.absent(),
+            Value<String> depotId = const Value.absent(),
             Value<String> type = const Value.absent(),
             Value<String> summary = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
             Value<bool> synced = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
-              CustomerActivitiesCompanion(
+              DepotActivitiesCompanion(
             id: id,
-            customerId: customerId,
+            depotId: depotId,
             type: type,
             summary: summary,
             createdAt: createdAt,
@@ -24048,16 +23975,16 @@ class $$CustomerActivitiesTableTableManager extends RootTableManager<
           ),
           createCompanionCallback: ({
             required String id,
-            required String customerId,
+            required String depotId,
             required String type,
             required String summary,
             required DateTime createdAt,
             Value<bool> synced = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
-              CustomerActivitiesCompanion.insert(
+              DepotActivitiesCompanion.insert(
             id: id,
-            customerId: customerId,
+            depotId: depotId,
             type: type,
             summary: summary,
             createdAt: createdAt,
@@ -24071,126 +23998,125 @@ class $$CustomerActivitiesTableTableManager extends RootTableManager<
         ));
 }
 
-typedef $$CustomerActivitiesTableProcessedTableManager = ProcessedTableManager<
+typedef $$DepotActivitiesTableProcessedTableManager = ProcessedTableManager<
     _$AppDatabase,
-    $CustomerActivitiesTable,
-    CustomerActivity,
-    $$CustomerActivitiesTableFilterComposer,
-    $$CustomerActivitiesTableOrderingComposer,
-    $$CustomerActivitiesTableAnnotationComposer,
-    $$CustomerActivitiesTableCreateCompanionBuilder,
-    $$CustomerActivitiesTableUpdateCompanionBuilder,
+    $DepotActivitiesTable,
+    DepotActivity,
+    $$DepotActivitiesTableFilterComposer,
+    $$DepotActivitiesTableOrderingComposer,
+    $$DepotActivitiesTableAnnotationComposer,
+    $$DepotActivitiesTableCreateCompanionBuilder,
+    $$DepotActivitiesTableUpdateCompanionBuilder,
     (
-      CustomerActivity,
-      BaseReferences<_$AppDatabase, $CustomerActivitiesTable, CustomerActivity>
+      DepotActivity,
+      BaseReferences<_$AppDatabase, $DepotActivitiesTable, DepotActivity>
     ),
-    CustomerActivity,
+    DepotActivity,
     PrefetchHooks Function()>;
-typedef $$CustomerFavoritesTableCreateCompanionBuilder
-    = CustomerFavoritesCompanion Function({
-  required String customerId,
+typedef $$DepotFavoritesTableCreateCompanionBuilder = DepotFavoritesCompanion
+    Function({
+  required String depotId,
   required DateTime createdAt,
   Value<int> rowid,
 });
-typedef $$CustomerFavoritesTableUpdateCompanionBuilder
-    = CustomerFavoritesCompanion Function({
-  Value<String> customerId,
+typedef $$DepotFavoritesTableUpdateCompanionBuilder = DepotFavoritesCompanion
+    Function({
+  Value<String> depotId,
   Value<DateTime> createdAt,
   Value<int> rowid,
 });
 
-class $$CustomerFavoritesTableFilterComposer
-    extends Composer<_$AppDatabase, $CustomerFavoritesTable> {
-  $$CustomerFavoritesTableFilterComposer({
+class $$DepotFavoritesTableFilterComposer
+    extends Composer<_$AppDatabase, $DepotFavoritesTable> {
+  $$DepotFavoritesTableFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<String> get customerId => $composableBuilder(
-      column: $table.customerId, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get depotId => $composableBuilder(
+      column: $table.depotId, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnFilters(column));
 }
 
-class $$CustomerFavoritesTableOrderingComposer
-    extends Composer<_$AppDatabase, $CustomerFavoritesTable> {
-  $$CustomerFavoritesTableOrderingComposer({
+class $$DepotFavoritesTableOrderingComposer
+    extends Composer<_$AppDatabase, $DepotFavoritesTable> {
+  $$DepotFavoritesTableOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<String> get customerId => $composableBuilder(
-      column: $table.customerId, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get depotId => $composableBuilder(
+      column: $table.depotId, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnOrderings(column));
 }
 
-class $$CustomerFavoritesTableAnnotationComposer
-    extends Composer<_$AppDatabase, $CustomerFavoritesTable> {
-  $$CustomerFavoritesTableAnnotationComposer({
+class $$DepotFavoritesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DepotFavoritesTable> {
+  $$DepotFavoritesTableAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<String> get customerId => $composableBuilder(
-      column: $table.customerId, builder: (column) => column);
+  GeneratedColumn<String> get depotId =>
+      $composableBuilder(column: $table.depotId, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 }
 
-class $$CustomerFavoritesTableTableManager extends RootTableManager<
+class $$DepotFavoritesTableTableManager extends RootTableManager<
     _$AppDatabase,
-    $CustomerFavoritesTable,
-    CustomerFavorite,
-    $$CustomerFavoritesTableFilterComposer,
-    $$CustomerFavoritesTableOrderingComposer,
-    $$CustomerFavoritesTableAnnotationComposer,
-    $$CustomerFavoritesTableCreateCompanionBuilder,
-    $$CustomerFavoritesTableUpdateCompanionBuilder,
+    $DepotFavoritesTable,
+    DepotFavorite,
+    $$DepotFavoritesTableFilterComposer,
+    $$DepotFavoritesTableOrderingComposer,
+    $$DepotFavoritesTableAnnotationComposer,
+    $$DepotFavoritesTableCreateCompanionBuilder,
+    $$DepotFavoritesTableUpdateCompanionBuilder,
     (
-      CustomerFavorite,
-      BaseReferences<_$AppDatabase, $CustomerFavoritesTable, CustomerFavorite>
+      DepotFavorite,
+      BaseReferences<_$AppDatabase, $DepotFavoritesTable, DepotFavorite>
     ),
-    CustomerFavorite,
+    DepotFavorite,
     PrefetchHooks Function()> {
-  $$CustomerFavoritesTableTableManager(
-      _$AppDatabase db, $CustomerFavoritesTable table)
+  $$DepotFavoritesTableTableManager(
+      _$AppDatabase db, $DepotFavoritesTable table)
       : super(TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $$CustomerFavoritesTableFilterComposer($db: db, $table: table),
+              $$DepotFavoritesTableFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
-              $$CustomerFavoritesTableOrderingComposer($db: db, $table: table),
+              $$DepotFavoritesTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
-              $$CustomerFavoritesTableAnnotationComposer(
-                  $db: db, $table: table),
+              $$DepotFavoritesTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback: ({
-            Value<String> customerId = const Value.absent(),
+            Value<String> depotId = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
-              CustomerFavoritesCompanion(
-            customerId: customerId,
+              DepotFavoritesCompanion(
+            depotId: depotId,
             createdAt: createdAt,
             rowid: rowid,
           ),
           createCompanionCallback: ({
-            required String customerId,
+            required String depotId,
             required DateTime createdAt,
             Value<int> rowid = const Value.absent(),
           }) =>
-              CustomerFavoritesCompanion.insert(
-            customerId: customerId,
+              DepotFavoritesCompanion.insert(
+            depotId: depotId,
             createdAt: createdAt,
             rowid: rowid,
           ),
@@ -24201,125 +24127,124 @@ class $$CustomerFavoritesTableTableManager extends RootTableManager<
         ));
 }
 
-typedef $$CustomerFavoritesTableProcessedTableManager = ProcessedTableManager<
+typedef $$DepotFavoritesTableProcessedTableManager = ProcessedTableManager<
     _$AppDatabase,
-    $CustomerFavoritesTable,
-    CustomerFavorite,
-    $$CustomerFavoritesTableFilterComposer,
-    $$CustomerFavoritesTableOrderingComposer,
-    $$CustomerFavoritesTableAnnotationComposer,
-    $$CustomerFavoritesTableCreateCompanionBuilder,
-    $$CustomerFavoritesTableUpdateCompanionBuilder,
+    $DepotFavoritesTable,
+    DepotFavorite,
+    $$DepotFavoritesTableFilterComposer,
+    $$DepotFavoritesTableOrderingComposer,
+    $$DepotFavoritesTableAnnotationComposer,
+    $$DepotFavoritesTableCreateCompanionBuilder,
+    $$DepotFavoritesTableUpdateCompanionBuilder,
     (
-      CustomerFavorite,
-      BaseReferences<_$AppDatabase, $CustomerFavoritesTable, CustomerFavorite>
+      DepotFavorite,
+      BaseReferences<_$AppDatabase, $DepotFavoritesTable, DepotFavorite>
     ),
-    CustomerFavorite,
+    DepotFavorite,
     PrefetchHooks Function()>;
-typedef $$CustomerRecentTableCreateCompanionBuilder = CustomerRecentCompanion
+typedef $$DepotRecentTableCreateCompanionBuilder = DepotRecentCompanion
     Function({
-  required String customerId,
+  required String depotId,
   required DateTime viewedAt,
   Value<int> rowid,
 });
-typedef $$CustomerRecentTableUpdateCompanionBuilder = CustomerRecentCompanion
+typedef $$DepotRecentTableUpdateCompanionBuilder = DepotRecentCompanion
     Function({
-  Value<String> customerId,
+  Value<String> depotId,
   Value<DateTime> viewedAt,
   Value<int> rowid,
 });
 
-class $$CustomerRecentTableFilterComposer
-    extends Composer<_$AppDatabase, $CustomerRecentTable> {
-  $$CustomerRecentTableFilterComposer({
+class $$DepotRecentTableFilterComposer
+    extends Composer<_$AppDatabase, $DepotRecentTable> {
+  $$DepotRecentTableFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<String> get customerId => $composableBuilder(
-      column: $table.customerId, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get depotId => $composableBuilder(
+      column: $table.depotId, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get viewedAt => $composableBuilder(
       column: $table.viewedAt, builder: (column) => ColumnFilters(column));
 }
 
-class $$CustomerRecentTableOrderingComposer
-    extends Composer<_$AppDatabase, $CustomerRecentTable> {
-  $$CustomerRecentTableOrderingComposer({
+class $$DepotRecentTableOrderingComposer
+    extends Composer<_$AppDatabase, $DepotRecentTable> {
+  $$DepotRecentTableOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<String> get customerId => $composableBuilder(
-      column: $table.customerId, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get depotId => $composableBuilder(
+      column: $table.depotId, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get viewedAt => $composableBuilder(
       column: $table.viewedAt, builder: (column) => ColumnOrderings(column));
 }
 
-class $$CustomerRecentTableAnnotationComposer
-    extends Composer<_$AppDatabase, $CustomerRecentTable> {
-  $$CustomerRecentTableAnnotationComposer({
+class $$DepotRecentTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DepotRecentTable> {
+  $$DepotRecentTableAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<String> get customerId => $composableBuilder(
-      column: $table.customerId, builder: (column) => column);
+  GeneratedColumn<String> get depotId =>
+      $composableBuilder(column: $table.depotId, builder: (column) => column);
 
   GeneratedColumn<DateTime> get viewedAt =>
       $composableBuilder(column: $table.viewedAt, builder: (column) => column);
 }
 
-class $$CustomerRecentTableTableManager extends RootTableManager<
+class $$DepotRecentTableTableManager extends RootTableManager<
     _$AppDatabase,
-    $CustomerRecentTable,
-    CustomerRecentData,
-    $$CustomerRecentTableFilterComposer,
-    $$CustomerRecentTableOrderingComposer,
-    $$CustomerRecentTableAnnotationComposer,
-    $$CustomerRecentTableCreateCompanionBuilder,
-    $$CustomerRecentTableUpdateCompanionBuilder,
+    $DepotRecentTable,
+    DepotRecentData,
+    $$DepotRecentTableFilterComposer,
+    $$DepotRecentTableOrderingComposer,
+    $$DepotRecentTableAnnotationComposer,
+    $$DepotRecentTableCreateCompanionBuilder,
+    $$DepotRecentTableUpdateCompanionBuilder,
     (
-      CustomerRecentData,
-      BaseReferences<_$AppDatabase, $CustomerRecentTable, CustomerRecentData>
+      DepotRecentData,
+      BaseReferences<_$AppDatabase, $DepotRecentTable, DepotRecentData>
     ),
-    CustomerRecentData,
+    DepotRecentData,
     PrefetchHooks Function()> {
-  $$CustomerRecentTableTableManager(
-      _$AppDatabase db, $CustomerRecentTable table)
+  $$DepotRecentTableTableManager(_$AppDatabase db, $DepotRecentTable table)
       : super(TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $$CustomerRecentTableFilterComposer($db: db, $table: table),
+              $$DepotRecentTableFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
-              $$CustomerRecentTableOrderingComposer($db: db, $table: table),
+              $$DepotRecentTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
-              $$CustomerRecentTableAnnotationComposer($db: db, $table: table),
+              $$DepotRecentTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback: ({
-            Value<String> customerId = const Value.absent(),
+            Value<String> depotId = const Value.absent(),
             Value<DateTime> viewedAt = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
-              CustomerRecentCompanion(
-            customerId: customerId,
+              DepotRecentCompanion(
+            depotId: depotId,
             viewedAt: viewedAt,
             rowid: rowid,
           ),
           createCompanionCallback: ({
-            required String customerId,
+            required String depotId,
             required DateTime viewedAt,
             Value<int> rowid = const Value.absent(),
           }) =>
-              CustomerRecentCompanion.insert(
-            customerId: customerId,
+              DepotRecentCompanion.insert(
+            depotId: depotId,
             viewedAt: viewedAt,
             rowid: rowid,
           ),
@@ -24330,39 +24255,39 @@ class $$CustomerRecentTableTableManager extends RootTableManager<
         ));
 }
 
-typedef $$CustomerRecentTableProcessedTableManager = ProcessedTableManager<
+typedef $$DepotRecentTableProcessedTableManager = ProcessedTableManager<
     _$AppDatabase,
-    $CustomerRecentTable,
-    CustomerRecentData,
-    $$CustomerRecentTableFilterComposer,
-    $$CustomerRecentTableOrderingComposer,
-    $$CustomerRecentTableAnnotationComposer,
-    $$CustomerRecentTableCreateCompanionBuilder,
-    $$CustomerRecentTableUpdateCompanionBuilder,
+    $DepotRecentTable,
+    DepotRecentData,
+    $$DepotRecentTableFilterComposer,
+    $$DepotRecentTableOrderingComposer,
+    $$DepotRecentTableAnnotationComposer,
+    $$DepotRecentTableCreateCompanionBuilder,
+    $$DepotRecentTableUpdateCompanionBuilder,
     (
-      CustomerRecentData,
-      BaseReferences<_$AppDatabase, $CustomerRecentTable, CustomerRecentData>
+      DepotRecentData,
+      BaseReferences<_$AppDatabase, $DepotRecentTable, DepotRecentData>
     ),
-    CustomerRecentData,
+    DepotRecentData,
     PrefetchHooks Function()>;
-typedef $$CustomerSyncMetaTableCreateCompanionBuilder
-    = CustomerSyncMetaCompanion Function({
+typedef $$DepotSyncMetaTableCreateCompanionBuilder = DepotSyncMetaCompanion
+    Function({
   required String entity,
   Value<DateTime?> lastSyncedAt,
   Value<String?> syncedLanguage,
   Value<int> rowid,
 });
-typedef $$CustomerSyncMetaTableUpdateCompanionBuilder
-    = CustomerSyncMetaCompanion Function({
+typedef $$DepotSyncMetaTableUpdateCompanionBuilder = DepotSyncMetaCompanion
+    Function({
   Value<String> entity,
   Value<DateTime?> lastSyncedAt,
   Value<String?> syncedLanguage,
   Value<int> rowid,
 });
 
-class $$CustomerSyncMetaTableFilterComposer
-    extends Composer<_$AppDatabase, $CustomerSyncMetaTable> {
-  $$CustomerSyncMetaTableFilterComposer({
+class $$DepotSyncMetaTableFilterComposer
+    extends Composer<_$AppDatabase, $DepotSyncMetaTable> {
+  $$DepotSyncMetaTableFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -24380,9 +24305,9 @@ class $$CustomerSyncMetaTableFilterComposer
       builder: (column) => ColumnFilters(column));
 }
 
-class $$CustomerSyncMetaTableOrderingComposer
-    extends Composer<_$AppDatabase, $CustomerSyncMetaTable> {
-  $$CustomerSyncMetaTableOrderingComposer({
+class $$DepotSyncMetaTableOrderingComposer
+    extends Composer<_$AppDatabase, $DepotSyncMetaTable> {
+  $$DepotSyncMetaTableOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -24401,9 +24326,9 @@ class $$CustomerSyncMetaTableOrderingComposer
       builder: (column) => ColumnOrderings(column));
 }
 
-class $$CustomerSyncMetaTableAnnotationComposer
-    extends Composer<_$AppDatabase, $CustomerSyncMetaTable> {
-  $$CustomerSyncMetaTableAnnotationComposer({
+class $$DepotSyncMetaTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DepotSyncMetaTable> {
+  $$DepotSyncMetaTableAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -24420,40 +24345,38 @@ class $$CustomerSyncMetaTableAnnotationComposer
       column: $table.syncedLanguage, builder: (column) => column);
 }
 
-class $$CustomerSyncMetaTableTableManager extends RootTableManager<
+class $$DepotSyncMetaTableTableManager extends RootTableManager<
     _$AppDatabase,
-    $CustomerSyncMetaTable,
-    CustomerSyncMetaData,
-    $$CustomerSyncMetaTableFilterComposer,
-    $$CustomerSyncMetaTableOrderingComposer,
-    $$CustomerSyncMetaTableAnnotationComposer,
-    $$CustomerSyncMetaTableCreateCompanionBuilder,
-    $$CustomerSyncMetaTableUpdateCompanionBuilder,
+    $DepotSyncMetaTable,
+    DepotSyncMetaData,
+    $$DepotSyncMetaTableFilterComposer,
+    $$DepotSyncMetaTableOrderingComposer,
+    $$DepotSyncMetaTableAnnotationComposer,
+    $$DepotSyncMetaTableCreateCompanionBuilder,
+    $$DepotSyncMetaTableUpdateCompanionBuilder,
     (
-      CustomerSyncMetaData,
-      BaseReferences<_$AppDatabase, $CustomerSyncMetaTable,
-          CustomerSyncMetaData>
+      DepotSyncMetaData,
+      BaseReferences<_$AppDatabase, $DepotSyncMetaTable, DepotSyncMetaData>
     ),
-    CustomerSyncMetaData,
+    DepotSyncMetaData,
     PrefetchHooks Function()> {
-  $$CustomerSyncMetaTableTableManager(
-      _$AppDatabase db, $CustomerSyncMetaTable table)
+  $$DepotSyncMetaTableTableManager(_$AppDatabase db, $DepotSyncMetaTable table)
       : super(TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $$CustomerSyncMetaTableFilterComposer($db: db, $table: table),
+              $$DepotSyncMetaTableFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
-              $$CustomerSyncMetaTableOrderingComposer($db: db, $table: table),
+              $$DepotSyncMetaTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
-              $$CustomerSyncMetaTableAnnotationComposer($db: db, $table: table),
+              $$DepotSyncMetaTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback: ({
             Value<String> entity = const Value.absent(),
             Value<DateTime?> lastSyncedAt = const Value.absent(),
             Value<String?> syncedLanguage = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
-              CustomerSyncMetaCompanion(
+              DepotSyncMetaCompanion(
             entity: entity,
             lastSyncedAt: lastSyncedAt,
             syncedLanguage: syncedLanguage,
@@ -24465,7 +24388,7 @@ class $$CustomerSyncMetaTableTableManager extends RootTableManager<
             Value<String?> syncedLanguage = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
-              CustomerSyncMetaCompanion.insert(
+              DepotSyncMetaCompanion.insert(
             entity: entity,
             lastSyncedAt: lastSyncedAt,
             syncedLanguage: syncedLanguage,
@@ -24478,21 +24401,20 @@ class $$CustomerSyncMetaTableTableManager extends RootTableManager<
         ));
 }
 
-typedef $$CustomerSyncMetaTableProcessedTableManager = ProcessedTableManager<
+typedef $$DepotSyncMetaTableProcessedTableManager = ProcessedTableManager<
     _$AppDatabase,
-    $CustomerSyncMetaTable,
-    CustomerSyncMetaData,
-    $$CustomerSyncMetaTableFilterComposer,
-    $$CustomerSyncMetaTableOrderingComposer,
-    $$CustomerSyncMetaTableAnnotationComposer,
-    $$CustomerSyncMetaTableCreateCompanionBuilder,
-    $$CustomerSyncMetaTableUpdateCompanionBuilder,
+    $DepotSyncMetaTable,
+    DepotSyncMetaData,
+    $$DepotSyncMetaTableFilterComposer,
+    $$DepotSyncMetaTableOrderingComposer,
+    $$DepotSyncMetaTableAnnotationComposer,
+    $$DepotSyncMetaTableCreateCompanionBuilder,
+    $$DepotSyncMetaTableUpdateCompanionBuilder,
     (
-      CustomerSyncMetaData,
-      BaseReferences<_$AppDatabase, $CustomerSyncMetaTable,
-          CustomerSyncMetaData>
+      DepotSyncMetaData,
+      BaseReferences<_$AppDatabase, $DepotSyncMetaTable, DepotSyncMetaData>
     ),
-    CustomerSyncMetaData,
+    DepotSyncMetaData,
     PrefetchHooks Function()>;
 typedef $$CategoriesTableCreateCompanionBuilder = CategoriesCompanion Function({
   required String id,
@@ -26252,7 +26174,7 @@ typedef $$CartItemsTableCreateCompanionBuilder = CartItemsCompanion Function({
   required String unit,
   Value<double> discountPercent,
   Value<String?> leadId,
-  Value<String?> customerId,
+  Value<String?> depotId,
   Value<String?> editingQuotationId,
   Value<String?> customizationJson,
   Value<double?> unitPrice,
@@ -26267,7 +26189,7 @@ typedef $$CartItemsTableUpdateCompanionBuilder = CartItemsCompanion Function({
   Value<String> unit,
   Value<double> discountPercent,
   Value<String?> leadId,
-  Value<String?> customerId,
+  Value<String?> depotId,
   Value<String?> editingQuotationId,
   Value<String?> customizationJson,
   Value<double?> unitPrice,
@@ -26304,8 +26226,8 @@ class $$CartItemsTableFilterComposer
   ColumnFilters<String> get leadId => $composableBuilder(
       column: $table.leadId, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get customerId => $composableBuilder(
-      column: $table.customerId, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get depotId => $composableBuilder(
+      column: $table.depotId, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get editingQuotationId => $composableBuilder(
       column: $table.editingQuotationId,
@@ -26354,8 +26276,8 @@ class $$CartItemsTableOrderingComposer
   ColumnOrderings<String> get leadId => $composableBuilder(
       column: $table.leadId, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get customerId => $composableBuilder(
-      column: $table.customerId, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get depotId => $composableBuilder(
+      column: $table.depotId, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get editingQuotationId => $composableBuilder(
       column: $table.editingQuotationId,
@@ -26403,8 +26325,8 @@ class $$CartItemsTableAnnotationComposer
   GeneratedColumn<String> get leadId =>
       $composableBuilder(column: $table.leadId, builder: (column) => column);
 
-  GeneratedColumn<String> get customerId => $composableBuilder(
-      column: $table.customerId, builder: (column) => column);
+  GeneratedColumn<String> get depotId =>
+      $composableBuilder(column: $table.depotId, builder: (column) => column);
 
   GeneratedColumn<String> get editingQuotationId => $composableBuilder(
       column: $table.editingQuotationId, builder: (column) => column);
@@ -26451,7 +26373,7 @@ class $$CartItemsTableTableManager extends RootTableManager<
             Value<String> unit = const Value.absent(),
             Value<double> discountPercent = const Value.absent(),
             Value<String?> leadId = const Value.absent(),
-            Value<String?> customerId = const Value.absent(),
+            Value<String?> depotId = const Value.absent(),
             Value<String?> editingQuotationId = const Value.absent(),
             Value<String?> customizationJson = const Value.absent(),
             Value<double?> unitPrice = const Value.absent(),
@@ -26466,7 +26388,7 @@ class $$CartItemsTableTableManager extends RootTableManager<
             unit: unit,
             discountPercent: discountPercent,
             leadId: leadId,
-            customerId: customerId,
+            depotId: depotId,
             editingQuotationId: editingQuotationId,
             customizationJson: customizationJson,
             unitPrice: unitPrice,
@@ -26481,7 +26403,7 @@ class $$CartItemsTableTableManager extends RootTableManager<
             required String unit,
             Value<double> discountPercent = const Value.absent(),
             Value<String?> leadId = const Value.absent(),
-            Value<String?> customerId = const Value.absent(),
+            Value<String?> depotId = const Value.absent(),
             Value<String?> editingQuotationId = const Value.absent(),
             Value<String?> customizationJson = const Value.absent(),
             Value<double?> unitPrice = const Value.absent(),
@@ -26496,7 +26418,7 @@ class $$CartItemsTableTableManager extends RootTableManager<
             unit: unit,
             discountPercent: discountPercent,
             leadId: leadId,
-            customerId: customerId,
+            depotId: depotId,
             editingQuotationId: editingQuotationId,
             customizationJson: customizationJson,
             unitPrice: unitPrice,
@@ -26834,7 +26756,7 @@ typedef $$RouteStopsTableCreateCompanionBuilder = RouteStopsCompanion Function({
   Value<String?> serverRevision,
   Value<bool> dirty,
   required String routeId,
-  required String customerId,
+  required String depotId,
   required int sequence,
   required DateTime plannedArrival,
   required DateTime plannedDeparture,
@@ -26851,7 +26773,7 @@ typedef $$RouteStopsTableUpdateCompanionBuilder = RouteStopsCompanion Function({
   Value<String?> serverRevision,
   Value<bool> dirty,
   Value<String> routeId,
-  Value<String> customerId,
+  Value<String> depotId,
   Value<int> sequence,
   Value<DateTime> plannedArrival,
   Value<DateTime> plannedDeparture,
@@ -26892,8 +26814,8 @@ class $$RouteStopsTableFilterComposer
   ColumnFilters<String> get routeId => $composableBuilder(
       column: $table.routeId, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get customerId => $composableBuilder(
-      column: $table.customerId, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get depotId => $composableBuilder(
+      column: $table.depotId, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get sequence => $composableBuilder(
       column: $table.sequence, builder: (column) => ColumnFilters(column));
@@ -26948,8 +26870,8 @@ class $$RouteStopsTableOrderingComposer
   ColumnOrderings<String> get routeId => $composableBuilder(
       column: $table.routeId, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get customerId => $composableBuilder(
-      column: $table.customerId, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get depotId => $composableBuilder(
+      column: $table.depotId, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<int> get sequence => $composableBuilder(
       column: $table.sequence, builder: (column) => ColumnOrderings(column));
@@ -27004,8 +26926,8 @@ class $$RouteStopsTableAnnotationComposer
   GeneratedColumn<String> get routeId =>
       $composableBuilder(column: $table.routeId, builder: (column) => column);
 
-  GeneratedColumn<String> get customerId => $composableBuilder(
-      column: $table.customerId, builder: (column) => column);
+  GeneratedColumn<String> get depotId =>
+      $composableBuilder(column: $table.depotId, builder: (column) => column);
 
   GeneratedColumn<int> get sequence =>
       $composableBuilder(column: $table.sequence, builder: (column) => column);
@@ -27059,7 +26981,7 @@ class $$RouteStopsTableTableManager extends RootTableManager<
             Value<String?> serverRevision = const Value.absent(),
             Value<bool> dirty = const Value.absent(),
             Value<String> routeId = const Value.absent(),
-            Value<String> customerId = const Value.absent(),
+            Value<String> depotId = const Value.absent(),
             Value<int> sequence = const Value.absent(),
             Value<DateTime> plannedArrival = const Value.absent(),
             Value<DateTime> plannedDeparture = const Value.absent(),
@@ -27076,7 +26998,7 @@ class $$RouteStopsTableTableManager extends RootTableManager<
             serverRevision: serverRevision,
             dirty: dirty,
             routeId: routeId,
-            customerId: customerId,
+            depotId: depotId,
             sequence: sequence,
             plannedArrival: plannedArrival,
             plannedDeparture: plannedDeparture,
@@ -27093,7 +27015,7 @@ class $$RouteStopsTableTableManager extends RootTableManager<
             Value<String?> serverRevision = const Value.absent(),
             Value<bool> dirty = const Value.absent(),
             required String routeId,
-            required String customerId,
+            required String depotId,
             required int sequence,
             required DateTime plannedArrival,
             required DateTime plannedDeparture,
@@ -27110,7 +27032,7 @@ class $$RouteStopsTableTableManager extends RootTableManager<
             serverRevision: serverRevision,
             dirty: dirty,
             routeId: routeId,
-            customerId: customerId,
+            depotId: depotId,
             sequence: sequence,
             plannedArrival: plannedArrival,
             plannedDeparture: plannedDeparture,
@@ -27141,7 +27063,7 @@ typedef $$RouteStopsTableProcessedTableManager = ProcessedTableManager<
     ),
     RouteStopRow,
     PrefetchHooks Function()>;
-typedef $$RouteCustomersTableCreateCompanionBuilder = RouteCustomersCompanion
+typedef $$RouteDepotsTableCreateCompanionBuilder = RouteDepotsCompanion
     Function({
   required String id,
   required String name,
@@ -27157,7 +27079,7 @@ typedef $$RouteCustomersTableCreateCompanionBuilder = RouteCustomersCompanion
   Value<double?> geofenceRadiusOverride,
   Value<int> rowid,
 });
-typedef $$RouteCustomersTableUpdateCompanionBuilder = RouteCustomersCompanion
+typedef $$RouteDepotsTableUpdateCompanionBuilder = RouteDepotsCompanion
     Function({
   Value<String> id,
   Value<String> name,
@@ -27174,9 +27096,9 @@ typedef $$RouteCustomersTableUpdateCompanionBuilder = RouteCustomersCompanion
   Value<int> rowid,
 });
 
-class $$RouteCustomersTableFilterComposer
-    extends Composer<_$AppDatabase, $RouteCustomersTable> {
-  $$RouteCustomersTableFilterComposer({
+class $$RouteDepotsTableFilterComposer
+    extends Composer<_$AppDatabase, $RouteDepotsTable> {
+  $$RouteDepotsTableFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -27221,9 +27143,9 @@ class $$RouteCustomersTableFilterComposer
       builder: (column) => ColumnFilters(column));
 }
 
-class $$RouteCustomersTableOrderingComposer
-    extends Composer<_$AppDatabase, $RouteCustomersTable> {
-  $$RouteCustomersTableOrderingComposer({
+class $$RouteDepotsTableOrderingComposer
+    extends Composer<_$AppDatabase, $RouteDepotsTable> {
+  $$RouteDepotsTableOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -27269,9 +27191,9 @@ class $$RouteCustomersTableOrderingComposer
       builder: (column) => ColumnOrderings(column));
 }
 
-class $$RouteCustomersTableAnnotationComposer
-    extends Composer<_$AppDatabase, $RouteCustomersTable> {
-  $$RouteCustomersTableAnnotationComposer({
+class $$RouteDepotsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $RouteDepotsTable> {
+  $$RouteDepotsTableAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -27315,32 +27237,31 @@ class $$RouteCustomersTableAnnotationComposer
       column: $table.geofenceRadiusOverride, builder: (column) => column);
 }
 
-class $$RouteCustomersTableTableManager extends RootTableManager<
+class $$RouteDepotsTableTableManager extends RootTableManager<
     _$AppDatabase,
-    $RouteCustomersTable,
-    RouteCustomerRow,
-    $$RouteCustomersTableFilterComposer,
-    $$RouteCustomersTableOrderingComposer,
-    $$RouteCustomersTableAnnotationComposer,
-    $$RouteCustomersTableCreateCompanionBuilder,
-    $$RouteCustomersTableUpdateCompanionBuilder,
+    $RouteDepotsTable,
+    RouteDepotRow,
+    $$RouteDepotsTableFilterComposer,
+    $$RouteDepotsTableOrderingComposer,
+    $$RouteDepotsTableAnnotationComposer,
+    $$RouteDepotsTableCreateCompanionBuilder,
+    $$RouteDepotsTableUpdateCompanionBuilder,
     (
-      RouteCustomerRow,
-      BaseReferences<_$AppDatabase, $RouteCustomersTable, RouteCustomerRow>
+      RouteDepotRow,
+      BaseReferences<_$AppDatabase, $RouteDepotsTable, RouteDepotRow>
     ),
-    RouteCustomerRow,
+    RouteDepotRow,
     PrefetchHooks Function()> {
-  $$RouteCustomersTableTableManager(
-      _$AppDatabase db, $RouteCustomersTable table)
+  $$RouteDepotsTableTableManager(_$AppDatabase db, $RouteDepotsTable table)
       : super(TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $$RouteCustomersTableFilterComposer($db: db, $table: table),
+              $$RouteDepotsTableFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
-              $$RouteCustomersTableOrderingComposer($db: db, $table: table),
+              $$RouteDepotsTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
-              $$RouteCustomersTableAnnotationComposer($db: db, $table: table),
+              $$RouteDepotsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
             Value<String> name = const Value.absent(),
@@ -27356,7 +27277,7 @@ class $$RouteCustomersTableTableManager extends RootTableManager<
             Value<double?> geofenceRadiusOverride = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
-              RouteCustomersCompanion(
+              RouteDepotsCompanion(
             id: id,
             name: name,
             nameKh: nameKh,
@@ -27386,7 +27307,7 @@ class $$RouteCustomersTableTableManager extends RootTableManager<
             Value<double?> geofenceRadiusOverride = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
-              RouteCustomersCompanion.insert(
+              RouteDepotsCompanion.insert(
             id: id,
             name: name,
             nameKh: nameKh,
@@ -27408,20 +27329,20 @@ class $$RouteCustomersTableTableManager extends RootTableManager<
         ));
 }
 
-typedef $$RouteCustomersTableProcessedTableManager = ProcessedTableManager<
+typedef $$RouteDepotsTableProcessedTableManager = ProcessedTableManager<
     _$AppDatabase,
-    $RouteCustomersTable,
-    RouteCustomerRow,
-    $$RouteCustomersTableFilterComposer,
-    $$RouteCustomersTableOrderingComposer,
-    $$RouteCustomersTableAnnotationComposer,
-    $$RouteCustomersTableCreateCompanionBuilder,
-    $$RouteCustomersTableUpdateCompanionBuilder,
+    $RouteDepotsTable,
+    RouteDepotRow,
+    $$RouteDepotsTableFilterComposer,
+    $$RouteDepotsTableOrderingComposer,
+    $$RouteDepotsTableAnnotationComposer,
+    $$RouteDepotsTableCreateCompanionBuilder,
+    $$RouteDepotsTableUpdateCompanionBuilder,
     (
-      RouteCustomerRow,
-      BaseReferences<_$AppDatabase, $RouteCustomersTable, RouteCustomerRow>
+      RouteDepotRow,
+      BaseReferences<_$AppDatabase, $RouteDepotsTable, RouteDepotRow>
     ),
-    RouteCustomerRow,
+    RouteDepotRow,
     PrefetchHooks Function()>;
 typedef $$LocationSamplesTableCreateCompanionBuilder = LocationSamplesCompanion
     Function({
@@ -28169,7 +28090,7 @@ typedef $$VisitCheckInsTableCreateCompanionBuilder = VisitCheckInsCompanion
   required double latitude,
   required double longitude,
   required double accuracy,
-  required double distanceFromCustomer,
+  required double distanceFromDepot,
   Value<bool> isMocked,
   Value<String?> overrideReason,
   Value<int> rowid,
@@ -28187,7 +28108,7 @@ typedef $$VisitCheckInsTableUpdateCompanionBuilder = VisitCheckInsCompanion
   Value<double> latitude,
   Value<double> longitude,
   Value<double> accuracy,
-  Value<double> distanceFromCustomer,
+  Value<double> distanceFromDepot,
   Value<bool> isMocked,
   Value<String?> overrideReason,
   Value<int> rowid,
@@ -28236,8 +28157,8 @@ class $$VisitCheckInsTableFilterComposer
   ColumnFilters<double> get accuracy => $composableBuilder(
       column: $table.accuracy, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<double> get distanceFromCustomer => $composableBuilder(
-      column: $table.distanceFromCustomer,
+  ColumnFilters<double> get distanceFromDepot => $composableBuilder(
+      column: $table.distanceFromDepot,
       builder: (column) => ColumnFilters(column));
 
   ColumnFilters<bool> get isMocked => $composableBuilder(
@@ -28291,8 +28212,8 @@ class $$VisitCheckInsTableOrderingComposer
   ColumnOrderings<double> get accuracy => $composableBuilder(
       column: $table.accuracy, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<double> get distanceFromCustomer => $composableBuilder(
-      column: $table.distanceFromCustomer,
+  ColumnOrderings<double> get distanceFromDepot => $composableBuilder(
+      column: $table.distanceFromDepot,
       builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<bool> get isMocked => $composableBuilder(
@@ -28345,8 +28266,8 @@ class $$VisitCheckInsTableAnnotationComposer
   GeneratedColumn<double> get accuracy =>
       $composableBuilder(column: $table.accuracy, builder: (column) => column);
 
-  GeneratedColumn<double> get distanceFromCustomer => $composableBuilder(
-      column: $table.distanceFromCustomer, builder: (column) => column);
+  GeneratedColumn<double> get distanceFromDepot => $composableBuilder(
+      column: $table.distanceFromDepot, builder: (column) => column);
 
   GeneratedColumn<bool> get isMocked =>
       $composableBuilder(column: $table.isMocked, builder: (column) => column);
@@ -28392,7 +28313,7 @@ class $$VisitCheckInsTableTableManager extends RootTableManager<
             Value<double> latitude = const Value.absent(),
             Value<double> longitude = const Value.absent(),
             Value<double> accuracy = const Value.absent(),
-            Value<double> distanceFromCustomer = const Value.absent(),
+            Value<double> distanceFromDepot = const Value.absent(),
             Value<bool> isMocked = const Value.absent(),
             Value<String?> overrideReason = const Value.absent(),
             Value<int> rowid = const Value.absent(),
@@ -28409,7 +28330,7 @@ class $$VisitCheckInsTableTableManager extends RootTableManager<
             latitude: latitude,
             longitude: longitude,
             accuracy: accuracy,
-            distanceFromCustomer: distanceFromCustomer,
+            distanceFromDepot: distanceFromDepot,
             isMocked: isMocked,
             overrideReason: overrideReason,
             rowid: rowid,
@@ -28426,7 +28347,7 @@ class $$VisitCheckInsTableTableManager extends RootTableManager<
             required double latitude,
             required double longitude,
             required double accuracy,
-            required double distanceFromCustomer,
+            required double distanceFromDepot,
             Value<bool> isMocked = const Value.absent(),
             Value<String?> overrideReason = const Value.absent(),
             Value<int> rowid = const Value.absent(),
@@ -28443,7 +28364,7 @@ class $$VisitCheckInsTableTableManager extends RootTableManager<
             latitude: latitude,
             longitude: longitude,
             accuracy: accuracy,
-            distanceFromCustomer: distanceFromCustomer,
+            distanceFromDepot: distanceFromDepot,
             isMocked: isMocked,
             overrideReason: overrideReason,
             rowid: rowid,
@@ -30365,7 +30286,7 @@ typedef $$VisitPhotosTableProcessedTableManager = ProcessedTableManager<
     PrefetchHooks Function()>;
 typedef $$QuotationsTableCreateCompanionBuilder = QuotationsCompanion Function({
   required String id,
-  Value<String?> customerId,
+  Value<String?> depotId,
   Value<String?> shopName,
   Value<String?> leadId,
   Value<String?> leadDisplayName,
@@ -30386,7 +30307,7 @@ typedef $$QuotationsTableCreateCompanionBuilder = QuotationsCompanion Function({
 });
 typedef $$QuotationsTableUpdateCompanionBuilder = QuotationsCompanion Function({
   Value<String> id,
-  Value<String?> customerId,
+  Value<String?> depotId,
   Value<String?> shopName,
   Value<String?> leadId,
   Value<String?> leadDisplayName,
@@ -30418,8 +30339,8 @@ class $$QuotationsTableFilterComposer
   ColumnFilters<String> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get customerId => $composableBuilder(
-      column: $table.customerId, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get depotId => $composableBuilder(
+      column: $table.depotId, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get shopName => $composableBuilder(
       column: $table.shopName, builder: (column) => ColumnFilters(column));
@@ -30485,8 +30406,8 @@ class $$QuotationsTableOrderingComposer
   ColumnOrderings<String> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get customerId => $composableBuilder(
-      column: $table.customerId, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get depotId => $composableBuilder(
+      column: $table.depotId, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get shopName => $composableBuilder(
       column: $table.shopName, builder: (column) => ColumnOrderings(column));
@@ -30552,8 +30473,8 @@ class $$QuotationsTableAnnotationComposer
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<String> get customerId => $composableBuilder(
-      column: $table.customerId, builder: (column) => column);
+  GeneratedColumn<String> get depotId =>
+      $composableBuilder(column: $table.depotId, builder: (column) => column);
 
   GeneratedColumn<String> get shopName =>
       $composableBuilder(column: $table.shopName, builder: (column) => column);
@@ -30628,7 +30549,7 @@ class $$QuotationsTableTableManager extends RootTableManager<
               $$QuotationsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
-            Value<String?> customerId = const Value.absent(),
+            Value<String?> depotId = const Value.absent(),
             Value<String?> shopName = const Value.absent(),
             Value<String?> leadId = const Value.absent(),
             Value<String?> leadDisplayName = const Value.absent(),
@@ -30649,7 +30570,7 @@ class $$QuotationsTableTableManager extends RootTableManager<
           }) =>
               QuotationsCompanion(
             id: id,
-            customerId: customerId,
+            depotId: depotId,
             shopName: shopName,
             leadId: leadId,
             leadDisplayName: leadDisplayName,
@@ -30670,7 +30591,7 @@ class $$QuotationsTableTableManager extends RootTableManager<
           ),
           createCompanionCallback: ({
             required String id,
-            Value<String?> customerId = const Value.absent(),
+            Value<String?> depotId = const Value.absent(),
             Value<String?> shopName = const Value.absent(),
             Value<String?> leadId = const Value.absent(),
             Value<String?> leadDisplayName = const Value.absent(),
@@ -30691,7 +30612,7 @@ class $$QuotationsTableTableManager extends RootTableManager<
           }) =>
               QuotationsCompanion.insert(
             id: id,
-            customerId: customerId,
+            depotId: depotId,
             shopName: shopName,
             leadId: leadId,
             leadDisplayName: leadDisplayName,
@@ -30733,7 +30654,7 @@ typedef $$SalesOrdersTableCreateCompanionBuilder = SalesOrdersCompanion
     Function({
   required String id,
   required String quotationId,
-  Value<String?> customerId,
+  Value<String?> depotId,
   Value<String?> shopName,
   Value<String?> leadId,
   Value<String?> leadDisplayName,
@@ -30752,7 +30673,7 @@ typedef $$SalesOrdersTableUpdateCompanionBuilder = SalesOrdersCompanion
     Function({
   Value<String> id,
   Value<String> quotationId,
-  Value<String?> customerId,
+  Value<String?> depotId,
   Value<String?> shopName,
   Value<String?> leadId,
   Value<String?> leadDisplayName,
@@ -30783,8 +30704,8 @@ class $$SalesOrdersTableFilterComposer
   ColumnFilters<String> get quotationId => $composableBuilder(
       column: $table.quotationId, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get customerId => $composableBuilder(
-      column: $table.customerId, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get depotId => $composableBuilder(
+      column: $table.depotId, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get shopName => $composableBuilder(
       column: $table.shopName, builder: (column) => ColumnFilters(column));
@@ -30840,8 +30761,8 @@ class $$SalesOrdersTableOrderingComposer
   ColumnOrderings<String> get quotationId => $composableBuilder(
       column: $table.quotationId, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get customerId => $composableBuilder(
-      column: $table.customerId, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get depotId => $composableBuilder(
+      column: $table.depotId, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get shopName => $composableBuilder(
       column: $table.shopName, builder: (column) => ColumnOrderings(column));
@@ -30897,8 +30818,8 @@ class $$SalesOrdersTableAnnotationComposer
   GeneratedColumn<String> get quotationId => $composableBuilder(
       column: $table.quotationId, builder: (column) => column);
 
-  GeneratedColumn<String> get customerId => $composableBuilder(
-      column: $table.customerId, builder: (column) => column);
+  GeneratedColumn<String> get depotId =>
+      $composableBuilder(column: $table.depotId, builder: (column) => column);
 
   GeneratedColumn<String> get shopName =>
       $composableBuilder(column: $table.shopName, builder: (column) => column);
@@ -30962,7 +30883,7 @@ class $$SalesOrdersTableTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
             Value<String> quotationId = const Value.absent(),
-            Value<String?> customerId = const Value.absent(),
+            Value<String?> depotId = const Value.absent(),
             Value<String?> shopName = const Value.absent(),
             Value<String?> leadId = const Value.absent(),
             Value<String?> leadDisplayName = const Value.absent(),
@@ -30980,7 +30901,7 @@ class $$SalesOrdersTableTableManager extends RootTableManager<
               SalesOrdersCompanion(
             id: id,
             quotationId: quotationId,
-            customerId: customerId,
+            depotId: depotId,
             shopName: shopName,
             leadId: leadId,
             leadDisplayName: leadDisplayName,
@@ -30998,7 +30919,7 @@ class $$SalesOrdersTableTableManager extends RootTableManager<
           createCompanionCallback: ({
             required String id,
             required String quotationId,
-            Value<String?> customerId = const Value.absent(),
+            Value<String?> depotId = const Value.absent(),
             Value<String?> shopName = const Value.absent(),
             Value<String?> leadId = const Value.absent(),
             Value<String?> leadDisplayName = const Value.absent(),
@@ -31016,7 +30937,7 @@ class $$SalesOrdersTableTableManager extends RootTableManager<
               SalesOrdersCompanion.insert(
             id: id,
             quotationId: quotationId,
-            customerId: customerId,
+            depotId: depotId,
             shopName: shopName,
             leadId: leadId,
             leadDisplayName: leadDisplayName,
@@ -31354,7 +31275,7 @@ typedef $$WorkflowStateTableCreateCompanionBuilder = WorkflowStateCompanion
   Value<String?> currentStopId,
   Value<int> dayStarted,
   required String updatedAt,
-  Value<String?> customerId,
+  Value<String?> depotId,
   Value<String?> shopName,
   Value<String?> checkInAt,
   Value<String?> currentWorkflow,
@@ -31370,7 +31291,7 @@ typedef $$WorkflowStateTableUpdateCompanionBuilder = WorkflowStateCompanion
   Value<String?> currentStopId,
   Value<int> dayStarted,
   Value<String> updatedAt,
-  Value<String?> customerId,
+  Value<String?> depotId,
   Value<String?> shopName,
   Value<String?> checkInAt,
   Value<String?> currentWorkflow,
@@ -31404,8 +31325,8 @@ class $$WorkflowStateTableFilterComposer
   ColumnFilters<String> get updatedAt => $composableBuilder(
       column: $table.updatedAt, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get customerId => $composableBuilder(
-      column: $table.customerId, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get depotId => $composableBuilder(
+      column: $table.depotId, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get shopName => $composableBuilder(
       column: $table.shopName, builder: (column) => ColumnFilters(column));
@@ -31454,8 +31375,8 @@ class $$WorkflowStateTableOrderingComposer
   ColumnOrderings<String> get updatedAt => $composableBuilder(
       column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get customerId => $composableBuilder(
-      column: $table.customerId, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get depotId => $composableBuilder(
+      column: $table.depotId, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get shopName => $composableBuilder(
       column: $table.shopName, builder: (column) => ColumnOrderings(column));
@@ -31504,8 +31425,8 @@ class $$WorkflowStateTableAnnotationComposer
   GeneratedColumn<String> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
-  GeneratedColumn<String> get customerId => $composableBuilder(
-      column: $table.customerId, builder: (column) => column);
+  GeneratedColumn<String> get depotId =>
+      $composableBuilder(column: $table.depotId, builder: (column) => column);
 
   GeneratedColumn<String> get shopName =>
       $composableBuilder(column: $table.shopName, builder: (column) => column);
@@ -31557,7 +31478,7 @@ class $$WorkflowStateTableTableManager extends RootTableManager<
             Value<String?> currentStopId = const Value.absent(),
             Value<int> dayStarted = const Value.absent(),
             Value<String> updatedAt = const Value.absent(),
-            Value<String?> customerId = const Value.absent(),
+            Value<String?> depotId = const Value.absent(),
             Value<String?> shopName = const Value.absent(),
             Value<String?> checkInAt = const Value.absent(),
             Value<String?> currentWorkflow = const Value.absent(),
@@ -31572,7 +31493,7 @@ class $$WorkflowStateTableTableManager extends RootTableManager<
             currentStopId: currentStopId,
             dayStarted: dayStarted,
             updatedAt: updatedAt,
-            customerId: customerId,
+            depotId: depotId,
             shopName: shopName,
             checkInAt: checkInAt,
             currentWorkflow: currentWorkflow,
@@ -31587,7 +31508,7 @@ class $$WorkflowStateTableTableManager extends RootTableManager<
             Value<String?> currentStopId = const Value.absent(),
             Value<int> dayStarted = const Value.absent(),
             required String updatedAt,
-            Value<String?> customerId = const Value.absent(),
+            Value<String?> depotId = const Value.absent(),
             Value<String?> shopName = const Value.absent(),
             Value<String?> checkInAt = const Value.absent(),
             Value<String?> currentWorkflow = const Value.absent(),
@@ -31602,7 +31523,7 @@ class $$WorkflowStateTableTableManager extends RootTableManager<
             currentStopId: currentStopId,
             dayStarted: dayStarted,
             updatedAt: updatedAt,
-            customerId: customerId,
+            depotId: depotId,
             shopName: shopName,
             checkInAt: checkInAt,
             currentWorkflow: currentWorkflow,
@@ -33158,20 +33079,20 @@ class $AppDatabaseManager {
   $AppDatabaseManager(this._db);
   $$AppMetadataTableTableManager get appMetadata =>
       $$AppMetadataTableTableManager(_db, _db.appMetadata);
-  $$CustomersTableTableManager get customers =>
-      $$CustomersTableTableManager(_db, _db.customers);
-  $$CustomerContactsTableTableManager get customerContacts =>
-      $$CustomerContactsTableTableManager(_db, _db.customerContacts);
-  $$CustomerNotesTableTableManager get customerNotes =>
-      $$CustomerNotesTableTableManager(_db, _db.customerNotes);
-  $$CustomerActivitiesTableTableManager get customerActivities =>
-      $$CustomerActivitiesTableTableManager(_db, _db.customerActivities);
-  $$CustomerFavoritesTableTableManager get customerFavorites =>
-      $$CustomerFavoritesTableTableManager(_db, _db.customerFavorites);
-  $$CustomerRecentTableTableManager get customerRecent =>
-      $$CustomerRecentTableTableManager(_db, _db.customerRecent);
-  $$CustomerSyncMetaTableTableManager get customerSyncMeta =>
-      $$CustomerSyncMetaTableTableManager(_db, _db.customerSyncMeta);
+  $$DepotsTableTableManager get depots =>
+      $$DepotsTableTableManager(_db, _db.depots);
+  $$DepotContactsTableTableManager get depotContacts =>
+      $$DepotContactsTableTableManager(_db, _db.depotContacts);
+  $$DepotNotesTableTableManager get depotNotes =>
+      $$DepotNotesTableTableManager(_db, _db.depotNotes);
+  $$DepotActivitiesTableTableManager get depotActivities =>
+      $$DepotActivitiesTableTableManager(_db, _db.depotActivities);
+  $$DepotFavoritesTableTableManager get depotFavorites =>
+      $$DepotFavoritesTableTableManager(_db, _db.depotFavorites);
+  $$DepotRecentTableTableManager get depotRecent =>
+      $$DepotRecentTableTableManager(_db, _db.depotRecent);
+  $$DepotSyncMetaTableTableManager get depotSyncMeta =>
+      $$DepotSyncMetaTableTableManager(_db, _db.depotSyncMeta);
   $$CategoriesTableTableManager get categories =>
       $$CategoriesTableTableManager(_db, _db.categories);
   $$ProductsTableTableManager get products =>
@@ -33192,8 +33113,8 @@ class $AppDatabaseManager {
       $$RoutesTableTableManager(_db, _db.routes);
   $$RouteStopsTableTableManager get routeStops =>
       $$RouteStopsTableTableManager(_db, _db.routeStops);
-  $$RouteCustomersTableTableManager get routeCustomers =>
-      $$RouteCustomersTableTableManager(_db, _db.routeCustomers);
+  $$RouteDepotsTableTableManager get routeDepots =>
+      $$RouteDepotsTableTableManager(_db, _db.routeDepots);
   $$LocationSamplesTableTableManager get locationSamples =>
       $$LocationSamplesTableTableManager(_db, _db.locationSamples);
   $$FraudFlagsTableTableManager get fraudFlags =>

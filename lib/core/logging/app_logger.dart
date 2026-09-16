@@ -10,7 +10,7 @@ enum LogLevel { debug, info, warning, error }
 /// Implements `docs/skills/security.md` §10 (MASVS-PRIVACY / MASVS-CODE), which is a
 /// **hard constraint on every logging call in the codebase**, not a guideline:
 ///
-/// - **Never logged**: passwords, JWT/tokens, API keys, customer information,
+/// - **Never logged**: passwords, JWT/tokens, API keys, depot information,
 ///   phone numbers, emails, revenue data.
 /// - **Allowed**: API endpoint, response code, error code, and — in development
 ///   builds only — exception stack traces (stripped from release per §11).
@@ -115,7 +115,7 @@ class ConsoleAppLogger implements AppLogger {
     final message = buffer.toString();
 
     // The exception *type* is diagnostic; its message may embed PII (a failed
-    // request body, a customer name), so it is redacted like any other value.
+    // request body, a depot name), so it is redacted like any other value.
     final safeError =
         error == null ? null : _redactor.redactValue('error', error);
 
@@ -160,13 +160,13 @@ class ConsoleAppLogger implements AppLogger {
 /// Redacts values that `docs/skills/security.md` §10 forbids logging.
 ///
 /// Two independent passes, because either alone is insufficient:
-///  1. **Key-name matching** — catches `token`, `email`, `customerName`, …
+///  1. **Key-name matching** — catches `token`, `email`, `depotName`, …
 ///     regardless of the value's shape.
 ///  2. **Value-shape matching** — catches a JWT or an email address that
 ///     arrived under an innocuous key (e.g. `{'v': 'a.b.c'}`).
 ///
 /// Bias is deliberately toward over-redaction: losing a debuggable value is
-/// recoverable, leaking customer PII or a token into a log sink is not.
+/// recoverable, leaking depot PII or a token into a log sink is not.
 class LogRedactor {
   const LogRedactor();
 
@@ -180,7 +180,7 @@ class LogRedactor {
   static final RegExp _sensitiveKey = RegExp(
     r'(pass|pwd|secret|token|jwt|bearer|auth|apikey|api_key|credential'
     r'|email|mail|phone|mobile|msisdn|contact'
-    r'|customer|owner|shop|address|province|district'
+    r'|depot|owner|shop|address|province|district'
     r'|revenue|price|amount|total|credit|balance|salary|discount'
     r'|lat|lng|longitude|latitude|geo|coord'
     // Personnel identifiers. An employee ID is the sign-in identifier printed

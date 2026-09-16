@@ -73,7 +73,7 @@ class Products extends Table {
 
   TextColumn get description => text()();
 
-  /// Top colour / finish — the last thing a roofing customer chooses, and
+  /// Top colour / finish — the last thing a roofing depot chooses, and
   /// distinct from `grade`.
   TextColumn get color => text().withDefault(const Constant(''))();
 

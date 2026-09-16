@@ -29,8 +29,8 @@ match on for some fields and silently returns nothing.
 | Parameter | Sent as | Source |
 |---|---|---|
 | `validOn` | `yyyyMMdd`, today | `IDateTimeProvider` — the server's clock, never a handset's |
-| `salesOrg` | Customer's `CustomerSalesArea.SalesOrgCode` | Database |
-| `priceGroup` | Customer's `CustomerSalesArea.PriceGroupCode` | Database |
+| `salesOrg` | Depot's `DepotSalesArea.SalesOrgCode` | Database |
+| `priceGroup` | Depot's `DepotSalesArea.PriceGroupCode` | Database |
 | `application` | `V` (sales) | `SAP:PricingApplication` |
 | `conditionType` | `ZP01` | `SAP:PricingConditionType` |
 | `includeA004` | `X` | `SAP:PricingIncludeA004` |
@@ -74,10 +74,10 @@ upstream. A discrepancy is logged as
 
 **One SAP call per requested material.** `GetPriceByPaging` takes a single material,
 not a list, so a request naming three materials makes three calls. Omitting `materials`
-makes one unfiltered call for everything priced for that customer.
+makes one unfiltered call for everything priced for that depot.
 
 **A004** is the condition table holding sales-org / channel / material prices — a plain
-material price. Without it a customer with no customer-specific conditions prices as
+material price. Without it a depot with no depot-specific conditions prices as
 empty.
 
 ## The response — verified
@@ -124,7 +124,7 @@ error:
 | Rate is `Amount` | Rate is **`UnitPrice`** | Every price resolved `null`; every row counted as unmapped |
 | Dates are `yyyyMMdd` | Pricing sends **`dd-MM-yyyy`** | `01-09-2026` read as **9 January** — a price that looked eight months stale |
 | `99991231` is the open-ended sentinel | It is **`31-12-9999`** | Month 31 does not parse, so an open-ended condition read as `null` — an unexpiring price looked expired |
-| Selling price is `PR00` | It is **`ZP01`** | Zero rows, indistinguishable from a customer with no prices |
+| Selling price is `PR00` | It is **`ZP01`** | Zero rows, indistinguishable from a depot with no prices |
 
 The date formats are pinned explicitly and day-first, ahead of the invariant parser,
 in `SapPriceDto.ParseSapDate`. A wrong date is worse than an unparsed one, so the
@@ -190,11 +190,11 @@ URL, same shared token, one re-authentication on a 401, same 404 classification.
 
 | Situation | Result |
 |---|---|
-| No condition records for the customer | Empty list. A normal state of the ERP, not a fault |
+| No condition records for the depot | Empty list. A normal state of the ERP, not a fault |
 | 404 naming the connection | `Sap.ConnectionNotRegistered` — a configuration fault |
 | Host unreachable | Fails over to the secondary, then `Sap.ConnectionError` |
 | SAP answers 5xx | `Sap.ApiError` → **500**, carrying the status code only |
-| Customer has no sales area | `Pricing.CustomerNotPriceable` → 422, **not** a SAP error |
+| Depot has no sales area | `Pricing.DepotNotPriceable` → 422, **not** a SAP error |
 | Route missing on the middleware | `Sap.ApiError` → 500. Was the state until 2026-09-10; the controller is now deployed |
 
 A request that reached SAP and was refused is not retried against the secondary — both
@@ -213,14 +213,14 @@ live tag list ended at `08. Diagnostic` with no `Pricing` group at all. Re-check
 **A bodyless 404 with no content type is an unmatched ASP.NET Core route**, not the
 middleware's "no rows" answer — that one carries `{"message": "..."}`. The client still
 tells the two apart and reports the route case as an error rather than as an empty
-price list: "this customer has no prices" and "the pricing API does not exist" must
+price list: "this depot has no prices" and "the pricing API does not exist" must
 never look the same on a counter screen.
 
 After the deployment, two faults of our own remained, and both are worth remembering
 because neither looked like a fault:
 
 1. `includeA004=true` → HTTP 500 from SAP on every call. See the request table.
-2. `conditionType=PR00` → 200 with zero rows, which reads as "this customer has
+2. `conditionType=PR00` → 200 with zero rows, which reads as "this depot has
    nothing to sell".
 
 ### The status code

@@ -29,6 +29,20 @@ final class NetworkFailure extends Failure {
   const NetworkFailure({super.message = 'No internet connection.'});
 }
 
+/// The outlet's details are not available to this caller.
+///
+/// Covers "no such outlet" and "outside your entitlement" **together**, because
+/// the server answers both with a bare 404 on purpose: distinguishing them
+/// would confirm that a given outlet exists to someone not allowed to know it.
+///
+/// Its own type rather than a `ServerFailure(statusCode: 404)` so the screen
+/// cannot accidentally phrase it as "deleted" — the outlet may well exist.
+final class DepotStopInformationUnavailableFailure extends Failure {
+  const DepotStopInformationUnavailableFailure({
+    super.message = 'These outlet details are not available.',
+  }) : super(statusCode: 404);
+}
+
 /// The device has a working network, but the ISI gateway did not answer.
 ///
 /// Deliberately distinct from [NetworkFailure]. Telling a user standing on

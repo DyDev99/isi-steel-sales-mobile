@@ -11,7 +11,7 @@ import 'package:isi_steel_sales_mobile/core/logging/app_logger.dart';
 /// stays correct as features are added.
 ///
 /// Deliberately *not* for anything SAP-owned and rep-agnostic: the product
-/// catalog and customer directory are master data, expensive to re-sync, and
+/// catalog and depot directory are master data, expensive to re-sync, and
 /// identical for the next user. Clearing those on logout would turn a sign-out
 /// into a multi-minute re-download.
 abstract interface class SessionScopedStore {

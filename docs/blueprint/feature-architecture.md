@@ -17,7 +17,7 @@ unless the "Layers" column says otherwise.
 |---|--:|--:|--:|--:|--:|--:|--:|--:|---|
 | `order` | 14 | 48 | 10 | 43 | 32 | 9 | 7 | 11 | full |
 | `my_visits` | 7 | 25 | 10 | 30 | 24 | 6 | 7 | 11 | full |
-| `customers` | 3 | 11 | 5 | 17 | 12 | 4 | 6 | 4 | full |
+| `depots` | 3 | 11 | 5 | 17 | 12 | 4 | 6 | 4 | full |
 | `notification` | 0 | 5 | 4 | 3 | 11 | 3 | 3 | 0 | full (DAO-backed) |
 | `authentication` | 6 | 6 | 1 | 3 | 7 | 1 | 1 | 1 | full |
 | `geo_location` | 0 | 4 | 1 | 4 | 2 | 1 | 0 | 1 | full (local-only) |
@@ -45,7 +45,7 @@ compose other features rather than owning data.
 | Feature | Owns | Docs |
 |---|---|---|
 | `authentication` | Login, OTP, forgot/reset password, session restore, guest state | [../feature/authentication/](../feature/authentication/) |
-| `customers` | Customer list, detail, filtering, SAP Business Partner creation, master-data lookups | [../feature/customer/](../feature/customer/) |
+| `depots` | Depot list, detail, filtering, SAP Business Partner creation, master-data lookups | [../feature/depot/](../feature/depot/) |
 | `my_visits` | Daily routes, stops, geofenced check-in/out, stop dashboard, inventory visibility, telemetry | [../feature/my-visits/](../feature/my-visits/) |
 | `order` | Catalog and guided material selection, cart, quotations, sales orders, PDF generation, voice search | [../feature/order/](../feature/order/) |
 | `notification` | Inbox, badge counts, per-category preferences, push device registry, deep links | [../feature/notification/](../feature/notification/) |
@@ -96,7 +96,7 @@ A feature must reuse these rather than reimplement them.
 | `features/my_visits/` | 19 |
 | `features/order/` | 15 |
 | `features/authentication/` | 9 |
-| `features/customers/` | 7 |
+| `features/depots/` | 7 |
 | `core/localization/`, `core/logging/`, `core/network/` | 12 |
 | `features/geo_location/` | 5 |
 | everything else | 20 |

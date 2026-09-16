@@ -304,7 +304,7 @@ changes.
 - Tokens live in `flutter_secure_storage`, never `SharedPreferences`.
 - Nothing is hard-coded; the host comes from `AppConfig`.
 - `LogRedactor` masks tokens, passwords, employee IDs, e-mail, phone and
-  customer data by key name *and* value shape. Covered by
+  depot data by key name *and* value shape. Covered by
   `test/core/logging/api_log_redaction_test.dart`.
 - Client-side permission checks are a courtesy, never a control — the server
   re-checks every one. Use them to hide a button, not to protect anything.
@@ -324,7 +324,7 @@ changes.
 
 ## Known gaps
 
-1. **Not every feature has adopted `ProtectedFeature`.** `CustomerSyncCubit`
+1. **Not every feature has adopted `ProtectedFeature`.** `DepotSyncCubit`
    has; others still load unguarded. They fail safely (the server rejects
    them), but each is a wasted round trip and a spurious error banner. Adopting
    it is a three-line change per cubit.

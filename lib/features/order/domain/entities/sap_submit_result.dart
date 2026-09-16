@@ -37,7 +37,7 @@ final class SapRejected extends SapSubmitResult {
   List<Object?> get props => [errorCode, message];
 }
 
-/// SAP state diverged from the local draft (customer/price/stock changed).
+/// SAP state diverged from the local draft (depot/price/stock changed).
 /// Routed to the conflict queue for a Keep-Local / Use-SAP / Merge decision.
 final class SapConflict extends SapSubmitResult {
   const SapConflict({required this.message, this.field});

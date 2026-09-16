@@ -13,7 +13,7 @@ enum ImageCaptureSource { camera, gallery }
 /// ## Why this returns [XFile]
 ///
 /// Because everything downstream already speaks it — the proof-photo stamper
-/// reads bytes off it, the drawing upload copies its path, the customer
+/// reads bytes off it, the drawing upload copies its path, the depot
 /// evidence upload posts it as a multipart file. Returning anything else would
 /// force every one of those flows to branch on where the image came from,
 /// which is exactly what this exists to prevent.
@@ -24,7 +24,7 @@ enum ImageCaptureSource { camera, gallery }
 /// ## What this is not
 ///
 /// Not a replacement for [ProofPhotoService], [ImageSearchService] or the
-/// customer evidence upload. Those own the *business* logic — stamping,
+/// depot evidence upload. Those own the *business* logic — stamping,
 /// matching, compression, validation, upload — and keep it whether the pixels
 /// came from a lens or an asset. This replaces only the acquisition step.
 abstract interface class ImageCaptureService {

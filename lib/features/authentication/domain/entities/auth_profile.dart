@@ -43,7 +43,7 @@ class AuthProfile extends Equatable {
   final String fullName;
   final Set<UserRole> roles;
 
-  /// Fine-grained grants, e.g. `customers.create`, `customers.readall`.
+  /// Fine-grained grants, e.g. `depots.create`, `depots.readall`.
   ///
   /// **Client-side permission checks are a courtesy, never a security
   /// control.** The server re-checks every one. Use these to hide a button a
@@ -99,19 +99,19 @@ class AuthProfile extends Equatable {
 
   bool canAny(Iterable<String> any) => any.any(permissions.contains);
 
-  /// Convenience for the customer capabilities, which span two namespaces.
-  bool get canReadCustomers => canAny(Permissions.canReadCustomers);
-  bool get canCreateCustomers => canAny(Permissions.canCreateCustomers);
-  bool get canUpdateCustomers => canAny(Permissions.canUpdateCustomers);
+  /// Convenience for the depot capabilities, which span two namespaces.
+  bool get canReadDepots => canAny(Permissions.canReadDepots);
+  bool get canCreateDepots => canAny(Permissions.canCreateDepots);
+  bool get canUpdateDepots => canAny(Permissions.canUpdateDepots);
 
   /// Reads a feature flag, treating an absent flag as off.
   bool flag(String name) => featureFlags[name] ?? false;
 
-  /// Row-level scope: a plain rep sees only their own customers, a holder of
-  /// `customers.readall` sees the whole territory. Enforced server-side in the
-  /// query handler; this only decides whether to offer the "all customers"
+  /// Row-level scope: a plain rep sees only their own depots, a holder of
+  /// `depots.readall` sees the whole territory. Enforced server-side in the
+  /// query handler; this only decides whether to offer the "all depots"
   /// filter in the UI.
-  bool get canSeeAllCustomers => can(Permissions.customersReadAll);
+  bool get canSeeAllDepots => can(Permissions.depotsReadAll);
 
   /// True once [passwordExpiresAt] is within [window].
   bool passwordExpiringWithin(Duration window) {
@@ -147,46 +147,46 @@ class AuthProfile extends Equatable {
 /// The permission strings the app actually branches on. Kept together so a
 /// typo is a compile error rather than a silently hidden button.
 abstract final class Permissions {
-  static const customersRead = 'customers.read';
-  static const customersCreate = 'customers.create';
-  static const customersUpdate = 'customers.update';
+  static const depotsRead = 'depots.read';
+  static const depotsCreate = 'depots.create';
+  static const depotsUpdate = 'depots.update';
 
   // ── The `outlets.*` namespace ──────────────────────────────────────
   //
   // The running backend grants sales representatives `outlets.read`,
   // `outlets.create` and `outlets.update` — the same capability under a
   // different name. There is no `/mobile/outlets` route (it 404s), so these
-  // are the customer permissions, not a separate feature.
+  // are the depot permissions, not a separate feature.
   //
-  // Both spellings are therefore accepted wherever a customer capability is
-  // required. Checking only the `customers.*` spelling hid the directory from
+  // Both spellings are therefore accepted wherever a depot capability is
+  // required. Checking only the `depots.*` spelling hid the directory from
   // every rep whose role uses the other one, which is the whole population.
   static const outletsRead = 'outlets.read';
   static const outletsCreate = 'outlets.create';
   static const outletsUpdate = 'outlets.update';
 
-  /// Any of these means "may read the customer directory".
-  static const canReadCustomers = {customersRead, outletsRead};
+  /// Any of these means "may read the depot directory".
+  static const canReadDepots = {depotsRead, outletsRead};
 
-  /// Any of these means "may register a customer". The created record lands in
-  /// `Draft` regardless — activating it needs [customersApprove], which reps
+  /// Any of these means "may register a depot". The created record lands in
+  /// `Draft` regardless — activating it needs [depotsApprove], which reps
   /// deliberately do not hold.
-  static const canCreateCustomers = {customersCreate, outletsCreate};
+  static const canCreateDepots = {depotsCreate, outletsCreate};
 
-  /// Any of these means "may edit a customer".
-  static const canUpdateCustomers = {customersUpdate, outletsUpdate};
+  /// Any of these means "may edit a depot".
+  static const canUpdateDepots = {depotsUpdate, outletsUpdate};
 
   /// **Sales representatives do not hold this.** A rep pressing Delete gets a
   /// 403. Hide the action rather than letting them discover that.
-  static const customersDelete = 'customers.delete';
+  static const depotsDelete = 'depots.delete';
 
   /// Widens row-level scope from "assigned to me" to the whole territory.
-  static const customersReadAll = 'customers.readall';
+  static const depotsReadAll = 'depots.readall';
 
-  /// Gates `createdBy` / `updatedBy` on the customer detail payload — everyone
+  /// Gates `createdBy` / `updatedBy` on the depot detail payload — everyone
   /// else receives null, so do not render an empty "Last edited by" row.
-  static const customersAudit = 'customers.audit';
+  static const depotsAudit = 'depots.audit';
 
-  /// Moves a customer out of `Draft` so it can trade.
-  static const customersApprove = 'customers.approve';
+  /// Moves a depot out of `Draft` so it can trade.
+  static const depotsApprove = 'depots.approve';
 }

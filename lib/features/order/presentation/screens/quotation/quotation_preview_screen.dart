@@ -31,8 +31,8 @@ class QuotationScreen extends StatelessWidget {
     this.quotationNumber,
     this.createdDate,
     this.validUntil,
-    this.customerPhone,
-    this.customerAddress,
+    this.depotPhone,
+    this.depotAddress,
     this.notes,
     this.onPDFDownload,
   });
@@ -52,8 +52,8 @@ class QuotationScreen extends StatelessWidget {
   final String? quotationNumber;
   final DateTime? createdDate;
   final DateTime? validUntil;
-  final String? customerPhone;
-  final String? customerAddress;
+  final String? depotPhone;
+  final String? depotAddress;
   final String? notes;
 
   /// Legacy hook kept for backward compatibility; the button now drives the
@@ -78,8 +78,8 @@ class QuotationScreen extends StatelessWidget {
         quotationNumber: quotationNumber,
         createdDate: createdDate,
         validUntil: validUntil,
-        customerPhone: customerPhone,
-        customerAddress: customerAddress,
+        depotPhone: depotPhone,
+        depotAddress: depotAddress,
         notes: notes,
         onPDFDownload: onPDFDownload,
       ),
@@ -101,8 +101,8 @@ class _QuotationView extends StatelessWidget {
     required this.quotationNumber,
     required this.createdDate,
     required this.validUntil,
-    required this.customerPhone,
-    required this.customerAddress,
+    required this.depotPhone,
+    required this.depotAddress,
     required this.notes,
     required this.onPDFDownload,
   });
@@ -119,8 +119,8 @@ class _QuotationView extends StatelessWidget {
   final String? quotationNumber;
   final DateTime? createdDate;
   final DateTime? validUntil;
-  final String? customerPhone;
-  final String? customerAddress;
+  final String? depotPhone;
+  final String? depotAddress;
   final String? notes;
   final VoidCallback? onPDFDownload;
 
@@ -160,9 +160,9 @@ class _QuotationView extends StatelessWidget {
           quotationNumber: _resolvedQuotationNumber(),
           // Khmer-safe: PDF values render through PdfShapedText, which shapes
           // Khmer via Flutter's text engine.
-          customerName: shopName ?? 'orders.quotation_extra.walk_in'.tr,
-          customerPhone: customerPhone,
-          customerAddress: customerAddress,
+          depotName: shopName ?? 'orders.quotation_extra.walk_in'.tr,
+          depotPhone: depotPhone,
+          depotAddress: depotAddress,
           createdDate: createdDate ?? DateTime.now(),
           validUntil: validUntil ?? DateTime.now().add(const Duration(days: 7)),
           items: activeItems,

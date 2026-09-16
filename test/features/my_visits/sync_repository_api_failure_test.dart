@@ -6,7 +6,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/data/local/route_local
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/visit_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/models/check_in_record_model.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/models/check_out_record_model.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/data/models/customer_stop_info_model.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/data/models/depot_stop_info_model.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/models/route_plan_model.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/models/visit_capture_models.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/remote/route_remote_data_source.dart';
@@ -93,7 +93,7 @@ class _FakeRouteLocal implements RouteLocalDataSource {
       watermark = at;
 
   @override
-  Future<void> upsertCustomers(List<CustomerStopInfoModel> customers) async =>
+  Future<void> upsertDepots(List<DepotStopInfoModel> depots) async =>
       upserted = true;
 
   @override
@@ -133,7 +133,7 @@ class _FakeVisitLocal implements VisitLocalDataSource {
           latitude: 11.55,
           longitude: 104.91,
           accuracyMeters: 8,
-          distanceFromCustomerMeters: 20,
+          distanceFromDepotMeters: 20,
           isMocked: false,
         )
       ];

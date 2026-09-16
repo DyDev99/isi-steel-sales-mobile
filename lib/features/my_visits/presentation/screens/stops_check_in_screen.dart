@@ -99,7 +99,7 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen>
   /// Recomputes the verdict for the selected stop and hands it to the bloc.
   ///
   /// **Now the same verdict the dialog shows.** This used to run
-  /// `GeofenceService.evaluate` against the *customer's* pin and territory
+  /// `GeofenceService.evaluate` against the *depot's* pin and territory
   /// radius (urban 50 m), while the dialog ran `CheckInLocationVerifier`
   /// against the outlet source (demo pin, 100 m). Two rules, two pins: the
   /// dialog could say "within" and the bloc then refuse "outside the
@@ -126,15 +126,15 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen>
     bloc.add(GeofenceStatusChanged(
       insideGeofence: verdict.isWithinRadius,
       // NaN when the outlet has no pin. Sent as 0 with
-      // `customerLocationKnown: false` beside it rather than as NaN, which
-      // would poison `distanceFromCustomer` on the pushed row — the field is a
+      // `depotLocationKnown: false` beside it rather than as NaN, which
+      // would poison `distanceFromDepot` on the pushed row — the field is a
       // number the server reads, and NaN is not one.
       distanceMeters: verdict.isMeasurable ? verdict.distanceMeters : 0,
       accuracyMeters: reading.accuracyMeters,
       isMocked: kUseStaticCheckInPosition ? false : (sample?.isMocked ?? false),
       latitude: latitude,
       longitude: longitude,
-      customerLocationKnown: verdict.hasOutletLocation,
+      depotLocationKnown: verdict.hasOutletLocation,
     ));
   }
 
@@ -409,8 +409,8 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen>
 
     try {
       final result = await sl<ProofPhotoService>().captureStamped(
-        latitude: pos?.latitude ?? stop.customer.latitude,
-        longitude: pos?.longitude ?? stop.customer.longitude,
+        latitude: pos?.latitude ?? stop.depot.latitude,
+        longitude: pos?.longitude ?? stop.depot.longitude,
       );
 
       if (!mounted) return;
@@ -475,7 +475,7 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen>
         kUseStaticCheckInPosition ? 0.0 : (sample?.accuracyMeters ?? 0.0);
 
     final verdict = CheckInLocationVerifier.verify(
-      outlet: _outletLocations.locationFor(stop.customer),
+      outlet: _outletLocations.locationFor(stop.depot),
       deviceLatitude: deviceLatitude,
       deviceLongitude: deviceLongitude,
       fallbackRadiusMeters: _outletLocations.radiusMeters,
@@ -554,7 +554,7 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen>
     // You" with only Cancel.
     final choice = await CheckInConfirmationDialog.show(
       context,
-      outletName: context.localized(stop.customer.displayName),
+      outletName: context.localized(stop.depot.displayName),
       locationCubit: locationCubit,
       read: (state) => _readLocation(stop, state),
     );
@@ -647,10 +647,10 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen>
     navigator
         .popUntil((r) => r.settings.name == StopInformationScreen.routeName);
 
-    openInventoryVisibilityForCustomer(
+    openInventoryVisibilityForDepot(
       navigator.context,
-      customerId: stop.customer.id,
-      customerName: context.localized(stop.customer.displayName),
+      depotId: stop.depot.id,
+      depotName: context.localized(stop.depot.displayName),
       stopId: stop.id,
     );
   }
@@ -739,7 +739,7 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen>
                   children: [
                     const OfflineBanner(margin: EdgeInsets.zero),
 
-                    // Segment 1: Customer Header Card
+                    // Segment 1: Depot Header Card
                     _Staggered(
                       controller: _entranceController,
                       begin: 0.0,
@@ -748,7 +748,7 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen>
                           LocationTrackingState>(
                         bloc: locationCubit,
                         builder: (context, locationState) =>
-                            _UnifiedCustomerHeader(
+                            _UnifiedDepotHeader(
                           stop: stop,
                           reading: _readLocation(stop, locationState),
                         ),
@@ -773,11 +773,9 @@ class _RouteCheckInScreenState extends State<RouteCheckInScreen>
                                 bloc: locationCubit,
                                 buildWhen: (previous, current) =>
                                     previous.current != current.current,
-                                builder: (context, locationState) =>
-                                    TransitMap(
+                                builder: (context, locationState) => TransitMap(
                                   target: stop,
-                                  currentPosition:
-                                      _mapPosition(locationState),
+                                  currentPosition: _mapPosition(locationState),
                                 ),
                               ),
                             ),
@@ -986,8 +984,8 @@ class _Staggered extends StatelessWidget {
   }
 }
 
-class _UnifiedCustomerHeader extends StatelessWidget {
-  const _UnifiedCustomerHeader({
+class _UnifiedDepotHeader extends StatelessWidget {
+  const _UnifiedDepotHeader({
     required this.stop,
     required this.reading,
   });
@@ -1010,7 +1008,7 @@ class _UnifiedCustomerHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  context.localized(stop.customer.displayName),
+                  context.localized(stop.depot.displayName),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -1022,7 +1020,7 @@ class _UnifiedCustomerHeader extends StatelessWidget {
                 ),
                 SizedBox(height: context.rh(3)),
                 Text(
-                  stop.customer.address,
+                  stop.depot.address,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -1110,10 +1108,14 @@ class _DistanceChip extends StatelessWidget {
         CheckInGpsPhase.permissionDenied ||
         CheckInGpsPhase.permissionDeniedForever =>
           (Icons.lock_outline_rounded, 'No permission'), // TODO(i18n)
-        CheckInGpsPhase.unavailable =>
-          (Icons.gps_off_rounded, 'No GPS'), // TODO(i18n)
-        CheckInGpsPhase.noOutlet =>
-          (Icons.add_location_alt_rounded, 'No pin'), // TODO(i18n)
+        CheckInGpsPhase.unavailable => (
+            Icons.gps_off_rounded,
+            'No GPS'
+          ), // TODO(i18n)
+        CheckInGpsPhase.noOutlet => (
+            Icons.add_location_alt_rounded,
+            'No pin'
+          ), // TODO(i18n)
         _ => (Icons.gps_not_fixed_rounded, 'Locating…'), // TODO(i18n)
       };
       content = Row(
@@ -1198,8 +1200,13 @@ class _GeoStatusBanner extends StatelessWidget {
         reading.verdict.isMeasurable ? reading.distanceMeters.round() : 0;
 
     // TODO(i18n): the new phases use literals; the two that existed keep keys.
-    final (Color color, IconData icon, String text, String? subtitle,
-        String? action) = switch (phase) {
+    final (
+      Color color,
+      IconData icon,
+      String text,
+      String? subtitle,
+      String? action
+    ) = switch (phase) {
       CheckInGpsPhase.within => (
           colors.success,
           Icons.check_circle_rounded,
@@ -1923,8 +1930,7 @@ class _FullScreenTransitMap extends StatelessWidget {
         buildWhen: (previous, current) => previous.current != current.current,
         builder: (context, locationState) => TransitMap(
           target: stop,
-          currentPosition:
-              _RouteCheckInScreenState._mapPosition(locationState),
+          currentPosition: _RouteCheckInScreenState._mapPosition(locationState),
         ),
       ),
     );

@@ -5,7 +5,7 @@ enum TerritoryType {
   rural;
 
   /// Default geofence radius in meters for this territory class, per the
-  /// business rule table — overridable per customer.
+  /// business rule table — overridable per depot.
   double get defaultGeofenceRadiusMeters => switch (this) {
         TerritoryType.urban => 50,
         TerritoryType.suburban => 100,

@@ -47,7 +47,8 @@ final class QuotationDetailLoaded extends QuotationDetailState {
       isSubmitting: isSubmitting ?? this.isSubmitting,
       isCancelling: isCancelling ?? this.isCancelling,
       isRepricing: isRepricing ?? this.isRepricing,
-      actionMessage: actionMessage != null ? actionMessage() : this.actionMessage,
+      actionMessage:
+          actionMessage != null ? actionMessage() : this.actionMessage,
     );
   }
 

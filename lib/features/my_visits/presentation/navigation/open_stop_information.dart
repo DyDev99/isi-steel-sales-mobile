@@ -5,6 +5,7 @@ import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_stop.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/active_route_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/location_tracking_cubit.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/stop_information_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/visit_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/screens/stop_information/stop_information_screen.dart';
 
@@ -48,6 +49,14 @@ Future<void> openStopInformation(
           BlocProvider.value(value: getActiveRouteBloc()),
           BlocProvider.value(value: getVisitCubit()),
           BlocProvider.value(value: getLocationTrackingCubit()),
+          // A fresh instance per stop, loading immediately: the screen opens on
+          // the outlet the rep just tapped, and its details are wanted now.
+          //
+          // `create`, not `.value` — this cubit belongs to the route and must
+          // be closed with it, unlike the three above which the visit owns.
+          BlocProvider<StopInformationCubit>(
+            create: (_) => sl<StopInformationCubit>()..load(stop.depot.id),
+          ),
         ],
         child: StopInformationScreen(
           stop: stop,

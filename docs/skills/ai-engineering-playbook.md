@@ -30,15 +30,15 @@ If anything here conflicts with `docs/skills/engineering-standard.md` or an ADR 
 
 | Element | Convention | Example |
 |---|---|---|
-| File | `snake_case.dart` | `customer_repository_impl.dart` |
-| Class | `UpperCamelCase` | `CustomerRepositoryImpl` |
+| File | `snake_case.dart` | `depot_repository_impl.dart` |
+| Class | `UpperCamelCase` | `DepotRepositoryImpl` |
 | Bloc event | Imperative / past-tense request | `LoginSubmittedEvent`, `AuthCheckRequested` |
 | Bloc state | Outcome noun + `State` | `AuthenticatedState`, `AuthGuestState` |
 | Usecase | Verb-first, one action | `GetCurrentUser`, `SubmitStockCount`, `SyncQueueDrain` |
-| Repository interface | `<Entity>Repository` in `domain/repositories/` | `CustomerRepository` |
-| Repository impl | `<Entity>RepositoryImpl` in `data/repositories/` | `CustomerRepositoryImpl` |
-| DAO | `<Entity>Dao` in `core/database/drift/daos/` | `CustomerDao`, `SyncQueueDao` |
-| Drift table | `<Entities>` (plural, matches table name) | `Customers`, `SyncQueue` |
+| Repository interface | `<Entity>Repository` in `domain/repositories/` | `DepotRepository` |
+| Repository impl | `<Entity>RepositoryImpl` in `data/repositories/` | `DepotRepositoryImpl` |
+| DAO | `<Entity>Dao` in `core/database/drift/daos/` | `DepotDao`, `SyncQueueDao` |
+| Drift table | `<Entities>` (plural, matches table name) | `Depots`, `SyncQueue` |
 | Sync/conflict infra | `conflict_manager.dart`, `dynamic_key_store.dart` | — never `conflict_resolver.dart` or `secure_strorage.dart` (named, historical typos to not repeat — `docs/skills/engineering-standard.md` §9) |
 | Standard syncable columns | `id`, `updated_at`, `deleted`, `sync_state`, `server_revision`, `dirty` | See `docs/blueprint/local-storage-architecture.md` §3.1 — do not invent alternate names per table |
 
@@ -143,7 +143,7 @@ Ask these in order; stop and request changes at the first "no":
 
 ## 9. Performance guidelines
 
-- **Every list-backed query is paged and index-backed.** No unbounded `SELECT *` against a table that can grow (catalog, customers, sync_queue). Check `docs/blueprint/local-storage-architecture.md` §3 for the index-audit expectation on any new query.
+- **Every list-backed query is paged and index-backed.** No unbounded `SELECT *` against a table that can grow (catalog, depots, sync_queue). Check `docs/blueprint/local-storage-architecture.md` §3 for the index-audit expectation on any new query.
 - **No N+1 query patterns.** A screen showing a route with its stops fetches the route and its stops in a batched/joined query, not one query per stop in a loop.
 - **Cold start has a budget.** Boot-time work (`docs/blueprint/offline-architecture.md` §2.1) must resolve the auth/session check without a required network call — any new boot-time work is scrutinized against this budget, not added by default.
 - **Media stays off the hot path and off the relational DB.** Attachments are filesystem + reference only (`docs/blueprint/system-architecture.md` §3, Layer 4) — never inline binary data in Drift.
@@ -354,7 +354,7 @@ class StockCountBloc extends Bloc<StockCountEvent, StockCountState> {
 - The repository (`13.4`) is the **only** place that decides "this write needs to sync" and does so inside one transaction — exactly ADR-006's rule, not a convention left to each feature to remember.
 - The mapper (`13.5`) is the only code that knows about Drift row/companion shapes; nothing above it does.
 - The bloc (`13.6`) never sees a Drift type or a raw exception — only the domain entity and typed failures.
-- This shape is identical whether the feature is `stock_count`, `customer`, or `sales_order` — copy the shape, not the specific fields.
+- This shape is identical whether the feature is `stock_count`, `depot`, or `sales_order` — copy the shape, not the specific fields.
 
 ---
 

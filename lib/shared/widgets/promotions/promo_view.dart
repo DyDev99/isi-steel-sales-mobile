@@ -46,7 +46,7 @@ enum PromoKind {
 /// goods are moving. Modelled as a set rather than a boolean so the BRD's other
 /// conditions (minimum spend, FR-03's volume tiers) have somewhere to land.
 enum PromoRequirement {
-  /// The customer must collect from the depot.
+  /// The depot must collect from the depot.
   ///
   /// Deliberately **not** satisfied by the COD toggle. The promotion reads
   /// "COD / Pickup" and the BRD calls the mechanism an "Immediate-Payment
@@ -218,7 +218,7 @@ class PromoView {
           : DateTime.now(),
       minSpend: json['minSpend']?.toString(),
       category: json['category'] as String?,
-      depots: json['depots'] as String?,
+      depots: json['customers'] as String?,
       requires: requires,
     );
   }
@@ -270,7 +270,7 @@ class PromoView {
     return PromoUrgency.normal;
   }
 
-  /// True when the rep can quote this to the customer right now.
+  /// True when the rep can quote this to the depot right now.
   bool isQuotable(DateTime now) =>
       status == PromoStatus.active && urgency(now) != PromoUrgency.expired;
 
@@ -322,4 +322,3 @@ class PromoGroup {
   final String titleKey;
   final List<PromoView> promos;
 }
-

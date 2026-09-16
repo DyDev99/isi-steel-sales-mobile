@@ -27,14 +27,14 @@ class StaticPromotionRepositoryImpl implements PromotionRepository {
 
   @override
   ResultFuture<List<Promotion>> getPromotions({
-    String? customerId,
+    String? depotId,
     bool includeUpcoming = false,
   }) async {
     final now = _clock();
     final visible = <Promotion>[];
 
     for (final promotion in StaticPromotionData.promotions(now)) {
-      if (!promotion.appliesToCustomer(customerId)) continue;
+      if (!promotion.appliesToDepot(depotId)) continue;
       final lifecycle = promotion.lifecycleAt(now);
       // Expired promotions are never returned — not greyed out, not listed.
       // Offering one a rep cannot honour is worse than showing none.
@@ -56,7 +56,7 @@ class StaticPromotionRepositoryImpl implements PromotionRepository {
     required String materialCode,
     required String categoryCode,
     required int quantity,
-    String? customerId,
+    String? depotId,
   }) async {
     if (quantity < 0) return const Success(null);
 
@@ -65,7 +65,7 @@ class StaticPromotionRepositoryImpl implements PromotionRepository {
       // Active only. An upcoming promotion is worth *showing* on the
       // dashboard and never worth applying to a line.
       if (promotion.lifecycleAt(now) != PromotionLifecycle.active) continue;
-      if (!promotion.appliesToCustomer(customerId)) continue;
+      if (!promotion.appliesToDepot(depotId)) continue;
       if (!promotion.appliesToMaterial(
         materialCode: materialCode,
         categoryCode: categoryCode,

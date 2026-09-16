@@ -5,9 +5,9 @@
 ```text
 Flutter app / Admin portal
         │
-        ├── GET  /api/v1/mobile/pricing/customers/{id}   MobilePricingController
-        ├── GET  /api/v1/pricing/customers/{id}          PricingController
-        ├── POST /api/v1/pricing/customers/{id}/publish  PricingController
+        ├── GET  /api/v1/mobile/pricing/depots/{id}   MobilePricingController
+        ├── GET  /api/v1/pricing/depots/{id}          PricingController
+        ├── POST /api/v1/pricing/depots/{id}/publish  PricingController
         └── WS   /hubs/pricing                           PricingHub
                     │
                     ▼

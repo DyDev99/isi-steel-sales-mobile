@@ -32,7 +32,7 @@ extension SafeEnumByName<T extends Enum> on List<T> {
 
   /// The value named [name], or [fallback] when it does not parse.
   ///
-  /// [context] names the call site in the debug log, e.g. `'customers.status'`
+  /// [context] names the call site in the debug log, e.g. `'depots.status'`
   /// — without it the message says nothing about which column or payload was
   /// wrong, which is most of what you need to fix it.
   T byNameOr(String? name, T fallback, {String? context}) {

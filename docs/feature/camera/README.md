@@ -13,9 +13,9 @@ nothing, so every flow that needs a photograph was untestable there:
 
 | Feature | What it captures |
 |---|---|
-| Customer registration | Storefront, inside-store, ID card, patent/tax, VAT certificate |
+| Depot registration | Storefront, inside-store, ID card, patent/tax, VAT certificate |
 | Visit proof photo | A timestamped, GPS-stamped shot at a stop |
-| Quotation drawing upload | A customer's sketch or drawing |
+| Quotation drawing upload | A depot's sketch or drawing |
 | Visual product search | A photo matched against the catalogue |
 
 Rather than each of those learning what a simulator is, one seam decides where
@@ -26,7 +26,7 @@ pixels come from and hands back the same type either way.
 ## The seam
 
 ```text
-Feature (customer evidence, proof photo, drawing, visual search)
+Feature (depot evidence, proof photo, drawing, visual search)
         ↓
 ImageCaptureService            ← the only thing features know about
         ↓
@@ -94,7 +94,7 @@ flutter run --dart-define=CAMERA_MODE=real   # force the device camera
 ```
 
 `auto` is the default deliberately: a build that silently defaults to mock is a
-build that uploads placeholder images as customer evidence. An unrecognised
+build that uploads placeholder images as depot evidence. An unrecognised
 value falls back to `auto` rather than throwing at startup.
 
 Mirrors the existing `USE_MOCK_DATA` switch — see `core/config/data_source_mode.dart`.
@@ -133,12 +133,12 @@ handset is never mistaken for automatic behaviour.
 
 ## Test images
 
-`assets/mock/camera/` — synthetic, drawn programmatically. **No real customer
+`assets/mock/camera/` — synthetic, drawn programmatically. **No real depot
 photographs, documents or personal information is bundled with the app.**
 
 | File | Slot it stands in for |
 |---|---|
-| `storefront.png` | Customer storefront evidence |
+| `storefront.png` | Depot storefront evidence |
 | `inside_store.png` | Inside-store evidence |
 | `id_card.png` | ID card evidence |
 | `document.png` | Patent / tax / VAT document |
@@ -198,5 +198,5 @@ the Simulator. To prove a build uses the real camera, run with
 
 ## See also
 
-- [../customer/mobile/customer-documents.md](../customer/mobile/customer-documents.md) — the evidence upload this feeds
+- [../depot/mobile/depot-documents.md](../depot/mobile/depot-documents.md) — the evidence upload this feeds
 - [../../skills/security.md](../../skills/security.md) §3 — why no real documents are bundled

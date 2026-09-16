@@ -6,8 +6,8 @@ import 'package:isi_steel_sales_mobile/features/order/domain/entities/quotation.
 /// for one Shop/Depot).
 ///
 /// Keys on Shop/Depot **id** equality: the active visit's checked-in
-/// `customerId` (from `ResumableVisitCubit`) vs the draft's `customerId`. NOTE:
-/// the my_visits and customers mock datasets currently only join reliably on
+/// `depotId` (from `ResumableVisitCubit`) vs the draft's `depotId`. NOTE:
+/// the my_visits and depots mock datasets currently only join reliably on
 /// *territory*, so ids may not match in the demo data — in that case nothing is
 /// deduped and both cards render (no regression). Real backend ids make the
 /// dedup take effect.
@@ -16,7 +16,7 @@ import 'package:isi_steel_sales_mobile/features/order/domain/entities/quotation.
 /// the rep is currently checked into.
 bool draftBelongsToActiveVisit(Quotation draft, String? activeShopId) {
   if (activeShopId == null) return false;
-  return draft.customerId != null && draft.customerId == activeShopId;
+  return draft.depotId != null && draft.depotId == activeShopId;
 }
 
 /// The drafts to keep on the standalone "Continue Working" card — everything

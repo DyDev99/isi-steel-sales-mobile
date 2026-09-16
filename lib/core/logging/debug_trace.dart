@@ -11,12 +11,12 @@ import 'package:flutter/foundation.dart';
 /// unaligned sentences.
 ///
 /// ```text
-/// ─────── customer registration ───────
+/// ─────── depot registration ───────
 ///   ▸ DRAFT     resumed  id=01a0412a status=Draft fields=46
 ///   ✓ STEP      1/5 identity
 ///   ✗ STEP      2/5 address  missing: city · postalCode · geo
 ///   ↑ HTTP      POST /draft → 200
-///   ✓ SUBMIT    customer=01a03189 queued=no
+///   ✓ SUBMIT    depot=01a03189 queued=no
 ///   ↑ PHOTOS    sent=2 retry=0 rejected=1
 ///   ✗ ERROR     submit → DioException
 /// ```

@@ -24,7 +24,7 @@ import 'package:isi_steel_sales_mobile/shared/widgets/promotions/promo_view.dart
 class PromotionsScreen extends StatefulWidget {
   const PromotionsScreen({
     super.key,
-    this.customerId,
+    this.depotId,
     this.outletName,
     this.promotions,
     this.now,
@@ -32,8 +32,8 @@ class PromotionsScreen extends StatefulWidget {
 
   static const String routeName = 'promotions';
 
-  /// The customer/outlet ID to fetch promotions for.
-  final String? customerId;
+  /// The depot/outlet ID to fetch promotions for.
+  final String? depotId;
 
   final String? outletName;
 
@@ -69,11 +69,11 @@ class _PromotionsScreenState extends State<PromotionsScreen> {
 
   List<PromoView> _sortPromos(List<PromoView> list) {
     return [...list]..sort((a, b) {
-      final aLive = a.isQuotable(_now);
-      final bLive = b.isQuotable(_now);
-      if (aLive != bLive) return aLive ? -1 : 1;
-      return a.endsOn.compareTo(b.endsOn);
-    });
+        final aLive = a.isQuotable(_now);
+        final bLive = b.isQuotable(_now);
+        if (aLive != bLive) return aLive ? -1 : 1;
+        return a.endsOn.compareTo(b.endsOn);
+      });
   }
 
   @override
@@ -84,15 +84,15 @@ class _PromotionsScreenState extends State<PromotionsScreen> {
 
   Future<void> _fetchPromotionsIfNeeded() async {
     if (widget.promotions != null ||
-        widget.customerId == null ||
-        widget.customerId!.isEmpty) {
+        widget.depotId == null ||
+        widget.depotId!.isEmpty) {
       return;
     }
-    if (!GetIt.I.isRegistered<GetCustomerPromotions>()) {
+    if (!GetIt.I.isRegistered<GetDepotPromotions>()) {
       return;
     }
-    final result = await GetIt.I<GetCustomerPromotions>()(
-      CustomerPromotionsParams(widget.customerId!),
+    final result = await GetIt.I<GetDepotPromotions>()(
+      DepotPromotionsParams(widget.depotId!),
     );
     if (!mounted) return;
     result.when(

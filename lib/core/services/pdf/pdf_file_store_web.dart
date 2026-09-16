@@ -7,8 +7,8 @@ import 'package:isi_steel_sales_mobile/core/services/pdf/saved_document.dart';
 ///
 /// Writes nothing. A browser tab has no sandbox directory it may write a file
 /// into, and the two places it *could* put bytes — IndexedDB or OPFS — are
-/// exactly the unencrypted origin-readable storage ADR-010 keeps customer data
-/// out of. A quotation PDF carries customer names, addresses, and pricing, so
+/// exactly the unencrypted origin-readable storage ADR-010 keeps depot data
+/// out of. A quotation PDF carries depot names, addresses, and pricing, so
 /// persisting one in the browser would reintroduce the problem ADR-010 avoids
 /// for the database, in a different file.
 ///

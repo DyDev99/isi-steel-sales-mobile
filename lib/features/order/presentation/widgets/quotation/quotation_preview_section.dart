@@ -49,7 +49,7 @@ class QuotationPreviewSection extends StatelessWidget {
   final bool isEstimate;
   final int requiredApprovalLevel;
   final List<QuotationWarning> warnings;
-  final List<CustomerAgreement> agreements;
+  final List<DepotAgreement> agreements;
   final VoidCallback? onEnlargeTap;
   final bool isEditable;
   final void Function(CartItem item)? onEditPrice;
@@ -138,7 +138,8 @@ class QuotationPreviewSection extends StatelessWidget {
                               ),
                               decoration: BoxDecoration(
                                 color: colors.warning.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(context.rr(6)),
+                                borderRadius:
+                                    BorderRadius.circular(context.rr(6)),
                                 border: Border.all(
                                   color: colors.warning.withValues(alpha: 0.35),
                                 ),
@@ -173,7 +174,8 @@ class QuotationPreviewSection extends StatelessWidget {
                                       ? colors.warning
                                       : colors.success)
                                   .withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(context.rr(6)),
+                              borderRadius:
+                                  BorderRadius.circular(context.rr(6)),
                               border: Border.all(
                                 color: (requiredApprovalLevel > 0
                                         ? colors.warning
@@ -255,7 +257,7 @@ class QuotationPreviewSection extends StatelessWidget {
               ],
             ),
 
-            // Standing customer agreement chips
+            // Standing depot agreement chips
             if (agreements.isNotEmpty) ...[
               SizedBox(height: context.rh(12)),
               Wrap(
@@ -349,8 +351,8 @@ class QuotationPreviewSection extends StatelessWidget {
               items: items,
               isEditable: isEditable,
               currency: currency,
-              onEditPrice: onEditPrice ??
-                  (item) => _handleEditPrice(context, item),
+              onEditPrice:
+                  onEditPrice ?? (item) => _handleEditPrice(context, item),
               onEditDiscount: onEditDiscount,
             ),
 

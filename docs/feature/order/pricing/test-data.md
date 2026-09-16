@@ -24,21 +24,21 @@ Because this is live ERP data, **the figures change without notice**. Assert on 
 and invariants, not on a particular price. The one number safe to depend on is that
 `recordsUnmapped` is `0`; if it is not, the contract moved.
 
-### Customers to test with
+### Depots to test with
 
 Real rows in the development database:
 
-| Customer | Code | Id | Sales org | Price group |
+| Depot | Code | Id | Sales org | Price group |
 |---|---|---|---|---|
-| PNP-Walk In Customer | 6100000000 | `01a06a78-33bd-7571-8b0f-b1933d0c6910` | 0001 | 11 |
-| BTB-Walk in Customer | 6100000001 | `01a06a78-33ee-7e14-9ebf-0f0318358675` | 0001 | 11 |
-| SHV-Walk in Customer | 6100000002 | `01a06a78-33ef-73df-8868-13cea0f3951a` | 0004 | 11 |
-| KPC-Walk in Customer | 6100000003 | `01a06a78-33ef-71ac-8325-4e60effef61c` | 0005 | 11 |
-| TAK-Walk in Customer | 6100000004 | `01a06a78-33ef-7a16-8c94-9232ef1fa03a` | 0007 | 11 |
-| KPT-Walk in Customer | 6100000005 | `01a06a78-33ef-788b-ac6f-663729133e00` | 0006 | 11 |
+| PNP-Walk In Depot | 6100000000 | `01a06a78-33bd-7571-8b0f-b1933d0c6910` | 0001 | 11 |
+| BTB-Walk in Depot | 6100000001 | `01a06a78-33ee-7e14-9ebf-0f0318358675` | 0001 | 11 |
+| SHV-Walk in Depot | 6100000002 | `01a06a78-33ef-73df-8868-13cea0f3951a` | 0004 | 11 |
+| KPC-Walk in Depot | 6100000003 | `01a06a78-33ef-71ac-8325-4e60effef61c` | 0005 | 11 |
+| TAK-Walk in Depot | 6100000004 | `01a06a78-33ef-7a16-8c94-9232ef1fa03a` | 0007 | 11 |
+| KPT-Walk in Depot | 6100000005 | `01a06a78-33ef-788b-ac6f-663729133e00` | 0006 | 11 |
 
-A customer with no sales area is not priceable and answers **422
-`Pricing.CustomerNotPriceable`** — a real state, not a fault.
+A depot with no sales area is not priceable and answers **422
+`Pricing.DepotNotPriceable`** — a real state, not a fault.
 
 ### A material worth testing with
 
@@ -63,23 +63,23 @@ TOKEN=$(curl -s -X POST http://127.0.0.1:5000/api/v1/auth/login \
 CUST=01a06a78-33bd-7571-8b0f-b1933d0c6910
 
 # Admin portal — page 1 of 78, ~8 KB
-curl -s "http://127.0.0.1:5000/api/v1/pricing/customers/$CUST" -H "Authorization: Bearer $TOKEN"
+curl -s "http://127.0.0.1:5000/api/v1/pricing/depots/$CUST" -H "Authorization: Bearer $TOKEN"
 
 # A later page, and a bigger one
-curl -s "http://127.0.0.1:5000/api/v1/pricing/customers/$CUST?page=2&pageSize=200" \
+curl -s "http://127.0.0.1:5000/api/v1/pricing/depots/$CUST?page=2&pageSize=200" \
   -H "Authorization: Bearer $TOKEN"
 
 # Mobile
-curl -s "http://127.0.0.1:5000/api/v1/mobile/pricing/customers/$CUST" -H "Authorization: Bearer $TOKEN"
+curl -s "http://127.0.0.1:5000/api/v1/mobile/pricing/depots/$CUST" -H "Authorization: Bearer $TOKEN"
 
 # One material — all four spellings are equivalent
-curl -s "http://127.0.0.1:5000/api/v1/pricing/customers/$CUST?material=2400000466" \
+curl -s "http://127.0.0.1:5000/api/v1/pricing/depots/$CUST?material=2400000466" \
   -H "Authorization: Bearer $TOKEN"
-curl -s "http://127.0.0.1:5000/api/v1/pricing/customers/$CUST?materials=2400000466,1400000412" \
+curl -s "http://127.0.0.1:5000/api/v1/pricing/depots/$CUST?materials=2400000466,1400000412" \
   -H "Authorization: Bearer $TOKEN"
 
-# Push PricingUpdated to everyone subscribed to this customer -> 204
-curl -s -X POST "http://127.0.0.1:5000/api/v1/pricing/customers/$CUST/publish" \
+# Push PricingUpdated to everyone subscribed to this depot -> 204
+curl -s -X POST "http://127.0.0.1:5000/api/v1/pricing/depots/$CUST/publish" \
   -H "Authorization: Bearer $TOKEN"
 
 # SAP's answer, untouched — status, content type and body
@@ -92,7 +92,7 @@ curl -s -G "http://127.0.0.1:5000/api/v1/pricing/diagnostics/raw" \
 
 Captured 2026-09-10 for `?material=2400000466`.
 
-### Mobile — `GET /api/v1/mobile/pricing/customers/{id}`
+### Mobile — `GET /api/v1/mobile/pricing/depots/{id}`
 
 ```json
 {
@@ -139,7 +139,7 @@ different units.
 row, and such a row also carries `price: 0` and a blank currency —
 `source.recordsUnmapped` counts them.
 
-### Admin — `GET /api/v1/pricing/customers/{id}`
+### Admin — `GET /api/v1/pricing/depots/{id}`
 
 The same `items` and `source`, wrapped in `ApiResponse<T>` (`data` + `meta`) rather
 than `MobileApiResponse<T>`.
@@ -147,7 +147,7 @@ than `MobileApiResponse<T>`.
 ### Realtime — `PricingUpdated` over `/hubs/pricing`
 
 The same item shape plus `updatedAt`, so `MobilePriceItem.fromJson` is shared
-client-side. Subscribe with `SubscribeToPricingAsync(customerId)` and connect using
+client-side. Subscribe with `SubscribeToPricingAsync(depotId)` and connect using
 `?access_token=` — see [api/mobile.md](api/mobile.md).
 
 ## Verified

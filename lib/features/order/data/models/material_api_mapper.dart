@@ -77,7 +77,7 @@ abstract final class MaterialApiMapper {
     final group = _string(json['materialGroup']);
     final groupName = _string(json['materialGroupName']);
 
-    // `saleThicknessMm` is what you quote to a customer; `rawThicknessMm` is
+    // `saleThicknessMm` is what you quote to a depot; `rawThicknessMm` is
     // the coil it was rolled from. They are not interchangeable and only the
     // first belongs on a quotation, so only the first is read into the
     // thickness the rest of the app renders.

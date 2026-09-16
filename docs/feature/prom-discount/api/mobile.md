@@ -24,8 +24,8 @@
 
 | Method | Route | Permission |
 |---|---|---|
-| `GET` | `/customers/{customerId}/incentives?shipment=` | `customers.read` |
-| `GET` | `/customers/{customerId}/agreements` | `customers.read` |
+| `GET` | `/depots/{depotId}/incentives?shipment=` | `depots.read` |
+| `GET` | `/depots/{depotId}/agreements` | `depots.read` |
 | `GET` | `/me/discount-authority` | *authenticated only* |
 | `GET` | `/category-mappings` | `agreements.read` |
 | `GET` | `/agreement-requests` | `agreements.read` |
@@ -41,7 +41,7 @@ blank for whoever was missed.
 
 ---
 
-## `GET /customers/{id}/incentives` — the promotions view
+## `GET /depots/{id}/incentives` — the promotions view
 
 Groups, in display order. **A group with no cards is omitted** — an empty group with a
 heading implies the business has none, rather than that the feature is unbuilt.
@@ -66,9 +66,9 @@ is declared for free goods and never returned.
 
 ---
 
-## `GET /customers/{id}/agreements` — the plainer list
+## `GET /depots/{id}/agreements` — the plainer list
 
-For customer and visit screens. A tiered agreement carries its whole ladder in
+For depot and visit screens. A tiered agreement carries its whole ladder in
 `rebateTiers`, and `percent` is the **top rung** — what the depot earns if it reaches
 the target. `targetAmount` is that rung's floor.
 
@@ -108,9 +108,9 @@ feasible here and not on a quotation.
 ```json
 {
   "clientRequestId": "e89d1b09-…",
-  "customerId": "3fa85f64-…",
+  "depotId": "3fa85f64-…",
   "scopeType": "DEPOT",
-  "remarks": "Customer opening a second branch; requesting volume assistance.",
+  "remarks": "Depot opening a second branch; requesting volume assistance.",
   "lines": [
     { "categoryCode": "ROOFING_PROFILE", "entryMode": "FLAT_PERCENT",
       "nature": "ON_INVOICE", "percent": 2.5,

@@ -61,12 +61,12 @@ abstract final class CoachStepCatalog {
       order: 5,
     ),
     CoachStep(
-      id: 'my_customers',
-      titleKey: 'coach.customers.title',
-      messageKey: 'coach.customers.message',
+      id: 'my_depots',
+      titleKey: 'coach.depots.title',
+      messageKey: 'coach.depots.message',
       ctaKey: 'coach.cta.skip_step',
-      requiredAction: CoachAction.openCustomers,
-      targetKeyId: CoachKeys.myCustomers,
+      requiredAction: CoachAction.openDepots,
+      targetKeyId: CoachKeys.myDepots,
       order: 6,
     ),
     CoachStep(

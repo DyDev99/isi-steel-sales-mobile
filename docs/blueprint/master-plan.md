@@ -142,7 +142,7 @@ Per domain: Purpose · Deps · Entities · Repos · Use Cases · APIs · Screens
 | Authentication | User, AuthToken, Session | Cached user boots offline ✅ | token refresh | Guest-first (built) |
 | Organization/Role/Permission | Org, Role, Permission | read-mostly cache | pull | **Missing** — needed for RBAC |
 | User | User, profile | cache | pull | partial |
-| Customer/Contact | Customer, Contact | full offline ✅ | pull + delta | built (sqflite→migrate) |
+| Depot/Contact | Depot, Contact | full offline ✅ | pull + delta | built (sqflite→migrate) |
 | Lead/Opportunity | Lead, Opportunity | offline draft | push queue | partial |
 | Quotation | Quotation, Line | local-only ✅ | push→SAP | built |
 | Sales Order | SalesOrder | local + queue | push→SAP (Action-Required on conflict) | built (mock SAP) |
@@ -170,19 +170,19 @@ Representative core tables (full DDL produced per-table at build time):
 
 | Table | PK | Key FKs | Indexes | Offline | Sync |
 |---|---|---|---|---|---|
-| customers | id | — | name, territory | full | pull+delta |
-| contacts | id | customer_id | customer_id | full | pull |
-| leads | id | customer_id? | status | draft | push |
+| depots | id | — | name, territory | full | pull+delta |
+| contacts | id | depot_id | depot_id | full | pull |
+| leads | id | depot_id? | status | draft | push |
 | products | id | category_id | code, sku, barcode, category_id; FTS | full | pull(paged)+delta |
 | categories | id | parent_id | parent_id | full | pull |
 | price_books | id | product_id | product_id | full | pull |
 | carts / cart_items | id | cart_id, product_id | cart_id | local | none |
-| quotations / quotation_lines | id | customer_id/lead_id | status, customer_id | local | push |
+| quotations / quotation_lines | id | depot_id/lead_id | status, depot_id | local | push |
 | sales_orders | id | quotation_id | status | local+queue | push |
-| routes / route_stops | id | route_id, customer_id | route_id, status | full | pull+push |
+| routes / route_stops | id | route_id, depot_id | route_id, status | full | pull+push |
 | visits / check_in / check_out | id | stop_id | stop_id | full | push |
 | stock_counts / returns / collections | id | visit_id | visit_id | full | push |
-| workflow_session | id | customer_id?, cart_id? | status, user_id | local | status |
+| workflow_session | id | depot_id?, cart_id? | status, user_id | local | status |
 | sync_queue | id | entity refs | status, priority, next_retry_at | local | engine |
 | sync_dead_letter | id | source_queue_id | created_at | local | manual |
 | sync_cursor | entity | — | — | local | bookkeeping |
@@ -308,7 +308,7 @@ Retain existing feature triads; migrate `data/local` off per-feature sqflite ont
 |---|---|---|---|---|---|
 | S0 | Setup/CI/ADRs | envied scaffold, CI wire, decisions | pipeline smoke | 13 | Low |
 | S1 | **Crypto foundation** | T1.1–T1.6 (Envied, DynamicKeyStore, composite key, Drift+SQLCipher, migrator) | migration + encryption tests | 34 | High |
-| S2 | Schema + DAOs | port customers/catalog/routes/orders | DAO + repo tests | 34 | High |
+| S2 | Schema + DAOs | port depots/catalog/routes/orders | DAO + repo tests | 34 | High |
 | S3 | Workflow resume | session entity, router, expiry | crash/resume sim | 21 | Med |
 | S4 | Sync engine | queue, backoff, priority, isolate, conflict, DLQ | offline-chaos | 34 | High |
 | S5 | Media/Layer 4 | encrypted file store, lifecycle | storage tests | 21 | Med |
@@ -329,7 +329,7 @@ Retain existing feature triads; migrate `data/local` off per-feature sqflite ont
 | T1.2 | `KeyDerivation`: `FinalKey = SHA256(Env.dbSalt + deviceKey)` | P0 | T1.0,T1.1 | 3 | deterministic 32-byte key; documented KDF rationale | unit (known-vector) |
 | T1.3 | Encrypted `AppDatabase` (Drift + SQLCipher), inject composite key via `PRAGMA key` | P0 | T1.2 | 8 | opens encrypted; wrong key fails; cipher_version non-empty | on-device open + wrong-key |
 | T1.4 | Unified migrator + schema-version registry | P0 | T1.3 | 5 | migrations run once, idempotent, tested | drift schema tests |
-| T1.5 | Legacy plaintext → encrypted import (one-time) | P0 | T1.3,T1.4 | 8 | catalog/customers/routes imported; old files purged; no loss | migration integration |
+| T1.5 | Legacy plaintext → encrypted import (one-time) | P0 | T1.3,T1.4 | 8 | catalog/depots/routes imported; old files purged; no loss | migration integration |
 | T1.6 | Key-rotation / re-key routine | P1 | T1.3 | 5 | re-key without data loss; version bumped | integration |
 
 > **Correction vs started work:** the current `DatabaseKeyManager` (stores a final random key directly) is replaced by the T1.1+T1.2 split (device key + salted derivation) to match the blueprint. The Drift/SQLCipher scaffolding already written is reused for T1.3.
@@ -348,7 +348,7 @@ Envied Config ─► DynamicKeyStore ─► KeyDerivation ─► SQLCipher AppDa
         │
    Authentication ─► RBAC(Org/Role/Perm)
         │
-   Customer ─► Product/PriceBook ─► Route/Visit ─► Quotation/Order
+   Depot ─► Product/PriceBook ─► Route/Visit ─► Quotation/Order
         │
    WorkflowSession (resume)
         │

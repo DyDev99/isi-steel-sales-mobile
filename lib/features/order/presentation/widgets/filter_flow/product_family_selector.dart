@@ -114,13 +114,13 @@ class _FamilyCard extends StatelessWidget {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            color: selected ? scheme.primary : colors.textPrimary,
+                            color:
+                                selected ? scheme.primary : colors.textPrimary,
                             fontSize: context.rsp(13),
                             fontWeight: FontWeight.w800,
                             height: 1.2,
                           ),
                         ),
-                        
                       ],
                     ),
                   ),

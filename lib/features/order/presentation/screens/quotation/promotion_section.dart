@@ -29,16 +29,16 @@ import 'package:isi_steel_sales_mobile/shared/widgets/promotions/promo_view.dart
 class PromotionSectionWidget extends StatefulWidget {
   const PromotionSectionWidget({
     super.key,
-    this.customerId,
+    this.depotId,
     this.groups,
     this.now,
     this.terms,
     this.initiallyExpanded = true,
   });
 
-  /// The customer this quotation is for, used to fetch their incentives from
-  /// `GET /customers/{id}/incentives?shipment=`.
-  final String? customerId;
+  /// The depot this quotation is for, used to fetch their incentives from
+  /// `GET /depots/{id}/incentives?shipment=`.
+  final String? depotId;
 
   /// Injectable so a test — and later the repository — supplies the data.
   final List<PromoGroup>? groups;
@@ -63,8 +63,7 @@ class PromotionSectionWidget extends StatefulWidget {
 class _PromotionSectionWidgetState extends State<PromotionSectionWidget> {
   late bool _expanded = widget.initiallyExpanded;
   late final DateTime _now = widget.now ?? DateTime.now();
-  late List<PromoGroup> _groups =
-      widget.groups ?? mockQuotationPromoGroups;
+  late List<PromoGroup> _groups = widget.groups ?? mockQuotationPromoGroups;
 
   @override
   void initState() {
@@ -77,7 +76,7 @@ class _PromotionSectionWidgetState extends State<PromotionSectionWidget> {
     super.didUpdateWidget(oldWidget);
     if (widget.groups != null) {
       _groups = widget.groups!;
-    } else if (oldWidget.customerId != widget.customerId ||
+    } else if (oldWidget.depotId != widget.depotId ||
         oldWidget.terms?.isPickup != widget.terms?.isPickup) {
       _fetchIncentivesIfNeeded();
     }
@@ -85,16 +84,16 @@ class _PromotionSectionWidgetState extends State<PromotionSectionWidget> {
 
   Future<void> _fetchIncentivesIfNeeded() async {
     if (widget.groups != null ||
-        widget.customerId == null ||
-        widget.customerId!.isEmpty) {
+        widget.depotId == null ||
+        widget.depotId!.isEmpty) {
       return;
     }
-    if (!GetIt.I.isRegistered<GetCustomerIncentives>()) {
+    if (!GetIt.I.isRegistered<GetDepotIncentives>()) {
       return;
     }
-    final result = await GetIt.I<GetCustomerIncentives>()(
-      CustomerIncentivesParams(
-        customerId: widget.customerId!,
+    final result = await GetIt.I<GetDepotIncentives>()(
+      DepotIncentivesParams(
+        depotId: widget.depotId!,
         shipment: widget.terms?.isPickup == true ? 'Pickup' : 'Delivery',
       ),
     );
@@ -123,7 +122,7 @@ class _PromotionSectionWidgetState extends State<PromotionSectionWidget> {
   /// Both counts are over the *available* set. A header that said "13
   /// available" while three of them were greyed out for this order would be
   /// worse than no header — the number is the part a rep repeats to a
-  /// customer.
+  /// depot.
   int get _endingSoon =>
       _available.where((p) => p.urgency(_now) == PromoUrgency.urgent).length;
 
@@ -169,44 +168,43 @@ class _PromotionSectionWidgetState extends State<PromotionSectionWidget> {
                       context.rw(12),
                       context.rh(12),
                     ),
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        final groups = _groups.where((g) => g.promos.isNotEmpty).toList();
-                        
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            for (int i = 0; i < groups.length; i += 2)
-                              Padding(
-                                padding: EdgeInsets.only(bottom: context.rh(16)),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
+                    child: LayoutBuilder(builder: (context, constraints) {
+                      final groups =
+                          _groups.where((g) => g.promos.isNotEmpty).toList();
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          for (int i = 0; i < groups.length; i += 2)
+                            Padding(
+                              padding: EdgeInsets.only(bottom: context.rh(16)),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: _GroupBlock(
+                                      group: groups[i],
+                                      now: _now,
+                                      terms: widget.terms,
+                                    ),
+                                  ),
+                                  SizedBox(width: context.rw(12)),
+                                  if (i + 1 < groups.length)
                                     Expanded(
                                       child: _GroupBlock(
-                                        group: groups[i],
+                                        group: groups[i + 1],
                                         now: _now,
                                         terms: widget.terms,
                                       ),
-                                    ),
-                                    SizedBox(width: context.rw(12)),
-                                    if (i + 1 < groups.length)
-                                      Expanded(
-                                        child: _GroupBlock(
-                                          group: groups[i + 1],
-                                          now: _now,
-                                          terms: widget.terms,
-                                        ),
-                                      )
-                                    else
-                                      const Expanded(child: SizedBox()),
-                                  ],
-                                ),
+                                    )
+                                  else
+                                    const Expanded(child: SizedBox()),
+                                ],
                               ),
-                          ],
-                        );
-                      }
-                    ),
+                            ),
+                        ],
+                      );
+                    }),
                   )
                 : const SizedBox(width: double.infinity),
           ),
@@ -369,27 +367,25 @@ class _GroupBlockState extends State<_GroupBlock> {
           ],
         ),
         SizedBox(height: context.rh(8)),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            // Give the PromoCard 42% more layout width (1 / 0.7 = 1.428) 
-            // so that when FittedBox scales it back down to constraints.maxWidth, 
-            // it is exactly 30% smaller (0.7 scale).
-            return FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.topCenter,
-              child: SizedBox(
-                width: constraints.maxWidth / 0.7,
-                child: PromoCard(
-                  promo: ordered.first,
-                  now: widget.now,
-                  terms: widget.terms,
-                  onTap: () => _openAll(context, ordered),
-                  showCode: false,
-                ),
+        LayoutBuilder(builder: (context, constraints) {
+          // Give the PromoCard 42% more layout width (1 / 0.7 = 1.428)
+          // so that when FittedBox scales it back down to constraints.maxWidth,
+          // it is exactly 30% smaller (0.7 scale).
+          return FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.topCenter,
+            child: SizedBox(
+              width: constraints.maxWidth / 0.7,
+              child: PromoCard(
+                promo: ordered.first,
+                now: widget.now,
+                terms: widget.terms,
+                onTap: () => _openAll(context, ordered),
+                showCode: false,
               ),
-            );
-          }
-        ),
+            ),
+          );
+        }),
         SizedBox(height: context.rh(8)),
         Align(
           alignment: Alignment.centerRight,

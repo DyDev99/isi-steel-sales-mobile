@@ -8,7 +8,7 @@ import 'package:isi_steel_sales_mobile/features/order/domain/repositories/pricin
 /// ## Why this is a stub and not a SignalR client
 ///
 /// The hub contract is specified — connect to `/hubs/pricing` with the access
-/// token on the query string, call `SubscribeToPricingAsync(customerId)`,
+/// token on the query string, call `SubscribeToPricingAsync(depotId)`,
 /// listen for `PricingUpdated` — but **no SignalR client is in `pubspec.yaml`**
 /// and adding a package is not a decision to make silently.
 ///
@@ -54,7 +54,7 @@ class DisconnectedPricingRealtimeSource implements PricingRealtimeSource {
   bool get isConnected => false;
 
   @override
-  Future<void> subscribe(String customerId) async {}
+  Future<void> subscribe(String depotId) async {}
 
   @override
   Future<void> unsubscribe() async {}

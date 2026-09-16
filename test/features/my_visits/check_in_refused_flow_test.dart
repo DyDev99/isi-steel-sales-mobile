@@ -247,10 +247,10 @@ Future<void> _seed(
   final now = DateTime.now().toUtc();
   final day = DateTime.utc(now.year, now.month, now.day);
 
-  await db.into(db.customers).insert(CustomersCompanion.insert(
+  await db.into(db.depots).insert(DepotsCompanion.insert(
         id: 'cust-1',
-        sapCustomerId: const Value('SAP-1'),
-        customerCode: 'C-1',
+        sapDepotId: const Value('SAP-1'),
+        depotCode: 'C-1',
         shopName: 'ISI Hardware',
         ownerName: 'Sok Dara',
         phone: '012345678',
@@ -283,7 +283,7 @@ Future<void> _seed(
   await db.into(db.routeStops).insert(RouteStopsCompanion.insert(
         id: stopId,
         routeId: routeId,
-        customerId: 'cust-1',
+        depotId: 'cust-1',
         sequence: 1,
         plannedArrival: day.add(const Duration(hours: 9)),
         plannedDeparture: day.add(const Duration(hours: 10)),

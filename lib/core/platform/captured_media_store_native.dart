@@ -19,7 +19,7 @@ Future<String> persistCapturedBytes(
 
 /// Returns (creating if needed) a [subfolder] inside the app's private
 /// documents directory — the sandboxed location `SECURITY.md` §3 requires for
-/// customer-derived media.
+/// depot-derived media.
 Future<String?> appMediaDirectory(String subfolder) async {
   final appDir = await getApplicationDocumentsDirectory();
   return '${appDir.path}${Platform.pathSeparator}$subfolder';

@@ -35,14 +35,14 @@ order/
 `RouteStockCountScreen` ("Build Quotation") pushes straight into `ShopListScreen(territory:, skipOffVisitCheck: true, seedSearchTerm: <out-of-stock item>)` — skips territory-picking's need and the off-visit gate, since the rep is provably already on a checked-in visit, and pre-seeds the catalog search.
 
 ### C. Hand-off from Lead
-`LeadDetailScreen` opens `QuotationBuilderScreen(leadId:, leadDisplayName:)` directly — no territory/shop/off-visit steps, because a lead has no SAP `Customer` record yet. Lead-scoped quotations **cannot** be converted to a sales order later.
+`LeadDetailScreen` opens `QuotationBuilderScreen(leadId:, leadDisplayName:)` directly — no territory/shop/off-visit steps, because a lead has no SAP `Depot` record yet. Lead-scoped quotations **cannot** be converted to a sales order later.
 
 ## 3. Step-by-step: full order path
 
 | Step | Screen | What happens | Next |
 |---|---|---|---|
 | 0 | `OrderScreen` | Tab root. Shows "New Order" button + merged recent list of quotations/sales orders (`WatchQuotations`/`WatchSalesOrders`) | "New Order" → Step 1 |
-| 1 | `TerritoryScreen` | Lists territories grouped from `BrowseCustomers`, with shop counts | Tap territory → Step 2 |
+| 1 | `TerritoryScreen` | Lists territories grouped from `BrowseDepots`, with shop counts | Tap territory → Step 2 |
 | 2 | `ShopListScreen` | Lists shops in the territory, each with a lazily-loaded credit badge | Tap shop → Step 3 |
 | 3 | `ShopOrderEntryScreen` | Shows shop info, credit summary, captures GPS once. If not skipped, blocks progress until an `OffVisitReason` is picked via a bottom sheet | "Start Quotation" → Step 4 |
 | 4 | `QuotationBuilderScreen` | **Guided product configurator** (see §11) — category → SAP-defined filter hierarchy → products → add-to-cart. Then discounts, cart preview. Sync runs on init | "Save" → Step 5 |
@@ -62,7 +62,7 @@ Search modalities (barcode, voice, image) all resolve to a text query and feed t
 
 ## 5. State management (bloc/cubit)
 
-- **`CartCubit`** — in-memory + locally-persisted cart. `addProduct` merges into an existing line by product+lead+customer; `loadFromQuotation` seeds the cart from a saved quotation (edit / convert-to-sales-order flows); `saveQuotation` creates or updates a `Quotation` and clears the cart on success.
+- **`CartCubit`** — in-memory + locally-persisted cart. `addProduct` merges into an existing line by product+lead+depot; `loadFromQuotation` seeds the cart from a saved quotation (edit / convert-to-sales-order flows); `saveQuotation` creates or updates a `Quotation` and clears the cart on success.
 - **`CatalogBloc`** — paginated (30/page) product grid. `CatalogIdle` landing state means no fetch until the first query/filter. Uses `droppable()` for load/refresh/loadMore and `restartable()` for search/filter/voice/image so fast typing never races. All four query types funnel through one shared `_runQuery()`; search is debounced 300ms.
 - **`ProductDetailCubit`** — powers the inline expanded product detail (variants, per-warehouse stock, favorite, records as "recently viewed").
 - **`SyncCubit`** — `syncIfNeeded()` runs full initial sync if never synced; `refresh()` always runs delta sync. Drives the sync status banner.
@@ -87,7 +87,7 @@ Search modalities (barcode, voice, image) all resolve to a text query and feed t
 ## 8. MTO pricing & credit check (both advisory, non-blocking)
 
 - **MTO pricing** (`MtoPricingService`/`RequestMtoQuote`) — for `Product.isMto` SKUs, pricing is never resolved from the local table; always a fresh "SAP" quote request. Mock: offline → unavailable message; online → `standardPrice * 1.15` with a "confirm with SAP" disclaimer.
-- **Credit check** (`CreditService`/`GetCreditSummary`) — outstanding balance + credit/debit notes, deterministically mocked per customer. Purely informational — nothing blocks quotation/order creation on a bad credit position; the UI just displays the badge (and hides itself if the lookup is unavailable).
+- **Credit check** (`CreditService`/`GetCreditSummary`) — outstanding balance + credit/debit notes, deterministically mocked per depot. Purely informational — nothing blocks quotation/order creation on a bad credit position; the UI just displays the badge (and hides itself if the lookup is unavailable).
 
 ## 9. Sync
 
@@ -108,7 +108,7 @@ Cart summary + Find New Product
 
 Search covers code, name, SKU, barcode, **material code** and description. Query sanitisation keeps `-`, `.` and `/` — stripping them made every hyphenated material-code search unmatchable.
 
-**Quantity is the commit.** There is no Add button. `CartQuantityStepper` on each card writes straight through `CartLineBinding` to `CartCubit`: zero removes the line, above zero creates or updates it. `CartLineBinding` mirrors `CartCubit.addProduct`'s own merge rule (product + unit + lead + customer, customized lines excluded) so the two can't disagree about what "the same line" is.
+**Quantity is the commit.** There is no Add button. `CartQuantityStepper` on each card writes straight through `CartLineBinding` to `CartCubit`: zero removes the line, above zero creates or updates it. `CartLineBinding` mirrors `CartCubit.addProduct`'s own merge rule (product + unit + lead + depot, customized lines excluded) so the two can't disagree about what "the same line" is.
 
 **Find New Product** clears category, steps, search and results, keeps the cart, and returns to category selection — the "next line item" action.
 

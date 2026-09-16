@@ -5,8 +5,8 @@ class Quotation extends Equatable {
   const Quotation({
     required this.id,
     required this.number,
-    required this.customerId,
-    required this.customerName,
+    required this.depotId,
+    required this.depotName,
     required this.status,
     required this.statusGroup,
     this.currency,
@@ -20,8 +20,8 @@ class Quotation extends Equatable {
 
   final String id;
   final String number;
-  final String customerId;
-  final String customerName;
+  final String depotId;
+  final String depotName;
   final QuotationStatus status;
   final QuotationStatusGroup statusGroup;
   final String? currency;
@@ -36,8 +36,8 @@ class Quotation extends Equatable {
   List<Object?> get props => [
         id,
         number,
-        customerId,
-        customerName,
+        depotId,
+        depotName,
         status,
         statusGroup,
         currency,
@@ -54,8 +54,8 @@ class QuotationDetail extends Quotation {
   const QuotationDetail({
     required super.id,
     required super.number,
-    required super.customerId,
-    required super.customerName,
+    required super.depotId,
+    required super.depotName,
     required super.status,
     required super.statusGroup,
     super.currency,
@@ -68,7 +68,7 @@ class QuotationDetail extends Quotation {
     this.shipmentType,
     this.shipTo,
     this.paymentTerm,
-    this.customerReference,
+    this.depotReference,
     this.remarks,
     this.lines = const [],
     this.totals,
@@ -83,7 +83,7 @@ class QuotationDetail extends Quotation {
   final String? shipmentType;
   final String? shipTo;
   final String? paymentTerm;
-  final String? customerReference;
+  final String? depotReference;
   final String? remarks;
   final List<QuotationLine> lines;
   final QuotationTotals? totals;
@@ -100,7 +100,7 @@ class QuotationDetail extends Quotation {
         shipmentType,
         shipTo,
         paymentTerm,
-        customerReference,
+        depotReference,
         remarks,
         lines,
         totals,
@@ -135,7 +135,7 @@ class QuotationLine extends Equatable {
   final String materialDescription;
   final double quantity;
   final String unit;
-  
+
   final double? priceAmount;
   final String? priceCurrency;
   final double? pricePricingUnit;
@@ -144,7 +144,7 @@ class QuotationLine extends Equatable {
   final double gross;
   final double discountTotal;
   final double net;
-  
+
   final List<QuotationDiscount> discounts;
 
   @override

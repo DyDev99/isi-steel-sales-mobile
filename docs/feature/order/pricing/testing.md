@@ -14,7 +14,7 @@ all passing.
 | Diagnostics | `DescribeShape()` reports field **names** and never values |
 | Unknown fields | Extra SAP fields do not lose the row |
 | Paging envelope | Standard envelope reads; a missing `Rows` is an empty page, not null |
-| Group isolation | Two customers never share a group; one customer's group is stable |
+| Group isolation | Two depots never share a group; one depot's group is stable |
 | Event name | `PricingUpdated` — a contract with a released Flutter build |
 
 The two chosen deliberately: **the SAP contract**, because it is unverified, and
@@ -29,11 +29,11 @@ commercial terms to another shop's handset.
 
 `tests/ISI.Application.UnitTests` and `tests/ISI.Domain.UnitTests` have had their
 `ProjectReference` entries removed in an uncommitted change, and restoring them
-surfaces pre-existing compile errors from the in-flight customer BP-schema work:
+surfaces pre-existing compile errors from the in-flight depot BP-schema work:
 
 - `MaterialTestContext` does not implement ~22 `IApplicationDbContext` members added by
   that work;
-- `CustomerReference` no longer exists in the domain, but tests still reference it.
+- `DepotReference` no longer exists in the domain, but tests still reference it.
 
 Neither is caused by, or fixable within, the pricing change. The pricing tests were
 therefore executed by compiling that one test file against the real
@@ -53,7 +53,7 @@ restored and the pre-existing errors above are fixed by the owner of that work.
 | A real SAP response | The middleware is on a VPN address unreachable from here. **This is the important gap** — see [sap-integration.md](sap-integration.md) |
 | Hub subscribe/unsubscribe | Needs a SignalR test host; the decision it delegates to (`IPricingAudienceResolver`) is application code and testable without one |
 | `PricingRealtimePublisher` | Mocking `IClientProxy.SendCoreAsync` pins NSubstitute mechanics rather than behaviour |
-| End-to-end REST | `ISI.Api.IntegrationTests` compiles cleanly with its references restored, but the app cannot start against the current database — a pre-existing EF `PendingModelChangesWarning` from the customer schema work |
+| End-to-end REST | `ISI.Api.IntegrationTests` compiles cleanly with its references restored, but the app cannot start against the current database — a pre-existing EF `PendingModelChangesWarning` from the depot schema work |
 
 ## The first thing to do when SAP is reachable
 

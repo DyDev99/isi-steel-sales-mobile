@@ -79,7 +79,7 @@ Known divergences are listed in [blueprint/README.md](blueprint/README.md#known-
 | Feature | `lib/features/` | Docs | Requirements |
 |---|---|---|---|
 | Authentication | `authentication` | [full package](feature/authentication/) (15 docs) | ✗ |
-| Customer | `customers` | [api, ui-ux, registration](feature/customer/) | ✗ |
+| Depot | `depots` | [api, ui-ux, registration](feature/depot/) | ✗ |
 | My Visits (routes) | `my_visits` | [architecture, workflow, api](feature/my-visits/) | ✗ |
 | Order / Quotation | `order` | [workflow, product-selection](feature/order/) | ✗ |
 | Notification | `notification` | [integration guide](feature/notification/) | ✗ |

@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/app_theme.dart';
 import 'package:isi_steel_sales_mobile/core/theme/app_typography.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/customer_stop_info.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/depot_stop_info.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_stop.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/territory_type.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_status.dart';
@@ -30,7 +30,7 @@ void main() {
         stop: RouteStop(
           id: 's1',
           routeId: 'r1',
-          customer: const CustomerStopInfo(
+          depot: const DepotStopInfo(
             id: 'c1',
             name: 'Phnom Penh Steel Outlet',
             code: 'BP-884920',
@@ -90,7 +90,7 @@ void main() {
   group('the basket action', () {
     testWidgets('fires its callback — this is the Quotation Builder route',
         (tester) async {
-      // The dashboard hands this straight to `openQuotationForCustomer`. It
+      // The dashboard hands this straight to `openQuotationForDepot`. It
       // used to be `onQuotationTap: () { /* Navigate to Ad-Hoc order screen */
       // }` — a comment where the navigation should have been, so the icon was
       // live, gave feedback, and went nowhere.

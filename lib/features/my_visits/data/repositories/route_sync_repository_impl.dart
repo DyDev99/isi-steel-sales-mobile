@@ -52,7 +52,7 @@ class RouteSyncRepositoryImpl implements RouteSyncRepository {
       'requestedTerritory':
           scope.territory.isEmpty ? '(unscoped)' : scope.territory,
       'serverTerritories': page.territories,
-      'customers': page.customers.length,
+      'depots': page.depots.length,
     });
   }
 
@@ -77,7 +77,7 @@ class RouteSyncRepositoryImpl implements RouteSyncRepository {
       while (true) {
         final result = await _remote.fetchInitial(
             scope: scope, page: page, pageSize: _pageSize);
-        await _local.upsertCustomers(result.customers);
+        await _local.upsertDepots(result.depots);
         if (result.routes.isNotEmpty) {
           await _local.upsertRoutes(result.routes);
           total += result.routes.length;
@@ -112,7 +112,7 @@ class RouteSyncRepositoryImpl implements RouteSyncRepository {
       if (since == null) return runInitialSync(scope);
 
       final delta = await _remote.fetchDelta(scope: scope, since: since);
-      await _local.upsertCustomers(delta.customers);
+      await _local.upsertDepots(delta.depots);
       if (delta.routes.isNotEmpty) await _local.upsertRoutes(delta.routes);
 
       _logEmptyPull(scope, delta, 'delta');

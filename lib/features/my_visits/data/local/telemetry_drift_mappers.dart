@@ -8,7 +8,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/fraud_
 ///
 /// Mappers — not the DAO, not the repository — are the only code that knows
 /// about Drift row/companion shapes (ADR-003 point 2, ADR-004 point 2). Kept in
-/// the feature's `data/` layer, mirroring `customer_drift_mappers.dart`.
+/// the feature's `data/` layer, mirroring `depot_drift_mappers.dart`.
 ///
 /// The Drift data classes carry a `Row` suffix (`@DataClassName`) because the
 /// generated names would otherwise collide with the domain entities of the same

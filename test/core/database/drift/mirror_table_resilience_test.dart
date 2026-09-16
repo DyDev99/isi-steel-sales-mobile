@@ -31,19 +31,18 @@ void main() {
         status: 'published',
       );
 
-  RouteStopsCompanion stop(String id, String customerId, int sequence) =>
+  RouteStopsCompanion stop(String id, String depotId, int sequence) =>
       RouteStopsCompanion.insert(
         id: id,
         routeId: 'r1',
-        customerId: customerId,
+        depotId: depotId,
         sequence: sequence,
         plannedArrival: DateTime.utc(2026, 8, 24, 8 + sequence),
         plannedDeparture: DateTime.utc(2026, 8, 24, 9 + sequence),
         status: 'pending',
       );
 
-  RouteCustomersCompanion routeCustomer(String id) =>
-      RouteCustomersCompanion.insert(
+  RouteDepotsCompanion routeDepot(String id) => RouteDepotsCompanion.insert(
         id: id,
         name: 'Shop $id',
         code: 'C-$id',
@@ -56,10 +55,10 @@ void main() {
         longitude: 104.9,
       );
 
-  group('a route survives customers the directory has not pulled', () {
-    test('every stop persists, including the unknown-customer one', () async {
-      // The customer directory is deliberately left EMPTY. Under the old
-      // schema `route_stops.customer_id -> customers` made this abort the whole
+  group('a route survives depots the directory has not pulled', () {
+    test('every stop persists, including the unknown-depot one', () async {
+      // The depot directory is deliberately left EMPTY. Under the old
+      // schema `route_stops.depot_id -> depots` made this abort the whole
       // transaction with SqliteException(787), and the rep lost all five stops.
       await db.routeDao.upsertRoutesWithStops([
         RouteWithStops(route('r1'), [
@@ -73,13 +72,13 @@ void main() {
 
       final stops = await db.routeDao.fetchStops('r1');
       expect(stops, hasLength(5),
-          reason: 'One unrecognised customer must not cost the rep the day.');
+          reason: 'One unrecognised depot must not cost the rep the day.');
       expect(
           stops.map((s) => s.id), containsAll(['s1', 's2', 's3', 's4', 's5']));
     });
 
-    test('the stop still reaches the UI, with its customer details', () async {
-      await db.routeDao.upsertRouteCustomers([routeCustomer('cust-1')]);
+    test('the stop still reaches the UI, with its depot details', () async {
+      await db.routeDao.upsertRouteDepots([routeDepot('cust-1')]);
       await db.routeDao.upsertRoutesWithStops([
         RouteWithStops(route('r1'), [
           stop('s1', 'cust-1', 1),
@@ -87,13 +86,13 @@ void main() {
         ]),
       ]);
 
-      final joined = await db.routeDao.fetchStopsWithCustomers('r1');
+      final joined = await db.routeDao.fetchStopsWithDepots('r1');
 
-      // A LEFT join, so the customer-less stop is still returned rather than
+      // A LEFT join, so the depot-less stop is still returned rather than
       // silently filtered out -- the same data loss the FK caused, just quiet.
       expect(joined, hasLength(2));
-      expect(joined.first.customer?.name, 'Shop cust-1');
-      expect(joined.last.customer, isNull);
+      expect(joined.first.depot?.name, 'Shop cust-1');
+      expect(joined.last.depot, isNull);
     });
   });
 
@@ -101,7 +100,7 @@ void main() {
     Future<void> seedCapture() async {
       await db.customStatement(
         'INSERT INTO visit_check_ins (id, stop_id, timestamp, latitude, '
-        'longitude, accuracy, distance_from_customer, is_mocked) '
+        'longitude, accuracy, distance_from_depot, is_mocked) '
         "VALUES ('ci1','s1',0,11.5,104.9,5.0,12.0,0)",
       );
       await db.customStatement(
@@ -143,16 +142,16 @@ void main() {
     });
   });
 
-  test('storing the feed\'s customers twice converges, never duplicates',
+  test('storing the feed\'s depots twice converges, never duplicates',
       () async {
     // Sync is retried freely on a flaky connection, so the write has to be
     // idempotent rather than merely correct once.
-    await db.routeDao.upsertRouteCustomers([routeCustomer('cust-1')]);
-    await db.routeDao.upsertRouteCustomers([
-      routeCustomer('cust-1').copyWith(name: const Value('Renamed Shop')),
+    await db.routeDao.upsertRouteDepots([routeDepot('cust-1')]);
+    await db.routeDao.upsertRouteDepots([
+      routeDepot('cust-1').copyWith(name: const Value('Renamed Shop')),
     ]);
 
-    final rows = await db.select(db.routeCustomers).get();
+    final rows = await db.select(db.routeDepots).get();
     expect(rows, hasLength(1));
     expect(rows.single.name, 'Renamed Shop',
         reason: 'the later sync is the fresher truth');

@@ -56,7 +56,7 @@ Every user, implicitly: guests (evaluation/browsing), sales reps, managers and a
 
 ## SAP interaction
 
-**None directly.** Authentication talks to the app's own gateway (`/v1/auth/*`), not SAP. Its future SAP relevance: the signed-in user's identity and roles will scope which customers/routes/orders sync from SAP (see `docs/blueprint/sync-architecture.md`), and the bearer token authenticates the gateway that fronts SAP. The SAP client itself (`core/network/sap_client.dart`) is a tracked, still-empty stub.
+**None directly.** Authentication talks to the app's own gateway (`/v1/auth/*`), not SAP. Its future SAP relevance: the signed-in user's identity and roles will scope which depots/routes/orders sync from SAP (see `docs/blueprint/sync-architecture.md`), and the bearer token authenticates the gateway that fronts SAP. The SAP client itself (`core/network/sap_client.dart`) is a tracked, still-empty stub.
 
 ## Security considerations
 

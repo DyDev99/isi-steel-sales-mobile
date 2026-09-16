@@ -1,24 +1,24 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/browse_customers.dart';
-import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/customer_params.dart';
+import 'package:isi_steel_sales_mobile/features/depots/domain/usecases/browse_depots.dart';
+import 'package:isi_steel_sales_mobile/features/depots/domain/usecases/depot_params.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/depot_selection_store.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/state/depot_selection_state.dart';
 
 /// Drives the Depot/Shop selection screen. Reuses the existing
-/// [BrowseCustomers] use case (shops == customers) — no new data layer. Search
+/// [BrowseDepots] use case (shops == depots) — no new data layer. Search
 /// is debounced; the last selection is restored (but not forced) from
 /// [DepotSelectionStore].
 class DepotSelectionCubit extends Cubit<DepotSelectionState> {
   DepotSelectionCubit({
-    required BrowseCustomers browseCustomers,
+    required BrowseDepots browseDepots,
     required DepotSelectionStore store,
-  })  : _browseCustomers = browseCustomers,
+  })  : _browseDepots = browseDepots,
         _store = store,
         super(const DepotSelectionState());
 
-  final BrowseCustomers _browseCustomers;
+  final BrowseDepots _browseDepots;
   final DepotSelectionStore _store;
   Timer? _debounce;
 
@@ -26,8 +26,8 @@ class DepotSelectionCubit extends Cubit<DepotSelectionState> {
 
   Future<void> load() async {
     emit(state.copyWith(status: DepotSelectionStatus.loading));
-    final result = await _browseCustomers(
-      BrowseCustomersParams(page: 0, pageSize: _pageSize, query: state.query),
+    final result = await _browseDepots(
+      BrowseDepotsParams(page: 0, pageSize: _pageSize, query: state.query),
     );
     result.when(
       success: (paged) {

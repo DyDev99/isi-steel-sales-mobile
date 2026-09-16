@@ -51,7 +51,7 @@ extension VisitCheckInRowMapper on VisitCheckInRow {
         latitude: latitude,
         longitude: longitude,
         accuracyMeters: accuracy,
-        distanceFromCustomerMeters: distanceFromCustomer,
+        distanceFromDepotMeters: distanceFromDepot,
         isMocked: isMocked,
         overrideReason: overrideReason,
       );
@@ -65,7 +65,7 @@ extension CheckInRecordModelMapper on CheckInRecordModel {
         latitude: latitude,
         longitude: longitude,
         accuracy: accuracyMeters,
-        distanceFromCustomer: distanceFromCustomerMeters,
+        distanceFromDepot: distanceFromDepotMeters,
         isMocked: Value(isMocked),
         overrideReason: Value(overrideReason),
       );

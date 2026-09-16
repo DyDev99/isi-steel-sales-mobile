@@ -5,9 +5,9 @@ import 'package:isi_steel_sales_mobile/core/localization/localization_services.d
 import 'package:isi_steel_sales_mobile/core/localization/localized_builder.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
-import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer.dart';
-import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/customer_params.dart';
-import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/get_customer_by_id.dart';
+import 'package:isi_steel_sales_mobile/features/depots/domain/entities/depot.dart';
+import 'package:isi_steel_sales_mobile/features/depots/domain/usecases/depot_params.dart';
+import 'package:isi_steel_sales_mobile/features/depots/domain/usecases/get_depot_by_id.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/quotation.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/quotation_api_entities.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/cart/cart_cubit.dart';
@@ -53,11 +53,10 @@ class _QuotationDetailView extends StatelessWidget {
 
   Future<void> _editQuotation(
       BuildContext context, QuotationDetail detail) async {
-    Customer? customer;
-    if (detail.customerId.isNotEmpty) {
-      final result =
-          await sl<GetCustomerById>()(CustomerIdParams(detail.customerId));
-      customer = result.when(success: (c) => c, failure: (_) => null);
+    Depot? depot;
+    if (detail.depotId.isNotEmpty) {
+      final result = await sl<GetDepotById>()(DepotIdParams(detail.depotId));
+      depot = result.when(success: (c) => c, failure: (_) => null);
     }
     if (!context.mounted) return;
 
@@ -70,8 +69,8 @@ class _QuotationDetailView extends StatelessWidget {
         ],
         child: LocalizedBuilder(
           builder: (_) => QuotationBuilderScreen(
-            customer: customer,
-            customerId: detail.customerId,
+            depot: depot,
+            depotId: detail.depotId,
             editingQuotationId: detail.id,
           ),
         ),
@@ -79,8 +78,7 @@ class _QuotationDetailView extends StatelessWidget {
     ));
   }
 
-  void _convertToSalesOrder(
-      BuildContext context, QuotationDetail detail) {
+  void _convertToSalesOrder(BuildContext context, QuotationDetail detail) {
     if (fallbackQuotation != null) {
       Navigator.of(context).push(MaterialPageRoute(
         settings: const RouteSettings(name: SalesOrderScreen.routeName),
@@ -246,10 +244,8 @@ class _QuotationDetailView extends StatelessWidget {
     final history = state is QuotationDetailLoaded
         ? state.history
         : const <QuotationApprovalHistory>[];
-    final isSubmitting =
-        state is QuotationDetailLoaded && state.isSubmitting;
-    final isCancelling =
-        state is QuotationDetailLoaded && state.isCancelling;
+    final isSubmitting = state is QuotationDetailLoaded && state.isSubmitting;
+    final isCancelling = state is QuotationDetailLoaded && state.isCancelling;
 
     return _buildDetailContent(
       context,
@@ -267,8 +263,8 @@ class _QuotationDetailView extends StatelessWidget {
     return QuotationDetail(
       id: q.id,
       number: q.id,
-      customerId: q.customerId ?? '',
-      customerName: q.shopName,
+      depotId: q.depotId ?? '',
+      depotName: q.shopName,
       status: q.status.name,
       statusGroup: QuotationStatusGroup.drafts,
       shipmentType: 'Pickup',
@@ -397,9 +393,9 @@ class _QuotationDetailView extends StatelessWidget {
           ],
         ),
         SizedBox(height: context.rh(6)),
-        // Customer Name
+        // Depot Name
         Text(
-          detail.customerName ?? 'Customer #${detail.customerId}',
+          detail.depotName ?? 'Depot #${detail.depotId}',
           style: TextStyle(
             color: colors.textPrimary,
             fontSize: context.rsp(14),
@@ -645,19 +641,28 @@ class _QuotationDetailView extends StatelessWidget {
         textColor: colors.textSecondary,
       );
     }
-    if (s.contains('returned') || s.contains('waiting') || s.contains('pending')) {
+    if (s.contains('returned') ||
+        s.contains('waiting') ||
+        s.contains('pending')) {
       return (
         backgroundColor: Colors.amber.withValues(alpha: 0.15),
         textColor: Colors.amber.shade900,
       );
     }
-    if (s.contains('approved') || s.contains('won') || s.contains('accepted') || s.contains('ordered')) {
+    if (s.contains('approved') ||
+        s.contains('won') ||
+        s.contains('accepted') ||
+        s.contains('ordered')) {
       return (
         backgroundColor: Colors.green.withValues(alpha: 0.15),
         textColor: Colors.green.shade800,
       );
     }
-    if (s.contains('rejected') || s.contains('cancelled') || s.contains('failed') || s.contains('lost') || s.contains('expired')) {
+    if (s.contains('rejected') ||
+        s.contains('cancelled') ||
+        s.contains('failed') ||
+        s.contains('lost') ||
+        s.contains('expired')) {
       return (
         backgroundColor: Colors.red.withValues(alpha: 0.15),
         textColor: Colors.red.shade800,
@@ -698,7 +703,8 @@ class _QuotationLinesTable extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
               color: colors.surfaceSoft,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(14)),
             ),
             child: Row(
               children: [
@@ -894,9 +900,8 @@ class _DetailTotalsCard extends StatelessWidget {
           ],
           const SizedBox(height: 8),
           _TotalsRow(
-            label: totals.tax == null || totals.tax! <= 0
-                ? 'Tax (Exempt)'
-                : 'Tax',
+            label:
+                totals.tax == null || totals.tax! <= 0 ? 'Tax (Exempt)' : 'Tax',
             amount: totals.tax ?? 0.0,
             currency: totals.currency,
           ),
@@ -976,8 +981,7 @@ class _ApprovalHistoryView extends StatelessWidget {
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         itemCount: history.length,
-        separatorBuilder: (_, __) =>
-            Divider(color: colors.divider, height: 1),
+        separatorBuilder: (_, __) => Divider(color: colors.divider, height: 1),
         itemBuilder: (context, index) {
           final record = history[index];
           return Padding(

@@ -44,7 +44,7 @@ class PdfAssets {
   /// `isi-steel-dark.svg` — the **navy** (`#011E41`) mark — is the only correct
   /// one here: a PDF is drawn on white paper. Loading `isi-steel-light.svg`
   /// would emit a near-white wordmark onto white, and the header would come out
-  /// blank on a document that still saves and still reaches the customer.
+  /// blank on a document that still saves and still reaches the depot.
   String? get logoSvg => _logoSvg;
 
   bool get isLoaded => _loaded;

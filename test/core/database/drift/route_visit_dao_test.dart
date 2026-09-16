@@ -29,11 +29,11 @@ void main() {
 
   tearDown(() => db.close());
 
-  Future<void> seedCustomer(String id) => db.into(db.customers).insert(
-        CustomersCompanion.insert(
+  Future<void> seedDepot(String id) => db.into(db.depots).insert(
+        DepotsCompanion.insert(
           id: id,
-          sapCustomerId: Value('SAP-$id'),
-          customerCode: 'C-$id',
+          sapDepotId: Value('SAP-$id'),
+          depotCode: 'C-$id',
           shopName: 'Shop $id',
           ownerName: 'Owner',
           phone: '012000000',
@@ -64,12 +64,12 @@ void main() {
         status: 'planned',
       );
 
-  RouteStopsCompanion stopRow(String id, String routeId, String customerId,
+  RouteStopsCompanion stopRow(String id, String routeId, String depotId,
           {int sequence = 1}) =>
       RouteStopsCompanion.insert(
         id: id,
         routeId: routeId,
-        customerId: customerId,
+        depotId: depotId,
         sequence: sequence,
         plannedArrival: day.add(const Duration(hours: 9)),
         plannedDeparture: day.add(const Duration(hours: 10)),
@@ -117,7 +117,7 @@ void main() {
 
   group('RouteDao — sync upsert', () {
     test('stops are replaced wholesale, not merged', () async {
-      await seedCustomer('cust-1');
+      await seedDepot('cust-1');
       await routeDao.upsertRoutesWithStops([
         RouteWithStops(routeRow('r-1'), [
           stopRow('s-1', 'r-1', 'cust-1', sequence: 1),
@@ -141,7 +141,7 @@ void main() {
     });
 
     test('stops come back in visit order', () async {
-      await seedCustomer('cust-1');
+      await seedDepot('cust-1');
       await routeDao.upsertRoutesWithStops([
         RouteWithStops(routeRow('r-1'), [
           stopRow('s-2', 'r-1', 'cust-1', sequence: 2),
@@ -154,51 +154,50 @@ void main() {
     });
   });
 
-  group('RouteDao — customer reconciliation (T1.5)', () {
-    test('route attributes apply to an existing customer only', () async {
-      await seedCustomer('cust-1');
+  group('RouteDao — depot reconciliation (T1.5)', () {
+    test('route attributes apply to an existing depot only', () async {
+      await seedDepot('cust-1');
 
-      final updated = await routeDao.upsertRouteAttributesOnCustomer(
+      final updated = await routeDao.upsertRouteAttributesOnDepot(
         'cust-1',
         territoryType: 'urban',
         geofenceRadiusOverride: 150,
       );
 
       expect(updated, 1);
-      final customer = await db.select(db.customers).getSingle();
-      expect(customer.territoryType, 'urban');
-      expect(customer.geofenceRadiusOverride, 150);
+      final depot = await db.select(db.depots).getSingle();
+      expect(depot.territoryType, 'urban');
+      expect(depot.geofenceRadiusOverride, 150);
       // The SAP-controlled columns must be untouched by route sync.
-      expect(customer.shopName, 'Shop cust-1');
-      expect(customer.creditLimit, 1000);
+      expect(depot.shopName, 'Shop cust-1');
+      expect(depot.creditLimit, 1000);
     });
 
-    test(
-        'an unknown customer updates nothing and reports 0 rather than throwing',
+    test('an unknown depot updates nothing and reports 0 rather than throwing',
         () async {
-      final updated = await routeDao.upsertRouteAttributesOnCustomer(
+      final updated = await routeDao.upsertRouteAttributesOnDepot(
         'ghost',
         territoryType: 'rural',
       );
 
-      // Caller treats 0 as "customer directory hasn't synced this yet — skip
-      // the stop", not as an error. Route sync may never invent a customer.
+      // Caller treats 0 as "depot directory hasn't synced this yet — skip
+      // the stop", not as an error. Route sync may never invent a depot.
       expect(updated, 0);
-      expect(await routeDao.customerExists('ghost'), isFalse);
+      expect(await routeDao.depotExists('ghost'), isFalse);
     });
 
-    test('customerExists distinguishes seeded from unknown', () async {
-      await seedCustomer('cust-1');
+    test('depotExists distinguishes seeded from unknown', () async {
+      await seedDepot('cust-1');
 
-      expect(await routeDao.customerExists('cust-1'), isTrue);
-      expect(await routeDao.customerExists('nope'), isFalse);
+      expect(await routeDao.depotExists('cust-1'), isTrue);
+      expect(await routeDao.depotExists('nope'), isFalse);
     });
   });
 
   group('RouteDao — local mutations mark dirty', () {
     test('updateStopStatus omitting a timestamp leaves the stored value alone',
         () async {
-      await seedCustomer('cust-1');
+      await seedDepot('cust-1');
       await routeDao.upsertRoutesWithStops([
         RouteWithStops(routeRow('r-1'), [stopRow('s-1', 'r-1', 'cust-1')]),
       ]);
@@ -298,7 +297,7 @@ void main() {
 
   group('VisitDao — captures', () {
     setUp(() async {
-      await seedCustomer('cust-1');
+      await seedDepot('cust-1');
       await routeDao.upsertRoutesWithStops([
         RouteWithStops(routeRow('r-1'), [stopRow('s-1', 'r-1', 'cust-1')]),
       ]);
@@ -313,7 +312,7 @@ void main() {
         latitude: 11.55,
         longitude: 104.91,
         accuracy: 5,
-        distanceFromCustomer: 12,
+        distanceFromDepot: 12,
       ));
 
       final stored = await visitDao.getCheckIn('s-1');
@@ -329,7 +328,7 @@ void main() {
         latitude: 11.55,
         longitude: 104.91,
         accuracy: 5,
-        distanceFromCustomer: 12,
+        distanceFromDepot: 12,
       ));
       await visitDao.insertOrderLine(VisitOrderLinesCompanion.insert(
         id: 'ol-1',

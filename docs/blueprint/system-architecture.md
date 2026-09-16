@@ -24,7 +24,7 @@
 
 ## 1. What the app is
 
-ISI Steel Sales Mobile is a **guest-first, offline-first CRM** for a field sales force: browsing a product catalog, managing customers and leads, planning and executing routes/visits, capturing stock counts and returns, and creating quotations and sales orders that eventually sync to SAP. Sales reps regularly work with no connectivity (warehouses, rural routes), so **every write must succeed locally first** and sync opportunistically — this single requirement shapes every layer below.
+ISI Steel Sales Mobile is a **guest-first, offline-first CRM** for a field sales force: browsing a product catalog, managing depots and leads, planning and executing routes/visits, capturing stock counts and returns, and creating quotations and sales orders that eventually sync to SAP. Sales reps regularly work with no connectivity (warehouses, rural routes), so **every write must succeed locally first** and sync opportunistically — this single requirement shapes every layer below.
 
 ---
 
@@ -58,7 +58,7 @@ Every piece of data in the app is assigned to exactly one of four stores, by sen
 
 | Layer | Store | Holds | Encrypted |
 |---|---|---|---|
-| **1. Relational business data** | Drift (single DB, SQLite under the hood) | customers, products, routes, visits, orders, quotations, sync queue, audit log — all structured business/transactional data | ✅ via SQLCipher-equivalent encryption at rest (see `docs/blueprint/local-storage-architecture.md`) |
+| **1. Relational business data** | Drift (single DB, SQLite under the hood) | depots, products, routes, visits, orders, quotations, sync queue, audit log — all structured business/transactional data | ✅ via SQLCipher-equivalent encryption at rest (see `docs/blueprint/local-storage-architecture.md`) |
 | **2. Non-sensitive preferences** | Hive | `onboarding_complete`, UI filters, feature flags, cached lookups the user can regenerate | Not required — enforce by review that tokens/PII never land here |
 | **3. Secrets** | `flutter_secure_storage` (iOS Keychain / Android Keystore) | access token, refresh token, cached user JSON, the device encryption key | ✅ hardware-backed |
 | **4. Media / files** | Native filesystem, app-sandboxed directory | photos, signed documents, attachments — **only a path/reference is stored in Drift**, never the binary | ✅ file-level encryption (Phase 5) |
@@ -74,7 +74,7 @@ Core Infra (Database + Encryption + SecureStorage + Network + Sync + Session)
   └─ Authentication → Session/AuthGuard
        └─ Localization + Shell + Splash + AppCoach
             └─ Organization/User/Territory/Warehouse (RBAC — gap, see §6)
-                 ├─ Customer/Contact
+                 ├─ Depot/Contact
                  ├─ Catalog/Product/PriceBook
                  ├─ Lead/Opportunity → Visit/Route
                  └─ Quotation/Sales Order
@@ -138,12 +138,12 @@ These are missing pieces the current UI-complete demo does not have, ranked by w
 | Repository (contracts) | Partial | ⚠️ Complete the missing contracts |
 | Datasource (local/remote) | Yes | ✅ Migrate local side to Drift DAOs |
 | Remote API / SAP | Stub (`sap_client.dart` 0-byte) | ❌ Build the gateway |
-| Local DB / storage | ⚠️ **Mid-migration** — encrypted Drift DB exists and owns customers/catalog/cart; **2 plaintext sqflite DBs remain** (`routes.db`, Orders catalog DB). `customers.db` retired. | ❌ Finish the port — **T1.5** |
+| Local DB / storage | ⚠️ **Mid-migration** — encrypted Drift DB exists and owns depots/catalog/cart; **2 plaintext sqflite DBs remain** (`routes.db`, Orders catalog DB). `depots.db` retired. | ❌ Finish the port — **T1.5** |
 | Encryption at rest | ✅ Built — composite key + fail-closed cipher check + rotation | ✅ Done (T1.0–T1.4, T1.6) |
 | Background services | Stub (`core/sync/*` 0-byte) | ❌ Build the sync isolate |
 | Dependency direction | Inward | ✅ No violations found |
 
-> **Scorecard reconciled 2026-07-15 @ `6622bfc`.** The "Local DB / storage — Fragmented (3 plaintext DBs)" row predated the encrypted-Drift landing and has been corrected above. The severity has *not* gone away: plaintext PII (a `customers` table and `location_samples` GPS traces in `routes.db`) is still on disk until **T1.5** purges it.
+> **Scorecard reconciled 2026-07-15 @ `6622bfc`.** The "Local DB / storage — Fragmented (3 plaintext DBs)" row predated the encrypted-Drift landing and has been corrected above. The severity has *not* gone away: plaintext PII (a `depots` table and `location_samples` GPS traces in `routes.db`) is still on disk until **T1.5** purges it.
 
 **Verdict**: the failure mode is absent shared infrastructure, not misplaced code. Enforce the good parts (layer discipline) with tooling (§6) so it can't erode as the team grows.
 

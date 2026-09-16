@@ -54,7 +54,7 @@ different rates depending on evaluation order.
 | The handlers end to end | They need `IApplicationDbContext`, `ICurrentUser`, `IPricingAudienceResolver` and `IUserDirectory` together. `MaterialTestContext` is the in-memory pattern to follow when this is done |
 | The exclusion constraint | EF Core's in-memory provider cannot enforce one. **This belongs in an integration test against PostgreSQL** and is the most valuable gap on this list |
 | The overlap checks against real data | Same — they are database queries |
-| `IAgreementLookup` and the quotation pipeline together | Needs a seeded context: customer, material, mapping, effective term, quotation |
+| `IAgreementLookup` and the quotation pipeline together | Needs a seeded context: depot, material, mapping, effective term, quotation |
 | Idempotent creation on `clientRequestId` | The unique index is what enforces it, so it needs a real database |
 | The SAP attestation path | No SAP to attest against; the domain transition is covered, the handler is not |
 
@@ -80,8 +80,8 @@ day — and nothing currently proves it fires.
 
 `tests/ISI.Domain.UnitTests` still does not compile. Its `ProjectReference`s were
 restored during the quotations work, taking it from 120 errors to 1; the remaining one
-is `Modules/Customers/CustomerReferenceTests.cs`, testing a `CustomerReference` type
-that no longer exists. That belongs to in-flight customer work and was left alone.
+is `Modules/Depots/DepotReferenceTests.cs`, testing a `DepotReference` type
+that no longer exists. That belongs to in-flight depot work and was left alone.
 
 **Consequence:** solution-wide `dotnet test` still fails on that one file. The
 promotions tests live in `ISI.Application.UnitTests`, which compiles and passes.

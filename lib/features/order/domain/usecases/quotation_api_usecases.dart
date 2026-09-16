@@ -9,18 +9,18 @@ import 'package:isi_steel_sales_mobile/shared/widgets/promotions/promo_view.dart
 class GetQuotationsParams extends Equatable {
   const GetQuotationsParams({
     this.status,
-    this.customerId,
+    this.depotId,
     this.page = 1,
     this.pageSize = 20,
   });
 
   final String? status;
-  final String? customerId;
+  final String? depotId;
   final int page;
   final int pageSize;
 
   @override
-  List<Object?> get props => [status, customerId, page, pageSize];
+  List<Object?> get props => [status, depotId, page, pageSize];
 }
 
 class GetQuotationsList
@@ -32,7 +32,7 @@ class GetQuotationsList
   ResultFuture<PagedResult<QuotationSummary>> call(GetQuotationsParams params) {
     return _repository.getQuotations(
       status: params.status,
-      customerId: params.customerId,
+      depotId: params.depotId,
       page: params.page,
       pageSize: params.pageSize,
     );
@@ -41,28 +41,27 @@ class GetQuotationsList
 
 class OpenQuotationParams extends Equatable {
   const OpenQuotationParams({
-    required this.customerId,
+    required this.depotId,
     this.shipmentType = 'Pickup',
     this.shipTo,
   });
 
-  final String customerId;
+  final String depotId;
   final String shipmentType;
   final String? shipTo;
 
   @override
-  List<Object?> get props => [customerId, shipmentType, shipTo];
+  List<Object?> get props => [depotId, shipmentType, shipTo];
 }
 
-class OpenQuotation
-    implements UseCase<QuotationDetail, OpenQuotationParams> {
+class OpenQuotation implements UseCase<QuotationDetail, OpenQuotationParams> {
   const OpenQuotation(this._repository);
   final QuotationApiRepository _repository;
 
   @override
   ResultFuture<QuotationDetail> call(OpenQuotationParams params) {
     return _repository.createQuotation(
-      customerId: params.customerId,
+      depotId: params.depotId,
       shipmentType: params.shipmentType,
       shipTo: params.shipTo,
     );
@@ -94,7 +93,7 @@ class UpdateQuotationHeaderParams extends Equatable {
     required this.shipmentType,
     this.shipTo,
     this.paymentTerm,
-    this.customerReference,
+    this.depotReference,
     this.remarks,
   });
 
@@ -102,12 +101,12 @@ class UpdateQuotationHeaderParams extends Equatable {
   final String shipmentType;
   final String? shipTo;
   final String? paymentTerm;
-  final String? customerReference;
+  final String? depotReference;
   final String? remarks;
 
   @override
   List<Object?> get props =>
-      [id, shipmentType, shipTo, paymentTerm, customerReference, remarks];
+      [id, shipmentType, shipTo, paymentTerm, depotReference, remarks];
 }
 
 class UpdateQuotationHeader
@@ -122,7 +121,7 @@ class UpdateQuotationHeader
       shipmentType: params.shipmentType,
       shipTo: params.shipTo,
       paymentTerm: params.paymentTerm,
-      customerReference: params.customerReference,
+      depotReference: params.depotReference,
       remarks: params.remarks,
     );
   }
@@ -253,8 +252,7 @@ class GetQuotationPreview
   }
 }
 
-class RepriceQuotation
-    implements UseCase<QuotationDetail, QuotationIdParams> {
+class RepriceQuotation implements UseCase<QuotationDetail, QuotationIdParams> {
   const RepriceQuotation(this._repository);
   final QuotationApiRepository _repository;
 
@@ -264,8 +262,7 @@ class RepriceQuotation
   }
 }
 
-class SubmitQuotation
-    implements UseCase<QuotationDetail, QuotationIdParams> {
+class SubmitQuotation implements UseCase<QuotationDetail, QuotationIdParams> {
   const SubmitQuotation(this._repository);
   final QuotationApiRepository _repository;
 
@@ -275,8 +272,7 @@ class SubmitQuotation
   }
 }
 
-class CancelQuotation
-    implements UseCase<QuotationDetail, QuotationIdParams> {
+class CancelQuotation implements UseCase<QuotationDetail, QuotationIdParams> {
   const CancelQuotation(this._repository);
   final QuotationApiRepository _repository;
 
@@ -297,73 +293,72 @@ class GetQuotationHistory
   }
 }
 
-class CustomerAgreementsParams extends Equatable {
-  const CustomerAgreementsParams(this.customerId);
-  final String customerId;
+class DepotAgreementsParams extends Equatable {
+  const DepotAgreementsParams(this.depotId);
+  final String depotId;
 
   @override
-  List<Object?> get props => [customerId];
+  List<Object?> get props => [depotId];
 }
 
-class GetCustomerAgreements
-    implements UseCase<List<CustomerAgreement>, CustomerAgreementsParams> {
-  const GetCustomerAgreements(this._repository);
+class GetDepotAgreements
+    implements UseCase<List<DepotAgreement>, DepotAgreementsParams> {
+  const GetDepotAgreements(this._repository);
   final QuotationApiRepository _repository;
 
   @override
-  ResultFuture<List<CustomerAgreement>> call(CustomerAgreementsParams params) {
-    return _repository.getCustomerAgreements(params.customerId);
+  ResultFuture<List<DepotAgreement>> call(DepotAgreementsParams params) {
+    return _repository.getDepotAgreements(params.depotId);
   }
 }
 
-class CustomerIncentivesParams extends Equatable {
-  const CustomerIncentivesParams({
-    required this.customerId,
+class DepotIncentivesParams extends Equatable {
+  const DepotIncentivesParams({
+    required this.depotId,
     this.shipment,
   });
 
-  final String customerId;
+  final String depotId;
   final String? shipment;
 
   @override
-  List<Object?> get props => [customerId, shipment];
+  List<Object?> get props => [depotId, shipment];
 }
 
-class GetCustomerIncentives
-    implements UseCase<List<PromoGroup>, CustomerIncentivesParams> {
-  const GetCustomerIncentives(this._repository);
+class GetDepotIncentives
+    implements UseCase<List<PromoGroup>, DepotIncentivesParams> {
+  const GetDepotIncentives(this._repository);
   final QuotationApiRepository _repository;
 
   @override
-  ResultFuture<List<PromoGroup>> call(CustomerIncentivesParams params) {
-    return _repository.getCustomerIncentives(
-      params.customerId,
+  ResultFuture<List<PromoGroup>> call(DepotIncentivesParams params) {
+    return _repository.getDepotIncentives(
+      params.depotId,
       shipment: params.shipment,
     );
   }
 }
 
-class CustomerPromotionsParams extends Equatable {
-  const CustomerPromotionsParams(this.customerId);
-  final String customerId;
+class DepotPromotionsParams extends Equatable {
+  const DepotPromotionsParams(this.depotId);
+  final String depotId;
 
   @override
-  List<Object?> get props => [customerId];
+  List<Object?> get props => [depotId];
 }
 
-class GetCustomerPromotions
-    implements UseCase<List<PromoView>, CustomerPromotionsParams> {
-  const GetCustomerPromotions(this._repository);
+class GetDepotPromotions
+    implements UseCase<List<PromoView>, DepotPromotionsParams> {
+  const GetDepotPromotions(this._repository);
   final QuotationApiRepository _repository;
 
   @override
-  ResultFuture<List<PromoView>> call(CustomerPromotionsParams params) {
-    return _repository.getCustomerPromotions(params.customerId);
+  ResultFuture<List<PromoView>> call(DepotPromotionsParams params) {
+    return _repository.getDepotPromotions(params.depotId);
   }
 }
 
-class GetDiscountAuthority
-    implements UseCase<DiscountAuthority, NoParams> {
+class GetDiscountAuthority implements UseCase<DiscountAuthority, NoParams> {
   const GetDiscountAuthority(this._repository);
   final QuotationApiRepository _repository;
 

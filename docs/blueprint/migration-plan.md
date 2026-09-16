@@ -25,7 +25,7 @@
 ## 0. Locked decisions (gate all downstream work)
 
 1. **Persistence direction**: migrate to **Drift + encrypted-at-rest SQLite** — a single database with generated DAOs and a unified migrator. The three existing per-feature plaintext `sqflite` databases are ported in, not kept alongside.
-2. **Sprint 1 starting point**: **encryption and key management first** — before any new feature work, and before continuing the customer/catalog/routes port.
+2. **Sprint 1 starting point**: **encryption and key management first** — before any new feature work, and before continuing the depot/catalog/routes port.
 3. **Coding rule in force** (see `docs/skills/engineering-standard.md` §2): implementation proceeds module-by-module, in dependency order, never ahead of a validated plan.
 
 ---
@@ -41,7 +41,7 @@
 | Composite key `SHA256(Env.dbSalt + DeviceKey)` | ✅ **Built** — `KeyDerivation.deriveDatabaseKey` computes `sha256(salt + deviceKey)`, hex-encoded, with non-empty guards | ~~Rework to composite derivation~~ — **done (T1.2)** |
 | `DynamicKeyStore` device key in Keychain/Keystore | ✅ **Built** — device-key vs. derived-key split is in place; the old `DatabaseKeyManager` no longer exists | ~~Split device/derived key~~ — **done (T1.1)** |
 | Key rotation / re-key | ✅ **Built** — `DatabaseKeyRotator` + `AppDatabaseRekeyExecutor` (`PRAGMA rekey`), with unit tests | **done (T1.6)** |
-| **Legacy plaintext → encrypted import + purge** | 🟢 **T1.5a COMPLETE for `routes.db`** (2026-07-15). Schema v7/v8 (13 tables, §3.1 columns; the `route_stops.customer_id → customers` FK added here was **removed in v18 by ADR-011** after it was shown to abort whole route writes); `RouteDao`/`RouteTelemetryDao`/`VisitDao`; `LegacyRoutesImporter` (one transaction, idempotent, orphan-reconciling); all 3 `my_visits` datasources cut over to Drift behind the unchanged interfaces; import wired into `AppBootstrapService` with **verify-before-purge**. 82 tests cover it. ⚠️ **`routes.db` file remains** — it still holds `workflow_state` (ADR-007, Phase 3); the purge empties every *business* table, so 100% of the PII goes, but the file is deleted only when workflow is generalised. 🔴 **Still plaintext**: the Orders sqflite catalog DB (`sync_queue`, `quotations`, `sales_orders`) — **T1.5b**. | **Next: T1.5b (Orders DB), then delete `routes.db` with ADR-007** |
+| **Legacy plaintext → encrypted import + purge** | 🟢 **T1.5a COMPLETE for `routes.db`** (2026-07-15). Schema v7/v8 (13 tables, §3.1 columns; the `route_stops.depot_id → depots` FK added here was **removed in v18 by ADR-011** after it was shown to abort whole route writes); `RouteDao`/`RouteTelemetryDao`/`VisitDao`; `LegacyRoutesImporter` (one transaction, idempotent, orphan-reconciling); all 3 `my_visits` datasources cut over to Drift behind the unchanged interfaces; import wired into `AppBootstrapService` with **verify-before-purge**. 82 tests cover it. ⚠️ **`routes.db` file remains** — it still holds `workflow_state` (ADR-007, Phase 3); the purge empties every *business* table, so 100% of the PII goes, but the file is deleted only when workflow is generalised. 🔴 **Still plaintext**: the Orders sqflite catalog DB (`sync_queue`, `quotations`, `sales_orders`) — **T1.5b**. | **Next: T1.5b (Orders DB), then delete `routes.db` with ADR-007** |
 | Hive = non-sensitive prefs only | ✅ Correct — the dead Hive-backed session store was removed; only prefs/cache remain | Keep. **Note**: unused `LocalCache` invites caching business data in Hive (§3 violation) — delete or scope it |
 | Native filesystem media, DB holds only string refs (Layer 4) | ⛔ Stub (`core/database/files/encrypted_file_store.dart`) | Build in Phase 5 (§8, P0) |
 | `WorkflowSession` (explicit schema) | ⛔ Partial `ActiveWorkflow`, scoped to `my_visits`, on sqflite | Generalize in Phase 3 (ADR-007) |
@@ -139,7 +139,7 @@ P10 Production Release          — Store submission, monitoring, crash reportin
 |---|---|---|---|---|
 | S0 | Architecture / CI-CD / Setup | ADRs, Envied scaffold, CI wiring, decisions locked | Pipeline smoke | Low |
 | S1 | **Crypto foundation** | T1.0–T1.6 (Envied, DynamicKeyStore, composite key, encrypted Drift DB, migrator) | Migration + encryption tests | **High** |
-| S2 | Core entities / schema + DAOs | Port customers, catalog, routes, orders | DAO + repository tests | **High** |
+| S2 | Core entities / schema + DAOs | Port depots, catalog, routes, orders | DAO + repository tests | **High** |
 | S3 | Workflow resume | Generalized session entity, resume router, expiry | Crash/resume simulation | Medium |
 | S4 | Sync engine | Queue, backoff, priority, background isolate, conflict manager, DLQ | Offline-chaos suite | **High** |
 | S5 | Media / Layer 4 | Encrypted file store, lifecycle | Storage tests | Medium |
@@ -161,7 +161,7 @@ Envied Config ─► DynamicKeyStore ─► KeyDerivation ─► Encrypted AppDa
         │
    Authentication ─► RBAC (Organization/Role/Permission)
         │
-   Customer ─► Product/PriceBook ─► Route/Visit ─► Quotation/Order
+   Depot ─► Product/PriceBook ─► Route/Visit ─► Quotation/Order
         │
    WorkflowSession (resume)
         │
@@ -185,7 +185,7 @@ Envied Config ─► DynamicKeyStore ─► KeyDerivation ─► Encrypted AppDa
 | T1.2 | `KeyDerivation`: `FinalKey = SHA256(Env.dbSalt + DeviceKey)` | P0 | T1.0, T1.1 | 3 | Deterministic 32-byte key; KDF rationale documented (see `docs/blueprint/local-storage-architecture.md` §2.1) | Unit, known-vector |
 | T1.3 | Encrypted `AppDatabase` (Drift), inject composite key at open time | P0 | T1.2 | 8 | Opens with correct key; wrong key fails to open; `cipher` pragma confirms encryption is active | On-device open + wrong-key test |
 | T1.4 | Unified migrator + schema-version registry | P0 | T1.3 | 5 | Migrations run once, idempotent, covered by schema tests | Drift schema tests |
-| T1.5 | Legacy plaintext → encrypted one-time import | P0 | T1.3, T1.4 | 8 | `catalog.db`/`customers.db`/`routes.db` imported; old plaintext files purged after verified import; zero data loss | Migration integration test |
+| T1.5 | Legacy plaintext → encrypted one-time import | P0 | T1.3, T1.4 | 8 | `catalog.db`/`depots.db`/`routes.db` imported; old plaintext files purged after verified import; zero data loss | Migration integration test |
 | T1.6 | Key-rotation / re-key routine | P1 | T1.3 | 5 | Re-key completes without data loss; `key_metadata` version bumped | Integration |
 
 > **Correction vs. started work**: the current `DatabaseKeyManager` (stores one final random key directly) is replaced by the T1.1 + T1.2 split (device key + salted derivation). The Drift scaffolding already written for the encrypted database is reused for T1.3, not discarded.
@@ -274,7 +274,7 @@ Carried from the earlier architecture review as still-relevant Sprint 1/2 items 
 
 ## 13. Implementation order (single line, for quick reference)
 
-Envied → DynamicKeyStore → KeyDerivation → Encrypted AppDatabase → Migrator → DAOs → Authentication/RBAC → Core entities (Customer/Product/Route/Order) → WorkflowSession → Sync Engine/Conflict Manager → SAP Client → Media → Security Hardening → CI/CD → Release.
+Envied → DynamicKeyStore → KeyDerivation → Encrypted AppDatabase → Migrator → DAOs → Authentication/RBAC → Core entities (Depot/Product/Route/Order) → WorkflowSession → Sync Engine/Conflict Manager → SAP Client → Media → Security Hardening → CI/CD → Release.
 
 ---
 

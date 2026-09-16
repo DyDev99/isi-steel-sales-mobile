@@ -8,7 +8,7 @@ import 'package:isi_steel_sales_mobile/features/order/domain/entities/cart_item.
 /// The forbidden renderings are the point. A missing price must never appear as
 /// `$0`, `0.00`, `N/A` or `Unknown`:
 ///
-///  * `$0.00` is a **quoted price of zero** — a promise a customer can hold the
+///  * `$0.00` is a **quoted price of zero** — a promise a depot can hold the
 ///    rep to, and the reason this helper exists.
 ///  * `N/A` and `Unknown` read as an error, as though selecting the material
 ///    had failed. It did not: the line is valid and the order can proceed.
@@ -21,7 +21,7 @@ abstract final class PricingText {
   /// Whether an amount should be rendered at all.
   ///
   /// True for null and for anything at or below zero. `0.00` is not a price:
-  /// on a quotation it is a *quoted price of zero*, a promise a customer can
+  /// on a quotation it is a *quoted price of zero*, a promise a depot can
   /// hold the rep to, so it is treated as absent rather than shown.
   static bool isHidden(double? amount) => amount == null || amount <= 0;
 
@@ -50,7 +50,7 @@ abstract final class PricingText {
   /// unpriced.
   ///
   /// A subtotal that silently drops a pending line is a smaller, wronger
-  /// number than no subtotal at all — and it is the one the customer is shown.
+  /// number than no subtotal at all — and it is the one the depot is shown.
   static String? totalOrNull(Iterable<CartItem> lines, double fallback,
           {int decimals = 2}) =>
       lines.hasPendingPricing

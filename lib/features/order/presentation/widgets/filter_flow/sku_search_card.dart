@@ -30,7 +30,9 @@ class SkuSearchCard extends StatelessWidget {
 
     final skuText = product.sku.isNotEmpty
         ? product.sku
-        : (product.materialCode.isNotEmpty ? product.materialCode : product.code);
+        : (product.materialCode.isNotEmpty
+            ? product.materialCode
+            : product.code);
 
     final details = [
       if (product.familyName.isNotEmpty) product.familyName,
@@ -45,9 +47,8 @@ class SkuSearchCard extends StatelessWidget {
       duration: const Duration(milliseconds: 200),
       curve: Curves.easeOutCubic,
       decoration: BoxDecoration(
-        color: isSelected
-            ? scheme.primary.withValues(alpha: 0.06)
-            : colors.card,
+        color:
+            isSelected ? scheme.primary.withValues(alpha: 0.06) : colors.card,
         borderRadius: BorderRadius.circular(context.rr(12)),
         border: Border.all(
           color: isSelected ? scheme.primary : colors.border,

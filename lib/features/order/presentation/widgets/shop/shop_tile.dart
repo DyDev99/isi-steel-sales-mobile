@@ -1,28 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
-import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer.dart';
-import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer_status.dart';
-import 'package:isi_steel_sales_mobile/features/customers/presentation/widgets/customer_status_badge.dart';
+import 'package:isi_steel_sales_mobile/features/depots/domain/entities/depot.dart';
+import 'package:isi_steel_sales_mobile/features/depots/domain/entities/depot_status.dart';
+import 'package:isi_steel_sales_mobile/features/depots/presentation/widgets/depot_status_badge.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/credit_summary.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 
 /// Shop selection card for the Territory -> Shop flow. Deliberately a new,
-/// lighter widget rather than reusing `CustomerCard` (shared with the live
-/// Customers list) — this needs credit limit + CN/DN badge, which
-/// `CustomerCard` doesn't show, and needs a disabled visual state for
+/// lighter widget rather than reusing `DepotCard` (shared with the live
+/// Depots list) — this needs credit limit + CN/DN badge, which
+/// `DepotCard` doesn't show, and needs a disabled visual state for
 /// non-active shops.
 class ShopTile extends StatelessWidget {
   const ShopTile(
       {super.key,
-      required this.customer,
+      required this.depot,
       required this.onTap,
       this.creditSummary});
 
-  final Customer customer;
+  final Depot depot;
   final VoidCallback? onTap;
   final CreditSummary? creditSummary;
 
-  bool get _isActive => customer.status == CustomerStatus.active;
+  bool get _isActive => depot.status == DepotStatus.active;
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +65,7 @@ class ShopTile extends StatelessWidget {
                         Row(
                           children: [
                             Expanded(
-                              child: Text(customer.shopName,
+                              child: Text(depot.shopName,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
@@ -74,11 +74,11 @@ class ShopTile extends StatelessWidget {
                                       fontWeight: FontWeight.w800)),
                             ),
                             SizedBox(width: context.rw(6)),
-                            CustomerStatusBadge(status: customer.status),
+                            DepotStatusBadge(status: depot.status),
                           ],
                         ),
                         SizedBox(height: context.rh(2)),
-                        Text('${customer.address}, ${customer.district}',
+                        Text('${depot.address}, ${depot.district}',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
@@ -88,7 +88,7 @@ class ShopTile extends StatelessWidget {
                         Row(
                           children: [
                             Text(
-                                '\$${customer.creditLimit.toStringAsFixed(0)} limit',
+                                '\$${depot.creditLimit.toStringAsFixed(0)} limit',
                                 style: TextStyle(
                                     color: colors.textPrimary,
                                     fontSize: context.rsp(12),

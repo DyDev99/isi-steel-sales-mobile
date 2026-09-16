@@ -34,10 +34,10 @@ Every local write to a syncable table (§3.1 of `docs/blueprint/local-storage-ar
 
 ```
 db.transaction(() async {
-  await customerDao.upsert(customer);
+  await depotDao.upsert(depot);
   await syncQueueDao.enqueue(
-    entityType: 'customer',
-    entityId: customer.id,
+    entityType: 'depot',
+    entityId: depot.id,
     op: SyncOp.upsert,
     idempotencyKey: uuid(),
     priority: SyncPriority.normal,

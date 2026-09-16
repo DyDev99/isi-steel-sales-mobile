@@ -1,6 +1,6 @@
 # Order & Quotation
 
-> **Purpose:** everything between "the rep knows what the customer wants" and "a
+> **Purpose:** everything between "the rep knows what the depot wants" and "a
 > sales order exists" — catalog browsing, guided material selection, cart,
 > quotations, PDF output, and sales orders that eventually reach SAP.
 > **Code:** `lib/features/order/`

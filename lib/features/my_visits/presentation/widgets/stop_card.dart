@@ -64,11 +64,11 @@ class StopCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.appColors;
     final statusStyle = _getVisitStatusStyle(context);
-    final customer = todayStop.stop.customer;
+    final depot = todayStop.stop.depot;
 
     // Display Name formatted as KH & EN
-    final khName = customer.nameKh;
-    final enName = customer.name;
+    final khName = depot.nameKh;
+    final enName = depot.name;
     final formattedOutletName =
         khName.isNotEmpty ? '$khName ($enName)' : enName;
 
@@ -82,8 +82,8 @@ class StopCard extends StatelessWidget {
     final canStartVisit = isToday && !isVisitedOrSkipped;
 
     // Retrieve channel (Wholesale/Retail) and tier (Diamond/Gold/Silver/Bronze)
-    final channelTag = customer.territoryType.label;
-    final tierTag = 'Silver'; // Fallback / mock field from customer entity
+    final channelTag = depot.territoryType.label;
+    final tierTag = 'Silver'; // Fallback / mock field from depot entity
 
     final tierColors = _getTierColors(tierTag);
 
@@ -129,7 +129,7 @@ class StopCard extends StatelessWidget {
                       ),
                       SizedBox(height: context.rh(4)),
                       Text(
-                        customer.address,
+                        depot.address,
                         style: TextStyle(
                           color: colors.textSecondary,
                           fontSize: context.rsp(11.5),
@@ -211,7 +211,7 @@ class StopCard extends StatelessWidget {
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       _TagChip(
-                        label: customer.territory,
+                        label: depot.territory,
                         color: colors.border,
                       ),
                       _TagChip(
@@ -258,7 +258,7 @@ class StopCard extends StatelessWidget {
                           HapticFeedback.mediumImpact();
                           final result = await showSkipVisitDialog(
                             context,
-                            customer: customer,
+                            depot: depot,
                           );
                           if (result != null) {
                             onSkipSubmitted?.call(

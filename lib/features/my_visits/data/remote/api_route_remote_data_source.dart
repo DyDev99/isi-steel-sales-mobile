@@ -3,7 +3,7 @@ import 'package:isi_steel_sales_mobile/core/constants/app_constant.dart';
 import 'package:isi_steel_sales_mobile/core/network/api_envelope.dart';
 import 'package:isi_steel_sales_mobile/core/network/api_error.dart';
 import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/data/models/customer_stop_info_model.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/data/models/depot_stop_info_model.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/models/route_plan_model.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/models/route_stop_model.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/remote/route_remote_data_source.dart';
@@ -16,7 +16,7 @@ import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_
 /// source behind the same interface, so `RouteSyncRepositoryImpl` and
 /// everything above it were untouched by the cutover.
 ///
-/// Both calls read the same envelope — `data.customers`, `data.routes` and
+/// Both calls read the same envelope — `data.depots`, `data.routes` and
 /// `data.hasMore` (`docs/feature/my-visits/api.md` §5).
 class ApiRouteRemoteDataSource implements RouteRemoteDataSource {
   const ApiRouteRemoteDataSource(this._client);
@@ -35,7 +35,7 @@ class ApiRouteRemoteDataSource implements RouteRemoteDataSource {
       // contract was set by the mock, whose paging is `page * pageSize`, and
       // the repository counts from 0 to match. Converting here rather than
       // changing either keeps this a pure adapter concern — and the conversion
-      // is not cosmetic: the customer endpoint silently treats page 0 as page
+      // is not cosmetic: the depot endpoint silently treats page 0 as page
       // 1, so an unconverted first call would re-fetch page 1 twice and the
       // last page would never be read.
       'page': page + 1,
@@ -83,11 +83,18 @@ class ApiRouteRemoteDataSource implements RouteRemoteDataSource {
       throw ApiException(ApiError.fromDio(e));
     }
 
-    // Customers first: stops resolve against them, and a stop whose customer
+    // Depots first: stops resolve against them, and a stop whose depot
     // is missing cannot be built at all.
-    final customers =
-        envelope.list('customers').map(CustomerStopInfoModel.fromJson).toList();
-    final customersById = {for (final c in customers) c.id: c};
+    //
+    // The wire key is `customers`, not `depots`, and it is not a typo:
+    // ADR-0007 — the routes moved to /depots, the payloads keep SAP's
+    // "customer". Renaming this one along with the rest of the sweep cost the
+    // rep their whole route: the server sent 21 depots under `customers`, this
+    // read `depots`, got nothing, and every stop was then dropped as
+    // unresolvable. Confirmed against a live response, not inferred.
+    final depots =
+        envelope.list('customers').map(DepotStopInfoModel.fromJson).toList();
+    final depotsById = {for (final c in depots) c.id: c};
 
     final routes = <RoutePlanModel>[];
     for (final routeJson in envelope.list('routes')) {
@@ -95,26 +102,29 @@ class ApiRouteRemoteDataSource implements RouteRemoteDataSource {
           .whereType<Map>()
           .map((e) => e.cast<String, dynamic>());
 
-      // Drop a stop whose customer is absent from the payload rather than
-      // failing the page. `customers` is documented as a flat de-duplicated
+      // Drop a stop whose depot is absent from the payload rather than
+      // failing the page. `depots` is documented as a flat de-duplicated
       // list covering every stop, so a miss is a server bug — but taking the
       // rep's whole route down over one unresolvable stop is the worse
       // failure, and this is the same tolerance the mock source applies.
       final stops = [
         for (final stopJson in stopsJson)
-          if (customersById[stopJson['customerId']] case final customer?)
-            RouteStopModel.fromJson(stopJson, customer: customer),
+          // `customerId` on the wire, for the same reason as `customers`
+          // above — the backend notice names it outright: "the same
+          // `customerId` the route sync already gives you on each stop".
+          if (depotsById[stopJson['customerId']] case final depot?)
+            RouteStopModel.fromJson(stopJson, depot: depot),
       ];
 
       routes.add(RoutePlanModel.fromJson(routeJson, stops: stops));
     }
 
     return RouteSyncPage(
-      customers: customers,
+      depots: depots,
       routes: routes,
       // The server's own clock, echoed back as `since` on the next delta.
       // Falls back to the envelope's `metadata.syncTimestamp`, which is where
-      // the customer endpoints carry the same fact.
+      // the depot endpoints carry the same fact.
       generatedAt: parseUtc(envelope.data['generatedAt']) ??
           envelope.metadata?.syncTimestamp,
       territories: (envelope.data['territories'] as List<dynamic>? ?? const [])

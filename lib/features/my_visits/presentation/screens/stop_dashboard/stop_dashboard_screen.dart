@@ -66,7 +66,7 @@ class _StopDashboardScreenState extends State<StopDashboardScreen> {
   /// The basket action on a stop card: quote this shop.
   ///
   /// Goes straight to the Quotation Builder with the outlet already chosen,
-  /// through the same `openQuotationForCustomer` the guided visit flow and
+  /// through the same `openQuotationForDepot` the guided visit flow and
   /// "Continue Working" use — so a quotation raised from the dashboard is
   /// built, priced and filed identically to one raised mid-visit.
   ///
@@ -74,11 +74,11 @@ class _StopDashboardScreenState extends State<StopDashboardScreen> {
   /// all — it is hidden while the stop is still `pending` — so re-checking the
   /// status on the way out would only add a second, silently disagreeing rule.
   void _openQuotation(BuildContext context, TodayStop todayStop) {
-    final customer = todayStop.stop.customer;
-    unawaited(openQuotationForCustomer(
+    final depot = todayStop.stop.depot;
+    unawaited(openQuotationForDepot(
       context,
-      customerId: customer.id,
-      customerName: context.localized(customer.displayName),
+      depotId: depot.id,
+      depotName: context.localized(depot.displayName),
     ));
   }
 

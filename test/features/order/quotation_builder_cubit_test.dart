@@ -8,21 +8,32 @@ import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/quotatio
 import 'package:mocktail/mocktail.dart';
 
 class _MockOpenQuotation extends Mock implements OpenQuotation {}
+
 class _MockGetQuotationDetail extends Mock implements GetQuotationDetail {}
-class _MockUpdateQuotationHeader extends Mock implements UpdateQuotationHeader {}
+
+class _MockUpdateQuotationHeader extends Mock
+    implements UpdateQuotationHeader {}
+
 class _MockAddQuotationLine extends Mock implements AddQuotationLine {}
+
 class _MockUpdateQuotationLine extends Mock implements UpdateQuotationLine {}
-class _MockDeleteQuotationLineItem extends Mock implements DeleteQuotationLineItem {}
-class _MockSetQuotationDiscounts extends Mock implements SetQuotationDiscounts {}
+
+class _MockDeleteQuotationLineItem extends Mock
+    implements DeleteQuotationLineItem {}
+
+class _MockSetQuotationDiscounts extends Mock
+    implements SetQuotationDiscounts {}
+
 class _MockGetQuotationPreview extends Mock implements GetQuotationPreview {}
-class _MockGetCustomerAgreements extends Mock implements GetCustomerAgreements {}
+
+class _MockGetDepotAgreements extends Mock implements GetDepotAgreements {}
 
 QuotationDetail _detail(String id, {List<QuotationLineItem> lines = const []}) {
   return QuotationDetail(
     id: id,
     number: 'QT-$id',
-    customerId: 'cust-10',
-    customerName: 'Customer Ten',
+    depotId: 'cust-10',
+    depotName: 'Depot Ten',
     status: 'Draft',
     statusGroup: QuotationStatusGroup.drafts,
     shipmentType: 'Pickup',
@@ -50,11 +61,11 @@ void main() {
   late _MockDeleteQuotationLineItem mockDeleteLine;
   late _MockSetQuotationDiscounts mockSetDiscounts;
   late _MockGetQuotationPreview mockGetPreview;
-  late _MockGetCustomerAgreements mockGetAgreements;
+  late _MockGetDepotAgreements mockGetAgreements;
 
   setUpAll(() {
-    registerFallbackValue(const OpenQuotationParams(customerId: 'cust'));
-    registerFallbackValue(const CustomerAgreementsParams('cust'));
+    registerFallbackValue(const OpenQuotationParams(depotId: 'cust'));
+    registerFallbackValue(const DepotAgreementsParams('cust'));
     registerFallbackValue(const QuotationIdParams('qt'));
     registerFallbackValue(const AddQuotationLineParams(
       id: 'qt',
@@ -76,7 +87,7 @@ void main() {
     mockDeleteLine = _MockDeleteQuotationLineItem();
     mockSetDiscounts = _MockSetQuotationDiscounts();
     mockGetPreview = _MockGetQuotationPreview();
-    mockGetAgreements = _MockGetCustomerAgreements();
+    mockGetAgreements = _MockGetDepotAgreements();
   });
 
   QuotationBuilderCubit build() => QuotationBuilderCubit(
@@ -88,16 +99,16 @@ void main() {
         deleteQuotationLineItem: mockDeleteLine,
         setQuotationDiscounts: mockSetDiscounts,
         getQuotationPreview: mockGetPreview,
-        getCustomerAgreements: mockGetAgreements,
+        getDepotAgreements: mockGetAgreements,
       );
 
   group('QuotationBuilderCubit', () {
     blocTest<QuotationBuilderCubit, QuotationBuilderState>(
-      'initializes by fetching customer agreements and opening quotation',
+      'initializes by fetching depot agreements and opening quotation',
       build: () {
         when(() => mockGetAgreements(any())).thenAnswer(
           (_) async => const Success([
-            CustomerAgreement(
+            DepotAgreement(
               id: 'agr-1',
               category: 'Roofing',
               percent: 2.5,
@@ -111,7 +122,7 @@ void main() {
         );
         return build();
       },
-      act: (cubit) => cubit.initialize(customerId: 'cust-10'),
+      act: (cubit) => cubit.initialize(depotId: 'cust-10'),
       expect: () => [
         const QuotationBuilderLoading(),
         isA<QuotationBuilderReady>()

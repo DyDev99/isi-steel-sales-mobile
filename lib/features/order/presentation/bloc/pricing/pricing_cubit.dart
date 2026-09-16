@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/mobile_price.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/repositories/pricing_repository.dart';
-import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_customer_material_prices.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_depot_material_prices.dart';
 
 /// Live prices for the materials on this quotation, keyed by material code.
 ///
@@ -29,7 +29,7 @@ import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_custom
 /// price that stopped being current while the socket was down.
 class PricingCubit extends Cubit<Map<String, MobilePrice>> {
   PricingCubit({
-    required GetCustomerMaterialPrices getPrices,
+    required GetDepotMaterialPrices getPrices,
     required PricingRealtimeSource realtime,
   })  : _getPrices = getPrices,
         _realtime = realtime,
@@ -38,41 +38,41 @@ class PricingCubit extends Cubit<Map<String, MobilePrice>> {
     _reconnectSub = _realtime.reconnections.listen((_) => _onReconnected());
   }
 
-  final GetCustomerMaterialPrices _getPrices;
+  final GetDepotMaterialPrices _getPrices;
   final PricingRealtimeSource _realtime;
 
   StreamSubscription<MobilePrice>? _updateSub;
   StreamSubscription<void>? _reconnectSub;
 
-  String? _customerId;
+  String? _depotId;
 
   /// Everything currently on the quotation, so a reconnect knows what to
   /// re-ask for without the UI having to tell it again.
   final Set<String> _tracked = {};
   final Set<String> _inFlight = {};
 
-  String? get customerId => _customerId;
+  String? get depotId => _depotId;
 
   MobilePrice? of(String material) => state[material];
 
-  /// Points pricing at a customer, re-subscribing the hub.
+  /// Points pricing at a depot, re-subscribing the hub.
   ///
-  /// Changing customer drops every held price: they are quoted *per customer*,
+  /// Changing depot drops every held price: they are quoted *per depot*,
   /// and leaving the previous shop's figures on screen would be both wrong and
   /// a disclosure. The old subscription is dropped before the new one is made,
   /// so the handset never sits in two pricing groups at once.
-  Future<void> setCustomer(String? customerId) async {
-    if (_customerId == customerId) return;
-    _customerId = customerId;
+  Future<void> setDepot(String? depotId) async {
+    if (_depotId == depotId) return;
+    _depotId = depotId;
     emit(const {});
 
     if (kDebugMode) {
-      debugPrint('[PricingCubit] setCustomer: $customerId');
+      debugPrint('[PricingCubit] setDepot: $depotId');
     }
 
     await _realtime.unsubscribe();
-    if (customerId == null || customerId.isEmpty) return;
-    await _realtime.subscribe(customerId);
+    if (depotId == null || depotId.isEmpty) return;
+    await _realtime.subscribe(depotId);
     if (_tracked.isNotEmpty) await refresh();
   }
 
@@ -89,7 +89,8 @@ class PricingCubit extends Cubit<Map<String, MobilePrice>> {
     if (fresh.isEmpty) return;
 
     if (kDebugMode) {
-      debugPrint('[PricingCubit] track fresh materials: $fresh (customer: $_customerId)');
+      debugPrint(
+          '[PricingCubit] track fresh materials: $fresh (depot: $_depotId)');
     }
 
     _tracked.addAll(fresh);
@@ -124,9 +125,9 @@ class PricingCubit extends Cubit<Map<String, MobilePrice>> {
 
   Future<void> _fetch(List<String> materials) async {
     if (materials.isEmpty) return;
-    final customerId = _customerId;
+    final depotId = _depotId;
 
-    if (customerId == null || customerId.isEmpty) {
+    if (depotId == null || depotId.isEmpty) {
       // A walk-in has nothing to price against. Settled, not broken — the card
       // says so and offers no retry, because retrying asks the same question.
       emit({
@@ -135,7 +136,7 @@ class PricingCubit extends Cubit<Map<String, MobilePrice>> {
           material: MobilePrice(
             material: material,
             state: PricingState.unavailable,
-            errorKind: PricingErrorKind.customerNotFound,
+            errorKind: PricingErrorKind.depotNotFound,
           ),
       });
       return;
@@ -155,12 +156,12 @@ class PricingCubit extends Cubit<Map<String, MobilePrice>> {
     });
 
     if (kDebugMode) {
-      debugPrint('[PricingCubit] _fetch: customerId=$customerId, materials=$toFetch');
+      debugPrint('[PricingCubit] _fetch: depotId=$depotId, materials=$toFetch');
     }
 
     try {
-      final result = await _getPrices(CustomerPricesParams(
-        customerId: customerId,
+      final result = await _getPrices(DepotPricesParams(
+        depotId: depotId,
         materials: toFetch,
       ));
       if (isClosed) return;
@@ -168,7 +169,8 @@ class PricingCubit extends Cubit<Map<String, MobilePrice>> {
       result.when(
         success: (prices) {
           if (kDebugMode) {
-            debugPrint('[PricingCubit] _fetch success: ${prices.length} prices received');
+            debugPrint(
+                '[PricingCubit] _fetch success: ${prices.length} prices received');
           }
           final next = {...state};
           for (final price in prices) {
@@ -226,10 +228,10 @@ class PricingCubit extends Cubit<Map<String, MobilePrice>> {
   /// whatever is on screen is of unknown age until REST says otherwise.
   Future<void> _onReconnected() async {
     if (isClosed) return;
-    final customerId = _customerId;
-    if (customerId == null || customerId.isEmpty) return;
+    final depotId = _depotId;
+    if (depotId == null || depotId.isEmpty) return;
 
-    await _realtime.subscribe(customerId);
+    await _realtime.subscribe(depotId);
     if (isClosed) return;
     await refresh();
   }

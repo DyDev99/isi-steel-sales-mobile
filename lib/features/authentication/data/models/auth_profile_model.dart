@@ -46,7 +46,7 @@ class AuthProfileModel extends AuthProfile {
         // An absent map means "no flags", which `flag()` then reads as off.
         featureFlags: _flags(json['featureFlags'] ?? json['feature_flags']),
         territoryCode: json['territoryCode'] as String?,
-        depotCode: json['depotCode'] as String?,
+        depotCode: json['customerCode'] as String?,
         language: json['language'] as String?,
         timeZone: json['timeZone'] as String?,
         theme: json['theme'] as String?,
@@ -70,7 +70,7 @@ class AuthProfileModel extends AuthProfile {
         'permissions': permissions.toList(),
         'featureFlags': featureFlags,
         'territoryCode': territoryCode,
-        'depotCode': depotCode,
+        'customerCode': depotCode,
         'language': language,
         'timeZone': timeZone,
         'theme': theme,

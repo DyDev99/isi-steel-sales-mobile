@@ -15,7 +15,7 @@ class QuotationBuilderCubit extends Cubit<QuotationBuilderState> {
     required DeleteQuotationLineItem deleteQuotationLineItem,
     required SetQuotationDiscounts setQuotationDiscounts,
     required GetQuotationPreview getQuotationPreview,
-    required GetCustomerAgreements getCustomerAgreements,
+    required GetDepotAgreements getDepotAgreements,
     GetDiscountAuthority? getDiscountAuthority,
   })  : _openQuotation = openQuotation,
         _getQuotationDetail = getQuotationDetail,
@@ -25,7 +25,7 @@ class QuotationBuilderCubit extends Cubit<QuotationBuilderState> {
         _deleteQuotationLineItem = deleteQuotationLineItem,
         _setQuotationDiscounts = setQuotationDiscounts,
         _getQuotationPreview = getQuotationPreview,
-        _getCustomerAgreements = getCustomerAgreements,
+        _getDepotAgreements = getDepotAgreements,
         _getDiscountAuthority = getDiscountAuthority,
         super(const QuotationBuilderInitial());
 
@@ -37,29 +37,29 @@ class QuotationBuilderCubit extends Cubit<QuotationBuilderState> {
   final DeleteQuotationLineItem _deleteQuotationLineItem;
   final SetQuotationDiscounts _setQuotationDiscounts;
   final GetQuotationPreview _getQuotationPreview;
-  final GetCustomerAgreements _getCustomerAgreements;
+  final GetDepotAgreements _getDepotAgreements;
   final GetDiscountAuthority? _getDiscountAuthority;
 
   Timer? _debounceTimer;
   static const _previewDebounce = Duration(milliseconds: 300);
 
   Future<void> initialize({
-    required String customerId,
+    required String depotId,
     String? existingQuotationId,
     String shipmentType = 'Pickup',
     String? shipTo,
   }) async {
     emit(const QuotationBuilderLoading());
 
-    // Load customer agreements & discount authority concurrently
+    // Load depot agreements & discount authority concurrently
     final agreementsFuture =
-        _getCustomerAgreements(CustomerAgreementsParams(customerId));
+        _getDepotAgreements(DepotAgreementsParams(depotId));
     final authorityFuture = _getDiscountAuthority?.call();
 
     final agreementsResult = await agreementsFuture;
     final agreements = agreementsResult.when(
       success: (ag) => ag,
-      failure: (_) => const <CustomerAgreement>[],
+      failure: (_) => const <DepotAgreement>[],
     );
 
     DiscountAuthority? discountAuthority;
@@ -91,7 +91,7 @@ class QuotationBuilderCubit extends Cubit<QuotationBuilderState> {
       );
     } else {
       final openResult = await _openQuotation(OpenQuotationParams(
-        customerId: customerId,
+        depotId: depotId,
         shipmentType: shipmentType,
         shipTo: shipTo,
       ));
@@ -115,7 +115,7 @@ class QuotationBuilderCubit extends Cubit<QuotationBuilderState> {
     required String shipmentType,
     String? shipTo,
     String? paymentTerm,
-    String? customerReference,
+    String? depotReference,
     String? remarks,
   }) async {
     final current = state;
@@ -128,7 +128,7 @@ class QuotationBuilderCubit extends Cubit<QuotationBuilderState> {
       shipmentType: shipmentType,
       shipTo: shipTo,
       paymentTerm: paymentTerm,
-      customerReference: customerReference,
+      depotReference: depotReference,
       remarks: remarks,
     ));
 

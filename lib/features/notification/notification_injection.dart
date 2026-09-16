@@ -106,7 +106,7 @@ void registerNotificationFeature(GetIt sl) {
       // Hive, not the encrypted database: these are the rep's own toggles —
       // settings, regenerable from the server — rather than business records or
       // PII (`docs/blueprint/system-architecture.md` §3). The notifications themselves *are*
-      // encrypted, because a title names a customer and a route.
+      // encrypted, because a title names a depot and a route.
       cache: LocalCache(HiveService.cacheBox),
       session: sl<SessionManager>(),
       logger: sl<AppLogger>(),

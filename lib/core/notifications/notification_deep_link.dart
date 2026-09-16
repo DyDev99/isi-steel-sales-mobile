@@ -116,9 +116,9 @@ abstract final class NotificationDeepLink {
           arguments: {'orderId': orderId},
           query: query,
         ),
-      ['customers', final customerId] => NotificationDestination(
-          route: Static.customer,
-          arguments: customerId,
+      ['depots', final depotId] => NotificationDestination(
+          route: Static.depot,
+          arguments: depotId,
           query: query,
         ),
       ['dashboard'] => NotificationDestination(

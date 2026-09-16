@@ -30,30 +30,30 @@ class Routes extends Table with SyncableTable {
 ///
 /// ## No foreign keys (ADR-011, schema v18)
 ///
-/// [routeId] and [customerId] are plain columns. Both constraints were removed
+/// [routeId] and [depotId] are plain columns. Both constraints were removed
 /// after they were shown to destroy data rather than protect it:
 ///
-///   * `customer_id -> customers` aborted the *entire* route write when any one
-///     stop referenced a customer the directory had not pulled yet. The route
-///     feed and the customer feed page independently and the backend never
+///   * `depot_id -> depots` aborted the *entire* route write when any one
+///     stop referenced a depot the directory had not pulled yet. The route
+///     feed and the depot feed page independently and the backend never
 ///     promised an arrival order, so a five-stop day persisted zero stops and
 ///     zero routes. The rep lost the whole day, not one stop.
 ///   * `route_id -> routes ON DELETE CASCADE` is unnecessary for the same
 ///     reason: the two always arrive in one payload, and nothing hard-deletes
 ///     a route.
 ///
-/// The stop's own customer details are stored flat in [RouteCustomers], so a
-/// stop renders from the route feed alone and never depends on the customer
+/// The stop's own depot details are stored flat in [RouteDepots], so a
+/// stop renders from the route feed alone and never depends on the depot
 /// directory having synced first.
 @TableIndex(name: 'idx_route_stops_route', columns: {#routeId})
-@TableIndex(name: 'idx_route_stops_customer', columns: {#customerId})
+@TableIndex(name: 'idx_route_stops_depot', columns: {#depotId})
 @DataClassName('RouteStopRow')
 class RouteStops extends Table with SyncableTable {
   @override
   String get tableName => 'route_stops';
 
   TextColumn get routeId => text()();
-  TextColumn get customerId => text()();
+  TextColumn get depotId => text()();
   IntColumn get sequence => integer()();
   DateTimeColumn get plannedArrival => dateTime()();
   DateTimeColumn get plannedDeparture => dateTime()();
@@ -62,31 +62,31 @@ class RouteStops extends Table with SyncableTable {
   DateTimeColumn get actualDeparture => dateTime().nullable()();
 }
 
-/// The customer details carried by the **route feed itself**
-/// (`docs/feature/my-visits/api.md` §7.1 `CustomerStopInfo`) — a flat,
-/// de-duplicated mirror, one row per customer appearing on a route.
+/// The depot details carried by the **route feed itself**
+/// (`docs/feature/my-visits/api.md` §7.1 `DepotStopInfo`) — a flat,
+/// de-duplicated mirror, one row per depot appearing on a route.
 ///
 /// ## Why this exists rather than joining the directory (ADR-011)
 ///
 /// T1.5 deleted the legacy denormalised copy and made route stops join
-/// `customers` instead, on the reasoning that the directory is the single
+/// `depots` instead, on the reasoning that the directory is the single
 /// source of truth. That reasoning was sound for *ownership* and wrong for
 /// *availability*: the two feeds are separate endpoints with separate scopes,
-/// so a stop routinely references a customer the directory does not have, and
+/// so a stop routinely references a depot the directory does not have, and
 /// the join then hid the stop from the rep standing outside the shop.
 ///
 /// This table restores the payload's own copy without resurrecting the old
 /// confusion: it is explicitly the *route feed's* view, used only to render
-/// stops. It never feeds the Customers screen, and the directory never reads
-/// it. That also removes `my_visits`' dependency on the customer feature's
+/// stops. It never feeds the Depots screen, and the directory never reads
+/// it. That also removes `my_visits`' dependency on the depot feature's
 /// tables, which `CLAUDE.md` §4 forbids anyway.
 ///
 /// Server-owned and replaced wholesale on every route sync, so it carries no
 /// sync state of its own.
-@DataClassName('RouteCustomerRow')
-class RouteCustomers extends Table {
+@DataClassName('RouteDepotRow')
+class RouteDepots extends Table {
   @override
-  String get tableName => 'route_customers';
+  String get tableName => 'route_depots';
 
   TextColumn get id => text()();
   TextColumn get name => text()();
@@ -184,7 +184,7 @@ class FraudFlags extends Table with SyncableTable {
 }
 
 /// Delta-sync cursor for the route domain — mirrors the existing
-/// `CustomerSyncMeta` / `CatalogSyncMeta` pattern.
+/// `DepotSyncMeta` / `CatalogSyncMeta` pattern.
 ///
 /// A cursor table, not a syncable entity: it has nothing to push, so it
 /// deliberately does not use [SyncableTable] (`docs/blueprint/local-storage-architecture.md` §3.1).

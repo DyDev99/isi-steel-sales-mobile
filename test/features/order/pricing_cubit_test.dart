@@ -6,27 +6,27 @@ import 'package:isi_steel_sales_mobile/core/utils/result.dart';
 import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/mobile_price.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/repositories/pricing_repository.dart';
-import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_customer_material_prices.dart';
+import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_depot_material_prices.dart';
 import 'package:isi_steel_sales_mobile/features/order/presentation/bloc/pricing/pricing_cubit.dart';
 
 class _FakePricingRepository implements PricingRepository {
   final List<List<String>> requests = [];
   Map<String, double?> priceBook = {};
 
-  /// Overrides keyed by customer, so a test can assert that switching account
+  /// Overrides keyed by depot, so a test can assert that switching account
   /// actually re-prices rather than re-showing the previous figure.
-  Map<String, Map<String, double?>> perCustomer = {};
+  Map<String, Map<String, double?>> perDepot = {};
   Failure? failure;
 
   @override
   ResultFuture<List<MobilePrice>> getPrices({
-    required String customerId,
+    required String depotId,
     required List<String> materials,
   }) async {
     requests.add(List.of(materials));
     final f = failure;
     if (f != null) return Failed(f);
-    final book = perCustomer[customerId] ?? priceBook;
+    final book = perDepot[depotId] ?? priceBook;
     return Success([
       for (final material in materials)
         if (book[material] == null)
@@ -59,7 +59,7 @@ class _FakeRealtime implements PricingRealtimeSource {
   @override
   bool get isConnected => true;
   @override
-  Future<void> subscribe(String customerId) async => subscribed.add(customerId);
+  Future<void> subscribe(String depotId) async => subscribed.add(depotId);
   @override
   Future<void> unsubscribe() async => unsubscribeCount++;
   @override
@@ -78,7 +78,7 @@ void main() {
     repo = _FakePricingRepository();
     realtime = _FakeRealtime();
     cubit = PricingCubit(
-      getPrices: GetCustomerMaterialPrices(repo),
+      getPrices: GetDepotMaterialPrices(repo),
       realtime: realtime,
     );
   });
@@ -93,7 +93,7 @@ void main() {
       // The endpoint takes a repeatable `materials` parameter precisely so a
       // quotation with three lines is one round trip, not three.
       repo.priceBook = {'A': 100, 'B': 250, 'C': 75};
-      await cubit.setCustomer('cust_1');
+      await cubit.setDepot('cust_1');
       await cubit.track(['A', 'B', 'C']);
 
       expect(repo.requests, hasLength(1));
@@ -103,7 +103,7 @@ void main() {
 
     test('does not re-ask for a material already priced', () async {
       repo.priceBook = {'A': 100, 'B': 250};
-      await cubit.setCustomer('cust_1');
+      await cubit.setDepot('cust_1');
       await cubit.track(['A']);
       await cubit.track(['A', 'B']);
 
@@ -114,7 +114,7 @@ void main() {
     test('one unpriced material does not disturb the others', () async {
       // The failure-isolation rule: a quotation shows four independent states.
       repo.priceBook = {'A': 100, 'B': null, 'C': 75};
-      await cubit.setCustomer('cust_1');
+      await cubit.setDepot('cust_1');
       await cubit.track(['A', 'B', 'C']);
 
       expect(cubit.of('A')?.state, PricingState.loaded);
@@ -124,8 +124,8 @@ void main() {
 
     test('a walk-in is unavailable, not an error', () async {
       // Nothing is wrong and nothing is retryable — there is simply no
-      // customer to price against.
-      await cubit.setCustomer(null);
+      // depot to price against.
+      await cubit.setDepot(null);
       await cubit.track(['A']);
 
       expect(cubit.of('A')?.state, PricingState.unavailable);
@@ -135,7 +135,7 @@ void main() {
 
     test('a failure never substitutes a local price', () async {
       repo.failure = const ServerFailure(message: 'boom');
-      await cubit.setCustomer('cust_1');
+      await cubit.setDepot('cust_1');
       await cubit.track(['A']);
 
       expect(cubit.of('A')?.state, PricingState.error);
@@ -148,7 +148,7 @@ void main() {
       // The point of a per-card retry: a rep retrying one failed line must not
       // put the seven prices that answered fine back into a spinner.
       repo.priceBook = {'A': 100, 'B': 250, 'C': 75};
-      await cubit.setCustomer('cust_1');
+      await cubit.setDepot('cust_1');
       await cubit.track(['A', 'B', 'C']);
       repo.requests.clear();
 
@@ -161,7 +161,7 @@ void main() {
 
     test('a failed price becomes real once the retry succeeds', () async {
       repo.failure = const ServerFailure(message: 'boom');
-      await cubit.setCustomer('cust_1');
+      await cubit.setDepot('cust_1');
       await cubit.track(['A']);
       expect(cubit.of('A')?.state, PricingState.error);
 
@@ -176,7 +176,7 @@ void main() {
     test('a material no longer on the quotation is not re-fetched', () async {
       // A retry racing a line removal must not resurrect the card.
       repo.priceBook = {'A': 100};
-      await cubit.setCustomer('cust_1');
+      await cubit.setDepot('cust_1');
       await cubit.track(['A']);
       cubit.untrack('A');
       repo.requests.clear();
@@ -191,7 +191,7 @@ void main() {
   group('realtime updates', () {
     setUp(() async {
       repo.priceBook = {'A': 100, 'B': 250};
-      await cubit.setCustomer('cust_1');
+      await cubit.setDepot('cust_1');
       await cubit.track(['A', 'B']);
     });
 
@@ -253,7 +253,7 @@ void main() {
       // Group membership does not survive a drop and the hub does not replay,
       // so re-subscribing alone would leave a stale price on screen.
       repo.priceBook = {'A': 100};
-      await cubit.setCustomer('cust_1');
+      await cubit.setDepot('cust_1');
       await cubit.track(['A']);
       final before = repo.requests.length;
 
@@ -266,7 +266,7 @@ void main() {
 
     test('a dropped connection makes held prices stale, not gone', () async {
       repo.priceBook = {'A': 100};
-      await cubit.setCustomer('cust_1');
+      await cubit.setDepot('cust_1');
       await cubit.track(['A']);
 
       cubit.markStale();
@@ -279,28 +279,28 @@ void main() {
     });
   });
 
-  group('customer context', () {
-    test('switching customer unsubscribes before subscribing', () async {
-      await cubit.setCustomer('cust_1');
-      await cubit.setCustomer('cust_2');
+  group('depot context', () {
+    test('switching depot unsubscribes before subscribing', () async {
+      await cubit.setDepot('cust_1');
+      await cubit.setDepot('cust_2');
 
       expect(realtime.unsubscribeCount, greaterThanOrEqualTo(2));
       expect(realtime.subscribed, ['cust_1', 'cust_2']);
     });
 
-    test('switching customer re-prices rather than keeping the old figure',
+    test('switching depot re-prices rather than keeping the old figure',
         () async {
-      // Prices are quoted per customer. Leaving the previous shop's figure on
+      // Prices are quoted per depot. Leaving the previous shop's figure on
       // screen would be both wrong and a disclosure.
-      repo.perCustomer = {
+      repo.perDepot = {
         'cust_1': {'A': 100},
         'cust_2': {'A': 180},
       };
-      await cubit.setCustomer('cust_1');
+      await cubit.setDepot('cust_1');
       await cubit.track(['A']);
       expect(cubit.of('A')?.price, 100);
 
-      await cubit.setCustomer('cust_2');
+      await cubit.setDepot('cust_2');
       await Future<void>.delayed(const Duration(milliseconds: 10));
 
       expect(cubit.of('A')?.price, 180);

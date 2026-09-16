@@ -49,7 +49,7 @@ Waiting for a GPS fix* with only **Cancel**, forever. The header above it read
    check-in as unverified.
 4. **Two different geofence rules.** The dialog measured against the outlet
    source (demo pin, 100 m); the bloc bridge measured `GeofenceService` against
-   the customer pin and territory radius (urban 50 m). The dialog could say
+   the depot pin and territory radius (urban 50 m). The dialog could say
    "within" and the bloc refuse "outside the geofence".
 
 ## What changed
@@ -120,7 +120,7 @@ by denying permission. It always carries a written reason on the check-in row.
   3.27. `getCurrentPosition` uses the 11.x `desiredAccuracy`/`timeLimit`
   parameters — 11.x has no `locationSettings:` there. Run `flutter analyze`
   once after merging.
-- The map's destination marker is still the customer pin while the default
+- The map's destination marker is still the depot pin while the default
   verdict uses the demo pin — they disagree until `USE_STOP_OUTLET_PIN` is on.
 
 ---
@@ -144,8 +144,8 @@ invalidFields=[StockUpdates[0].DepotId … StockUpdates[15].DepotId]
 flagged `DepotId` on *every* row, not a few, so the field itself was wrong for
 all of them. Two client-side causes, both real:
 
-- `_persistStockUpdates` set `depotId: resolvedStopId == null ? customerId : null`.
-  With no stop resolved it put a **customer** id in the depot field.
+- `_persistStockUpdates` set `depotId: resolvedStopId == null ? depotId : null`.
+  With no stop resolved it put a **depot** id in the depot field.
 - `VisitStockUpdateApiJson.toApiJson` emitted `'depotId': null` explicitly on
   the in-visit branch. The endpoint binds `DepotId` as required, so an explicit
   null fails before anything reads it.
@@ -159,7 +159,7 @@ ever accepted, so the queue grows and re-sends everything each time.
 | File | Change |
 |---|---|
 | `data/models/visit_api_mapper.dart` | `stopId`/`depotId` are omitted when null instead of sent as null. Omission is what the exactly-one invariant actually means. |
-| `presentation/navigation/open_inventory_visibility.dart` | Never fabricates a `depotId` from a `customerId`. A count with no stop and no depot is not persisted, and says so in the log. |
+| `presentation/navigation/open_inventory_visibility.dart` | Never fabricates a `depotId` from a `depotId`. A count with no stop and no depot is not persisted, and says so in the log. |
 | `presentation/screens/inventory_visible/inventory_visible_screen.dart` | New `kInventoryCatalogIsMock` flag. While set, audit rows are not persisted at all — the four demo products have ids `'1'`–`'4'` and a `productId` of `'1'` is the same failure one field over. |
 | `data/repositories/visit_sync_repository_impl.dart` | Pre-flight quarantine: rows already in Drift from the old writer are retired locally instead of jamming the batch. **This is one-time cleanup — delete it once no install still carries those rows.** |
 
@@ -223,7 +223,7 @@ called against a live position.
 Meanwhile `_onStopSelected` sets `insideGeofence: false` — and stop selection is
 the step immediately before check-in. So by the time a rep tapped Check In the
 flag was false with nothing in existence that could set it true, and
-`validateCheckIn` refused with "You're outside the customer's geofence" at any
+`validateCheckIn` refused with "You're outside the depot's geofence" at any
 distance, including inside the shop.
 
 Two things hid it. The banner OR'd in `kDebugForceInsideGeofence = true`, which
@@ -238,20 +238,20 @@ pointer, so nothing to check out and nothing to push.
 | `presentation/screens/stops_check_in_screen.dart` | Adds the missing listener: every GPS sample is run through `GeofenceService` and dispatched as `GeofenceStatusChanged`. Seeded once in `initState` too, since the listener only fires on change and a stationary device may not produce one. |
 | `presentation/screens/stops_check_in_screen.dart` | `_submit` now waits for the verdict. `_onCheckInSettled` navigates when the stop actually reaches `checkedIn`, and stays on the screen showing `blockedCheckInReason` when it does not. |
 | `presentation/screens/stops_check_in_screen.dart` | `kDebugForceInsideGeofence` is now `false`. Nothing depends on it any more. |
-| `presentation/bloc/events/active_route_event.dart` | `GeofenceStatusChanged` carries `customerLocationKnown`, so an ungeotagged shop is distinguishable from a rep who is genuinely elsewhere. |
-| `presentation/bloc/state/active_route_state.dart` | Adds `repLatitude`, `repLongitude`, `customerLocationKnown`, `hasFix`. |
-| `presentation/bloc/active_route_bloc.dart` | No GPS fix, or a customer with no pin, now records the visit as **unverifiable** (a warning on the row) instead of refusing it — which is what api.md §8.2 asks for. The geofence handler no longer requires `dayStarted`, another silent-block path. |
+| `presentation/bloc/events/active_route_event.dart` | `GeofenceStatusChanged` carries `depotLocationKnown`, so an ungeotagged shop is distinguishable from a rep who is genuinely elsewhere. |
+| `presentation/bloc/state/active_route_state.dart` | Adds `repLatitude`, `repLongitude`, `depotLocationKnown`, `hasFix`. |
+| `presentation/bloc/active_route_bloc.dart` | No GPS fix, or a depot with no pin, now records the visit as **unverifiable** (a warning on the row) instead of refusing it — which is what api.md §8.2 asks for. The geofence handler no longer requires `dayStarted`, another silent-block path. |
 
 ## 6. Check-in and check-out recorded the shop's position as the rep's
 
-`latitude`/`longitude` on both records were `stop.customer.latitude/longitude`.
+`latitude`/`longitude` on both records were `stop.depot.latitude/longitude`.
 Those fields are the location evidence the server judges a visit on (api.md
 §8.2), so every check-in arrived reading as exactly on-location, from anywhere,
 by anyone. The anti-fraud check was structurally incapable of catching anything.
 
 | File | Change |
 |---|---|
-| `presentation/bloc/active_route_bloc.dart` | Both records use the rep's tracked position, falling back to the customer pin only when there is no fix — and that row is already flagged unverified. |
+| `presentation/bloc/active_route_bloc.dart` | Both records use the rep's tracked position, falling back to the depot pin only when there is no fix — and that row is already flagged unverified. |
 | `domain/usecases/complete_visit_check_out.dart` | Takes an optional `FetchLocationSamples` and uses the newest sample on the route. **Needs one line in `my_visits_injection.dart`** to pass it, or every check-out keeps falling back to the pin and logs `visit.checkout.position_unavailable reason=notWired`. |
 
 ---
@@ -294,7 +294,7 @@ check-in to free text somebody hoped was there.
 | `data/local/visit_drift_mappers.dart` | Drift companion + row mapping. |
 | `data/models/visit_api_mapper.dart` | Emits `overrideReason` only when set — absent means "nobody was asked to explain this row", which is not the same as an override whose reason went missing. |
 
-The check-in row still reports its true `distanceFromCustomer`, and the server
+The check-in row still reports its true `distanceFromDepot`, and the server
 recomputes its own `GeofenceVerdict` from the coordinates regardless. **The
 server was already storing out-of-geofence check-ins rather than refusing them**,
 so the client was the only thing refusing them first.
@@ -345,5 +345,5 @@ key itself on a rep's screen. Add the en/km entries, then swap them.
 - **`NavigationStateCubit.checkOut()` and `ResumableVisitCubit.checkOut()` are
   still uncalled.** The new bar uses `endVisitAndSync` instead. Wire or delete
   them; two dead check-out paths invite a third.
-- Photo upload (§6.2), telemetry (§6.3) and `customers[].hasLocation` are
+- Photo upload (§6.2), telemetry (§6.3) and `depots[].hasLocation` are
   untouched.

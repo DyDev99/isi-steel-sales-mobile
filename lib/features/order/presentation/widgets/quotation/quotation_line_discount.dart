@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 
 /// Where a line's discount came from.
 ///
-/// The quotation is a document the customer keeps and argues from. "−10%" with
+/// The quotation is a document the depot keeps and argues from. "−10%" with
 /// no attribution is the line a rep gets challenged on three weeks later —
 /// "who gave me that, and does it still apply?" — and neither the rep nor the
 /// office can answer it from the PDF as it stands today.
@@ -13,9 +13,9 @@ import 'package:equatable/equatable.dart';
 ///  * [repDiscount] is one rep's decision on one quotation, and expires with it.
 ///  * [promotion] is a published campaign with dates; it will lapse.
 ///  * [priceTier] follows the quantity, so it changes if the order changes.
-///  * [customerAgreement] is negotiated and standing.
+///  * [depotAgreement] is negotiated and standing.
 ///
-/// Printing all four as an undifferentiated "Discount" tells the customer they
+/// Printing all four as an undifferentiated "Discount" tells the depot they
 /// got a number, not what they can rely on next time.
 enum DiscountSource {
   /// Granted by the representative on this quotation.
@@ -27,8 +27,8 @@ enum DiscountSource {
   /// Volume break — the price falls at this quantity.
   priceTier('Volume price'),
 
-  /// A standing negotiated rate for this customer.
-  customerAgreement('Customer agreement');
+  /// A standing negotiated rate for this depot.
+  depotAgreement('Depot agreement');
 
   const DiscountSource(this.label);
 
@@ -39,7 +39,7 @@ enum DiscountSource {
 ///
 /// Free goods are carried here alongside the money, even though they are not a
 /// discount, because on the printed row they answer the same question: what did
-/// this customer get beyond the list price? Keeping them in separate structures
+/// this depot get beyond the list price? Keeping them in separate structures
 /// would mean the PDF stitching two sources together per row, and a line that
 /// earned both would print them in whichever order the code happened to run.
 class QuotationLineDiscount extends Equatable {
@@ -71,7 +71,7 @@ class QuotationLineDiscount extends Equatable {
   final int freeQuantity;
 
   /// The rule that produced [freeQuantity], e.g. "Buy 40 Free 1". Printed so
-  /// the customer can verify the entitlement rather than take it on trust.
+  /// the depot can verify the entitlement rather than take it on trust.
   final String? freeQuantityLabel;
 
   /// The campaign or agreement name, where one applies.

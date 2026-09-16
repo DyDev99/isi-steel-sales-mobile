@@ -59,7 +59,7 @@ platform-tuned is better than no device row at all.
 | Type | Holds |
 |---|---|
 | `NotificationEventCatalog` | Every raisable event type |
-| `DeepLinkRegistry` | Valid destinations: `route` `stop` `quotation` `order` `customer` `dashboard` `approval` |
+| `DeepLinkRegistry` | Valid destinations: `route` `stop` `quotation` `order` `depot` `dashboard` `approval` |
 
 These are domain constants, not configuration. Adding a destination is a code
 change — see [architecture.md](architecture.md#catalogues-are-server-side-data).

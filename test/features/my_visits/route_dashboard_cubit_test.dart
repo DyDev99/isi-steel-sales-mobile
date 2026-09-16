@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isi_steel_sales_mobile/core/usecase/usecase.dart';
-import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/customer_stop_info.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/depot_stop_info.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_plan.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_stop.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/territory_type.dart';
@@ -12,9 +12,8 @@ import 'package:mocktail/mocktail.dart';
 
 class _MockWatchAllRoutes extends Mock implements WatchAllRoutes {}
 
-CustomerStopInfo _customer(String id,
-        {double lat = 11.55, double lng = 104.92}) =>
-    CustomerStopInfo(
+DepotStopInfo _depot(String id, {double lat = 11.55, double lng = 104.92}) =>
+    DepotStopInfo(
       id: id,
       name: 'Shop $id',
       code: 'C$id',
@@ -37,7 +36,7 @@ RouteStop _stop(
   return RouteStop(
     id: id,
     routeId: 'R1',
-    customer: _customer(id, lat: lat, lng: lng),
+    depot: _depot(id, lat: lat, lng: lng),
     sequence: int.parse(id),
     plannedArrival: base,
     plannedDeparture: base.add(const Duration(minutes: 30)),

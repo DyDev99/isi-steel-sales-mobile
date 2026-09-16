@@ -70,7 +70,7 @@
 /// | BaseUnit            | unit (M / PCS)          |
 ///
 /// `subCategory` carries the colour because [ProductAttribute] has no `color`
-/// member and colour is genuinely the last thing a roofing customer chooses.
+/// member and colour is genuinely the last thing a roofing depot chooses.
 /// If a real `color` attribute is ever added to the domain enum, the DAO facet
 /// whitelist and this column move together — nothing above the data layer
 /// depends on the alias.
@@ -218,7 +218,7 @@ class IsiDemoCatalog {
 
   // -- 1. Palm Profile roofing: Profile -> Coating -> Thickness -> Colour ----
   // Sold by the linear metre off the roll-former; the profile name is
-  // the trade name a customer asks for by ("give me TRIM-7 in brick red").
+  // the trade name a depot asks for by ("give me TRIM-7 in brick red").
 
   static List<Map<String, dynamic>> _palm() => [
         _sku(
@@ -1094,7 +1094,7 @@ class IsiDemoCatalog {
   // -- 9. Traded reinforcement: Product -> Mill -> Grade -> Diameter -----
   // Bought in and resold (MaterialType HAWA), so the mill is a real
   // buying decision the way a coating line is for roofing — Tung Ho and Hoa
-  // Phat are not interchangeable to a customer with a spec to meet.
+  // Phat are not interchangeable to a depot with a spec to meet.
 
   static List<Map<String, dynamic>> _rebar() => [
         _sku(

@@ -203,7 +203,7 @@ class _Headline extends StatelessWidget {
 }
 
 /// State D: the ladder, compactly. Earned rungs are ticked, the next one is
-/// arrowed — so a rep can see both what the customer has and what one more
+/// arrowed — so a rep can see both what the depot has and what one more
 /// push is worth, without reading a table.
 class _TierLadder extends StatelessWidget {
   const _TierLadder({required this.result, required this.accent});

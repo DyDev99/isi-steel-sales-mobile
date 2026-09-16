@@ -36,7 +36,7 @@ Two consequences that shape everything downstream:
 - An approved agreement must become a **SAP condition record**, not just a row in this
   database. Otherwise a depot buying at the counter — through an order the app never
   touches — gets nothing, while the same depot buying through the app gets a discount.
-  Same customer, two prices, depending on which door they walked through.
+  Same depot, two prices, depending on which door they walked through.
 - Because that copying can fail or drift, an approved term is not yet an effective one.
   The design adds an **`Effective`** state that a nightly verification job grants only
   when SAP is holding a matching record. The same job re-checks every effective term,
@@ -52,7 +52,7 @@ is the single list, and each row has exactly one home in SAP.
 
 | # | Incentive | Earned | Created by | Approved by | Home in SAP |
 |---|---|---|---|---|---|
-| 1 | **On-invoice depot discount** | At the invoice line | Rep request | 4-step chain | Condition record: customer × material price group |
+| 1 | **On-invoice depot discount** | At the invoice line | Rep request | 4-step chain | Condition record: depot × material price group |
 | 2 | **Volume-tier rebate** | At month end | Rep request | 4-step chain | Rebate agreement / condition contract |
 | 3 | **Immediate-payment discount** | At payment | Rep request | 4-step chain | Payment terms, or a conditional condition (D22) |
 | 4 | **Pickup discount** | At the line, if collected | Commercial, as a rule | Once, when the rule is set | Condition on shipping condition (D13) |
@@ -78,14 +78,14 @@ Each of the 8 incentives has an exact counterpart in the mobile UI codebase:
 
 | # | Incentive | Flutter Mobile Widget / State | Backend Table & Nature | Backend Endpoint |
 |---|---|---|---|---|
-| 1 | **On-invoice depot discount** | `PromotionSectionWidget` (Group: `depot_discount`), `PromoCard`, `QuotationLineItem.agreementDiscounts` | `agreement_terms` (`nature = 'ON_INVOICE'`) | `GET /customers/{id}/incentives`, `GET /customers/{id}/agreements` |
-| 2 | **Volume-tier rebate** | `PromotionSectionWidget` (Group: `depot_discount`), `DiscountSummarySection` (Progress banner) | `rebate_accruals`, `agreement_term_tiers` | `GET /customers/{id}/agreements` (includes `rebateTiers`) |
-| 3 | **Immediate-payment discount** | `PromotionSectionWidget` (Group: `cod_pickup`), `PromoView` (`kind: paymentTerm`) | `agreement_terms` (`nature = 'IMMEDIATE_PAYMENT'`) | `GET /customers/{id}/incentives` |
-| 4 | **Pickup discount** | `PromotionSectionWidget` (Group: `cod_pickup`), `OrderTerms(isPickup: true)` | `pickup_rules` (`sap_condition_type = 'ZPKP'`) | `GET /customers/{id}/incentives?shipment=Pickup` |
+| 1 | **On-invoice depot discount** | `PromotionSectionWidget` (Group: `depot_discount`), `PromoCard`, `QuotationLineItem.agreementDiscounts` | `agreement_terms` (`nature = 'ON_INVOICE'`) | `GET /depots/{id}/incentives`, `GET /depots/{id}/agreements` |
+| 2 | **Volume-tier rebate** | `PromotionSectionWidget` (Group: `depot_discount`), `DiscountSummarySection` (Progress banner) | `rebate_accruals`, `agreement_term_tiers` | `GET /depots/{id}/agreements` (includes `rebateTiers`) |
+| 3 | **Immediate-payment discount** | `PromotionSectionWidget` (Group: `cod_pickup`), `PromoView` (`kind: paymentTerm`) | `agreement_terms` (`nature = 'IMMEDIATE_PAYMENT'`) | `GET /depots/{id}/incentives` |
+| 4 | **Pickup discount** | `PromotionSectionWidget` (Group: `cod_pickup`), `OrderTerms(isPickup: true)` | `pickup_rules` (`sap_condition_type = 'ZPKP'`) | `GET /depots/{id}/incentives?shipment=Pickup` |
 | 5 | **Rep line discount** | `LineDiscountChips`, `ManualDiscountInputSheet`, `QuotationLineDiscount(kind: manual)` | `discount_authorities` | `GET /me/discount-authority`, `PUT /quotations/{id}/discounts` |
 | 6 | **Price request** | `ManualPriceInputSheet` (Price request with currency/unit) | `price_requests` | `POST /quotations/{id}/lines` (requests price) |
 | 7 | **Free goods** | `PromotionSectionWidget` (Group: `free_goods`), `PromoBuyGet`, `PromotionEvaluation` | `promotions`, `promotion_tiers` | `POST /promotions/evaluate`, `GET /quotations/{id}/preview` |
-| 8 | **Campaign** | `PromoCard` with countdown timer (`PromoUrgency`), `PromotionDetailScreen` | `promotions` (scoped by segment) | `GET /customers/{id}/incentives` |
+| 8 | **Campaign** | `PromoCard` with countdown timer (`PromoUrgency`), `PromotionDetailScreen` | `promotions` (scoped by segment) | `GET /depots/{id}/incentives` |
 
 ### The axis that decides everything: *when* is it earned?
 

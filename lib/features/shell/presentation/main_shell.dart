@@ -17,9 +17,9 @@ import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/presentation/services/coach_anchor_registry.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/presentation/services/coach_keys.dart';
 import 'package:isi_steel_sales_mobile/features/app_coach/presentation/widgets/app_coach_host.dart';
-import 'package:isi_steel_sales_mobile/features/customers/presentation/screens/customers_screen.dart';
+import 'package:isi_steel_sales_mobile/features/depots/presentation/screens/depots_screen.dart';
 import 'package:isi_steel_sales_mobile/features/home/data/home_repository.dart';
-import 'package:isi_steel_sales_mobile/features/home/presentation/bloc/add_customer_bloc.dart';
+import 'package:isi_steel_sales_mobile/features/home/presentation/bloc/add_depot_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/home/presentation/bloc/home_cubit.dart';
 
 import 'package:isi_steel_sales_mobile/features/my_visits/presentation/bloc/cubit/resumable_visit_cubit.dart';
@@ -95,13 +95,13 @@ class _MainShellState extends State<MainShell> {
     // call on every shell build.
     WidgetsBinding.instance
         .addPostFrameCallback((_) => unawaited(_maybePrimePermissions()));
-    // Customer sync is deliberately *not* kicked off here.
+    // Depot sync is deliberately *not* kicked off here.
     //
-    // `CustomersScreen` already does it (`sl<CustomerSyncCubit>()
-    // ..syncIfNeeded()`), and `CustomerSyncCubit` is a factory — so this line
+    // `DepotsScreen` already does it (`sl<DepotSyncCubit>()
+    // ..syncIfNeeded()`), and `DepotSyncCubit` is a factory — so this line
     // built a second, throwaway cubit and ran a second initial sync whose
     // state no widget was watching. That is the duplicate
-    // `customers.sync.initial.start` visible in the logs: two full page runs
+    // `depots.sync.initial.start` visible in the logs: two full page runs
     // on every cold start, for one set of rows.
   }
 
@@ -142,14 +142,14 @@ class _MainShellState extends State<MainShell> {
 
   List<NavTab> get _tabs => [
         NavTab(Icons.grid_view_rounded, 'home.title'.tr),
-        NavTab(Icons.people_alt_rounded, 'customers.title'.tr),
+        NavTab(Icons.people_alt_rounded, 'depots.title'.tr),
         NavTab(Icons.location_on_rounded, 'my_visits.title'.tr),
         NavTab(Icons.receipt_long_rounded, 'orders.title'.tr),
       ];
 
   List<String> get _titles => [
         'home.title'.tr,
-        'customers.title'.tr,
+        'depots.title'.tr,
         'my_visits.title'.tr,
         'orders.title'.tr,
       ];
@@ -288,7 +288,7 @@ class _MainShellState extends State<MainShell> {
         BlocProvider(
           create: (_) => HomeCubit(const HomeRepositoryImpl())..load(),
         ),
-        BlocProvider(create: (_) => sl<AddCustomerBloc>()),
+        BlocProvider(create: (_) => sl<AddDepotBloc>()),
       ],
       child: SizedBox.expand(
         child: Column(
@@ -406,7 +406,7 @@ class _MainShellState extends State<MainShell> {
       case 0:
         return _buildHomeTab();
       case 1:
-        return wrapWithTopSpacing(const CustomersScreen());
+        return wrapWithTopSpacing(const DepotsScreen());
       case 2:
         return MultiBlocProvider(
           providers: [

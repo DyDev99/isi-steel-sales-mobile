@@ -12,7 +12,7 @@ enum LocationPermissionStatus {
   notDetermined,
 
   /// Granted for foreground use. **This is what the app actually needs** —
-  /// capturing a customer's coordinates and verifying a check-in both happen
+  /// capturing a depot's coordinates and verifying a check-in both happen
   /// with the app open.
   whileInUse,
 
@@ -58,7 +58,7 @@ enum LocationPermissionStatus {
 /// ## Why this exists when two services already call `Geolocator` directly
 ///
 /// `GeolocatorOrderLocationService` and `GeolocatorTrackingService` each request
-/// the permission inline, at the moment they need a fix — a customer-registration
+/// the permission inline, at the moment they need a fix — a depot-registration
 /// form tapping "Save GPS", or a route trace starting. That is correct
 /// *just-in-time* behaviour and is not being replaced.
 ///

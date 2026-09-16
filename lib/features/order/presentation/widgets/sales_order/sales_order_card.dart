@@ -29,7 +29,7 @@ class SalesOrderCard extends StatelessWidget {
     final total = NumberFormat.currency(locale: language, symbol: r'$')
         .format(order.total);
 
-    // Falls through customer → lead → an explicit "unnamed" key rather than
+    // Falls through depot → lead → an explicit "unnamed" key rather than
     // rendering a blank line[cite: 5].
     final party = order.shopName?.trim().isNotEmpty == true
         ? order.shopName!
@@ -98,7 +98,7 @@ class SalesOrderCard extends StatelessWidget {
 
                     SizedBox(height: context.rh(14)),
 
-                    // --- BODY: Visual Aid & Customer Name ---
+                    // --- BODY: Visual Aid & Depot Name ---
                     Row(
                       children: [
                         // Soft avatar icon for quick visual recognition

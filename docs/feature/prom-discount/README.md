@@ -91,7 +91,7 @@ a price the invoice will not show.
 
 **Category mappings** and the **pickup rule** are configuration the business has not
 supplied yet, and inventing values would put fictional SAP keys beside real ones — the
-same reason this platform does not seed customers or materials.
+same reason this platform does not seed depots or materials.
 
 - **Category mappings** answer **D14** (*what is a "product category" in SAP terms?*).
   Until rows exist, every request is refused with `422 Agreement.CategoryUnmapped`, and

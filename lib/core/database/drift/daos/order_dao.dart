@@ -51,7 +51,7 @@ class QuotationDao extends DatabaseAccessor<AppDatabase>
 
   static const columns = <String>[
     'id',
-    'customer_id',
+    'depot_id',
     'shop_name',
     'lead_id',
     'lead_display_name',
@@ -119,7 +119,7 @@ class SalesOrderDao extends DatabaseAccessor<AppDatabase>
   static const columns = <String>[
     'id',
     'quotation_id',
-    'customer_id',
+    'depot_id',
     'shop_name',
     'lead_id',
     'lead_display_name',

@@ -149,7 +149,7 @@ class _NotificationHostState extends State<NotificationHost>
 
   int? _shellTabFor(String route) => switch (route) {
         Static.main => ShellTab.home,
-        Static.customer => ShellTab.customers,
+        Static.depot => ShellTab.depots,
         Static.myVisits => ShellTab.myVisits,
         Static.order => ShellTab.orders,
         _ => null,

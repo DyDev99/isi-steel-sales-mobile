@@ -12,7 +12,7 @@ class QuotationListCubit extends Cubit<QuotationListState> {
 
   Future<void> load({
     QuotationStatusGroup? group,
-    String? customerId,
+    String? depotId,
     bool refresh = false,
   }) async {
     final current = state;
@@ -22,14 +22,14 @@ class QuotationListCubit extends Cubit<QuotationListState> {
       emit(const QuotationListLoading());
     }
 
-    final targetGroup =
-        group ?? (current is QuotationListLoaded ? current.selectedGroup : null);
-    final targetCustomer = customerId ??
-        (current is QuotationListLoaded ? current.customerId : null);
+    final targetGroup = group ??
+        (current is QuotationListLoaded ? current.selectedGroup : null);
+    final targetDepot =
+        depotId ?? (current is QuotationListLoaded ? current.depotId : null);
 
     final result = await _getQuotationsList(GetQuotationsParams(
       status: targetGroup?.wireName,
-      customerId: targetCustomer,
+      depotId: targetDepot,
       page: 1,
       pageSize: 20,
     ));
@@ -41,7 +41,7 @@ class QuotationListCubit extends Cubit<QuotationListState> {
           selectedGroup: targetGroup,
           page: 1,
           hasMore: paged.hasMore,
-          customerId: targetCustomer,
+          depotId: targetDepot,
           isRefreshing: false,
         ));
       },
@@ -53,9 +53,8 @@ class QuotationListCubit extends Cubit<QuotationListState> {
 
   Future<void> selectGroup(QuotationStatusGroup? group) async {
     final current = state;
-    final customerId =
-        current is QuotationListLoaded ? current.customerId : null;
-    await load(group: group, customerId: customerId);
+    final depotId = current is QuotationListLoaded ? current.depotId : null;
+    await load(group: group, depotId: depotId);
   }
 
   Future<void> loadMore() async {
@@ -72,7 +71,7 @@ class QuotationListCubit extends Cubit<QuotationListState> {
 
     final result = await _getQuotationsList(GetQuotationsParams(
       status: current.selectedGroup?.wireName,
-      customerId: current.customerId,
+      depotId: current.depotId,
       page: nextPage,
       pageSize: 20,
     ));

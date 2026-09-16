@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
-import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer.dart';
-import 'package:isi_steel_sales_mobile/features/customers/domain/entities/customer_filter.dart';
-import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/browse_customers.dart';
-import 'package:isi_steel_sales_mobile/features/customers/domain/usecases/customer_params.dart';
+import 'package:isi_steel_sales_mobile/features/depots/domain/entities/depot.dart';
+import 'package:isi_steel_sales_mobile/features/depots/domain/entities/depot_filter.dart';
+import 'package:isi_steel_sales_mobile/features/depots/domain/usecases/browse_depots.dart';
+import 'package:isi_steel_sales_mobile/features/depots/domain/usecases/depot_params.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/entities/credit_summary.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/catalog_params.dart';
 import 'package:isi_steel_sales_mobile/features/order/domain/usecases/get_credit_summary.dart';
@@ -33,7 +33,7 @@ class ShopListScreen extends StatefulWidget {
 }
 
 class _ShopListScreenState extends State<ShopListScreen> {
-  late Future<List<Customer>> _shopsFuture;
+  late Future<List<Depot>> _shopsFuture;
 
   @override
   void initState() {
@@ -41,22 +41,22 @@ class _ShopListScreenState extends State<ShopListScreen> {
     _shopsFuture = _loadShops();
   }
 
-  Future<List<Customer>> _loadShops() async {
-    final result = await sl<BrowseCustomers>()(
-      BrowseCustomersParams(
+  Future<List<Depot>> _loadShops() async {
+    final result = await sl<BrowseDepots>()(
+      BrowseDepotsParams(
           page: 0,
           pageSize: 500,
-          filter: CustomerFilter(territory: widget.territory)),
+          filter: DepotFilter(territory: widget.territory)),
     );
     return result.when(
         success: (paged) => paged.items, failure: (_) => const []);
   }
 
-  void _openOrderEntry(Customer customer) {
+  void _openOrderEntry(Depot depot) {
     Navigator.of(context).push(MaterialPageRoute(
       settings: const RouteSettings(name: ShopOrderEntryScreen.routeName),
       builder: (_) => ShopOrderEntryScreen(
-        customer: customer,
+        depot: depot,
         skipOffVisitCheck: widget.skipOffVisitCheck,
         seedSearchTerm: widget.seedSearchTerm,
       ),
@@ -78,7 +78,7 @@ class _ShopListScreenState extends State<ShopListScreen> {
                 fontSize: context.rsp(17),
                 fontWeight: FontWeight.w800)),
       ),
-      body: FutureBuilder<List<Customer>>(
+      body: FutureBuilder<List<Depot>>(
         future: _shopsFuture,
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
@@ -103,7 +103,7 @@ class _ShopListScreenState extends State<ShopListScreen> {
             children: [
               for (final shop in shops)
                 _ShopTileWithCredit(
-                    customer: shop, onTap: () => _openOrderEntry(shop))
+                    depot: shop, onTap: () => _openOrderEntry(shop))
             ],
           );
         },
@@ -113,8 +113,8 @@ class _ShopListScreenState extends State<ShopListScreen> {
 }
 
 class _ShopTileWithCredit extends StatefulWidget {
-  const _ShopTileWithCredit({required this.customer, required this.onTap});
-  final Customer customer;
+  const _ShopTileWithCredit({required this.depot, required this.onTap});
+  final Depot depot;
   final VoidCallback onTap;
 
   @override
@@ -128,7 +128,7 @@ class _ShopTileWithCreditState extends State<_ShopTileWithCredit> {
   void initState() {
     super.initState();
     _summaryFuture =
-        sl<GetCreditSummary>()(GetCreditSummaryParams(widget.customer.id)).then(
+        sl<GetCreditSummary>()(GetCreditSummaryParams(widget.depot.id)).then(
       (result) => result.when(success: (s) => s, failure: (_) => null),
     );
   }
@@ -138,7 +138,7 @@ class _ShopTileWithCreditState extends State<_ShopTileWithCredit> {
     return FutureBuilder<CreditSummary?>(
       future: _summaryFuture,
       builder: (context, snapshot) => ShopTile(
-          customer: widget.customer,
+          depot: widget.depot,
           onTap: widget.onTap,
           creditSummary: snapshot.data),
     );

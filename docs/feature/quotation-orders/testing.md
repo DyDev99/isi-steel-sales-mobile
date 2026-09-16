@@ -75,10 +75,10 @@ resolved to nothing and the build reported 120 errors against the test files rat
 than one against the missing reference.
 
 The references have been restored, which takes it from **120 errors to 1**. The
-remaining error is genuine and belongs to in-flight customer work:
-`Modules/Customers/CustomerReferenceTests.cs` tests a `CustomerReference` type that no
+remaining error is genuine and belongs to in-flight depot work:
+`Modules/Depots/DepotReferenceTests.cs` tests a `DepotReference` type that no
 longer exists — the catalogue was split into eighteen concrete types. Rewriting that
-file is the customer feature's to do; it was left alone rather than guessed at.
+file is the depot feature's to do; it was left alone rather than guessed at.
 
 **Consequence:** `dotnet test` across the solution still fails, on that one file. The
 quotation tests live in `ISI.Application.UnitTests`, which compiles and passes.

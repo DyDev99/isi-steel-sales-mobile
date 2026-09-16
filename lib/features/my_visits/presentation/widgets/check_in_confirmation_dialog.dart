@@ -84,7 +84,8 @@ class CheckInConfirmationDialog extends StatefulWidget {
         // written, and a dialog dismissed by a stray tap on the scrim leaves
         // them unsure whether they checked in.
         barrierDismissible: false,
-        barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+        barrierLabel:
+            MaterialLocalizations.of(context).modalBarrierDismissLabel,
         barrierColor: Colors.black.withValues(alpha: 0.45),
         transitionDuration: const Duration(milliseconds: 340),
         pageBuilder: (_, __, ___) => CheckInConfirmationDialog(
@@ -852,7 +853,7 @@ class _ProximityCard extends StatelessWidget {
                         color: accent,
                         fontSize: context.rsp(20),
                         fontWeight: FontWeight.w900,
-                            ),
+                      ),
                     ),
                   ),
                 ),

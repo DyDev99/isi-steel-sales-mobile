@@ -3,9 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
 import 'package:isi_steel_sales_mobile/core/logging/app_logger.dart';
 import 'package:isi_steel_sales_mobile/core/network/network_info.dart';
-import 'package:isi_steel_sales_mobile/features/customers/data/local/customer_drift_local_data_source.dart';
-import 'package:isi_steel_sales_mobile/features/customers/data/remote/api_customer_remote_data_source.dart';
-import 'package:isi_steel_sales_mobile/features/customers/data/repositories/customer_sync_repository_impl.dart';
+import 'package:isi_steel_sales_mobile/features/depots/data/local/depot_drift_local_data_source.dart';
+import 'package:isi_steel_sales_mobile/features/depots/data/remote/api_depot_remote_data_source.dart';
+import 'package:isi_steel_sales_mobile/features/depots/data/repositories/depot_sync_repository_impl.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/route_drift_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/remote/api_route_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/repositories/route_repository_impl.dart';
@@ -16,9 +16,9 @@ import 'route_feed_fixture.dart';
 
 /// The whole Visit data pipeline, in the order the app runs it:
 ///
-///   customer sync → route sync → today's routes → stops
+///   depot sync → route sync → today's routes → stops
 ///
-/// Each stage is a hard precondition for the next (`route_stops.customer_id`
+/// Each stage is a hard precondition for the next (`route_stops.depot_id`
 /// is a live FK), so a break anywhere shows up identically at the UI — an
 /// empty dashboard. Testing the stages in isolation cannot tell them apart,
 /// which is why this walks the chain end to end.
@@ -29,9 +29,9 @@ class _AlwaysOnline implements NetworkInfo {
 
 void main() {
   late AppDatabase db;
-  late CustomerDriftLocalDataSource customerLocal;
+  late DepotDriftLocalDataSource depotLocal;
   late RouteDriftLocalDataSource routeLocal;
-  late CustomerSyncRepositoryImpl customerSync;
+  late DepotSyncRepositoryImpl depotSync;
   late RouteSyncRepositoryImpl routeSync;
   late RouteRepositoryImpl routes;
 
@@ -40,24 +40,23 @@ void main() {
 
   setUp(() {
     db = AppDatabase(NativeDatabase.memory());
-    customerLocal = CustomerDriftLocalDataSource(db.customerDao);
+    depotLocal = DepotDriftLocalDataSource(db.depotDao);
     routeLocal = RouteDriftLocalDataSource(db.routeDao, logger);
-    customerSync = CustomerSyncRepositoryImpl(
-      remote: ApiCustomerRemoteDataSource(scriptedCustomerFeed()),
-      local: customerLocal,
+    depotSync = DepotSyncRepositoryImpl(
+      remote: ApiDepotRemoteDataSource(scriptedDepotFeed()),
+      local: depotLocal,
       network: _AlwaysOnline(),
       logger: logger,
     );
     // The feed reads the directory at request time rather than at
-    // construction: stage 1 has not run yet here, so the customer ids do not
+    // construction: stage 1 has not run yet here, so the depot ids do not
     // exist when this is wired up.
     routeSync = RouteSyncRepositoryImpl(
       remote: ApiRouteRemoteDataSource(
         scriptedRouteFeed(
-          customerIds: () async =>
-              (await customerLocal.browse(page: 0, pageSize: 12))
-                  .map((c) => c.id)
-                  .toList(),
+          depotIds: () async => (await depotLocal.browse(page: 0, pageSize: 12))
+              .map((c) => c.id)
+              .toList(),
         ),
       ),
       local: routeLocal,
@@ -67,19 +66,19 @@ void main() {
   });
   tearDown(() => db.close());
 
-  test('stage 1: customer sync populates the directory', () async {
-    final result = await customerSync.runInitialSync();
+  test('stage 1: depot sync populates the directory', () async {
+    final result = await depotSync.runInitialSync();
     final upserted = result.when(success: (r) => r.upserted, failure: (_) => 0);
 
     expect(upserted, greaterThan(0),
-        reason: 'routes cannot be pulled without a customer directory');
+        reason: 'routes cannot be pulled without a depot directory');
 
-    final page = await customerLocal.browse(page: 0, pageSize: 5);
+    final page = await depotLocal.browse(page: 0, pageSize: 5);
     expect(page, isNotEmpty);
   });
 
   test('stage 2+3: routes and their stops reach the dashboard', () async {
-    await customerSync.runInitialSync();
+    await depotSync.runInitialSync();
     await routeSync.runInitialSync(scope);
 
     final today = (await routes.fetchTodayRoutes())
@@ -92,17 +91,17 @@ void main() {
         reason: 'Stop Dashboard would be empty: routes synced but every one '
             'of them lost its stops');
 
-    // Each stop must carry the customer the rep is going to visit — a stop
+    // Each stop must carry the depot the rep is going to visit — a stop
     // with no shop name renders as a blank row.
     for (final stop in withStops.first.stops) {
-      expect(stop.customer.name.trim(), isNotEmpty);
+      expect(stop.depot.name.trim(), isNotEmpty);
     }
   });
 
   test('the full chain is reproducible on a second run', () async {
     // Re-entering My Visits re-runs sync. Upserts must be idempotent, or the
     // second open either duplicates stops or trips the FK and shows nothing.
-    await customerSync.runInitialSync();
+    await depotSync.runInitialSync();
     await routeSync.runInitialSync(scope);
     final first = (await routes.fetchTodayRoutes())
         .when(success: (r) => r, failure: (_) => const []);

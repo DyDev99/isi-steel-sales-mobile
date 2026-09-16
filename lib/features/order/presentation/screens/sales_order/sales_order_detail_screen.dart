@@ -161,7 +161,7 @@ class _Header extends StatelessWidget {
   }
 }
 
-/// An order raised away from the customer's location is a compliance-relevant
+/// An order raised away from the depot's location is a compliance-relevant
 /// fact, so it is surfaced on the order itself rather than buried in a log.
 class _OffVisitNotice extends StatelessWidget {
   const _OffVisitNotice({required this.reason});

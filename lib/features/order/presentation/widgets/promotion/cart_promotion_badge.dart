@@ -52,7 +52,7 @@ class CartPromotionBadge extends StatelessWidget {
 
   /// The rung worth showing.
   ///
-  /// The earned one when there is one — that is what the customer is actually
+  /// The earned one when there is one — that is what the depot is actually
   /// getting, and it must not be displaced by an upsell. Otherwise the next
   /// rung, which turns the badge from a notice into a prompt: a line sitting at
   /// 30 against a 40-tier should say what reaching 40 would earn.

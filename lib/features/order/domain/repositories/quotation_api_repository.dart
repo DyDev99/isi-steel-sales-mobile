@@ -6,13 +6,13 @@ import 'package:isi_steel_sales_mobile/shared/widgets/promotions/promo_view.dart
 abstract interface class QuotationApiRepository {
   ResultFuture<PagedResult<QuotationSummary>> getQuotations({
     String? status,
-    String? customerId,
+    String? depotId,
     int page = 1,
     int pageSize = 20,
   });
 
   ResultFuture<QuotationDetail> createQuotation({
-    required String customerId,
+    required String depotId,
     String shipmentType = 'Pickup',
     String? shipTo,
   });
@@ -24,7 +24,7 @@ abstract interface class QuotationApiRepository {
     required String shipmentType,
     String? shipTo,
     String? paymentTerm,
-    String? customerReference,
+    String? depotReference,
     String? remarks,
   });
 
@@ -59,15 +59,14 @@ abstract interface class QuotationApiRepository {
 
   ResultFuture<List<QuotationApprovalHistory>> getHistory(String id);
 
-  ResultFuture<List<CustomerAgreement>> getCustomerAgreements(
-      String customerId);
+  ResultFuture<List<DepotAgreement>> getDepotAgreements(String depotId);
 
-  ResultFuture<List<PromoGroup>> getCustomerIncentives(
-    String customerId, {
+  ResultFuture<List<PromoGroup>> getDepotIncentives(
+    String depotId, {
     String? shipment,
   });
 
-  ResultFuture<List<PromoView>> getCustomerPromotions(String customerId);
+  ResultFuture<List<PromoView>> getDepotPromotions(String depotId);
 
   ResultFuture<DiscountAuthority> getDiscountAuthority();
 }

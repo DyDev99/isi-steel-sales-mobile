@@ -151,8 +151,8 @@ class NativeLocalNotificationPresenter implements LocalNotificationPresenter {
       );
     } catch (error) {
       _logger.warning('local_notifications.show_failed', fields: {
-        // Never the title or body: a notification body can name a customer, and
-        // `docs/skills/security.md` §10 keeps customer information out of logs.
+        // Never the title or body: a notification body can name a depot, and
+        // `docs/skills/security.md` §10 keeps depot information out of logs.
         'channel': channel.id,
         'error': error.runtimeType.toString(),
       });

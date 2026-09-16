@@ -53,7 +53,7 @@ able to work. **Every capability below degrades; none of them blocks.**
 | Location — one-shot | `geolocator` | `features/order/presentation/services/geolocator_order_location_service.dart` | ✅ | ✅ | ✅ browser API |
 | Location — continuous telemetry | `geolocator` | `features/my_visits/data/services/geolocator_tracking_service.dart` | ✅ | ✅ | ⚠ no background |
 | Maps | `google_maps_flutter` | `features/my_visits/presentation/widgets/transit_map.dart` | ✅ | ✅ (needs `GOOGLE_MAPS_IOS_KEY`) | ❌ |
-| Camera / gallery | `image_picker` | `add_customer_bottom_sheet.dart`, `drawing_upload_component.dart`, `customization_cubit.dart`, `image_picker_search_service.dart` | ✅ | ✅ | ⚠ file input |
+| Camera / gallery | `image_picker` | `add_depot_bottom_sheet.dart`, `drawing_upload_component.dart`, `customization_cubit.dart`, `image_picker_search_service.dart` | ✅ | ✅ | ⚠ file input |
 | Save image to gallery | `gal` | `stop_information_screen.dart` | ✅ | ✅ | ❌ |
 | Speech → text | `speech_to_text` | `features/order/presentation/screens/catalog/voice_search_screen.dart` | ✅ | ✅ | ⚠ browser-dependent |
 | PDF generation | `pdf` | `core/services/pdf/` | ✅ | ✅ | ✅ |
@@ -82,7 +82,7 @@ Denial is a normal state, not an error path.
 |---|---|
 | Location (check-in) | Check-in is still recorded; the geofence verdict is marked unverified rather than blocking the visit. See [../feature/my-visits/architecture.md](../feature/my-visits/architecture.md). |
 | Background location | Telemetry gaps while backgrounded; the route still completes. |
-| Camera / gallery | Attachment step is skippable; the customer or quotation saves without it. |
+| Camera / gallery | Attachment step is skippable; the depot or quotation saves without it. |
 | Microphone / speech | Voice search falls back to the text field. |
 | Notifications | The **inbox is the notification** — push only accelerates it. A rep who declines the prompt still sees everything on next sync. |
 | Maps | Stops remain usable as a list; only the map widget is absent. |
@@ -104,7 +104,7 @@ shown so the rep is not re-nagged.
 - Location samples are business data: they live in the **encrypted** Drift
   database (`route_telemetry` via `route_telemetry_dao.dart`), never in Hive or
   preferences.
-- `LogRedactor` masks coordinates, phone numbers, e-mail, and customer data by
+- `LogRedactor` masks coordinates, phone numbers, e-mail, and depot data by
   key name and value shape. Never log a raw position or a raw payload — see
   [../skills/security.md](../skills/security.md) §10.
 - The IANA zone (`Asia/Phnom_Penh`) is sent to the backend so quiet hours and
