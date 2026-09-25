@@ -71,3 +71,24 @@ ios/Runner/GoogleService-Info.plist
 # Gradle run — and one was accidentally committed in `feat: notification
 # integration` because this directory was not ignored.
 android/.kotlin/
+
+# Test suite and QA scaffolding — untracked deliberately, on request.
+#
+# Both remain on disk and still run locally (`flutter test`); they are simply
+# no longer carried in the repository from this commit onward. Earlier commits
+# still contain them, so nothing is lost — `git show <old-sha>:test/...` and
+# `git checkout <old-sha> -- test` both still work.
+#
+# ⚠️ Consequences, so this is not rediscovered the hard way:
+#   • CI cannot run the coverage gates in `docs/skills/engineering-standard.md`
+#     §10 (domain ≥90%, data ≥80%, crypto and sync-queue 100% of branches) —
+#     the tests are not in a fresh clone.
+#   • A teammate who pulls will LOSE their local `test/` only if they had no
+#     local edits; git leaves untracked files alone, but a fresh clone has none.
+#   • `QA-engineering/` additionally imports `package:steelforce_app/`, a
+#     package name this repo does not use — it accounted for 145 of the 304
+#     `flutter analyze` issues while tracked.
+#
+# To reverse: delete these two lines and `git add test QA-engineering`.
+test/
+QA-engineering/
