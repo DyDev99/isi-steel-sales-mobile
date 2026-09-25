@@ -54,50 +54,95 @@ extension ContactStepExtension on _AddDepotBottomSheetState {
       ),
     );
 
+    // Name, role and mobile describe one person and are grouped as one, because
+    // the rep is answering "who do I call, and on what number?" — not filling
+    // three unrelated boxes. Before this, the mobile sat between the person and
+    // the shop's landline with nothing saying which it belonged to, and
+    // `BpDepotDraft.contacts` pairs it with the person, so the form had better
+    // say so too.
+    final contactPerson = Container(
+      padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              _buildIconBox(Icons.person_rounded, size: 28, iconSize: 15),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _cardLabel('add_depot.contact_person'.tr,
+                    required: true, fontSize: 11),
+              ),
+            ],
+          ),
+          _gap(8),
+          _twoCol(
+            _text(
+              _contactNameCtrl,
+              'add_depot.contact_name_hint'.tr,
+              label: 'add_depot.contact_name'.tr,
+              icon: Icons.badge_outlined,
+              required: true,
+              compact: true,
+              error: errors['contactPersonName'],
+              onChanged: (v) => _edit((d) => d.contactPersonName = v),
+            ),
+            _dropdown(
+              label: 'add_depot.role'.tr,
+              icon: Icons.work_outline_rounded,
+              required: true,
+              compact: true,
+              value: draft.contactPersonRole,
+              options: const [
+                SapOption('owner', 'Owner'),
+                SapOption('manager', 'Manager'),
+                SapOption('buyer', 'Buyer'),
+                SapOption('accountant', 'Accountant'),
+              ],
+              hint: 'add_depot.pick_one'.tr,
+              error: errors['contactPersonRole'],
+              showCode: false,
+              onChanged: (v) => _edit((d) => d.contactPersonRole = v),
+            ),
+          ),
+          _gap(8),
+          _phone(
+            _mobileCtrl,
+            'add_depot.phone_hint'.tr,
+            label: 'add_depot.mobile_phone'.tr,
+            icon: Icons.phone_android_rounded,
+            required: true,
+            compact: true,
+            error: errors['mobilePhone'],
+            onChanged: (v) => _edit((d) => d.mobilePhone = v),
+          ),
+          // Names the person once one is entered, so the pairing is visible
+          // rather than implied by layout alone — this is the number that will
+          // be filed against them, not the shop's.
+          _hint(
+            draft.contactPersonName.trim().isEmpty
+                ? 'add_depot.mobile_is_personal'.tr
+                : 'add_depot.mobile_belongs_to'
+                    .trParams({'name': draft.contactPersonName.trim()}),
+          ),
+        ],
+      ),
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _twoCol(
-          _text(
-            _contactNameCtrl,
-            'add_depot.contact_name_hint'.tr,
-            label: 'add_depot.contact_name'.tr,
-            icon: Icons.person_rounded,
-            required: true,
-            compact: true,
-            error: errors['contactPersonName'],
-            onChanged: (v) => _edit((d) => d.contactPersonName = v),
-          ),
-          _dropdown(
-            label: 'add_depot.role'.tr,
-            icon: Icons.work_outline_rounded,
-            required: true,
-            compact: true,
-            value: draft.contactPersonRole,
-            options: const [
-              SapOption('owner', 'Owner'),
-              SapOption('manager', 'Manager'),
-              SapOption('buyer', 'Buyer'),
-              SapOption('accountant', 'Accountant'),
-            ],
-            hint: 'add_depot.pick_one'.tr,
-            error: errors['contactPersonRole'],
-            showCode: false,
-            onChanged: (v) => _edit((d) => d.contactPersonRole = v),
-          ),
-        ),
-        _gap(8),
-        _phone(
-          _mobileCtrl,
-          'add_depot.phone_hint'.tr,
-          label: 'add_depot.mobile_phone'.tr,
-          icon: Icons.phone_android_rounded,
-          required: true,
-          compact: true,
-          error: errors['mobilePhone'],
-          onChanged: (v) => _edit((d) => d.mobilePhone = v),
-        ),
-        _gap(8),
+        contactPerson,
+        _gap(10),
+        // The shop's own line, kept out of the person's group: it may simply
+        // mirror the mobile via the switch, so attaching it to a named person
+        // would give a rep a number that rings the counter.
         _twoCol(
           telephoneSwitchCard,
           _dropdown(

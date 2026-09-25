@@ -1,4 +1,4 @@
-import 'package:isi_steel_sales_mobile/core/utils/colors.dart';
+import 'package:isi_steel_sales_mobile/core/theme/app_colors.dart';
 
 /// Auth-screen visual tokens — kept as a small local class so the login
 /// widgets stay decoupled, but every value delegates to [AppColors]

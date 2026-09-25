@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
-import 'package:isi_steel_sales_mobile/core/utils/colors.dart';
+import 'package:isi_steel_sales_mobile/core/theme/app_colors.dart';
 
 class GradientButton extends StatelessWidget {
   const GradientButton({

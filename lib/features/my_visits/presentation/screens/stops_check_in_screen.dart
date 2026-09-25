@@ -10,7 +10,7 @@ import 'package:isi_steel_sales_mobile/core/localization/localization_services.d
 import 'package:isi_steel_sales_mobile/core/localization/localized_builder.dart';
 import 'package:isi_steel_sales_mobile/core/platform/local_files.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
-import 'package:isi_steel_sales_mobile/core/utils/offline_banner.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/offline_banner.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/fraud_policy.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/location_sample.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_stop.dart';

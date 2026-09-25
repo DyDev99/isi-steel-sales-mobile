@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/device/device_insets.dart';
+import 'package:isi_steel_sales_mobile/core/platform/device_insets.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/guest/guest_cta_card.dart';
 import 'package:isi_steel_sales_mobile/features/shell/presentation/widgets/guest/guest_fade_in.dart';

@@ -748,15 +748,19 @@ extension TabletLayoutExtension on _AddDepotBottomSheetState {
                     icon: Icons.phone_outlined,
                     onEdit: () => _editFromPreview(1, BpFormStep.contact),
                     children: [
+                      // The person, then their number, then the shop's line.
+                      // Listing the mobile first put it next to the landline
+                      // and two rows away from the person it belongs to, which
+                      // reads as two shop numbers rather than one of each.
+                      previewItem('Contact Person', draft.contactPersonName),
+                      previewItem(
+                          'Contact Role', draft.contactPersonRole ?? '—'),
                       previewItem('Mobile Phone', draft.mobilePhone),
                       previewItem(
                           'Telephone',
                           draft.telephoneSameAsMobile
                               ? 'Same as mobile'
                               : draft.telephone),
-                      previewItem('Contact Person', draft.contactPersonName),
-                      previewItem(
-                          'Contact Role', draft.contactPersonRole ?? '—'),
                       previewItem('Language', draft.language),
                     ],
                   ),

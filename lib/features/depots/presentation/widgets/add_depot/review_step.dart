@@ -126,7 +126,14 @@ extension ReviewStepExtension on _AddDepotBottomSheetState {
         ),
         buildAnimatedCard(
           step: BpFormStep.contact,
-          value: draft.mobilePhone,
+          // The person and their number on one line. Showing the mobile alone
+          // let a rep confirm a number without ever re-reading whose it is —
+          // and the name and role are what make it callable.
+          value: [
+            draft.contactPersonName.trim(),
+            draft.contactPersonRole?.trim() ?? '',
+            draft.mobilePhone.trim(),
+          ].where((s) => s.isNotEmpty).join(' · '),
           index: 2,
           icon: Icons.phone_rounded,
         ),

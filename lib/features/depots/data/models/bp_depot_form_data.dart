@@ -18,6 +18,7 @@
 import 'package:isi_steel_sales_mobile/features/geo_location/domain/entities/geo_address.dart';
 
 import 'package:isi_steel_sales_mobile/features/depots/domain/entities/depot_document.dart';
+import 'package:isi_steel_sales_mobile/features/depots/domain/entities/depot_draft.dart';
 
 /// The six capture steps of the "Add Depot" bottom sheet.
 enum BpFormStep {
@@ -539,6 +540,41 @@ class BpDepotDraft {
   String faxNumber; // REP   Fax Number          (optional)
   String contactPersonName; // REP   (app CRM, sent as BP contact person)
   String? contactPersonRole;
+
+  /// The contact person as the platform's own contact record.
+  ///
+  /// The three fields the rep fills on step 3 describe **one person**, but the
+  /// draft stores them apart: a name, a role, and a phone that is also the
+  /// depot's `MobilePhone`. Pairing them here rather than at each call site is
+  /// the point — a caller that rebuilt the triple by hand could pair the role
+  /// with the landline, or send a name with no number, and nothing would say
+  /// so.
+  ///
+  /// `phone` is [mobilePhone] deliberately: step 3 collects exactly one mobile
+  /// number and it is the number for this person. [telephone] is the shop's
+  /// landline — it may merely mirror the mobile via
+  /// [telephoneSameAsMobile] — so it is the wrong number to put on a person.
+  ///
+  /// Primary because the form captures one contact and one only. The backend
+  /// demotes any previous primary rather than rejecting a second, so this is
+  /// safe to send on an update too.
+  ///
+  /// Empty when no name was entered — never a contact with a blank name. An
+  /// empty list must also never be *sent* on an update: `[]` means "remove
+  /// every contact" (`docs/feature/depot/mobile/edit-depot.md`).
+  List<DepotContactDraft> get contacts {
+    final name = contactPersonName.trim();
+    if (name.isEmpty) return const [];
+    final role = contactPersonRole?.trim();
+    return [
+      DepotContactDraft(
+        name: name,
+        phone: mobilePhone.trim(),
+        position: (role == null || role.isEmpty) ? null : role,
+        isPrimary: true,
+      ),
+    ];
+  }
 
   // --- Step 4: Sales & billing terms ------------------------------------
   //

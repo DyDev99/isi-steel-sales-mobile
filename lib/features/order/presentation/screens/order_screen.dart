@@ -134,104 +134,104 @@ class _OrderScreenState extends State<OrderScreen> {
               else
                 Expanded(
                   child: ListView(
-                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-                  children: [
-                    Text('orders.recent'.tr,
-                        style: TextStyle(
-                            color: colors.textPrimary,
-                            fontSize: context.rsp(15),
-                            fontWeight: FontWeight.w800)),
-                    SizedBox(height: context.rh(14)),
-                    StreamBuilder<List<Quotation>>(
-                      stream: _quotationsStream,
-                      builder: (context, quotationSnapshot) {
-                        return StreamBuilder<List<SalesOrder>>(
-                          stream: _salesOrdersStream,
-                          builder: (context, salesOrderSnapshot) {
-                            if (quotationSnapshot.connectionState ==
-                                    ConnectionState.waiting &&
-                                salesOrderSnapshot.connectionState ==
-                                    ConnectionState.waiting) {
-                              return const PendingOrdersSkeleton();
-                            }
-                            if (quotationSnapshot.hasError ||
-                                salesOrderSnapshot.hasError) {
-                              return Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 24),
-                                child: Center(
-                                    child: Text('common.generic_error'.tr,
-                                        style: TextStyle(
-                                            color: colors.textSecondary))),
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+                    children: [
+                      Text('orders.recent'.tr,
+                          style: TextStyle(
+                              color: colors.textPrimary,
+                              fontSize: context.rsp(15),
+                              fontWeight: FontWeight.w800)),
+                      SizedBox(height: context.rh(14)),
+                      StreamBuilder<List<Quotation>>(
+                        stream: _quotationsStream,
+                        builder: (context, quotationSnapshot) {
+                          return StreamBuilder<List<SalesOrder>>(
+                            stream: _salesOrdersStream,
+                            builder: (context, salesOrderSnapshot) {
+                              if (quotationSnapshot.connectionState ==
+                                      ConnectionState.waiting &&
+                                  salesOrderSnapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                return const PendingOrdersSkeleton();
+                              }
+                              if (quotationSnapshot.hasError ||
+                                  salesOrderSnapshot.hasError) {
+                                return Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 24),
+                                  child: Center(
+                                      child: Text('common.generic_error'.tr,
+                                          style: TextStyle(
+                                              color: colors.textSecondary))),
+                                );
+                              }
+
+                              // Map source arrays to UI abstraction union[cite: 6]
+                              var entries = <_OrderEntry>[
+                                for (final q in quotationSnapshot.data ??
+                                    const <Quotation>[])
+                                  _OrderEntry.quotation(q),
+                                for (final o in salesOrderSnapshot.data ??
+                                    const <SalesOrder>[])
+                                  _OrderEntry.salesOrder(o),
+                              ]..sort((a, b) => b.date.compareTo(a.date));
+
+                              // Filter client-side based on horizontal selector selection[cite: 6]
+                              if (_selectedFilter != _OrderStatusFilter.all) {
+                                entries = entries.where((entry) {
+                                  switch (_selectedFilter) {
+                                    case _OrderStatusFilter.salesOrder:
+                                      return entry.isSalesOrder;
+                                    case _OrderStatusFilter.quotations:
+                                      return !entry.isSalesOrder &&
+                                          entry.isQuotationConverted;
+                                    case _OrderStatusFilter.pendingSyncing:
+                                      return !entry.isSalesOrder &&
+                                          !entry.isQuotationConverted;
+                                    case _OrderStatusFilter.completed:
+                                      // Complete states match items cleanly synced to a backend record (e.g. Sales Orders)[cite: 6]
+                                      return entry.isSalesOrder;
+                                    default:
+                                      return true;
+                                  }
+                                }).toList();
+                              }
+
+                              if (entries.isEmpty) {
+                                return Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 24),
+                                  child: Center(
+                                      child: Text('orders.no_orders'.tr,
+                                          style: TextStyle(
+                                              color: colors.textSecondary))),
+                                );
+                              }
+
+                              // Replaced Column with responsive GridView for square layout
+                              return GridView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                gridDelegate:
+                                    SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount:
+                                      isTablet ? 4 : 2, // Responsive columns
+                                  crossAxisSpacing: context.rw(12),
+                                  mainAxisSpacing: context.rh(12),
+                                  childAspectRatio: isTablet ? 1.05 : 0.85,
+                                ),
+                                itemCount: entries.length,
+                                itemBuilder: (context, index) {
+                                  return _OrderTile(entry: entries[index]);
+                                },
                               );
-                            }
-
-                            // Map source arrays to UI abstraction union[cite: 6]
-                            var entries = <_OrderEntry>[
-                              for (final q in quotationSnapshot.data ??
-                                  const <Quotation>[])
-                                _OrderEntry.quotation(q),
-                              for (final o in salesOrderSnapshot.data ??
-                                  const <SalesOrder>[])
-                                _OrderEntry.salesOrder(o),
-                            ]..sort((a, b) => b.date.compareTo(a.date));
-
-                            // Filter client-side based on horizontal selector selection[cite: 6]
-                            if (_selectedFilter != _OrderStatusFilter.all) {
-                              entries = entries.where((entry) {
-                                switch (_selectedFilter) {
-                                  case _OrderStatusFilter.salesOrder:
-                                    return entry.isSalesOrder;
-                                  case _OrderStatusFilter.quotations:
-                                    return !entry.isSalesOrder &&
-                                        entry.isQuotationConverted;
-                                  case _OrderStatusFilter.pendingSyncing:
-                                    return !entry.isSalesOrder &&
-                                        !entry.isQuotationConverted;
-                                  case _OrderStatusFilter.completed:
-                                    // Complete states match items cleanly synced to a backend record (e.g. Sales Orders)[cite: 6]
-                                    return entry.isSalesOrder;
-                                  default:
-                                    return true;
-                                }
-                              }).toList();
-                            }
-
-                            if (entries.isEmpty) {
-                              return Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 24),
-                                child: Center(
-                                    child: Text('orders.no_orders'.tr,
-                                        style: TextStyle(
-                                            color: colors.textSecondary))),
-                              );
-                            }
-
-                            // Replaced Column with responsive GridView for square layout
-                            return GridView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              gridDelegate:
-                                  SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount:
-                                    isTablet ? 4 : 2, // Responsive columns
-                                crossAxisSpacing: context.rw(12),
-                                mainAxisSpacing: context.rh(12),
-                                childAspectRatio: isTablet ? 1.05 : 0.85,
-                              ),
-                              itemCount: entries.length,
-                              itemBuilder: (context, index) {
-                                return _OrderTile(entry: entries[index]);
-                              },
-                            );
-                          },
-                        );
-                      },
-                    ),
-                  ],
+                            },
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 ),
-              ),
             ],
           ),
         ),

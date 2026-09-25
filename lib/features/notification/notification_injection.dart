@@ -25,6 +25,7 @@ import 'package:isi_steel_sales_mobile/features/notification/domain/usecases/inb
 import 'package:isi_steel_sales_mobile/features/notification/domain/usecases/preferences_usecases.dart';
 import 'package:isi_steel_sales_mobile/features/notification/domain/usecases/push_device_usecases.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/domain/notification_lifecycle.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/location_fix_provider.dart';
 import 'package:isi_steel_sales_mobile/features/notification/notification_coordinator.dart';
 import 'package:isi_steel_sales_mobile/features/notification/presentation/bloc/notification_badge_cubit.dart';
 import 'package:isi_steel_sales_mobile/features/notification/presentation/bloc/notification_inbox_cubit.dart';
@@ -98,6 +99,9 @@ void registerNotificationFeature(GetIt sl) {
       identity: sl(),
       session: sl<SessionManager>(),
       logger: sl<AppLogger>(),
+      getFixProvider: () => sl.isRegistered<LocationFixProvider>()
+          ? sl<LocationFixProvider>()
+          : null,
     ),
   );
   sl.registerLazySingleton<NotificationPreferencesRepository>(

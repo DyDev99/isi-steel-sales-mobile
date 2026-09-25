@@ -7,7 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/depots/data/models/bp_depot_form_data.dart';
 import 'package:phone_form_field/phone_form_field.dart';
 
-import 'package:isi_steel_sales_mobile/core/device/device_insets.dart';
+import 'package:isi_steel_sales_mobile/core/platform/device_insets.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';

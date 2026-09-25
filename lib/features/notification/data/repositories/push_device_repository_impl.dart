@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:isi_steel_sales_mobile/core/device/device_identity.dart';
+import 'package:isi_steel_sales_mobile/core/platform/device_identity.dart';
 import 'package:isi_steel_sales_mobile/core/error/failures.dart';
 import 'package:isi_steel_sales_mobile/core/localization/active_language.dart';
 import 'package:isi_steel_sales_mobile/core/logging/app_logger.dart';
@@ -11,6 +11,7 @@ import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
 import 'package:isi_steel_sales_mobile/core/utils/result.dart';
 import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
 import 'package:isi_steel_sales_mobile/core/notifications/device_time_zone.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/location_fix_provider.dart';
 import 'package:isi_steel_sales_mobile/features/notification/data/remote/notification_remote_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/notification/domain/entities/push_registration.dart';
 import 'package:isi_steel_sales_mobile/features/notification/domain/repositories/push_device_repository.dart';
@@ -37,17 +38,20 @@ class PushDeviceRepositoryImpl implements PushDeviceRepository {
     required DeviceIdentity identity,
     required SessionManager session,
     required AppLogger logger,
+    LocationFixProvider? Function()? getFixProvider,
   })  : _messaging = messaging,
         _remote = remote,
         _identity = identity,
         _session = session,
-        _logger = logger;
+        _logger = logger,
+        _getFixProvider = getFixProvider;
 
   final PushMessagingService _messaging;
   final NotificationRemoteDataSource _remote;
   final DeviceIdentity _identity;
   final SessionManager _session;
   final AppLogger _logger;
+  final LocationFixProvider? Function()? _getFixProvider;
 
   @override
   Future<PushPermissionStatus> permissionStatus() async =>
@@ -103,6 +107,34 @@ class PushDeviceRepositoryImpl implements PushDeviceRepository {
     try {
       final authorization = await _messaging.authorization();
 
+      double _lastFixLat = 0.0;
+      double _lastFixLng = 0.0;
+      double _lastFixAcc = 0.0;
+      DateTime? _lastFixTime;
+
+      final provider = _getFixProvider?.call();
+      if (provider != null) {
+        final fix = await provider.currentFix(
+          precise: false,
+          timeout: const Duration(seconds: 3),
+        );
+        if (fix != null && (fix.latitude != 0 || fix.longitude != 0)) {
+          _lastFixLat = fix.latitude;
+          _lastFixLng = fix.longitude;
+          _lastFixAcc = fix.accuracyMeters;
+          _lastFixTime = fix.timestamp;
+        } else {
+          // Bad pair fails the registration per docs (422), but if we can't get it,
+          // we might just let it fail at backend or return a local failure.
+          // Wait, if no fix, the backend rejects it. We must throw an ApiException.
+          throw const ApiException(ApiError(
+            code: 'Notification.LocationRequired',
+            detail: 'A valid location fix is required for push registration.',
+            statusCode: 422,
+          ));
+        }
+      }
+
       // Logged *before* the registration, and separately from it.
       //
       // `push.registered permitted=false` on its own is unreadable: it is the
@@ -141,6 +173,10 @@ class PushDeviceRepositoryImpl implements PushDeviceRepository {
         // wall-clock facts; without this the backend assumes UTC and a rep's
         // 22:00 quiet window starts at 05:00 local (§4.2).
         timeZone: await readIanaTimeZone(),
+        latitude: _lastFixLat,
+        longitude: _lastFixLng,
+        locationAccuracyMeters: _lastFixAcc,
+        locationCapturedAt: _lastFixTime ?? DateTime.now(),
       );
 
       final result = await _remote.registerDevice(registration);

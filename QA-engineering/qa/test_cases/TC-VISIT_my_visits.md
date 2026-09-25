@@ -1,0 +1,20 @@
+# My Visits & Geolocation Check-In: Test Cases
+
+**Feature:** Field Visits, GPS Check-In & Customer Stops  
+**Package:** `isi_steel_sales_mobile/features/my_visits`, `lib/features/geo_location`  
+**Priority:** P1 (Core Field Operations)  
+**Preconditions:** Sales rep logged in, GPS enabled on device.
+
+| ID | Title | Steps | Test Data / Payload | Expected Result | Type | Automated Level |
+|---|---|---|---|---|---|---|
+| TC-VISIT-001 | Today's Scheduled Visits List | 1. Open "My Visits" tab<br>2. Observe customer stop list | 3 stops scheduled for today | List sorted by sequence/time. Each card displays Customer name, address, phone, planned time, and status badge (Pending/Checked In/Completed). | Functional | Widget + E2E |
+| TC-VISIT-002 | Location Permission - Not Granted | 1. Deny location permission when prompted<br>2. Tap "Check In" | Location permission = Denied | In-app dialog explains: "Location access is required to verify your visit check-in. Please enable location in Settings." Direct button opens App Settings. | Permissions | Unit + Widget |
+| TC-VISIT-003 | Check-In Within Geofence (< 100m) | 1. Arrive at customer coordinate (lat: 11.5564, lng: 104.9282)<br>2. Tap "Check In" | Current GPS: 11.5565, 104.9283 (15m away) | Geofence validation passes. Stop status switches to `Checked In`. Timestamp recorded. Timer starts counting visit duration. | Functional | Unit + Widget |
+| TC-VISIT-004 | Check-In Outside Geofence (> 200m) | 1. Device GPS located 800m away from customer profile address<br>2. Tap "Check In" | Distance: 800m | Warning prompt: "You are 800m away from registered location. Proceed with off-site check-in reason?" Requires mandatory reason input (e.g., meeting relocated). | Business Rule | Unit + Widget |
+| TC-VISIT-005 | GPS Accuracy Threshold Check | 1. GPS device returns low accuracy (radius > 100m)<br>2. Tap "Check In" | Accuracy: ±150m | Prompt: "Waiting for accurate GPS lock (current ±150m, needed ≤ 30m)..." Automatically resolves when satellite lock improves. | Boundary | Unit + Widget |
+| TC-VISIT-006 | Take Visit Photo Proof (Camera) | 1. On check-in screen, tap "Take Photo"<br>2. Capture photo of customer storefront / warehouse<br>3. Confirm photo | Camera capture image | Image compressed (< 500KB) to prevent heavy uploads. Thumbnail rendered in form with timestamp & GPS watermark. | Media / Hardware | Widget + Manual |
+| TC-VISIT-007 | Fill Inventory Visibility Survey | 1. In Stop Information, open "Inventory Visible"<br>2. Record competitor steel brands and stock levels | Competitor: Brand X, Est. Stock: 15 MT | Survey data validated and attached to visit record. | Functional | Unit + Widget |
+| TC-VISIT-008 | Complete Check-Out & Summary | 1. Tap "Check Out"<br>2. Enter visit notes/outcome (Order Placed, Follow-up, Price Negotiation)<br>3. Submit | Duration: 42 mins<br>Outcome: "Order Placed" | Visit marked as `Completed`. Total duration and checkout timestamp displayed. Stop card turns green. | Functional | Unit + Widget + E2E |
+| TC-VISIT-009 | Offline Check-In & Sync | 1. Turn off Mobile Data & WiFi<br>2. Check in at customer stop<br>3. Record notes and complete checkout<br>4. Reconnect internet | Offline mode | Visit cached in local database. Stop card displays sync badge: "Pending Sync". Auto-syncs to cloud once network reconnected; timestamp remains original check-in time. | Offline | Unit + Widget |
+| TC-VISIT-010 | Mock Location / GPS Spoofing Detection | 1. Enable developer mock location app on Android device<br>2. Attempt check-in | Mock provider = true | System detects mocked provider (via `Geolocator.isMocked`). Blocks check-in with security alert: "Fake GPS detected. Visit check-in rejected." | Security | Unit |
+| TC-VISIT-011 | Unscheduled / Ad-Hoc Visit Creation | 1. Tap floating "+" button on My Visits<br>2. Search existing customer or create new<br>3. Start unplanned visit | Customer: "ISI Hardware Depot #2" | Ad-hoc stop added to today's schedule and marked as "Unscheduled". Check-in flow proceeds normally. | Functional | Widget + E2E |

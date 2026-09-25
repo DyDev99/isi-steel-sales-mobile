@@ -98,6 +98,10 @@ class PushRegistration extends Equatable {
     this.osVersion,
     this.locale,
     this.timeZone,
+    required this.latitude,
+    required this.longitude,
+    required this.locationAccuracyMeters,
+    required this.locationCapturedAt,
   });
 
   final String deviceId;
@@ -130,6 +134,11 @@ class PushRegistration extends Equatable {
   /// which looks like the feature is simply broken.
   final String? timeZone;
 
+  final double latitude;
+  final double longitude;
+  final double locationAccuracyMeters;
+  final DateTime locationCapturedAt;
+
   @override
   List<Object?> get props => [
         deviceId,
@@ -141,6 +150,10 @@ class PushRegistration extends Equatable {
         osVersion,
         locale,
         timeZone,
+        latitude,
+        longitude,
+        locationAccuracyMeters,
+        locationCapturedAt,
       ];
 }
 

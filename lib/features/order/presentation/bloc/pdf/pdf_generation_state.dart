@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:isi_steel_sales_mobile/core/services/pdf/saved_document.dart';
+import 'package:isi_steel_sales_mobile/core/pdf/saved_document.dart';
 
 /// State of a single PDF export attempt. Owned by [PdfGenerationCubit];
 /// document-type agnostic so the same states drive quotation, invoice, and

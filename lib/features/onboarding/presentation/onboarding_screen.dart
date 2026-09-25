@@ -6,7 +6,7 @@ import 'package:isi_steel_sales_mobile/core/animations/app_animations.dart';
 import 'package:isi_steel_sales_mobile/core/database/hive/app_preferences.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/utils/colors.dart';
+import 'package:isi_steel_sales_mobile/core/theme/app_colors.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_bloc.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_event.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_state.dart';

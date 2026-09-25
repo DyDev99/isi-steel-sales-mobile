@@ -16,7 +16,7 @@ import 'package:isi_steel_sales_mobile/core/localization/localized_text_context.
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_content_frame.dart';
 import 'package:isi_steel_sales_mobile/core/responsive/responsive_sizing.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
-import 'package:isi_steel_sales_mobile/core/utils/page_transitions.dart';
+import 'package:isi_steel_sales_mobile/core/animations/page_transitions.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/route_stop.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/entities/visit_status.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/geofence_service.dart';

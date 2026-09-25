@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/theme/app_colors_dark.dart';
 import 'package:isi_steel_sales_mobile/core/theme/app_typography.dart';
 import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
-import 'package:isi_steel_sales_mobile/core/utils/colors.dart';
-import 'package:isi_steel_sales_mobile/core/utils/page_transitions.dart';
+import 'package:isi_steel_sales_mobile/core/theme/app_colors.dart';
+import 'package:isi_steel_sales_mobile/core/animations/page_transitions.dart';
 
 /// Single source of truth for the app's [ThemeData]. Owns the light and dark
 /// [ThemeData] objects (previously built inline in `app.dart`), keeps the light

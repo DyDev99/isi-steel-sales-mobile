@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/device/device_insets.dart';
+import 'package:isi_steel_sales_mobile/core/platform/device_insets.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/keyboard_aware_scroll_view.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
 import 'package:isi_steel_sales_mobile/core/platform/local_files.dart';

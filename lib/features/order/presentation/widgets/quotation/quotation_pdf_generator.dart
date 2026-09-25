@@ -3,9 +3,9 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/services/pdf/pdf_document_builder.dart';
-import 'package:isi_steel_sales_mobile/core/services/pdf/pdf_shaped_text.dart';
-import 'package:isi_steel_sales_mobile/core/services/pdf/pdf_theme.dart';
+import 'package:isi_steel_sales_mobile/core/pdf/pdf_document_builder.dart';
+import 'package:isi_steel_sales_mobile/core/pdf/pdf_shaped_text.dart';
+import 'package:isi_steel_sales_mobile/core/pdf/pdf_theme.dart';
 import 'package:isi_steel_sales_mobile/features/order/pdf/quotation_pdf_data.dart';
 
 /// Lays out the enterprise quotation document in clean Swiss / modern corporate

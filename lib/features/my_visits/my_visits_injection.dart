@@ -3,8 +3,12 @@ import 'package:get_it/get_it.dart';
 import 'package:isi_steel_sales_mobile/core/database/drift/app_database.dart';
 import 'package:isi_steel_sales_mobile/core/database/hive/hive_service.dart';
 import 'package:isi_steel_sales_mobile/core/logging/app_logger.dart';
+import 'package:isi_steel_sales_mobile/core/network/connectivity_service.dart';
 import 'package:isi_steel_sales_mobile/core/network/network_info.dart';
+import 'package:isi_steel_sales_mobile/core/session/location_heartbeat_service.dart';
 import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
+import 'package:isi_steel_sales_mobile/features/authentication/data/datasources/auth_remote_data_source.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/location_fix_provider.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/depot_selection_store.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/location_sample_drift_local_data_source.dart';
 import 'package:isi_steel_sales_mobile/features/my_visits/data/local/location_sample_local_data_source.dart';
@@ -115,6 +119,19 @@ Future<void> registerMyVisitsFeature(GetIt sl) async {
   // ── Services ────────────────────────────────────────────────────────
   sl.registerLazySingleton<LocationTrackingService>(
       () => GeolocatorTrackingService());
+  sl.registerLazySingleton<LocationFixProvider>(
+      () => sl<LocationTrackingService>() as LocationFixProvider);
+
+  // Instantiate immediately so it listens to auth state changes
+  sl.registerSingleton<LocationHeartbeatService>(
+    LocationHeartbeatService(
+      trackingService: sl(),
+      authRemoteDataSource: sl(),
+      sessionManager: sl(),
+      logger: sl(),
+    ),
+  );
+
   sl.registerLazySingleton<FraudDetectionService>(
       () => const FraudDetectionService());
   sl.registerLazySingleton<StopDistanceSorter>(

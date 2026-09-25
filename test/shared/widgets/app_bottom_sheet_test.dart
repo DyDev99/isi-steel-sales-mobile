@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:isi_steel_sales_mobile/core/device/device_insets.dart';
+import 'package:isi_steel_sales_mobile/core/platform/device_insets.dart';
 import 'package:isi_steel_sales_mobile/core/theme/app_theme.dart';
 import 'package:isi_steel_sales_mobile/core/theme/app_typography.dart';
 import 'package:isi_steel_sales_mobile/shared/widgets/app_bottom_sheet.dart';

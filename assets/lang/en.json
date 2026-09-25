@@ -1256,6 +1256,9 @@
   },
   "add_depot": {
     "compliance": "Compliance Documents",
+    "contact_person": "Contact person",
+    "mobile_belongs_to": "This mobile number is filed against {name}",
+    "mobile_is_personal": "The contact person's own mobile, not the shop line",
     "contact_name": "Contact Name",
     "review_title": "Review Customer Information",
     "language": "Language",

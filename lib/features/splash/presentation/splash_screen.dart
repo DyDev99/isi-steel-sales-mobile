@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/database/hive/app_preferences.dart';
 import 'package:isi_steel_sales_mobile/core/di/injection_container.dart';
-import 'package:isi_steel_sales_mobile/core/utils/colors.dart';
+import 'package:isi_steel_sales_mobile/core/theme/app_colors.dart';
 import 'package:isi_steel_sales_mobile/features/splash/presentation/animation/logo_reveal.dart';
 import 'package:isi_steel_sales_mobile/features/splash/presentation/animation/splash_timeline.dart';
 import 'package:isi_steel_sales_mobile/routes/app_routes.dart';

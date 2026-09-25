@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/device/device_insets.dart';
+import 'package:isi_steel_sales_mobile/core/platform/device_insets.dart';
 
 /// A scrollable form body that behaves correctly while the keyboard is open.
 ///

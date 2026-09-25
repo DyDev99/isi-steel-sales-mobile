@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
-import 'package:isi_steel_sales_mobile/core/device/device_identity.dart';
+import 'package:isi_steel_sales_mobile/core/platform/device_identity.dart';
 import 'package:isi_steel_sales_mobile/core/logging/app_logger.dart';
-import 'package:isi_steel_sales_mobile/core/middleware/app_middleware.dart';
+import 'package:isi_steel_sales_mobile/core/network/app_middleware.dart';
 import 'package:isi_steel_sales_mobile/core/network/app_network.dart';
 import 'package:isi_steel_sales_mobile/core/session/session_manager.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/data/datasources/auth_local_data_source.dart';
@@ -14,6 +14,7 @@ import 'package:isi_steel_sales_mobile/features/authentication/domain/usecases/g
 import 'package:isi_steel_sales_mobile/features/authentication/domain/usecases/login.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/domain/usecases/logout.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_bloc.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/location_fix_provider.dart';
 
 /// Registers every dependency the authentication feature needs.
 /// Externals (secure storage, connectivity, network info) are registered
@@ -103,6 +104,9 @@ void registerAuthFeature(GetIt sl) {
       authedClient: sl<Dio>(),
       bareClient: sl<Dio>(instanceName: bareClientName),
       device: sl(),
+      getFixProvider: () => sl.isRegistered<LocationFixProvider>()
+          ? sl<LocationFixProvider>()
+          : null,
     ),
   );
 }

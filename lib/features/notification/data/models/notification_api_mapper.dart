@@ -208,6 +208,11 @@ abstract final class NotificationApiMapper {
         // kept but excluded from the push audience, which makes the delivery log
         // read `NO_DEVICE` instead of a run of failures.
         'pushPermissionGranted': registration.pushPermissionGranted,
+        'latitude': registration.latitude,
+        'longitude': registration.longitude,
+        'locationAccuracyMeters': registration.locationAccuracyMeters,
+        'locationCapturedAt':
+            registration.locationCapturedAt.toUtc().toIso8601String(),
       };
 
   /// `POST /mobile/devices/register` response (§4.3).

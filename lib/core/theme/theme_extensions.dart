@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:isi_steel_sales_mobile/core/theme/app_colors_dark.dart';
-import 'package:isi_steel_sales_mobile/core/utils/colors.dart';
+import 'package:isi_steel_sales_mobile/core/theme/app_colors.dart';
 
 /// Semantic, theme-aware design tokens that don't map cleanly onto a Material 3
 /// [ColorScheme] role — the app's own vocabulary (card, canvas, success,

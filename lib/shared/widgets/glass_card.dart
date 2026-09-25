@@ -1,6 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:isi_steel_sales_mobile/core/utils/colors.dart';
+import 'package:isi_steel_sales_mobile/core/theme/app_colors.dart';
 
 /// The app's standard card: updated to feature an adaptive glassmorphism (blur)
 /// effect that shifts between dark and light themes.

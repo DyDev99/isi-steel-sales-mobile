@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:isi_steel_sales_mobile/core/constants/app_constant.dart';
-import 'package:isi_steel_sales_mobile/core/device/device_identity.dart';
+import 'package:isi_steel_sales_mobile/core/platform/device_identity.dart';
 import 'package:isi_steel_sales_mobile/core/network/api_envelope.dart';
 import 'package:isi_steel_sales_mobile/core/network/api_error.dart';
 import 'package:isi_steel_sales_mobile/core/utils/typedefs.dart';
@@ -8,6 +8,7 @@ import 'package:isi_steel_sales_mobile/features/authentication/data/models/auth_
 import 'package:isi_steel_sales_mobile/features/authentication/data/models/auth_session_model.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/data/models/auth_token_model.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/domain/entities/otp_challenge.dart';
+import 'package:isi_steel_sales_mobile/features/my_visits/domain/services/location_fix_provider.dart';
 
 abstract interface class AuthRemoteDataSource {
   /// Signs in with a personnel number **or** an e-mail address.
@@ -53,6 +54,8 @@ abstract interface class AuthRemoteDataSource {
 
   Future<List<AuthSessionModel>> listSessions();
   Future<void> revokeSession(String sessionId);
+  Future<void> sendHeartbeat(
+      double lat, double lng, double accuracy, DateTime capturedAt);
 
   Future<void> changePassword({
     required String currentPassword,
@@ -74,9 +77,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required Dio authedClient,
     required Dio bareClient,
     required DeviceIdentity device,
+    LocationFixProvider? Function()? getFixProvider,
   })  : _authed = authedClient,
         _bare = bareClient,
-        _device = device;
+        _device = device,
+        _getFixProvider = getFixProvider;
 
   /// Carries [AuthInterceptor]. Used for everything that needs a bearer token.
   final Dio _authed;
@@ -88,6 +93,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   final Dio _bare;
 
   final DeviceIdentity _device;
+
+  final LocationFixProvider? Function()? _getFixProvider;
 
   @override
   Future<AuthTokenModel> login({
@@ -120,6 +127,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
             rememberDevice: rememberDevice,
           ),
         },
+        options: await _locationHeaders(),
       );
 
       final token = AuthTokenModel.fromMap(res.data ?? const {});
@@ -155,6 +163,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           'deviceId': await _device.deviceId(),
           'deviceName': (await _device.describe())['deviceName'],
         },
+        options: await _locationHeaders(),
       );
 
       // Wrapped, unlike step 3.
@@ -190,6 +199,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         // The password is deliberately absent: it was spent at step 1 and this
         // endpoint does not accept it.
         data: {'verificationId': verificationId},
+        options: await _locationHeaders(),
       );
 
       // Raw OAuth payload — **not** wrapped, unlike steps 1 and 2. One flow,
@@ -288,6 +298,28 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
   }
 
+  @override
+  Future<void> sendHeartbeat(
+    double lat,
+    double lng,
+    double accuracy,
+    DateTime capturedAt,
+  ) async {
+    try {
+      await _authed.post<void>(
+        '${AppConstants.sessionsEndpoint}/current/location',
+        data: {
+          'latitude': lat,
+          'longitude': lng,
+          'accuracyMeters': accuracy,
+          'capturedAt': capturedAt.toUtc().toIso8601String(),
+        },
+      );
+    } on DioException catch (e) {
+      throw ApiException(ApiError.fromDio(e));
+    }
+  }
+
   /// Re-verifies [currentPassword] even though the caller is already
   /// authenticated. That is deliberate on the server's part: it is what stops
   /// a borrowed unlocked handset from becoming a permanent account takeover.
@@ -337,6 +369,29 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       await client.post<void>(path, data: body);
     } on DioException catch (e) {
       throw ApiException(ApiError.fromDio(e));
+    }
+  }
+
+  Future<Options?> _locationHeaders() async {
+    if (_getFixProvider == null) return null;
+    final provider = _getFixProvider();
+    if (provider == null) return null;
+    try {
+      final fix = await provider.currentFix(
+        precise: false,
+        timeout: const Duration(seconds: 3),
+      );
+      if (fix == null || (fix.latitude == 0 && fix.longitude == 0)) return null;
+      return Options(
+        headers: {
+          'X-Location-Lat': fix.latitude.toStringAsFixed(6),
+          'X-Location-Lng': fix.longitude.toStringAsFixed(6),
+          'X-Location-Accuracy': fix.accuracyMeters.toStringAsFixed(1),
+          'X-Location-At': fix.timestamp.toUtc().toIso8601String(),
+        },
+      );
+    } catch (_) {
+      return null;
     }
   }
 }

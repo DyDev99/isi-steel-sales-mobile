@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:isi_steel_sales_mobile/core/config/app_config.dart';
 import 'package:isi_steel_sales_mobile/core/constants/app_constant.dart';
 import 'package:isi_steel_sales_mobile/core/logging/app_logger.dart';
-import 'package:isi_steel_sales_mobile/core/middleware/app_middleware.dart';
+import 'package:isi_steel_sales_mobile/core/network/app_middleware.dart';
 import 'package:isi_steel_sales_mobile/core/network/api_log_interceptor.dart';
 
 /// Factory for the app's Dio clients. Keeping construction here means the

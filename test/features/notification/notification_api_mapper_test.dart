@@ -402,13 +402,17 @@ void main() {
   group('device registration (§4.2)', () {
     test('sends the documented body, including a declined permission', () {
       final json = NotificationApiMapper.registrationToJson(
-        const PushRegistration(
+        PushRegistration(
           deviceId: 'installation-1',
           pushToken: 'fEo7x:APA91bH',
           platform: PushPlatform.android,
           pushPermissionGranted: false,
           deviceName: 'Pixel 8',
           timeZone: 'Asia/Phnom_Penh',
+          latitude: 11.5564,
+          longitude: 104.9282,
+          locationAccuracyMeters: 10.0,
+          locationCapturedAt: DateTime.utc(2026, 8, 25),
         ),
       );
 
@@ -423,11 +427,15 @@ void main() {
 
     test('omits an absent optional field rather than sending it empty', () {
       final json = NotificationApiMapper.registrationToJson(
-        const PushRegistration(
+        PushRegistration(
           deviceId: 'installation-1',
           pushToken: 't',
           platform: PushPlatform.ios,
           pushPermissionGranted: true,
+          latitude: 11.5564,
+          longitude: 104.9282,
+          locationAccuracyMeters: 10.0,
+          locationCapturedAt: DateTime.utc(2026, 8, 25),
         ),
       );
 

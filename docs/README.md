@@ -50,7 +50,7 @@ When two documents disagree, the higher row wins:
 | 3 | [skills/ai-engineering-playbook.md](skills/ai-engineering-playbook.md) | Operational checklists |
 | 4 | `blueprint/*` | Target system architecture |
 | 5 | `feature/*` | Per-feature implementation reference |
-| 6 | `.claude/CLAUDE.md` | Session pointer for AI agents |
+| 6 | `.claude/CLAUDE.md` + `.claude/rules/` | Agent behaviour — session router and rules |
 
 **The source code overrides all of them for what the app *currently does*.**
 These documents describe intent and target state; where they diverge from `lib/`,
@@ -104,6 +104,9 @@ business rules currently live instead.
 | Path | What it is |
 |---|---|
 | [../README.md](../README.md) | Repository front page — setup, run, project tour |
-| [../.claude/CLAUDE.md](../.claude/CLAUDE.md) | Instructions loaded into every AI agent session |
+| [../.claude/CLAUDE.md](../.claude/CLAUDE.md) | Session router loaded into every AI agent session |
+| [../.claude/rules/](../.claude/rules/) | Agent behaviour rules — they point back into `docs/`, never restate it |
+| [../.claude/agents/](../.claude/agents/) | Subagents: flutter-developer, ui-ux-reviewer, api-integrator, code-reviewer |
+| [../.claude/commands/](../.claude/commands/) | Slash commands: `/feature` `/screen` `/api` `/debug` `/test` `/review` |
 | `graphify-out/` | Queryable knowledge graph of `lib/` — see [skills/graphify.md](skills/graphify.md) |
 | `.env.example` | Config template. `.env` itself is never committed |

@@ -1,6 +1,6 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:isi_steel_sales_mobile/core/device/device_identity.dart';
+import 'package:isi_steel_sales_mobile/core/platform/device_identity.dart';
 import 'package:isi_steel_sales_mobile/core/logging/app_logger.dart';
 import 'package:isi_steel_sales_mobile/core/notifications/push_message.dart';
 import 'package:isi_steel_sales_mobile/core/notifications/push_messaging_service.dart';
