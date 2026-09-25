@@ -53,12 +53,14 @@ class ProfileCubit extends Cubit<ProfileState> {
     );
   }
 
-  Future<bool> changePassword({required String currentPassword, required String newPassword}) async {
+  Future<bool> changePassword(
+      {required String currentPassword, required String newPassword}) async {
     final current = state;
     if (current is! ProfileLoaded) return false;
     emit(current.copyWith(isSaving: true, actionError: () => null));
     final result = await _changePassword(
-      ChangePasswordParams(currentPassword: currentPassword, newPassword: newPassword),
+      ChangePasswordParams(
+          currentPassword: currentPassword, newPassword: newPassword),
     );
     return result.when(
       success: (_) {

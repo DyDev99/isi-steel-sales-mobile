@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
-import 'package:isi_steel_sales_mobile/core/utils/app_vibe.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
+import 'package:isi_steel_sales_mobile/core/theme/theme_extensions.dart';
 
 /// One slice of a [DashboardKpiCard]'s distribution bar + legend.
 class KpiSegment {
-  const KpiSegment({required this.label, required this.value, required this.color});
+  const KpiSegment(
+      {required this.label, required this.value, required this.color});
   final String label;
   final int value;
   final Color color;
@@ -60,14 +61,16 @@ class DashboardKpiCard extends StatefulWidget {
   State<DashboardKpiCard> createState() => _DashboardKpiCardState();
 }
 
-class _DashboardKpiCardState extends State<DashboardKpiCard> with SingleTickerProviderStateMixin {
+class _DashboardKpiCardState extends State<DashboardKpiCard>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _reveal;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 550));
+    _controller = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 550));
     _reveal = CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic);
     _controller.forward();
   }
@@ -75,7 +78,8 @@ class _DashboardKpiCardState extends State<DashboardKpiCard> with SingleTickerPr
   @override
   void didUpdateWidget(covariant DashboardKpiCard oldWidget) {
     super.didUpdateWidget(oldWidget);
-    var changed = oldWidget.headline != widget.headline || oldWidget.segments.length != widget.segments.length;
+    var changed = oldWidget.headline != widget.headline ||
+        oldWidget.segments.length != widget.segments.length;
     if (!changed) {
       for (var i = 0; i < widget.segments.length; i++) {
         if (oldWidget.segments[i].value != widget.segments[i].value) {
@@ -100,6 +104,8 @@ class _DashboardKpiCardState extends State<DashboardKpiCard> with SingleTickerPr
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = context.appColors;
     final visibleSegments = widget.segments.where((s) => s.value > 0).toList();
 
     return InkWell(
@@ -108,9 +114,9 @@ class _DashboardKpiCardState extends State<DashboardKpiCard> with SingleTickerPr
       child: Container(
         padding: EdgeInsets.all(14.w),
         decoration: BoxDecoration(
-          color: Vibe.bgSoft,
+          color: colors.surfaceSoft,
           borderRadius: BorderRadius.circular(18.r),
-          border: Border.all(color: Vibe.stroke, width: 1),
+          border: Border.all(color: colors.border, width: 1),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -133,12 +139,16 @@ class _DashboardKpiCardState extends State<DashboardKpiCard> with SingleTickerPr
                     widget.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: Vibe.muted, fontSize: 8.sp, fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                        color: colors.textSecondary,
+                        fontSize: 8.sp,
+                        fontWeight: FontWeight.w600),
                   ),
                 ),
                 if (widget.badge != null) ...[
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
                     decoration: BoxDecoration(
                       color: widget.badge!.color.withValues(alpha: 0.14),
                       borderRadius: BorderRadius.circular(20.r),
@@ -147,12 +157,17 @@ class _DashboardKpiCardState extends State<DashboardKpiCard> with SingleTickerPr
                       widget.badge!.label,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color: widget.badge!.color, fontSize: 6.6.sp, fontWeight: FontWeight.w700),
+                      style: TextStyle(
+                          color: widget.badge!.color,
+                          fontSize: 6.6.sp,
+                          fontWeight: FontWeight.w700),
                     ),
                   ),
                   SizedBox(width: 6.w),
                 ],
-                Icon(Icons.arrow_forward_ios_rounded, size: 12.w, color: Vibe.muted.withValues(alpha: 0.5)),
+                Icon(Icons.arrow_forward_ios_rounded,
+                    size: 12.w,
+                    color: colors.textSecondary.withValues(alpha: 0.5)),
               ],
             ),
             SizedBox(height: 10.h),
@@ -163,7 +178,11 @@ class _DashboardKpiCardState extends State<DashboardKpiCard> with SingleTickerPr
               alignment: Alignment.centerLeft,
               child: Text(
                 widget.headline,
-                style: TextStyle(color: Vibe.text, fontSize: 24.sp, fontWeight: FontWeight.w800, height: 1.0),
+                style: TextStyle(
+                    color: scheme.onSurface,
+                    fontSize: 24.sp,
+                    fontWeight: FontWeight.w800,
+                    height: 1.0),
               ),
             ),
             SizedBox(height: 2.h),
@@ -171,7 +190,10 @@ class _DashboardKpiCardState extends State<DashboardKpiCard> with SingleTickerPr
               widget.headlineCaption,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: Vibe.muted, fontSize: 7.sp, fontWeight: FontWeight.w500),
+              style: TextStyle(
+                  color: colors.textSecondary,
+                  fontSize: 7.sp,
+                  fontWeight: FontWeight.w500),
             ),
             SizedBox(height: 10.h),
 
@@ -192,10 +214,12 @@ class _DashboardKpiCardState extends State<DashboardKpiCard> with SingleTickerPr
                 height: 7.h,
                 width: double.infinity,
                 child: _total == 0
-                    ? Container(color: Vibe.stroke.withValues(alpha: 0.4))
+                    ? Container(color: colors.border.withValues(alpha: 0.4))
                     : Row(
                         children: visibleSegments
-                            .map((s) => Expanded(flex: s.value, child: Container(color: s.color)))
+                            .map((s) => Expanded(
+                                flex: s.value,
+                                child: Container(color: s.color)))
                             .toList(),
                       ),
               ),
@@ -214,11 +238,20 @@ class _DashboardKpiCardState extends State<DashboardKpiCard> with SingleTickerPr
                     Container(
                       width: 6.w,
                       height: 6.w,
-                      decoration: BoxDecoration(color: s.color, shape: BoxShape.circle),
+                      decoration:
+                          BoxDecoration(color: s.color, shape: BoxShape.circle),
                     ),
                     SizedBox(width: 4.w),
-                    Text('${s.label} ', style: TextStyle(color: Vibe.muted, fontSize: 6.8.sp, fontWeight: FontWeight.w500)),
-                    Text('${s.value}', style: TextStyle(color: Vibe.text, fontSize: 6.8.sp, fontWeight: FontWeight.w700)),
+                    Text('${s.label} ',
+                        style: TextStyle(
+                            color: colors.textSecondary,
+                            fontSize: 6.8.sp,
+                            fontWeight: FontWeight.w500)),
+                    Text('${s.value}',
+                        style: TextStyle(
+                            color: scheme.onSurface,
+                            fontSize: 6.8.sp,
+                            fontWeight: FontWeight.w700)),
                   ],
                 );
               }).toList(),
@@ -232,10 +265,14 @@ class _DashboardKpiCardState extends State<DashboardKpiCard> with SingleTickerPr
               children: [
                 Text(
                   'common.view_details'.tr,
-                  style: TextStyle(color: widget.iconColor, fontSize: 7.2.sp, fontWeight: FontWeight.w700),
+                  style: TextStyle(
+                      color: widget.iconColor,
+                      fontSize: 7.2.sp,
+                      fontWeight: FontWeight.w700),
                 ),
                 SizedBox(width: 3.w),
-                Icon(Icons.arrow_right_alt_rounded, size: 12.w, color: widget.iconColor),
+                Icon(Icons.arrow_right_alt_rounded,
+                    size: 12.w, color: widget.iconColor),
               ],
             ),
           ],

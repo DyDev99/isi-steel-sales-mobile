@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:isi_steel_sales_mobile/core/local/localization_services.dart';
+import 'package:isi_steel_sales_mobile/core/localization/localization_services.dart';
 import 'package:isi_steel_sales_mobile/core/theme/auth_vibe.dart';
-import 'package:isi_steel_sales_mobile/core/utils/verion.dart';
+import 'package:isi_steel_sales_mobile/core/utils/version.dart';
+import 'package:isi_steel_sales_mobile/features/localization/domain/entities/language_entity.dart';
 import 'package:isi_steel_sales_mobile/features/localization/presentation/bloc/language_cubit.dart';
-import 'package:isi_steel_sales_mobile/core/utils/aurora_background.dart';
-import 'package:isi_steel_sales_mobile/core/utils/glass_card.dart';
-import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_bloc.dart';
-import 'package:isi_steel_sales_mobile/features/authentication/presentation/bloc/auth_state.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/aurora_background.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/glass_card.dart';
 import 'package:isi_steel_sales_mobile/features/authentication/presentation/widgets/login/gradient_button.dart';
 import 'package:isi_steel_sales_mobile/routes/app_routes.dart';
+import 'package:isi_steel_sales_mobile/shared/widgets/brand_logo.dart';
 
 /// Shown once, right after splash. Lets the user pick a display language
 /// before they ever see the login form. Same visual language as
@@ -23,25 +23,11 @@ class LanguageSelectionScreen extends StatefulWidget {
       _LanguageSelectionScreenState();
 }
 
-class _LanguageOption {
-  const _LanguageOption(this.code, this.nameKey, this.regionKey, this.flag);
-  final String code;
-  final String nameKey;
-  final String regionKey;
-  final String flag;
-
-  /// The language's own name, e.g. "English" or "ភាសាខ្មែរ" — always shown
-  /// in that language regardless of which locale is currently active, so
-  /// people can find their language even if the UI is showing the wrong one.
-  String get name => nameKey.tr;
-  String get region => regionKey.tr;
-}
-
 class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
-  static const _options = [
-    _LanguageOption('en', 'language.english', 'language.english_region', '🇺🇸'),
-    _LanguageOption('kh', 'language.khmer', 'language.khmer_region', '🇰🇭'),
-  ];
+  /// Catalog-driven: everything `assets/lang/` ships, in display order —
+  /// adding a language to the app surfaces it here with no UI change.
+  late final List<LanguageEntity> _options =
+      context.read<LanguageCubit>().supportedLanguages;
 
   late String _selected = 'en';
   bool _saving = false;
@@ -61,7 +47,8 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
   }
 
   Future<void> _selectLanguage(String code) async {
-    if (code == _selected && LocalizationService.instance.currentLanguageCode == code) {
+    if (code == _selected &&
+        LocalizationService.instance.currentLanguageCode == code) {
       return;
     }
     setState(() {
@@ -79,17 +66,19 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
 
   Future<void> _continue() async {
     setState(() => _saving = true);
-    // Language was already applied the moment the tile was tapped, so this
-    // just decides where to land.
-    if (!mounted) return;
 
-    // AuthCheckRequested (fired on app boot) has almost certainly resolved
-    // by now, so read the latest state directly rather than hard-coding
-    // login — an already-signed-in user should land on the main shell, not
-    // be sent back through login.
-    final authState = context.read<AuthBloc>().state;
-    final destination = authState is AuthenticatedState ? Static.main : Static.login;
-    Navigator.of(context).pushNamedAndRemoveUntil(destination, (route) => false);
+    // Language first, then the tour — so the onboarding copy is already in the
+    // language the user just chose.
+    //
+    // This screen no longer completes onboarding. `OnboardingScreen` owns that
+    // flag now, and sets it whether the user finishes or skips; flipping it
+    // here as well would mean a user who backed out of the language step still
+    // never saw the tour.
+    //
+    // Guest-first setup also moved there, alongside the navigation it belongs
+    // to — see `OnboardingScreen._finish`.
+    if (!mounted) return;
+    Navigator.of(context).pushReplacementNamed(Static.onboarding);
   }
 
   @override
@@ -113,11 +102,11 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             Center(
-                              child: Image.asset(
-                                'assets/logos/isi_app_logo.png',
-                                width: 160,
-                                fit: BoxFit.contain,
-                              ),
+                              // The full ISI Group wordmark in dark ink, not
+                              // the blue seal on its own: `Vibe.bg` is
+                              // `AppColors.background` (white), so this is a
+                              // light surface and the dark mark belongs.
+                              child: const BrandLogo(width: 200),
                             ),
                             const SizedBox(height: 12),
                             Text(
@@ -190,7 +179,7 @@ class _LanguageTile extends StatelessWidget {
     this.switching = false,
   });
 
-  final _LanguageOption option;
+  final LanguageEntity option;
   final bool selected;
   final bool switching;
   final VoidCallback onTap;
@@ -201,7 +190,8 @@ class _LanguageTile extends StatelessWidget {
       duration: const Duration(milliseconds: 180),
       curve: Curves.easeOut,
       decoration: BoxDecoration(
-        color: selected ? Vibe.pink.withValues(alpha: 0.10) : Vibe.surfaceStrong,
+        color:
+            selected ? Vibe.pink.withValues(alpha: 0.10) : Vibe.surfaceStrong,
         borderRadius: BorderRadius.circular(Vibe.radius),
         border: Border.all(
           color: selected ? Vibe.pink : Vibe.stroke,
@@ -226,7 +216,8 @@ class _LanguageTile extends StatelessWidget {
                     shape: BoxShape.circle,
                     border: Border.all(color: Vibe.stroke),
                   ),
-                  child: Text(option.flag, style: const TextStyle(fontSize: 20)),
+                  child:
+                      Text(option.flag, style: const TextStyle(fontSize: 20)),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
@@ -234,7 +225,7 @@ class _LanguageTile extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        option.name,
+                        option.nameKey.tr,
                         style: TextStyle(
                           color: Vibe.text,
                           fontSize: 16,
@@ -242,7 +233,7 @@ class _LanguageTile extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        option.region,
+                        option.regionKey.tr,
                         style: TextStyle(color: Vibe.muted, fontSize: 12),
                       ),
                     ],
@@ -266,10 +257,12 @@ class _LanguageTile extends StatelessWidget {
                               padding: EdgeInsets.all(4),
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation(Colors.white),
+                                valueColor:
+                                    AlwaysStoppedAnimation(Colors.white),
                               ),
                             )
-                          : const Icon(Icons.check, size: 16, color: Colors.white))
+                          : const Icon(Icons.check,
+                              size: 16, color: Colors.white))
                       : null,
                 ),
               ],

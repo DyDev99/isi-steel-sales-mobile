@@ -8,5 +8,6 @@ class UpdateWorkerProfile implements UseCase<WorkerProfile, WorkerProfile> {
   final ProfileRepository _repository;
 
   @override
-  Future<Result<WorkerProfile>> call(WorkerProfile params) => _repository.updateProfile(params);
+  Future<Result<WorkerProfile>> call(WorkerProfile params) =>
+      _repository.updateProfile(params);
 }

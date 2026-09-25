@@ -43,5 +43,6 @@ class SyncScope extends Equatable {
       warehouseCodes.isEmpty || warehouseCodes.contains(warehouseCode);
 
   @override
-  List<Object?> get props => [repId, territory, warehouseCodes, businessUnit, pricingGroup];
+  List<Object?> get props =>
+      [repId, territory, warehouseCodes, businessUnit, pricingGroup];
 }

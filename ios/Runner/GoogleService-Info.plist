@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>API_KEY</key>
+	<string>AIzaSyCBYXm9g_g5tBGQUeuZet2Rr2z5pdq9Ugk</string>
+	<key>GCM_SENDER_ID</key>
+	<string>696334570059</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.isigroup.steelforce</string>
+	<key>PROJECT_ID</key>
+	<string>steelforce-94963</string>
+	<key>STORAGE_BUCKET</key>
+	<string>steelforce-94963.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:696334570059:ios:8a1164ba7a9aaeb5b0f3ce</string>
+</dict>
+</plist>

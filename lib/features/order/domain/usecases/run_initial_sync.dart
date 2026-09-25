@@ -9,5 +9,6 @@ class RunInitialSync extends UseCase<SyncResult, SyncScope> {
   final SyncRepository _repository;
 
   @override
-  ResultFuture<SyncResult> call(SyncScope params) => _repository.runInitialSync(params);
+  ResultFuture<SyncResult> call(SyncScope params) =>
+      _repository.runInitialSync(params);
 }

@@ -8,5 +8,6 @@ class RemoveFromCart extends UseCase<void, CartItemIdParams> {
   final CartRepository _repository;
 
   @override
-  ResultFuture<void> call(CartItemIdParams params) => _repository.removeItem(params.cartItemId);
+  ResultFuture<void> call(CartItemIdParams params) =>
+      _repository.removeItem(params.cartItemId);
 }

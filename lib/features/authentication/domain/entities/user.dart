@@ -34,7 +34,8 @@ class User extends Equatable {
   bool hasAnyRole(Iterable<UserRole> anyRoles) => anyRoles.any(roles.contains);
 
   /// Checks if the user holds every single role listed.
-  bool hasAllRoles(Iterable<UserRole> allRoles) => allRoles.every(roles.contains);
+  bool hasAllRoles(Iterable<UserRole> allRoles) =>
+      allRoles.every(roles.contains);
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
   Map<String, dynamic> toJson() => _$UserToJson(this);

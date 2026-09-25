@@ -8,5 +8,6 @@ class FetchRecentProducts extends UseCase<List<Product>, NoParams> {
   final ProductRepository _repository;
 
   @override
-  ResultFuture<List<Product>> call(NoParams params) => _repository.fetchRecent();
+  ResultFuture<List<Product>> call(NoParams params) =>
+      _repository.fetchRecent();
 }

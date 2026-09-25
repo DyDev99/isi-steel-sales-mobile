@@ -32,6 +32,13 @@ abstract interface class ProductRepository {
     required int pageSize,
   });
 
+  /// Exact count of products matching [query] + [filter], independent of
+  /// paging — powers the live "Showing N products" filter counter.
+  ResultFuture<int> countProducts({
+    String query = '',
+    ProductFilter filter = const ProductFilter(),
+  });
+
   /// All sibling size/grade variants sharing a product family (e.g. every
   /// diameter of "SD390 Rebar"), one representative row per distinct [Product.code].
   ResultFuture<List<Product>> getProductVariants(String familyId);

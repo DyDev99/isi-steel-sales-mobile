@@ -25,7 +25,7 @@ class DashboardSummary extends Equatable {
     required this.openOrders,
     required this.openOpportunities,
     required this.wonDeals,
-    required this.totalCustomers,
+    required this.totalDepots,
     required this.totalRoutes,
     required this.revenueMtd,
     required this.winRate,
@@ -37,7 +37,7 @@ class DashboardSummary extends Equatable {
   final int openOrders;
   final int openOpportunities;
   final int wonDeals;
-  final int totalCustomers;
+  final int totalDepots;
   final int totalRoutes;
   final String revenueMtd; // pre-formatted for display
   final double winRate; // 0..1
@@ -48,7 +48,7 @@ class DashboardSummary extends Equatable {
   List<Object?> get props => [
         newLeads,
         openOrders,
-        totalCustomers,
+        totalDepots,
         totalRoutes,
         revenueMtd,
         winRate,
